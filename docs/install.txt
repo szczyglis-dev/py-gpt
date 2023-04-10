@@ -1,0 +1,4 @@
+sudo apt install fonts-freefont-otf latexmk python3-venv \
+texlive-fonts-recommended texlive-latex-recommended \
+texlive-latex-extra texlive-lang-greek \
+tex-gyre texlive-xetex

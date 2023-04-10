@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, pygpt.net
+# This file is distributed under the same license as the PYGPT package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PYGPT \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pl\n"
+"Language-Team: pl <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: ../../source/context.rst:2
+msgid "Context and memory"
+msgstr ""
+
+#: ../../source/context.rst:5
+msgid "Short and long-term memory"
+msgstr ""
+
+#: ../../source/context.rst:6
+msgid ""
+"The application allows you to conduct a conversation in a continuous "
+"mode, allowing you to use a long context. The entire context of the "
+"conversation is stored on the application side and is automatically "
+"attached to all sent to AI messages (prompts). You can also return to the"
+" context of a given conversation at any time - the application allows you"
+" to continue previous conversations and saves the history of the entire "
+"conversation, which can be easily restored and continued from this point."
+msgstr ""
+
+#: ../../source/context.rst:10
+msgid "Handling multiple contexts"
+msgstr ""
+
+#: ../../source/context.rst:11
+msgid ""
+"On the left side of the screen there is a list of saved contexts, you can"
+" add any number of contexts there and conveniently switch between them "
+"and easily return to previous conversations at any time."
+msgstr ""
+
+#: ../../source/context.rst:16
+msgid "Context support can be turned off in the settings, use the option:"
+msgstr ""
+
+#: ../../source/context.rst:24
+msgid "Clearing history"
+msgstr ""
+
+#: ../../source/context.rst:26
+msgid "To clear whole memory (all contexts) use the menu option:"
+msgstr ""
+
+#: ../../source/context.rst:34
+msgid "Context storage"
+msgstr ""
+
+#: ../../source/context.rst:35
+msgid ""
+"On the application side, the context is stored in the user's directory in"
+" ``JSON`` files. In addition, all history is also saved to ``.txt`` "
+"files, which makes it easy to read."
+msgstr ""
+

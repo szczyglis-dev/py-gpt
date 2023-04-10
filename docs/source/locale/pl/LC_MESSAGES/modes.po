@@ -1,0 +1,92 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, pygpt.net
+# This file is distributed under the same license as the PYGPT package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PYGPT \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pl\n"
+"Language-Team: pl <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: ../../source/modes.rst:2
+msgid "Chatbot and completion (GPT3, GPT4)"
+msgstr ""
+
+#: ../../source/modes.rst:5
+msgid "Chatbot"
+msgstr ""
+
+#: ../../source/modes.rst:6
+msgid ""
+"This is the default mode of operation and works very similarly to "
+"**ChatGPT**. The mode allows you to talk to models such as **GPT3**, "
+"**GPT3.5** and **GPT4**. You can switch between the currently used model "
+"at any time."
+msgstr ""
+
+#: ../../source/modes.rst:10
+msgid ""
+"In the middle window of the application there is a chat window, and below"
+" it there is a field for the text entered by the user (prompt). On the "
+"right side of the application window, you can conveniently define your "
+"own system prompt for the model at any time, or create a preset with a "
+"prompt and save it, for example, for later use. This allows you to easily"
+" and quickly switch between different starting configurations for the "
+"model, and allows you to conveniently experiment with the whole thing."
+msgstr ""
+
+#: ../../source/modes.rst:12
+msgid ""
+"Under the chat window and above the input window, the calculated amount "
+"of tokens that will be used to perform a given query is always shown in "
+"real time."
+msgstr ""
+
+#: ../../source/modes.rst:20
+msgid "Text Completion"
+msgstr ""
+
+#: ../../source/modes.rst:21
+msgid ""
+"This is a more advanced and capable mode that allows more extensive use "
+"of the **GPT3** model. It works similarly to a chat, but it allows for "
+"more configuration and has more features than a regular chat. In this "
+"mode, you can use the model for more tasks, such as completing text, "
+"simulating conversation as various persons, analyzing text, and many "
+"more."
+msgstr ""
+
+#: ../../source/modes.rst:23
+msgid ""
+"As in the chat mode, here on the right there are convenient presets, "
+"thanks to which you can freely configure the model and quickly switch "
+"between different configurations."
+msgstr ""
+
+#: ../../source/modes.rst:25
+msgid ""
+"This mode additionally has fields in which you can enter a name for the "
+"AI and for the user. This allows, for example, to simulate a conversation"
+" as two fictitious actors, if so defined in the start prompt. Thanks to "
+"these options, it is possible, for example, to simulate a conversation "
+"between e.g. Batman and the Joker. ;)"
+msgstr ""
+
+#: ../../source/modes.rst:30
+msgid ""
+"In this mode, models from the ``davinci`` family - included in the "
+"**GPT3** - are available."
+msgstr ""
+

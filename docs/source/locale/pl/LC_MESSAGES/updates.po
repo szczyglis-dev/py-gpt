@@ -1,0 +1,44 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, pygpt.net
+# This file is distributed under the same license as the PYGPT package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PYGPT \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pl\n"
+"Language-Team: pl <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: ../../source/updates.rst:2
+msgid "Updates"
+msgstr ""
+
+#: ../../source/updates.rst:5
+msgid "Updating PYGPT"
+msgstr ""
+
+#: ../../source/updates.rst:6
+msgid ""
+"The application has a built-in update notification. If there is a newer "
+"version with new features, you will be informed in the application "
+"window."
+msgstr ""
+
+#: ../../source/updates.rst:8
+msgid ""
+"Simply download the new version and use it instead of the current one, "
+"all configuration such as context and history will survive between "
+"versions and will be available in the newly installed version."
+msgstr ""
+

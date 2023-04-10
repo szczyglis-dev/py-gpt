@@ -1,0 +1,15 @@
+{
+    "name": "*",
+    "ai_name": "AI assistant",
+    "user_name": "Human",
+    "prompt": "",
+    "chat": false,
+    "completion": true,
+    "img": false,
+    "temperature": 1.0,
+    "__meta__": {
+        "version": "0.9.0",
+        "app.version": "0.9.0",
+        "updated_at": "2023-04-09T20:17:41"
+    }
+}

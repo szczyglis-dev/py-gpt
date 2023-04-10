@@ -1,0 +1,45 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, szczyglis-dev, Marcin Szczygliński
+# This file is distributed under the same license as the SERVO CAM package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: SERVO CAM\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-03-28 02:32+0200\n"
+"PO-Revision-Date: 2023-03-28 04:11+0200\n"
+"Last-Translator: \n"
+"Language-Team: pl <LL@li.org>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Generated-By: Babel 2.12.1\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: ../../source/schemas.rst:2
+msgid "Schemes and drawings"
+msgstr "Schematy i rysunki"
+
+#: ../../source/schemas.rst:5
+msgid "Screen - coordinates"
+msgstr "Ekran - koordynaty"
+
+#: ../../source/schemas.rst:11
+msgid "Camera - mapping"
+msgstr "Kamera - mapowanie"
+
+#: ../../source/schemas.rst:13
+msgid "**Top view:**"
+msgstr "**Widok z góry:**"
+
+#: ../../source/schemas.rst:18
+msgid "**Side view (from left):**"
+msgstr "**Widok z boku (od lewej):**"
+
+#: ../../source/schemas.rst:24
+msgid "Network communication diagram (sockets)"
+msgstr "Diagram komunikacji sieciowej (sockety)"

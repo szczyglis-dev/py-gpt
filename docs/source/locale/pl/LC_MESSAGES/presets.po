@@ -1,0 +1,57 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, pygpt.net
+# This file is distributed under the same license as the PYGPT package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PYGPT \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pl\n"
+"Language-Team: pl <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: ../../source/presets.rst:2
+msgid "Presets"
+msgstr ""
+
+#: ../../source/presets.rst:5
+msgid "What is preset?"
+msgstr ""
+
+#: ../../source/presets.rst:6
+msgid ""
+"Presets are used to store different configurations and to use these "
+"configurations at any time. The preset includes the selected mode of "
+"operation (chat, completion or image generation), initialization (system)"
+" message, name for AI, username and conversation \"temperature\" (the "
+"higher the value, the more abstract the model behaves, and the lower the "
+"value, the more deterministic it behaves)."
+msgstr ""
+
+#: ../../source/presets.rst:8
+msgid ""
+"You can add as many presets as you want and you can switch between them "
+"at any time. You can also duplicate them and use some presets to create "
+"others based on them."
+msgstr ""
+
+#: ../../source/presets.rst:16
+msgid "Example usage"
+msgstr ""
+
+#: ../../source/presets.rst:17
+msgid ""
+"The application contains several sample presets that allow you to "
+"familiarize yourself with the mechanism of their use."
+msgstr ""
+

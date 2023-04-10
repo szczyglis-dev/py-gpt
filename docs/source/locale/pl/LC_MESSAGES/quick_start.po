@@ -1,0 +1,64 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2023, pygpt.net
+# This file is distributed under the same license as the PYGPT package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PYGPT \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pl\n"
+"Language-Team: pl <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: ../../source/quick_start.rst:2
+msgid "Quick Start"
+msgstr ""
+
+#: ../../source/quick_start.rst:5
+msgid "Setting-up OpenAI API KEY"
+msgstr ""
+
+#: ../../source/quick_start.rst:7
+msgid "During the first run, you must configure your API key in the application."
+msgstr ""
+
+#: ../../source/quick_start.rst:10
+msgid "To do this, enter the menu:"
+msgstr ""
+
+#: ../../source/quick_start.rst:17
+msgid "and then paste the API key into the ``OpenAI API KEY`` field."
+msgstr ""
+
+#: ../../source/quick_start.rst:23
+msgid "The API key can be obtained by registering on the OpenAI website:"
+msgstr ""
+
+#: ../../source/quick_start.rst:25
+msgid "https://platform.openai.com"
+msgstr ""
+
+#: ../../source/quick_start.rst:27
+msgid "Your API keys will be available here:"
+msgstr ""
+
+#: ../../source/quick_start.rst:29
+msgid "https://platform.openai.com/account/api-keys"
+msgstr ""
+
+#: ../../source/quick_start.rst:32
+msgid ""
+"**Note:** the ability to use models in the application depends on the API"
+" user's access to a given model!"
+msgstr ""
+

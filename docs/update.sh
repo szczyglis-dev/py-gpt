@@ -1,0 +1,1 @@
+sphinx-intl update -p build/gettext
