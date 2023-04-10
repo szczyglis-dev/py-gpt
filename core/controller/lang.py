@@ -95,6 +95,7 @@ class Lang:
         self.window.data['settings.max_total_tokens.label'].setText(trans("settings.max_total_tokens"))
         self.window.data['settings.img_resolution.label'].setText(trans("settings.img_resolution"))
         self.window.data['settings.api_key.label'].setText(trans("settings.api_key"))
+        self.window.data['settings.organization_key.label'].setText(trans("settings.organization_key"))
         self.window.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
 
         # buttons

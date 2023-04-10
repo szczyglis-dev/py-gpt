@@ -44,6 +44,7 @@ class Settings:
         self.window.path_label[id] = QLabel(str(path))
         self.window.path_label[id].setStyleSheet("font-weight: bold;")
         self.window.config_option['api_key'] = SettingsInput(self.window, 'api_key')
+        self.window.config_option['organization_key'] = SettingsInput(self.window, 'organization_key')
         self.window.config_option['img_resolution'] = SettingsInput(self.window, 'img_resolution')
         self.window.config_option['temperature'] = SettingsSlider(self.window, 'temperature',
                                                                   '', 0, 200,
@@ -78,6 +79,7 @@ class Settings:
 
         options = {}
         options['api_key'] = self.add_option('settings.api_key', self.window.config_option['api_key'], True)
+        options['organization_key'] = self.add_option('settings.organization_key', self.window.config_option['organization_key'], True)
         options['temperature'] = self.add_option('settings.temperature', self.window.config_option['temperature'])
         options['top_p'] = self.add_option('settings.top_p', self.window.config_option['top_p'])
         options['frequency_penalty'] = self.add_option('settings.frequency_penalty',
@@ -112,6 +114,7 @@ class Settings:
         rows.addLayout(options['font_size'])
         rows.addLayout(options['img_resolution'])
         rows.addLayout(options['api_key'])
+        rows.addLayout(options['organization_key'])
 
         layout = QVBoxLayout()
         layout.addLayout(rows)

@@ -32,6 +32,7 @@ class Settings:
         """
         if id == "settings":
             self.window.config.data['api_key'] = self.window.config_option['api_key'].text()
+            self.window.config.data['organization_key'] = self.window.config_option['organization_key'].text()
             self.window.config.data['img_resolution'] = self.window.config_option['img_resolution'].text()
 
         info = trans('info.settings.saved')
@@ -166,6 +167,7 @@ class Settings:
 
             # input
             self.change('api_key', self.window.config.data['api_key'])
+            self.change('organization_key', self.window.config.data['organization_key'])
             self.change('img_resolution', self.window.config.data['img_resolution'])
 
             # checkbox
