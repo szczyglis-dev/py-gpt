@@ -1,4 +1,4 @@
-Current release: **0.9.0** | Build: **2023.04.09** | Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
+Current release: **0.9.0** | Build: **2023.04.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 
 ### **Download compiled versions for Windows 10, 11 and Linux** here: https://pygpt.net
