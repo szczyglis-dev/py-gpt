@@ -18,10 +18,15 @@ from core.utils import trans
 
 class About:
     def __init__(self, window=None):
+        """
+        About dialog
+
+        :param window: main UI window object
+        """
         self.window = window
 
     def setup(self):
-        """Setup about dialog"""
+        """Setups about dialog"""
         id = 'about'
 
         logo_label = QLabel()

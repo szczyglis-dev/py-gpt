@@ -62,23 +62,27 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('PYGPT.net v{} | build {}'.format(self.version, self.build))
 
     def setup(self):
-        """Setup app"""
+        """Setups app"""
         self.controller.setup()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(30)
 
     def update(self):
-        """On update"""
+        """Called on update"""
         self.debugger.update()
 
     def set_status(self, text):
-        """Set status"""
+        """
+        Set status text
+
+        :param text: status text
+        """
         self.data['status'].setText(str(text))
 
     def closeEvent(self, event):
         """
-        Handle close event
+        Handles close event
 
         :param event: close event
         """
@@ -92,6 +96,13 @@ class MainWindow(QMainWindow):
 
 
 def except_hook(cls, exception, traceback):
+    """
+    Temporally hook for exceptions handling
+
+    :param cls: class
+    :param exception: exception
+    :param traceback: traceback
+    """
     sys.__excepthook__(cls, exception, traceback)
 
 
@@ -99,14 +110,14 @@ if __name__ == '__main__':
     # sys.excepthook = except_hook
 
     app = QApplication(sys.argv)
-   
     window = MainWindow()
+
+    # apply material theme
     window.setStyle(QStyleFactory.create('Plastique'))
     window.setStyleSheet("QLineEdit { color: #fff; }")
     extra = {
         'density_scale': '-2',
-        #'linux': True,
-        #'windows': True,
+        # 'linux': True,
         'pyside6': True,
         # 'font_family': 'Roboto',
         'QLineEdit': {

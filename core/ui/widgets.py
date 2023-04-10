@@ -91,6 +91,7 @@ class SelectMenu(QTreeView):
         Select menu
 
         :param window: main window
+        :param id: input id
         """
         super(SelectMenu, self).__init__(window)
         self.window = window
@@ -119,6 +120,7 @@ class PresetSelectMenu(SelectMenu):
         Presets select menu
 
         :param window: main window
+        :param id: input id
         """
         super(PresetSelectMenu, self).__init__(window)
         self.window = window
@@ -204,6 +206,7 @@ class ContextSelectMenu(SelectMenu):
         Presets select menu
 
         :param window: main window
+        :param id: input id
         """
         super(ContextSelectMenu, self).__init__(window)
         self.window = window
@@ -212,6 +215,11 @@ class ContextSelectMenu(SelectMenu):
         self.doubleClicked.connect(self.dblclick)
 
     def click(self, val):
+        """
+        Click event
+
+        :param val: click event
+        """
         self.window.controller.context.select(val.row())
 
     def dblclick(self, val):
@@ -450,7 +458,8 @@ class SettingsCheckbox(QWidget):
             lambda: self.window.controller.settings.toggle(self.id, self.box.isChecked(), self.section))
 
         # windows style fix (without this checkboxes are invisible!)
-        self.box.setStyleSheet("QCheckBox::indicator:checked { background-color: #1de9b6; } QCheckBox::indicator:unchecked { background-color: #3a3f45; }")
+        self.box.setStyleSheet(
+            "QCheckBox::indicator:checked { background-color: #1de9b6; } QCheckBox::indicator:unchecked { background-color: #3a3f45; }")
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
@@ -581,7 +590,7 @@ class EditorDialog(QDialog):
 
     def closeEvent(self, event):
         """
-        Close event
+        Closes event
 
         :param event: close event
         """
@@ -698,7 +707,6 @@ class FileEditorDialog(QDialog):
         File editor dialog
 
         :param window: main window
-        :param id: editor id
         """
         super(FileEditorDialog, self).__init__(window)
         self.window = window
@@ -734,6 +742,7 @@ class GeneratedImageLabel(QLabel):
         Presets select menu
 
         :param window: main window
+        :param path: image path
         """
         super(GeneratedImageLabel, self).__init__(window)
         self.window = window

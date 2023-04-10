@@ -17,7 +17,7 @@ from core.utils import trans
 class Status:
     def __init__(self, window=None):
         """
-        Input
+        Input UI
 
         :param window: main UI window object
         """
@@ -25,7 +25,7 @@ class Status:
 
     def setup(self):
         """
-        Setup status
+        Setups status
 
         :return: QHBoxLayout
         """

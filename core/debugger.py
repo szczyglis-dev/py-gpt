@@ -51,7 +51,11 @@ class Debug:
             self.idx[id] = 0
 
     def update(self, all=False):
-        """Update debug windows"""
+        """
+        Updates debug windows
+
+        :param all: update all debug windows
+        """
         not_realtime = ['context']
         for id in self.workers:
             if id in self.active and self.active[id]:
@@ -60,7 +64,7 @@ class Debug:
 
     def begin(self, id):
         """
-        Begin debug data add
+        Begins debug data
 
         :param id: debug id
         """
@@ -72,7 +76,7 @@ class Debug:
 
     def end(self, id):
         """
-        End debug data add
+        Ends debug data
 
         :param id: debug id
         """
@@ -81,7 +85,7 @@ class Debug:
 
     def add(self, id, k, v):
         """
-        Add debug entry
+        Appends debug entry
 
         :param id: debug id
         :param k: key
@@ -102,7 +106,7 @@ class Debug:
 
     def create_model(self, parent):
         """
-        Create list model
+        Creates list model
 
         :param parent: parent widget
         :return: model instance

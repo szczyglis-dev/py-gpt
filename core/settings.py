@@ -15,7 +15,7 @@ import os
 class Settings:
     def __init__(self, window=None):
         """
-        Settings
+        Settings handler
 
         :param window: main window
         """
@@ -30,19 +30,19 @@ class Settings:
             self.active[id] = False
 
     def load_default_settings(self):
-        """Load defaults"""
+        """Loads defaults"""
         self.window.config.load_config()
         self.window.controller.settings.init('settings')
         self.window.ui.dialogs.alert("Loaded defaults")
 
     def load_default_editor(self):
-        """Load defaults from file"""
+        """Loads defaults from file"""
         file = self.window.dialog['config.editor'].file
         self.load_editor(file)
         self.window.set_status("Loaded defaults from file: {}".format(file))
 
     def save_editor(self):
-        """Save file"""
+        """Saves file to disk"""
         file = self.window.dialog['config.editor'].file
         path = os.path.join(self.window.config.path, file)
         try:
@@ -57,7 +57,7 @@ class Settings:
 
     def load_editor(self, file=None):
         """
-        Load file
+        Loads file to editor
 
         :param id: file id
         """

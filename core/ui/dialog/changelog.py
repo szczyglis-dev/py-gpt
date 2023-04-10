@@ -19,10 +19,15 @@ from core.utils import trans
 
 class Changelog:
     def __init__(self, window=None):
+        """
+        Changelog dialog
+
+        :param window: main UI window object
+        """
         self.window = window
 
     def setup(self):
-        """Setup change log dialog"""
+        """Setups change log dialog"""
         id = 'changelog'
 
         txt = ''

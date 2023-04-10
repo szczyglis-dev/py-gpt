@@ -25,7 +25,7 @@ class Debug:
 
     def setup(self, id):
         """
-        Setup debug dialog
+        Setups debug dialog
 
         :param id: debug id
         """

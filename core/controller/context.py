@@ -22,7 +22,7 @@ class Context:
         self.window = window
 
     def setup(self):
-        """Setup context"""
+        """Setups context"""
         self.window.gpt.context.load_list()
         if len(self.window.gpt.context.contexts) == 0:
             self.new()
@@ -36,13 +36,13 @@ class Context:
         self.load(self.window.gpt.context.current_ctx)
 
     def new(self):
-        """Create new context"""
+        """Creates new context"""
         self.window.gpt.context.new()
         self.update()
         self.window.controller.output.clear()
 
     def update(self):
-        """Update context list"""
+        """Updates context list"""
         items = self.window.gpt.context.get_list()
         self.window.ui.contexts.update_list('ctx.contexts', items)
         self.select_ctx_by_current()
@@ -57,7 +57,7 @@ class Context:
 
     def load(self, ctx):
         """
-        Load context
+        Loads context
 
         :param ctx: context name (id)
         """
@@ -67,14 +67,12 @@ class Context:
         self.update()
 
     def refresh(self):
-        """Refresh context"""
+        """Refreshes context"""
         self.load(self.window.gpt.context.current_ctx)
 
     def selection_change(self):
         """
-        Select context
-
-        :param idx: context index
+        Selects context on list change
         """
         # TODO: implement this
         # idx = self.window.data['ctx.contexts'].currentIndex().row()
@@ -83,7 +81,7 @@ class Context:
 
     def select(self, idx):
         """
-        Select context
+        Selects context
 
         :param idx: context index
         """
@@ -93,7 +91,7 @@ class Context:
 
     def delete(self, idx, force=False):
         """
-        Delete context
+        Deletes context
 
         :param idx: context index
         :param force: force delete
@@ -111,7 +109,7 @@ class Context:
 
     def delete_history(self, force=False):
         """
-        Delete context history item
+        Deletes context history item
 
         :param force: force delete
         """
@@ -124,7 +122,7 @@ class Context:
 
     def rename(self, idx):
         """
-        Rename context
+        Renames context
 
         :param idx: context index
         """
@@ -136,7 +134,7 @@ class Context:
         self.update()
 
     def select_ctx_by_current(self):
-        """Select ctx by current"""
+        """Selects ctx by current"""
         ctx = self.window.gpt.context.current_ctx
         items = self.window.gpt.context.get_list()
         if ctx in items:
@@ -146,7 +144,7 @@ class Context:
 
     def update_name(self, ctx, name):
         """
-        Update context name
+        Updates context name
 
         :param ctx: context name (id)
         :param name: context name
@@ -157,12 +155,12 @@ class Context:
         self.update()
 
     def dismiss_rename(self):
-        """Dismiss rename dialog"""
+        """Dismisses rename dialog"""
         self.window.dialog['ctx.rename'].close()
 
     def add(self, ctx):
         """
-        Add context
+        Adds context
 
         :param ctx: context name (id)
         """

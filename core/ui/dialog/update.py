@@ -14,8 +14,13 @@ from core.ui.widgets import UpdateDialog
 
 class Update:
     def __init__(self, window=None):
+        """
+        Updater dialog
+
+        :param window: main UI window object
+        """
         self.window = window
 
     def setup(self):
-        """Setup update dialog"""
+        """Setups updater dialog"""
         self.window.dialog['update'] = UpdateDialog(self.window)

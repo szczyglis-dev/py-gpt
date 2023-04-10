@@ -11,4 +11,9 @@
 
 class Plugins:
     def __init__(self, window=None):
+        """
+        Plugins controller
+
+        :param window: main window
+        """
         self.window = window

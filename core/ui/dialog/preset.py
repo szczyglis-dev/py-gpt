@@ -25,7 +25,7 @@ class Preset:
         self.window = window
 
     def setup(self):
-        """Setup preset editor dialog"""
+        """Setups preset editor dialog"""
 
         id = "preset.presets"
         path = self.window.config.path
@@ -103,7 +103,7 @@ class Preset:
 
     def add_option(self, title, option, bold=False):
         """
-        Add option
+        Adds option
 
         :param title: Title
         :param option: Option
@@ -121,7 +121,7 @@ class Preset:
 
     def add_raw_option(self, option):
         """
-        Add raw option row
+        Adds raw option row
 
         :param option: Option
         """

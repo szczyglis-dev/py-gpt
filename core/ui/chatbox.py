@@ -20,7 +20,7 @@ from core.utils import trans
 class ChatBox:
     def __init__(self, window=None):
         """
-        Chatbox controller
+        Chatbox UI
 
         :param window: main window object
         """
@@ -29,9 +29,9 @@ class ChatBox:
 
     def setup(self):
         """
-        Setup chatbox
+        Setups chatbox
 
-        :return: QVBoxLayout
+        :return: QSplitter
         """
         self.window.layout_input = self.input.setup()
 
@@ -69,13 +69,14 @@ class ChatBox:
 
     def setup_context(self):
         """
-        Setup context
+        Setups context
 
         :return: QHBoxLayout        
         """
         css_fix = "QCheckBox::indicator:checked { background-color: #1de9b6; } QCheckBox::indicator:unchecked { background-color: #3a3f45; }"
         self.window.data['output.timestamp'] = QCheckBox(trans('output.timestamp'))
-        self.window.data['output.timestamp'].setStyleSheet(css_fix) # windows style fix (without this checkboxes are invisible!)
+        self.window.data['output.timestamp'].setStyleSheet(
+            css_fix)  # windows style fix (without this checkboxes are invisible!)
         self.window.data['output.timestamp'].stateChanged.connect(
             lambda: self.window.controller.output.toggle_timestamp(self.window.data['output.timestamp'].isChecked()))
 

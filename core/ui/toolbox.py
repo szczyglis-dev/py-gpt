@@ -19,7 +19,7 @@ from core.utils import trans
 class Toolbox:
     def __init__(self, window=None):
         """
-        Toolbox
+        Toolbox UI
 
         :param window: main UI window object
         """
@@ -27,9 +27,9 @@ class Toolbox:
 
     def setup(self):
         """
-        Setup toolbox
+        Setups toolbox
 
-        :return: QWidget
+        :return: QSplitter
         """
         # modes and models
         mode_widget = QWidget()
@@ -100,7 +100,7 @@ class Toolbox:
 
     def setup_prompt(self):
         """
-        Setup preset prompt
+        Setups preset prompt
 
         :return: QVBoxLayout
         """
@@ -126,7 +126,7 @@ class Toolbox:
 
     def setup_list(self, id, title):
         """
-        Setup list
+        Setups list
 
         :param id: ID of the list
         :param title: Title of the list
@@ -146,7 +146,7 @@ class Toolbox:
 
     def setup_presets(self, id, title):
         """
-        Setup list
+        Setups list
 
         :param id: ID of the list
         :param title: Title of the list
@@ -177,7 +177,7 @@ class Toolbox:
 
     def setup_name_input(self, id, title):
         """
-        Setup name input
+        Setups name input
 
         :param id: ID of the input
         :param title: Title of the input

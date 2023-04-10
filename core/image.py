@@ -22,22 +22,23 @@ class Image:
         """
         DALL-E Wrapper
 
-        :param config: Config
+        :param config: Config object
         """
         self.config = config
         if not self.config.initialized:
             self.config.init()
 
     def init(self):
-        """Initialize OpenAI API"""
+        """Initialize OpenAI API key"""
         openai.api_key = self.config.data["api_key"]
 
     def generate(self, prompt, num=None):
         """
-        Call DALL-E API
+        Calls DALL-E API
 
         :param prompt: Prompt
-        :return: Image paths list
+        :param num: Number of variants
+        :return: Images paths list
         """
         if num is None:
             num = int(input("How many variants generate? [1] ") or 1)
@@ -64,7 +65,7 @@ class Image:
 
     def make_safe_filename(self, name):
         """
-        Make safe filename
+        Makes safe filename
 
         :param name: Filename to make safe
         :return: Safe filename

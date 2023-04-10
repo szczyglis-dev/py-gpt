@@ -15,7 +15,7 @@ from core.updater import Updater
 class Launcher:
     def __init__(self, window=None):
         """
-        Launcher
+        Launcher controller
 
         :param window: main window object
         """
@@ -23,9 +23,11 @@ class Launcher:
         self.updater = Updater(window)
 
     def show_api_monit(self):
+        """Shows empty API KEY monit"""
         self.window.ui.dialogs.open('info.start')
 
     def setup(self):
+        """Setups launcher"""
         self.updater.check()
 
         # show welcome API KEY dialog

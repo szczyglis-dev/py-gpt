@@ -18,7 +18,7 @@ from core.utils import trans
 class Settings:
     def __init__(self, window=None):
         """
-        Settings
+        Settings controller
 
         :param window: main window object
         """
@@ -26,14 +26,14 @@ class Settings:
 
     def save(self, id=None):
         """
-        Save settings
+        Saves settings
 
         :param id: settings id
         """
         if id == "settings":
             self.window.config.data['api_key'] = self.window.config_option['api_key'].text()
             self.window.config.data['img_resolution'] = self.window.config_option['img_resolution'].text()
-            
+
         info = trans('info.settings.saved')
         self.window.config.save_config()
         self.window.set_status(info)
@@ -42,7 +42,7 @@ class Settings:
         self.window.controller.ui.update()
 
     def save_all(self):
-        """Save all settings"""
+        """Saves all settings"""
         info = trans('info.settings.all.saved')
         self.window.config.save_config()
         self.window.config.save_presets()
@@ -51,19 +51,19 @@ class Settings:
         self.window.controller.ui.update()
 
     def start_settings(self):
-        """Open settings at first launch (no API key)"""
+        """Opens settings at first launch (no API key)"""
         self.toggle_settings('settings')
         self.window.ui.dialogs.close('info.start')
 
     def update_font_size(self):
-        """Update font size"""
+        """Updates font size"""
         size = self.window.config.data['font_size']
         self.window.data['output'].setStyleSheet(
             'color: {}; font-size: {}px;'.format(self.window.config.data['ui.chatbox.font.color'], size))
 
     def toggle_settings(self, id):
         """
-        Toggle settings
+        Toggles settings
 
         :param id: settings id
         """
@@ -86,7 +86,7 @@ class Settings:
 
     def toggle_editor(self, file=None):
         """
-        Toggle editor
+        Toggles editor
 
         :param file: JSON file to load
         """
@@ -112,7 +112,7 @@ class Settings:
 
     def close_window(self, id):
         """
-        Close window
+        Closes window
 
         :param id: settings window id
         """
@@ -122,7 +122,7 @@ class Settings:
 
     def close(self, id):
         """
-        Close menus
+        Closes menus
 
         :param id: settings window id
         """
@@ -134,11 +134,11 @@ class Settings:
             self.window.menu[id].setChecked(False)
 
     def update(self):
-        """Update settings"""
+        """Updates settings"""
         self.update_menu()
 
     def update_menu(self):
-        """Update menu"""
+        """Updates menu"""
         for id in self.window.settings.ids:
             key = 'config.' + id
             if key in self.window.menu:
@@ -149,7 +149,7 @@ class Settings:
 
     def init(self, id):
         """
-        Init settings
+        Inits settings
 
         :param id: settings window id
         """
@@ -175,7 +175,7 @@ class Settings:
 
     def toggle(self, id, value, section=None):
         """
-        Toggle checkbox
+        Toggles checkbox
 
         :param id: checkbox option id
         :param value: checkbox option value
@@ -203,7 +203,7 @@ class Settings:
 
     def change(self, id, value, section=None):
         """
-        Change input value
+        Changes input value
 
         :param id: input option id
         :param value: input option value
@@ -247,18 +247,16 @@ class Settings:
 
         txt = '{}'.format(value)
         self.window.config_option[id].setText(txt)
-       
 
     def apply(self, id, value, type=None, section=None):
         """
-        Apply slider + input value
+        Applies slider + input value
 
         :param id: option id
         :param value: option value
         :param type: option type (slider, input, None)
         :param section: option section (settings, preset.editor, None)
         """
-
         integer_values = ['max_output_tokens', 'max_total_tokens', 'context_threshold', 'img_variants', 'font_size']
 
         if id in integer_values:
@@ -372,7 +370,7 @@ class Settings:
             self.window.config_option[id].slider.setValue(slider_value)
 
     def open_config_dir(self):
-        """Open user config directory"""
+        """Opens user config directory"""
         if os.path.exists(self.window.config.path):
             show_in_file_manager(self.window.config.path)
         else:

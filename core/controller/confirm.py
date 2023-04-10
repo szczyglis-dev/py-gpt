@@ -12,7 +12,7 @@
 class Confirm:
     def __init__(self, window=None):
         """
-        Confirm dialog
+        Confirm dialog controller
 
         :param window: main window object
         """

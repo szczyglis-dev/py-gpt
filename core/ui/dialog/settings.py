@@ -20,12 +20,12 @@ class Settings:
         """
         Settings dialog
 
-        :param window: app window
+        :param window: main UI window object
         """
         self.window = window
 
     def setup(self):
-        """Setup settings dialog"""
+        """Setups settings dialog"""
 
         id = "settings"
         path = self.window.config.path
@@ -123,7 +123,7 @@ class Settings:
 
     def add_option(self, title, option, bold=False):
         """
-        Add option
+        Adds option
 
         :param title: Title
         :param option: Option
@@ -143,7 +143,7 @@ class Settings:
 
     def add_raw_option(self, option):
         """
-        Add raw option row
+        Adds raw option row
 
         :param option: Option
         """

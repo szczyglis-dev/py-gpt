@@ -39,7 +39,7 @@ class UI:
         self.dialogs = Dialogs(window)
 
     def setup(self):
-        """Setup UI"""
+        """Setups UI"""
         # chat and toolbox
         self.window.chat = self.chat.setup()
         self.window.toolbox = self.toolbox.setup()

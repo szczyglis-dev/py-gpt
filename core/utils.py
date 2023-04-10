@@ -18,11 +18,11 @@ locale = None
 
 def trans(key, reload=False):
     """
-    Get translation
+    Returns translation
 
     :param key: translation key
     :param reload: force reload translations
-    :return: translation
+    :return: translated string
     """
     global locale
     if locale is None:
@@ -34,9 +34,9 @@ def trans(key, reload=False):
 
 def get_init_value(key="__version__"):
     """
-    Get version
+    Returns version
 
-    :return: version
+    :return: version string
     """
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '__init__.py'))
     result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(key),

@@ -37,7 +37,7 @@ class Config:
         """
         Get available languages
 
-        :return: list of available languages
+        :return: list with available languages
         """
         langs = []
         path = os.path.join('.', 'data', 'locale')
@@ -64,9 +64,9 @@ class Config:
 
     def get_version(self):
         """
-        Get version
+        Returns version
 
-        :return: version
+        :return: version string
         """
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '__init__.py'))
         result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"),
@@ -75,7 +75,7 @@ class Config:
 
     def load(self, all=True):
         """
-        Load config
+        Loads config
 
         :param all: load all configs
         """
@@ -87,9 +87,9 @@ class Config:
 
     def save_preset(self, preset):
         """
-        Save preset
+        Saves preset into JSON file
 
-        :param preset: preset name
+        :param preset: preset name (id)
         """
         if preset not in self.presets:
             return
@@ -103,7 +103,7 @@ class Config:
             print(e)
 
     def load_models(self):
-        """Load models configs"""
+        """Loads models config from JSON files"""
         path = os.path.join(self.path, 'models.json')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
@@ -116,7 +116,7 @@ class Config:
             print(e)
 
     def load_config(self):
-        """Load app config"""
+        """Loads app config from JSON file"""
         path = os.path.join(self.path, 'config.json')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
@@ -129,11 +129,11 @@ class Config:
             print(e)
 
     def sort_presets_by_name(self):
-        """Sort prompts by name"""
+        """Sorts presets by name"""
         self.presets = dict(sorted(self.presets.items(), key=lambda item: item[1]['name']))
 
     def load_presets(self):
-        """Load presets templates"""
+        """Loads presets templates from JSON files"""
         path = os.path.join(self.path, 'presets')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
@@ -151,9 +151,9 @@ class Config:
 
     def build_empty_preset(self):
         """
-        Build empty preset
+        Builds empty preset
 
-        :return: empty preset
+        :return: dict with empty preset
         """
         return {
             'name': '',
@@ -167,7 +167,7 @@ class Config:
         }
 
     def append_current_presets(self):
-        """Append current presets"""
+        """Appends current presets"""
         # create empty presets
         curr_chat = self.build_empty_preset()
         curr_completion = self.build_empty_preset()
@@ -207,41 +207,41 @@ class Config:
 
     def get_mode_by_idx(self, idx):
         """
-        Get mode by index
+        Returns mode by index
 
-        :param idx: index
-        :return: mode
+        :param idx: index of mode
+        :return: mode name
         """
         modes = self.get_modes()
         return list(modes.keys())[idx]
 
     def get_model_by_idx(self, idx, mode):
         """
-        Get model by index
+        Returns model by index
 
-        :param idx: index
-        :param mode: mode
-        :return: model
+        :param idx: index of model
+        :param mode: mode name
+        :return: model name
         """
         models = self.get_models(mode)
         return list(models.keys())[idx]
 
     def get_preset_by_idx(self, idx, mode):
         """
-        Get prompt by index
+        Returns preset by index
 
         :param idx: index
         :param mode: mode
-        :return: prompt
+        :return: preset name
         """
         presets = self.get_presets(mode)
         return list(presets.keys())[idx]
 
     def get_modes(self):
         """
-        Get modes
+        Returns modes
 
-        :return: modes list
+        :return: modes dict
         """
         modes = {}
         modes['chat'] = {
@@ -257,10 +257,10 @@ class Config:
 
     def get_presets(self, mode):
         """
-        Get presets for mode
+        Returns presets for mode
 
-        :param mode: mode
-        :return: presets dict
+        :param mode: mode name
+        :return: presets dict for mode
         """
         presets = {}
         for key in self.presets:
@@ -272,10 +272,10 @@ class Config:
 
     def get_models(self, mode):
         """
-        Get models for mode
+        Returns models for mode
 
-        :param mode: mode
-        :return: models dict
+        :param mode: mode name
+        :return: models dict for mode
         """
         models = {}
         for key in self.models:
@@ -285,10 +285,11 @@ class Config:
 
     def get_preset_idx(self, mode, name):
         """
-        Get preset index
+        Returns preset index
 
-        :param name: name
-        :return: index
+        :param mode: mode name
+        :param name: name of preset
+        :return: index of preset
         """
         presets = self.get_presets(mode)
         i = 0
@@ -300,9 +301,10 @@ class Config:
 
     def delete_preset(self, name, remove_file=True):
         """
-        Delete preset
+        Deletes preset
 
-        :param name: name
+        :param name: name of preset
+        :param remove_file: also remove preset JSON config file
         """
         if name in self.presets:
             self.presets.pop(name)
@@ -315,18 +317,18 @@ class Config:
 
     def get_default_mode(self):
         """
-        Get default mode
+        Returns default mode name
 
-        :return: default mode
+        :return: default mode name
         """
         return 'chat'
 
     def get_default_model(self, mode):
         """
-        Get default model for mode
+        Returns default model for mode
 
-        :param mode: mode
-        :return: default model
+        :param mode: mode name
+        :return: default model name
         """
         models = self.get_models(mode)
         if len(models) == 0:
@@ -335,10 +337,10 @@ class Config:
 
     def get_default_preset(self, mode):
         """
-        Get default preset for mode
+        Returns default preset for mode
 
-        :param mode: mode
-        :return: default prompt
+        :param mode: mode name
+        :return: default prompt name
         """
         presets = self.get_presets(mode)
         if len(presets) == 0:
@@ -347,10 +349,10 @@ class Config:
 
     def get_preset_duplicate_name(self, name):
         """
-        Make duplicate name
+        Prepares name for duplicated preset
 
-        :param name: name
-        :return: duplicate name
+        :param name: name of preset
+        :return: name of duplicated preset
         """
 
         old_name = self.presets[name]['name']
@@ -363,10 +365,10 @@ class Config:
 
     def duplicate_preset(self, name):
         """
-        Make duplicate preset
+        Makes preset duplicate
 
-        :param name: name
-        :return: duplicate preset
+        :param name: name of preset
+        :return: duplicated preset name (ID)
         """
         id, title = self.get_preset_duplicate_name(name)
         self.presets[id] = self.presets[name].copy()
@@ -375,7 +377,7 @@ class Config:
         return id
 
     def save(self):
-        """Save config"""
+        """Saves config into file"""
         self.data['__meta__'] = self.append_meta()
         dump = json.dumps(self.data, indent=4)
         path = os.path.join(self.path, 'config.json')
@@ -384,7 +386,7 @@ class Config:
             f.close()
 
     def save_config(self):
-        """Save config"""
+        """Saves config into file"""
         self.data['__meta__'] = self.append_meta()
         dump = json.dumps(self.data, indent=4)
         path = os.path.join(self.path, 'config.json')
@@ -393,7 +395,7 @@ class Config:
             f.close()
 
     def save_presets(self):
-        """Save presets"""
+        """Saves presets into files"""
         for key in self.presets:
             self.presets[key]['__meta__'] = self.append_meta()
             path = os.path.join(self.path, 'presets', key + '.json')
@@ -404,10 +406,10 @@ class Config:
 
     def get_model_tokens(self, model):
         """
-        Get model tokens
+        Returns model tokens
 
-        :param model: model
-        :return: tokens
+        :param model: model name
+        :return: number of tokens
         """
         if model in self.models:
             return self.models[model]['tokens']
@@ -415,9 +417,9 @@ class Config:
 
     def append_meta(self):
         """
-        Append meta data
+        Appends meta data
 
-        :return: meta data
+        :return: meta data dict
         """
         return {
             'version': self.version,
@@ -426,7 +428,7 @@ class Config:
         }
 
     def install(self):
-        """Install config files"""
+        """Installs config files"""
         try:
             # create user config directory
             path = Path(self.path)

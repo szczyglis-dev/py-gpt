@@ -21,7 +21,7 @@ class Gpt:
         """
         GPT Wrapper
 
-        :param config: Config
+        :param config: Config object
         """
         self.config = config
         self.context = Context(config)
@@ -31,14 +31,14 @@ class Gpt:
             self.config.init()
 
     def init(self):
-        """Initialize OpenAI API"""
+        """Initializes OpenAI API key"""
         openai.api_key = self.config.data["api_key"]
 
     def completion(self, prompt, max_tokens):
         """
-        Call OpenAI API for completion
+        Calls OpenAI API for completion
 
-        :param prompt: Prompt
+        :param prompt: Prompt (user message)
         :param max_tokens: Max output tokens
         :return: Response dict
         """
@@ -66,7 +66,7 @@ class Gpt:
         """
         Call OpenAI API for chat
 
-        :param prompt: Prompt
+        :param prompt: Prompt (user message)
         :param max_tokens: Max output tokens
         :return: Response dict
         """
@@ -86,7 +86,7 @@ class Gpt:
 
     def build_chat_messages(self, prompt):
         """
-        Build chat messages dict
+        Builds chat messages dict
 
         :param prompt: Prompt
         :return: Messages dict
@@ -130,7 +130,7 @@ class Gpt:
 
     def build_completion(self, prompt):
         """
-        Build completion string
+        Builds completion string
 
         :param prompt: Prompt (current)
         :return: Message string (parsed with context)
@@ -168,6 +168,12 @@ class Gpt:
         return message
 
     def count_used_tokens(self, input_text):
+        """
+        Counts used tokens
+
+        :param input_text: Input text
+        :return: Used tokens
+        """
         model = self.config.data['model']
         tokens = 0
         tokens += num_tokens_prompt(self.config.data['prompt'], self.config.data['user_name'],
@@ -179,10 +185,11 @@ class Gpt:
 
     def call(self, prompt, ctx=None):
         """
-        Call OpenAI API
+        Calls OpenAI API
 
         :param prompt: User input (prompt)
-        :return: Response string
+        :param ctx: Context item (memory)
+        :return: Context item (memory)
         """
         # prepare max tokens
         model_tokens = self.config.get_model_tokens(self.config.data['model'])
@@ -236,5 +243,5 @@ class Gpt:
         return ctx
 
     def clear(self):
-        """Clear context"""
+        """Clears context (memory)"""
         self.context.clear()

@@ -17,11 +17,16 @@ from core.utils import trans
 
 class Image:
     def __init__(self, window=None):
+        """
+        Image dialog
+
+        :param window: main UI window object
+        """
         self.window = window
         self.path = None
 
     def setup(self):
-        """Setup image dialog"""
+        """Setups image dialog"""
         id = 'image'
         self.window.data['dialog.image.pixmap'] = {}
 

@@ -15,7 +15,7 @@ import webbrowser
 class Info:
     def __init__(self, window=None):
         """
-        Info handler
+        Info controller
 
         :param window main window
         """
@@ -26,7 +26,7 @@ class Info:
 
     def toggle(self, id):
         """
-        Toggle info window
+        Toggles info window
 
         :param id: window to toggle
         """
@@ -41,19 +41,19 @@ class Info:
         self.update_menu()
 
     def goto_website(self):
-        """Open project website"""
+        """Opens project website"""
         webbrowser.open(self.window.website)
 
     def goto_github(self):
-        """Open GitHub page"""
+        """Opens GitHub page"""
         webbrowser.open(self.window.github)
 
     def goto_update(self):
-        """Open update URL"""
+        """Opens update URL"""
         webbrowser.open(self.window.website)
 
     def update_menu(self):
-        """Update info menu"""
+        """Updates info menu"""
         for id in self.window.info.ids:
             if id in self.window.info.active and self.window.info.active[id]:
                 self.window.menu['info.' + id].setChecked(True)

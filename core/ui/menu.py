@@ -23,7 +23,7 @@ class Menu:
         self.window = window
 
     def setup(self):
-        """Setup all menus"""
+        """Setups all menus"""
         self.window.menu = {}
         self.setup_file()
         self.setup_plugins()
@@ -37,7 +37,7 @@ class Menu:
             self.setup_debug()
 
     def setup_file(self):
-        """Setup file menu"""
+        """Setups file menu"""
         self.window.menu['app.exit'] = QAction(QIcon.fromTheme("application-exit"), trans("menu.file.exit"),
                                                self.window, shortcut="Ctrl+Q", triggered=self.window.close)
 
@@ -52,21 +52,21 @@ class Menu:
         self.window.menu['menu.app'].addAction(self.window.menu['app.exit'])
 
     def setup_plugins(self):
-        """Setup plugins menu"""
+        """Setups plugins menu"""
         self.window.menu['plugins.empty'] = QAction(QIcon.fromTheme("help-about"), trans("coming_soon"),
                                                     self.window)
         self.window.menu['menu.plugins'] = self.window.menuBar().addMenu(trans("menu.plugins"))
         self.window.menu['menu.plugins'].addAction(self.window.menu['plugins.empty'])
 
     def setup_audio(self):
-        """Setup audio menu"""
+        """Setups audio menu"""
         self.window.menu['audio.empty'] = QAction(QIcon.fromTheme("help-about"), trans("coming_soon"),
                                                   self.window)
         self.window.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))
         self.window.menu['menu.audio'].addAction(self.window.menu['audio.empty'])
 
     def setup_config(self):
-        """Setup config menu"""
+        """Setups config menu"""
         self.window.menu['config.settings'] = QAction(trans("menu.config.settings"),
                                                       self.window)
         self.window.menu['config.edit.config'] = QAction(trans("menu.config.edit.config"),
@@ -101,7 +101,7 @@ class Menu:
         self.window.menu['menu.config'].addAction(self.window.menu['config.save'])
 
     def setup_debug(self):
-        """Setup debug menu"""
+        """Setups debug menu"""
         self.window.menu['debug.config'] = QAction(trans("menu.debug.config"), self.window, checkable=True)
         self.window.menu['debug.context'] = QAction(trans("menu.debug.context"), self.window, checkable=True)
         self.window.menu['debug.presets'] = QAction(trans("menu.debug.presets"), self.window, checkable=True)
@@ -123,13 +123,14 @@ class Menu:
         self.window.menu['menu.debug'].addAction(self.window.menu['debug.models'])
 
     def setup_lang(self):
-        """Setup lang menu"""
+        """Setups lang menu"""
         self.window.menu['lang'] = {}
         self.window.menu['menu.lang'] = self.window.menuBar().addMenu(trans("menu.lang"))
-        self.window.menu['menu.lang'].setStyleSheet("QMenu::indicator:checked { background-color: #1de9b6; } QMenu::indicator:unchecked { background-color: #3a3f45; }") # windows style fix (without this checkboxes are invisible!)
+        self.window.menu['menu.lang'].setStyleSheet(
+            "QMenu::indicator:checked { background-color: #1de9b6; } QMenu::indicator:unchecked { background-color: #3a3f45; }")  # windows style fix (without this checkboxes are invisible!)
 
     def setup_about(self):
-        """Setup about menu"""
+        """Setups about menu"""
         self.window.menu['info.about'] = QAction(QIcon.fromTheme("help-about"), trans("menu.info.about"),
                                                  self.window)
         self.window.menu['info.changelog'] = QAction(trans("menu.info.changelog"),

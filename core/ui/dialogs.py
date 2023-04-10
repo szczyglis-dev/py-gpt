@@ -32,7 +32,7 @@ class Dialogs:
         self.window = window
 
     def setup(self):
-        """Setup dialogs"""
+        """Setups dialogs"""
         self.window.dialog = {}
         self.window.debug = {}
         self.window.editor = {}
@@ -82,7 +82,7 @@ class Dialogs:
 
     def confirm(self, type, id, msg):
         """
-        Show confirm dialog
+        Shows confirm dialog
 
         :param type: confirm type
         :param id: confirm object id
@@ -95,7 +95,7 @@ class Dialogs:
 
     def alert(self, msg):
         """
-        Show alert dialog
+        Shows alert dialog
 
         :param msg: message to show
         """
@@ -104,9 +104,10 @@ class Dialogs:
 
     def open_editor(self, id, data_id, width=400, height=400):
         """
-        Open editor dialog
+        Opens editor dialog
 
         :param id: debug dialog id
+        :param data_id: data id
         :param width: dialog width
         :param height: dialog height
         """
@@ -118,7 +119,7 @@ class Dialogs:
 
     def open(self, id, width=400, height=400):
         """
-        Open debug/config dialog
+        Opens debug/config dialog
 
         :param id: debug dialog id
         :param width: dialog width
@@ -135,7 +136,7 @@ class Dialogs:
 
     def close(self, id):
         """
-        Close debug/config dialog
+        Closes debug/config dialog
 
         :param id: debug dialog id
         """

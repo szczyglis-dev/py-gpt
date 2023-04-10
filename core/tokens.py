@@ -14,7 +14,7 @@ import tiktoken
 
 def num_tokens_from_string(string, model="gpt-3.5-turbo"):
     """
-    Get number of tokens from string
+    Returns number of tokens from string
 
     :param string: string
     :param model: model name
@@ -36,7 +36,7 @@ def num_tokens_from_string(string, model="gpt-3.5-turbo"):
 
 def num_tokens_extra(model="gpt-3.5-turbo"):
     """
-    Get number of extra tokens
+    Returns number of extra tokens
 
     :param model: model name
     :return: number of tokens
@@ -51,7 +51,7 @@ def num_tokens_extra(model="gpt-3.5-turbo"):
 
 def num_tokens_prompt(text, input_name, model="gpt-3.5-turbo"):
     """
-    Get number of tokens from prompt
+    Returns number of tokens from prompt
 
     :param text: prompt text
     :param input_name: input name
@@ -94,7 +94,7 @@ def num_tokens_prompt(text, input_name, model="gpt-3.5-turbo"):
 
 def num_tokens_from_context_item(item, model="gpt-3.5-turbo"):
     """
-    Get number of tokens from context item
+    Returns number of tokens from context item
 
     :param item: context item
     :param model: model name

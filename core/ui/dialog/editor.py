@@ -25,7 +25,7 @@ class Editor:
         self.window = window
 
     def setup(self):
-        """Setup config editor dialog"""
+        """Setups config editor dialog"""
         id = 'config'
 
         self.window.editor[id] = QPlainTextEdit()

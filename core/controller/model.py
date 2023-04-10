@@ -22,12 +22,12 @@ class Model:
         self.window = window
 
     def setup(self):
-        """Setup all select lists"""
+        """Setups all select lists"""
         self.update()
 
     def select(self, id, value):
         """
-        Select mode, model or preset
+        Selects mode, model or preset
 
         :param id: ID of the list
         :param value: value of the list (row index)
@@ -88,7 +88,7 @@ class Model:
         self.window.config.data['user_name'] = preset_data['user_name']
 
     def select_mode_by_current(self):
-        """Select mode by current"""
+        """Selects mode by current"""
         mode = self.window.config.data['mode']
         items = self.window.config.get_modes()
         idx = list(items.keys()).index(mode)
@@ -96,7 +96,7 @@ class Model:
         self.window.data['prompt.mode'].setCurrentIndex(current)
 
     def select_model_by_current(self):
-        """Select model by current"""
+        """Selects model by current"""
         mode = self.window.config.data['mode']
         model = self.window.config.data['model']
         items = self.window.config.get_models(mode)
@@ -106,7 +106,7 @@ class Model:
             self.window.data['prompt.model'].setCurrentIndex(current)
 
     def select_preset_by_current(self):
-        """Select preset by current"""
+        """Selects preset by current"""
         mode = self.window.config.data['mode']
         preset = self.window.config.data['preset']
         items = self.window.config.get_presets(mode)
@@ -116,27 +116,27 @@ class Model:
             self.window.data['preset.presets'].setCurrentIndex(current)
 
     def update_list_modes(self):
-        """Update modes list"""
+        """Updates modes list"""
         # update modes
         items = self.window.config.get_modes()
         self.window.ui.toolbox.update_list('prompt.mode', items)
 
     def update_list_models(self):
-        """Update models list"""
+        """Updates models list"""
         # update modes
         mode = self.window.config.data['mode']
         items = self.window.config.get_models(mode)
         self.window.ui.toolbox.update_list('prompt.model', items)
 
     def update_list_presets(self):
-        """Update presets list"""
+        """Updates presets list"""
         # update model
         mode = self.window.config.data['mode']
         items = self.window.config.get_presets(mode)
         self.window.ui.toolbox.update_list('preset.presets', items)
 
     def update_chat_label(self):
-        """Update chat label"""
+        """Updates chat label"""
         mode = self.window.config.data['mode']
         model = self.window.config.data['model']
         if model is None or model == "":
@@ -146,7 +146,7 @@ class Model:
         self.window.data['chat.model'].setText(model_str)
 
     def select_default(self):
-        """Set default mode, model and preset"""
+        """Sets default mode, model and preset"""
         if self.window.config.data['mode'] is None or self.window.config.data['mode'] == "":
             self.window.config.data['mode'] = self.window.config.get_default_mode()
 
@@ -179,7 +179,7 @@ class Model:
 
     def update_current_temperature(self, temperature=None):
         """
-        Update current temperature
+        Updates current temperature
 
         :param temperature: temperature (float)
         """
@@ -193,7 +193,7 @@ class Model:
         self.window.controller.settings.apply("current_temperature", temperature)
 
     def update_current(self):
-        """Update current mode, model and preset"""
+        """Updates current mode, model and preset"""
         mode = self.window.config.data['mode']
         if self.window.config.data['preset'] is not None and self.window.config.data['preset'] != "":
             if self.window.config.data['preset'] in self.window.config.presets:
@@ -215,7 +215,7 @@ class Model:
             self.window.config.data['prompt'] = None
 
     def update_active(self):
-        """Update active mode, model and preset"""
+        """Updates active mode, model and preset"""
         mode = self.window.config.data['mode']
         if mode == 'chat':
             self.window.data['preset.ai_name'].setDisabled(True)
@@ -257,7 +257,7 @@ class Model:
             self.window.config_option['current_temperature'].setVisible(True)
 
     def update(self):
-        """Update all lists"""
+        """Updates all lists"""
         self.select_default()  # set default mode, model and preset if not set
         self.update_current()  # update current mode, model and preset
 

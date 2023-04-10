@@ -15,37 +15,42 @@ from PySide6.QtGui import QTextCursor
 
 class Output:
     def __init__(self, window=None):
+        """
+        Output controller
+
+        :param window: main window
+        """
         self.window = window
 
     def setup(self):
-        """Setup output"""
+        """Setups output"""
         self.window.data['output.timestamp'].setChecked(self.window.config.data['output_timestamp'])
 
     def clear(self):
         """
-        Clear output
+        Clears output
         """
         self.window.data['output'].clear()
 
     def append_context(self):
         """
-        Append context to output
+        Appends context to output
         """
         for item in self.window.gpt.context.items:
             self.append_context_item(item)
 
     def append_context_item(self, item):
         """
-        Append context item to output
+        Appends context item to output
 
-        :param ctx: context item
+        :param item: context item
         """
         self.append_input(item)
         self.append_output(item)
 
     def append_input(self, item):
         """
-        Append input to output
+        Appends input to output
 
         :param item: context item
         """
@@ -58,7 +63,7 @@ class Output:
 
     def append_output(self, item):
         """
-        Append output to output
+        Appends output to output
 
         :param item: context item
         """
@@ -71,7 +76,7 @@ class Output:
 
     def append(self, text):
         """
-        Append text to output
+        Appends text to output
 
         :param text: text to append
         """
@@ -87,7 +92,7 @@ class Output:
 
     def toggle_timestamp(self, value):
         """
-        Toggle timestamp
+        Toggles timestamp
 
         :param value: value of the checkbox
         """

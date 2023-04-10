@@ -19,10 +19,15 @@ from core.utils import trans
 
 class Start:
     def __init__(self, window=None):
+        """
+        Start dialog
+
+        :param window: main UI window object
+        """
         self.window = window
 
     def setup(self):
-        """Setup start dialog"""
+        """Setups start dialog"""
         id = 'start'
 
         btn = QPushButton(trans('dialog.start.btn'))

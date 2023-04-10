@@ -36,9 +36,9 @@ class Locale:
 
     def load(self, lang):
         """
-        Load translation file
+        Loads translation ini file
 
-        :param lang: language
+        :param lang: language code
         """
         if type(lang) is not str:
             lang = 'en'
@@ -56,10 +56,10 @@ class Locale:
 
     def get(self, key):
         """
-        Get translation
+        Returns translation for key
 
         :param key: translation key
-        :return: translation
+        :return: translated string
         """
         if key in self.data:
             return self.data[key].replace('\\n', "\n")

@@ -18,7 +18,7 @@ class History:
 
     def __init__(self, config):
         """
-        History
+        History handler
 
         :param config: Config
         """
@@ -31,18 +31,24 @@ class History:
 
     def save(self, text):
         """
-        Save text to history
+        Saves text to history file
 
         :param text: Text
         """
         name = datetime.date.today().strftime("%Y_%m_%d") + ".txt"
         if not os.path.exists(self.path):
-            os.makedirs(self.path)
+            try:
+                os.makedirs(self.path)
+            except Exception as e:
+                print("Error creating history directory: " + str(e))
         if os.path.exists(self.path):
             f = os.path.join(self.path, name)
-            with open(f, 'a', encoding="utf-8") as file:
-                prefix = ""
-                if self.config.data['store_history_time']:
-                    prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
-                file.write(prefix + text + "\n")
-                file.close()
+            try:
+                with open(f, 'a', encoding="utf-8") as file:
+                    prefix = ""
+                    if self.config.data['store_history_time']:
+                        prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
+                    file.write(prefix + text + "\n")
+                    file.close()
+            except Exception as e:
+                print("Error saving history: " + str(e))

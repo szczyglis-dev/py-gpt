@@ -24,6 +24,11 @@ from core.utils import trans
 
 class Image:
     def __init__(self, window=None):
+        """
+        Images controller
+
+        :param window: main window
+        """
         self.window = window
 
     def send_text(self, text):
@@ -69,7 +74,7 @@ class Image:
 
     def open_images(self, paths):
         """
-        Open image in dialog
+        Opens image in dialog
 
         :param path: path to image
         """
@@ -99,7 +104,7 @@ class Image:
 
     def img_action_open(self, path):
         """
-        Open image in default image viewer
+        Opens image in default image viewer
 
         :param path: path to image
         """
@@ -107,7 +112,7 @@ class Image:
 
     def img_action_open_dir(self, path):
         """
-        Open image in default image viewer
+        Opens image in default image viewer
 
         :param path: path to image
         """
@@ -116,7 +121,7 @@ class Image:
 
     def img_action_save(self, path):
         """
-        Save image
+        Saves image
 
         :param path: path to image
         """
@@ -133,7 +138,7 @@ class Image:
 
     def img_action_delete(self, path, force=False):
         """
-        Delete image
+        Deletes image
 
         :param path: path to image
         :param force: force delete without confirmation

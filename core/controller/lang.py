@@ -17,14 +17,14 @@ from core.utils import trans
 class Lang:
     def __init__(self, window=None):
         """
-        Language handler
+        Language change controller
 
         :param window: main UI window object
         """
         self.window = window
 
     def setup(self):
-        """Setup language handler"""
+        """Setups language handler"""
         # get files from lang folder
         langs = self.window.config.get_available_langs()
         for lang in langs:
@@ -36,7 +36,7 @@ class Lang:
         self.update()
 
     def update(self):
-        """Update language menu"""
+        """Updates language menu"""
         for lang in self.window.menu['lang']:
             self.window.menu['lang'][lang].setChecked(False)
 
@@ -45,7 +45,7 @@ class Lang:
 
     def toggle(self, id):
         """
-        Toggle language
+        Toggles language
 
         :param id: language to toggle
         """

@@ -15,10 +15,15 @@ from core.utils import trans
 
 class CtxRename:
     def __init__(self, window=None):
+        """
+        Context rename dialog
+
+        :param window: main UI window object
+        """
         self.window = window
 
     def setup(self):
-        """Setup ctx rename dialog"""
+        """Setups ctx rename dialog"""
         id = 'ctx.rename'
         self.window.dialog[id] = RenameDialog(self.window, id)
         self.window.dialog[id].setWindowTitle(trans("dialog.ctx.rename.title"))

@@ -11,6 +11,11 @@
 
 class ContextDebug:
     def __init__(self, window=None):
+        """
+        Context debug
+
+        :param window: main window object
+        """
         self.window = window
         self.id = 'context'
 

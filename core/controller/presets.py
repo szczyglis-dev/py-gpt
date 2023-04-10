@@ -30,6 +30,8 @@ class Presets:
 
         :param id: field id
         :param value: field value
+        :param preset: preset name (ID / filename)
+        :param current: if True, updates current preset
         """
         if preset is not None and preset != "":
             if preset in self.window.config.presets:

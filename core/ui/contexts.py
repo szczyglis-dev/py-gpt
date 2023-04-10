@@ -19,7 +19,7 @@ from core.utils import trans
 class Contexts:
     def __init__(self, window=None):
         """
-        Contexts
+        Contexts UI
 
         :param window: main UI window object
         """
@@ -27,9 +27,9 @@ class Contexts:
 
     def setup(self):
         """
-        Setup contexts list
+        Setups contexts list
 
-        :return: QWidget
+        :return: QVBoxLayout
         """
         # contexts
         contexts = self.setup_contexts()
@@ -50,10 +50,8 @@ class Contexts:
 
     def setup_contexts(self):
         """
-        Setup list
+        Setups contexts list
 
-        :param id: ID of the list
-        :param title: Title of the list
         :return: QVBoxLayout
         """
         id = 'ctx.contexts'
@@ -75,7 +73,8 @@ class Contexts:
 
     def create_model(self, parent):
         """
-        Create list model
+        Creates list model
+
         :param parent: parent widget
         :return: QStandardItemModel
         """
@@ -84,7 +83,7 @@ class Contexts:
 
     def update_list(self, id, data):
         """
-        Update list
+        Updates list
 
         :param id: ID of the list
         :param data: Data to update

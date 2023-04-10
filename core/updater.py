@@ -19,14 +19,14 @@ from core.utils import trans
 class Updater:
     def __init__(self, window=None):
         """
-        Updater
+        Updates handler
 
         :param window: main window
         """
         self.window = window
 
     def check(self):
-        """Check for updates"""
+        """Checks for updates"""
         print("Checking for updates...")
         url = self.window.website + "/api/version?v=" + str(self.window.version)
         try:
@@ -58,7 +58,7 @@ class Updater:
 
     def show_version_dialog(self, version, build, changelog):
         """
-        Show new version dialog
+        Shows new version dialog
 
         :param version: version number
         :param build: build date

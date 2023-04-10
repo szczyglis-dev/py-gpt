@@ -12,7 +12,7 @@
 class Debug:
     def __init__(self, window=None):
         """
-        Debug handler
+        Debug controller
 
         :param window: main window
         """
@@ -20,7 +20,7 @@ class Debug:
 
     def toggle(self, id):
         """
-        Toggle debug window
+        Toggles debug window
 
         :param id: window to toggle
         """
@@ -36,7 +36,7 @@ class Debug:
         self.update_menu()
 
     def update_menu(self):
-        """Update debug menu"""
+        """Updates debug menu"""
         for id in self.window.debugger.ids:
             if id in self.window.debugger.active and self.window.debugger.active[id]:
                 self.window.menu['debug.' + id].setChecked(True)

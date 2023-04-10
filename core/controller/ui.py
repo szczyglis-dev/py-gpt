@@ -1,4 +1,3 @@
-from core.tokens import num_tokens_from_string, num_tokens_prompt, num_tokens_extra
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -10,28 +9,29 @@ from core.tokens import num_tokens_from_string, num_tokens_prompt, num_tokens_ex
 # Created Date: 2023.04.09 20:00:00                  #
 # ================================================== #
 
+from core.tokens import num_tokens_prompt, num_tokens_extra
 from core.utils import trans
 
 
 class UI:
     def __init__(self, window=None):
         """
-        UI handler
+        UI update controller
 
         :param window: main UI window object
         """
         self.window = window
 
     def setup(self):
-        """Setup UI"""
+        """Setups UI"""
         self.update()
 
     def update(self):
-        """Update UI"""
+        """Updates UI"""
         self.update_counters()
 
     def update_counters(self):
-        """Update tokens counters"""
+        """Updates tokens counters"""
         model = self.window.config.data['model']
         user_name = self.window.config.data['user_name']
         max_total_tokens = self.window.config.data['max_total_tokens']

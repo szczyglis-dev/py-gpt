@@ -31,7 +31,7 @@ class Context:
         self.current_ctx = None
 
     def load_list(self):
-        """Loads context list"""
+        """Loads contexts list from file"""
         path = os.path.join(self.config.path, 'context.json')
         try:
             if os.path.exists(path):
@@ -43,9 +43,10 @@ class Context:
 
     def load(self, name):
         """
-        Loads context
+        Loads context from file
 
-        :param name: context items
+        :param name: context name (id)
+        :return: context items
         """
         path = os.path.join(self.config.path, 'context', name + '.json')
         if os.path.exists(path):
@@ -59,6 +60,7 @@ class Context:
         Parses context data
 
         :param data: context items data
+        :return: context items (deserialized) as objects list
         """
         items = []
         for item in data:
@@ -137,7 +139,12 @@ class Context:
         return dict(sorted(self.contexts.items(), reverse=True))
 
     def get_name_by_idx(self, idx):
-        """Gets context by index"""
+        """
+        Gets context name (id) by index
+
+        :param idx: index
+        :return: context name (id)
+        """
         i = 0
         for name in self.get_list():
             if i == idx:
@@ -146,7 +153,7 @@ class Context:
 
     def get_first_ctx(self):
         """
-        Gets first context
+        Returns first context from list
 
         :return: context name (id)
         """
@@ -155,17 +162,17 @@ class Context:
 
     def get_context_by_name(self, name):
         """
-        Gets context by name
+        Returns context by name
 
         :param name: context name (id)
-        :return: context
+        :return: context dict
         """
         if name in self.contexts:
             return self.contexts[name]
 
     def delete_ctx(self, name):
         """
-        Deletes context
+        Deletes context by name
 
         :param name: context name (id)
         """
@@ -220,9 +227,12 @@ class Context:
 
     def count_prompt_items(self, model, used_tokens=100, max_tokens=1000):
         """
-        Count prompt items
+        Counts context items to add to prompt
 
-        :return: num of prompt items
+        :param model: model
+        :param used_tokens: used tokens
+        :param max_tokens: max tokens
+        :return: context items count, context tokens count
         """
         i = 0
         # loop on items from end to start
@@ -240,9 +250,12 @@ class Context:
 
     def get_prompt_items(self, model, used_tokens=100, max_tokens=1000):
         """
-        Gets prompt items
+        Returns context items to add to prompt
 
-        :return: prompt items
+        :param model: model
+        :param used_tokens: used tokens
+        :param max_tokens: max tokens
+        :return: context items list
         """
         items = []
         # loop on items from end to start
@@ -273,7 +286,7 @@ class Context:
 
     def add(self, item):
         """
-        Adds item to context
+        Adds item to contexts and saves context
 
         :param item: item to add
         """
@@ -283,13 +296,13 @@ class Context:
         self.store()
 
     def store(self):
-        """Stores current context"""
+        """Stores current context to file"""
         if self.current_ctx is not None and self.current_ctx in self.contexts:
             self.dump_context(self.current_ctx)
 
     def get_total_tokens(self):
         """
-        Gets current prompt tokens
+        Returns current prompt tokens
 
         :return: total tokens
         """
@@ -300,15 +313,15 @@ class Context:
 
     def count(self):
         """
-        Counts items
+        Counts context items
 
-        :return: items count
+        :return: context items count
         """
         return len(self.items)
 
     def all(self):
         """
-        Gets context items
+        Returns context items
 
         :return: context items
         """
@@ -316,16 +329,17 @@ class Context:
 
     def get(self, index):
         """
-        Gets context item
+        Returns context item by index
 
         :param index: item index
+        :return: context item
         """
         if index < len(self.items):
             return self.items[index]
 
     def get_last(self):
         """
-        Gets last item
+        Returns last item from context
 
         :return: last context item
         """
@@ -335,14 +349,20 @@ class Context:
 
     def get_tokens_left(self, max):
         """
-        Gets remaining tokens
+        Returns remaining tokens in context
 
         :param max: max tokens
+        :return: remaining tokens in context
         """
         return max - self.get_total_tokens()
 
     def check(self, threshold, max_total):
-        """Checks context and clear if limit exceeded"""
+        """
+        Checks context and clear if limit exceeded
+
+        :param threshold: threshold
+        :param max_total: max total tokens
+        """
         if self.get_tokens_left(max_total) <= threshold:
             self.remove_first()
 
@@ -358,7 +378,7 @@ class Context:
 
     def get_last_tokens(self):
         """
-        Gets last tokens
+        Returns last tokens count
 
         :return: last tokens
         """
@@ -420,7 +440,11 @@ class ContextItem:
         self.total_tokens = input_tokens + output_tokens
 
     def serialize(self):
-        """Serializes item"""
+        """
+        Serializes item to dict
+
+        :return: serialized item
+        """
         return {
             'input': self.input,
             'output': self.output,
@@ -435,7 +459,7 @@ class ContextItem:
         }
 
     def deserialize(self, data):
-        """Deserializes item"""
+        """Deserializes item from dict"""
         if 'input' in data:
             self.input = data['input']
         if 'output' in data:

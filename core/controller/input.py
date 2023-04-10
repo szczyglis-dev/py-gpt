@@ -17,10 +17,15 @@ from core.utils import trans
 
 class Input:
     def __init__(self, window=None):
+        """
+        Input controller
+
+        :param window: main window
+        """
         self.window = window
 
     def setup(self):
-        """Setup input"""
+        """Setups input"""
         if self.window.config.data['send_clear']:
             self.window.data['input.send_clear'].setChecked(True)
         else:
@@ -37,7 +42,7 @@ class Input:
 
     def toggle_send_clear(self, value):
         """
-        Toggle send clear
+        Toggles send clear
 
         :param value: value of the checkbox
         """
@@ -45,13 +50,18 @@ class Input:
 
     def toggle_send_shift(self, value):
         """
-        Toggle send with shift
+        Toggles send with shift
 
         :param value: value of the checkbox
         """
         self.window.config.data['send_shift_enter'] = value
 
     def send_text(self, text):
+        """
+        Sends text to GPT
+
+        :param text: text to send
+        """
         self.window.set_status(trans('status.sending'))
 
         # create ctx item
@@ -73,7 +83,7 @@ class Input:
 
     def send(self):
         """
-        Send input
+        Sends input text to API
         """
         text = self.window.data['input'].toPlainText().strip()
         if len(text) > 0:
@@ -105,7 +115,7 @@ class Input:
 
     def append(self, text):
         """
-        Append text to input
+        Appends text to input
 
         :param text: text to append
         """

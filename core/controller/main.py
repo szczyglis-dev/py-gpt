@@ -1,3 +1,14 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Created Date: 2023.04.09 20:00:00                  #
+# ================================================== #
+
 from core.controller.model import Model
 from core.controller.presets import Presets
 from core.controller.plugins import Plugins
@@ -11,17 +22,6 @@ from core.controller.confirm import Confirm
 from core.controller.ui import UI
 from core.controller.launcher import Launcher
 from core.controller.lang import Lang
-# !/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
-# ================================================== #
-
 from core.controller.image import Image
 
 
@@ -49,7 +49,7 @@ class Controller:
         self.image = Image(window)
 
     def setup(self):
-        """Setup controller"""
+        """Setups controller"""
         self.lang.setup()
         self.model.setup()
         self.input.setup()
