@@ -4,7 +4,7 @@ The "PYGPT" software (App) is intended for users over the age of 13. The applica
 
 The only data sent to the application server during its use is the version of your application sent during the update check that takes place when the application is launched.
 
-Data sent by the user through the application using OpenAI's APIs is processed only by OpenAI and its privacy policy applies during this process:
+Data sent by the user to OpenAI servers through the application using OpenAI's APIs is processed only by OpenAI and its privacy policy applies during this process:
 
 **OpenAI Privacy Policy:**
 https://openai.com/policies/privacy-policy
