@@ -1,8 +1,8 @@
 # Privacy Policy for "PYGPT" software
 
-The "PYGPT" software (App) is intended for users over the age of 13. The application does not send remotely any user data, such as the content of conversations, the way the application is used, or users' API keys and other secret data.
+The "PYGPT" software (App) is intended for users over the age of 13. The application does not send to application owner servers any user data, such as the content of conversations, the way the application is used, or users' API keys and other secret data.
 
-The application does not send any user data to owner servers, apart from information about the software version used. Information about the software version and the user's IP address are sent during the update check process, which takes place when the application is launched.
+The only data sent to the application server during its use is the version of your application sent during the update check that takes place when the application is launched.
 
 Data sent by the user through the application using OpenAI's APIs is processed only by OpenAI and its privacy policy applies during this process:
 
