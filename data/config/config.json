@@ -1,5 +1,6 @@
 {
     "api_key": "",
+    "organization_key": "",
     "lang": "en",
     "mode": "chat",
     "preset": "current.chat",
