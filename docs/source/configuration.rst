@@ -38,6 +38,8 @@ The following basic options can be modified from the application level:
 
 | - **OpenAI API KEY** - API key that you need to paste into the application
 
+| - **OpenAI ORGANIZATION KEY** - Organization API key (optional)
+
 
 JSON files
 -----------

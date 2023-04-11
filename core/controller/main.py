@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.11 05:00:00                  #
 # ================================================== #
 
 from core.controller.model import Model
@@ -50,6 +50,10 @@ class Controller:
 
     def setup(self):
         """Setups controller"""
+        # handle config migration if needed
+        self.launcher.migrate_version()
+
+        # setup all controllers
         self.lang.setup()
         self.model.setup()
         self.input.setup()

@@ -30,5 +30,10 @@
             "completion"
         ],
         "tokens": 4097
+    },
+    "__meta__": {
+        "version": "0.9.1",
+        "app.version": "0.9.1",
+        "updated_at": "2023-04-11T07:25:00"
     }
 }

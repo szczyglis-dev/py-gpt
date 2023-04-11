@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PYGPT \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"POT-Creation-Date: 2023-04-11 07:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pl\n"
@@ -104,11 +104,15 @@ msgstr ""
 msgid "- **OpenAI API KEY** - API key that you need to paste into the application"
 msgstr ""
 
-#: ../../source/configuration.rst:43
+#: ../../source/configuration.rst:41
+msgid "- **OpenAI ORGANIZATION KEY** - Organization API key (optional)"
+msgstr ""
+
+#: ../../source/configuration.rst:45
 msgid "JSON files"
 msgstr ""
 
-#: ../../source/configuration.rst:44
+#: ../../source/configuration.rst:46
 msgid ""
 "The configuration is stored in JSON files, which allows for easy manual "
 "modification outside the application itself. Configuration files are "

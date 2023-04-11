@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PYGPT \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-04-10 01:45+0200\n"
+"POT-Creation-Date: 2023-04-11 07:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pl\n"
@@ -65,7 +65,7 @@ msgid "Translations / locale"
 msgstr ""
 
 #: ../../source/advanced.rst:30
-msgid "``JSON`` files with locales are placed in the directory:"
+msgid "``ini`` files with locales are placed in the directory:"
 msgstr ""
 
 #: ../../source/advanced.rst:37
@@ -79,4 +79,7 @@ msgid ""
 "will automatically add the language to the language selection menu in the"
 " application."
 msgstr ""
+
+#~ msgid "``JSON`` files with locales are placed in the directory:"
+#~ msgstr ""
 

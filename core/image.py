@@ -31,7 +31,7 @@ class Image:
     def init(self):
         """Initialize OpenAI API key"""
         openai.api_key = self.config.data["api_key"]
-        #openai.organization = self.config.data["organization_key"]
+        openai.organization = self.config.data["organization_key"]
 
     def generate(self, prompt, num=None):
         """

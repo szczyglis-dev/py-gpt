@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.11 05:00:00                  #
 # ================================================== #
 
 import datetime
@@ -35,17 +35,20 @@ class Config:
 
     def get_available_langs(self):
         """
-        Get available languages
+        Returns list with available languages
 
         :return: list with available languages
         """
         langs = []
         path = os.path.join('.', 'data', 'locale')
+        if not os.path.exists(path):
+            return langs
+
         for file in os.listdir(path):
             if file.endswith(".ini"):
                 langs.append(file.replace('locale.', '').replace('.ini', ''))
 
-        # put english first
+        # make English first
         if 'en' in langs:
             langs.remove('en')
             langs.insert(0, 'en')
@@ -53,7 +56,7 @@ class Config:
 
     def init(self, all=True):
         """
-        Init config
+        Initializes config
 
         :param all: load all configs
         """
@@ -103,7 +106,7 @@ class Config:
             print(e)
 
     def load_models(self):
-        """Loads models config from JSON files"""
+        """Loads models config from JSON file"""
         path = os.path.join(self.path, 'models.json')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
@@ -163,7 +166,7 @@ class Config:
             'chat': False,
             'completion': False,
             'img': False,
-            'temperature': 1,
+            'temperature': 1.0,
         }
 
     def append_current_presets(self):
@@ -279,6 +282,8 @@ class Config:
         """
         models = {}
         for key in self.models:
+            if key == '__meta__':
+                continue
             if mode in self.models[key]['mode']:
                 models[key] = self.models[key]
         return models
@@ -312,7 +317,10 @@ class Config:
         if remove_file:
             path = os.path.join(self.path, 'presets', name + '.json')
             if os.path.exists(path):
-                os.remove(path)
+                try:
+                    os.remove(path)
+                except Exception as e:
+                    print(e)
             self.load_presets()
 
     def get_default_mode(self):
@@ -330,7 +338,12 @@ class Config:
         :param mode: mode name
         :return: default model name
         """
-        models = self.get_models(mode)
+        models = {}
+        items = self.get_models(mode)
+        for k in items:
+            if k == "__meta__":
+                continue
+            models[k] = items[k]
         if len(models) == 0:
             return None
         return list(models.keys())[0]
@@ -381,18 +394,36 @@ class Config:
         self.data['__meta__'] = self.append_meta()
         dump = json.dumps(self.data, indent=4)
         path = os.path.join(self.path, 'config.json')
-        with open(path, 'w', encoding="utf-8") as f:
-            f.write(dump)
-            f.close()
+        try:
+            with open(path, 'w', encoding="utf-8") as f:
+                f.write(dump)
+                f.close()
+        except Exception as e:
+            print(e)
 
     def save_config(self):
         """Saves config into file"""
         self.data['__meta__'] = self.append_meta()
         dump = json.dumps(self.data, indent=4)
         path = os.path.join(self.path, 'config.json')
-        with open(path, 'w', encoding="utf-8") as f:
-            f.write(dump)
-            f.close()
+        try:
+            with open(path, 'w', encoding="utf-8") as f:
+                f.write(dump)
+                f.close()
+        except Exception as e:
+            print(e)
+
+    def save_models(self):
+        """Saves models config into file"""
+        self.models['__meta__'] = self.append_meta()
+        dump = json.dumps(self.models, indent=4)
+        path = os.path.join(self.path, 'models.json')
+        try:
+            with open(path, 'w', encoding="utf-8") as f:
+                f.write(dump)
+                f.close()
+        except Exception as e:
+            print(e)
 
     def save_presets(self):
         """Saves presets into files"""
@@ -400,9 +431,12 @@ class Config:
             self.presets[key]['__meta__'] = self.append_meta()
             path = os.path.join(self.path, 'presets', key + '.json')
             dump = json.dumps(self.presets[key], indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
+            try:
+                with open(path, 'w', encoding="utf-8") as f:
+                    f.write(dump)
+                    f.close()
+            except Exception as e:
+                print(e)
 
     def get_model_tokens(self, model):
         """
@@ -446,7 +480,7 @@ class Config:
                 src = os.path.join('.', 'data', 'config', 'models.json')
                 shutil.copyfile(src, dst)
 
-            # install prompts templates
+            # install prompt presets
             presets_dir = os.path.join(self.path, 'presets')
             if not os.path.exists(presets_dir):
                 src = os.path.join('.', 'data', 'config', 'presets')

@@ -8,7 +8,6 @@
     "prompt": "",
     "ai_name": "",
     "user_name": "",
-    "custom": false,
     "max_output_tokens": 1024,
     "max_total_tokens": 4096,
     "use_context": true,
@@ -17,7 +16,6 @@
     "top_p": 1.0,
     "frequency_penalty": 0.0,
     "presence_penalty": 0.0,
-    "user_id": 0,
     "store_history": true,
     "store_history_time": true,
     "img_resolution": "1024x1024",
@@ -48,8 +46,8 @@
     "ui.dialog.settings.height": 600,
     "ui.chatbox.font.color": "#ffffff",
     "__meta__": {
-        "version": "0.9.0",
-        "app.version": "0.9.0",
-        "updated_at": "2023-04-09T20:25:00"
+        "version": "0.9.1",
+        "app.version": "0.9.1",
+        "updated_at": "2023-04-11T07:25:00"
     }
 }

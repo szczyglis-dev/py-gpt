@@ -15,3 +15,10 @@ info@pygpt.net
 
 **License:**
 MIT License
+
+
+Special thanks
+======================
+GitHub community for their support and help:
+
+**kaneda2004** - for pull request with ORGANIZATION Key support

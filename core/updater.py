@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.11 05:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -58,7 +58,7 @@ class Updater:
 
     def show_version_dialog(self, version, build, changelog):
         """
-        Shows new version dialog
+        Displays new version dialog
 
         :param version: version number
         :param build: build date
@@ -70,3 +70,81 @@ class Updater:
         self.window.dialog['update'].changelog.setPlainText(changelog)
         self.window.dialog['update'].message.setText(txt)
         self.window.ui.dialogs.open('update')
+
+    def patch(self):
+        """Patch config files to current version"""
+        try:
+            self.patch_config()
+            self.patch_models()
+            self.patch_presets()
+            # TODO: add context patcher
+        except Exception as e:
+            print("Failed to patch config files!")
+            print(e)
+
+    def patch_models(self):
+        """Migrates models to current version"""
+        data = self.window.config.models
+        version = "0.0.0"
+        updated = False
+        if '__meta__' in data and 'version' in data['__meta__']:
+            version = data['__meta__']['version']
+        old = parse_version(version)
+        current = parse_version(self.window.version)
+        if old < current:
+            print("Migrating models.json...")
+            if old < parse_version("0.9.1"):
+                # apply meta only (not attached in 0.9.0)
+                updated = True
+
+        # update file
+        if updated:
+            self.window.config.models = data
+            self.window.config.save_models()
+
+    def patch_presets(self):
+        """Migrates presets to current version"""
+        for k in self.window.config.presets:
+            data = self.window.config.presets[k]
+            version = "0.0.0"
+            updated = False
+            if '__meta__' in data and 'version' in data['__meta__']:
+                version = data['__meta__']['version']
+            old = parse_version(version)
+            current = parse_version(self.window.version)
+            if old < current:
+                if old < parse_version("0.9.1"):
+                    pass
+
+            # update file
+            if updated:
+                self.window.config.presets[k] = data
+                self.window.config.save_preset(k)
+
+    def patch_config(self):
+        """Migrates config to current version"""
+        data = self.window.config.data
+        version = "0.0.0"
+        updated = False
+        if '__meta__' in data and 'version' in data['__meta__']:
+            version = data['__meta__']['version']
+        old = parse_version(version)
+        current = parse_version(self.window.version)
+        if old < current:
+            print("Migrating config.json...")
+            if old < parse_version("0.9.1"):
+                print("Migrating config to 0.9.1...")
+                keys_to_remove = ['user_id', 'custom']  # not needed anymore
+                for key in keys_to_remove:
+                    if key in data:
+                        del data[key]
+                keys_to_add = ['organization_key']
+                for key in keys_to_add:
+                    if key not in data:
+                        data[key] = ""
+                updated = True
+
+        # update file
+        if updated:
+            self.window.config.data = data
+            self.window.config.save_config()

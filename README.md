@@ -1,4 +1,4 @@
-Current release: **0.9.0** | Build: **2023.04.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Current release: **0.9.1** | Build: **2023.04.11** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 
 ### **Download compiled versions for Windows 10, 11 and Linux** here: https://pygpt.net
@@ -319,6 +319,8 @@ Config -> Settings...
 
 - **OpenAI API KEY** - API key that you need to paste into the
   application
+- 
+- **OpenAI ORGANIZATION KEY** - Organization API key (optional)
 
 ## JSON files
 
@@ -389,7 +391,7 @@ versions and will be available in the newly installed version.
 
 # Plugins and audio (coming soon)
 
-## Next realeases
+## Next releases
 
 Support for plug-ins and voice recognition and synthesis will be added
 in future versions of the application.
@@ -397,11 +399,14 @@ in future versions of the application.
 
 # CHANGELOG
 
+## v0.9.1 (2023.04.11)
+
+- added organization key configuration (by @kaneda2004, PR#1)
+- added config versions patching
+
 ## v0.9.0 (2023.04.09)
 
 - initial release
-
-
 
 # Credits
 
