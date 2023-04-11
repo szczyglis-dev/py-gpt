@@ -1,5 +1,5 @@
 v0.9.1 (2023.04.11)
-- added organization key configuration (by @kaneda2004, PR#1)
+- added organization key configuration
 - added config version patching
 
 v0.9.0 (2023.04.09)

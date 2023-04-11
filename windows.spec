@@ -11,11 +11,11 @@ a = Analysis(
     ],
     binaries=[],
     datas=[
-        ('data/config/presets/*', 'data/config/presets'),
-        ('data/config/config.json', 'data/config'),
-        ('data/config/models.json', 'data/config'),
-        ('data/locale/*', 'data/locale'),
-        ('data/logo.png', 'data'),
+        ('data\\config\\presets\\*', 'data\\config\\presets'),
+        ('data\\config\\config.json', 'data\\config'),
+        ('data\\config\\models.json', 'data\\config'),
+        ('data\\locale\\*', 'data\\locale'),
+        ('data\\logo.png', 'data'),
         ('CHANGELOG.txt', '.'),
         ('README.md', '.'),
         ('__init__.py', '.')
@@ -39,7 +39,7 @@ exe = EXE(
               ('msvcr100.dll', 'C:\\Windows\\System32\\msvcr100.dll', 'BINARY')]
     if sys.platform == 'win32' else a.binaries,
     exclude_binaries=True,
-    name='pygpt',
+    name='Py-GPT',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -50,7 +50,8 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='./data/icon.ico'
+    icon='data\\icon.ico',
+    version='version.rc'
 )
 coll = COLLECT(
     exe,
