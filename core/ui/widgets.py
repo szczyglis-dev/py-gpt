@@ -29,6 +29,7 @@ class NameInput(QLineEdit):
         super(NameInput, self).__init__(window)
         self.window = window
         self.id = id
+        self.setStyleSheet(self.window.controller.theme.get_style('line_edit'))
 
     def keyPressEvent(self, event):
         """
@@ -80,7 +81,7 @@ class ChatOutput(QTextEdit):
         super(ChatOutput, self).__init__(window)
         self.window = window
         self.setReadOnly(True)
-        self.setStyleSheet("color: {};".format(self.window.config.data['ui.chatbox.font.color']))
+        self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
 
 
 class SelectMenu(QTreeView):
@@ -96,14 +97,7 @@ class SelectMenu(QTreeView):
         super(SelectMenu, self).__init__(window)
         self.window = window
         self.id = id
-        self.setStyleSheet("QTreeView {"
-                           "padding: 0px;"
-                           "margin: 0px;"
-                           "};"
-                           "QTreeView::item {"
-                           "padding: 0px;"
-                           "margin: 0px;"
-                           "}")
+        self.setStyleSheet(self.window.controller.theme.get_style('tree_view'))
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setIndentation(0)
         self.setHeaderHidden(True)
@@ -334,6 +328,7 @@ class RenameInput(QLineEdit):
 
         self.window = window
         self.id = id
+        self.setStyleSheet(self.window.controller.theme.get_style('line_edit'))
 
     def keyPressEvent(self, event):
         """
@@ -458,8 +453,7 @@ class SettingsCheckbox(QWidget):
             lambda: self.window.controller.settings.toggle(self.id, self.box.isChecked(), self.section))
 
         # windows style fix (without this checkboxes are invisible!)
-        self.box.setStyleSheet(
-            "QCheckBox::indicator:checked { background-color: #1de9b6; } QCheckBox::indicator:unchecked { background-color: #3a3f45; }")
+        self.box.setStyleSheet(self.window.controller.theme.get_style('checkbox'))
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
@@ -482,6 +476,7 @@ class SettingsInputInline(QLineEdit):
         self.id = id
         self.section = section
         self.setMaximumWidth(60)
+        self.setStyleSheet(self.window.controller.theme.get_style('line_edit'))
 
     def keyPressEvent(self, event):
         """
@@ -508,6 +503,7 @@ class SettingsInput(QLineEdit):
         self.id = id
         self.section = section
         self.autoupdate = autoupdate
+        self.setStyleSheet(self.window.controller.theme.get_style('line_edit'))
 
     def keyPressEvent(self, event):
         """
@@ -655,7 +651,7 @@ class UpdateDialog(QDialog):
         info = QLabel(trans("update.info"))
         info.setWordWrap(True)
         info.setAlignment(Qt.AlignCenter)
-        info.setStyleSheet("font-weight: bold")
+        info.setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.layout.addWidget(logo_label)
         self.layout.addWidget(info)
         self.layout.addWidget(self.message)

@@ -79,7 +79,8 @@ class Settings:
 
         options = {}
         options['api_key'] = self.add_option('settings.api_key', self.window.config_option['api_key'], True)
-        options['organization_key'] = self.add_option('settings.organization_key', self.window.config_option['organization_key'], True)
+        options['organization_key'] = self.add_option('settings.organization_key',
+                                                      self.window.config_option['organization_key'], True)
         options['temperature'] = self.add_option('settings.temperature', self.window.config_option['temperature'])
         options['top_p'] = self.add_option('settings.top_p', self.window.config_option['top_p'])
         options['frequency_penalty'] = self.add_option('settings.frequency_penalty',
@@ -135,7 +136,7 @@ class Settings:
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
         if bold:
-            self.window.data[label_key].setStyleSheet("font-weight: bold;")
+            self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
         layout.addWidget(self.window.data[label_key])
         layout.addWidget(option)

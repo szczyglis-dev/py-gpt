@@ -132,6 +132,16 @@ class Updater:
         current = parse_version(self.window.version)
         if old < current:
             print("Migrating config.json...")
+            if old < parse_version("0.9.2"):
+                print("Migrating config to 0.9.2...")
+                keys_to_remove = ['user_id', 'custom']
+                for key in keys_to_remove:
+                    if key in data:
+                        del data[key]
+                if 'theme' not in data:
+                    data['theme'] = "dark_teal"
+                updated = True
+
             if old < parse_version("0.9.1"):
                 print("Migrating config to 0.9.1...")
                 keys_to_remove = ['user_id', 'custom']  # not needed anymore

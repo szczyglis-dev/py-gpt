@@ -41,7 +41,7 @@ class ChatBox:
         context_layout = self.setup_context()
 
         self.window.data['chat.label'] = QLabel(trans("chatbox.label"))
-        self.window.data['chat.label'].setStyleSheet("font-weight: bold;")
+        self.window.data['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         header = QHBoxLayout()
         header.addWidget(self.window.data['chat.label'])
@@ -73,10 +73,9 @@ class ChatBox:
 
         :return: QHBoxLayout        
         """
-        css_fix = "QCheckBox::indicator:checked { background-color: #1de9b6; } QCheckBox::indicator:unchecked { background-color: #3a3f45; }"
         self.window.data['output.timestamp'] = QCheckBox(trans('output.timestamp'))
         self.window.data['output.timestamp'].setStyleSheet(
-            css_fix)  # windows style fix (without this checkboxes are invisible!)
+            self.window.controller.theme.get_style('checkbox'))  # Windows style fix
         self.window.data['output.timestamp'].stateChanged.connect(
             lambda: self.window.controller.output.toggle_timestamp(self.window.data['output.timestamp'].isChecked()))
 

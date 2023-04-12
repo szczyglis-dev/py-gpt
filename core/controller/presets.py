@@ -165,7 +165,6 @@ class Presets:
         self.window.controller.model.update()
 
         self.window.ui.dialogs.close('editor.preset.presets')
-        filepath = os.path.join(self.window.config.path, 'presets', preset + '.json')
         self.window.set_status(trans('status.preset.saved'))
 
     def assign_data(self, preset):
@@ -254,7 +253,6 @@ class Presets:
                         self.window.config.data['preset'] = None
                     self.window.config.delete_preset(preset, True)
                     self.window.controller.model.update()
-                    path = os.path.join(self.window.config.path, 'presets', preset + '.json')
                     self.window.set_status(trans('status.preset.deleted'))
 
     def from_current(self):
@@ -279,5 +277,4 @@ class Presets:
         :return: validated filename
         """
         # strip not allowed characters
-        value = re.sub(r'[^\w\s-]', '', value)
-        return value
+        return re.sub(r'[^\w\s-]', '', value)

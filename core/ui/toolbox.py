@@ -105,7 +105,7 @@ class Toolbox:
         :return: QVBoxLayout
         """
         self.window.data['toolbox.prompt.label'] = QLabel(trans("toolbox.prompt"))
-        self.window.data['toolbox.prompt.label'].setStyleSheet("font-weight: bold;")
+        self.window.data['toolbox.prompt.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data['preset.clear'] = QPushButton(trans('preset.clear'))
         self.window.data['preset.clear'].clicked.connect(
             lambda: self.window.controller.presets.clear())
@@ -134,7 +134,7 @@ class Toolbox:
         """
         label_key = id + '.label'
         self.window.data[label_key] = QLabel(title)
-        self.window.data[label_key].setStyleSheet("font-weight: bold;")
+        self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data[id] = SelectMenu(self.window, id)
         layout = QVBoxLayout()
         layout.addWidget(self.window.data[label_key])
@@ -157,7 +157,7 @@ class Toolbox:
             lambda: self.window.controller.presets.edit())
 
         self.window.data['preset.presets.label'] = QLabel(title)
-        self.window.data['preset.presets.label'].setStyleSheet("font-weight: bold;")
+        self.window.data['preset.presets.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         header = QHBoxLayout()
         header.addWidget(self.window.data['preset.presets.label'])
         header.addWidget(self.window.data['preset.presets.new'], alignment=Qt.AlignRight)

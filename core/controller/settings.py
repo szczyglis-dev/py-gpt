@@ -59,8 +59,7 @@ class Settings:
     def update_font_size(self):
         """Updates font size"""
         size = self.window.config.data['font_size']
-        self.window.data['output'].setStyleSheet(
-            'color: {}; font-size: {}px;'.format(self.window.config.data['ui.chatbox.font.color'], size))
+        self.window.data['output'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
 
     def toggle_settings(self, id):
         """

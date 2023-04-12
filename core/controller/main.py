@@ -23,6 +23,7 @@ from core.controller.ui import UI
 from core.controller.launcher import Launcher
 from core.controller.lang import Lang
 from core.controller.image import Image
+from core.controller.theme import Theme
 
 
 class Controller:
@@ -47,11 +48,15 @@ class Controller:
         self.launcher = Launcher(window)
         self.lang = Lang(window)
         self.image = Image(window)
+        self.theme = Theme(window)
 
     def setup(self):
         """Setups controller"""
         # handle config migration if needed
         self.launcher.migrate_version()
+
+        # ini material theme
+        self.theme.setup()
 
         # setup all controllers
         self.lang.setup()

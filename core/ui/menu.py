@@ -30,6 +30,7 @@ class Menu:
         self.setup_audio()
         self.setup_config()
         self.setup_lang()
+        self.setup_theme()
         self.setup_about()
 
         # debug menu
@@ -126,8 +127,13 @@ class Menu:
         """Setups lang menu"""
         self.window.menu['lang'] = {}
         self.window.menu['menu.lang'] = self.window.menuBar().addMenu(trans("menu.lang"))
-        self.window.menu['menu.lang'].setStyleSheet(
-            "QMenu::indicator:checked { background-color: #1de9b6; } QMenu::indicator:unchecked { background-color: #3a3f45; }")  # windows style fix (without this checkboxes are invisible!)
+        self.window.menu['menu.lang'].setStyleSheet(self.window.controller.theme.get_style('menu'))  # Windows fix
+
+    def setup_theme(self):
+        """Setups theme menu"""
+        self.window.menu['theme'] = {}
+        self.window.menu['menu.theme'] = self.window.menuBar().addMenu(trans("menu.theme"))
+        self.window.menu['menu.theme'].setStyleSheet(self.window.controller.theme.get_style('menu'))  # Windows fix
 
     def setup_about(self):
         """Setups about menu"""

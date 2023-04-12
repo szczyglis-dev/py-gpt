@@ -112,7 +112,7 @@ class Preset:
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
         if bold:
-            self.window.data[label_key].setStyleSheet("font-weight: bold;")
+            self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
         layout.addWidget(self.window.data[label_key])
         layout.addWidget(option)

@@ -43,7 +43,7 @@ class Editor:
         bottom_layout.addWidget(self.window.data['editor.btn.save'])
 
         self.window.path_label[id] = QLabel("")
-        self.window.path_label[id].setStyleSheet("font-weight: bold;")
+        self.window.path_label[id].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         self.window.data['dialog.editor.label'] = QLabel(trans('dialog.editor.label'))
 

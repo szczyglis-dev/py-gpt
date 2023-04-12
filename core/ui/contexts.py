@@ -61,7 +61,7 @@ class Contexts:
 
         self.window.data[id] = ContextSelectMenu(self.window, id)
         self.window.data['contexts.label'] = QLabel(trans("ctx.contexts.label"))
-        self.window.data['contexts.label'].setStyleSheet('font-weight: bold;')
+        self.window.data['contexts.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QVBoxLayout()
         layout.addWidget(self.window.data['contexts.label'])
         layout.addWidget(self.window.data[id])

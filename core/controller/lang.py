@@ -189,5 +189,9 @@ class Lang:
         self.window.menu['info.website'].setText(trans("menu.info.website"))
         self.window.menu['info.github'].setText(trans("menu.info.github"))
 
+        for theme in self.window.menu['theme']:
+            name = self.window.controller.theme.trans_theme(theme)
+            self.window.menu['theme'][theme].setText(name)
+
         self.window.controller.model.update()
         self.window.set_status('')

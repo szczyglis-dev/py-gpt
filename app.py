@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.12 06:00:00                  #
 # ================================================== #
 
 import sys
@@ -14,7 +14,7 @@ import sys
 from PySide6.QtGui import QScreen
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (QApplication, QMainWindow, QStyleFactory)
-from qt_material import apply_stylesheet
+from qt_material import apply_stylesheet, QtStyleTools
 
 from core.config import Config
 from core.ui.main import UI
@@ -27,7 +27,7 @@ from core.image import Image
 from core.utils import get_init_value
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, QtStyleTools):
     def __init__(self):
         """App main window"""
         super().__init__()
@@ -60,6 +60,24 @@ class MainWindow(QMainWindow):
 
         self.setup()
         self.setWindowTitle('PYGPT.net v{} | build {}'.format(self.version, self.build))
+
+    def set_theme(self, theme='dark_teal.xml'):
+        label = "#ffffff"
+        inverse = False
+        if theme.startswith('light_'):
+            label = "#000000"
+            inverse = True
+        extra = {
+            'density_scale': '-2',
+            # 'linux': True,
+            'pyside6': True,
+            'QLineEdit': {
+                'color': label,
+            },
+            # 'font_family': 'Roboto',
+        }
+        self.setStyleSheet(self.controller.theme.get_style('line_edit'))
+        self.apply_stylesheet(self, theme, invert_secondary=inverse, extra=extra)
 
     def setup(self):
         """Setups app"""
@@ -113,18 +131,8 @@ if __name__ == '__main__':
     window = MainWindow()
 
     # apply material theme
-    window.setStyle(QStyleFactory.create('Plastique'))
-    window.setStyleSheet("QLineEdit { color: #fff; }")
-    extra = {
-        'density_scale': '-2',
-        # 'linux': True,
-        'pyside6': True,
-        # 'font_family': 'Roboto',
-        'QLineEdit': {
-            'color': '#ffffff',
-        },
-    }
-    apply_stylesheet(app, theme='dark_teal.xml', invert_secondary=False, extra=extra)
+    # window.setStyle(QStyleFactory.create('Plastique'))
+    # window.setStyleSheet(window.controller.theme.get_style('line_edit'))
 
     available_geometry = window.screen().availableGeometry()
     center = QScreen.availableGeometry(QApplication.primaryScreen()).center() / 2

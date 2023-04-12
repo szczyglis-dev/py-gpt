@@ -40,24 +40,22 @@ class Input:
         status_layout = self.status.setup()
         status_layout.setAlignment(Qt.AlignLeft)
 
-        css_fix = "QRadioButton::indicator:checked { background-color: #1de9b6; } QRadioButton::indicator:unchecked { background-color: #3a3f45; }"
-
         # send options
         self.window.data['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
         self.window.data['input.send_enter'].setStyleSheet(
-            css_fix)  # windows style fix (without this checkboxes are invisible!)
+            self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 not self.window.data['input.send_enter'].isChecked()))
         self.window.data['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
         self.window.data['input.send_shift_enter'].setStyleSheet(
-            css_fix)  # windows style fix (without this checkboxes are invisible!)
+            self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_shift_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 self.window.data['input.send_shift_enter'].isChecked()))
         self.window.data['input.send_clear'] = QCheckBox(trans('input.send_clear'))
         self.window.data['input.send_clear'].setStyleSheet(
-            "QCheckBox::indicator:checked { background-color: #1de9b6; } QCheckBox::indicator:unchecked { background-color: #3a3f45; }")  # windows style fix (without this checkboxes are invisible!)
+            self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.data['input.send_clear'].stateChanged.connect(
             lambda: self.window.controller.input.toggle_send_clear(self.window.data['input.send_clear'].isChecked()))
 
@@ -81,7 +79,7 @@ class Input:
 
         # header
         self.window.data['input.label'] = QLabel(trans("input.label"))
-        self.window.data['input.label'].setStyleSheet("font-weight: bold;")
+        self.window.data['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data['input.counter'] = QLabel("")
 
         header = QHBoxLayout()
