@@ -52,10 +52,7 @@ class Controller:
 
     def setup(self):
         """Setups controller"""
-        # handle config migration if needed
-        self.launcher.migrate_version()
-
-        # ini material theme
+        # init material theme
         self.theme.setup()
 
         # setup all controllers

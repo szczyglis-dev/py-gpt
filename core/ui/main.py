@@ -49,7 +49,7 @@ class UI:
         self.window.ctx.setLayout(self.contexts.setup())
 
         # set width
-        self.window.ctx.setMinimumWidth(self.window.config.data['ui.ctx.min_width'])
+        self.window.ctx.setMinimumWidth(200)
         # self.window.ctx.setMaximumWidth(self.window.config.data['ui.ctx.max_width'])
         # self.window.toolbox.setMinimumWidth(self.window.config.data['ui.toolbox.min_width'])
         # self.window.toolbox.setMaximumWidth(self.window.config.data['ui.toolbox.max_width'])

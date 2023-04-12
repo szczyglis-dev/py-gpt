@@ -77,6 +77,8 @@ class Preset:
         options['img'] = self.add_raw_option(self.window.config_option['preset.img'])
         options['temperature'] = self.add_option('preset.temperature', self.window.config_option['preset.temperature'])
 
+        self.window.config_option['preset.prompt'].setMinimumHeight(150)
+
         self.window.data['preset.prompt.label'] = QLabel(trans('preset.prompt'))
         options['prompt'] = QVBoxLayout()
         options['prompt'].addWidget(self.window.data['preset.prompt.label'])

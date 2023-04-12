@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.12 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -30,20 +30,25 @@ class Start:
         """Setups start dialog"""
         id = 'start'
 
-        btn = QPushButton(trans('dialog.start.btn'))
-        btn.clicked.connect(lambda: self.window.controller.settings.start_settings())
+        self.window.data['start.btn'] = QPushButton(trans('dialog.start.btn'))
+        self.window.data['start.btn'].clicked.connect(lambda: self.window.controller.settings.start_settings())
 
         logo_label = QLabel()
         pixmap = QPixmap('./data/logo.png')
         logo_label.setPixmap(pixmap)
 
-        string = trans('dialog.start.text')
-        label = QLabel(string)
-        label.setAlignment(Qt.AlignCenter)
+        self.window.data['start.title'] = QLabel(trans('dialog.start.title.text'))
+        link = QLabel(trans('dialog.start.link'))
+        self.window.data['start.settings'] = QLabel(trans('dialog.start.settings.text'))
+        self.window.data['start.settings'].setAlignment(Qt.AlignCenter)
+
+        self.window.data['start.title'].setAlignment(Qt.AlignCenter)
         layout = QVBoxLayout()
         layout.addWidget(logo_label, alignment=Qt.AlignCenter)
-        layout.addWidget(label)
-        layout.addWidget(btn)
+        layout.addWidget(self.window.data['start.title'], alignment=Qt.AlignCenter)
+        layout.addWidget(link, alignment=Qt.AlignCenter)
+        layout.addWidget(self.window.data['start.settings'], alignment=Qt.AlignCenter)
+        layout.addWidget(self.window.data['start.btn'])
 
         self.window.dialog['info.' + id] = InfoDialog(self.window, id)
         self.window.dialog['info.' + id].setLayout(layout)

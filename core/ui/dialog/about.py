@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.12 20:00:00                  #
+# Updated Date: 2023.04.12 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QPlainTextEdit
 
 from core.ui.widgets import InfoDialog
 from core.utils import trans
@@ -43,9 +43,7 @@ class About:
         buttons_layout.addWidget(btn_www)
         buttons_layout.addWidget(btn_github)
 
-        string = "PY-GPT\n" \
-                 "-------------\n" \
-                 "{}: {}\n" \
+        string = "{}: {}\n" \
                  "{}: {}\n" \
                  "{}: {}\n" \
                  "{}: {}\n\n" \
@@ -64,9 +62,21 @@ class About:
 
         self.window.data['dialog.about.content'] = QLabel(string)
 
+        title = QLabel("PYGPT")
+        title.setContentsMargins(0, 0, 0, 0)
+        title.setStyleSheet(
+            "font-size: 16px; font-weight: bold; margin-bottom: 10px; margin-left: 0; margin-top: 10px; padding: 0;")
+
+        thx_textarea = QPlainTextEdit()
+        thx_textarea.setReadOnly(True)
+        thx_textarea.setPlainText("kaneda2004")
+
         layout = QVBoxLayout()
         layout.addWidget(logo_label)
+        layout.addWidget(title)
         layout.addWidget(self.window.data['dialog.about.content'])
+        layout.addWidget(QLabel(trans('about.thanks') + ":"))
+        layout.addWidget(thx_textarea)
         layout.addLayout(buttons_layout)
 
         self.window.dialog['info.' + id] = InfoDialog(self.window, id)

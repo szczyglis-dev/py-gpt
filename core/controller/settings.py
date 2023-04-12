@@ -67,8 +67,8 @@ class Settings:
 
         :param id: settings id
         """
-        width = self.window.config.data['ui.dialog.settings.width']
-        height = self.window.config.data['ui.dialog.settings.height']
+        width = 500
+        height = 600
 
         if id in self.window.settings.active and self.window.settings.active[id]:
             self.close_window(id)
@@ -90,8 +90,8 @@ class Settings:
 
         :param file: JSON file to load
         """
-        width = self.window.config.data['ui.dialog.settings.width']
-        height = self.window.config.data['ui.dialog.settings.height']
+        width = 500
+        height = 600
 
         id = 'editor'
         current_file = self.window.dialog['config.editor'].file

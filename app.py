@@ -13,8 +13,8 @@ import sys
 
 from PySide6.QtGui import QScreen
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import (QApplication, QMainWindow, QStyleFactory)
-from qt_material import apply_stylesheet, QtStyleTools
+from PySide6.QtWidgets import (QApplication, QMainWindow)
+from qt_material import QtStyleTools
 
 from core.config import Config
 from core.ui.main import UI
@@ -49,6 +49,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.debugger = Debug(self)
         self.info = Info(self)
         self.settings = Settings(self)
+
+        # handle config migration if needed
+        self.controller.launcher.migrate_version()
 
         # setup GPT and DALL-E
         self.gpt = Gpt(self.config)
@@ -134,11 +137,6 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     window = MainWindow()
-
-    # apply material theme
-    # window.setStyle(QStyleFactory.create('Plastique'))
-    # window.setStyleSheet(window.controller.theme.get_style('line_edit'))
-
     available_geometry = window.screen().availableGeometry()
     center = QScreen.availableGeometry(QApplication.primaryScreen()).center() / 2
     topLeftPoint = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()

@@ -1,4 +1,4 @@
-Current release: **0.9.1** | Build: **2023.04.11** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Current release: **0.9.2** | Build: **2023.04.12** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 
 ### **Download compiled versions for Windows 10, 11 and Linux** here: https://pygpt.net
@@ -398,6 +398,11 @@ in future versions of the application.
 
 
 # CHANGELOG
+
+## v0.9.2 (2023.04.12)
+
+- added theme color settings
+- small UI fixes
 
 ## v0.9.1 (2023.04.11)
 

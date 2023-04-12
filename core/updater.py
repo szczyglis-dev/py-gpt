@@ -43,7 +43,6 @@ class Updater:
             newest_version = data_json["version"]
             newest_build = data_json["build"]
 
-            newest_version = "1.0.0"
             # changelog
             changelog = ""
             if "changelog" in data_json:
@@ -53,6 +52,8 @@ class Updater:
             parsed_current_version = parse_version(self.window.version)
             if parsed_newest_version > parsed_current_version:
                 self.show_version_dialog(newest_version, newest_build, changelog)
+            else:
+                print("No updates available")
         except Exception as e:
             print("Failed to check for updates")
             print(e)
@@ -135,7 +136,13 @@ class Updater:
             print("Migrating config.json...")
             if old < parse_version("0.9.2"):
                 print("Migrating config to 0.9.2...")
-                keys_to_remove = ['user_id', 'custom']
+                keys_to_remove = ['ui.ctx.min_width',
+                                  'ui.ctx.max_width',
+                                  'ui.toolbox.min_width',
+                                  'ui.toolbox.max_width',
+                                  'ui.dialog.settings.width',
+                                  'ui.dialog.settings.height',
+                                  'ui.chatbox.font.color']
                 for key in keys_to_remove:
                     if key in data:
                         del data[key]

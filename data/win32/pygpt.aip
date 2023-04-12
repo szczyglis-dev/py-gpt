@@ -14,10 +14,10 @@
     <ROW Property="ARPURLUPDATEINFO" Value="https://pygpt.readthedocs.io"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="pygpt.net"/>
-    <ROW Property="ProductCode" Value="1033:{6907D9E9-E984-49F3-8F28-6256D1A79BEF} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{47CEC126-E59D-4122-ABB6-3A8C72BF0BCF} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
-    <ROW Property="ProductName" Value="Py-GPT"/>
-    <ROW Property="ProductVersion" Value="0.9.1"/>
+    <ROW Property="ProductName" Value="Py-GPT v0.9.2"/>
+    <ROW Property="ProductVersion" Value="0.9.2"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{44CE15C0-8565-4286-B83E-CBA48A4D51F1}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -31,6 +31,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="DESKTO~1|DesktopFolder" IsPseudoRoot="1"/>
     <ROW Directory="PySide6_Dir" Directory_Parent="Windows_Dir" DefaultDir="PySide6"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
@@ -75,335 +76,335 @@
     <ROW Directory="yarl_Dir" Directory_Parent="Windows_Dir" DefaultDir="yarl"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
-    <ROW Component="APPDIR" ComponentId="{68CFF5A9-66BC-4A6B-A019-550F3AAB47BF}" Directory_="APPDIR" Attributes="0"/>
-    <ROW Component="MSVCP140.dll" ComponentId="{90F67C88-0CE8-4585-965E-F4E2C22E4201}" Directory_="PySide6_Dir" Attributes="256" KeyPath="MSVCP140.dll"/>
-    <ROW Component="MSVCP140.dll_2" ComponentId="{C754FA1E-A384-4DB2-A783-25F57A209456}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140.dll_2"/>
-    <ROW Component="MSVCP140_1.dll" ComponentId="{7C6CB550-36FD-41D0-B34E-B8AF3F5435B4}" Directory_="PySide6_Dir" Attributes="256" KeyPath="MSVCP140_1.dll"/>
-    <ROW Component="MSVCP140_2.dll" ComponentId="{FB6E3D73-37C6-46D8-879C-302B8FD7CDE3}" Directory_="PySide6_Dir" Attributes="256" KeyPath="MSVCP140_2.dll"/>
-    <ROW Component="ProductInformation" ComponentId="{35760CE6-0D47-4388-A8DA-306F48E5D634}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="PyGPT.exe" ComponentId="{D48D96C6-7C41-4A70-B10D-ACA565CBDB65}" Directory_="Windows_Dir" Attributes="256" KeyPath="PyGPT.exe"/>
-    <ROW Component="Qt6Core.dll" ComponentId="{D53BF826-8AF7-42BC-971B-961B195F9F67}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Core.dll"/>
-    <ROW Component="Qt6Gui.dll" ComponentId="{88AD04AF-CB23-4DA9-ABB7-051E9B7EBFEB}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Gui.dll"/>
-    <ROW Component="Qt6Network.dll" ComponentId="{C0070034-4A6D-48C6-B9FF-8A74056561EF}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Network.dll"/>
-    <ROW Component="Qt6OpenGL.dll" ComponentId="{208423D6-45F1-4268-9FE1-0100EC0E8CC0}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGL.dll"/>
-    <ROW Component="Qt6OpenGLWidgets.dll" ComponentId="{28AA90F0-52A0-4D6F-A10A-3F856E10C10D}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGLWidgets.dll"/>
-    <ROW Component="Qt6Svg.dll" ComponentId="{18DCFC0B-EA75-44C8-8268-F5908F570FB8}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Svg.dll"/>
-    <ROW Component="Qt6UiTools.dll" ComponentId="{D09D62D8-9C6D-47E4-9523-FD4C7044BE84}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6UiTools.dll"/>
-    <ROW Component="Qt6Widgets.dll" ComponentId="{A4DD8123-F152-4633-980B-2EB5B3168731}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Widgets.dll"/>
-    <ROW Component="QtCore.pyd" ComponentId="{149FEE28-40EA-4BF7-8900-BBBB126CB9DF}" Directory_="PySide6_Dir" Attributes="256" KeyPath="QtCore.pyd" Type="0"/>
-    <ROW Component="RobotoBlack.ttf" ComponentId="{E31901BE-94B4-498F-AAF6-091064BE7A95}" Directory_="roboto_Dir" Attributes="0" Type="0"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{88978BA4-134B-4411-8391-4802BEC25FF8}" Directory_="SHORTCUTDIR" Attributes="0"/>
-    <ROW Component="Shiboken.pyd" ComponentId="{8449452A-D389-408F-8D31-54A3AACC14CD}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="Shiboken.pyd" Type="0"/>
-    <ROW Component="VCRUNTIME140.dll" ComponentId="{302B2517-D3EC-44F5-8783-78CB08EC1BAF}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll"/>
-    <ROW Component="VCRUNTIME140_1.dll" ComponentId="{5A947C44-CCB3-4D00-AF3F-1851A4ACFE4A}" Directory_="PySide6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll"/>
-    <ROW Component="VCRUNTIME140_1.dll_3" ComponentId="{E5C88E04-041B-44D8-BDC3-905A147A9799}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_3"/>
-    <ROW Component="VCRUNTIME140_1.dll_4" ComponentId="{211AB520-9271-47AE-BA1E-0B51E32CFA43}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_4"/>
-    <ROW Component="__init__.cpython310.pyc" ComponentId="{DB71A523-893B-456A-90BC-9C0BA287F926}" Directory_="__pycache___Dir" Attributes="0" KeyPath="__init__.cpython310.pyc" Type="0"/>
-    <ROW Component="__init__.cpython310.pyc_2" ComponentId="{F55E26C9-F5A3-4E6C-8033-D618B55E8CE7}" Directory_="__pycache___3_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_3" Type="0"/>
-    <ROW Component="_frozenlist.cp310win_amd64.pyd" ComponentId="{C479770F-1813-45DB-AA1C-183B50C7F177}" Directory_="frozenlist_Dir" Attributes="256" KeyPath="_frozenlist.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_helpers.cp310win_amd64.pyd" ComponentId="{CFD72FEA-83C6-49D8-B9D5-C9EF16BD997C}" Directory_="aiohttp_Dir" Attributes="256" KeyPath="_helpers.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_multidict.cp310win_amd64.pyd" ComponentId="{AAC4B3D6-3350-483D-ADF2-5AD658D912E1}" Directory_="multidict_Dir" Attributes="256" KeyPath="_multidict.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_quoting_c.cp310win_amd64.pyd" ComponentId="{6AAE1CC3-0266-4C47-ACC8-DAC67FCA6E58}" Directory_="yarl_Dir" Attributes="256" KeyPath="_quoting_c.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_regex.cp310win_amd64.pyd" ComponentId="{7624D120-DA09-45AA-9C89-EEC50C6BE54E}" Directory_="regex_Dir" Attributes="256" KeyPath="_regex.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_speedups.cp310win_amd64.pyd" ComponentId="{153E0172-E4F4-4612-9472-39C5AFB472CB}" Directory_="markupsafe_Dir" Attributes="256" KeyPath="_speedups.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_tiktoken.cp310win_amd64.pyd" ComponentId="{DD07C1B7-2A63-4FAC-8C1F-6ABE27D1CF3C}" Directory_="tiktoken_Dir" Attributes="256" KeyPath="_tiktoken.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="base.svg" ComponentId="{67FC269C-104C-46D3-B674-6CBAB484FDF7}" Directory_="source_Dir" Attributes="0" KeyPath="base.svg" Type="0"/>
-    <ROW Component="base_library.zip" ComponentId="{35EF2C96-C789-4D13-AC2D-08DE54991DF6}" Directory_="Windows_Dir" Attributes="0" KeyPath="base_library.zip" Type="0"/>
-    <ROW Component="batman_and_joker.json" ComponentId="{E947BF2C-66ED-4D27-B875-A52211AFFDFC}" Directory_="presets_Dir" Attributes="0" KeyPath="batman_and_joker.json" Type="0"/>
-    <ROW Component="cacert.pem" ComponentId="{D71D0806-8518-44C2-B16D-3F247E0D7A26}" Directory_="certifi_Dir" Attributes="0" KeyPath="cacert.pem" Type="0"/>
-    <ROW Component="config.json" ComponentId="{05C352EF-A947-46F1-88AB-AC5575A049BC}" Directory_="config_Dir" Attributes="0" KeyPath="config.json" Type="0"/>
-    <ROW Component="dark_amber.xml" ComponentId="{D636F995-0FEA-47F2-89A2-3AD2F569B960}" Directory_="themes_Dir" Attributes="0" KeyPath="dark_amber.xml" Type="0"/>
-    <ROW Component="dock_theme.ui" ComponentId="{89AA51E0-A772-41B2-93F5-7088B5E8DFA7}" Directory_="qt_material_Dir" Attributes="0" KeyPath="dock_theme.ui" Type="0"/>
-    <ROW Component="entry_points.txt" ComponentId="{71607CFA-DBBF-4F4F-A60E-04AF227B1923}" Directory_="show_in_file_manager1.1.4.disti_Dir" Attributes="0" KeyPath="entry_points.txt" Type="0"/>
-    <ROW Component="generate.cpython310.pyc" ComponentId="{6B111CC2-12A4-4898-BE6E-E0B279BC892C}" Directory_="__pycache___4_Dir" Attributes="0" KeyPath="generate.cpython310.pyc" Type="0"/>
-    <ROW Component="generate.py" ComponentId="{B9D7B038-15BF-4B71-8C78-E7A1A052BB18}" Directory_="resources_Dir" Attributes="0" KeyPath="generate.py" Type="0"/>
-    <ROW Component="libcrypto1_1.dll" ComponentId="{DC64AA48-A834-4E23-88FD-061011BA3F85}" Directory_="Windows_Dir" Attributes="256" KeyPath="libcrypto1_1.dll"/>
-    <ROW Component="libffi7.dll" ComponentId="{543EEFA6-84C7-4FD8-96A5-2242F75ECE74}" Directory_="Windows_Dir" Attributes="256" KeyPath="libffi7.dll"/>
-    <ROW Component="libssl1_1.dll" ComponentId="{C9EB9549-3857-429A-A94E-3EA7CE9B9143}" Directory_="Windows_Dir" Attributes="256" KeyPath="libssl1_1.dll"/>
-    <ROW Component="locale.en.ini" ComponentId="{84555A7A-C025-4732-8B4E-60593E77B492}" Directory_="locale_Dir" Attributes="0" KeyPath="locale.en.ini" Type="0"/>
-    <ROW Component="logo.png" ComponentId="{1C776D76-5175-4658-A608-225281BFE1FA}" Directory_="data_Dir" Attributes="0" KeyPath="logo.png" Type="0"/>
-    <ROW Component="logo.svg" ComponentId="{0DF6305F-F779-49A7-96D8-50E61EEACEBF}" Directory_="logo_Dir" Attributes="0" KeyPath="logo.svg" Type="0"/>
-    <ROW Component="md.cp310win_amd64.pyd" ComponentId="{71BA54A0-CF9C-472F-ADD4-45829B474ED4}" Directory_="charset_normalizer_Dir" Attributes="256" KeyPath="md.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="mfc140u.dll" ComponentId="{25CDF7CD-8D68-4E89-B46A-B34D49E895CE}" Directory_="Windows_Dir" Attributes="256" KeyPath="mfc140u.dll"/>
-    <ROW Component="pyside6.abi3.dll" ComponentId="{6BDF9CF2-6A14-48F6-A1ED-075CB64A7B26}" Directory_="PySide6_Dir" Attributes="256" KeyPath="pyside6.abi3.dll"/>
-    <ROW Component="python3.dll" ComponentId="{B3FD03E3-948E-48E0-A5DC-A471673C28CE}" Directory_="Windows_Dir" Attributes="256" KeyPath="python3.dll"/>
-    <ROW Component="python310.dll" ComponentId="{30EC2E03-B4B1-4100-AB81-550097C60971}" Directory_="Windows_Dir" Attributes="256" KeyPath="python310.dll"/>
-    <ROW Component="pythoncom310.dll" ComponentId="{0DC06F7B-8278-466B-8F90-9CF38D565700}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pythoncom310.dll"/>
-    <ROW Component="pywintypes310.dll" ComponentId="{82C109DD-B8E5-4A4F-BF0D-3F8056578D0D}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pywintypes310.dll"/>
-    <ROW Component="qcertonlybackend.dll" ComponentId="{072C8DC6-1A97-4E17-8C3B-D4BFEA49D15B}" Directory_="tls_Dir" Attributes="256" KeyPath="qcertonlybackend.dll"/>
-    <ROW Component="qdirect2d.dll" ComponentId="{A035FF7D-B6D2-4CA6-AEB7-A06550F7E291}" Directory_="platforms_Dir" Attributes="256" KeyPath="qdirect2d.dll"/>
-    <ROW Component="qgif.dll" ComponentId="{8C71A776-C3EC-455C-BF88-5C8462383471}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qgif.dll"/>
-    <ROW Component="qicns.dll" ComponentId="{101069AB-ECC4-436A-A70B-55AD8B560F8E}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qicns.dll"/>
-    <ROW Component="qico.dll" ComponentId="{A3133743-485B-485B-AC9E-4CDF8240F88D}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qico.dll"/>
-    <ROW Component="qjpeg.dll" ComponentId="{58B46221-928C-4CC2-9F39-3EA2F5FC7F05}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qjpeg.dll"/>
-    <ROW Component="qminimal.dll" ComponentId="{D39229D5-EB48-4D2F-8406-52D496FD105F}" Directory_="platforms_Dir" Attributes="256" KeyPath="qminimal.dll"/>
-    <ROW Component="qnetworklistmanager.dll" ComponentId="{A514402D-22C1-4EB4-AE46-32A05AFD8B06}" Directory_="networkinformation_Dir" Attributes="256" KeyPath="qnetworklistmanager.dll"/>
-    <ROW Component="qoffscreen.dll" ComponentId="{30AD98C6-6DC9-46BB-8928-4BDF456A4C53}" Directory_="platforms_Dir" Attributes="256" KeyPath="qoffscreen.dll"/>
-    <ROW Component="qopensslbackend.dll" ComponentId="{BC5307F8-C275-4B62-AF72-7976091DF40E}" Directory_="tls_Dir" Attributes="256" KeyPath="qopensslbackend.dll"/>
-    <ROW Component="qpdf.dll" ComponentId="{5245323A-6750-4E5E-AD03-0E908689939E}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qpdf.dll"/>
-    <ROW Component="qschannelbackend.dll" ComponentId="{E965A906-3922-41EF-A17B-31EA4828F750}" Directory_="tls_Dir" Attributes="256" KeyPath="qschannelbackend.dll"/>
-    <ROW Component="qsvg.dll" ComponentId="{3A4435EF-59EB-4446-A648-1D7FCBDC919C}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qsvg.dll"/>
-    <ROW Component="qsvgicon.dll" ComponentId="{D066D944-765A-438A-B423-23D416FB99A9}" Directory_="iconengines_Dir" Attributes="256" KeyPath="qsvgicon.dll"/>
-    <ROW Component="qtbase_ar.qm" ComponentId="{0916B6B1-A47C-434C-910C-72D6D513C884}" Directory_="translations_Dir" Attributes="0" KeyPath="qtbase_ar.qm" Type="0"/>
-    <ROW Component="qtga.dll" ComponentId="{61BDC24E-6FA1-47B7-9260-2223D11A4676}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtga.dll"/>
-    <ROW Component="qtiff.dll" ComponentId="{6D93D77B-2E64-4BCE-941E-2DFC88F5441A}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtiff.dll"/>
-    <ROW Component="qtuiotouchplugin.dll" ComponentId="{26DDEACA-D18C-4A9F-8319-5BB34B98DFBE}" Directory_="generic_Dir" Attributes="256" KeyPath="qtuiotouchplugin.dll"/>
-    <ROW Component="qtvirtualkeyboardplugin.dll" ComponentId="{CC6C9EAE-E693-4966-8410-940E5760652D}" Directory_="platforminputcontexts_Dir" Attributes="256" KeyPath="qtvirtualkeyboardplugin.dll"/>
-    <ROW Component="qwbmp.dll" ComponentId="{1D2525B7-513A-4D61-8984-717A4A37235C}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwbmp.dll"/>
-    <ROW Component="qwebp.dll" ComponentId="{6F7F2773-051F-4D63-979C-04D742764982}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwebp.dll"/>
-    <ROW Component="qwindows.dll" ComponentId="{D9FB2236-BE15-4221-9092-AF929DDE9CA6}" Directory_="platforms_Dir" Attributes="256" KeyPath="qwindows.dll"/>
-    <ROW Component="qwindowsvistastyle.dll" ComponentId="{50261DFC-6D26-4250-83CF-513AB5E666D6}" Directory_="styles_Dir" Attributes="256" KeyPath="qwindowsvistastyle.dll"/>
-    <ROW Component="shell.pyd" ComponentId="{1E23FFBC-0D42-429C-87FF-8081C88BB580}" Directory_="shell_Dir" Attributes="256" KeyPath="shell.pyd" Type="0"/>
-    <ROW Component="shiboken6.abi3.dll" ComponentId="{BD5C67E1-B04C-4BF3-B6F2-BCE6B256E085}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="shiboken6.abi3.dll"/>
+    <ROW Component="APPDIR" ComponentId="{06F1AFB4-44D2-4C79-81F7-B78DAE1F4240}" Directory_="APPDIR" Attributes="0"/>
+    <ROW Component="MSVCP140.dll" ComponentId="{7C048846-BF69-4B44-BB1C-B20123C59120}" Directory_="PySide6_Dir" Attributes="256" KeyPath="MSVCP140.dll"/>
+    <ROW Component="MSVCP140.dll_2" ComponentId="{4EB786E2-D795-4B76-A1F5-A65178B64A09}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140.dll_2"/>
+    <ROW Component="MSVCP140_1.dll" ComponentId="{1BFE66CA-BDB1-469C-A720-3B29667775E2}" Directory_="PySide6_Dir" Attributes="256" KeyPath="MSVCP140_1.dll"/>
+    <ROW Component="MSVCP140_2.dll" ComponentId="{29B6110F-088D-423A-BDDA-83FE80CF58FE}" Directory_="PySide6_Dir" Attributes="256" KeyPath="MSVCP140_2.dll"/>
+    <ROW Component="ProductInformation" ComponentId="{21EED26D-6C9F-4816-A78C-0A2ED6432164}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="PyGPT.exe" ComponentId="{D013FC93-1B15-4E8C-A9F0-77BE7E4E292B}" Directory_="Windows_Dir" Attributes="256" KeyPath="PyGPT.exe"/>
+    <ROW Component="Qt6Core.dll" ComponentId="{8496C9A9-1E2C-457E-93D0-465347EA6DC1}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Core.dll"/>
+    <ROW Component="Qt6Gui.dll" ComponentId="{95019FAD-E8C3-4CB7-8B0C-7AF536E458D9}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Gui.dll"/>
+    <ROW Component="Qt6Network.dll" ComponentId="{B3FBF45E-AAB7-4940-A1A0-0B3C83F8BDC7}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Network.dll"/>
+    <ROW Component="Qt6OpenGL.dll" ComponentId="{CE1AEC70-D4A9-48A3-8150-2B7CBD603BE4}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGL.dll"/>
+    <ROW Component="Qt6OpenGLWidgets.dll" ComponentId="{AA5092FF-0656-477E-8604-CCBB9AFE4076}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGLWidgets.dll"/>
+    <ROW Component="Qt6Svg.dll" ComponentId="{5666537A-3E65-49C5-8D03-87563ADB2EE8}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Svg.dll"/>
+    <ROW Component="Qt6UiTools.dll" ComponentId="{1C0FC71F-28F7-45AC-A983-C11197A28384}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6UiTools.dll"/>
+    <ROW Component="Qt6Widgets.dll" ComponentId="{DC048621-7D27-4AE1-B7FC-9D3CC9D99163}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Widgets.dll"/>
+    <ROW Component="QtCore.pyd" ComponentId="{E029D0C6-5F67-4266-8CD8-879C877777A8}" Directory_="PySide6_Dir" Attributes="256" KeyPath="QtCore.pyd" Type="0"/>
+    <ROW Component="RobotoBlack.ttf" ComponentId="{1547DC06-E9C5-4E34-A668-010E1109393C}" Directory_="roboto_Dir" Attributes="0" Type="0"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{032215FE-340C-47A8-A339-06C689872C01}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="Shiboken.pyd" ComponentId="{CA01296C-F2F9-4279-B2B5-0E591B584C02}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="Shiboken.pyd" Type="0"/>
+    <ROW Component="VCRUNTIME140.dll" ComponentId="{8161E22A-C126-425C-A7A8-042260F0F61A}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll"/>
+    <ROW Component="VCRUNTIME140_1.dll" ComponentId="{FD553195-75DC-4606-BFD3-82F2B0059E74}" Directory_="PySide6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll"/>
+    <ROW Component="VCRUNTIME140_1.dll_3" ComponentId="{F61BB118-BF1D-463C-9611-EB7C3EC6E4D9}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_3"/>
+    <ROW Component="VCRUNTIME140_1.dll_4" ComponentId="{A46A3D30-795D-42EE-AA1B-CE7808CD580F}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_4"/>
+    <ROW Component="__init__.cpython310.pyc" ComponentId="{61649C73-78EE-4DA5-9DD1-0B99636AAB37}" Directory_="__pycache___Dir" Attributes="0" KeyPath="__init__.cpython310.pyc" Type="0"/>
+    <ROW Component="__init__.cpython310.pyc_2" ComponentId="{1DEAEA0F-EE54-47B7-A67F-DE2BB5A8BB5C}" Directory_="__pycache___3_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_3" Type="0"/>
+    <ROW Component="_frozenlist.cp310win_amd64.pyd" ComponentId="{F1123A6C-DC0E-4B18-A488-9FB218174AEE}" Directory_="frozenlist_Dir" Attributes="256" KeyPath="_frozenlist.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_helpers.cp310win_amd64.pyd" ComponentId="{684D86C4-4EFB-4751-9029-6834B9CE15E4}" Directory_="aiohttp_Dir" Attributes="256" KeyPath="_helpers.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_multidict.cp310win_amd64.pyd" ComponentId="{2ED3524E-46A8-4EC9-8808-106EC14B29C2}" Directory_="multidict_Dir" Attributes="256" KeyPath="_multidict.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_quoting_c.cp310win_amd64.pyd" ComponentId="{3B180B90-9C6A-41F9-B063-FE5F2EAC6F97}" Directory_="yarl_Dir" Attributes="256" KeyPath="_quoting_c.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_regex.cp310win_amd64.pyd" ComponentId="{957D34DE-E440-4EC3-BACA-C0C0CDBA934B}" Directory_="regex_Dir" Attributes="256" KeyPath="_regex.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_speedups.cp310win_amd64.pyd" ComponentId="{93C70D10-DAC6-490C-BCEF-E48DA5F00EF9}" Directory_="markupsafe_Dir" Attributes="256" KeyPath="_speedups.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_tiktoken.cp310win_amd64.pyd" ComponentId="{8C953979-5C5A-4EE5-BB85-14ED2614FC8E}" Directory_="tiktoken_Dir" Attributes="256" KeyPath="_tiktoken.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="base.svg" ComponentId="{80589AD3-C799-443C-89D6-F472A71D9755}" Directory_="source_Dir" Attributes="0" KeyPath="base.svg" Type="0"/>
+    <ROW Component="base_library.zip" ComponentId="{AF17B135-7289-446D-8134-8A2B1983456C}" Directory_="Windows_Dir" Attributes="0" KeyPath="base_library.zip" Type="0"/>
+    <ROW Component="batman_and_joker.json" ComponentId="{B04FAD4C-CC06-4FFB-8141-F266DC4EA3BE}" Directory_="presets_Dir" Attributes="0" KeyPath="batman_and_joker.json" Type="0"/>
+    <ROW Component="cacert.pem" ComponentId="{5F21E197-B543-48D0-B7D2-A1914DF225AD}" Directory_="certifi_Dir" Attributes="0" KeyPath="cacert.pem" Type="0"/>
+    <ROW Component="config.json" ComponentId="{5FC005E8-3331-42D4-ACE5-1DC1FB57EE85}" Directory_="config_Dir" Attributes="0" KeyPath="config.json" Type="0"/>
+    <ROW Component="dark_amber.xml" ComponentId="{2383F5D8-4D00-4F7C-81E0-ED1F4FAA7204}" Directory_="themes_Dir" Attributes="0" KeyPath="dark_amber.xml" Type="0"/>
+    <ROW Component="dock_theme.ui" ComponentId="{5A87F410-4F13-459F-BF85-067D6CC7886D}" Directory_="qt_material_Dir" Attributes="0" KeyPath="dock_theme.ui" Type="0"/>
+    <ROW Component="entry_points.txt" ComponentId="{B42C86D0-FF1B-46D2-B85F-698F251AD90C}" Directory_="show_in_file_manager1.1.4.disti_Dir" Attributes="0" KeyPath="entry_points.txt" Type="0"/>
+    <ROW Component="generate.cpython310.pyc" ComponentId="{744694A3-C7F4-44A6-A09B-5BE0FC5E8E20}" Directory_="__pycache___4_Dir" Attributes="0" KeyPath="generate.cpython310.pyc" Type="0"/>
+    <ROW Component="generate.py" ComponentId="{52952D30-5188-484A-B921-43F35652713B}" Directory_="resources_Dir" Attributes="0" KeyPath="generate.py" Type="0"/>
+    <ROW Component="libcrypto1_1.dll" ComponentId="{F7A57A2C-A633-43C2-907C-4CD606E83A37}" Directory_="Windows_Dir" Attributes="256" KeyPath="libcrypto1_1.dll"/>
+    <ROW Component="libffi7.dll" ComponentId="{6AACE6F4-A513-4274-BD8E-4149A5DA6A2E}" Directory_="Windows_Dir" Attributes="256" KeyPath="libffi7.dll"/>
+    <ROW Component="libssl1_1.dll" ComponentId="{2D8A2630-8B4B-47A6-BDB4-A3DBA17933AE}" Directory_="Windows_Dir" Attributes="256" KeyPath="libssl1_1.dll"/>
+    <ROW Component="locale.en.ini" ComponentId="{877FE2B6-9156-4F79-BAEA-1211D2735F25}" Directory_="locale_Dir" Attributes="0" KeyPath="locale.en.ini" Type="0"/>
+    <ROW Component="logo.png" ComponentId="{953E89F3-6E83-490A-AE86-7662A8D5AD9C}" Directory_="data_Dir" Attributes="0" KeyPath="logo.png" Type="0"/>
+    <ROW Component="logo.svg" ComponentId="{9E910C34-4288-4048-8FCC-42B06C5BDA52}" Directory_="logo_Dir" Attributes="0" KeyPath="logo.svg" Type="0"/>
+    <ROW Component="md.cp310win_amd64.pyd" ComponentId="{BA018A1E-9E05-47DD-978C-8DB93C514393}" Directory_="charset_normalizer_Dir" Attributes="256" KeyPath="md.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="mfc140u.dll" ComponentId="{5FDAEDC4-192B-462C-A9B6-C7C0CDE02156}" Directory_="Windows_Dir" Attributes="256" KeyPath="mfc140u.dll"/>
+    <ROW Component="pyside6.abi3.dll" ComponentId="{6FC0CD1E-75C9-4832-A293-627BBC0B1E40}" Directory_="PySide6_Dir" Attributes="256" KeyPath="pyside6.abi3.dll"/>
+    <ROW Component="python3.dll" ComponentId="{3E8A48AD-5447-4405-BA97-0608C7F04EDA}" Directory_="Windows_Dir" Attributes="256" KeyPath="python3.dll"/>
+    <ROW Component="python310.dll" ComponentId="{6078B27A-3DBA-4B78-9C9F-622AF5B98A76}" Directory_="Windows_Dir" Attributes="256" KeyPath="python310.dll"/>
+    <ROW Component="pythoncom310.dll" ComponentId="{60D2C7F6-97DA-4359-B53C-4C1F296502B2}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pythoncom310.dll"/>
+    <ROW Component="pywintypes310.dll" ComponentId="{8AC6BD4C-9B2C-4631-BF05-A15827439B52}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pywintypes310.dll"/>
+    <ROW Component="qcertonlybackend.dll" ComponentId="{07641BBE-54F2-484C-98E4-3065BADD1636}" Directory_="tls_Dir" Attributes="256" KeyPath="qcertonlybackend.dll"/>
+    <ROW Component="qdirect2d.dll" ComponentId="{FE045C24-F59B-4595-8A3E-157B8FC28137}" Directory_="platforms_Dir" Attributes="256" KeyPath="qdirect2d.dll"/>
+    <ROW Component="qgif.dll" ComponentId="{5A47BCB9-7F09-405E-AAD4-784BB5FC59C5}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qgif.dll"/>
+    <ROW Component="qicns.dll" ComponentId="{4C7ED349-6024-4042-88E2-2D1FEF413DBC}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qicns.dll"/>
+    <ROW Component="qico.dll" ComponentId="{3D5C8202-8EDD-4AB2-B7EA-88663DA358C0}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qico.dll"/>
+    <ROW Component="qjpeg.dll" ComponentId="{5E5D5BD8-C929-4F23-B550-E170EA662F27}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qjpeg.dll"/>
+    <ROW Component="qminimal.dll" ComponentId="{5425CE94-C0FD-42D6-965D-19B2D6F1AB5B}" Directory_="platforms_Dir" Attributes="256" KeyPath="qminimal.dll"/>
+    <ROW Component="qnetworklistmanager.dll" ComponentId="{45AD9D56-ED9D-46C7-B627-2AC8F40D0F67}" Directory_="networkinformation_Dir" Attributes="256" KeyPath="qnetworklistmanager.dll"/>
+    <ROW Component="qoffscreen.dll" ComponentId="{F567FA31-E460-4750-B1DC-BE4AA0107919}" Directory_="platforms_Dir" Attributes="256" KeyPath="qoffscreen.dll"/>
+    <ROW Component="qopensslbackend.dll" ComponentId="{0B53C37B-31FA-4E18-BA23-4DE64F7DE089}" Directory_="tls_Dir" Attributes="256" KeyPath="qopensslbackend.dll"/>
+    <ROW Component="qpdf.dll" ComponentId="{4375294F-EFD0-4373-B2F3-87F8035D1F0B}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qpdf.dll"/>
+    <ROW Component="qschannelbackend.dll" ComponentId="{74DC4293-5737-48D9-AACD-8DFEB583B864}" Directory_="tls_Dir" Attributes="256" KeyPath="qschannelbackend.dll"/>
+    <ROW Component="qsvg.dll" ComponentId="{D933FEE9-AB46-443B-86CD-ED6545A7F0DE}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qsvg.dll"/>
+    <ROW Component="qsvgicon.dll" ComponentId="{E44A8085-FF0C-475F-BC32-817032FB70D3}" Directory_="iconengines_Dir" Attributes="256" KeyPath="qsvgicon.dll"/>
+    <ROW Component="qtbase_ar.qm" ComponentId="{F1CBD45B-124C-477A-AF82-2CFBE0811838}" Directory_="translations_Dir" Attributes="0" KeyPath="qtbase_ar.qm" Type="0"/>
+    <ROW Component="qtga.dll" ComponentId="{3E811786-5E50-4784-B98D-6B5829B14181}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtga.dll"/>
+    <ROW Component="qtiff.dll" ComponentId="{80871409-A2E5-44D3-8D45-7A6632DACFB5}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtiff.dll"/>
+    <ROW Component="qtuiotouchplugin.dll" ComponentId="{D84ABA90-7533-4D95-8591-E882711E1F19}" Directory_="generic_Dir" Attributes="256" KeyPath="qtuiotouchplugin.dll"/>
+    <ROW Component="qtvirtualkeyboardplugin.dll" ComponentId="{8BAB2743-A266-44FC-BE82-CC8B3F7A2FCC}" Directory_="platforminputcontexts_Dir" Attributes="256" KeyPath="qtvirtualkeyboardplugin.dll"/>
+    <ROW Component="qwbmp.dll" ComponentId="{65D4079D-35E1-4667-8211-0023C60C9200}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwbmp.dll"/>
+    <ROW Component="qwebp.dll" ComponentId="{A7EF197D-C270-4683-B2D7-82BFFF73F9C1}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwebp.dll"/>
+    <ROW Component="qwindows.dll" ComponentId="{DD06AAD2-3AAA-43B4-89AA-703F9E3B8C5B}" Directory_="platforms_Dir" Attributes="256" KeyPath="qwindows.dll"/>
+    <ROW Component="qwindowsvistastyle.dll" ComponentId="{EB34728C-E7FE-435C-9B93-84328D66F862}" Directory_="styles_Dir" Attributes="256" KeyPath="qwindowsvistastyle.dll"/>
+    <ROW Component="shell.pyd" ComponentId="{74ECD197-F094-457C-B2A4-20BDC22D7D28}" Directory_="shell_Dir" Attributes="256" KeyPath="shell.pyd" Type="0"/>
+    <ROW Component="shiboken6.abi3.dll" ComponentId="{E5F6407D-9595-423E-9A42-C4319A48739D}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="shiboken6.abi3.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="_helpers.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_HELPE~1.PYD|_helpers.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\aiohttp\_helpers.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="_http_parser.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_HTTP_~1.PYD|_http_parser.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\aiohttp\_http_parser.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="_http_writer.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_HTTP_~2.PYD|_http_writer.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\aiohttp\_http_writer.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="_websocket.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_WEBSO~1.PYD|_websocket.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\aiohttp\_websocket.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="base_library.zip" Component_="base_library.zip" FileName="BASE_L~1.ZIP|base_library.zip" Attributes="0" SourcePath="dist\Windows\base_library.zip" SelfReg="false"/>
-    <ROW File="cacert.pem" Component_="cacert.pem" FileName="cacert.pem" Attributes="0" SourcePath="dist\Windows\certifi\cacert.pem" SelfReg="false"/>
-    <ROW File="py.typed" Component_="cacert.pem" FileName="PY~1.TYP|py.typed" Attributes="0" SourcePath="dist\Windows\certifi\py.typed" SelfReg="false"/>
-    <ROW File="CHANGELOG.txt" Component_="base_library.zip" FileName="CHANGE~1.TXT|CHANGELOG.txt" Attributes="0" SourcePath="dist\Windows\CHANGELOG.txt" SelfReg="false"/>
-    <ROW File="md.cp310win_amd64.pyd" Component_="md.cp310win_amd64.pyd" FileName="MDCP31~1.PYD|md.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\charset_normalizer\md.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="md__mypyc.cp310win_amd64.pyd" Component_="md.cp310win_amd64.pyd" FileName="MD__MY~1.PYD|md__mypyc.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\charset_normalizer\md__mypyc.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="config.json" Component_="config.json" FileName="CONFIG~1.JSO|config.json" Attributes="0" SourcePath="dist\Windows\data\config\config.json" SelfReg="false"/>
-    <ROW File="models.json" Component_="config.json" FileName="MODELS~1.JSO|models.json" Attributes="0" SourcePath="dist\Windows\data\config\models.json" SelfReg="false"/>
-    <ROW File="batman_and_joker.json" Component_="batman_and_joker.json" FileName="BATMAN~1.JSO|batman_and_joker.json" Attributes="0" SourcePath="dist\Windows\data\config\presets\batman_and_joker.json" SelfReg="false"/>
-    <ROW File="current.chat.json" Component_="batman_and_joker.json" FileName="CURREN~1.JSO|current.chat.json" Attributes="0" SourcePath="dist\Windows\data\config\presets\current.chat.json" SelfReg="false"/>
-    <ROW File="current.completion.json" Component_="batman_and_joker.json" FileName="CURREN~2.JSO|current.completion.json" Attributes="0" SourcePath="dist\Windows\data\config\presets\current.completion.json" SelfReg="false"/>
-    <ROW File="current.img.json" Component_="batman_and_joker.json" FileName="CURREN~3.JSO|current.img.json" Attributes="0" SourcePath="dist\Windows\data\config\presets\current.img.json" SelfReg="false"/>
-    <ROW File="dalle_covboy_tokio.json" Component_="batman_and_joker.json" FileName="DALLE_~1.JSO|dalle_covboy_tokio.json" Attributes="0" SourcePath="dist\Windows\data\config\presets\dalle_covboy_tokio.json" SelfReg="false"/>
-    <ROW File="dalle_woman_photorealistic.json" Component_="batman_and_joker.json" FileName="DALLE_~2.JSO|dalle_woman_photorealistic.json" Attributes="0" SourcePath="dist\Windows\data\config\presets\dalle_woman_photorealistic.json" SelfReg="false"/>
-    <ROW File="locale.en.ini" Component_="locale.en.ini" FileName="LOCALE~1.INI|locale.en.ini" Attributes="0" SourcePath="dist\Windows\data\locale\locale.en.ini" SelfReg="false"/>
-    <ROW File="locale.pl.ini" Component_="locale.en.ini" FileName="LOCALE~2.INI|locale.pl.ini" Attributes="0" SourcePath="dist\Windows\data\locale\locale.pl.ini" SelfReg="false"/>
-    <ROW File="logo.png" Component_="logo.png" FileName="logo.png" Attributes="0" SourcePath="dist\Windows\data\logo.png" SelfReg="false"/>
-    <ROW File="_frozenlist.cp310win_amd64.pyd" Component_="_frozenlist.cp310win_amd64.pyd" FileName="_FROZE~1.PYD|_frozenlist.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\frozenlist\_frozenlist.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="libcrypto1_1.dll" Component_="libcrypto1_1.dll" FileName="LIBCRY~1.DLL|libcrypto-1_1.dll" Attributes="0" SourcePath="dist\Windows\libcrypto-1_1.dll" SelfReg="false"/>
-    <ROW File="libffi7.dll" Component_="libffi7.dll" FileName="libffi-7.dll" Attributes="0" SourcePath="dist\Windows\libffi-7.dll" SelfReg="false"/>
-    <ROW File="libssl1_1.dll" Component_="libssl1_1.dll" FileName="LIBSSL~1.DLL|libssl-1_1.dll" Attributes="0" SourcePath="dist\Windows\libssl-1_1.dll" SelfReg="false"/>
-    <ROW File="_speedups.cp310win_amd64.pyd" Component_="_speedups.cp310win_amd64.pyd" FileName="_SPEED~1.PYD|_speedups.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\markupsafe\_speedups.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="mfc140u.dll" Component_="mfc140u.dll" FileName="mfc140u.dll" Attributes="0" SourcePath="dist\Windows\mfc140u.dll" SelfReg="false"/>
-    <ROW File="_multidict.cp310win_amd64.pyd" Component_="_multidict.cp310win_amd64.pyd" FileName="_MULTI~1.PYD|_multidict.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\multidict\_multidict.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="PyGPT.exe" Component_="PyGPT.exe" FileName="Py-GPT.exe" Attributes="0" SourcePath="dist\Windows\Py-GPT.exe" SelfReg="false" DigSign="true"/>
-    <ROW File="pyexpat.pyd" Component_="base_library.zip" FileName="pyexpat.pyd" Attributes="0" SourcePath="dist\Windows\pyexpat.pyd" SelfReg="false"/>
-    <ROW File="MSVCP140.dll" Component_="MSVCP140.dll" FileName="MSVCP140.dll" Attributes="0" SourcePath="dist\Windows\PySide6\MSVCP140.dll" SelfReg="false"/>
-    <ROW File="MSVCP140_1.dll" Component_="MSVCP140_1.dll" FileName="MSVCP1~1.DLL|MSVCP140_1.dll" Attributes="0" SourcePath="dist\Windows\PySide6\MSVCP140_1.dll" SelfReg="false"/>
-    <ROW File="MSVCP140_2.dll" Component_="MSVCP140_2.dll" FileName="MSVCP1~2.DLL|MSVCP140_2.dll" Attributes="0" SourcePath="dist\Windows\PySide6\MSVCP140_2.dll" SelfReg="false"/>
-    <ROW File="qtuiotouchplugin.dll" Component_="qtuiotouchplugin.dll" FileName="QTUIOT~1.DLL|qtuiotouchplugin.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\generic\qtuiotouchplugin.dll" SelfReg="false"/>
-    <ROW File="qsvgicon.dll" Component_="qsvgicon.dll" FileName="qsvgicon.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\iconengines\qsvgicon.dll" SelfReg="false"/>
-    <ROW File="qgif.dll" Component_="qgif.dll" FileName="qgif.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qgif.dll" SelfReg="false"/>
-    <ROW File="qicns.dll" Component_="qicns.dll" FileName="qicns.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qicns.dll" SelfReg="false"/>
-    <ROW File="qico.dll" Component_="qico.dll" FileName="qico.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qico.dll" SelfReg="false"/>
-    <ROW File="qjpeg.dll" Component_="qjpeg.dll" FileName="qjpeg.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qjpeg.dll" SelfReg="false"/>
-    <ROW File="qpdf.dll" Component_="qpdf.dll" FileName="qpdf.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qpdf.dll" SelfReg="false"/>
-    <ROW File="qsvg.dll" Component_="qsvg.dll" FileName="qsvg.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qsvg.dll" SelfReg="false"/>
-    <ROW File="qtga.dll" Component_="qtga.dll" FileName="qtga.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qtga.dll" SelfReg="false"/>
-    <ROW File="qtiff.dll" Component_="qtiff.dll" FileName="qtiff.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qtiff.dll" SelfReg="false"/>
-    <ROW File="qwbmp.dll" Component_="qwbmp.dll" FileName="qwbmp.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qwbmp.dll" SelfReg="false"/>
-    <ROW File="qwebp.dll" Component_="qwebp.dll" FileName="qwebp.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\imageformats\qwebp.dll" SelfReg="false"/>
-    <ROW File="qnetworklistmanager.dll" Component_="qnetworklistmanager.dll" FileName="QNETWO~1.DLL|qnetworklistmanager.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\networkinformation\qnetworklistmanager.dll" SelfReg="false"/>
-    <ROW File="qtvirtualkeyboardplugin.dll" Component_="qtvirtualkeyboardplugin.dll" FileName="QTVIRT~1.DLL|qtvirtualkeyboardplugin.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll" SelfReg="false"/>
-    <ROW File="qdirect2d.dll" Component_="qdirect2d.dll" FileName="QDIREC~1.DLL|qdirect2d.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\platforms\qdirect2d.dll" SelfReg="false"/>
-    <ROW File="qminimal.dll" Component_="qminimal.dll" FileName="qminimal.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\platforms\qminimal.dll" SelfReg="false"/>
-    <ROW File="qoffscreen.dll" Component_="qoffscreen.dll" FileName="QOFFSC~1.DLL|qoffscreen.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\platforms\qoffscreen.dll" SelfReg="false"/>
-    <ROW File="qwindows.dll" Component_="qwindows.dll" FileName="qwindows.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\platforms\qwindows.dll" SelfReg="false"/>
-    <ROW File="qwindowsvistastyle.dll" Component_="qwindowsvistastyle.dll" FileName="QWINDO~1.DLL|qwindowsvistastyle.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\styles\qwindowsvistastyle.dll" SelfReg="false"/>
-    <ROW File="qcertonlybackend.dll" Component_="qcertonlybackend.dll" FileName="QCERTO~1.DLL|qcertonlybackend.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\tls\qcertonlybackend.dll" SelfReg="false"/>
-    <ROW File="qopensslbackend.dll" Component_="qopensslbackend.dll" FileName="QOPENS~1.DLL|qopensslbackend.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\tls\qopensslbackend.dll" SelfReg="false"/>
-    <ROW File="qschannelbackend.dll" Component_="qschannelbackend.dll" FileName="QSCHAN~1.DLL|qschannelbackend.dll" Attributes="0" SourcePath="dist\Windows\PySide6\plugins\tls\qschannelbackend.dll" SelfReg="false"/>
-    <ROW File="pyside6.abi3.dll" Component_="pyside6.abi3.dll" FileName="PYSIDE~1.DLL|pyside6.abi3.dll" Attributes="0" SourcePath="dist\Windows\PySide6\pyside6.abi3.dll" SelfReg="false"/>
-    <ROW File="Qt6Core.dll" Component_="Qt6Core.dll" FileName="Qt6Core.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6Core.dll" SelfReg="false"/>
-    <ROW File="Qt6Gui.dll" Component_="Qt6Gui.dll" FileName="Qt6Gui.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6Gui.dll" SelfReg="false"/>
-    <ROW File="Qt6Network.dll" Component_="Qt6Network.dll" FileName="QT6NET~1.DLL|Qt6Network.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6Network.dll" SelfReg="false"/>
-    <ROW File="Qt6OpenGL.dll" Component_="Qt6OpenGL.dll" FileName="QT6OPE~1.DLL|Qt6OpenGL.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6OpenGL.dll" SelfReg="false"/>
-    <ROW File="Qt6OpenGLWidgets.dll" Component_="Qt6OpenGLWidgets.dll" FileName="QT6OPE~2.DLL|Qt6OpenGLWidgets.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6OpenGLWidgets.dll" SelfReg="false"/>
-    <ROW File="Qt6Svg.dll" Component_="Qt6Svg.dll" FileName="Qt6Svg.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6Svg.dll" SelfReg="false"/>
-    <ROW File="Qt6UiTools.dll" Component_="Qt6UiTools.dll" FileName="QT6UIT~1.DLL|Qt6UiTools.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6UiTools.dll" SelfReg="false"/>
-    <ROW File="Qt6Widgets.dll" Component_="Qt6Widgets.dll" FileName="QT6WID~1.DLL|Qt6Widgets.dll" Attributes="0" SourcePath="dist\Windows\PySide6\Qt6Widgets.dll" SelfReg="false"/>
-    <ROW File="QtCore.pyd" Component_="QtCore.pyd" FileName="QtCore.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtCore.pyd" SelfReg="false"/>
-    <ROW File="QtGui.pyd" Component_="QtCore.pyd" FileName="QtGui.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtGui.pyd" SelfReg="false"/>
-    <ROW File="QtNetwork.pyd" Component_="QtCore.pyd" FileName="QTNETW~1.PYD|QtNetwork.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtNetwork.pyd" SelfReg="false"/>
-    <ROW File="QtOpenGL.pyd" Component_="QtCore.pyd" FileName="QtOpenGL.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtOpenGL.pyd" SelfReg="false"/>
-    <ROW File="QtOpenGLWidgets.pyd" Component_="QtCore.pyd" FileName="QTOPEN~1.PYD|QtOpenGLWidgets.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtOpenGLWidgets.pyd" SelfReg="false"/>
-    <ROW File="QtUiTools.pyd" Component_="QtCore.pyd" FileName="QTUITO~1.PYD|QtUiTools.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtUiTools.pyd" SelfReg="false"/>
-    <ROW File="QtWidgets.pyd" Component_="QtCore.pyd" FileName="QTWIDG~1.PYD|QtWidgets.pyd" Attributes="0" SourcePath="dist\Windows\PySide6\QtWidgets.pyd" SelfReg="false"/>
-    <ROW File="qtbase_ar.qm" Component_="qtbase_ar.qm" FileName="QTBASE~1.QM|qtbase_ar.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_ar.qm" SelfReg="false"/>
-    <ROW File="qtbase_bg.qm" Component_="qtbase_ar.qm" FileName="QTBASE~2.QM|qtbase_bg.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_bg.qm" SelfReg="false"/>
-    <ROW File="qtbase_ca.qm" Component_="qtbase_ar.qm" FileName="QTBASE~3.QM|qtbase_ca.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_ca.qm" SelfReg="false"/>
-    <ROW File="qtbase_cs.qm" Component_="qtbase_ar.qm" FileName="QTBASE~4.QM|qtbase_cs.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_cs.qm" SelfReg="false"/>
-    <ROW File="qtbase_da.qm" Component_="qtbase_ar.qm" FileName="QTBASE~5.QM|qtbase_da.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_da.qm" SelfReg="false"/>
-    <ROW File="qtbase_de.qm" Component_="qtbase_ar.qm" FileName="QTBASE~6.QM|qtbase_de.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_de.qm" SelfReg="false"/>
-    <ROW File="qtbase_en.qm" Component_="qtbase_ar.qm" FileName="QTBASE~7.QM|qtbase_en.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_en.qm" SelfReg="false"/>
-    <ROW File="qtbase_es.qm" Component_="qtbase_ar.qm" FileName="QTBASE~8.QM|qtbase_es.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_es.qm" SelfReg="false"/>
-    <ROW File="qtbase_fa.qm" Component_="qtbase_ar.qm" FileName="QTBASE~9.QM|qtbase_fa.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_fa.qm" SelfReg="false"/>
-    <ROW File="qtbase_fi.qm" Component_="qtbase_ar.qm" FileName="QTBAS~10.QM|qtbase_fi.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_fi.qm" SelfReg="false"/>
-    <ROW File="qtbase_fr.qm" Component_="qtbase_ar.qm" FileName="QTBAS~11.QM|qtbase_fr.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_fr.qm" SelfReg="false"/>
-    <ROW File="qtbase_gd.qm" Component_="qtbase_ar.qm" FileName="QTBAS~12.QM|qtbase_gd.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_gd.qm" SelfReg="false"/>
-    <ROW File="qtbase_he.qm" Component_="qtbase_ar.qm" FileName="QTBAS~13.QM|qtbase_he.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_he.qm" SelfReg="false"/>
-    <ROW File="qtbase_hr.qm" Component_="qtbase_ar.qm" FileName="QTBAS~14.QM|qtbase_hr.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_hr.qm" SelfReg="false"/>
-    <ROW File="qtbase_hu.qm" Component_="qtbase_ar.qm" FileName="QTBAS~15.QM|qtbase_hu.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_hu.qm" SelfReg="false"/>
-    <ROW File="qtbase_it.qm" Component_="qtbase_ar.qm" FileName="QTBAS~16.QM|qtbase_it.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_it.qm" SelfReg="false"/>
-    <ROW File="qtbase_ja.qm" Component_="qtbase_ar.qm" FileName="QTBAS~17.QM|qtbase_ja.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_ja.qm" SelfReg="false"/>
-    <ROW File="qtbase_ko.qm" Component_="qtbase_ar.qm" FileName="QTBAS~18.QM|qtbase_ko.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_ko.qm" SelfReg="false"/>
-    <ROW File="qtbase_lv.qm" Component_="qtbase_ar.qm" FileName="QTBAS~19.QM|qtbase_lv.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_lv.qm" SelfReg="false"/>
-    <ROW File="qtbase_nl.qm" Component_="qtbase_ar.qm" FileName="QTBAS~20.QM|qtbase_nl.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_nl.qm" SelfReg="false"/>
-    <ROW File="qtbase_nn.qm" Component_="qtbase_ar.qm" FileName="QTBAS~21.QM|qtbase_nn.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_nn.qm" SelfReg="false"/>
-    <ROW File="qtbase_pl.qm" Component_="qtbase_ar.qm" FileName="QTBAS~22.QM|qtbase_pl.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_pl.qm" SelfReg="false"/>
-    <ROW File="qtbase_pt_BR.qm" Component_="qtbase_ar.qm" FileName="QTBAS~23.QM|qtbase_pt_BR.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_pt_BR.qm" SelfReg="false"/>
-    <ROW File="qtbase_ru.qm" Component_="qtbase_ar.qm" FileName="QTBAS~24.QM|qtbase_ru.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_ru.qm" SelfReg="false"/>
-    <ROW File="qtbase_sk.qm" Component_="qtbase_ar.qm" FileName="QTBAS~25.QM|qtbase_sk.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_sk.qm" SelfReg="false"/>
-    <ROW File="qtbase_tr.qm" Component_="qtbase_ar.qm" FileName="QTBAS~26.QM|qtbase_tr.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_tr.qm" SelfReg="false"/>
-    <ROW File="qtbase_uk.qm" Component_="qtbase_ar.qm" FileName="QTBAS~27.QM|qtbase_uk.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_uk.qm" SelfReg="false"/>
-    <ROW File="qtbase_zh_CN.qm" Component_="qtbase_ar.qm" FileName="QTBAS~28.QM|qtbase_zh_CN.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_zh_CN.qm" SelfReg="false"/>
-    <ROW File="qtbase_zh_TW.qm" Component_="qtbase_ar.qm" FileName="QTBAS~29.QM|qtbase_zh_TW.qm" Attributes="0" SourcePath="dist\Windows\PySide6\translations\qtbase_zh_TW.qm" SelfReg="false"/>
-    <ROW File="VCRUNTIME140_1.dll" Component_="VCRUNTIME140_1.dll" FileName="VCRUNT~1.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="dist\Windows\PySide6\VCRUNTIME140_1.dll" SelfReg="false"/>
-    <ROW File="python3.dll" Component_="python3.dll" FileName="python3.dll" Attributes="0" SourcePath="dist\Windows\python3.dll" SelfReg="false"/>
-    <ROW File="python310.dll" Component_="python310.dll" FileName="PYTHON~1.DLL|python310.dll" Attributes="0" SourcePath="dist\Windows\python310.dll" SelfReg="false"/>
-    <ROW File="pythoncom310.dll" Component_="pythoncom310.dll" FileName="PYTHON~1.DLL|pythoncom310.dll" Attributes="0" SourcePath="dist\Windows\pywin32_system32\pythoncom310.dll" SelfReg="false"/>
-    <ROW File="pywintypes310.dll" Component_="pywintypes310.dll" FileName="PYWINT~1.DLL|pywintypes310.dll" Attributes="0" SourcePath="dist\Windows\pywin32_system32\pywintypes310.dll" SelfReg="false"/>
-    <ROW File="dock_theme.ui" Component_="dock_theme.ui" FileName="DOCK_T~1.UI|dock_theme.ui" Attributes="0" SourcePath="dist\Windows\qt_material\dock_theme.ui" SelfReg="false"/>
-    <ROW File="RobotoBlack.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~1.TTF|Roboto-Black.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Black.ttf" SelfReg="false"/>
-    <ROW File="RobotoBlackItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~2.TTF|Roboto-BlackItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-BlackItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoBold.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~3.TTF|Roboto-Bold.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Bold.ttf" SelfReg="false"/>
-    <ROW File="RobotoBoldItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~4.TTF|Roboto-BoldItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-BoldItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~5.TTF|Roboto-Italic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Italic.ttf" SelfReg="false"/>
-    <ROW File="RobotoLight.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~6.TTF|Roboto-Light.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Light.ttf" SelfReg="false"/>
-    <ROW File="RobotoLightItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~7.TTF|Roboto-LightItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-LightItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoMedium.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~8.TTF|Roboto-Medium.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Medium.ttf" SelfReg="false"/>
-    <ROW File="RobotoMediumItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~9.TTF|Roboto-MediumItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-MediumItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoRegular.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~10.TTF|Roboto-Regular.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Regular.ttf" SelfReg="false"/>
-    <ROW File="RobotoThin.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~11.TTF|Roboto-Thin.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-Thin.ttf" SelfReg="false"/>
-    <ROW File="RobotoThinItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~12.TTF|Roboto-ThinItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\Roboto-ThinItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoCondensedBold.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~13.TTF|RobotoCondensed-Bold.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Bold.ttf" SelfReg="false"/>
-    <ROW File="RobotoCondensedBoldItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~14.TTF|RobotoCondensed-BoldItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\RobotoCondensed-BoldItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoCondensedItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~15.TTF|RobotoCondensed-Italic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Italic.ttf" SelfReg="false"/>
-    <ROW File="RobotoCondensedLight.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~16.TTF|RobotoCondensed-Light.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Light.ttf" SelfReg="false"/>
-    <ROW File="RobotoCondensedLightItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~17.TTF|RobotoCondensed-LightItalic.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\RobotoCondensed-LightItalic.ttf" SelfReg="false"/>
-    <ROW File="RobotoCondensedRegular.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~18.TTF|RobotoCondensed-Regular.ttf" Attributes="0" SourcePath="dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Regular.ttf" SelfReg="false"/>
-    <ROW File="material.css.template" Component_="dock_theme.ui" FileName="MATERI~1.TEM|material.css.template" Attributes="0" SourcePath="dist\Windows\qt_material\material.css.template" SelfReg="false"/>
-    <ROW File="generate.py" Component_="generate.py" FileName="generate.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\generate.py" SelfReg="false"/>
-    <ROW File="logo.svg" Component_="logo.svg" FileName="logo.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\logo.svg" SelfReg="false"/>
-    <ROW File="logo_frame.svg" Component_="logo.svg" FileName="LOGO_F~1.SVG|logo_frame.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\logo_frame.svg" SelfReg="false"/>
-    <ROW File="__init__.py" Component_="logo.svg" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\__init__.py" SelfReg="false"/>
-    <ROW File="__init__.cpython310.pyc" Component_="__init__.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
-    <ROW File="base.svg" Component_="base.svg" FileName="base.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\base.svg" SelfReg="false"/>
-    <ROW File="branchclosed.svg" Component_="base.svg" FileName="BRANCH~1.SVG|branch-closed.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\branch-closed.svg" SelfReg="false"/>
-    <ROW File="branchend.svg" Component_="base.svg" FileName="BRANCH~2.SVG|branch-end.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\branch-end.svg" SelfReg="false"/>
-    <ROW File="branchmore.svg" Component_="base.svg" FileName="BRANCH~3.SVG|branch-more.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\branch-more.svg" SelfReg="false"/>
-    <ROW File="branchopen.svg" Component_="base.svg" FileName="BRANCH~4.SVG|branch-open.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\branch-open.svg" SelfReg="false"/>
-    <ROW File="checkbox_checked.svg" Component_="base.svg" FileName="CHECKB~1.SVG|checkbox_checked.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checkbox_checked.svg" SelfReg="false"/>
-    <ROW File="checkbox_checked_invert.svg" Component_="base.svg" FileName="CHECKB~2.SVG|checkbox_checked_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checkbox_checked_invert.svg" SelfReg="false"/>
-    <ROW File="checkbox_indeterminate.svg" Component_="base.svg" FileName="CHECKB~3.SVG|checkbox_indeterminate.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checkbox_indeterminate.svg" SelfReg="false"/>
-    <ROW File="checkbox_indeterminate_invert.svg" Component_="base.svg" FileName="CHECKB~4.SVG|checkbox_indeterminate_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checkbox_indeterminate_invert.svg" SelfReg="false"/>
-    <ROW File="checkbox_unchecked.svg" Component_="base.svg" FileName="CHECKB~5.SVG|checkbox_unchecked.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checkbox_unchecked.svg" SelfReg="false"/>
-    <ROW File="checkbox_unchecked_invert.svg" Component_="base.svg" FileName="CHECKB~6.SVG|checkbox_unchecked_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checkbox_unchecked_invert.svg" SelfReg="false"/>
-    <ROW File="checklist.svg" Component_="base.svg" FileName="CHECKL~1.SVG|checklist.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checklist.svg" SelfReg="false"/>
-    <ROW File="checklist_indeterminate.svg" Component_="base.svg" FileName="CHECKL~2.SVG|checklist_indeterminate.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checklist_indeterminate.svg" SelfReg="false"/>
-    <ROW File="checklist_indeterminate_invert.svg" Component_="base.svg" FileName="CHECKL~3.SVG|checklist_indeterminate_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checklist_indeterminate_invert.svg" SelfReg="false"/>
-    <ROW File="checklist_invert.svg" Component_="base.svg" FileName="CHECKL~4.SVG|checklist_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\checklist_invert.svg" SelfReg="false"/>
-    <ROW File="close.svg" Component_="base.svg" FileName="close.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\close.svg" SelfReg="false"/>
-    <ROW File="downarrow.svg" Component_="base.svg" FileName="DOWNAR~1.SVG|downarrow.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\downarrow.svg" SelfReg="false"/>
-    <ROW File="downarrow2.svg" Component_="base.svg" FileName="DOWNAR~2.SVG|downarrow2.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\downarrow2.svg" SelfReg="false"/>
-    <ROW File="float.svg" Component_="base.svg" FileName="float.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\float.svg" SelfReg="false"/>
-    <ROW File="leftarrow.svg" Component_="base.svg" FileName="LEFTAR~1.SVG|leftarrow.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\leftarrow.svg" SelfReg="false"/>
-    <ROW File="leftarrow2.svg" Component_="base.svg" FileName="LEFTAR~2.SVG|leftarrow2.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\leftarrow2.svg" SelfReg="false"/>
-    <ROW File="radiobutton_checked.svg" Component_="base.svg" FileName="RADIOB~1.SVG|radiobutton_checked.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\radiobutton_checked.svg" SelfReg="false"/>
-    <ROW File="radiobutton_checked_invert.svg" Component_="base.svg" FileName="RADIOB~2.SVG|radiobutton_checked_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\radiobutton_checked_invert.svg" SelfReg="false"/>
-    <ROW File="radiobutton_unchecked.svg" Component_="base.svg" FileName="RADIOB~3.SVG|radiobutton_unchecked.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\radiobutton_unchecked.svg" SelfReg="false"/>
-    <ROW File="radiobutton_unchecked_invert.svg" Component_="base.svg" FileName="RADIOB~4.SVG|radiobutton_unchecked_invert.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\radiobutton_unchecked_invert.svg" SelfReg="false"/>
-    <ROW File="rightarrow.svg" Component_="base.svg" FileName="RIGHTA~1.SVG|rightarrow.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\rightarrow.svg" SelfReg="false"/>
-    <ROW File="rightarrow2.svg" Component_="base.svg" FileName="RIGHTA~2.SVG|rightarrow2.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\rightarrow2.svg" SelfReg="false"/>
-    <ROW File="sizegrip.svg" Component_="base.svg" FileName="sizegrip.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\sizegrip.svg" SelfReg="false"/>
-    <ROW File="slider.svg" Component_="base.svg" FileName="slider.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\slider.svg" SelfReg="false"/>
-    <ROW File="splitterhorizontal.svg" Component_="base.svg" FileName="SPLITT~1.SVG|splitter-horizontal.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\splitter-horizontal.svg" SelfReg="false"/>
-    <ROW File="splittervertical.svg" Component_="base.svg" FileName="SPLITT~2.SVG|splitter-vertical.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\splitter-vertical.svg" SelfReg="false"/>
-    <ROW File="tab_close.svg" Component_="base.svg" FileName="TAB_CL~1.SVG|tab_close.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\tab_close.svg" SelfReg="false"/>
-    <ROW File="toolbarhandlehorizontal.svg" Component_="base.svg" FileName="TOOLBA~1.SVG|toolbar-handle-horizontal.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\toolbar-handle-horizontal.svg" SelfReg="false"/>
-    <ROW File="toolbarhandlevertical.svg" Component_="base.svg" FileName="TOOLBA~2.SVG|toolbar-handle-vertical.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\toolbar-handle-vertical.svg" SelfReg="false"/>
-    <ROW File="uparrow.svg" Component_="base.svg" FileName="uparrow.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\uparrow.svg" SelfReg="false"/>
-    <ROW File="uparrow2.svg" Component_="base.svg" FileName="uparrow2.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\uparrow2.svg" SelfReg="false"/>
-    <ROW File="vline.svg" Component_="base.svg" FileName="vline.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\vline.svg" SelfReg="false"/>
-    <ROW File="__init__.py_4" Component_="base.svg" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\__init__.py" SelfReg="false"/>
-    <ROW File="__init__.cpython310.pyc_3" Component_="__init__.cpython310.pyc_2" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
-    <ROW File="__init__.py_5" Component_="generate.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__init__.py" SelfReg="false"/>
-    <ROW File="generate.cpython310.pyc" Component_="generate.cpython310.pyc" FileName="GENERA~1.PYC|generate.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__pycache__\generate.cpython-310.pyc" SelfReg="false"/>
-    <ROW File="__init__.cpython310.pyc_4" Component_="generate.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
-    <ROW File="dark_amber.xml" Component_="dark_amber.xml" FileName="DARK_A~1.XML|dark_amber.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_amber.xml" SelfReg="false"/>
-    <ROW File="dark_blue.xml" Component_="dark_amber.xml" FileName="DARK_B~1.XML|dark_blue.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_blue.xml" SelfReg="false"/>
-    <ROW File="dark_cyan.xml" Component_="dark_amber.xml" FileName="DARK_C~1.XML|dark_cyan.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_cyan.xml" SelfReg="false"/>
-    <ROW File="dark_lightgreen.xml" Component_="dark_amber.xml" FileName="DARK_L~1.XML|dark_lightgreen.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_lightgreen.xml" SelfReg="false"/>
-    <ROW File="dark_medical.xml" Component_="dark_amber.xml" FileName="DARK_M~1.XML|dark_medical.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_medical.xml" SelfReg="false"/>
-    <ROW File="dark_pink.xml" Component_="dark_amber.xml" FileName="DARK_P~1.XML|dark_pink.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_pink.xml" SelfReg="false"/>
-    <ROW File="dark_purple.xml" Component_="dark_amber.xml" FileName="DARK_P~2.XML|dark_purple.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_purple.xml" SelfReg="false"/>
-    <ROW File="dark_red.xml" Component_="dark_amber.xml" FileName="dark_red.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_red.xml" SelfReg="false"/>
-    <ROW File="dark_teal.xml" Component_="dark_amber.xml" FileName="DARK_T~1.XML|dark_teal.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_teal.xml" SelfReg="false"/>
-    <ROW File="dark_yellow.xml" Component_="dark_amber.xml" FileName="DARK_Y~1.XML|dark_yellow.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_yellow.xml" SelfReg="false"/>
-    <ROW File="light_amber.xml" Component_="dark_amber.xml" FileName="LIGHT_~1.XML|light_amber.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_amber.xml" SelfReg="false"/>
-    <ROW File="light_blue.xml" Component_="dark_amber.xml" FileName="LIGHT_~2.XML|light_blue.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_blue.xml" SelfReg="false"/>
-    <ROW File="light_blue_500.xml" Component_="dark_amber.xml" FileName="LIGHT_~3.XML|light_blue_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_blue_500.xml" SelfReg="false"/>
-    <ROW File="light_cyan.xml" Component_="dark_amber.xml" FileName="LIGHT_~4.XML|light_cyan.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_cyan.xml" SelfReg="false"/>
-    <ROW File="light_cyan_500.xml" Component_="dark_amber.xml" FileName="LIGHT_~5.XML|light_cyan_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_cyan_500.xml" SelfReg="false"/>
-    <ROW File="light_lightgreen.xml" Component_="dark_amber.xml" FileName="LIGHT_~6.XML|light_lightgreen.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_lightgreen.xml" SelfReg="false"/>
-    <ROW File="light_lightgreen_500.xml" Component_="dark_amber.xml" FileName="LIGHT_~7.XML|light_lightgreen_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_lightgreen_500.xml" SelfReg="false"/>
-    <ROW File="light_orange.xml" Component_="dark_amber.xml" FileName="LIGHT_~8.XML|light_orange.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_orange.xml" SelfReg="false"/>
-    <ROW File="light_pink.xml" Component_="dark_amber.xml" FileName="LIGHT_~9.XML|light_pink.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_pink.xml" SelfReg="false"/>
-    <ROW File="light_pink_500.xml" Component_="dark_amber.xml" FileName="LIGHT~10.XML|light_pink_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_pink_500.xml" SelfReg="false"/>
-    <ROW File="light_purple.xml" Component_="dark_amber.xml" FileName="LIGHT~11.XML|light_purple.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_purple.xml" SelfReg="false"/>
-    <ROW File="light_purple_500.xml" Component_="dark_amber.xml" FileName="LIGHT~12.XML|light_purple_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_purple_500.xml" SelfReg="false"/>
-    <ROW File="light_red.xml" Component_="dark_amber.xml" FileName="LIGHT~13.XML|light_red.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_red.xml" SelfReg="false"/>
-    <ROW File="light_red_500.xml" Component_="dark_amber.xml" FileName="LIGHT~14.XML|light_red_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_red_500.xml" SelfReg="false"/>
-    <ROW File="light_teal.xml" Component_="dark_amber.xml" FileName="LIGHT~15.XML|light_teal.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_teal.xml" SelfReg="false"/>
-    <ROW File="light_teal_500.xml" Component_="dark_amber.xml" FileName="LIGHT~16.XML|light_teal_500.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_teal_500.xml" SelfReg="false"/>
-    <ROW File="light_yellow.xml" Component_="dark_amber.xml" FileName="LIGHT~17.XML|light_yellow.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\light_yellow.xml" SelfReg="false"/>
-    <ROW File="README.md" Component_="base_library.zip" FileName="README.md" Attributes="0" SourcePath="dist\Windows\README.md" SelfReg="false"/>
-    <ROW File="_regex.cp310win_amd64.pyd" Component_="_regex.cp310win_amd64.pyd" FileName="_REGEX~1.PYD|_regex.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\regex\_regex.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="select.pyd" Component_="base_library.zip" FileName="select.pyd" Attributes="0" SourcePath="dist\Windows\select.pyd" SelfReg="false"/>
-    <ROW File="MSVCP140.dll_2" Component_="MSVCP140.dll_2" FileName="MSVCP140.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\MSVCP140.dll" SelfReg="false"/>
-    <ROW File="Shiboken.pyd" Component_="Shiboken.pyd" FileName="Shiboken.pyd" Attributes="0" SourcePath="dist\Windows\shiboken6\Shiboken.pyd" SelfReg="false"/>
-    <ROW File="shiboken6.abi3.dll" Component_="shiboken6.abi3.dll" FileName="SHIBOK~1.DLL|shiboken6.abi3.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\shiboken6.abi3.dll" SelfReg="false"/>
-    <ROW File="VCRUNTIME140_1.dll_3" Component_="VCRUNTIME140_1.dll_3" FileName="VCRUNT~1.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\VCRUNTIME140_1.dll" SelfReg="false"/>
-    <ROW File="entry_points.txt" Component_="entry_points.txt" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\entry_points.txt" SelfReg="false"/>
-    <ROW File="INSTALLER" Component_="entry_points.txt" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE" Component_="entry_points.txt" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA" Component_="entry_points.txt" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD" Component_="entry_points.txt" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED" Component_="entry_points.txt" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="top_level.txt" Component_="entry_points.txt" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\top_level.txt" SelfReg="false"/>
-    <ROW File="WHEEL" Component_="entry_points.txt" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\WHEEL" SelfReg="false"/>
-    <ROW File="_tiktoken.cp310win_amd64.pyd" Component_="_tiktoken.cp310win_amd64.pyd" FileName="_TIKTO~1.PYD|_tiktoken.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\tiktoken\_tiktoken.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="unicodedata.pyd" Component_="base_library.zip" FileName="UNICOD~1.PYD|unicodedata.pyd" Attributes="0" SourcePath="dist\Windows\unicodedata.pyd" SelfReg="false"/>
-    <ROW File="VCRUNTIME140.dll" Component_="VCRUNTIME140.dll" FileName="VCRUNT~1.DLL|VCRUNTIME140.dll" Attributes="0" SourcePath="dist\Windows\VCRUNTIME140.dll" SelfReg="false"/>
-    <ROW File="VCRUNTIME140_1.dll_4" Component_="VCRUNTIME140_1.dll_4" FileName="VCRUNT~2.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="dist\Windows\VCRUNTIME140_1.dll" SelfReg="false"/>
-    <ROW File="win32api.pyd" Component_="base_library.zip" FileName="win32api.pyd" Attributes="0" SourcePath="dist\Windows\win32api.pyd" SelfReg="false"/>
-    <ROW File="shell.pyd" Component_="shell.pyd" FileName="shell.pyd" Attributes="0" SourcePath="dist\Windows\win32com\shell\shell.pyd" SelfReg="false"/>
-    <ROW File="win32trace.pyd" Component_="base_library.zip" FileName="WIN32T~1.PYD|win32trace.pyd" Attributes="0" SourcePath="dist\Windows\win32trace.pyd" SelfReg="false"/>
-    <ROW File="win32ui.pyd" Component_="base_library.zip" FileName="win32ui.pyd" Attributes="0" SourcePath="dist\Windows\win32ui.pyd" SelfReg="false"/>
-    <ROW File="_quoting_c.cp310win_amd64.pyd" Component_="_quoting_c.cp310win_amd64.pyd" FileName="_QUOTI~1.PYD|_quoting_c.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\yarl\_quoting_c.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="_asyncio.pyd" Component_="base_library.zip" FileName="_asyncio.pyd" Attributes="0" SourcePath="dist\Windows\_asyncio.pyd" SelfReg="false"/>
-    <ROW File="_bz2.pyd" Component_="base_library.zip" FileName="_bz2.pyd" Attributes="0" SourcePath="dist\Windows\_bz2.pyd" SelfReg="false"/>
-    <ROW File="_ctypes.pyd" Component_="base_library.zip" FileName="_ctypes.pyd" Attributes="0" SourcePath="dist\Windows\_ctypes.pyd" SelfReg="false"/>
-    <ROW File="_decimal.pyd" Component_="base_library.zip" FileName="_decimal.pyd" Attributes="0" SourcePath="dist\Windows\_decimal.pyd" SelfReg="false"/>
-    <ROW File="_hashlib.pyd" Component_="base_library.zip" FileName="_hashlib.pyd" Attributes="0" SourcePath="dist\Windows\_hashlib.pyd" SelfReg="false"/>
-    <ROW File="_lzma.pyd" Component_="base_library.zip" FileName="_lzma.pyd" Attributes="0" SourcePath="dist\Windows\_lzma.pyd" SelfReg="false"/>
-    <ROW File="_multiprocessing.pyd" Component_="base_library.zip" FileName="_MULTI~1.PYD|_multiprocessing.pyd" Attributes="0" SourcePath="dist\Windows\_multiprocessing.pyd" SelfReg="false"/>
-    <ROW File="_overlapped.pyd" Component_="base_library.zip" FileName="_OVERL~1.PYD|_overlapped.pyd" Attributes="0" SourcePath="dist\Windows\_overlapped.pyd" SelfReg="false"/>
-    <ROW File="_queue.pyd" Component_="base_library.zip" FileName="_queue.pyd" Attributes="0" SourcePath="dist\Windows\_queue.pyd" SelfReg="false"/>
-    <ROW File="_socket.pyd" Component_="base_library.zip" FileName="_socket.pyd" Attributes="0" SourcePath="dist\Windows\_socket.pyd" SelfReg="false"/>
-    <ROW File="_ssl.pyd" Component_="base_library.zip" FileName="_ssl.pyd" Attributes="0" SourcePath="dist\Windows\_ssl.pyd" SelfReg="false"/>
-    <ROW File="_uuid.pyd" Component_="base_library.zip" FileName="_uuid.pyd" Attributes="0" SourcePath="dist\Windows\_uuid.pyd" SelfReg="false"/>
-    <ROW File="_win32sysloader.pyd" Component_="base_library.zip" FileName="_WIN32~1.PYD|_win32sysloader.pyd" Attributes="0" SourcePath="dist\Windows\_win32sysloader.pyd" SelfReg="false"/>
-    <ROW File="__init__.py_6" Component_="base_library.zip" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\__init__.py" SelfReg="false"/>
+    <ROW File="_helpers.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_HELPE~1.PYD|_helpers.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\aiohttp\_helpers.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="_http_parser.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_HTTP_~1.PYD|_http_parser.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\aiohttp\_http_parser.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="_http_writer.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_HTTP_~2.PYD|_http_writer.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\aiohttp\_http_writer.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="_websocket.cp310win_amd64.pyd" Component_="_helpers.cp310win_amd64.pyd" FileName="_WEBSO~1.PYD|_websocket.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\aiohttp\_websocket.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="base_library.zip" Component_="base_library.zip" FileName="BASE_L~1.ZIP|base_library.zip" Attributes="0" SourcePath="..\..\dist\Windows\base_library.zip" SelfReg="false"/>
+    <ROW File="cacert.pem" Component_="cacert.pem" FileName="cacert.pem" Attributes="0" SourcePath="..\..\dist\Windows\certifi\cacert.pem" SelfReg="false"/>
+    <ROW File="py.typed" Component_="cacert.pem" FileName="PY~1.TYP|py.typed" Attributes="0" SourcePath="..\..\dist\Windows\certifi\py.typed" SelfReg="false"/>
+    <ROW File="CHANGELOG.txt" Component_="base_library.zip" FileName="CHANGE~1.TXT|CHANGELOG.txt" Attributes="0" SourcePath="..\..\dist\Windows\CHANGELOG.txt" SelfReg="false"/>
+    <ROW File="md.cp310win_amd64.pyd" Component_="md.cp310win_amd64.pyd" FileName="MDCP31~1.PYD|md.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\charset_normalizer\md.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="md__mypyc.cp310win_amd64.pyd" Component_="md.cp310win_amd64.pyd" FileName="MD__MY~1.PYD|md__mypyc.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\charset_normalizer\md__mypyc.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="config.json" Component_="config.json" FileName="CONFIG~1.JSO|config.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\config.json" SelfReg="false"/>
+    <ROW File="models.json" Component_="config.json" FileName="MODELS~1.JSO|models.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\models.json" SelfReg="false"/>
+    <ROW File="batman_and_joker.json" Component_="batman_and_joker.json" FileName="BATMAN~1.JSO|batman_and_joker.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\presets\batman_and_joker.json" SelfReg="false"/>
+    <ROW File="current.chat.json" Component_="batman_and_joker.json" FileName="CURREN~1.JSO|current.chat.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\presets\current.chat.json" SelfReg="false"/>
+    <ROW File="current.completion.json" Component_="batman_and_joker.json" FileName="CURREN~2.JSO|current.completion.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\presets\current.completion.json" SelfReg="false"/>
+    <ROW File="current.img.json" Component_="batman_and_joker.json" FileName="CURREN~3.JSO|current.img.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\presets\current.img.json" SelfReg="false"/>
+    <ROW File="dalle_covboy_tokio.json" Component_="batman_and_joker.json" FileName="DALLE_~1.JSO|dalle_covboy_tokio.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\presets\dalle_covboy_tokio.json" SelfReg="false"/>
+    <ROW File="dalle_woman_photorealistic.json" Component_="batman_and_joker.json" FileName="DALLE_~2.JSO|dalle_woman_photorealistic.json" Attributes="0" SourcePath="..\..\dist\Windows\data\config\presets\dalle_woman_photorealistic.json" SelfReg="false"/>
+    <ROW File="locale.en.ini" Component_="locale.en.ini" FileName="LOCALE~1.INI|locale.en.ini" Attributes="0" SourcePath="..\..\dist\Windows\data\locale\locale.en.ini" SelfReg="false"/>
+    <ROW File="locale.pl.ini" Component_="locale.en.ini" FileName="LOCALE~2.INI|locale.pl.ini" Attributes="0" SourcePath="..\..\dist\Windows\data\locale\locale.pl.ini" SelfReg="false"/>
+    <ROW File="logo.png" Component_="logo.png" FileName="logo.png" Attributes="0" SourcePath="..\..\dist\Windows\data\logo.png" SelfReg="false"/>
+    <ROW File="_frozenlist.cp310win_amd64.pyd" Component_="_frozenlist.cp310win_amd64.pyd" FileName="_FROZE~1.PYD|_frozenlist.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\frozenlist\_frozenlist.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="libcrypto1_1.dll" Component_="libcrypto1_1.dll" FileName="LIBCRY~1.DLL|libcrypto-1_1.dll" Attributes="0" SourcePath="..\..\dist\Windows\libcrypto-1_1.dll" SelfReg="false"/>
+    <ROW File="libffi7.dll" Component_="libffi7.dll" FileName="libffi-7.dll" Attributes="0" SourcePath="..\..\dist\Windows\libffi-7.dll" SelfReg="false"/>
+    <ROW File="libssl1_1.dll" Component_="libssl1_1.dll" FileName="LIBSSL~1.DLL|libssl-1_1.dll" Attributes="0" SourcePath="..\..\dist\Windows\libssl-1_1.dll" SelfReg="false"/>
+    <ROW File="_speedups.cp310win_amd64.pyd" Component_="_speedups.cp310win_amd64.pyd" FileName="_SPEED~1.PYD|_speedups.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\markupsafe\_speedups.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="mfc140u.dll" Component_="mfc140u.dll" FileName="mfc140u.dll" Attributes="0" SourcePath="..\..\dist\Windows\mfc140u.dll" SelfReg="false"/>
+    <ROW File="_multidict.cp310win_amd64.pyd" Component_="_multidict.cp310win_amd64.pyd" FileName="_MULTI~1.PYD|_multidict.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\multidict\_multidict.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="PyGPT.exe" Component_="PyGPT.exe" FileName="Py-GPT.exe" Attributes="0" SourcePath="..\..\dist\Windows\Py-GPT.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="pyexpat.pyd" Component_="base_library.zip" FileName="pyexpat.pyd" Attributes="0" SourcePath="..\..\dist\Windows\pyexpat.pyd" SelfReg="false"/>
+    <ROW File="MSVCP140.dll" Component_="MSVCP140.dll" FileName="MSVCP140.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\MSVCP140.dll" SelfReg="false"/>
+    <ROW File="MSVCP140_1.dll" Component_="MSVCP140_1.dll" FileName="MSVCP1~1.DLL|MSVCP140_1.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\MSVCP140_1.dll" SelfReg="false"/>
+    <ROW File="MSVCP140_2.dll" Component_="MSVCP140_2.dll" FileName="MSVCP1~2.DLL|MSVCP140_2.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\MSVCP140_2.dll" SelfReg="false"/>
+    <ROW File="qtuiotouchplugin.dll" Component_="qtuiotouchplugin.dll" FileName="QTUIOT~1.DLL|qtuiotouchplugin.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\generic\qtuiotouchplugin.dll" SelfReg="false"/>
+    <ROW File="qsvgicon.dll" Component_="qsvgicon.dll" FileName="qsvgicon.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\iconengines\qsvgicon.dll" SelfReg="false"/>
+    <ROW File="qgif.dll" Component_="qgif.dll" FileName="qgif.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qgif.dll" SelfReg="false"/>
+    <ROW File="qicns.dll" Component_="qicns.dll" FileName="qicns.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qicns.dll" SelfReg="false"/>
+    <ROW File="qico.dll" Component_="qico.dll" FileName="qico.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qico.dll" SelfReg="false"/>
+    <ROW File="qjpeg.dll" Component_="qjpeg.dll" FileName="qjpeg.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qjpeg.dll" SelfReg="false"/>
+    <ROW File="qpdf.dll" Component_="qpdf.dll" FileName="qpdf.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qpdf.dll" SelfReg="false"/>
+    <ROW File="qsvg.dll" Component_="qsvg.dll" FileName="qsvg.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qsvg.dll" SelfReg="false"/>
+    <ROW File="qtga.dll" Component_="qtga.dll" FileName="qtga.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qtga.dll" SelfReg="false"/>
+    <ROW File="qtiff.dll" Component_="qtiff.dll" FileName="qtiff.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qtiff.dll" SelfReg="false"/>
+    <ROW File="qwbmp.dll" Component_="qwbmp.dll" FileName="qwbmp.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qwbmp.dll" SelfReg="false"/>
+    <ROW File="qwebp.dll" Component_="qwebp.dll" FileName="qwebp.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\imageformats\qwebp.dll" SelfReg="false"/>
+    <ROW File="qnetworklistmanager.dll" Component_="qnetworklistmanager.dll" FileName="QNETWO~1.DLL|qnetworklistmanager.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\networkinformation\qnetworklistmanager.dll" SelfReg="false"/>
+    <ROW File="qtvirtualkeyboardplugin.dll" Component_="qtvirtualkeyboardplugin.dll" FileName="QTVIRT~1.DLL|qtvirtualkeyboardplugin.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll" SelfReg="false"/>
+    <ROW File="qdirect2d.dll" Component_="qdirect2d.dll" FileName="QDIREC~1.DLL|qdirect2d.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\platforms\qdirect2d.dll" SelfReg="false"/>
+    <ROW File="qminimal.dll" Component_="qminimal.dll" FileName="qminimal.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\platforms\qminimal.dll" SelfReg="false"/>
+    <ROW File="qoffscreen.dll" Component_="qoffscreen.dll" FileName="QOFFSC~1.DLL|qoffscreen.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\platforms\qoffscreen.dll" SelfReg="false"/>
+    <ROW File="qwindows.dll" Component_="qwindows.dll" FileName="qwindows.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\platforms\qwindows.dll" SelfReg="false"/>
+    <ROW File="qwindowsvistastyle.dll" Component_="qwindowsvistastyle.dll" FileName="QWINDO~1.DLL|qwindowsvistastyle.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\styles\qwindowsvistastyle.dll" SelfReg="false"/>
+    <ROW File="qcertonlybackend.dll" Component_="qcertonlybackend.dll" FileName="QCERTO~1.DLL|qcertonlybackend.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\tls\qcertonlybackend.dll" SelfReg="false"/>
+    <ROW File="qopensslbackend.dll" Component_="qopensslbackend.dll" FileName="QOPENS~1.DLL|qopensslbackend.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\tls\qopensslbackend.dll" SelfReg="false"/>
+    <ROW File="qschannelbackend.dll" Component_="qschannelbackend.dll" FileName="QSCHAN~1.DLL|qschannelbackend.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\plugins\tls\qschannelbackend.dll" SelfReg="false"/>
+    <ROW File="pyside6.abi3.dll" Component_="pyside6.abi3.dll" FileName="PYSIDE~1.DLL|pyside6.abi3.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\pyside6.abi3.dll" SelfReg="false"/>
+    <ROW File="Qt6Core.dll" Component_="Qt6Core.dll" FileName="Qt6Core.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6Core.dll" SelfReg="false"/>
+    <ROW File="Qt6Gui.dll" Component_="Qt6Gui.dll" FileName="Qt6Gui.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6Gui.dll" SelfReg="false"/>
+    <ROW File="Qt6Network.dll" Component_="Qt6Network.dll" FileName="QT6NET~1.DLL|Qt6Network.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6Network.dll" SelfReg="false"/>
+    <ROW File="Qt6OpenGL.dll" Component_="Qt6OpenGL.dll" FileName="QT6OPE~1.DLL|Qt6OpenGL.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6OpenGL.dll" SelfReg="false"/>
+    <ROW File="Qt6OpenGLWidgets.dll" Component_="Qt6OpenGLWidgets.dll" FileName="QT6OPE~2.DLL|Qt6OpenGLWidgets.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6OpenGLWidgets.dll" SelfReg="false"/>
+    <ROW File="Qt6Svg.dll" Component_="Qt6Svg.dll" FileName="Qt6Svg.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6Svg.dll" SelfReg="false"/>
+    <ROW File="Qt6UiTools.dll" Component_="Qt6UiTools.dll" FileName="QT6UIT~1.DLL|Qt6UiTools.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6UiTools.dll" SelfReg="false"/>
+    <ROW File="Qt6Widgets.dll" Component_="Qt6Widgets.dll" FileName="QT6WID~1.DLL|Qt6Widgets.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\Qt6Widgets.dll" SelfReg="false"/>
+    <ROW File="QtCore.pyd" Component_="QtCore.pyd" FileName="QtCore.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtCore.pyd" SelfReg="false"/>
+    <ROW File="QtGui.pyd" Component_="QtCore.pyd" FileName="QtGui.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtGui.pyd" SelfReg="false"/>
+    <ROW File="QtNetwork.pyd" Component_="QtCore.pyd" FileName="QTNETW~1.PYD|QtNetwork.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtNetwork.pyd" SelfReg="false"/>
+    <ROW File="QtOpenGL.pyd" Component_="QtCore.pyd" FileName="QtOpenGL.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtOpenGL.pyd" SelfReg="false"/>
+    <ROW File="QtOpenGLWidgets.pyd" Component_="QtCore.pyd" FileName="QTOPEN~1.PYD|QtOpenGLWidgets.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtOpenGLWidgets.pyd" SelfReg="false"/>
+    <ROW File="QtUiTools.pyd" Component_="QtCore.pyd" FileName="QTUITO~1.PYD|QtUiTools.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtUiTools.pyd" SelfReg="false"/>
+    <ROW File="QtWidgets.pyd" Component_="QtCore.pyd" FileName="QTWIDG~1.PYD|QtWidgets.pyd" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\QtWidgets.pyd" SelfReg="false"/>
+    <ROW File="qtbase_ar.qm" Component_="qtbase_ar.qm" FileName="QTBASE~1.QM|qtbase_ar.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_ar.qm" SelfReg="false"/>
+    <ROW File="qtbase_bg.qm" Component_="qtbase_ar.qm" FileName="QTBASE~2.QM|qtbase_bg.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_bg.qm" SelfReg="false"/>
+    <ROW File="qtbase_ca.qm" Component_="qtbase_ar.qm" FileName="QTBASE~3.QM|qtbase_ca.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_ca.qm" SelfReg="false"/>
+    <ROW File="qtbase_cs.qm" Component_="qtbase_ar.qm" FileName="QTBASE~4.QM|qtbase_cs.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_cs.qm" SelfReg="false"/>
+    <ROW File="qtbase_da.qm" Component_="qtbase_ar.qm" FileName="QTBASE~5.QM|qtbase_da.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_da.qm" SelfReg="false"/>
+    <ROW File="qtbase_de.qm" Component_="qtbase_ar.qm" FileName="QTBASE~6.QM|qtbase_de.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_de.qm" SelfReg="false"/>
+    <ROW File="qtbase_en.qm" Component_="qtbase_ar.qm" FileName="QTBASE~7.QM|qtbase_en.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_en.qm" SelfReg="false"/>
+    <ROW File="qtbase_es.qm" Component_="qtbase_ar.qm" FileName="QTBASE~8.QM|qtbase_es.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_es.qm" SelfReg="false"/>
+    <ROW File="qtbase_fa.qm" Component_="qtbase_ar.qm" FileName="QTBASE~9.QM|qtbase_fa.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_fa.qm" SelfReg="false"/>
+    <ROW File="qtbase_fi.qm" Component_="qtbase_ar.qm" FileName="QTBAS~10.QM|qtbase_fi.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_fi.qm" SelfReg="false"/>
+    <ROW File="qtbase_fr.qm" Component_="qtbase_ar.qm" FileName="QTBAS~11.QM|qtbase_fr.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_fr.qm" SelfReg="false"/>
+    <ROW File="qtbase_gd.qm" Component_="qtbase_ar.qm" FileName="QTBAS~12.QM|qtbase_gd.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_gd.qm" SelfReg="false"/>
+    <ROW File="qtbase_he.qm" Component_="qtbase_ar.qm" FileName="QTBAS~13.QM|qtbase_he.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_he.qm" SelfReg="false"/>
+    <ROW File="qtbase_hr.qm" Component_="qtbase_ar.qm" FileName="QTBAS~14.QM|qtbase_hr.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_hr.qm" SelfReg="false"/>
+    <ROW File="qtbase_hu.qm" Component_="qtbase_ar.qm" FileName="QTBAS~15.QM|qtbase_hu.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_hu.qm" SelfReg="false"/>
+    <ROW File="qtbase_it.qm" Component_="qtbase_ar.qm" FileName="QTBAS~16.QM|qtbase_it.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_it.qm" SelfReg="false"/>
+    <ROW File="qtbase_ja.qm" Component_="qtbase_ar.qm" FileName="QTBAS~17.QM|qtbase_ja.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_ja.qm" SelfReg="false"/>
+    <ROW File="qtbase_ko.qm" Component_="qtbase_ar.qm" FileName="QTBAS~18.QM|qtbase_ko.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_ko.qm" SelfReg="false"/>
+    <ROW File="qtbase_lv.qm" Component_="qtbase_ar.qm" FileName="QTBAS~19.QM|qtbase_lv.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_lv.qm" SelfReg="false"/>
+    <ROW File="qtbase_nl.qm" Component_="qtbase_ar.qm" FileName="QTBAS~20.QM|qtbase_nl.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_nl.qm" SelfReg="false"/>
+    <ROW File="qtbase_nn.qm" Component_="qtbase_ar.qm" FileName="QTBAS~21.QM|qtbase_nn.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_nn.qm" SelfReg="false"/>
+    <ROW File="qtbase_pl.qm" Component_="qtbase_ar.qm" FileName="QTBAS~22.QM|qtbase_pl.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_pl.qm" SelfReg="false"/>
+    <ROW File="qtbase_pt_BR.qm" Component_="qtbase_ar.qm" FileName="QTBAS~23.QM|qtbase_pt_BR.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_pt_BR.qm" SelfReg="false"/>
+    <ROW File="qtbase_ru.qm" Component_="qtbase_ar.qm" FileName="QTBAS~24.QM|qtbase_ru.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_ru.qm" SelfReg="false"/>
+    <ROW File="qtbase_sk.qm" Component_="qtbase_ar.qm" FileName="QTBAS~25.QM|qtbase_sk.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_sk.qm" SelfReg="false"/>
+    <ROW File="qtbase_tr.qm" Component_="qtbase_ar.qm" FileName="QTBAS~26.QM|qtbase_tr.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_tr.qm" SelfReg="false"/>
+    <ROW File="qtbase_uk.qm" Component_="qtbase_ar.qm" FileName="QTBAS~27.QM|qtbase_uk.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_uk.qm" SelfReg="false"/>
+    <ROW File="qtbase_zh_CN.qm" Component_="qtbase_ar.qm" FileName="QTBAS~28.QM|qtbase_zh_CN.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_zh_CN.qm" SelfReg="false"/>
+    <ROW File="qtbase_zh_TW.qm" Component_="qtbase_ar.qm" FileName="QTBAS~29.QM|qtbase_zh_TW.qm" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\translations\qtbase_zh_TW.qm" SelfReg="false"/>
+    <ROW File="VCRUNTIME140_1.dll" Component_="VCRUNTIME140_1.dll" FileName="VCRUNT~1.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="..\..\dist\Windows\PySide6\VCRUNTIME140_1.dll" SelfReg="false"/>
+    <ROW File="python3.dll" Component_="python3.dll" FileName="python3.dll" Attributes="0" SourcePath="..\..\dist\Windows\python3.dll" SelfReg="false"/>
+    <ROW File="python310.dll" Component_="python310.dll" FileName="PYTHON~1.DLL|python310.dll" Attributes="0" SourcePath="..\..\dist\Windows\python310.dll" SelfReg="false"/>
+    <ROW File="pythoncom310.dll" Component_="pythoncom310.dll" FileName="PYTHON~1.DLL|pythoncom310.dll" Attributes="0" SourcePath="..\..\dist\Windows\pywin32_system32\pythoncom310.dll" SelfReg="false"/>
+    <ROW File="pywintypes310.dll" Component_="pywintypes310.dll" FileName="PYWINT~1.DLL|pywintypes310.dll" Attributes="0" SourcePath="..\..\dist\Windows\pywin32_system32\pywintypes310.dll" SelfReg="false"/>
+    <ROW File="dock_theme.ui" Component_="dock_theme.ui" FileName="DOCK_T~1.UI|dock_theme.ui" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\dock_theme.ui" SelfReg="false"/>
+    <ROW File="RobotoBlack.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~1.TTF|Roboto-Black.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Black.ttf" SelfReg="false"/>
+    <ROW File="RobotoBlackItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~2.TTF|Roboto-BlackItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-BlackItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoBold.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~3.TTF|Roboto-Bold.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Bold.ttf" SelfReg="false"/>
+    <ROW File="RobotoBoldItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~4.TTF|Roboto-BoldItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-BoldItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~5.TTF|Roboto-Italic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Italic.ttf" SelfReg="false"/>
+    <ROW File="RobotoLight.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~6.TTF|Roboto-Light.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Light.ttf" SelfReg="false"/>
+    <ROW File="RobotoLightItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~7.TTF|Roboto-LightItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-LightItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoMedium.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~8.TTF|Roboto-Medium.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Medium.ttf" SelfReg="false"/>
+    <ROW File="RobotoMediumItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOTO~9.TTF|Roboto-MediumItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-MediumItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoRegular.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~10.TTF|Roboto-Regular.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Regular.ttf" SelfReg="false"/>
+    <ROW File="RobotoThin.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~11.TTF|Roboto-Thin.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-Thin.ttf" SelfReg="false"/>
+    <ROW File="RobotoThinItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~12.TTF|Roboto-ThinItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\Roboto-ThinItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoCondensedBold.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~13.TTF|RobotoCondensed-Bold.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Bold.ttf" SelfReg="false"/>
+    <ROW File="RobotoCondensedBoldItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~14.TTF|RobotoCondensed-BoldItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\RobotoCondensed-BoldItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoCondensedItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~15.TTF|RobotoCondensed-Italic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Italic.ttf" SelfReg="false"/>
+    <ROW File="RobotoCondensedLight.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~16.TTF|RobotoCondensed-Light.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Light.ttf" SelfReg="false"/>
+    <ROW File="RobotoCondensedLightItalic.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~17.TTF|RobotoCondensed-LightItalic.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\RobotoCondensed-LightItalic.ttf" SelfReg="false"/>
+    <ROW File="RobotoCondensedRegular.ttf" Component_="RobotoBlack.ttf" FileName="ROBOT~18.TTF|RobotoCondensed-Regular.ttf" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\fonts\roboto\RobotoCondensed-Regular.ttf" SelfReg="false"/>
+    <ROW File="material.css.template" Component_="dock_theme.ui" FileName="MATERI~1.TEM|material.css.template" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\material.css.template" SelfReg="false"/>
+    <ROW File="generate.py" Component_="generate.py" FileName="generate.py" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\generate.py" SelfReg="false"/>
+    <ROW File="logo.svg" Component_="logo.svg" FileName="logo.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\logo\logo.svg" SelfReg="false"/>
+    <ROW File="logo_frame.svg" Component_="logo.svg" FileName="LOGO_F~1.SVG|logo_frame.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\logo\logo_frame.svg" SelfReg="false"/>
+    <ROW File="__init__.py" Component_="logo.svg" FileName="__init__.py" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\logo\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.cpython310.pyc" Component_="__init__.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\logo\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
+    <ROW File="base.svg" Component_="base.svg" FileName="base.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\base.svg" SelfReg="false"/>
+    <ROW File="branchclosed.svg" Component_="base.svg" FileName="BRANCH~1.SVG|branch-closed.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\branch-closed.svg" SelfReg="false"/>
+    <ROW File="branchend.svg" Component_="base.svg" FileName="BRANCH~2.SVG|branch-end.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\branch-end.svg" SelfReg="false"/>
+    <ROW File="branchmore.svg" Component_="base.svg" FileName="BRANCH~3.SVG|branch-more.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\branch-more.svg" SelfReg="false"/>
+    <ROW File="branchopen.svg" Component_="base.svg" FileName="BRANCH~4.SVG|branch-open.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\branch-open.svg" SelfReg="false"/>
+    <ROW File="checkbox_checked.svg" Component_="base.svg" FileName="CHECKB~1.SVG|checkbox_checked.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checkbox_checked.svg" SelfReg="false"/>
+    <ROW File="checkbox_checked_invert.svg" Component_="base.svg" FileName="CHECKB~2.SVG|checkbox_checked_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checkbox_checked_invert.svg" SelfReg="false"/>
+    <ROW File="checkbox_indeterminate.svg" Component_="base.svg" FileName="CHECKB~3.SVG|checkbox_indeterminate.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checkbox_indeterminate.svg" SelfReg="false"/>
+    <ROW File="checkbox_indeterminate_invert.svg" Component_="base.svg" FileName="CHECKB~4.SVG|checkbox_indeterminate_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checkbox_indeterminate_invert.svg" SelfReg="false"/>
+    <ROW File="checkbox_unchecked.svg" Component_="base.svg" FileName="CHECKB~5.SVG|checkbox_unchecked.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checkbox_unchecked.svg" SelfReg="false"/>
+    <ROW File="checkbox_unchecked_invert.svg" Component_="base.svg" FileName="CHECKB~6.SVG|checkbox_unchecked_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checkbox_unchecked_invert.svg" SelfReg="false"/>
+    <ROW File="checklist.svg" Component_="base.svg" FileName="CHECKL~1.SVG|checklist.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checklist.svg" SelfReg="false"/>
+    <ROW File="checklist_indeterminate.svg" Component_="base.svg" FileName="CHECKL~2.SVG|checklist_indeterminate.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checklist_indeterminate.svg" SelfReg="false"/>
+    <ROW File="checklist_indeterminate_invert.svg" Component_="base.svg" FileName="CHECKL~3.SVG|checklist_indeterminate_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checklist_indeterminate_invert.svg" SelfReg="false"/>
+    <ROW File="checklist_invert.svg" Component_="base.svg" FileName="CHECKL~4.SVG|checklist_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\checklist_invert.svg" SelfReg="false"/>
+    <ROW File="close.svg" Component_="base.svg" FileName="close.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\close.svg" SelfReg="false"/>
+    <ROW File="downarrow.svg" Component_="base.svg" FileName="DOWNAR~1.SVG|downarrow.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\downarrow.svg" SelfReg="false"/>
+    <ROW File="downarrow2.svg" Component_="base.svg" FileName="DOWNAR~2.SVG|downarrow2.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\downarrow2.svg" SelfReg="false"/>
+    <ROW File="float.svg" Component_="base.svg" FileName="float.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\float.svg" SelfReg="false"/>
+    <ROW File="leftarrow.svg" Component_="base.svg" FileName="LEFTAR~1.SVG|leftarrow.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\leftarrow.svg" SelfReg="false"/>
+    <ROW File="leftarrow2.svg" Component_="base.svg" FileName="LEFTAR~2.SVG|leftarrow2.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\leftarrow2.svg" SelfReg="false"/>
+    <ROW File="radiobutton_checked.svg" Component_="base.svg" FileName="RADIOB~1.SVG|radiobutton_checked.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\radiobutton_checked.svg" SelfReg="false"/>
+    <ROW File="radiobutton_checked_invert.svg" Component_="base.svg" FileName="RADIOB~2.SVG|radiobutton_checked_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\radiobutton_checked_invert.svg" SelfReg="false"/>
+    <ROW File="radiobutton_unchecked.svg" Component_="base.svg" FileName="RADIOB~3.SVG|radiobutton_unchecked.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\radiobutton_unchecked.svg" SelfReg="false"/>
+    <ROW File="radiobutton_unchecked_invert.svg" Component_="base.svg" FileName="RADIOB~4.SVG|radiobutton_unchecked_invert.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\radiobutton_unchecked_invert.svg" SelfReg="false"/>
+    <ROW File="rightarrow.svg" Component_="base.svg" FileName="RIGHTA~1.SVG|rightarrow.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\rightarrow.svg" SelfReg="false"/>
+    <ROW File="rightarrow2.svg" Component_="base.svg" FileName="RIGHTA~2.SVG|rightarrow2.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\rightarrow2.svg" SelfReg="false"/>
+    <ROW File="sizegrip.svg" Component_="base.svg" FileName="sizegrip.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\sizegrip.svg" SelfReg="false"/>
+    <ROW File="slider.svg" Component_="base.svg" FileName="slider.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\slider.svg" SelfReg="false"/>
+    <ROW File="splitterhorizontal.svg" Component_="base.svg" FileName="SPLITT~1.SVG|splitter-horizontal.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\splitter-horizontal.svg" SelfReg="false"/>
+    <ROW File="splittervertical.svg" Component_="base.svg" FileName="SPLITT~2.SVG|splitter-vertical.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\splitter-vertical.svg" SelfReg="false"/>
+    <ROW File="tab_close.svg" Component_="base.svg" FileName="TAB_CL~1.SVG|tab_close.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\tab_close.svg" SelfReg="false"/>
+    <ROW File="toolbarhandlehorizontal.svg" Component_="base.svg" FileName="TOOLBA~1.SVG|toolbar-handle-horizontal.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\toolbar-handle-horizontal.svg" SelfReg="false"/>
+    <ROW File="toolbarhandlevertical.svg" Component_="base.svg" FileName="TOOLBA~2.SVG|toolbar-handle-vertical.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\toolbar-handle-vertical.svg" SelfReg="false"/>
+    <ROW File="uparrow.svg" Component_="base.svg" FileName="uparrow.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\uparrow.svg" SelfReg="false"/>
+    <ROW File="uparrow2.svg" Component_="base.svg" FileName="uparrow2.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\uparrow2.svg" SelfReg="false"/>
+    <ROW File="vline.svg" Component_="base.svg" FileName="vline.svg" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\vline.svg" SelfReg="false"/>
+    <ROW File="__init__.py_4" Component_="base.svg" FileName="__init__.py" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.cpython310.pyc_3" Component_="__init__.cpython310.pyc_2" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\source\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
+    <ROW File="__init__.py_5" Component_="generate.py" FileName="__init__.py" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\__init__.py" SelfReg="false"/>
+    <ROW File="generate.cpython310.pyc" Component_="generate.cpython310.pyc" FileName="GENERA~1.PYC|generate.cpython-310.pyc" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\__pycache__\generate.cpython-310.pyc" SelfReg="false"/>
+    <ROW File="__init__.cpython310.pyc_4" Component_="generate.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\resources\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
+    <ROW File="dark_amber.xml" Component_="dark_amber.xml" FileName="DARK_A~1.XML|dark_amber.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_amber.xml" SelfReg="false"/>
+    <ROW File="dark_blue.xml" Component_="dark_amber.xml" FileName="DARK_B~1.XML|dark_blue.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_blue.xml" SelfReg="false"/>
+    <ROW File="dark_cyan.xml" Component_="dark_amber.xml" FileName="DARK_C~1.XML|dark_cyan.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_cyan.xml" SelfReg="false"/>
+    <ROW File="dark_lightgreen.xml" Component_="dark_amber.xml" FileName="DARK_L~1.XML|dark_lightgreen.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_lightgreen.xml" SelfReg="false"/>
+    <ROW File="dark_medical.xml" Component_="dark_amber.xml" FileName="DARK_M~1.XML|dark_medical.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_medical.xml" SelfReg="false"/>
+    <ROW File="dark_pink.xml" Component_="dark_amber.xml" FileName="DARK_P~1.XML|dark_pink.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_pink.xml" SelfReg="false"/>
+    <ROW File="dark_purple.xml" Component_="dark_amber.xml" FileName="DARK_P~2.XML|dark_purple.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_purple.xml" SelfReg="false"/>
+    <ROW File="dark_red.xml" Component_="dark_amber.xml" FileName="dark_red.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_red.xml" SelfReg="false"/>
+    <ROW File="dark_teal.xml" Component_="dark_amber.xml" FileName="DARK_T~1.XML|dark_teal.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_teal.xml" SelfReg="false"/>
+    <ROW File="dark_yellow.xml" Component_="dark_amber.xml" FileName="DARK_Y~1.XML|dark_yellow.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\dark_yellow.xml" SelfReg="false"/>
+    <ROW File="light_amber.xml" Component_="dark_amber.xml" FileName="LIGHT_~1.XML|light_amber.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_amber.xml" SelfReg="false"/>
+    <ROW File="light_blue.xml" Component_="dark_amber.xml" FileName="LIGHT_~2.XML|light_blue.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_blue.xml" SelfReg="false"/>
+    <ROW File="light_blue_500.xml" Component_="dark_amber.xml" FileName="LIGHT_~3.XML|light_blue_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_blue_500.xml" SelfReg="false"/>
+    <ROW File="light_cyan.xml" Component_="dark_amber.xml" FileName="LIGHT_~4.XML|light_cyan.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_cyan.xml" SelfReg="false"/>
+    <ROW File="light_cyan_500.xml" Component_="dark_amber.xml" FileName="LIGHT_~5.XML|light_cyan_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_cyan_500.xml" SelfReg="false"/>
+    <ROW File="light_lightgreen.xml" Component_="dark_amber.xml" FileName="LIGHT_~6.XML|light_lightgreen.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_lightgreen.xml" SelfReg="false"/>
+    <ROW File="light_lightgreen_500.xml" Component_="dark_amber.xml" FileName="LIGHT_~7.XML|light_lightgreen_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_lightgreen_500.xml" SelfReg="false"/>
+    <ROW File="light_orange.xml" Component_="dark_amber.xml" FileName="LIGHT_~8.XML|light_orange.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_orange.xml" SelfReg="false"/>
+    <ROW File="light_pink.xml" Component_="dark_amber.xml" FileName="LIGHT_~9.XML|light_pink.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_pink.xml" SelfReg="false"/>
+    <ROW File="light_pink_500.xml" Component_="dark_amber.xml" FileName="LIGHT~10.XML|light_pink_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_pink_500.xml" SelfReg="false"/>
+    <ROW File="light_purple.xml" Component_="dark_amber.xml" FileName="LIGHT~11.XML|light_purple.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_purple.xml" SelfReg="false"/>
+    <ROW File="light_purple_500.xml" Component_="dark_amber.xml" FileName="LIGHT~12.XML|light_purple_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_purple_500.xml" SelfReg="false"/>
+    <ROW File="light_red.xml" Component_="dark_amber.xml" FileName="LIGHT~13.XML|light_red.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_red.xml" SelfReg="false"/>
+    <ROW File="light_red_500.xml" Component_="dark_amber.xml" FileName="LIGHT~14.XML|light_red_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_red_500.xml" SelfReg="false"/>
+    <ROW File="light_teal.xml" Component_="dark_amber.xml" FileName="LIGHT~15.XML|light_teal.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_teal.xml" SelfReg="false"/>
+    <ROW File="light_teal_500.xml" Component_="dark_amber.xml" FileName="LIGHT~16.XML|light_teal_500.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_teal_500.xml" SelfReg="false"/>
+    <ROW File="light_yellow.xml" Component_="dark_amber.xml" FileName="LIGHT~17.XML|light_yellow.xml" Attributes="0" SourcePath="..\..\dist\Windows\qt_material\themes\light_yellow.xml" SelfReg="false"/>
+    <ROW File="README.md" Component_="base_library.zip" FileName="README.md" Attributes="0" SourcePath="..\..\dist\Windows\README.md" SelfReg="false"/>
+    <ROW File="_regex.cp310win_amd64.pyd" Component_="_regex.cp310win_amd64.pyd" FileName="_REGEX~1.PYD|_regex.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\regex\_regex.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="select.pyd" Component_="base_library.zip" FileName="select.pyd" Attributes="0" SourcePath="..\..\dist\Windows\select.pyd" SelfReg="false"/>
+    <ROW File="MSVCP140.dll_2" Component_="MSVCP140.dll_2" FileName="MSVCP140.dll" Attributes="0" SourcePath="..\..\dist\Windows\shiboken6\MSVCP140.dll" SelfReg="false"/>
+    <ROW File="Shiboken.pyd" Component_="Shiboken.pyd" FileName="Shiboken.pyd" Attributes="0" SourcePath="..\..\dist\Windows\shiboken6\Shiboken.pyd" SelfReg="false"/>
+    <ROW File="shiboken6.abi3.dll" Component_="shiboken6.abi3.dll" FileName="SHIBOK~1.DLL|shiboken6.abi3.dll" Attributes="0" SourcePath="..\..\dist\Windows\shiboken6\shiboken6.abi3.dll" SelfReg="false"/>
+    <ROW File="VCRUNTIME140_1.dll_3" Component_="VCRUNTIME140_1.dll_3" FileName="VCRUNT~1.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="..\..\dist\Windows\shiboken6\VCRUNTIME140_1.dll" SelfReg="false"/>
+    <ROW File="entry_points.txt" Component_="entry_points.txt" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\entry_points.txt" SelfReg="false"/>
+    <ROW File="INSTALLER" Component_="entry_points.txt" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE" Component_="entry_points.txt" FileName="LICENSE" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA" Component_="entry_points.txt" FileName="METADATA" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD" Component_="entry_points.txt" FileName="RECORD" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED" Component_="entry_points.txt" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="top_level.txt" Component_="entry_points.txt" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\top_level.txt" SelfReg="false"/>
+    <ROW File="WHEEL" Component_="entry_points.txt" FileName="WHEEL" Attributes="0" SourcePath="..\..\dist\Windows\show_in_file_manager-1.1.4.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="_tiktoken.cp310win_amd64.pyd" Component_="_tiktoken.cp310win_amd64.pyd" FileName="_TIKTO~1.PYD|_tiktoken.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\tiktoken\_tiktoken.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="unicodedata.pyd" Component_="base_library.zip" FileName="UNICOD~1.PYD|unicodedata.pyd" Attributes="0" SourcePath="..\..\dist\Windows\unicodedata.pyd" SelfReg="false"/>
+    <ROW File="VCRUNTIME140.dll" Component_="VCRUNTIME140.dll" FileName="VCRUNT~1.DLL|VCRUNTIME140.dll" Attributes="0" SourcePath="..\..\dist\Windows\VCRUNTIME140.dll" SelfReg="false"/>
+    <ROW File="VCRUNTIME140_1.dll_4" Component_="VCRUNTIME140_1.dll_4" FileName="VCRUNT~2.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="..\..\dist\Windows\VCRUNTIME140_1.dll" SelfReg="false"/>
+    <ROW File="win32api.pyd" Component_="base_library.zip" FileName="win32api.pyd" Attributes="0" SourcePath="..\..\dist\Windows\win32api.pyd" SelfReg="false"/>
+    <ROW File="shell.pyd" Component_="shell.pyd" FileName="shell.pyd" Attributes="0" SourcePath="..\..\dist\Windows\win32com\shell\shell.pyd" SelfReg="false"/>
+    <ROW File="win32trace.pyd" Component_="base_library.zip" FileName="WIN32T~1.PYD|win32trace.pyd" Attributes="0" SourcePath="..\..\dist\Windows\win32trace.pyd" SelfReg="false"/>
+    <ROW File="win32ui.pyd" Component_="base_library.zip" FileName="win32ui.pyd" Attributes="0" SourcePath="..\..\dist\Windows\win32ui.pyd" SelfReg="false"/>
+    <ROW File="_quoting_c.cp310win_amd64.pyd" Component_="_quoting_c.cp310win_amd64.pyd" FileName="_QUOTI~1.PYD|_quoting_c.cp310-win_amd64.pyd" Attributes="0" SourcePath="..\..\dist\Windows\yarl\_quoting_c.cp310-win_amd64.pyd" SelfReg="false"/>
+    <ROW File="_asyncio.pyd" Component_="base_library.zip" FileName="_asyncio.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_asyncio.pyd" SelfReg="false"/>
+    <ROW File="_bz2.pyd" Component_="base_library.zip" FileName="_bz2.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_bz2.pyd" SelfReg="false"/>
+    <ROW File="_ctypes.pyd" Component_="base_library.zip" FileName="_ctypes.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_ctypes.pyd" SelfReg="false"/>
+    <ROW File="_decimal.pyd" Component_="base_library.zip" FileName="_decimal.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_decimal.pyd" SelfReg="false"/>
+    <ROW File="_hashlib.pyd" Component_="base_library.zip" FileName="_hashlib.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_hashlib.pyd" SelfReg="false"/>
+    <ROW File="_lzma.pyd" Component_="base_library.zip" FileName="_lzma.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_lzma.pyd" SelfReg="false"/>
+    <ROW File="_multiprocessing.pyd" Component_="base_library.zip" FileName="_MULTI~1.PYD|_multiprocessing.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_multiprocessing.pyd" SelfReg="false"/>
+    <ROW File="_overlapped.pyd" Component_="base_library.zip" FileName="_OVERL~1.PYD|_overlapped.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_overlapped.pyd" SelfReg="false"/>
+    <ROW File="_queue.pyd" Component_="base_library.zip" FileName="_queue.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_queue.pyd" SelfReg="false"/>
+    <ROW File="_socket.pyd" Component_="base_library.zip" FileName="_socket.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_socket.pyd" SelfReg="false"/>
+    <ROW File="_ssl.pyd" Component_="base_library.zip" FileName="_ssl.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_ssl.pyd" SelfReg="false"/>
+    <ROW File="_uuid.pyd" Component_="base_library.zip" FileName="_uuid.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_uuid.pyd" SelfReg="false"/>
+    <ROW File="_win32sysloader.pyd" Component_="base_library.zip" FileName="_WIN32~1.PYD|_win32sysloader.pyd" Attributes="0" SourcePath="..\..\dist\Windows\_win32sysloader.pyd" SelfReg="false"/>
+    <ROW File="__init__.py_6" Component_="base_library.zip" FileName="__init__.py" Attributes="0" SourcePath="..\..\dist\Windows\__init__.py" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder=".." PackageFileName="Py-Gpt" Languages="en" InstallationType="4" ExtUI="true" UseLargeSchema="true"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder="..\..\.." PackageFileName="Py-Gpt" Languages="en" InstallationType="4" ExtUI="true" UseLargeSchema="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
     <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
@@ -430,7 +431,7 @@
     <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
-    <ROW Dialog_="LicenseAgreementDlg" Control="AgreementText" Type="ScrollableText" X="20" Y="60" Width="330" Height="120" Attributes="7" Text="LICENSE.rtf" Order="400" TextLocId="Control.Text.LicenseAgreementDlg#AgreementText" MsiKey="LicenseAgreementDlg#AgreementText"/>
+    <ROW Dialog_="LicenseAgreementDlg" Control="AgreementText" Type="ScrollableText" X="20" Y="60" Width="330" Height="120" Attributes="7" Text="USER-LICENSE.rtf" Order="400" TextLocId="Control.Text.LicenseAgreementDlg#AgreementText" MsiKey="LicenseAgreementDlg#AgreementText"/>
     <ROW Dialog_="ReadmeDlg" Control="ReadmeText" Type="ScrollableText" X="20" Y="60" Width="330" Height="150" Attributes="7" Text="README.rtf" Order="400" TextLocId="Control.Text.ReadmeDlg#ReadmeText" MsiKey="ReadmeDlg#ReadmeText"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlEventComponent">
@@ -567,7 +568,7 @@
     <ROW Feature_="MainFeature" Component_="_quoting_c.cp310win_amd64.pyd"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
-    <ROW Name="icon.exe" SourcePath="data\icon.ico" Index="0"/>
+    <ROW Name="icon.exe" SourcePath="..\icon.ico" Index="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIniFileComponent">
     <ROW IniFile="URL" FileName="OFFICI~1.URL|Official website - pygpt.net.url" DirProperty="SHORTCUTDIR" Section="InternetShortcut" Key="URL" Value="https://pygpt.net" Action="0" Component_="APPDIR"/>
@@ -609,6 +610,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="PyGPT" Directory_="SHORTCUTDIR" Name="Py-GPT" Component_="PyGPT.exe" Target="[#PyGPT.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="Windows_Dir"/>
+    <ROW Shortcut="PyGPT_1" Directory_="DesktopFolder" Name="Py-GPT" Component_="PyGPT.exe" Target="[#PyGPT.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="Windows_Dir"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="classic"/>
