@@ -652,6 +652,7 @@ class UpdateDialog(QDialog):
         info.setWordWrap(True)
         info.setAlignment(Qt.AlignCenter)
         info.setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        info.setStyleSheet("font-weight: bold; font-size: 12px; margin: 20px 0px 20px 0px;")
         self.layout.addWidget(logo_label)
         self.layout.addWidget(info)
         self.layout.addWidget(self.message)

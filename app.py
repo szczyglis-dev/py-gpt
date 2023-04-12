@@ -62,6 +62,11 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.setWindowTitle('PYGPT.net v{} | build {}'.format(self.version, self.build))
 
     def set_theme(self, theme='dark_teal.xml'):
+        """
+        Sets theme
+
+        :param theme: theme name
+        """
         label = "#ffffff"
         inverse = False
         if theme.startswith('light_'):

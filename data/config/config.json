@@ -20,7 +20,7 @@
     "store_history": true,
     "store_history_time": true,
     "img_resolution": "1024x1024",
-    "font_size": 11,
+    "font_size": 10,
     "default_prompt": "You are a helpful assistant.",
     "max_tokens_length": 32000,
     "max_context_history_items": 100,

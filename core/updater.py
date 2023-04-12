@@ -43,6 +43,7 @@ class Updater:
             newest_version = data_json["version"]
             newest_build = data_json["build"]
 
+            newest_version = "1.0.0"
             # changelog
             changelog = ""
             if "changelog" in data_json:

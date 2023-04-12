@@ -9,7 +9,7 @@
 # Updated Date: 2023.04.11 05:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget
 
 from core.ui.widgets import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog
 from core.utils import trans
@@ -102,23 +102,34 @@ class Settings:
                                                     self.window.config_option['img_resolution'])
 
         rows = QVBoxLayout()
-        rows.addLayout(options['temperature'])
-        rows.addLayout(options['top_p'])
-        rows.addLayout(options['frequency_penalty'])
-        rows.addLayout(options['presence_penalty'])
-        rows.addLayout(options['use_context'])
-        rows.addLayout(options['store_history'])
-        rows.addLayout(options['store_history_time'])
-        rows.addLayout(options['context_threshold'])
-        rows.addLayout(options['max_output_tokens'])
-        rows.addLayout(options['max_total_tokens'])
-        rows.addLayout(options['font_size'])
-        rows.addLayout(options['img_resolution'])
         rows.addLayout(options['api_key'])
         rows.addLayout(options['organization_key'])
 
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+
+        scroll_content = QVBoxLayout()
+        scroll_content.addLayout(options['use_context'])
+        scroll_content.addLayout(options['store_history'])
+        scroll_content.addLayout(options['store_history_time'])
+        scroll_content.addLayout(options['font_size'])
+        scroll_content.addLayout(options['context_threshold'])
+        scroll_content.addLayout(options['max_output_tokens'])
+        scroll_content.addLayout(options['max_total_tokens'])
+        scroll_content.addLayout(options['temperature'])
+        scroll_content.addLayout(options['top_p'])
+        scroll_content.addLayout(options['frequency_penalty'])
+        scroll_content.addLayout(options['presence_penalty'])
+        scroll_content.addLayout(options['img_resolution'])
+
+        scroll_widget = QWidget()
+        scroll_widget.setLayout(scroll_content)
+
+        scroll.setWidget(scroll_widget)
+
         layout = QVBoxLayout()
         layout.addLayout(rows)
+        layout.addWidget(scroll)
         layout.addLayout(bottom_layout)
 
         self.window.dialog['config.' + id] = SettingsDialog(self.window, id)
