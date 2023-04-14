@@ -7,6 +7,9 @@ https://pygpt.net
 **GitHub:**
 https://github.com/szczyglis-dev/py-gpt
 
+**PyPI:**
+https://pypi.org/project/pygpt-net
+
 **Author:**
 Marcin Szczygliński (Poland, UE)
 

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pygpt-net"
+version = "0.9.3"
+description = "A GPT4, GPT3, ChatGPT and DALL-E 2 Desktop App with chatbot, text completion and image generation"
+readme = "README.md"
+authors = [{ name = "Marcin Szczygliński", email = "info@pygpt.net" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt3", "chatgpt", "dall-e", "chat",
+    "chatbot", "text completion", "image generation", "ai", "api", "openai", "api key", "context memory", "history",
+    "presets", "ui", "qt", "pyside"]
+dependencies = [
+    'openai>=0.27.4',
+    'packaging>=23.0',
+    'pyinstaller>=5.9.0',
+    'PySide6-Essentials>=6.4.2',
+    'qt-material>=2.14',
+    'show-in-file-manager>=1.1.4',
+    'tiktoken>=0.3.3',
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/szczyglis-dev/py-gpt"
+
+[project.scripts]
+pygpt = "pygpt_net.core.app:run"

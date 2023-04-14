@@ -5,22 +5,22 @@ block_cipher = None
 
 
 a = Analysis(
-    ['app.py'],
+    ['src\\pygpt_net\\app.py'],
     pathex=[
-        '.'
+        'src\\pygpt_net\\'
     ],
     binaries=[],
     datas=[
-        ('data\\config\\presets\\*', 'data\\config\\presets'),
-        ('data\\config\\config.json', 'data\\config'),
-        ('data\\config\\models.json', 'data\\config'),
-        ('data\\locale\\*', 'data\\locale'),
-        ('data\\logo.png', 'data'),
-        ('CHANGELOG.txt', '.'),
+        ('src\\pygpt_net\\data\\config\\presets\\*', 'data\\config\\presets'),
+        ('src\\pygpt_net\\data\\config\\config.json', 'data\\config'),
+        ('src\\pygpt_net\\data\\config\\models.json', 'data\\config'),
+        ('src\\pygpt_net\\data\\locale\\*', 'data\\locale'),
+        ('src\\pygpt_net\\data\\logo.png', 'data'),
+        ('src\\pygpt_net\\CHANGELOG.txt', '.'),
         ('README.md', '.'),
-        ('__init__.py', '.')
+        ('src\\pygpt_net\\__init__.py', '.')
     ],
-    hiddenimports=['core', 'tiktoken_ext', 'tiktoken_ext.openai_public'],
+    hiddenimports=['tiktoken_ext', 'tiktoken_ext.openai_public'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -50,7 +50,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='data\\icon.ico',
+    icon='src\\pygpt_net\\data\\icon.ico',
     version='version.rc'
 )
 coll = COLLECT(

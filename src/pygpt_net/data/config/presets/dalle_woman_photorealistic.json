@@ -1,0 +1,15 @@
+{
+  "name": "woman - portrait",
+  "ai_name": "",
+  "user_name": "",
+  "prompt": "hot dark hair girl,  looking at viewer, portrait, photography, detailed skin, realistic, photo-realistic, 8k, highly detailed, full length frame, piercing, diffused soft lighting, shallow depth of field, sharp focus, hyperrealism, cinematic lighting  ",
+  "temperature": 1.0,
+  "img": true,
+  "chat": false,
+  "completion": false,
+  "__meta__": {
+    "version": "0.9.0",
+    "app.version": "0.9.0",
+    "updated_at": "2023-04-09T20:17:41"
+  }
+}

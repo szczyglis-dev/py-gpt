@@ -1,7 +1,12 @@
-Current release: **0.9.2** | Build: **2023.04.12** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Current release: **0.9.3** (build: **2023.04.14**)
 
+Official website: https://pygpt.net
 
-### **Download compiled versions for Windows 10, 11 and Linux** here: https://pygpt.net
+Documentation: https://pygpt.readthedocs.io
+
+PyPi: https://pypi.org/project/pygpt-net
+
+### **Compiled binary versions for Windows 10, 11 and Linux are available to download on project's page**: https://pygpt.net (in "Download" section)
 
 # PYGPT
 
@@ -52,17 +57,67 @@ a registered OpenAI account and your own API key.**
 
 # Requirements
 
-## Supported systems
+## Supported systems (compiled version)
 
-PYGPT requires a PC with Windows 10, 11 or Linux. It does not require
-installation - to run it, just download the archive with the appropriate
-version from the download page and then extract it and run the
-application included in it.
+PYGPT requires a PC with Windows 10, 11 or Linux. Just download the installer or 
+archive with the appropriate version from the download page and then extract it 
+or install it and run the application.
 
-## Python version
+## Python version (source code)
 
 The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (at least version 3.9).
+the application using the Python interpreter (at least version 3.9). 
+You can also install application from PyPi (using "pip install").
+
+### PyPi (pip)
+
+1. Create virtual environment:
+
+```commandline
+python -m venv venv
+source venv/bin/activate
+```
+
+2. Install from PyPi:
+
+``` commandline
+pip install pygpt-net
+```
+
+3. Once installed run the command to start the application:
+
+``` commandline
+pygpt
+```
+
+### Running from GitHub source code
+
+1. Clone git repository or download .zip file:
+
+```commandline
+git clone https://github.com/szczyglis-dev/py-gpt.git
+cd py-gpt
+```
+
+2. Create virtual environment:
+
+```commandline
+python -m venv venv
+source venv/bin/activate
+```
+
+3. Install requirements:
+
+```commandline
+pip install -r requirements.txt
+```
+
+4. Run the application:
+
+```commandline
+cd src/pygpt_net
+python app.py
+```
 
 ## Other requirements
 
@@ -398,6 +453,10 @@ in future versions of the application.
 
 
 # CHANGELOG
+
+## v0.9.3 (2023.04.13)
+
+- packed into PyPI package
 
 ## v0.9.2 (2023.04.12)
 

@@ -1,0 +1,47 @@
+{
+  "api_key": "",
+  "organization_key": "",
+  "theme": "dark_teal",
+  "lang": "en",
+  "mode": "chat",
+  "preset": "current.chat",
+  "model": "gpt-3.5-turbo",
+  "prompt": "",
+  "ai_name": "",
+  "user_name": "",
+  "max_output_tokens": 1024,
+  "max_total_tokens": 4096,
+  "use_context": true,
+  "context_threshold": 200,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "frequency_penalty": 0.0,
+  "presence_penalty": 0.0,
+  "store_history": true,
+  "store_history_time": true,
+  "img_resolution": "1024x1024",
+  "font_size": 11,
+  "default_prompt": "You are a helpful assistant.",
+  "max_tokens_length": 32000,
+  "max_context_history_items": 100,
+  "send_shift_enter": false,
+  "send_clear": true,
+  "current_model": {
+    "completion": "text-davinci-003",
+    "chat": "gpt-3.5-turbo"
+  },
+  "current_preset": {
+    "completion": "",
+    "chat": "",
+    "img": ""
+  },
+  "output_timestamp": true,
+  "debug": false,
+  "ctx": "",
+  "img_variants": 1,
+  "__meta__": {
+    "version": "0.9.2",
+    "app.version": "0.9.2",
+    "updated_at": "2023-04-12T07:25:00"
+  }
+}
