@@ -486,13 +486,15 @@ in future versions of the application.
 
 - initial release
 
-# Credits
+# Credits and links
 
 **Official website:** <https://pygpt.net>
 
 **Documentation:** <https://pygpt.readthedocs.io>
 
 **GitHub:** <https://github.com/szczyglis-dev/py-gpt>
+
+**PyPI:** <https://pypi.org/project/pygpt-net>
 
 **Author:** Marcin Szczygliński (Poland, UE)
 
