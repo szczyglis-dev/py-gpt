@@ -1,8 +1,8 @@
 # PYGPT
 
-Current release: **0.9.3** (build: **2023.04.14**)
+Current release: **0.9.3** (build: **2023.04.14**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
-Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
+PyPi: https://pypi.org/project/pygpt-net
 
 ### **Compiled binary versions for Windows 10, 11 and Linux are available to download on project's page**: https://pygpt.net (in "Download" section)
 
