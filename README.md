@@ -90,6 +90,21 @@ pip install pygpt-net
 pygpt
 ```
 
+**Troubleshooting**: 
+
+If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
+
+```commandline
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+```
+
+...then try downgrading PySide to `PySide6-Essentials==6.4.2`:
+
+```commandline
+pip install PySide6-Essentials==6.4.2
+```
+
 ### Running from GitHub source code
 
 1. Clone git repository or download .zip file:
@@ -118,6 +133,9 @@ pip install -r requirements.txt
 cd src/pygpt_net
 python app.py
 ```
+
+**Tip**: you can use `PyInstaller` to create a compiled version of
+the application for your system.
 
 ## Other requirements
 
@@ -454,7 +472,7 @@ in future versions of the application.
 
 # CHANGELOG
 
-## v0.9.3 (2023.04.13)
+## v0.9.3 (2023.04.14)
 
 - packed into PyPI package
 

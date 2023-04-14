@@ -49,6 +49,21 @@ PyPi (pip)
 
     pygpt
 
+**Troubleshooting**:
+
+If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
+
+.. code-block:: console
+
+    qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+    This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+...then try downgrading PySide to `PySide6-Essentials==6.4.2`:
+
+.. code-block:: console
+
+    pip install PySide6-Essentials==6.4.2
+
 Running from GitHub source code
 ````````````````````````````````
 1. Clone git repository or download .zip file:
@@ -77,6 +92,9 @@ Running from GitHub source code
 
     cd src/pygpt_net
     python app.py
+
+**Tip**: you can use `PyInstaller` to create a compiled version of
+the application for your system.
 
 Other requirements
 ------------------
