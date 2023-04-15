@@ -9,7 +9,7 @@
 # Created Date: 2023.04.09 20:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QTreeView, QGridLayout
+from PySide6.QtWidgets import QTreeView, QGridLayout, QAbstractItemView, QScrollArea
 
 from ..widgets import DebugDialog
 
@@ -31,9 +31,15 @@ class Debug:
         """
         self.window.debug[id] = QTreeView()
         self.window.debug[id].setRootIsDecorated(False)
+        self.window.debug[id].setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.window.debug[id].setWordWrap(True)
+
+        scroll = QScrollArea()
+        scroll.setWidget(self.window.debug[id])
+        scroll.setWidgetResizable(True)
 
         layout = QGridLayout()
-        layout.addWidget(self.window.debug[id], 1, 0)
+        layout.addWidget(scroll, 1, 0)
 
         self.window.dialog['debug.' + id] = DebugDialog(self.window, id)
         self.window.dialog['debug.' + id].setLayout(layout)

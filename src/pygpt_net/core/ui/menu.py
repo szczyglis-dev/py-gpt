@@ -113,6 +113,7 @@ class Menu:
         self.window.menu['debug.context'] = QAction(trans("menu.debug.context"), self.window, checkable=True)
         self.window.menu['debug.presets'] = QAction(trans("menu.debug.presets"), self.window, checkable=True)
         self.window.menu['debug.models'] = QAction(trans("menu.debug.models"), self.window, checkable=True)
+        self.window.menu['debug.plugins'] = QAction(trans("menu.debug.plugins"), self.window, checkable=True)
 
         self.window.menu['debug.config'].triggered.connect(
             lambda: self.window.controller.debug.toggle('config'))
@@ -122,12 +123,15 @@ class Menu:
             lambda: self.window.controller.debug.toggle('presets'))
         self.window.menu['debug.models'].triggered.connect(
             lambda: self.window.controller.debug.toggle('models'))
+        self.window.menu['debug.plugins'].triggered.connect(
+            lambda: self.window.controller.debug.toggle('plugins'))
 
         self.window.menu['menu.debug'] = self.window.menuBar().addMenu(trans("menu.debug"))
         self.window.menu['menu.debug'].addAction(self.window.menu['debug.config'])
         self.window.menu['menu.debug'].addAction(self.window.menu['debug.context'])
         self.window.menu['menu.debug'].addAction(self.window.menu['debug.presets'])
         self.window.menu['menu.debug'].addAction(self.window.menu['debug.models'])
+        self.window.menu['menu.debug'].addAction(self.window.menu['debug.plugins'])
 
     def setup_lang(self):
         """Setups lang menu"""

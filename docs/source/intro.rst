@@ -24,6 +24,7 @@ Features
 | - enables easy and convenient generation of images using ``DALL-E 2``
 | - has the ability to support future OpenAI models
 | - fully configurable
+| - plugins support
 | - built-in tokens usage calculation
 | - it's open source, source code is available on ``GitHub``
 | - **uses the user's API key**

@@ -91,7 +91,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         Adds plugin
 
-        :param plugin: plugin
+        :param plugin: plugin instance
         """
         plugin.attach(self)
         self.controller.plugins.register(plugin)
@@ -150,7 +150,7 @@ class Launcher:
         """
         Registers plugin
 
-        :param plugin: plugin
+        :param plugin: plugin instance
         """
         self.window.add_plugin(plugin)
         self.window.setup_plugins()

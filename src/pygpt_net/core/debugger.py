@@ -11,10 +11,12 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
+
 from .debug.config import ConfigDebug
 from .debug.context import ContextDebug
 from .debug.presets import PresetsDebug
 from .debug.models import ModelsDebug
+from .debug.plugins import PluginsDebug
 
 
 class Debug:
@@ -34,6 +36,7 @@ class Debug:
         self.workers['context'] = ContextDebug(self.window)
         self.workers['presets'] = PresetsDebug(self.window)
         self.workers['models'] = ModelsDebug(self.window)
+        self.workers['plugins'] = PluginsDebug(self.window)
 
         # prepare debug ids
         self.ids = self.workers.keys()

@@ -1,6 +1,6 @@
-Plugins and audio (coming soon)
+Audio and voice (coming soon)
 ===============================
 
-Next realeases
+Next releases
 ---------------
-Support for plug-ins and voice recognition and synthesis will be added in future versions of the application.
+Support for voice recognition and synthesis will be added in future versions of the application.

@@ -39,6 +39,7 @@ You can download compiled application for Windows and Linux on: https://pygpt.ne
 - enables easy and convenient generation of images using `DALL-E 2`
 - has the ability to support future OpenAI models
 - fully configurable
+- plugins support
 - built-in tokens usage calculation
 - it\'s open source, source code is available on `GitHub`
 - **uses the user\'s API key**
@@ -313,6 +314,17 @@ when generating subsequent images.
 All queries are saved in the history, thanks to which you can return to
 a given session at any time and use old queries to, for example,
 generate new content.
+
+## Plugins
+
+The application allows you to use plugins to extend its functionality.
+Currently, the following plugins are available:
+
+- **SelfLoop** - allows to run GPT in a self-loop, which allows you to
+  generate a continuous conversation between AI <> AI. In this mode model talks to itself.
+
+- **RealTime** - auto-append current date and time to the prompt. It tells
+  the model what time it is in real time.
 
 
 # Tokens calculation
