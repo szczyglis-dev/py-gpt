@@ -1,6 +1,7 @@
 Plugins
 ========
 PYGPT allows you to use plugins to extend its functionality.
+
 Currently, the following plugins are available:
 
 - **SelfLoop** - allows to run GPT in a self-loop, which allows you to
