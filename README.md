@@ -1,6 +1,6 @@
 # PYGPT
 
-Current release: **0.9.3** (build: **2023.04.14**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Current release: **0.9.4** (build: **2023.04.15**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -467,6 +467,10 @@ in future versions of the application.
 
 
 # CHANGELOG
+
+## v0.9.4 (2023.04.15)
+
+- added plugins support
 
 ## v0.9.3 (2023.04.14)
 

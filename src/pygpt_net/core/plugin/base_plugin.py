@@ -33,12 +33,16 @@ class BasePlugin:
         """
         self.window = window
 
-    def on_send(self, text):
-        """Event: On send text"""
-        pass
+    def on_user_send(self, text):
+        """Event: On user send text"""
+        return text
 
     def on_ctx_begin(self, ctx):
         """Event: On new context begin"""
+        return ctx
+
+    def on_ctx_end(self, ctx):
+        """Event: On context end"""
         return ctx
 
     def on_system_prompt(self, prompt):

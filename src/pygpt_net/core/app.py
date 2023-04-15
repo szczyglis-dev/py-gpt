@@ -26,7 +26,7 @@ from .gpt import Gpt
 from .image import Image
 from .utils import get_init_value
 
-from .plugin.auto_loop.plugin import Plugin as SelfLoopPlugin
+from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 from .plugin.real_time.plugin import Plugin as RealTimePlugin
 
 
@@ -135,17 +135,23 @@ class MainWindow(QMainWindow, QtStyleTools):
 
 
 class Launcher:
-    """Launcher"""
     def __init__(self):
+        """Launcher"""
         self.app = None
         self.window = None
 
     def init(self):
+        """Initializes app"""
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
         self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin=None):
+        """
+        Registers plugin
+
+        :param plugin: plugin
+        """
         self.window.add_plugin(plugin)
         self.window.setup_plugins()
 

@@ -20,8 +20,8 @@ class Plugin(BasePlugin):
         self.description = "Allows to execute self talk (AI to AI) loop and connects output to input."
         self.options = {}
         self.options["iterations"] = {
-            "type": "int",  # int, float, bool, text, textarea
-            "slider": True,  # show slider
+            "type": "int",
+            "slider": True,
             "label": "Iterations",
             "description": "How many iterations to run? 0 = infinite.\n"
                            "WARNING: setting this to 0 can cause a lot of requests and heavy tokens usage!",
@@ -32,6 +32,32 @@ class Plugin(BasePlugin):
             "multiplier": 1,
             "step": 1,
         }
+        self.options["clear_output"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Clear context output",
+            "description": "If enabled, previous context output will be cleared before sending new input.",
+            "tooltip": "Clear context output",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["reverse_roles"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Reverse roles between iterations",
+            "description": "If enabled, roles will be reversed between iterations.",
+            "tooltip": "Reverse roles between iterations",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.iteration = 0
+        self.prev_output = None
         self.window = None
 
     def setup(self):
@@ -50,12 +76,23 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def on_send(self, text):
-        """Event: On send text"""
-        pass
+    def on_user_send(self, text):
+        """Event: On user send text"""
+        self.iteration = 0
+        self.prev_output = None
+        return text
 
     def on_ctx_begin(self, ctx):
         """Event: On new context begin"""
+        return ctx
+
+    def on_ctx_end(self, ctx):
+        """Event: On context end"""
+        iterations = int(self.options["iterations"]["value"])
+        if iterations == 0 or self.iteration < iterations:
+            self.iteration += 1
+            if self.prev_output is not None and self.prev_output != "":
+                self.window.controller.input.send(self.prev_output)
         return ctx
 
     def on_system_prompt(self, prompt):
@@ -92,6 +129,11 @@ class Plugin(BasePlugin):
 
         :param ctx: Text
         """
+        if self.iteration > 0 and self.iteration % 2 != 0 and self.options["reverse_roles"]["value"]:
+            tmp_input_name = ctx.input_name
+            tmp_output_name = ctx.output_name
+            ctx.input_name = tmp_output_name
+            ctx.output_name = tmp_input_name
         return ctx
 
     def on_ctx_after(self, ctx):
@@ -100,4 +142,7 @@ class Plugin(BasePlugin):
 
         :param ctx: ctx
         """
+        self.prev_output = ctx.output
+        if self.options["clear_output"]["value"]:
+            ctx.output = ""
         return ctx

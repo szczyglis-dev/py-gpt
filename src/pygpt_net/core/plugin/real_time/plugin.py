@@ -21,8 +21,8 @@ class Plugin(BasePlugin):
         self.description = "Appends real-time (hour and date) to every system prompt."
         self.options = {}
         self.options["hour"] = {
-            "type": "bool",  # int, float, bool, text, textarea
-            "slider": False,  # show slider
+            "type": "bool",
+            "slider": False,
             "label": "Append time",
             "description": "If enabled, current time will be appended to system prompt.",
             "tooltip": "Hour will be appended to system prompt.",
@@ -33,8 +33,8 @@ class Plugin(BasePlugin):
             "step": None,
         }
         self.options["date"] = {
-            "type": "bool",  # int, float, bool, text, textarea
-            "slider": False,  # show slider
+            "type": "bool",
+            "slider": False,
             "label": "Append date",
             "description": "If enabled, current date will be appended to system prompt.",
             "tooltip": "Date will be appended to system prompt.",
@@ -45,8 +45,8 @@ class Plugin(BasePlugin):
             "step": None,
         }
         self.options["tpl"] = {
-            "type": "textarea",  # int, float, bool, text, textarea
-            "slider": False,  # show slider
+            "type": "textarea",
+            "slider": False,
             "label": "Template",
             "description": "Template to append to system prompt."
                            "\nPlaceholder {time} will be replaced with current date and time in real-time.",
@@ -75,12 +75,16 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def on_send(self, text):
-        """Event: On send text"""
-        pass
+    def on_user_send(self, text):
+        """Event: On user send text"""
+        return text
 
     def on_ctx_begin(self, ctx):
         """Event: On new context begin"""
+        return ctx
+
+    def on_ctx_end(self, ctx):
+        """Event: On context end"""
         return ctx
 
     def on_system_prompt(self, prompt):
@@ -99,7 +103,7 @@ class Plugin(BasePlugin):
         return name
 
     def on_user_name(self, name):
-        """Event: On set user name"""
+        """Event: On set username"""
         return name
 
     def on_enable(self):

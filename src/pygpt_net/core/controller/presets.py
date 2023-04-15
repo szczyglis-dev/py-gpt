@@ -260,10 +260,10 @@ class Presets:
         """Loads from current prompt"""
         self.config_change('preset.ai_name', self.window.config.data['ai_name'], 'preset.editor')
         self.config_change('preset.user_name', self.window.config.data['user_name'],
-                                               'preset.editor')
+                           'preset.editor')
         self.config_change('preset.prompt', self.window.config.data['prompt'], 'preset.editor')
         self.config_slider('preset.temperature', self.window.config.data['temperature'], '',
-                                              'preset.editor')
+                           'preset.editor')
 
     def use(self):
         """Copies preset prompt to input"""

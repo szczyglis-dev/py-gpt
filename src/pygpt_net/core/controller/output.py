@@ -54,10 +54,15 @@ class Output:
 
         :param item: context item
         """
+        if item.input is None or item.input == "":
+            return
         if self.window.config.data['output_timestamp'] and item.input_timestamp is not None:
+            name = ""
+            if item.input_name is not None and item.input_name != "":
+                name = item.input_name + " "
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            self.append("{}: > {}".format(hour, item.input))
+            self.append("{}{}: > {}".format(name, hour, item.input))
         else:
             self.append("> {}".format(item.input))
 
@@ -67,10 +72,15 @@ class Output:
 
         :param item: context item
         """
+        if item.output is None or item.output == "":
+            return
         if self.window.config.data['output_timestamp'] and item.output_timestamp is not None:
+            name = ""
+            if item.output_name is not None and item.output_name != "":
+                name = item.output_name + " "
             ts = datetime.fromtimestamp(item.output_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            self.append("{}: {}".format(hour, item.output) + "\n")
+            self.append("{}{}: {}".format(name, hour, item.output) + "\n")
         else:
             self.append(item.output + "\n")
 

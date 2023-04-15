@@ -106,32 +106,20 @@ class Gpt:
         if self.system_prompt is not None and self.system_prompt != "":
             messages.append({"role": "system", "content": self.system_prompt})
 
-        print(messages)
-
         # append messages from context (memory)
         if self.config.data['use_context']:
             items = self.context.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 # input
-                if item.input_name is not None and item.input_name != "":
-                    messages.append({"role": "user", "content": item.input})
-                    # TODO: messages.append({"role": "user", "name": item.input_name, "content": item.input})
-                else:
+                if item.input is not None and item.input != "":
                     messages.append({"role": "user", "content": item.input})
 
                 # output
-                if item.output_name is not None and item.output_name != "":
-                    messages.append({"role": "assistant", "content": item.output})
-                    # TODO: messages.append({"role": "assistant", "name": item.output_name, "content": item.output})
-                else:
+                if item.output is not None and item.output != "":
                     messages.append({"role": "assistant", "content": item.output})
 
         # append current prompt
-        if self.user_name is not None and self.user_name != "":
-            messages.append({"role": "user", "content": str(prompt)})
-            # TODO: messages.append({"role": "user", "name": self.config.data['user_name'], "content": str(prompt)})
-        else:
-            messages.append({"role": "user", "content": str(prompt)})
+        messages.append({"role": "user", "content": str(prompt)})
 
         return messages
 
@@ -157,11 +145,15 @@ class Gpt:
                         and item.output_name is not None \
                         and item.input_name != "" \
                         and item.output_name != "":
-                    message += "\n" + item.input_name + ": " + item.input
-                    message += "\n" + item.output_name + ": " + item.output
+                    if item.input is not None and item.input != "":
+                        message += "\n" + item.input_name + ": " + item.input
+                    if item.output is not None and item.output != "":
+                        message += "\n" + item.output_name + ": " + item.output
                 else:
-                    message += "\n" + item.input
-                    message += "\n" + item.output
+                    if item.input is not None and item.input != "":
+                        message += "\n" + item.input
+                    if item.output is not None and item.output != "":
+                        message += "\n" + item.output
 
         if self.user_name is not None \
                 and self.ai_name is not None \

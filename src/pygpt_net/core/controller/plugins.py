@@ -160,7 +160,7 @@ class Plugins:
         """
         if self.handler.is_registered(id):
             self.enabled[id] = True
-            self.handler.plugins[id].on_enable()
+            self.handler.plugins[id].on_enable()  # call plugin enable method
             self.window.config.data['plugins_enabled'][id] = True
             self.window.config.save()
 
@@ -175,7 +175,7 @@ class Plugins:
         """
         if self.handler.is_registered(id):
             self.enabled[id] = False
-            self.handler.plugins[id].on_disable()
+            self.handler.plugins[id].on_disable()  # call plugin disable method
             self.window.config.data['plugins_enabled'][id] = False
             self.window.config.save()
 
@@ -396,4 +396,3 @@ class Plugins:
                 data = self.handler.apply(id, event, data)
 
         return data
-

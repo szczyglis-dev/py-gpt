@@ -66,9 +66,9 @@ class ChatInput(QTextEdit):
             if self.window.config.data['send_shift_enter']:
                 modifiers = QApplication.keyboardModifiers()
                 if modifiers == QtCore.Qt.ShiftModifier:
-                    self.window.controller.input.send()
+                    self.window.controller.input.user_send()
             else:
-                self.window.controller.input.send()
+                self.window.controller.input.user_send()
             self.setFocus()
 
 

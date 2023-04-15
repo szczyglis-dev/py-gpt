@@ -62,7 +62,7 @@ class Input:
         # send button
         self.window.data['input.send_btn'] = QPushButton(trans("input.btn.send"))
         self.window.data['input.send_btn'].clicked.connect(
-            lambda: self.window.controller.input.send())
+            lambda: self.window.controller.input.user_send())
 
         # send layout
         send_layout = QHBoxLayout()

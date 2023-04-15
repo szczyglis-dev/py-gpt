@@ -64,17 +64,34 @@ class Input:
         """
         self.window.set_status(trans('status.sending'))
 
+        # prepare names
+        user_name = self.window.controller.plugins.apply('user.name', self.window.config.data['user_name'])
+        ai_name = self.window.controller.plugins.apply('ai.name', self.window.config.data['ai_name'])
+
         # create ctx item
         ctx = ContextItem()
-        user_name = self.window.config.data['user_name']
-        user_name = self.window.controller.plugins.apply('user.name', user_name)  # apply plugins
         ctx.set_input(text, user_name)
-        ctx = self.window.controller.plugins.apply('ctx.before', ctx)  # apply plugins
+        ctx.set_output(None, ai_name)
+
+        # apply plugins
+        ctx = self.window.controller.plugins.apply('ctx.before', ctx)
+
+        # apply cfg
+        self.window.gpt.user_name = ctx.input_name
+        self.window.gpt.ai_name = ctx.output_name
+        self.window.gpt.system_prompt = self.window.controller.plugins.apply('system.prompt',
+                                                                             self.window.config.data['prompt'])
         self.window.controller.output.append_input(ctx)
 
         # call GPT
         try:
-            ctx = self.window.gpt.call(text, ctx)
+            try:
+                ctx = self.window.gpt.call(text, ctx)
+            except Exception as e:
+                print(e)
+                self.window.ui.dialogs.alert(str(e))
+                self.window.set_status(trans('status.error'))
+
             ctx = self.window.controller.plugins.apply('ctx.after', ctx)  # apply plugins
             self.window.controller.output.append_output(ctx)
             self.window.gpt.context.store()
@@ -85,11 +102,20 @@ class Input:
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
-    def send(self):
+        return ctx
+
+    def user_send(self, text=None):
+        """Sends real user input"""
+        text = self.window.controller.plugins.apply('user.send', text)
+        self.send(text)
+
+    def send(self, text=None):
         """
         Sends input text to API
         """
-        text = self.window.data['input'].toPlainText().strip()
+        ctx = None
+        if text is None:
+            text = self.window.data['input'].toPlainText().strip()
         text = self.window.controller.plugins.apply('input.before', text)
 
         if len(text) > 0:
@@ -106,16 +132,6 @@ class Input:
             self.window.gpt.init()
             self.window.images.init()
 
-            # append initial config values
-            self.window.gpt.ai_name = self.window.config.data['ai_name']
-            self.window.gpt.user_name = self.window.config.data['user_name']
-            self.window.gpt.system_prompt = self.window.config.data['prompt']
-
-            # apply plugins
-            self.window.gpt.ai_name = self.window.controller.plugins.apply('ai.name', self.window.gpt.ai_name)
-            self.window.gpt.user_name = self.window.controller.plugins.apply('user.name', self.window.gpt.user_name)
-            self.window.gpt.system_prompt = self.window.controller.plugins.apply('system.prompt', self.window.gpt.system_prompt)
-
             # prepare context
             if len(self.window.gpt.context.contexts) == 0:
                 self.window.gpt.context.new()
@@ -123,10 +139,11 @@ class Input:
 
             # send to API
             if self.window.config.data['mode'] == 'img':
-                self.window.controller.image.send_text(text)
+                ctx = self.window.controller.image.send_text(text)
             else:
-                self.window.controller.input.send_text(text)
+                ctx = self.window.controller.input.send_text(text)
 
+        ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
         self.window.controller.ui.update()
 
     def append(self, text):

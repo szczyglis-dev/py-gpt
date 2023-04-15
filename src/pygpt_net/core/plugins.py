@@ -37,12 +37,16 @@ class Plugins:
                 return self.plugins[id].on_ctx_after(data)
             elif event == 'ctx.begin':
                 return self.plugins[id].on_ctx_begin(data)
+            elif event == 'ctx.end':
+                return self.plugins[id].on_ctx_end(data)
             elif event == 'system.prompt':
                 return self.plugins[id].on_system_prompt(data)
             elif event == 'ai.name':
                 return self.plugins[id].on_ai_name(data)
             elif event == 'user.name':
                 return self.plugins[id].on_user_name(data)
+            elif event == 'user.send':
+                return self.plugins[id].on_user_send(data)
             elif event == 'enable':
                 return self.plugins[id].on_enable()
             elif event == 'disable':
@@ -76,4 +80,3 @@ class Plugins:
         except Exception as e:
             print('Error while loading plugin options: {}'.format(id))
             print(e)
-
