@@ -474,7 +474,7 @@ versions and will be available in the newly installed version.
 
 ## Next releases
 
-Support for plug-ins and voice recognition and synthesis will be added
+Support for voice recognition and voice synthesis will be added
 in future versions of the application.
 
 
