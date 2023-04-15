@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 VERSION = '0.9.4'
-DESCRIPTION = 'A GPT4, GPT3, ChatGPT and DALL-E 2 Desktop App with chatbot, text completion and image generation'
+DESCRIPTION = 'GPT4, GPT3, ChatGPT and DALL-E 2 Desktop App with chatbot, text completion and image generation'
 LONG_DESCRIPTION = 'A package containing a GPT4, GPT3, ChatGPT and DALL-E 2 desktop chatbot, ' \
                    'text completion and image generation app, using OpenAI API and your own API Key. ' \
                    'It includes context memory and history, editable presets, customizable UI and more.'
