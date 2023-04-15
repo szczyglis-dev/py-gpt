@@ -46,7 +46,7 @@ class Settings:
         file = self.window.dialog['config.editor'].file
         path = os.path.join(self.window.config.path, file)
         try:
-            with open(path, 'w') as f:
+            with open(path, 'w', encoding="utf-8") as f:
                 f.write(self.window.editor['config'].toPlainText())
                 f.close()
             self.window.set_status("Saved file: {}".format(path))
@@ -66,7 +66,7 @@ class Settings:
         self.window.path_label['config'].setText(path)
         self.window.dialog['config.editor'].file = file
         try:
-            with open(path, 'r') as f:
+            with open(path, 'r', encoding="utf-8") as f:
                 txt = f.read()
                 f.close()
                 self.window.editor['config'].setPlainText(txt)
