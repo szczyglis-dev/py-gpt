@@ -52,6 +52,9 @@ class Controller:
 
     def setup(self):
         """Setups controller"""
+        # setup plugins settings
+        self.plugins.setup_settings()
+
         # init material theme
         self.theme.setup()
 

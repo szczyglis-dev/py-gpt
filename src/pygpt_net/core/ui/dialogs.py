@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.14 20:00:00                  #
 # ================================================== #
 
 from .dialog.settings import Settings
@@ -19,6 +19,7 @@ from .dialog.ctx_rename import CtxRename
 from .dialog.start import Start
 from .dialog.update import Update
 from .dialog.image import Image
+from .dialog.plugins import Plugins
 from .widgets import AlertDialog, ConfirmDialog
 
 
@@ -76,7 +77,7 @@ class Dialogs:
         image = Image(self.window)
         image.setup()
 
-        # alert / confirm
+        self.window.plugin_settings = Plugins(self.window)
         self.window.dialog['alert'] = AlertDialog(self.window)
         self.window.dialog['confirm'] = ConfirmDialog(self.window)
 

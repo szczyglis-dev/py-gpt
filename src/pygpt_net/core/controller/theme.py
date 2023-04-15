@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.12 08:00:00                  #
+# Updated Date: 2023.04.15 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -39,7 +39,8 @@ class Theme:
         """Applies theme fixes"""
         self.window.setStyleSheet(self.get_style('line_edit'))
         self.window.menu['menu.lang'].setStyleSheet(self.get_style('menu'))
-        self.window.menu['menu.theme'].setStyleSheet(self.get_style('theme'))
+        self.window.menu['menu.theme'].setStyleSheet(self.get_style('menu'))
+        self.window.menu['menu.plugins'].setStyleSheet(self.get_style('menu'))
         self.window.data['output'].setStyleSheet(self.get_style('chat_output'))
         self.window.data['output.timestamp'].setStyleSheet(self.get_style('checkbox'))
         self.window.data['input.send_enter'].setStyleSheet(self.get_style('radio'))
@@ -53,6 +54,10 @@ class Theme:
         self.window.data['preset.ai_name'].setStyleSheet(self.get_style('line_edit'))
         self.window.data['preset.user_name'].setStyleSheet(self.get_style('line_edit'))
 
+        # current temperature / img variants
+        self.window.config_option['current_temperature'].input.setStyleSheet(self.get_style('line_edit'))
+        self.window.config_option['img_variants'].input.setStyleSheet(self.get_style('line_edit'))
+
         # dialog: settings
         self.window.config_option['use_context'].box.setStyleSheet(self.get_style('checkbox'))
         self.window.config_option['store_history'].box.setStyleSheet(self.get_style('checkbox'))
@@ -62,6 +67,36 @@ class Theme:
         self.window.config_option['preset.chat'].box.setStyleSheet(self.get_style('checkbox'))
         self.window.config_option['preset.completion'].box.setStyleSheet(self.get_style('checkbox'))
         self.window.config_option['preset.img'].box.setStyleSheet(self.get_style('checkbox'))
+
+        # dialog: plugin settings
+        self.apply_plugins_settings()
+
+    def apply_plugins_settings(self):
+        """Applies theme to plugin settings"""
+        for id in self.window.controller.plugins.handler.plugins:
+            if id not in self.window.plugin_option:
+                continue
+            plugin = self.window.controller.plugins.handler.plugins[id]
+            if plugin.options is not None:
+                for key in plugin.options:
+                    option = plugin.options[key]
+                    if 'type' in option:
+                        # checkbox
+                        if option['type'] == 'bool':
+                            if key in self.window.plugin_option[id]:
+                                self.window.plugin_option[id][key].box.setStyleSheet(self.get_style('checkbox'))
+                        # text input
+                        elif option['type'] == 'text':
+                            if key in self.window.plugin_option[id]:
+                                self.window.plugin_option[id][key].input.setStyleSheet(self.get_style('line_edit'))
+
+                        # input with slider
+                        elif option['type'] == 'int' or option['type'] == 'float':
+                            if key in self.window.plugin_option[id]:
+                                if 'slider' in option and option['slider']:
+                                    self.window.plugin_option[id][key].input.setStyleSheet(self.get_style('line_edit'))
+                                else:
+                                    self.window.plugin_option[id][key].setStyleSheet(self.get_style('line_edit'))
 
     def get_style(self, element):
         """

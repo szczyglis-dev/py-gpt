@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.11 05:00:00                  #
+# Updated Date: 2023.04.15 02:00:00                  #
 # ================================================== #
 
 import os
@@ -36,7 +36,7 @@ class Settings:
             self.window.config.data['img_resolution'] = self.window.config_option['img_resolution'].text()
 
         info = trans('info.settings.saved')
-        self.window.config.save_config()
+        self.window.config.save()
         self.window.set_status(info)
         self.close_window(id)
         self.update_font_size()
@@ -45,7 +45,7 @@ class Settings:
     def save_all(self):
         """Saves all settings"""
         info = trans('info.settings.all.saved')
-        self.window.config.save_config()
+        self.window.config.save()
         self.window.config.save_presets()
         self.window.ui.dialogs.alert(info)
         self.window.set_status(info)
@@ -149,7 +149,7 @@ class Settings:
 
     def init(self, id):
         """
-        Inits settings
+        Initializes settings
 
         :param id: settings window id
         """
@@ -182,17 +182,17 @@ class Settings:
         :param value: checkbox option value
         :param section: settings section
         """
+        # dialog: preset
         if id.startswith('preset.'):
-            preset = self.window.config.data['preset']  # current preset
-            is_current = True
-            if section == 'preset.editor':
-                preset = self.window.config_option['preset.filename'].text()  # editing preset
-                is_current = False
-            self.window.controller.presets.update_field(id, value, preset, is_current)
-            txt = '{}'.format(value)
-            self.window.config_option[id].box.setChecked(value)
+            self.window.controller.presets.config_toggle(id, value, section)
             return
 
+        # dialog: plugin
+        elif id.startswith('plugin.'):
+            self.window.controller.plugins.config_toggle(id, value)
+            return
+
+        # dialog: settings
         if id == 'store_history':
             self.window.config.data['store_history'] = value
         elif id == 'store_history_time':
@@ -210,24 +210,17 @@ class Settings:
         :param value: input option value
         :param section: settings section
         """
-        # validate filename
-        if id == 'preset.filename':
-            value = self.window.controller.presets.validate_filename(value)
-            self.window.config_option[id].setText(value)
-
-        # current prompt update
+        # dialog: preset
         if id.startswith('preset.'):
-            preset = self.window.config.data['preset']  # current preset
-            is_current = True
-            if section == 'preset.editor':
-                preset = self.window.config_option['preset.filename'].text()  # editing preset
-                is_current = False
-            self.window.controller.presets.update_field(id, value, preset, is_current)
-            txt = '{}'.format(value)
-            self.window.config_option[id].setText(txt)
+            self.window.controller.presets.config_change(id, value, section)
             return
 
-        # settings update
+        # dialog: plugin
+        elif id.startswith('plugin.'):
+            self.window.controller.plugins.config_change(id, value)
+            return
+
+        # dialog: settings
         if id == 'temperature' \
                 or id == 'top_p' \
                 or id == 'frequency_penalty' \
@@ -258,7 +251,19 @@ class Settings:
         :param type: option type (slider, input, None)
         :param section: option section (settings, preset.editor, None)
         """
+        # dialog: preset
+        if id.startswith('preset.'):
+            self.window.controller.presets.config_slider(id, value, type, section)
+            return
+
+        # dialog: plugin
+        elif id.startswith('plugin.'):
+            self.window.controller.plugins.config_slider(id, value, type)
+            return
+
+        # dialog: settings
         integer_values = ['max_output_tokens', 'max_total_tokens', 'context_threshold', 'img_variants', 'font_size']
+        params_values = ['temperature', 'current_temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
 
         if id in integer_values:
             try:
@@ -268,14 +273,8 @@ class Settings:
                 self.window.config_option[id].input.setText(str(value))
 
         multiplier = 1
-        if id == 'temperature' \
-                or id == 'current_temperature' \
-                or id == 'preset.temperature' \
-                or id == 'top_p' \
-                or id == 'frequency_penalty' \
-                or id == 'presence_penalty':
+        if id in params_values:
             multiplier = 100
-
             # fix / validate
             if type != 'slider':
                 try:
@@ -304,7 +303,7 @@ class Settings:
                 self.window.config_option[id].input.setText(str(value))
 
         # font size
-        if id == 'font_size':
+        elif id == 'font_size':
             # fix / validate
             if type != 'slider':
                 try:
@@ -324,35 +323,29 @@ class Settings:
             if id in integer_values:
                 input_value = round(int(input_value), 0)
 
-        if id.startswith('preset.') or id == 'current_temperature':
+        # update current preset temperature if changed global temperature
+        if id == 'current_temperature':
             preset = self.window.config.data['preset']  # current preset
             is_current = True
             if section == 'preset.editor':
                 preset = self.window.config_option['preset.filename'].text()  # editing preset
                 is_current = False
             self.window.controller.presets.update_field(id, input_value, preset, is_current)
+            self.window.controller.presets.update_field('preset.temperature', input_value, True)
         else:
             if id not in integer_values:
                 self.window.config.data[id] = float(input_value)
             else:
                 self.window.config.data[id] = round(int(input_value), 0)
 
-        # update current prompt temperature
-        if id == 'current_temperature':
-            self.window.controller.presets.update_field('preset.temperature', input_value, True)
-
         # update from slider
         if type == 'slider':
             txt = '{}'.format(input_value)
             self.window.config_option[id].input.setText(txt)
-        # or update from input
+
+        # update from input
         elif type == 'input':
-            if id == 'temperature' \
-                    or id == 'current_temperature' \
-                    or id == 'preset.temperature' \
-                    or id == 'top_p' \
-                    or id == 'frequency_penalty' \
-                    or id == 'presence_penalty':
+            if id in params_values:
                 if slider_value < 1:
                     slider_value = 1
                 elif slider_value > 200:
@@ -364,8 +357,9 @@ class Settings:
                 elif slider_value > 32000:
                     slider_value = 32000
             self.window.config_option[id].slider.setValue(slider_value)
+
+        # update from raw value
         else:
-            # or update from raw value
             txt = '{}'.format(value)
             self.window.config_option[id].input.setText(txt)
             self.window.config_option[id].slider.setValue(slider_value)

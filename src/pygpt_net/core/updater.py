@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.13 23:00:00                  #
+# Updated Date: 2023.04.15 02:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -134,8 +134,15 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("0.9.4"):
+                print("Migrating config from < 0.9.4...")
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'plugins_enabled' not in data:
+                    data['plugins_enabled'] = {}
+                updated = True
             if old < parse_version("0.9.2"):
-                print("Migrating config from 0.9.2...")
+                print("Migrating config from < 0.9.2...")
                 keys_to_remove = ['ui.ctx.min_width',
                                   'ui.ctx.max_width',
                                   'ui.toolbox.min_width',
@@ -151,7 +158,7 @@ class Updater:
                 updated = True
 
             if old < parse_version("0.9.1"):
-                print("Migrating config from 0.9.1...")
+                print("Migrating config from < 0.9.1...")
                 keys_to_remove = ['user_id', 'custom']  # not needed anymore
                 for key in keys_to_remove:
                     if key in data:
@@ -166,4 +173,4 @@ class Updater:
         if updated:
             print("Migrated config.json.")
             self.window.config.data = data
-            self.window.config.save_config()
+            self.window.config.save()

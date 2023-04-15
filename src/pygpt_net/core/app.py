@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.12 06:00:00                  #
+# Updated Date: 2023.04.15 02:00:00                  #
 # ================================================== #
 
 import sys
@@ -25,6 +25,9 @@ from .info import Info
 from .gpt import Gpt
 from .image import Image
 from .utils import get_init_value
+
+from .plugin.auto_loop.plugin import Plugin as SelfLoopPlugin
+from .plugin.real_time.plugin import Plugin as RealTimePlugin
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -77,15 +80,25 @@ class MainWindow(QMainWindow, QtStyleTools):
             inverse = True
         extra = {
             'density_scale': '-2',
-            # 'linux': True,
             'pyside6': True,
             'QLineEdit': {
                 'color': label,
             },
-            # 'font_family': 'Roboto',
         }
-        self.setStyleSheet(self.controller.theme.get_style('line_edit'))
+        self.setStyleSheet(self.controller.theme.get_style('line_edit'))  # fix for line edit
         self.apply_stylesheet(self, theme, invert_secondary=inverse, extra=extra)
+
+    def add_plugin(self, plugin):
+        """
+        Adds plugin
+
+        :param plugin: plugin
+        """
+        plugin.attach(self)
+        self.controller.plugins.register(plugin)
+
+    def setup_plugins(self):
+        self.controller.plugins.setup()
 
     def setup(self):
         """Setups app"""
@@ -114,36 +127,52 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         print("Closing...")
         print("Saving config...")
-        self.config.save_config()
+        self.timer.stop()
+        self.config.save()
         print("Saving presets...")
         self.config.save_presets()
         print("Exiting...")
         event.accept()  # let the window close
 
 
-def except_hook(cls, exception, traceback):
-    """
-    Temporally hook for exceptions handling
+class Launcher:
+    """Launcher"""
+    def __init__(self):
+        self.app = None
+        self.window = None
 
-    :param cls: class
-    :param exception: exception
-    :param traceback: traceback
-    """
-    sys.__excepthook__(cls, exception, traceback)
+    def init(self):
+        self.app = QApplication(sys.argv)
+        self.window = MainWindow()
+        self.app.aboutToQuit.connect(self.app.quit)
+
+    def add_plugin(self, plugin=None):
+        self.window.add_plugin(plugin)
+        self.window.setup_plugins()
+
+    def run(self):
+        """Runs app"""
+        available_geometry = self.window.screen().availableGeometry()
+        pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
+        self.window.resize(available_geometry.width(), available_geometry.height())
+        self.window.showMaximized()
+        self.window.move(pos)
+
+        try:
+            sys.exit(self.app.exec())
+        except SystemExit:
+            print("Closing...")
 
 
 def run():
     """Runs app"""
-    # sys.excepthook = except_hook
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    available_geometry = window.screen().availableGeometry()
-    topLeftPoint = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-    window.resize(available_geometry.width(), available_geometry.height())
-    window.showMaximized()
-    window.move(topLeftPoint)
+    # init app
+    launcher = Launcher()
+    launcher.init()
 
-    try:
-        sys.exit(app.exec())
-    except SystemExit:
-        print("Closing...")
+    # add plugins
+    launcher.add_plugin(SelfLoopPlugin())
+    launcher.add_plugin(RealTimePlugin())
+
+    # run app
+    launcher.run()

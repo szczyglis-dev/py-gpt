@@ -1,3 +1,6 @@
+v0.9.4 (2023.04.15)
+- added plugins support
+
 v0.9.3 (2023.04.14)
 - packed into PyPI package
 

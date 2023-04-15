@@ -113,15 +113,15 @@ class Presets:
             elif mode == 'img':
                 data['img'] = True
 
-        self.window.controller.settings.change('preset.filename', data['filename'], 'preset.editor')
-        self.window.controller.settings.change('preset.ai_name', data['ai_name'], 'preset.editor')
-        self.window.controller.settings.change('preset.user_name', data['user_name'], 'preset.editor')
-        self.window.controller.settings.change('preset.prompt', data['prompt'], 'preset.editor')
-        self.window.controller.settings.change('preset.name', data['name'], 'preset.editor')
-        self.window.controller.settings.apply('preset.temperature', data['temperature'], '', 'preset.editor')
-        self.window.controller.settings.toggle('preset.img', data['img'], 'preset.editor')
-        self.window.controller.settings.toggle('preset.chat', data['chat'], 'preset.editor')
-        self.window.controller.settings.toggle('preset.completion', data['completion'], 'preset.editor')
+        self.config_change('preset.filename', data['filename'], 'preset.editor')
+        self.config_change('preset.ai_name', data['ai_name'], 'preset.editor')
+        self.config_change('preset.user_name', data['user_name'], 'preset.editor')
+        self.config_change('preset.prompt', data['prompt'], 'preset.editor')
+        self.config_change('preset.name', data['name'], 'preset.editor')
+        self.config_slider('preset.temperature', data['temperature'], '', 'preset.editor')
+        self.config_toggle('preset.img', data['img'], 'preset.editor')
+        self.config_toggle('preset.chat', data['chat'], 'preset.editor')
+        self.config_toggle('preset.completion', data['completion'], 'preset.editor')
 
     def save(self, force=False):
         """
@@ -135,11 +135,12 @@ class Presets:
             self.window.set_status(trans('status.preset.empty_id'))
             return
 
-        preset = self.window.controller.presets.validate_filename(preset)
-
+        # validate filename
+        preset = self.validate_filename(preset)
         if preset not in self.window.config.presets:
             self.window.config.presets[preset] = {}
 
+        # prepare path
         filepath = os.path.join(self.window.config.path, 'presets', preset + '.json')
 
         # if exists then show confirmation dialog
@@ -257,24 +258,114 @@ class Presets:
 
     def from_current(self):
         """Loads from current prompt"""
-        self.window.controller.settings.change('preset.ai_name', self.window.config.data['ai_name'], 'preset.editor')
-        self.window.controller.settings.change('preset.user_name', self.window.config.data['user_name'],
+        self.config_change('preset.ai_name', self.window.config.data['ai_name'], 'preset.editor')
+        self.config_change('preset.user_name', self.window.config.data['user_name'],
                                                'preset.editor')
-        self.window.controller.settings.change('preset.prompt', self.window.config.data['prompt'], 'preset.editor')
-        self.window.controller.settings.apply('preset.temperature', self.window.config.data['temperature'], '',
+        self.config_change('preset.prompt', self.window.config.data['prompt'], 'preset.editor')
+        self.config_slider('preset.temperature', self.window.config.data['temperature'], '',
                                               'preset.editor')
 
     def use(self):
         """Copies preset prompt to input"""
-        text = self.window.data['preset.prompt'].toPlainText()
-        self.window.controller.input.append(text)
+        self.window.controller.input.append(self.window.data['preset.prompt'].toPlainText())
 
     def validate_filename(self, value):
         """
         Validates filename
 
         :param value: filename
-        :return: validated filename
+        :return: sanitized filename
         """
         # strip not allowed characters
         return re.sub(r'[^\w\s-]', '', value)
+
+    def config_toggle(self, id, value, section=None):
+        """
+        Toggles checkbox
+
+        :param id: checkbox option id
+        :param value: checkbox option value
+        :param section: settings section
+        """
+        preset = self.window.config.data['preset']  # current preset
+        is_current = True
+        if section == 'preset.editor':
+            preset = self.window.config_option['preset.filename'].text()  # editing preset
+            is_current = False
+        self.update_field(id, value, preset, is_current)
+        self.window.config_option[id].box.setChecked(value)
+
+    def config_change(self, id, value, section=None):
+        """
+        Changes input value
+
+        :param id: input option id
+        :param value: input option value
+        :param section: settings section
+        """
+        # validate filename
+        if id == 'preset.filename':
+            value = self.validate_filename(value)
+            self.window.config_option[id].setText(value)
+
+        preset = self.window.config.data['preset']  # current preset
+        is_current = True
+        if section == 'preset.editor':
+            preset = self.window.config_option['preset.filename'].text()  # editing preset
+            is_current = False
+        self.update_field(id, value, preset, is_current)
+        self.window.config_option[id].setText('{}'.format(value))
+
+    def config_slider(self, id, value, type=None, section=None):
+        """
+        Applies slider + input value
+
+        :param id: option id
+        :param value: option value
+        :param type: option type (slider, input, None)
+        :param section: option section (settings, preset.editor, None)
+        """
+        # temperature
+        multiplier = 100
+        if type != 'slider':
+            try:
+                value = float(value)
+            except:
+                value = 0.0
+                self.window.config_option[id].input.setText(str(value))
+            if value < 0:
+                value = 0.0
+            elif value > 2:
+                value = 2.0
+            self.window.config_option[id].input.setText(str(value))
+
+        slider_value = round(float(value) * multiplier, 0)
+        input_value = value
+        if type == 'slider':
+            input_value = value / multiplier
+
+        preset = self.window.config.data['preset']  # current preset
+        is_current = True
+        if section == 'preset.editor':
+            preset = self.window.config_option['preset.filename'].text()  # editing preset
+            is_current = False
+        self.update_field(id, input_value, preset, is_current)
+
+        # update from slider
+        if type == 'slider':
+            txt = '{}'.format(input_value)
+            self.window.config_option[id].input.setText(txt)
+
+        # update from input
+        elif type == 'input':
+            if slider_value < 1:
+                slider_value = 1
+            elif slider_value > 200:
+                slider_value = 200
+            self.window.config_option[id].slider.setValue(slider_value)
+
+        # update from raw value
+        else:
+            txt = '{}'.format(value)
+            self.window.config_option[id].input.setText(txt)
+            self.window.config_option[id].slider.setValue(slider_value)

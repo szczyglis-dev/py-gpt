@@ -162,7 +162,6 @@ class Lang:
         self.window.menu['app.clear_history'].setText(trans("menu.file_clear_history"))
 
         self.window.menu['menu.plugins'].setTitle(trans("menu.plugins"))
-        self.window.menu['plugins.empty'].setText(trans("coming_soon"))
 
         self.window.menu['menu.audio'].setTitle(trans("menu.audio"))
         self.window.menu['audio.empty'].setText(trans("coming_soon"))
@@ -194,6 +193,9 @@ class Lang:
         self.window.data['start.title'].setText(trans('dialog.start.title.text'))
         self.window.data['start.settings'].setText(trans('dialog.start.settings.text'))
         self.window.data['start.btn'].setText(trans('dialog.start.btn'))
+
+        # plugins info
+        self.window.controller.plugins.update_info()
 
         for theme in self.window.menu['theme']:
             name = self.window.controller.theme.trans_theme(theme)

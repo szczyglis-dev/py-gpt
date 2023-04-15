@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.15 02:00:00                  #
 # ================================================== #
 
 import os
@@ -34,11 +34,20 @@ def trans(key, reload=False):
 
 def get_init_value(key="__version__"):
     """
-    Returns version
+    Returns config value from __init__.py
 
-    :return: version string
+    :return: config value
     """
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '__init__.py'))
-    result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(key),
-                       open(path, "r", encoding="utf-8").read())
-    return result.group(1)
+    if __file__.endswith('.pyc'):  # if compiled with pyinstaller
+        root = '.'
+    else:
+        root = os.path.join(os.path.dirname(__file__), os.pardir)
+    path = os.path.abspath(os.path.join(root, '__init__.py'))
+    try:
+        f = open(path, "r", encoding="utf-8")
+        data = f.read()
+        f.close()
+        result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(key), data)
+        return result.group(1)
+    except Exception as e:
+        print(e)

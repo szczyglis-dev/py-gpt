@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.13 23:00:00                  #
+# Updated Date: 2023.04.15 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -83,9 +83,14 @@ class Config:
         :return: version string
         """
         path = os.path.abspath(os.path.join(self.get_root_path(), '__init__.py'))
-        result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"),
-                           open(path).read())
-        return result.group(1)
+        try:
+            f = open(path, "r", encoding="utf-8")
+            data = f.read()
+            f.close()
+            result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"), data)
+            return result.group(1)
+        except Exception as e:
+            print(e)
 
     def load(self, all=True):
         """
@@ -125,6 +130,7 @@ class Config:
         try:
             f = open(path, "r", encoding="utf-8")
             self.models = json.load(f)
+            self.models = dict(sorted(self.models.items(), key=lambda item: item[0]))  # sort by key
             f.close()
         except Exception as e:
             print(e)
@@ -138,6 +144,7 @@ class Config:
         try:
             f = open(path, "r", encoding="utf-8")
             self.data = json.load(f)
+            self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             f.close()
         except Exception as e:
             print(e)
@@ -378,7 +385,6 @@ class Config:
         :param name: name of preset
         :return: name of duplicated preset
         """
-
         old_name = self.presets[name]['name']
         i = 1
         while True:
@@ -401,18 +407,6 @@ class Config:
         return id
 
     def save(self):
-        """Saves config into file"""
-        self.data['__meta__'] = self.append_meta()
-        dump = json.dumps(self.data, indent=4)
-        path = os.path.join(self.path, 'config.json')
-        try:
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-        except Exception as e:
-            print(e)
-
-    def save_config(self):
         """Saves config into file"""
         self.data['__meta__'] = self.append_meta()
         dump = json.dumps(self.data, indent=4)

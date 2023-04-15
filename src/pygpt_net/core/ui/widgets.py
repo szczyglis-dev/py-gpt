@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.13 23:00:00                  #
+# Updated Date: 2023.04.15 02:00:00                  #
 # ================================================== #
 import os
 
@@ -458,7 +458,6 @@ class SettingsCheckbox(QWidget):
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
-        # self.layout.addWidget(self.label)
 
         self.setLayout(self.layout)
 
@@ -569,6 +568,28 @@ class SettingsDialog(QDialog):
         self.window.settings.active[self.id] = False
         self.window.controller.settings.close(self.id)
         self.window.controller.settings.update()
+
+
+class PluginSettingsDialog(QDialog):
+    def __init__(self, window=None, id=None):
+        """
+        Plugin settings dialog
+
+        :param window: main window
+        :param id: settings id
+        """
+        super(PluginSettingsDialog, self).__init__(window)
+        self.window = window
+        self.id = id
+
+    def closeEvent(self, event):
+        """
+        Close event
+
+        :param event: close event
+        """
+        self.window.controller.plugins.config_dialog = False
+        self.window.controller.plugins.update()
 
 
 class EditorDialog(QDialog):

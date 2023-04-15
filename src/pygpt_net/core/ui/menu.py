@@ -54,10 +54,16 @@ class Menu:
 
     def setup_plugins(self):
         """Setups plugins menu"""
-        self.window.menu['plugins.empty'] = QAction(QIcon.fromTheme("help-about"), trans("coming_soon"),
-                                                    self.window)
+        self.window.menu['plugins.settings'] = QAction(trans("menu.plugins.settings"),
+                                                       self.window)
+
+        self.window.menu['plugins.settings'].triggered.connect(
+            lambda: self.window.controller.plugins.toggle_settings())
+
+        self.window.menu['plugins'] = {}
         self.window.menu['menu.plugins'] = self.window.menuBar().addMenu(trans("menu.plugins"))
-        self.window.menu['menu.plugins'].addAction(self.window.menu['plugins.empty'])
+        self.window.menu['menu.plugins'].setStyleSheet(self.window.controller.theme.get_style('menu'))  # Windows fix
+        self.window.menu['menu.plugins'].addAction(self.window.menu['plugins.settings'])
 
     def setup_audio(self):
         """Setups audio menu"""

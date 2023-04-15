@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.04.14 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -28,10 +28,12 @@ class UI:
         """
         self.window = window
         self.window.data = {}
+        self.window.plugin_data = {}
         self.window.menus = {}
         self.window.models = {}
         self.window.path_label = {}
         self.window.config_option = {}
+        self.window.plugin_option = {}
 
         self.chat = ChatBox(window)
         self.toolbox = Toolbox(window)
@@ -51,9 +53,6 @@ class UI:
 
         # set width
         self.window.ctx.setMinimumWidth(200)
-        # self.window.ctx.setMaximumWidth(self.window.config.data['ui.ctx.max_width'])
-        # self.window.toolbox.setMinimumWidth(self.window.config.data['ui.toolbox.min_width'])
-        # self.window.toolbox.setMaximumWidth(self.window.config.data['ui.toolbox.max_width'])
 
         # horizontal splitter
         splitter = QSplitter(Qt.Horizontal)
@@ -63,7 +62,6 @@ class UI:
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 3)
         splitter.setStretchFactor(2, 9)
-        # splitter.setSizes([1, 1, 7])
 
         # menu
         self.menu.setup()
