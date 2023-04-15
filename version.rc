@@ -15,7 +15,7 @@ StringFileInfo(
   StringTable(
     u'040904B0',
     [StringStruct(u'CompanyName', u'pygpt.net'),
-    StringStruct(u'FileDescription', u'GPT4, GPT3 and DALL-E2 API-based chatbot, completion and image generation Windows Desktop App'),
+    StringStruct(u'FileDescription', u'GPT4, GPT3 and DALL-E2 API-based chatbot, text completion and image generation Windows Desktop App'),
     StringStruct(u'FileVersion', u'0.9.4'),
     StringStruct(u'InternalName', u'Py-GPT'),
     StringStruct(u'LegalCopyright', u'(c) 2023 pygpt.net, Marcin Szczygliński'),
