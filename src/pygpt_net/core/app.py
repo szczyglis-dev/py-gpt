@@ -64,7 +64,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui = UI(self)
         self.ui.setup()
 
-        self.setup()
         self.setWindowTitle('PYGPT.net v{} | build {}'.format(self.version, self.build))
 
     def set_theme(self, theme='dark_teal.xml'):
@@ -152,6 +151,7 @@ class Launcher:
 
     def run(self):
         """Runs app"""
+        self.window.setup()
         available_geometry = self.window.screen().availableGeometry()
         pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
         self.window.resize(available_geometry.width(), available_geometry.height())
@@ -166,7 +166,7 @@ class Launcher:
 
 def run():
     """Runs app"""
-    # init app
+    # initialize app
     launcher = Launcher()
     launcher.init()
 

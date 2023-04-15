@@ -149,6 +149,8 @@ class Plugins:
         """
         if self.handler.is_registered(id):
             self.handler.plugins.pop(id)
+            if id in self.enabled:
+                self.enabled.pop(id)
 
     def enable(self, id):
         """
