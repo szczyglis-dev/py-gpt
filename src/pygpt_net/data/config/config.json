@@ -35,13 +35,29 @@
     "chat": "",
     "img": ""
   },
+  "plugins": {
+    "self_loop": {
+      "iterations": 5,
+      "clear_output": true,
+      "reverse_roles": true
+    },
+    "real_time": {
+      "hour": true,
+      "date": true,
+      "tpl": " Current time is {time}."
+    }
+  },
+  "plugins_enabled": {
+    "self_loop": false,
+    "real_time": false
+  },
   "output_timestamp": true,
   "debug": false,
   "ctx": "",
   "img_variants": 1,
   "__meta__": {
-    "version": "0.9.2",
-    "app.version": "0.9.2",
-    "updated_at": "2023-04-12T07:25:00"
+    "version": "0.9.4",
+    "app.version": "0.9.4",
+    "updated_at": "2023-04-15T07:25:00"
   }
 }

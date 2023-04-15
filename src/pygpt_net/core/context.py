@@ -35,8 +35,9 @@ class Context:
         path = os.path.join(self.config.path, 'context.json')
         try:
             if os.path.exists(path):
-                with open(path, "r", encoding="utf-8") as file:
+                with open(path, 'r', encoding="utf-8") as file:
                     self.contexts = json.load(file)['items']
+                    file.close()
         except Exception as e:
             print(e)
             self.contexts = {}
@@ -50,8 +51,15 @@ class Context:
         """
         path = os.path.join(self.config.path, 'context', name + '.json')
         if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as file:
-                return self.parse(json.load(file))
+            try:
+                with open(path, 'r', encoding="utf-8") as file:
+                    data = self.parse(json.load(file))
+                    file.close()
+                    return data
+            except Exception as e:
+                print("Error while loading context: {}".format(name))
+                print(e)
+                return []
         else:
             return []
 
@@ -128,6 +136,7 @@ class Context:
                 f.close()
 
         except Exception as e:
+            print("Error while dumping context: {}".format(name))
             print(e)
 
     def get_list(self):

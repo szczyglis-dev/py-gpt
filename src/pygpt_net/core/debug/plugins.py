@@ -9,8 +9,6 @@
 # Created Date: 2023.04.09 20:00:00                  #
 # ================================================== #
 
-import os
-
 
 class PluginsDebug:
     def __init__(self, window=None):
