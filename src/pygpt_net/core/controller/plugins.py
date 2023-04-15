@@ -384,3 +384,16 @@ class Plugins:
             self.window.plugin_option[self.current_plugin][key].input.setText(txt)
             self.window.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
 
+    def apply(self, event, data):
+        """
+        Applies plugins
+
+        :param event: event
+        :param data: event data
+        """
+        for id in self.handler.plugins:
+            if self.is_enabled(id):
+                data = self.handler.apply(id, event, data)
+
+        return data
+

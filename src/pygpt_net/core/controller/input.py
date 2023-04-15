@@ -25,7 +25,7 @@ class Input:
         self.window = window
 
     def setup(self):
-        """Setups input"""
+        """Sets up input"""
         if self.window.config.data['send_clear']:
             self.window.data['input.send_clear'].setChecked(True)
         else:
@@ -66,12 +66,16 @@ class Input:
 
         # create ctx item
         ctx = ContextItem()
-        ctx.set_input(text, self.window.config.data['user_name'])
+        user_name = self.window.config.data['user_name']
+        user_name = self.window.controller.plugins.apply('user.name', user_name)  # apply plugins
+        ctx.set_input(text, user_name)
+        ctx = self.window.controller.plugins.apply('ctx.before', ctx)  # apply plugins
         self.window.controller.output.append_input(ctx)
 
         # call GPT
         try:
             ctx = self.window.gpt.call(text, ctx)
+            ctx = self.window.controller.plugins.apply('ctx.after', ctx)  # apply plugins
             self.window.controller.output.append_output(ctx)
             self.window.gpt.context.store()
             self.window.set_status(
@@ -86,6 +90,8 @@ class Input:
         Sends input text to API
         """
         text = self.window.data['input'].toPlainText().strip()
+        text = self.window.controller.plugins.apply('input.before', text)
+
         if len(text) > 0:
             if self.window.config.data['send_clear']:
                 self.window.data['input'].clear()
@@ -99,6 +105,16 @@ class Input:
             # init api key if defined later
             self.window.gpt.init()
             self.window.images.init()
+
+            # append initial config values
+            self.window.gpt.ai_name = self.window.config.data['ai_name']
+            self.window.gpt.user_name = self.window.config.data['user_name']
+            self.window.gpt.system_prompt = self.window.config.data['prompt']
+
+            # apply plugins
+            self.window.gpt.ai_name = self.window.controller.plugins.apply('ai.name', self.window.gpt.ai_name)
+            self.window.gpt.user_name = self.window.controller.plugins.apply('user.name', self.window.gpt.user_name)
+            self.window.gpt.system_prompt = self.window.controller.plugins.apply('system.prompt', self.window.gpt.system_prompt)
 
             # prepare context
             if len(self.window.gpt.context.contexts) == 0:

@@ -27,6 +27,10 @@ class Gpt:
         self.context = Context(config)
         self.history = History(config)
 
+        self.ai_name = None
+        self.user_name = None
+        self.system_prompt = None
+
         if not self.config.initialized:
             self.config.init()
 
@@ -48,8 +52,8 @@ class Gpt:
 
         # prepare stop word if user_name is set
         stop = None
-        if self.config.data['user_name'] is not None and self.config.data['user_name'] != '':
-            stop = [self.config.data['user_name'] + ':']
+        if self.user_name is not None and self.user_name != '':
+            stop = [self.user_name + ':']
 
         response = openai.Completion.create(
             prompt=message,
@@ -99,8 +103,10 @@ class Gpt:
         max_tokens = self.config.data['max_total_tokens']
 
         # append initial (system) message
-        if self.config.data['prompt'] is not None and self.config.data['prompt'] != "":
-            messages.append({"role": "system", "content": self.config.data['prompt']})
+        if self.system_prompt is not None and self.system_prompt != "":
+            messages.append({"role": "system", "content": self.system_prompt})
+
+        print(messages)
 
         # append messages from context (memory)
         if self.config.data['use_context']:
@@ -121,7 +127,7 @@ class Gpt:
                     messages.append({"role": "assistant", "content": item.output})
 
         # append current prompt
-        if self.config.data['user_name'] is not None and self.config.data['user_name'] != "":
+        if self.user_name is not None and self.user_name != "":
             messages.append({"role": "user", "content": str(prompt)})
             # TODO: messages.append({"role": "user", "name": self.config.data['user_name'], "content": str(prompt)})
         else:
@@ -141,8 +147,8 @@ class Gpt:
         used_tokens = self.count_used_tokens(prompt)
         max_tokens = self.config.data['max_total_tokens']
 
-        if self.config.data['prompt'] is not None and self.config.data['prompt'] != "":
-            message += self.config.data['prompt']
+        if self.system_prompt is not None and self.system_prompt != "":
+            message += self.system_prompt
 
         if self.config.data['use_context']:
             items = self.context.get_prompt_items(model, used_tokens, max_tokens)
@@ -157,12 +163,12 @@ class Gpt:
                     message += "\n" + item.input
                     message += "\n" + item.output
 
-        if self.config.data['user_name'] is not None \
-                and self.config.data['ai_name'] is not None \
-                and self.config.data['user_name'] != "" \
-                and self.config.data['ai_name'] != "":
-            message += "\n" + self.config.data['user_name'] + ": " + str(prompt)
-            message += "\n" + self.config.data['ai_name'] + ":"
+        if self.user_name is not None \
+                and self.ai_name is not None \
+                and self.user_name != "" \
+                and self.ai_name != "":
+            message += "\n" + self.user_name + ": " + str(prompt)
+            message += "\n" + self.ai_name + ":"
         else:
             message += "\n" + str(prompt)
 
@@ -177,9 +183,9 @@ class Gpt:
         """
         model = self.config.data['model']
         tokens = 0
-        tokens += num_tokens_prompt(self.config.data['prompt'], self.config.data['user_name'],
+        tokens += num_tokens_prompt(self.system_prompt, self.user_name,
                                     model)  # init (system) prompt
-        tokens += num_tokens_prompt(input_text, self.config.data['user_name'], model)  # current input
+        tokens += num_tokens_prompt(input_text, self.user_name, model)  # current input
         tokens += self.config.data['context_threshold']  # context threshold (reserved for next output)
         tokens += num_tokens_extra(model)  # extra tokens (required for output)
         return tokens
@@ -231,9 +237,9 @@ class Gpt:
         # store context (memory)
         if ctx is None:
             ctx = ContextItem(self.config.data['mode'])
-            ctx.set_input(prompt, self.config.data['user_name'])
+            ctx.set_input(prompt, self.user_name)
 
-        ctx.set_output(output, self.config.data['ai_name'])
+        ctx.set_output(output, self.ai_name)
         ctx.set_tokens(response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"])
         self.context.add(ctx)
 

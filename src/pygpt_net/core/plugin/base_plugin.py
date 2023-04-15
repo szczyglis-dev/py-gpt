@@ -37,21 +37,21 @@ class BasePlugin:
         """Event: On send text"""
         pass
 
-    def on_ctx_begin(self):
+    def on_ctx_begin(self, ctx):
         """Event: On new context begin"""
-        pass
+        return ctx
 
-    def on_system_prompt(self):
+    def on_system_prompt(self, prompt):
         """Event: On prepare system prompt"""
-        pass
+        return prompt
 
-    def on_ai_name(self):
+    def on_ai_name(self, name):
         """Event: On set AI name"""
-        pass
+        return name
 
-    def on_user_name(self):
+    def on_user_name(self, name):
         """Event: On set user name"""
-        pass
+        return name
 
     def on_enable(self):
         """Event: On plugin enable"""
@@ -61,7 +61,7 @@ class BasePlugin:
         """Event: On plugin disable"""
         pass
 
-    def on_before_input(self, text):
+    def on_input_before(self, text):
         """
         Event: Before input
 
@@ -69,26 +69,18 @@ class BasePlugin:
         """
         return text
 
-    def on_after_input(self, text):
+    def on_ctx_before(self, ctx):
         """
-        Event: After input
+        Event: Before ctx
 
-        :param text: Text
+        :param ctx: Text
         """
-        return text
+        return ctx
 
-    def on_before_output(self, text):
+    def on_ctx_after(self, ctx):
         """
-        Event: Before output
+        Event: After ctx
 
-        :param text: Text
+        :param ctx: ctx
         """
-        return text
-
-    def on_after_output(self, text):
-        """
-        Event: After output
-
-        :param text: Text
-        """
-        return text
+        return ctx

@@ -19,6 +19,37 @@ class Plugins:
         self.config = config
         self.plugins = {}
 
+    def apply(self, id, event, data):
+        """
+        Applies plugin event
+
+        :param id: Plugin id
+        :param event: Event name
+        :param data: Event data
+        :return: Event data
+        """
+        if id in self.plugins:
+            if event == 'input.before':
+                return self.plugins[id].on_input_before(data)
+            elif event == 'ctx.before':
+                return self.plugins[id].on_ctx_before(data)
+            elif event == 'ctx.after':
+                return self.plugins[id].on_ctx_after(data)
+            elif event == 'ctx.begin':
+                return self.plugins[id].on_ctx_begin(data)
+            elif event == 'system.prompt':
+                return self.plugins[id].on_system_prompt(data)
+            elif event == 'ai.name':
+                return self.plugins[id].on_ai_name(data)
+            elif event == 'user.name':
+                return self.plugins[id].on_user_name(data)
+            elif event == 'enable':
+                return self.plugins[id].on_enable()
+            elif event == 'disable':
+                return self.plugins[id].on_disable()
+
+        return data
+
     def is_registered(self, id):
         """
         Checks if plugin is registered

@@ -11,11 +11,10 @@
 
 import os
 import shutil
+import webbrowser
 from showinfm import show_in_file_manager
 
 from PySide6 import QtGui, QtCore
-import webbrowser
-
 from PySide6.QtWidgets import QFileDialog
 
 from ..context import ContextItem
@@ -51,6 +50,7 @@ class Image:
         # create ctx item
         ctx = ContextItem()
         ctx.set_input(text, self.window.config.data['user_name'])
+        ctx = self.window.controller.plugins.apply('ctx.before', ctx)  # apply plugins
         self.window.gpt.context.add(ctx)
         self.window.controller.output.append_input(ctx)
 
@@ -64,6 +64,7 @@ class Image:
                 i += 1
             self.open_images(paths)
             ctx.set_output(string.strip())
+            ctx = self.window.controller.plugins.apply('ctx.after', ctx)  # apply plugins
             self.window.controller.output.append_output(ctx)
             self.window.gpt.context.store()
             self.window.set_status("OK.")
