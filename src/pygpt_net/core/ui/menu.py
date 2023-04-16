@@ -68,7 +68,7 @@ class Menu:
     def setup_audio(self):
         """Setups audio menu"""
         self.window.menu['audio.output'] = QAction(trans("menu.audio.output"),
-                                                  self.window, checkable=True)
+                                                   self.window, checkable=True)
 
         self.window.menu['audio.output'].triggered.connect(
             lambda: self.window.controller.plugins.toggle('audio_azure'))

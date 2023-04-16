@@ -49,9 +49,9 @@ class WebSearch:
         urls = []
         try:
             url = 'https://www.googleapis.com/customsearch/v1'
-            url += '?key='+str(key)
-            url += '&cx='+str(cx)
-            url += '&num='+str(num)
+            url += '?key=' + str(key)
+            url += '&cx=' + str(cx)
+            url += '&num=' + str(num)
             url += '&sort=date-sdate:d:s'
             url += '&fields=items(link)'
             url += '&q=' + quote(q)
@@ -132,7 +132,8 @@ class WebSearch:
                 self.plugin.window.log("Plugin: web_search:query_web [crawled content]: {}".format(content))  # log
 
                 if content is not None:
-                    self.plugin.window.log("Plugin: web_search:query_web [content length]: {}".format(len(content)))  # log
+                    self.plugin.window.log(
+                        "Plugin: web_search:query_web [content length]: {}".format(len(content)))  # log
 
         # if Google is disabled, use Wikipedia
         if len(pages) == 0:
@@ -276,4 +277,3 @@ class WebSearch:
             "Plugin: web_search:get_system_prompt [prompt length]: {}".format(len(prompt)))  # log
 
         return prompt
-

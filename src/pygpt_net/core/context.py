@@ -499,4 +499,3 @@ class ContextItem:
     def dump(self):
         """Dumps item to string"""
         return json.dumps(self.serialize())
-

@@ -92,7 +92,8 @@ class Plugin(BasePlugin):
         if iterations == 0 or self.iteration < iterations:
             self.iteration += 1
             if self.prev_output is not None and self.prev_output != "":
-                self.window.log("Plugin: self_loop:on_ctx_end [sending prev_output...]: {}".format(self.prev_output))  # log
+                self.window.log(
+                    "Plugin: self_loop:on_ctx_end [sending prev_output...]: {}".format(self.prev_output))  # log
                 self.window.controller.input.send(self.prev_output)
         return ctx
 
