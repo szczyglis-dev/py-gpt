@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.04.16 22:00:00                  #
 # ================================================== #
 
 import sys
@@ -72,6 +72,14 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # setup signals
         self.statusChanged.connect(self.update_status)
+
+    def log(self, data):
+        """
+        Logs data to console
+
+        :param text: text to log
+        """
+        self.controller.debug.log(data)
 
     def set_theme(self, theme='dark_teal.xml'):
         """

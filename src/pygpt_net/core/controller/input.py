@@ -66,39 +66,64 @@ class Input:
         self.window.statusChanged.emit(trans('status.sending'))
 
         # prepare names
+        self.window.log("User name: {}".format(self.window.config.data['user_name']))  # log
+        self.window.log("AI name: {}".format(self.window.config.data['ai_name']))  # log
+
         user_name = self.window.controller.plugins.apply('user.name', self.window.config.data['user_name'])
         ai_name = self.window.controller.plugins.apply('ai.name', self.window.config.data['ai_name'])
+
+        self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.data['user_name']))  # log
+        self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.data['ai_name']))  # log
 
         # create ctx item
         ctx = ContextItem()
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
+        self.window.log("Context: input: {}".format(ctx.dump()))  # log
+
         # apply plugins
         ctx = self.window.controller.plugins.apply('ctx.before', ctx)
+
+        # logger
+        self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))  # log
+        self.window.log("System: {}".format(self.window.gpt.system_prompt))  # log
 
         # apply cfg
         self.window.gpt.user_name = ctx.input_name
         self.window.gpt.ai_name = ctx.output_name
         self.window.gpt.system_prompt = self.window.controller.plugins.apply('system.prompt',
                                                                              self.window.config.data['prompt'])
+
+        self.window.log("System [after plugin: system.prompt]: {}".format(self.window.gpt.system_prompt))  # log
+        self.window.log("User name: {}".format(self.window.gpt.user_name))  # log
+        self.window.log("AI name: {}".format(self.window.gpt.ai_name))  # log
+        self.window.log("Appending input to chat window...")  # log
+
         self.window.controller.output.append_input(ctx)
 
         # call GPT
         try:
             try:
+                self.window.log("Calling OpenAI API...")  # log
                 ctx = self.window.gpt.call(text, ctx)
+                self.window.log("Context: output: {}".format(ctx.dump()))  # log
             except Exception as e:
+                self.window.log("GPT output error: {}".format(e))  # log
                 print("Error in send text (GPT call): " + str(e))
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
             ctx = self.window.controller.plugins.apply('ctx.after', ctx)  # apply plugins
+            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))  # log
+
+            self.window.log("Appending output to chat window...")  # log
             self.window.controller.output.append_output(ctx)
             self.window.gpt.context.store()
             self.window.set_status(
                 trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
         except Exception as e:
+            self.window.log("Output error: {}".format(e))  # log
             print("Error in send text: " + str(e))
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
@@ -119,7 +144,11 @@ class Input:
         ctx = None
         if text is None:
             text = self.window.data['input'].toPlainText().strip()
+
+        self.window.log("Input text: {}".format(text))  # log
         text = self.window.controller.plugins.apply('input.before', text)
+
+        self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
         if len(text) > 0:
             if self.window.config.data['send_clear']:
@@ -140,6 +169,7 @@ class Input:
             if len(self.window.gpt.context.contexts) == 0:
                 self.window.gpt.context.new()
                 self.window.controller.context.update()
+                self.window.log("New context created...")  # log
 
             # process events to update UI
             QApplication.processEvents()
@@ -152,7 +182,9 @@ class Input:
         else:
             self.window.statusChanged.emit("")
 
+        self.window.log("Context: output: {}".format(ctx.dump()))  # log
         ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
+        self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
         self.window.controller.ui.update()
 
     def append(self, text):

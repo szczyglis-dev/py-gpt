@@ -20,6 +20,7 @@ from .dialog.start import Start
 from .dialog.update import Update
 from .dialog.image import Image
 from .dialog.plugins import Plugins
+from .dialog.logger import Logger
 from .widgets import AlertDialog, ConfirmDialog
 
 
@@ -76,6 +77,10 @@ class Dialogs:
         # setup image dialog
         image = Image(self.window)
         image.setup()
+
+        # setup logger dialog
+        logger = Logger(self.window)
+        logger.setup()
 
         self.window.plugin_settings = Plugins(self.window)
         self.window.dialog['alert'] = AlertDialog(self.window)

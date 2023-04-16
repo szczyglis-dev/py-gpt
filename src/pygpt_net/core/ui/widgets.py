@@ -744,6 +744,27 @@ class FileEditorDialog(QDialog):
         self.window.controller.settings.update()
 
 
+class LoggerDialog(QDialog):
+    def __init__(self, window=None):
+        """
+        Logger dialog
+
+        :param window: main window
+        """
+        super(LoggerDialog, self).__init__(window)
+        self.window = window
+
+    def closeEvent(self, event):
+        """
+        Close event
+
+        :param event: close event
+        """
+        self.window.controller.debug.is_logger = False
+        self.window.controller.debug.logger_close()
+        self.window.controller.debug.update()
+
+
 class GeneratedImageDialog(QDialog):
     def __init__(self, window=None, id=None):
         """

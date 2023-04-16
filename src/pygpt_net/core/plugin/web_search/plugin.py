@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.04.16 22:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -250,14 +250,19 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt):
         """Event: On prepare system prompt"""
-        return self.websearch.get_system_prompt(self.input_text, prompt)
+        self.window.log("Plugin: web_search:on_system_prompt [before] (input_text, prompt): {}, {}".
+                        format(self.input_text, prompt))  # log
+        prompt = self.websearch.get_system_prompt(self.input_text, prompt)
+        self.window.log("Plugin: web_search:on_system_prompt [after] (input_text, prompt): {}, {}".
+                        format(self.input_text, prompt))  # log
+        return prompt
 
     def on_ai_name(self, name):
         """Event: On set AI name"""
         return name
 
     def on_user_name(self, name):
-        """Event: On set user name"""
+        """Event: On set username"""
         return name
 
     def on_enable(self):

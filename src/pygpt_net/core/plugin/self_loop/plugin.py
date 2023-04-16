@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.04.16 22:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -92,6 +92,7 @@ class Plugin(BasePlugin):
         if iterations == 0 or self.iteration < iterations:
             self.iteration += 1
             if self.prev_output is not None and self.prev_output != "":
+                self.window.log("Plugin: self_loop:on_ctx_end [sending prev_output...]: {}".format(self.prev_output))  # log
                 self.window.controller.input.send(self.prev_output)
         return ctx
 
@@ -130,10 +131,12 @@ class Plugin(BasePlugin):
         :param ctx: Text
         """
         if self.iteration > 0 and self.iteration % 2 != 0 and self.options["reverse_roles"]["value"]:
+            self.window.log("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
             tmp_input_name = ctx.input_name
             tmp_output_name = ctx.output_name
             ctx.input_name = tmp_output_name
             ctx.output_name = tmp_input_name
+            self.window.log("Plugin: self_loop:on_ctx_before [after]: {}".format(ctx.dump()))  # log
         return ctx
 
     def on_ctx_after(self, ctx):
@@ -144,5 +147,7 @@ class Plugin(BasePlugin):
         """
         self.prev_output = ctx.output
         if self.options["clear_output"]["value"]:
+            self.window.log("Plugin: self_loop:on_ctx_after [before]: {}".format(ctx.dump()))  # log
             ctx.output = ""
+            self.window.log("Plugin: self_loop:on_ctx_after [after]: {}".format(ctx.dump()))  # log
         return ctx

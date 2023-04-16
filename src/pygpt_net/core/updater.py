@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.04.16 22:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -134,6 +134,10 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("0.9.6"):
+                print("Migrating config from < 0.9.6...")
+                data['debug'] = True  # enable debug by default
+                updated = True
             if old < parse_version("0.9.4"):
                 print("Migrating config from < 0.9.4...")
                 if 'plugins' not in data:

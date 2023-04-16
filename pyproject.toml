@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygpt-net"
-version = "0.9.5"
+version = "0.9.6"
 description = "GPT4, GPT3, ChatGPT and DALL-E 2 Desktop App with chatbot, text completion and image generation"
 readme = "README.md"
 authors = [{ name = "Marcin Szczygliński", email = "info@pygpt.net" }]

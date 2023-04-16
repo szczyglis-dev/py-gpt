@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.04.16 22:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -89,6 +89,7 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt):
         """Event: On prepare system prompt"""
+        self.window.log("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
         if self.options["hour"]["value"] or self.options["date"]["value"]:
             if self.options["hour"]["value"] and self.options["date"]["value"]:
                 prompt += self.options["tpl"]["value"].format(time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -96,6 +97,7 @@ class Plugin(BasePlugin):
                 prompt += self.options["tpl"]["value"].format(time=datetime.now().strftime('%H:%M:%S'))
             elif self.options["date"]["value"]:
                 prompt += self.options["tpl"]["value"].format(time=datetime.now().strftime('%Y-%m-%d'))
+        self.window.log("Plugin: real_time:on_system_prompt [after]: {}".format(prompt))  # log
         return prompt
 
     def on_ai_name(self, name):

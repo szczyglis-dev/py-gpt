@@ -1,6 +1,6 @@
 # PYGPT
 
-Current release: **0.9.5** (build: **2023.04.16**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Current release: **0.9.6** (build: **2023.04.16**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -755,30 +755,35 @@ not listed in main window. Always control your real token usage on OpenAI websit
 
 # CHANGELOG
 
-## v0.9.5 (2023.04.16)
+## 0.9.6 (2023.04.16)
+
+- added real-time logger
+- improved debug mode
+
+## 0.9.5 (2023.04.16)
 
 - added web plugin (adds access to the Internet using Google Custom Search Engine and Wikipedia API)
 - added voice output plugin (adds voice synthesis using Microsoft Azure)
 
-## v0.9.4 (2023.04.15)
+## 0.9.4 (2023.04.15)
 
 - added plugins support
 
-## v0.9.3 (2023.04.14)
+## 0.9.3 (2023.04.14)
 
 - packed into PyPI package
 
-## v0.9.2 (2023.04.12)
+## 0.9.2 (2023.04.12)
 
 - added theme color settings
 - small UI fixes
 
-## v0.9.1 (2023.04.11)
+## 0.9.1 (2023.04.11)
 
 - added organization key configuration (by @kaneda2004, PR#1)
 - added config versions patching
 
-## v0.9.0 (2023.04.09)
+## 0.9.0 (2023.04.09)
 
 - initial release
 

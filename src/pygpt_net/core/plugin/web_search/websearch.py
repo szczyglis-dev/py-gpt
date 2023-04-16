@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.04.16 22:00:00                  #
 # ================================================== #
 
 import json
@@ -55,14 +55,20 @@ class WebSearch:
             url += '&sort=date-sdate:d:s'
             url += '&fields=items(link)'
             url += '&q=' + quote(q)
+
+            self.plugin.window.log("Plugin: web_search:google_search: calling API: {}".format(url))  # log
             data = urlopen(url).read()
             res = json.loads(data)
+            self.plugin.window.log("Plugin: web_search:google_search: received response: {}".format(res))  # log
             if 'items' not in res:
                 return []
             for item in res['items']:
                 urls.append(item['link'])
+            self.plugin.window.log("Plugin: web_search:google_search [urls]: {}".format(urls))  # log
             return urls
         except Exception as e:
+            self.plugin.window.log("Plugin: web_search:google_search: error: {}".format(e))  # log
+            self.plugin.window.ui.dialogs.alert("Google Search Error: " + str(e))
             print("Error in google_search: " + str(e))
         return []
 
@@ -74,12 +80,27 @@ class WebSearch:
         :return: text content
         """
         try:
+            # try search page
             wiki = wikipedia.page(string)
             text = wiki.content
             text = re.sub(r'==.*?==+', '', text)
-            return text.replace('\n', '')
-        except Exception as e:
-            print("Error in query_wiki: " + str(e))
+            text = text.replace('\n', '')
+            self.plugin.window.log("Plugin: web_search:query_wiki [content]: {}".format(text))  # log
+            return text
+        except Exception as ex:
+            # try summary if page not found
+            try:
+                text = wikipedia.summary(string)
+                text = re.sub(r'==.*?==+', '', text)
+                text = text.replace('\n', '')
+                self.plugin.window.log("Plugin: web_search:query_wiki [content]: {}".format(text))  # log
+                return text
+            except Exception as e:
+                self.plugin.window.log("Plugin: web_search:query_wiki [error]: {}".format(e))  # log
+                print("Error in query_wiki: " + str(e))
+
+            self.plugin.window.log("Plugin: web_search:query_wiki [error]: {}".format(ex))  # log
+            print("Error in query_wiki: " + str(ex))
 
     def query_web(self, string):
         """
@@ -88,17 +109,37 @@ class WebSearch:
         :param string: string to query
         :return: list of text content
         """
+        self.plugin.window.log("Plugin: web_search:query_web [string]: {}".format(string))  # log
         pages = []
         if self.plugin.options["use_google"]['value']:
             urls = self.google_search(string, self.plugin.options["num_pages"]['value'])
             for url in urls:
+                # if Wikipedia is enabled and URL is from Wikipedia, use Wikipedia
                 if self.plugin.options["use_wikipedia"]['value'] and "wikipedia.org/" in url:
-                    pages.append(self.query_wiki(string))
+                    self.plugin.window.log("Plugin: web_search:query_web: using Wikipedia...")  # log
+                    content = self.query_wiki(string)
+
+                    # if Wiki content is empty, use Google instead
+                    if content is None or content == "":
+                        self.plugin.window.log("Plugin: web_search:query_web: nothing in Wiki, using Google...")  # log
+                        content = self.query_url(url)
+                    pages.append(content)
                 else:
-                    pages.append(self.query_url(url))
+                    # use Google
+                    self.plugin.window.log("Plugin: web_search:query_web: using Google...")  # log
+                    content = self.query_url(url)
+                    pages.append(content)
+                self.plugin.window.log("Plugin: web_search:query_web [crawled content]: {}".format(content))  # log
+
+                if content is not None:
+                    self.plugin.window.log("Plugin: web_search:query_web [content length]: {}".format(len(content)))  # log
+
+        # if Google is disabled, use Wikipedia
         if len(pages) == 0:
             if self.plugin.options["use_wikipedia"]['value']:
-                pages.append(self.query_wiki(string))
+                content = self.query_wiki(string)
+                self.plugin.window.log("Plugin: web_search:query_web: nothing found, using Wikipedia...")  # log
+                pages.append(content)
         return pages
 
     def query_url(self, url):
@@ -108,6 +149,7 @@ class WebSearch:
         :param url: URL to query
         :return: text content
         """
+        self.plugin.window.log("Plugin: web_search:query_url: crawling URL: {}".format(url))  # log
         text = ''
         try:
             req = Request(
@@ -124,8 +166,11 @@ class WebSearch:
             soup = BeautifulSoup(html, "html.parser")
             for paragraph in soup.find_all('p'):
                 text += paragraph.text
-            return text.replace("\n", " ").replace("\t", " ")
+            text = text.replace("\n", " ").replace("\t", " ")
+            self.plugin.window.log("Plugin: web_search:query_url: received text: {}".format(text))  # log
+            return text
         except Exception as e:
+            self.plugin.window.log("Plugin: web_search:query_url: error querying: {}".format(url))  # log
             print("Error in query_web: " + str(e))
 
     def to_chunks(self, text, chunk_size):
@@ -152,7 +197,14 @@ class WebSearch:
         sys_prompt = str(self.plugin.options['prompt_summarize']['value']) + question
         max_tokens = int(self.plugin.options["summary_max_tokens"]['value'])
         for prompt in chunks:
-            summary += self.plugin.window.gpt.quick_call(prompt, sys_prompt, False, max_tokens)
+            self.plugin.window.log("Plugin: web_search:get_summarized_tex [getting summary] "
+                                   "(prompt, sys_prompt, max_tokens): {}, {}, {}".
+                                   format(prompt, sys_prompt, max_tokens))  # log
+            response = self.plugin.window.gpt.quick_call(prompt, sys_prompt, False, max_tokens)
+            if response is not None:
+                self.plugin.window.log("Plugin: web_search:get_summarized_text [response length]: {}".
+                                       format(len(response)))  # log
+                summary += response
         return summary
 
     def get_system_prompt(self, question, prompt):
@@ -167,9 +219,20 @@ class WebSearch:
             use_context = self.plugin.options['rebuild_question_context']['value']
             tmp_prompt = str(self.plugin.options['prompt_question_prefix']['value']) + question
             sys_prompt = str(self.plugin.options['prompt_question']['value']).replace("{time}", time.strftime("%c"))
+
+            self.plugin.window.log("Plugin: web_search:get_system_prompt [getting system prompt] "
+                                   "(question, prompt, sys_prompt, tmp_prompt): {}, {}, {}, {}".
+                                   format(question, prompt, sys_prompt, tmp_prompt))  # log
+
             question = self.plugin.window.gpt.quick_call(tmp_prompt, sys_prompt, use_context, 500)
+            self.plugin.window.log("Plugin: web_search:get_system_prompt [search question]: {}".format(question))  # log
+
             if question is not None:
                 question = question.replace("<query>", "").replace("</query>", "").strip()
+                self.plugin.window.log(
+                    "Plugin: web_search:get_system_prompt [search question extracted]: {}".format(question))  # log
+                self.plugin.window.log(
+                    "Plugin: web_search:get_system_prompt [search question length]: {}".format(len(question)))  # log
 
         # query the web
         pages = self.query_web(question)
@@ -186,13 +249,31 @@ class WebSearch:
                 continue
             if 0 < max_per_page < len(page):
                 page = page[:max_per_page]
-            chunks += self.to_chunks(page, chunk_size)
+            chunks += self.to_chunks(page, chunk_size)  # it returns list of chunks
+
+        # log
+        self.plugin.window.log(
+            "Plugin: web_search:get_system_prompt [num chunks]: {}".format(len(chunks)))  # log
 
         # build summary
         summary = self.get_summarized_text(chunks, question)
-        if summary.strip() != "":
+
+        # log
+        self.plugin.window.log(
+            "Plugin: web_search:get_system_prompt [summary]: {}".format(summary))  # log
+        if summary is not None:
+            self.plugin.window.log(
+                "Plugin: web_search:get_system_prompt [summary length]: {}".format(len(summary)))  # log
+
+        # append summary to prompt
+        if summary is not None and summary.strip() != "":
             prompt += str(self.plugin.options['prompt_system']['value']) + summary.replace("\n", " ").replace("\t", " ")
             if len(prompt) > max_prompt_size:
                 prompt = prompt[:max_prompt_size]
+
+        # log
+        self.plugin.window.log(
+            "Plugin: web_search:get_system_prompt [prompt length]: {}".format(len(prompt)))  # log
+
         return prompt
 

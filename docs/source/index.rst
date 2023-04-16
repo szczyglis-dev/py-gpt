@@ -10,7 +10,7 @@ PYGPT - pygpt.net
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 0.9.5 (2023.04.16)
+| **Release:** 0.9.6 (2023.04.16)
 
 .. toctree::
    :maxdepth: 3

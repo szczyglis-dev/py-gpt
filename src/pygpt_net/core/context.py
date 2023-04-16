@@ -495,3 +495,8 @@ class ContextItem:
             self.input_timestamp = data['input_timestamp']
         if 'output_timestamp' in data:
             self.output_timestamp = data['output_timestamp']
+
+    def dump(self):
+        """Dumps item to string"""
+        return json.dumps(self.serialize())
+

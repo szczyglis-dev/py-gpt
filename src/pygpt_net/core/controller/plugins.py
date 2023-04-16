@@ -130,13 +130,7 @@ class Plugins:
 
     def load_defaults(self):
         """Loads plugins settings defaults"""
-        for id in self.handler.plugins:
-            plugin = self.handler.plugins[id]
-            options = plugin.setup()  # get plugin options
-            for key in options:
-                option = options[key]
-                value = option['value']  # get default value
-                self.window.plugin_option[id][key].setText(str(value))
+        self.init_settings()
 
     def close_settings(self):
         """Closes plugins settings dialog"""

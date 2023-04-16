@@ -52,12 +52,12 @@
     "real_time": false
   },
   "output_timestamp": true,
-  "debug": false,
+  "debug": true,
   "ctx": "",
   "img_variants": 1,
   "__meta__": {
-    "version": "0.9.5",
-    "app.version": "0.9.5",
-    "updated_at": "2023-04-16T06:25:00"
+    "version": "0.9.6",
+    "app.version": "0.9.6",
+    "updated_at": "2023-04-16T22:25:00"
   }
 }
