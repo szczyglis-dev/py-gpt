@@ -335,9 +335,9 @@ Currently, the following plugins are available:
 
 ## Audio / voice synthesis
 
-The application offers voice synthesis using the **Microsoft Azure Text-To-Speech** API.
-It required your own Microsoft Azure API Key. 
-You can get Api Key for free from [here](https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/).
+PYGPT implements voice synthesis using the **Microsoft Azure Text-To-Speech** API.
+This feature require your own Microsoft Azure API Key. 
+You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
 # Tokens calculation
 
