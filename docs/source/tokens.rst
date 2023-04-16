@@ -1,5 +1,5 @@
-Tokens calculation
-===================
+Token usage calculation
+========================
 
 Input tokens
 --------------

@@ -6,7 +6,7 @@
 PYGPT - pygpt.net
 ==================
 
-| **Last update:** 2023.04.16 09:00
+| **Last update:** 2023.04.16 20:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
@@ -27,11 +27,10 @@ Contents
    modes
    context
    presets
-   images
    plugins
+   images
    tokens
-   configuration   
+   configuration
    advanced   
    updates
-   future
    credits

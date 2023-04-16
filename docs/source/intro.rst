@@ -25,8 +25,8 @@ Features
 | - supports multiple models: ``GPT4`` and ``GPT3``
 | - handles and stores full context of the conversation (short-term memory)
 | - stores the history of contexts with the ability to return to previous context (long-term memory)
-| - adds access to the Internet for GPT via Google Custom Search API and Wikipedia API
-| - includes voice synthesis using Microsoft Azure Text-to-Speech API
+| - adds access to the internet for GPT via Google Custom Search API and Wikipedia API (plugin)
+| - adds voice synthesis using Microsoft Azure Text-to-Speech API (plugin)
 | - allows you to easily manage prompts with handy editable presets
 | - intuitive operation and interface
 | - allows you to use all the powerful features of ``GPT4`` and ``GPT3``

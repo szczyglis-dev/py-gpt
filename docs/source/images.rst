@@ -1,4 +1,4 @@
-Images generation (DALL-E 2)
+Image generation (DALL-E 2)
 ============================
 
 DALL-E 2
