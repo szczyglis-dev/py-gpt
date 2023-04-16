@@ -8,8 +8,6 @@
 # Created By  : Marcin Szczygliński                  #
 # Created Date: 2023.04.16 06:00:00                  #
 # ================================================== #
-from PySide6.QtCore import Slot
-
 
 class Audio:
     def __init__(self, window=None):
@@ -49,7 +47,7 @@ class Audio:
         self.update()
 
     def update(self):
-        """Updates controller"""
+        """Updates UI"""
         self.update_menu()
 
     def update_menu(self):
