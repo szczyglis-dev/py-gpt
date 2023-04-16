@@ -318,7 +318,7 @@ All queries are saved in the history, thanks to which you can return to
 a given session at any time and use old queries to, for example,
 generate new content.
 
-## Plugins
+# Plugins
 
 The application allows you to use plugins to extend its functionality.
 
@@ -334,7 +334,7 @@ Currently, the following plugins are available:
 - **Real Time** - auto-append current date and time to the prompt. It tells
   the model what time it is in real time.
 
-### Plugin: Web Search
+## Plugin: Web Search
 
 PYGPT allows you to **connect GPT to the internet** and use web search during any query in real time.
 
@@ -494,7 +494,7 @@ In the main conversation, the system prompt is modified, and GPT receives additi
 
 **Note:** Please note that this option is currently in experimental version, and please note that it uses additional tokens for the process of generating a modified query and summarizing the content downloaded from the Internet! You should always track the amount of tokens actually used in the statement on the OpenAI website.
 
-### Plugin: Audio (Azure)
+## Plugin: Audio (Azure)
 
 PYGPT implements voice synthesis using the **Microsoft Azure Text-To-Speech** API.
 This feature require your own Microsoft Azure API Key. 
@@ -538,7 +538,7 @@ Here you can specify the name of the voice used for speech synthesis for the Pol
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a reply via GPT.
 
 
-### Plugin: Self Loop
+## Plugin: Self Loop
 
 The plugin allows you to enable the "talk with yourself" mode - in this mode GPT starts a conversation with itself.
 You can run such a loop with any number of iterations, then during the course of such a loop the model will answer questions asked by itself, having a conversation with itself. This mode works in both Chat and Completion modes, however, for better effect in Completion mode, you can define appropriate names (roles) for each party to the conversation.
@@ -568,7 +568,7 @@ Default: `True`
 If enabled, it reverses the roles (AI <> user) during each pass, i.e. if in the previous pass the answer was generated for the role "Batman", then in the next pass this answer will be used to generate the same input for the role "Joker".
 
 
-### Plugin: Real Time
+## Plugin: Real Time
 
 This plugin allows you to automatically attach information about the current date and time to each sent system promt. You can specify whether to include only the date, time, or both.
 
