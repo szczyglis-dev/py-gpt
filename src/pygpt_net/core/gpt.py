@@ -89,11 +89,12 @@ class Gpt:
         )
         return response
 
-    def build_chat_messages(self, prompt):
+    def build_chat_messages(self, prompt, system_prompt=None):
         """
         Builds chat messages dict
 
         :param prompt: Prompt
+        :param system_prompt: System prompt (optional)
         :return: Messages dict
         """
         messages = []
@@ -103,8 +104,11 @@ class Gpt:
         max_tokens = self.config.data['max_total_tokens']
 
         # append initial (system) message
-        if self.system_prompt is not None and self.system_prompt != "":
-            messages.append({"role": "system", "content": self.system_prompt})
+        if system_prompt is not None and system_prompt != "":
+            messages.append({"role": "system", "content": system_prompt})
+        else:
+            if self.system_prompt is not None and self.system_prompt != "":
+                messages.append({"role": "system", "content": self.system_prompt})
 
         # append messages from context (memory)
         if self.config.data['use_context']:
@@ -181,6 +185,36 @@ class Gpt:
         tokens += self.config.data['context_threshold']  # context threshold (reserved for next output)
         tokens += num_tokens_extra(model)  # extra tokens (required for output)
         return tokens
+
+    def quick_call(self, prompt, sys_prompt, append_context=False, max_tokens=500):
+        """
+        Calls OpenAI API with custom prompt
+
+        :param prompt: User input (prompt)
+        :param sys_prompt: System input (prompt)
+        :param max_tokens: Max output tokens
+        :return: Response text
+        """
+        if append_context:
+            messages = self.build_chat_messages(prompt, sys_prompt)
+        else:
+            messages = []
+            messages.append({"role": "system", "content": sys_prompt})
+            messages.append({"role": "user", "content": prompt})
+        try:
+            response = openai.ChatCompletion.create(
+                messages=messages,
+                model="gpt-3.5-turbo",
+                max_tokens=max_tokens,
+                temperature=1.0,
+                top_p=1.0,
+                frequency_penalty=0.0,
+                presence_penalty=0.0,
+                stop=None,
+            )
+            return response["choices"][0]["message"]["content"]
+        except Exception as e:
+            print("Error in custom call: " + str(e))
 
     def call(self, prompt, ctx=None):
         """

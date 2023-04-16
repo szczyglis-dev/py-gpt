@@ -1,26 +1,27 @@
 # PYGPT
 
-Current release: **0.9.4** (build: **2023.04.15**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Current release: **0.9.5** (build: **2023.04.16**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
-### **Compiled binary versions for Windows 10, 11 and Linux are available to download on project's page**: https://pygpt.net (in "Download" section)
+### **Compiled versions for Windows 10, 11 and Linux**: https://pygpt.net/#download
 
 ## What is PYGPT?
 
 **PYGPT** is a desktop application that allows you to talk to OpenAI\'s
-artificial intelligence models such as **GPT4** and **GPT3** using your
-own computer and `OpenAI API`. It allows you to talk in chat mode and in
-completion mode, as well as generate images using **DALL-E 2**.
-Moreover, the application has implemented context memory support,
+LLM models such as **GPT4** and **GPT3** using your own computer and `OpenAI API`. 
+It allows you to talk in chat mode and in completion mode, as well as generate images 
+using **DALL-E 2**. PYGPT also adds access to the Internet for GPT via Google Custom 
+Search API and Wikipedia API and includes voice synthesis using Microsoft Azure 
+Text-to-Speech API. Moreover, the application has implemented context memory support,
 context storage, history of contexts, which can be restored at any time
 and e.g. continue the conversation from point in history, and also has a
 convenient and intuitive system of presets that allows you to quickly
-and pleasantly create and manage your prompts.
+and pleasantly create and manage your prompts. Plugins support is also available.
 
 ![app1](https://user-images.githubusercontent.com/61396542/230803425-5035ccd8-50d9-4fef-9774-8843cf3ce5b0.jpg)
 
-You can download compiled application for Windows and Linux on: https://pygpt.net/#download
+You can download compiled version for Windows and Linux at: https://pygpt.net/#download
 
 ## Features
 
@@ -30,6 +31,8 @@ You can download compiled application for Windows and Linux on: https://pygpt.ne
 - supports multiple models: `GPT4` and `GPT3`
 - handles and stores full context of the conversation (short-term
   memory)
+- adds access to the Internet for GPT via Google Custom Search API and Wikipedia API
+- includes voice synthesis using Microsoft Azure Text-to-Speech API
 - stores the history of contexts with the ability to return to
   previous context (long-term memory)
 - allows you to easily manage prompts with handly editable presets
@@ -40,7 +43,7 @@ You can download compiled application for Windows and Linux on: https://pygpt.ne
 - has the ability to support future OpenAI models
 - fully configurable
 - plugins support
-- built-in tokens usage calculation
+- built-in token usage calculation
 - it\'s open source, source code is available on `GitHub`
 - **uses the user\'s API key**
 
@@ -302,7 +305,7 @@ conversation temperature when switching to the image generation mode).
 
 ![dalle](https://user-images.githubusercontent.com/61396542/230803477-8ca3b13b-080d-4acc-9f19-fc2f1762e8e4.jpg)
 
-## Images storage
+## Image storage
 
 The image generated in this way can then be easily saved anywhere on the
 disk (just right-click on it), deleted or displayed in full size in the
@@ -320,12 +323,21 @@ generate new content.
 The application allows you to use plugins to extend its functionality.
 Currently, the following plugins are available:
 
-- **SelfLoop** - allows to run GPT in a self-loop, which allows you to
+- **Self Loop** - allows to run GPT in a self-loop, which allows you to
   generate a continuous conversation between AI <> AI. In this mode model talks to itself.
 
-- **RealTime** - auto-append current date and time to the prompt. It tells
+- **Real Time** - auto-append current date and time to the prompt. It tells
   the model what time it is in real time.
 
+- **Web Search** - adds access to the Internet using Google Custom Search Engine and Wikipedia API
+
+- **Audio (Azure)** - adds voice synthesis using Microsoft Azure Text-to-Speech API
+
+## Audio / voice synthesis
+
+The application offers voice synthesis using the **Microsoft Azure Text-To-Speech** API.
+It required your own Microsoft Azure API Key. 
+You can get Api Key for free from [here](https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/).
 
 # Tokens calculation
 
@@ -470,15 +482,26 @@ all configuration such as context and history will survive between
 versions and will be available in the newly installed version.
 
 
-# Plugins and audio (coming soon)
-
 ## Next releases
 
-Support for voice recognition and voice synthesis will be added
-in future versions of the application.
+Support for voice recognition will be added in future versions of the application.
 
+## DISCLAIMER
+
+This application is not affiliated with OpenAI in any way.
+Author is not responsible for any damage caused by the use of this application.
+Application is provided as is, without any warranty.
+Please also remember about tokens usage - always check the number of tokens used by 
+the model on OpenAI website and use the application responsibly.
+Enabled plugins (like e.g. Web Search) may use additional tokens,
+not listed in main window. Always control your real token usage on OpenAI website.
 
 # CHANGELOG
+
+## v0.9.5 (2023.04.16)
+
+- added web plugin (adds access to the Internet using Google Custom Search Engine and Wikipedia API)
+- added voice output plugin (adds voice synthesis using Microsoft Azure)
 
 ## v0.9.4 (2023.04.15)
 

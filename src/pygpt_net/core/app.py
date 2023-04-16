@@ -12,7 +12,7 @@
 import sys
 
 from PySide6.QtGui import QScreen
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Signal, Slot
 from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
 
@@ -28,9 +28,13 @@ from .utils import get_init_value
 
 from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 from .plugin.real_time.plugin import Plugin as RealTimePlugin
+from .plugin.web_search.plugin import Plugin as WebSearchPlugin
+from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
 
 
 class MainWindow(QMainWindow, QtStyleTools):
+    statusChanged = Signal(str)
+
     def __init__(self):
         """App main window"""
         super().__init__()
@@ -65,6 +69,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui.setup()
 
         self.setWindowTitle('PYGPT.net v{} | build {}'.format(self.version, self.build))
+
+        # setup signals
+        self.statusChanged.connect(self.update_status)
 
     def set_theme(self, theme='dark_teal.xml'):
         """
@@ -118,6 +125,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.data['status'].setText(str(text))
 
+    @Slot(str)
+    def update_status(self, text):
+        self.set_status(text)
+
     def closeEvent(self, event):
         """
         Handles close event
@@ -160,8 +171,9 @@ class Launcher:
         self.window.setup()
         available_geometry = self.window.screen().availableGeometry()
         pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-        self.window.resize(available_geometry.width(), available_geometry.height())
-        self.window.showMaximized()
+        self.window.resize(available_geometry.width() - 50, available_geometry.height() - 50)
+        # self.window.showMaximized()
+        self.window.show()
         self.window.move(pos)
 
         try:
@@ -179,6 +191,8 @@ def run():
     # add plugins
     launcher.add_plugin(SelfLoopPlugin())
     launcher.add_plugin(RealTimePlugin())
+    launcher.add_plugin(WebSearchPlugin())
+    launcher.add_plugin(AudioAzurePlugin())
 
     # run app
     launcher.run()

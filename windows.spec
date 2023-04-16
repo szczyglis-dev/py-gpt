@@ -20,7 +20,11 @@ a = Analysis(
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.')
     ],
-    hiddenimports=['tiktoken_ext', 'tiktoken_ext.openai_public'],
+    hiddenimports=[
+    'tiktoken_ext', 
+    'tiktoken_ext.openai_public', 
+    'wikipedia', 
+    'pydub'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

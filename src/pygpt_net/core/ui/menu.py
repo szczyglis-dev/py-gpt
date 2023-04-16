@@ -67,10 +67,14 @@ class Menu:
 
     def setup_audio(self):
         """Setups audio menu"""
-        self.window.menu['audio.empty'] = QAction(QIcon.fromTheme("help-about"), trans("coming_soon"),
-                                                  self.window)
+        self.window.menu['audio.output'] = QAction(trans("menu.audio.output"),
+                                                  self.window, checkable=True)
+
+        self.window.menu['audio.output'].triggered.connect(
+            lambda: self.window.controller.plugins.toggle('audio_azure'))
+
         self.window.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))
-        self.window.menu['menu.audio'].addAction(self.window.menu['audio.empty'])
+        self.window.menu['menu.audio'].addAction(self.window.menu['audio.output'])
 
     def setup_config(self):
         """Setups config menu"""

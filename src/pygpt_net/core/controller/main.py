@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.11 05:00:00                  #
+# Updated Date: 2023.04.16 06:00:00                  #
 # ================================================== #
 
 from .model import Model
@@ -24,6 +24,7 @@ from .launcher import Launcher
 from .lang import Lang
 from .image import Image
 from .theme import Theme
+from .audio import Audio
 
 
 class Controller:
@@ -49,6 +50,7 @@ class Controller:
         self.lang = Lang(window)
         self.image = Image(window)
         self.theme = Theme(window)
+        self.audio = Audio(window)
 
     def setup(self):
         """Setups controller"""
@@ -67,3 +69,4 @@ class Controller:
         self.ui.setup()
         self.info.setup()
         self.launcher.setup()
+        self.audio.setup()

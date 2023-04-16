@@ -88,7 +88,7 @@ class Theme:
                         # text input
                         elif option['type'] == 'text':
                             if key in self.window.plugin_option[id]:
-                                self.window.plugin_option[id][key].input.setStyleSheet(self.get_style('line_edit'))
+                                self.window.plugin_option[id][key].setStyleSheet(self.get_style('line_edit'))
 
                         # input with slider
                         elif option['type'] == 'int' or option['type'] == 'float':

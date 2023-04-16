@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.04.15 00:00:00                  #
 # ================================================== #
-
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget
 
 from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea
@@ -118,8 +118,13 @@ class Plugins:
             scroll_widget.setLayout(scroll_content)
             scroll.setWidget(scroll_widget)
 
+            desc_label = QLabel(plugin.description)
+            desc_label.setWordWrap(True)
+            desc_label.setAlignment(Qt.AlignCenter)
+            desc_label.setStyleSheet("font-weight: bold;")
+
             area = QVBoxLayout()
-            area.addWidget(QLabel(plugin.description))
+            area.addWidget(desc_label)
             area.addWidget(scroll)
 
             area_widget = QWidget()
@@ -151,6 +156,7 @@ class Plugins:
         widget.setToolTip(option['tooltip'])
         label_key = key + '.label'
         self.window.data[label_key] = QLabel(trans(option['label']))
+        self.window.data[label_key].setStyleSheet("font-weight: bold;")
 
         cols = QHBoxLayout()
         cols.addWidget(self.window.data[label_key])
@@ -160,9 +166,10 @@ class Plugins:
         cols_widget.setLayout(cols)
         cols_widget.setMaximumHeight(90)
 
-        desc_label = QLabel(option['description'])
+        desc_label = QLabel('<i>' + option['description'] + '</i>')
         desc_label.setWordWrap(True)
         desc_label.setMaximumHeight(30)
+        desc_label.setStyleSheet("font-size: 10px;")
 
         layout = QVBoxLayout()
         layout.addWidget(cols_widget)

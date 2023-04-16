@@ -164,7 +164,7 @@ class Lang:
         self.window.menu['menu.plugins'].setTitle(trans("menu.plugins"))
 
         self.window.menu['menu.audio'].setTitle(trans("menu.audio"))
-        self.window.menu['audio.empty'].setText(trans("coming_soon"))
+        self.window.menu['audio.output'].setText(trans("menu.audio.output"))
 
         self.window.menu['menu.config'].setTitle(trans("menu.config"))
         self.window.menu['config.settings'].setText(trans("menu.config.settings"))

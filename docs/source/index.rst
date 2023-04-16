@@ -6,11 +6,11 @@
 PYGPT - pygpt.net
 ==================
 
-| **Last update:** 2023.04.15 02:00
+| **Last update:** 2023.04.16 09:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 0.9.4 (2023.04.15)
+| **Release:** 0.9.5 (2023.04.16)
 
 .. toctree::
    :maxdepth: 3

@@ -36,8 +36,12 @@ class Context:
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
-                    self.contexts = json.load(file)['items']
+                    data = json.load(file)
                     file.close()
+                    if data == "" or data is None or 'items' not in data:
+                        self.contexts = {}
+                        return
+                    self.contexts = data['items']
         except Exception as e:
             print(e)
             self.contexts = {}
@@ -55,6 +59,8 @@ class Context:
                 with open(path, 'r', encoding="utf-8") as file:
                     data = self.parse(json.load(file))
                     file.close()
+                    if data == "" or data is None:
+                        return []
                     return data
             except Exception as e:
                 print("Error while loading context: {}".format(name))

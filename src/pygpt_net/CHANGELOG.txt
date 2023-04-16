@@ -1,3 +1,7 @@
+v0.9.5 (2023.04.16)
+- added web plugin (adds access to the Internet using Google Custom Search Engine and Wikipedia API)
+- added voice output plugin (adds voice synthesis using Microsoft Azure)
+
 v0.9.4 (2023.04.15)
 - added plugins support
 

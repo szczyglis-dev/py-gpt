@@ -3,6 +3,7 @@ aiosignal==1.3.1
 altgraph==0.17.3
 async-timeout==4.0.2
 attrs==22.2.0
+beautifulsoup4==4.12.2
 certifi==2022.12.7
 charset-normalizer==3.1.0
 frozenlist==1.3.3
@@ -14,6 +15,7 @@ openai==0.27.4
 packaging==23.1
 pyinstaller==5.10.0
 pyinstaller-hooks-contrib==2023.2
+pydub==0.25.1
 PySide6-Essentials==6.4.2
 pyxdg==0.28
 qt-material==2.14
@@ -24,4 +26,5 @@ show-in-file-manager==1.1.4
 tiktoken==0.3.3
 tqdm==4.65.0
 urllib3==1.26.15
+wikipedia==1.4.0
 yarl==1.8.2

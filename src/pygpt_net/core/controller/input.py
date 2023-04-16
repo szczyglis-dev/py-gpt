@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QTextCursor
+from PySide6.QtWidgets import QApplication
 
 from ..context import ContextItem
 from ..utils import trans
@@ -62,7 +63,7 @@ class Input:
 
         :param text: text to send
         """
-        self.window.set_status(trans('status.sending'))
+        self.window.statusChanged.emit(trans('status.sending'))
 
         # prepare names
         user_name = self.window.controller.plugins.apply('user.name', self.window.config.data['user_name'])
@@ -88,7 +89,7 @@ class Input:
             try:
                 ctx = self.window.gpt.call(text, ctx)
             except Exception as e:
-                print(e)
+                print("Error in send text (GPT call): " + str(e))
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
@@ -98,7 +99,7 @@ class Input:
             self.window.set_status(
                 trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
         except Exception as e:
-            print(e)
+            print("Error in send text: " + str(e))
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -113,6 +114,8 @@ class Input:
         """
         Sends input text to API
         """
+        self.window.statusChanged.emit(trans('status.sending'))
+
         ctx = None
         if text is None:
             text = self.window.data['input'].toPlainText().strip()
@@ -126,6 +129,7 @@ class Input:
             if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == '':
                 self.window.controller.launcher.show_api_monit()
                 self.window.controller.ui.update()
+                self.window.statusChanged.emit("")
                 return
 
             # init api key if defined later
@@ -137,11 +141,16 @@ class Input:
                 self.window.gpt.context.new()
                 self.window.controller.context.update()
 
+            # process events to update UI
+            QApplication.processEvents()
+
             # send to API
             if self.window.config.data['mode'] == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
                 ctx = self.window.controller.input.send_text(text)
+        else:
+            self.window.statusChanged.emit("")
 
         ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
         self.window.controller.ui.update()

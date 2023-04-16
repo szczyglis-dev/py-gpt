@@ -99,8 +99,19 @@ class Plugins:
                             and (option['type'] == 'int' or option['type'] == 'float'):
                         value = self.window.plugin_option[id][key].slider.value()
                     else:
-                        value = self.window.plugin_option[id][key].input.text()
-                elif option['type'] == 'text' or option['type'] == 'textarea':
+                        if option['type'] == 'int':
+                            try:
+                                value = int(self.window.plugin_option[id][key].text())
+                            except ValueError:
+                                value = 0
+                        elif option['type'] == 'float':
+                            try:
+                                value = float(self.window.plugin_option[id][key].text())
+                            except ValueError:
+                                value = 0.0
+                elif option['type'] == 'text':
+                    value = self.window.plugin_option[id][key].text()
+                elif option['type'] == 'textarea':
                     value = self.window.plugin_option[id][key].toPlainText()
                 elif option['type'] == 'bool':
                     value = self.window.plugin_option[id][key].box.isChecked()
@@ -164,6 +175,10 @@ class Plugins:
             self.window.config.data['plugins_enabled'][id] = True
             self.window.config.save()
 
+            # update audio menu
+            if id == 'audio_azure':
+                self.window.controller.audio.update()
+
         self.update_info()
         self.update()
 
@@ -178,6 +193,10 @@ class Plugins:
             self.handler.plugins[id].on_disable()  # call plugin disable method
             self.window.config.data['plugins_enabled'][id] = False
             self.window.config.save()
+
+            # update audio menu
+            if id == 'audio_azure':
+                self.window.controller.audio.update()
 
         self.update_info()
         self.update()
@@ -314,10 +333,11 @@ class Plugins:
             value = float(value)
 
         if 'type' in option and option['type'] == 'int' or option['type'] == 'float':
-            if 'min' in option and value < option['min']:
-                value = option['min']
-            elif 'max' in option and value > option['max']:
-                value = option['max']
+            if value is not None:
+                if 'min' in option and option['min'] is not None and value < option['min']:
+                    value = option['min']
+                elif 'max' in option and option['max'] is not None and value > option['max']:
+                    value = option['max']
 
         self.window.plugin_option[self.current_plugin][key].setText('{}'.format(value))
 
