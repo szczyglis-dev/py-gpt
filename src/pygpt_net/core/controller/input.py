@@ -135,7 +135,7 @@ class Input:
                             self.window.controller.output.append_chunk(ctx, chunk.choices[0].delta.content, begin)
                             QApplication.processEvents()  # process events to update UI
                             self.window.controller.ui.update()  # update UI
-                            print(chunk.choices[0].delta.content)
+                            # print(chunk.choices[0].delta.content)
                             begin = False
                 except Exception as e:
                     # debug
