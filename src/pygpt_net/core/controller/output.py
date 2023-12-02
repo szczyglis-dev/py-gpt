@@ -84,15 +84,37 @@ class Output:
         else:
             self.append(item.output + "\n")
 
-    def append(self, text):
+    def append_chunk(self, item, text_chunk, begin=False):
+        """
+        Appends output to output
+
+        :param item: context item
+        :param text_chunk: text chunk
+        :param begin: if it is the beginning of the text
+
+        """
+        if text_chunk is None or text_chunk == "":
+            return
+        if begin and self.window.config.data['output_timestamp'] and item.output_timestamp is not None:
+            name = ""
+            if item.output_name is not None and item.output_name != "":
+                name = item.output_name + " "
+            ts = datetime.fromtimestamp(item.output_timestamp)
+            hour = ts.strftime("%H:%M:%S")
+            self.append("{}{}: ".format(name, hour), "")
+
+        self.append(text_chunk, "")
+
+    def append(self, text, end="\n"):
         """
         Appends text to output
 
         :param text: text to append
+        :param end: end of the line
         """
         cur = self.window.data['output'].textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
-        s = str(text) + "\n"
+        s = str(text) + end
         while s:
             head, sep, s = s.partition("\n")  # Split line at LF
             cur.insertText(head)  # Insert text at cursor

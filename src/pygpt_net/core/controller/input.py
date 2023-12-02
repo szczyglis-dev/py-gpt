@@ -80,14 +80,15 @@ class Input:
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
-        self.window.log("Context: input: {}".format(ctx.dump()))  # log
+        # log
+        self.window.log("Context: input: {}".format(ctx.dump()))
 
         # apply plugins
         ctx = self.window.controller.plugins.apply('ctx.before', ctx)
 
-        # logger
-        self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))  # log
-        self.window.log("System: {}".format(self.window.gpt.system_prompt))  # log
+        # log
+        self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))
+        self.window.log("System: {}".format(self.window.gpt.system_prompt))
 
         # apply cfg
         self.window.gpt.user_name = ctx.input_name
@@ -95,18 +96,24 @@ class Input:
         self.window.gpt.system_prompt = self.window.controller.plugins.apply('system.prompt',
                                                                              self.window.config.data['prompt'])
 
-        self.window.log("System [after plugin: system.prompt]: {}".format(self.window.gpt.system_prompt))  # log
-        self.window.log("User name: {}".format(self.window.gpt.user_name))  # log
-        self.window.log("AI name: {}".format(self.window.gpt.ai_name))  # log
-        self.window.log("Appending input to chat window...")  # log
+        # log
+        self.window.log("System [after plugin: system.prompt]: {}".format(self.window.gpt.system_prompt))
+        self.window.log("User name: {}".format(self.window.gpt.user_name))
+        self.window.log("AI name: {}".format(self.window.gpt.ai_name))
+        self.window.log("Appending input to chat window...")
 
+        # append input to chat window
         self.window.controller.output.append_input(ctx)
+        QApplication.processEvents()  # process events to update UI
+        self.window.controller.ui.update()  # update UI
 
-        # call GPT
+        stream_mode = True
+
+        # call the model
         try:
             try:
                 self.window.log("Calling OpenAI API...")  # log
-                ctx = self.window.gpt.call(text, ctx)
+                ctx = self.window.gpt.call(text, ctx, stream_mode)
                 self.window.log("Context: output: {}".format(ctx.dump()))  # log
             except Exception as e:
                 self.window.log("GPT output error: {}".format(e))  # log
@@ -114,17 +121,54 @@ class Input:
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
-            ctx = self.window.controller.plugins.apply('ctx.after', ctx)  # apply plugins
-            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))  # log
+            # async stream mode
+            if stream_mode:
+                output = ""
+                output_tokens = 0
+                begin = True
+                try:
+                    self.window.log("Reading stream...")  # log
+                    for chunk in ctx.stream:
+                        if chunk.choices[0].delta.content is not None:
+                            output += chunk.choices[0].delta.content
+                            output_tokens += 1
+                            self.window.controller.output.append_chunk(ctx, chunk.choices[0].delta.content, begin)
+                            QApplication.processEvents()  # process events to update UI
+                            self.window.controller.ui.update()  # update UI
+                            print(chunk.choices[0].delta.content)
+                            begin = False
+                except Exception as e:
+                    # debug
+                    # self.window.log("Stream error: {}".format(e))  # log
+                    # print("Error in stream: " + str(e))
+                    # self.window.ui.dialogs.alert(str(e))
+                    pass
 
-            self.window.log("Appending output to chat window...")  # log
-            self.window.controller.output.append_output(ctx)
+                self.window.controller.output.append("\n")  # append EOL
+                self.window.log("End of stream.")  # log
+
+                # update ctx
+                ctx.output = output
+                ctx.set_tokens(ctx.input_tokens, output_tokens)
+
+            # apply plugins
+            ctx = self.window.controller.plugins.apply('ctx.after', ctx)
+
+            # log
+            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
+            self.window.log("Appending output to chat window...")
+
+            # only append output if not in async stream mode
+            if not stream_mode:
+                self.window.controller.output.append_output(ctx)
+
             self.window.gpt.context.store()
             self.window.set_status(
                 trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
-            print("Error in send text: " + str(e))
+            print("Error in send text:")
+            print(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 

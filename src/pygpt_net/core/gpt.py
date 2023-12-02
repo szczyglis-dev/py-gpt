@@ -39,13 +39,14 @@ class Gpt:
         openai.api_key = self.config.data["api_key"]
         openai.organization = self.config.data["organization_key"]
 
-    def completion(self, prompt, max_tokens):
+    def completion(self, prompt, max_tokens, stream_mode=False):
         """
         Calls OpenAI API for completion
 
         :param prompt: Prompt (user message)
         :param max_tokens: Max output tokens
-        :return: Response dict
+        :param stream_mode: Stream mode
+        :return: Response dict or stream chunks
         """
         # build prompt message
         message = self.build_completion(prompt)
@@ -64,16 +65,18 @@ class Gpt:
             frequency_penalty=self.config.data['frequency_penalty'],
             presence_penalty=self.config.data['presence_penalty'],
             stop=stop,
+            stream=stream_mode,
         )
         return response
 
-    def chat(self, prompt, max_tokens):
+    def chat(self, prompt, max_tokens, stream_mode=False):
         """
         Call OpenAI API for chat
 
         :param prompt: Prompt (user message)
         :param max_tokens: Max output tokens
-        :return: Response dict
+        :param stream_mode: Stream mode
+        :return: Response dict or stream chunks
         """
         # build chat messages
         messages = self.build_chat_messages(prompt)
@@ -86,6 +89,7 @@ class Gpt:
             frequency_penalty=self.config.data['frequency_penalty'],
             presence_penalty=self.config.data['presence_penalty'],
             stop=None,
+            stream=stream_mode,
         )
         return response
 
@@ -216,12 +220,13 @@ class Gpt:
         except Exception as e:
             print("Error in custom call: " + str(e))
 
-    def call(self, prompt, ctx=None):
+    def call(self, prompt, ctx=None, stream_mode=False):
         """
         Calls OpenAI API
 
         :param prompt: User input (prompt)
         :param ctx: Context item (memory)
+        :param stream_mode: Stream mode (default: False)
         :return: Context item (memory)
         """
         # prepare max tokens
@@ -241,9 +246,22 @@ class Gpt:
         # get response
         response = None
         if self.config.data['mode'] == "completion":
-            response = self.completion(prompt, max_tokens)
+            response = self.completion(prompt, max_tokens, stream_mode)
         elif self.config.data['mode'] == "chat":
-            response = self.chat(prompt, max_tokens)
+            response = self.chat(prompt, max_tokens, stream_mode)
+
+        # async mode (stream)
+        if stream_mode:
+            # store context (memory)
+            if ctx is None:
+                ctx = ContextItem(self.config.data['mode'])
+                ctx.set_input(prompt, self.user_name)
+
+            ctx.stream = response
+            ctx.set_output("", self.ai_name)
+            # ctx.set_tokens(response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"])
+            self.context.add(ctx)
+            return ctx
 
         if response is None:
             return None

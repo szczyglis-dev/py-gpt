@@ -410,6 +410,7 @@ class ContextItem:
 
         :param mode: Mode (completion or chat)
         """
+        self.stream = None
         self.input = None
         self.output = None
         self.mode = mode
