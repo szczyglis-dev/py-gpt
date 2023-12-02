@@ -27,11 +27,20 @@ class Input:
 
     def setup(self):
         """Sets up input"""
+
+        # stream
+        if self.window.config.data['stream']:
+            self.window.data['input.stream'].setChecked(True)
+        else:
+            self.window.data['input.stream'].setChecked(False)
+
+        # send clear
         if self.window.config.data['send_clear']:
             self.window.data['input.send_clear'].setChecked(True)
         else:
             self.window.data['input.send_clear'].setChecked(False)
 
+        # send with shift
         if self.window.config.data['send_shift_enter']:
             self.window.data['input.send_shift_enter'].setChecked(True)
             self.window.data['input.send_enter'].setChecked(False)
@@ -39,7 +48,16 @@ class Input:
             self.window.data['input.send_enter'].setChecked(True)
             self.window.data['input.send_shift_enter'].setChecked(False)
 
+        # set focus to input
         self.window.data['input'].setFocus()
+
+    def toggle_stream(self, value):
+        """
+        Toggles stream
+
+        :param value: value of the checkbox
+        """
+        self.window.config.data['stream'] = value
 
     def toggle_send_clear(self, value):
         """
@@ -107,7 +125,7 @@ class Input:
         QApplication.processEvents()  # process events to update UI
         self.window.controller.ui.update()  # update UI
 
-        stream_mode = True
+        stream_mode = self.window.config.data['stream']
 
         # call the model
         try:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.12.02 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -47,17 +47,25 @@ class Input:
         self.window.data['input.send_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 not self.window.data['input.send_enter'].isChecked()))
+
         self.window.data['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
         self.window.data['input.send_shift_enter'].setStyleSheet(
             self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_shift_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 self.window.data['input.send_shift_enter'].isChecked()))
+
         self.window.data['input.send_clear'] = QCheckBox(trans('input.send_clear'))
         self.window.data['input.send_clear'].setStyleSheet(
             self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.data['input.send_clear'].stateChanged.connect(
             lambda: self.window.controller.input.toggle_send_clear(self.window.data['input.send_clear'].isChecked()))
+
+        self.window.data['input.stream'] = QCheckBox(trans('input.stream'))
+        self.window.data['input.stream'].setStyleSheet(
+            self.window.controller.theme.get_style('checkbox'))  # Windows fix
+        self.window.data['input.stream'].stateChanged.connect(
+            lambda: self.window.controller.input.toggle_stream(self.window.data['input.stream'].isChecked()))
 
         # send button
         self.window.data['input.send_btn'] = QPushButton(trans("input.btn.send"))
@@ -66,6 +74,7 @@ class Input:
 
         # send layout
         send_layout = QHBoxLayout()
+        send_layout.addWidget(self.window.data['input.stream'])
         send_layout.addWidget(self.window.data['input.send_clear'])
         send_layout.addWidget(self.window.data['input.send_enter'])
         send_layout.addWidget(self.window.data['input.send_shift_enter'])
