@@ -56,7 +56,7 @@ class Image:
 
         # call DALL-E 2 API and generate images
         try:
-            paths = self.window.images.generate(text, num_of_images)
+            paths = self.window.images.generate(text, self.window.config.data['model'], num_of_images)
             string = ""
             i = 1
             for path in paths:

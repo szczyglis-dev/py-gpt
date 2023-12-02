@@ -23,9 +23,9 @@ from ..base_plugin import BasePlugin
 class Plugin(BasePlugin):
     def __init__(self):
         super(Plugin, self).__init__()
-        self.id = "audio_azure"
-        self.name = "Audio (Azure)"
-        self.description = "Enables audio/voice output (speech synthesis) using Microsoft Azure API"
+        self.id = "audio_openai_tts"
+        self.name = "Audio (OpenAI TTS)"
+        self.description = "Enables audio/voice output (speech synthesis) using OpenAI TTS API"
         self.options = {}
         self.options["azure_api_key"] = {
             "type": "text",
@@ -153,11 +153,8 @@ class Plugin(BasePlugin):
         :return: ctx
         """
         # Check if api key is set
-        if self.options['azure_api_key']['value'] is None or self.options['azure_api_key']['value'] == "":
-            self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugins settings.")
-            return ctx
-        if self.options['azure_region']['value'] is None or self.options['azure_region']['value'] == "":
-            self.window.ui.dialogs.alert("Azure Region is not set. Please set it in plugins settings.")
+        if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == "":
+            self.window.ui.dialogs.alert("OpenAI API KEY is not set. Please set it in settings.")
             return ctx
 
         text = ctx.output
@@ -169,7 +166,8 @@ class Plugin(BasePlugin):
                     voice = self.options['voice_pl']['value']
                 elif lang == "en":
                     voice = self.options['voice_en']['value']
-                tts = TTS(self.options['azure_api_key']['value'], self.options['azure_region']['value'], voice, text)
+                tts = TTS(self.window.config.data['api_key'], self.options['azure_region']['value'], voice,
+                          text)
                 t = threading.Thread(target=tts.run)
                 t.start()
         except Exception as e:

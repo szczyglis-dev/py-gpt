@@ -95,10 +95,27 @@ class Updater:
         current = parse_version(self.window.version)
         if old < current:
             if old < parse_version("0.9.7"):
+                if 'dall-e-2' not in data:
+                    data['dall-e-2'] = {}
+                    data['dall-e-2']['id'] = 'dall-e-2'
+                    data['dall-e-2']['name'] = 'DALL-E 2'
+                    data['dall-e-2']['mode'] = ['img']
+                    data['dall-e-2']['tokens'] = 0
+                    data['dall-e-2']['ctx'] = 0
+
+                if 'dall-e-3' not in data:
+                    data['dall-e-3'] = {}
+                    data['dall-e-3']['id'] = 'dall-e-3'
+                    data['dall-e-3']['name'] = 'DALL-E 3'
+                    data['dall-e-3']['mode'] = ['img']
+                    data['dall-e-3']['tokens'] = 0
+                    data['dall-e-3']['ctx'] = 0
+                    data['dall-e-3']['default'] = True
+
                 if 'gpt-4-1106-preview' not in data:
                     data['gpt-4-1106-preview'] = {}
                     data['gpt-4-1106-preview']['id'] = 'gpt-4-1106-preview'
-                    data['gpt-4-1106-preview']['name'] = 'gpt-4.5-turbo'
+                    data['gpt-4-1106-preview']['name'] = 'gpt-4-turbo'
                     data['gpt-4-1106-preview']['mode'] = ['chat']
                     data['gpt-4-1106-preview']['tokens'] = 4096
                     data['gpt-4-1106-preview']['ctx'] = 8192
@@ -106,7 +123,7 @@ class Updater:
                 if 'gpt-3.5-turbo-16k' not in data:
                     data['gpt-3.5-turbo-16k'] = {}
                     data['gpt-3.5-turbo-16k']['id'] = 'gpt-3.5-turbo-16k'
-                    data['gpt-3.5-turbo-16k']['name'] = 'gpt-4.5-turbo-16k'
+                    data['gpt-3.5-turbo-16k']['name'] = 'gpt-3.5-turbo-16k'
                     data['gpt-3.5-turbo-16k']['mode'] = ['chat']
                     data['gpt-3.5-turbo-16k']['tokens'] = 4096
                     data['gpt-3.5-turbo-16k']['ctx'] = 16385
@@ -131,7 +148,6 @@ class Updater:
                 for k in data:
                     if k == "__meta__":
                         continue
-                    data[k]['tokens'] = 4096
                     if k == "gpt-3.5-turbo":
                         data[k]['ctx'] = 4096
                     elif k == "gpt-3.5-turbo-16k":

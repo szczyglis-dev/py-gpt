@@ -33,11 +33,12 @@ class Image:
         openai.api_key = self.config.data["api_key"]
         openai.organization = self.config.data["organization_key"]
 
-    def generate(self, prompt, num=None):
+    def generate(self, prompt, model="dall-e-3", num=None):
         """
         Calls DALL-E API
 
         :param prompt: Prompt
+        :param model: Model name
         :param num: Number of variants
         :return: Images paths list
         """
@@ -45,6 +46,7 @@ class Image:
             num = int(input("How many variants generate? [1] ") or 1)
         print("Generating from: '{}'...".format(prompt))
         response = openai.Image.create(
+            model=model,
             prompt=prompt,
             n=num,
             size=self.config.data["img_resolution"],

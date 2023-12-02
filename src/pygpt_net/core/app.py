@@ -30,6 +30,7 @@ from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 from .plugin.real_time.plugin import Plugin as RealTimePlugin
 from .plugin.web_search.plugin import Plugin as WebSearchPlugin
 from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
+from .plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -201,6 +202,7 @@ def run():
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(WebSearchPlugin())
     launcher.add_plugin(AudioAzurePlugin())
+    launcher.add_plugin(AudioOpenAITTSPlugin())
 
     # run app
     launcher.run()

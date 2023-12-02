@@ -216,5 +216,7 @@ class Toolbox:
                 if id == 'preset.presets':
                     if not n.startswith('current.'):
                         name = data[n]['name'] + ' (' + str(n) + ')'
+                elif id == 'prompt.mode':
+                    name = trans(name)
                 self.window.models[id].setData(self.window.models[id].index(i, 0), name)
                 i += 1

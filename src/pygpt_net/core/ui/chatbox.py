@@ -43,7 +43,7 @@ class ChatBox:
         self.window.data['chat.label'] = QLabel(trans("chatbox.label"))
         self.window.data['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
-        self.window.data['chat.plugins'] = QLabel("+ 2 plugins")
+        self.window.data['chat.plugins'] = QLabel("")
         self.window.data['chat.plugins'].setAlignment(Qt.AlignCenter)
 
         header = QHBoxLayout()

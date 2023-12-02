@@ -207,11 +207,13 @@ class Config:
         curr_chat = self.build_empty_preset()
         curr_completion = self.build_empty_preset()
         curr_img = self.build_empty_preset()
+        curr_vision = self.build_empty_preset()
 
         # prepare ids
         id_chat = 'current.chat'
         id_completion = 'current.completion'
         id_img = 'current.img'
+        id_vision = 'current.vision'
 
         # set default initial prompt for chat mode
         curr_chat['prompt'] = self.data['default_prompt']
@@ -226,19 +228,30 @@ class Config:
         if id_img in self.presets:
             curr_img = self.presets[id_img].copy()
             del self.presets[id_img]
+        if id_vision in self.presets:
+            curr_vision = self.presets[id_vision].copy()
+            del self.presets[id_vision]
 
         # allow usage in specific mode
         curr_chat['chat'] = True
         curr_completion['completion'] = True
         curr_img['img'] = True
+        curr_vision['vision'] = True
 
         # always apply default name
         curr_chat['name'] = '*'
         curr_completion['name'] = '*'
         curr_img['name'] = '*'
+        curr_vision['name'] = '*'
 
         # append at first position
-        self.presets = {id_chat: curr_chat, id_completion: curr_completion, id_img: curr_img, **self.presets}
+        self.presets = {
+            id_chat: curr_chat,
+            id_completion: curr_completion,
+            id_img: curr_img,
+            id_vision: curr_vision,
+            **self.presets
+        }
 
     def get_mode_by_idx(self, idx):
         """
@@ -280,13 +293,16 @@ class Config:
         """
         modes = {}
         modes['chat'] = {
-            'name': 'Chat'
+            'name': 'mode.chat'
         }
         modes['completion'] = {
-            'name': 'Completion'
+            'name': 'mode.completion'
         }
         modes['img'] = {
-            'name': 'Image (DALL-E 2)'
+            'name': 'mode.img'
+        }
+        modes['vision'] = {
+            'name': 'mode.vision'
         }
         return modes
 
@@ -301,7 +317,8 @@ class Config:
         for key in self.presets:
             if (mode == 'chat' and self.presets[key]['chat']) \
                     or (mode == 'completion' and self.presets[key]['completion']) \
-                    or (mode == 'img' and self.presets[key]['img']):
+                    or (mode == 'img' and self.presets[key]['img']) \
+                    or (mode == 'vision' and self.presets[key]['vision']):
                 presets[key] = self.presets[key]
         return presets
 
