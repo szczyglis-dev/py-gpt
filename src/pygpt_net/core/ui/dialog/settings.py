@@ -71,7 +71,7 @@ class Settings:
                                                                         '', 1, 32000,
                                                                         1, 50)
         self.window.config_option['max_total_tokens'] = SettingsSlider(self.window, 'max_total_tokens',
-                                                                       '', 1, 32000,
+                                                                       '', 1, 256000,
                                                                        1, 400)
         self.window.config_option['font_size'] = SettingsSlider(self.window, 'font_size',
                                                                 '', 8, 20,

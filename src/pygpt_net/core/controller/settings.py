@@ -350,12 +350,16 @@ class Settings:
                     slider_value = 1
                 elif slider_value > 200:
                     slider_value = 200
-            elif id == 'max_output_tokens' \
-                    or id == 'max_total_tokens':
+            elif id == 'max_output_tokens':
                 if slider_value < 1:
                     slider_value = 1
                 elif slider_value > 32000:
                     slider_value = 32000
+            elif id == 'max_total_tokens':
+                if slider_value < 1:
+                    slider_value = 1
+                elif slider_value > 256000:
+                    slider_value = 256000
             self.window.config_option[id].slider.setValue(slider_value)
 
         # update from raw value

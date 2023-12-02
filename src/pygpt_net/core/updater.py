@@ -94,15 +94,72 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("0.9.7"):
+                if 'gpt-4-1106-preview' not in data:
+                    data['gpt-4-1106-preview'] = {}
+                    data['gpt-4-1106-preview']['id'] = 'gpt-4-1106-preview'
+                    data['gpt-4-1106-preview']['name'] = 'gpt-4.5-turbo'
+                    data['gpt-4-1106-preview']['mode'] = ['chat']
+                    data['gpt-4-1106-preview']['tokens'] = 4096
+                    data['gpt-4-1106-preview']['ctx'] = 8192
+
+                if 'gpt-3.5-turbo-16k' not in data:
+                    data['gpt-3.5-turbo-16k'] = {}
+                    data['gpt-3.5-turbo-16k']['id'] = 'gpt-3.5-turbo-16k'
+                    data['gpt-3.5-turbo-16k']['name'] = 'gpt-4.5-turbo-16k'
+                    data['gpt-3.5-turbo-16k']['mode'] = ['chat']
+                    data['gpt-3.5-turbo-16k']['tokens'] = 4096
+                    data['gpt-3.5-turbo-16k']['ctx'] = 16385
+
+                if 'gpt-4-32k' not in data:
+                    data['gpt-4-32k'] = {}
+                    data['gpt-4-32k']['id'] = 'gpt-4-32k'
+                    data['gpt-4-32k']['name'] = 'gpt-4-32k'
+                    data['gpt-4-32k']['mode'] = ['chat']
+                    data['gpt-4-32k']['tokens'] = 4096
+                    data['gpt-4-32k']['ctx'] = 32768
+
+                if 'gpt-4-vision-preview' not in data:
+                    data['gpt-4-vision-preview'] = {}
+                    data['gpt-4-vision-preview']['id'] = 'gpt-4-vision-preview'
+                    data['gpt-4-vision-preview']['name'] = 'gpt-4-vision'
+                    data['gpt-4-vision-preview']['mode'] = ['chat', 'vision']
+                    data['gpt-4-vision-preview']['tokens'] = 4096
+                    data['gpt-4-vision-preview']['ctx'] = 128000
+
+                # update all models
+                for k in data:
+                    if k == "__meta__":
+                        continue
+                    data[k]['tokens'] = 4096
+                    if k == "gpt-3.5-turbo":
+                        data[k]['ctx'] = 4096
+                    elif k == "gpt-3.5-turbo-16k":
+                        data[k]['ctx'] = 16385
+                    elif k == "gpt-4":
+                        data[k]['ctx'] = 8192
+                    elif k == "gpt-4-1106-preview":
+                        data[k]['ctx'] = 8192
+                    elif k == "gpt-4-1106-preview":
+                        data[k]['ctx'] = 8192
+                    elif k == "gpt-4-vision-preview":
+                        data[k]['ctx'] = 128000
+                    elif k == "text-davinci-002":
+                        data[k]['ctx'] = 4096
+                    elif k == "text-davinci-003":
+                        data[k]['ctx'] = 4096
+
+                updated = True
             if old < parse_version("0.9.1"):
                 # apply meta only (not attached in 0.9.0)
                 updated = True
 
         # update file
         if updated:
-            print("Migrated models.json.")
+            data = dict(sorted(data.items()))
             self.window.config.models = data
             self.window.config.save_models()
+            print("Migrated models.json.")
 
     def patch_presets(self):
         """Migrates presets to current version"""
@@ -120,9 +177,10 @@ class Updater:
 
             # update file
             if updated:
-                print("Migrated presets.")
+                data = dict(sorted(data.items()))
                 self.window.config.presets[k] = data
                 self.window.config.save_preset(k)
+                print("Migrated presets.")
 
     def patch_config(self):
         """Migrates config to current version"""
@@ -179,6 +237,7 @@ class Updater:
 
         # update file
         if updated:
-            print("Migrated config.json.")
+            data = dict(sorted(data.items()))
             self.window.config.data = data
             self.window.config.save()
+            print("Migrated config.json.")

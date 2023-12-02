@@ -468,6 +468,17 @@ class Config:
             return self.models[model]['tokens']
         return 1
 
+    def get_model_ctx(self, model):
+        """
+        Returns model context window tokens
+
+        :param model: model name
+        :return: number of ctx tokens
+        """
+        if model in self.models:
+            return self.models[model]['ctx']
+        return 4096
+
     def append_meta(self):
         """
         Appends meta data

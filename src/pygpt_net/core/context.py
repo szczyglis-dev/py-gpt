@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 14:00:00                  #
+# Updated Date: 2023.12.02 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -240,11 +240,12 @@ class Context:
                 except Exception as e:
                     print(e)
 
-    def count_prompt_items(self, model, used_tokens=100, max_tokens=1000):
+    def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
         """
         Counts context items to add to prompt
 
         :param model: model
+        :param mode: mode
         :param used_tokens: used tokens
         :param max_tokens: max tokens
         :return: context items count, context tokens count
@@ -254,7 +255,7 @@ class Context:
         tokens = used_tokens
         context_tokens = 0
         for item in reversed(self.items):
-            num = num_tokens_from_context_item(item, model)
+            num = num_tokens_from_context_item(item, mode, model)  # get num tokens for input and output
             tokens += num
             if tokens > max_tokens:
                 break

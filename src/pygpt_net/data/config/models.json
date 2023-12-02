@@ -1,39 +1,80 @@
 {
-  "gpt-3.5-turbo": {
-    "id": "gpt-3.5-turbo",
-    "name": "gpt-3.5-turbo",
-    "mode": [
-      "chat"
-    ],
-    "tokens": 4097
-  },
-  "gpt-4": {
-    "id": "gpt-4",
-    "name": "gpt-4",
-    "mode": [
-      "chat"
-    ],
-    "tokens": 8192
-  },
-  "text-davinci-003": {
-    "id": "text-davinci-003",
-    "name": "gpt-3.5 (davinci-003)",
-    "mode": [
-      "completion"
-    ],
-    "tokens": 4097
-  },
-  "text-davinci-002": {
-    "id": "text-davinci-002",
-    "name": "gpt-3 (davinci-002)",
-    "mode": [
-      "completion"
-    ],
-    "tokens": 4097
-  },
-  "__meta__": {
-    "version": "0.9.6",
-    "app.version": "0.9.6",
-    "updated_at": "2023-04-16T22:25:00"
-  }
+    "__meta__": {
+        "version": "0.9.7",
+        "app.version": "0.9.7",
+        "updated_at": "2023-12-02T15:10:59"
+    },
+    "gpt-3.5-turbo": {
+        "id": "gpt-3.5-turbo",
+        "name": "gpt-3.5-turbo",
+        "mode": [
+            "chat"
+        ],
+        "ctx": 4096,
+        "tokens": 4096
+    },
+    "gpt-3.5-turbo-16k": {
+        "id": "gpt-3.5-turbo-16k",
+        "name": "gpt-3.5-turbo-16k",
+        "mode": [
+            "chat"
+        ],
+        "ctx": 16385,
+        "tokens": 4096
+    },
+    "gpt-4": {
+        "id": "gpt-4",
+        "name": "gpt-4",
+        "mode": [
+            "chat"
+        ],
+        "ctx": 8192,
+        "tokens": 4096
+    },
+    "gpt-4-1106-preview": {
+        "id": "gpt-4-1106-preview",
+        "name": "gpt-4.5-turbo",
+        "mode": [
+            "chat"
+        ],
+        "ctx": 8192,
+        "tokens": 4096
+    },
+    "gpt-4-32k": {
+        "id": "gpt-4-32k",
+        "name": "gpt-4-32k",
+        "mode": [
+            "chat"
+        ],
+        "ctx": 32768,
+        "tokens": 4096
+    },
+    "gpt-4-vision-preview": {
+        "id": "gpt-4-vision-preview",
+        "name": "gpt-4-vision",
+        "mode": [
+            "chat",
+            "vision"
+        ],
+        "ctx": 128000,
+        "tokens": 4096
+    },
+    "text-davinci-002": {
+        "id": "text-davinci-002",
+        "name": "gpt-3 (davinci-002)",
+        "mode": [
+            "completion"
+        ],
+        "ctx": 4096,
+        "tokens": 4096
+    },
+    "text-davinci-003": {
+        "id": "text-davinci-003",
+        "name": "gpt-3.5 (davinci-003)",
+        "mode": [
+            "completion"
+        ],
+        "ctx": 4096,
+        "tokens": 4096
+    }
 }

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 14:00:00                  #
+# Updated Date: 2023.12.02 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
 from ..context import ContextItem
+from ..history import History
 from ..utils import trans
 
 
@@ -24,6 +25,7 @@ class Input:
         :param window: main window
         """
         self.window = window
+        self.history = History(self.window.config)
 
     def setup(self):
         """Sets up input"""
@@ -93,8 +95,16 @@ class Input:
         self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.data['user_name']))  # log
         self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.data['ai_name']))  # log
 
+        # store history
+        if self.window.config.data['store_history']:
+            self.history.save(text)
+
+        # get mode
+        mode = self.window.config.data['mode']
+
         # create ctx item
         ctx = ContextItem()
+        ctx.mode = mode
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
@@ -125,6 +135,7 @@ class Input:
         QApplication.processEvents()  # process events to update UI
         self.window.controller.ui.update()  # update UI
 
+        # async or sync mode
         stream_mode = self.window.config.data['stream']
 
         # call the model
@@ -147,14 +158,25 @@ class Input:
                 try:
                     self.window.log("Reading stream...")  # log
                     for chunk in ctx.stream:
-                        if chunk.choices[0].delta.content is not None:
-                            output += chunk.choices[0].delta.content
+                        response = None
+                        if mode == "chat":
+                            if chunk.choices[0].delta.content is not None:
+                                response = chunk.choices[0].delta.content
+                        elif mode == "completion":
+                            if chunk.choices[0].text is not None:
+                                response = chunk.choices[0].text
+                        if response is not None:
+                            # prevent empty begin
+                            if begin and response == "":
+                                continue
+                            output += response
                             output_tokens += 1
-                            self.window.controller.output.append_chunk(ctx, chunk.choices[0].delta.content, begin)
+                            self.window.controller.output.append_chunk(ctx, response, begin)
                             QApplication.processEvents()  # process events to update UI
                             self.window.controller.ui.update()  # update UI
-                            # print(chunk.choices[0].delta.content)
+                            # print(chunk.choices[0].text)
                             begin = False
+
                 except Exception as e:
                     # debug
                     # self.window.log("Stream error: {}".format(e))  # log
@@ -176,17 +198,21 @@ class Input:
             self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
             self.window.log("Appending output to chat window...")
 
-            # only append output if not in async stream mode
+            # only append output if not in async stream mode, TODO: plugin output add
             if not stream_mode:
                 self.window.controller.output.append_output(ctx)
 
             self.window.gpt.context.store()
             self.window.set_status(
                 trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
+
+            # store history
+            if self.window.config.data['store_history']:
+                self.history.save(ctx.output)
+
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
-            print("Error in send text:")
-            print(e)
+            print("Error in send text: " + str(e))
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -212,7 +238,7 @@ class Input:
 
         self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
-        if len(text) > 0:
+        if len(text.strip()) > 0:
             if self.window.config.data['send_clear']:
                 self.window.data['input'].clear()
 
@@ -227,7 +253,7 @@ class Input:
             self.window.gpt.init()
             self.window.images.init()
 
-            # prepare context
+            # prepare context, create new if no contexts (first run)
             if len(self.window.gpt.context.contexts) == 0:
                 self.window.gpt.context.new()
                 self.window.controller.context.update()
@@ -244,9 +270,13 @@ class Input:
         else:
             self.window.statusChanged.emit("")
 
-        self.window.log("Context: output: {}".format(ctx.dump()))  # log
-        ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
-        self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
+        if ctx is not None:
+            self.window.log("Context: output: {}".format(ctx.dump()))  # log
+            ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
+            self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
+            self.window.controller.ui.update()  # update UI
+            return
+
         self.window.controller.ui.update()
 
     def append(self, text):

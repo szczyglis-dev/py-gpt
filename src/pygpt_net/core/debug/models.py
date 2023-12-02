@@ -26,13 +26,18 @@ class ModelsDebug:
         """Updates debug window."""
         self.window.debugger.begin(self.id)
 
-        path = os.path.join(self.window.config.path, 'models', 'models.json')
+        path = os.path.join(self.window.config.path, '', 'models.json')
         self.window.debugger.add(self.id, 'Models File', str(path))
 
         # models
         for key in self.window.config.models:
+            if key == '__meta__':
+                self.window.debugger.add(self.id, '__meta__', str(self.window.config.models[key]))
+                continue
             prefix = "[{}] ".format(key)
             model = self.window.config.models[key]
+            self.window.debugger.add(self.id, '----', '')
+            self.window.debugger.add(self.id, str(key), '')
             self.window.debugger.add(self.id, prefix + 'Key', str(key))
             self.window.debugger.add(self.id, prefix + 'id', str(model['id']))
             self.window.debugger.add(self.id, prefix + 'name', str(model['name']))

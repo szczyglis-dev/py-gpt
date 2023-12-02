@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 14:00:00                  #
+# Updated Date: 2023.12.02 21:00:00                  #
 # ================================================== #
 
 import openai
 
-from .tokens import num_tokens_prompt, num_tokens_extra
+from .tokens import num_tokens_prompt, num_tokens_extra, num_tokens_from_messages, num_tokens_completion, \
+    num_tokens_only
 from .context import Context, ContextItem
-from .history import History
 
 
 class Gpt:
@@ -25,11 +25,11 @@ class Gpt:
         """
         self.config = config
         self.context = Context(config)
-        self.history = History(config)
 
         self.ai_name = None
         self.user_name = None
         self.system_prompt = None
+        self.input_tokens = 0
 
         if not self.config.initialized:
             self.config.init()
@@ -93,6 +93,10 @@ class Gpt:
         )
         return response
 
+    def reset_tokens(self):
+        """Resets input tokens counter"""
+        self.input_tokens = 0
+
     def build_chat_messages(self, prompt, system_prompt=None):
         """
         Builds chat messages dict
@@ -103,9 +107,24 @@ class Gpt:
         """
         messages = []
 
+        # tokens config
         model = self.config.data['model']
         used_tokens = self.count_used_tokens(prompt)
         max_tokens = self.config.data['max_total_tokens']
+        model_ctx = self.config.get_model_ctx(model)
+        if max_tokens > model_ctx:
+            max_tokens = model_ctx
+
+        # names
+        ai_name = "assistant"  # default
+        user_name = "user"  # default
+        if self.user_name is not None and self.user_name != "":
+            user_name = self.user_name
+        if self.ai_name is not None and self.ai_name != "":
+            ai_name = self.ai_name
+
+        # input tokens: reset
+        self.reset_tokens()
 
         # append initial (system) message
         if system_prompt is not None and system_prompt != "":
@@ -120,14 +139,17 @@ class Gpt:
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
-                    messages.append({"role": "user", "content": item.input})
+                    messages.append({"role": "system", "name": user_name, "content": item.input})
 
                 # output
                 if item.output is not None and item.output != "":
-                    messages.append({"role": "assistant", "content": item.output})
+                    messages.append({"role": "system", "name": ai_name, "content": item.output})
 
         # append current prompt
         messages.append({"role": "user", "content": str(prompt)})
+
+        # input tokens: update
+        self.input_tokens += num_tokens_from_messages(messages, model)
 
         return messages
 
@@ -139,9 +161,17 @@ class Gpt:
         :return: Message string (parsed with context)
         """
         message = ""
+
+        # tokens config
         model = self.config.data['model']
         used_tokens = self.count_used_tokens(prompt)
         max_tokens = self.config.data['max_total_tokens']
+        model_ctx = self.config.get_model_ctx(model)
+        if max_tokens > model_ctx:
+            max_tokens = model_ctx
+
+        # input tokens: reset
+        self.reset_tokens()
 
         if self.system_prompt is not None and self.system_prompt != "":
             message += self.system_prompt
@@ -163,6 +193,7 @@ class Gpt:
                     if item.output is not None and item.output != "":
                         message += "\n" + item.output
 
+        # append names
         if self.user_name is not None \
                 and self.ai_name is not None \
                 and self.user_name != "" \
@@ -171,6 +202,9 @@ class Gpt:
             message += "\n" + self.ai_name + ":"
         else:
             message += "\n" + str(prompt)
+
+        # input tokens: update
+        self.input_tokens += num_tokens_completion(message, model)
 
         return message
 
@@ -182,10 +216,16 @@ class Gpt:
         :return: Used tokens
         """
         model = self.config.data['model']
+        mode = self.config.data['mode']
         tokens = 0
-        tokens += num_tokens_prompt(self.system_prompt, self.user_name,
-                                    model)  # init (system) prompt
-        tokens += num_tokens_prompt(input_text, self.user_name, model)  # current input
+        if mode == "chat":
+            tokens += num_tokens_prompt(self.system_prompt, "", model)  # init (system) prompt
+            tokens += num_tokens_only("system", model)
+            tokens += num_tokens_prompt(input_text, "", model)  # current input
+            tokens += num_tokens_only("user", model)
+        elif mode == "completion":
+            tokens += num_tokens_only(self.system_prompt, model)  # init (system) prompt
+            tokens += num_tokens_only(input_text, model)  # current input
         tokens += self.config.data['context_threshold']  # context threshold (reserved for next output)
         tokens += num_tokens_extra(model)  # extra tokens (required for output)
         return tokens
@@ -196,6 +236,7 @@ class Gpt:
 
         :param prompt: User input (prompt)
         :param sys_prompt: System input (prompt)
+        :param append_context: Append context (memory)
         :param max_tokens: Max output tokens
         :return: Response text
         """
@@ -239,10 +280,6 @@ class Gpt:
         if max_tokens < 1:
             max_tokens = 1
 
-        # store history
-        if self.config.data['store_history']:
-            self.history.save(prompt)
-
         # get response
         response = None
         if self.config.data['mode'] == "completion":
@@ -259,7 +296,7 @@ class Gpt:
 
             ctx.stream = response
             ctx.set_output("", self.ai_name)
-            # ctx.set_tokens(response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"])
+            ctx.input_tokens = self.input_tokens  # from global tokens calculation
             self.context.add(ctx)
             return ctx
 
@@ -286,10 +323,6 @@ class Gpt:
         ctx.set_output(output, self.ai_name)
         ctx.set_tokens(response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"])
         self.context.add(ctx)
-
-        # store history
-        if self.config.data['store_history']:
-            self.history.save(output)
 
         return ctx
 

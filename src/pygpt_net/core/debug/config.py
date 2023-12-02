@@ -9,6 +9,9 @@
 # Created Date: 2023.04.09 20:00:00                  #
 # ================================================== #
 
+import os
+
+
 class ConfigDebug:
     def __init__(self, window=None):
         """
@@ -22,6 +25,9 @@ class ConfigDebug:
     def update(self):
         """Updates debug window."""
         self.window.debugger.begin(self.id)
+
+        path = os.path.join(self.window.config.path, '', 'config.json')
+        self.window.debugger.add(self.id, 'Config File', str(path))
 
         # config data
         for key in self.window.config.data:
