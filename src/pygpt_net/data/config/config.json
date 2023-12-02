@@ -1,31 +1,13 @@
 {
-  "api_key": "",
-  "organization_key": "",
-  "theme": "dark_teal",
-  "lang": "en",
-  "mode": "chat",
-  "preset": "current.chat",
-  "model": "gpt-3.5-turbo",
-  "prompt": "",
+  "__meta__": {
+    "version": "0.9.7",
+    "app.version": "0.9.7",
+    "updated_at": "2023-12-02T14:00:00"
+  },
   "ai_name": "",
-  "user_name": "",
-  "max_output_tokens": 1024,
-  "max_total_tokens": 4096,
-  "use_context": true,
+  "api_key": "",
   "context_threshold": 200,
-  "temperature": 1.0,
-  "top_p": 1.0,
-  "frequency_penalty": 0.0,
-  "presence_penalty": 0.0,
-  "store_history": true,
-  "store_history_time": true,
-  "img_resolution": "1024x1024",
-  "font_size": 11,
-  "default_prompt": "You are a helpful assistant.",
-  "max_tokens_length": 32000,
-  "max_context_history_items": 100,
-  "send_shift_enter": false,
-  "send_clear": true,
+  "ctx": "",
   "current_model": {
     "completion": "text-davinci-003",
     "chat": "gpt-3.5-turbo"
@@ -35,29 +17,49 @@
     "chat": "",
     "img": ""
   },
+  "debug": true,
+  "default_prompt": "You are a helpful assistant.",
+  
+  "font_size": 11,
+  "frequency_penalty": 0.0,
+  "img_resolution": "1024x1024",
+  "img_variants": 1,
+  "lang": "en",
+  "max_context_history_items": 100,
+  "max_output_tokens": 1024,
+  "max_tokens_length": 32000,
+  "max_total_tokens": 4096,
+  "mode": "chat",
+  "model": "gpt-3.5-turbo",
+  "organization_key": "",
+  "output_timestamp": true,
   "plugins": {
-    "self_loop": {
-      "iterations": 5,
-      "clear_output": true,
-      "reverse_roles": true
-    },
     "real_time": {
-      "hour": true,
       "date": true,
+      "hour": true,
       "tpl": " Current time is {time}."
+    },
+    "self_loop": {
+      "clear_output": true,
+      "iterations": 5,
+      "reverse_roles": true
     }
   },
   "plugins_enabled": {
-    "self_loop": false,
-    "real_time": false
+    "real_time": false,
+    "self_loop": false
   },
-  "output_timestamp": true,
-  "debug": true,
-  "ctx": "",
-  "img_variants": 1,
-  "__meta__": {
-    "version": "0.9.6",
-    "app.version": "0.9.6",
-    "updated_at": "2023-04-16T22:25:00"
-  }
+  "presence_penalty": 0.0,
+  "preset": "current.chat",
+  "prompt": "",
+  "send_clear": true,
+  "send_shift_enter": false,
+  "store_history": true,
+  "store_history_time": true,
+  "stream": true,
+  "temperature": 1.0,
+  "theme": "dark_teal",
+  "top_p": 1.0,
+  "use_context": true,
+  "user_name": ""
 }

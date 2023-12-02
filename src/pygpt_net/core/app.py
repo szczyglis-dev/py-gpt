@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.16 22:00:00                  #
+# Updated Date: 2023.12.02 14:00:00                  #
 # ================================================== #
 
 import sys
@@ -49,7 +49,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # setup config
         self.config = Config()
-        self.config.init()
+        self.config.init(True, True)
 
         # app controller
         self.controller = Controller(self)

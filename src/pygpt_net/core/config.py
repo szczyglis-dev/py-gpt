@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.12.02 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -65,15 +65,16 @@ class Config:
             langs.insert(0, 'en')
         return langs
 
-    def init(self, all=True):
+    def init(self, all=True, log=False):
         """
         Initializes config
 
         :param all: load all configs
+        :param log: log loading
         """
         if not self.initialized:
             self.install()
-            self.load(all)
+            self.load(all, log)
             self.initialized = True
 
     def get_version(self):
@@ -92,16 +93,17 @@ class Config:
         except Exception as e:
             print(e)
 
-    def load(self, all=True):
+    def load(self, all=True, log=False):
         """
         Loads config
 
         :param all: load all configs
+        :param log: log loading
         """
-        self.load_config()
+        self.load_config(log)
 
         if all:
-            self.load_models()
+            self.load_models(log)
             self.load_presets()
 
     def save_preset(self, preset):
@@ -121,8 +123,12 @@ class Config:
         except Exception as e:
             print(e)
 
-    def load_models(self):
-        """Loads models config from JSON file"""
+    def load_models(self, log=False):
+        """
+        Loads models config from JSON file
+
+        :param log: log loading
+        """
         path = os.path.join(self.path, 'models.json')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
@@ -132,11 +138,17 @@ class Config:
             self.models = json.load(f)
             self.models = dict(sorted(self.models.items(), key=lambda item: item[0]))  # sort by key
             f.close()
+            if log:
+                print("Loaded models: {}".format(path))
         except Exception as e:
             print(e)
 
-    def load_config(self):
-        """Loads app config from JSON file"""
+    def load_config(self, log=False):
+        """
+        Loads app config from JSON file
+
+        :param log: log loading
+        """
         path = os.path.join(self.path, 'config.json')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
@@ -146,6 +158,8 @@ class Config:
             self.data = json.load(f)
             self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             f.close()
+            if log:
+                print("Loaded config: {}".format(path))
         except Exception as e:
             print(e)
 
