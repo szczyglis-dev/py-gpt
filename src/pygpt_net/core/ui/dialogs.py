@@ -15,7 +15,7 @@ from .dialog.debug import Debug
 from .dialog.about import About
 from .dialog.changelog import Changelog
 from .dialog.editor import Editor
-from .dialog.ctx_rename import CtxRename
+from .dialog.rename import Rename
 from .dialog.start import Start
 from .dialog.update import Update
 from .dialog.image import Image
@@ -63,7 +63,7 @@ class Dialogs:
         editor.setup()
 
         # setup ctx rename dialog
-        ctx_rename = CtxRename(self.window)
+        ctx_rename = Rename(self.window)
         ctx_rename.setup()
 
         # setup start dialog

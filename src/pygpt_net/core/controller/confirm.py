@@ -37,6 +37,10 @@ class Confirm:
             self.window.controller.context.delete_history(True)
         elif type == 'img_delete':
             self.window.controller.image.img_action_delete(id, True)
+        elif type == 'attachments.delete':
+            self.window.controller.attachment.delete(id, True)
+        elif type == 'attachments.clear':
+            self.window.controller.attachment.clear(True)
 
         self.window.dialog['confirm'].close()
 
@@ -48,3 +52,16 @@ class Confirm:
         :param id: dialog object id
         """
         self.window.dialog['confirm'].close()
+
+    def accept_rename(self, type, id, name):
+        """
+        Updates name of object
+        """
+        if type == 'ctx':
+            self.window.controller.context. update_name(id, name)
+        elif type == 'attachment':
+            self.window.controller.attachment.update_name(id, name)
+
+    def dismiss_rename(self):
+        """Dismisses rename dialog"""
+        self.window.dialog['rename'].close()

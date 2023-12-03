@@ -128,9 +128,10 @@ class Context:
         """
         ctx = self.window.gpt.context.get_name_by_idx(idx)
         ctx_data = self.window.gpt.context.get_context_by_name(ctx)
-        self.window.dialog['ctx.rename'].input.setText(ctx_data['name'])
-        self.window.dialog['ctx.rename'].current = ctx
-        self.window.dialog['ctx.rename'].show()
+        self.window.dialog['rename'].id = 'ctx'
+        self.window.dialog['rename'].input.setText(ctx_data['name'])
+        self.window.dialog['rename'].current = ctx
+        self.window.dialog['rename'].show()
         self.update()
 
     def select_ctx_by_current(self):
@@ -151,12 +152,12 @@ class Context:
         """
         self.window.gpt.context.contexts[ctx]['name'] = name
         self.window.gpt.context.dump_context(ctx)
-        self.window.dialog['ctx.rename'].close()
+        self.window.dialog['rename'].close()
         self.update()
 
     def dismiss_rename(self):
         """Dismisses rename dialog"""
-        self.window.dialog['ctx.rename'].close()
+        self.window.dialog['rename'].close()
 
     def add(self, ctx):
         """

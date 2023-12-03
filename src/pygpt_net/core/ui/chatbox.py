@@ -10,11 +10,13 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter
 
 from ..ui.widgets import ChatOutput
 from ..ui.input import Input
 from ..utils import trans
+from ..ui.highlighter import MarkdownHighlighter
 
 
 class ChatBox:
@@ -35,7 +37,14 @@ class ChatBox:
         """
         self.window.layout_input = self.input.setup()
 
+        monofont = QFont()
+        monofont.setFamily('monospace')
+
         self.window.data['output'] = ChatOutput(self.window)
+        self.window.data['output'].setFont(monofont)
+
+        self.highlighter = MarkdownHighlighter(self.window.data['output'])
+
         self.window.data['chat.model'] = QLabel("")
         self.window.data['chat.model'].setAlignment(Qt.AlignRight)
         context_layout = self.setup_context()

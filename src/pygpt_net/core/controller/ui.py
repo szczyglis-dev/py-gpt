@@ -93,6 +93,5 @@ class UI:
         threshold = str(int(self.window.config.data['context_threshold']))
 
         string = "{} + {} + {} + {} = {} / {} (-{})".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,
-                                                              total_tokens,
-                                                              str(int(max_total_tokens)), threshold)
+                                                            total_tokens, str(int(max_total_tokens)), threshold)
         self.window.data['input.counter'].setText(string)

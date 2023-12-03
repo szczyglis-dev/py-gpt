@@ -232,11 +232,11 @@ class ContextSelectMenu(SelectMenu):
         :param event: context menu event
         """
         actions = {}
-        actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('ctx.action.rename'), self)
+        actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
         actions['rename'].triggered.connect(
             lambda: self.action_rename(event))
 
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('ctx.action.delete'), self)
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 
@@ -271,6 +271,100 @@ class ContextSelectMenu(SelectMenu):
         idx = item.row()
         if idx >= 0:
             self.window.controller.context.delete(idx)
+
+
+class AttachmentSelectMenu(SelectMenu):
+    def __init__(self, window=None, id=None):
+        """
+        Attachments menu
+
+        :param window: main window
+        :param id: input id
+        """
+        super(AttachmentSelectMenu, self).__init__(window)
+        self.window = window
+        self.id = id
+
+        self.doubleClicked.connect(self.dblclick)
+
+    def click(self, val):
+        """
+        Click event
+
+        :param val: click event
+        """
+        self.window.controller.attachment.select(val.row())
+
+    def dblclick(self, val):
+        """
+        Double click event
+
+        :param val: double click event
+        """
+        self.window.controller.attachment.select(val.row())
+
+    def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: context menu event
+        """
+        actions = {}
+        actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
+        actions['open_dir'].triggered.connect(
+            lambda: self.action_open_dir(event))
+
+        actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
+        actions['rename'].triggered.connect(
+            lambda: self.action_rename(event))
+
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'].triggered.connect(
+            lambda: self.action_delete(event))
+
+        menu = QMenu(self)
+        menu.addAction(actions['rename'])
+        menu.addAction(actions['open_dir'])
+        menu.addAction(actions['delete'])
+
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.attachment.select(item.row())
+            menu.exec_(event.globalPos())
+
+    def action_open_dir(self, event):
+        """
+        Open dir action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.attachment.open_dir(idx)
+
+    def action_rename(self, event):
+        """
+        Rename action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.attachment.rename(idx)
+
+    def action_delete(self, event):
+        """
+        Delete action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.attachment.delete(idx)
 
 
 class DebugDialog(QDialog):
@@ -339,7 +433,7 @@ class RenameInput(QLineEdit):
         """
         super(RenameInput, self).keyPressEvent(event)
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            self.window.controller.context.update_name(self.window.dialog['ctx.rename'].current,
+            self.window.controller.context.update_name(self.window.dialog['rename'].current,
                                                        self.text())
 
 
@@ -358,23 +452,23 @@ class RenameDialog(QDialog):
         self.input = RenameInput(window, id)
         self.input.setMinimumWidth(400)
 
-        self.window.data['dialog.ctx_rename.btn.update'] = QPushButton(trans('dialog.ctx.rename.update'))
-        self.window.data['dialog.ctx_rename.btn.update'].clicked.connect(
-            lambda: self.window.controller.context.update_name(self.window.dialog['ctx.rename'].current,
-                                                               self.input.text()))
+        self.window.data['dialog.rename.btn.update'] = QPushButton(trans('dialog.rename.update'))
+        self.window.data['dialog.rename.btn.update'].clicked.connect(
+            lambda: self.window.controller.confirm.accept_rename(self.id, self.window.dialog['rename'].current,
+                                                                 self.input.text()))
 
-        self.window.data['dialog.ctx_rename.btn.dismiss'] = QPushButton(trans('dialog.ctx.rename.dismiss'))
-        self.window.data['dialog.ctx_rename.btn.dismiss'].clicked.connect(
-            lambda: self.window.controller.context.dismiss_rename())
+        self.window.data['dialog.rename.btn.dismiss'] = QPushButton(trans('dialog.rename.dismiss'))
+        self.window.data['dialog.rename.btn.dismiss'].clicked.connect(
+            lambda: self.window.controller.confirm.dismiss_rename())
 
         bottom = QHBoxLayout()
-        bottom.addWidget(self.window.data['dialog.ctx_rename.btn.dismiss'])
-        bottom.addWidget(self.window.data['dialog.ctx_rename.btn.update'])
+        bottom.addWidget(self.window.data['dialog.rename.btn.dismiss'])
+        bottom.addWidget(self.window.data['dialog.rename.btn.update'])
 
-        self.window.data['dialog.ctx_rename.label'] = QLabel(trans("dialog.ctx.rename.title"))
+        self.window.data['dialog.rename.label'] = QLabel(trans("dialog.rename.title"))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['dialog.ctx_rename.label'])
+        layout.addWidget(self.window.data['dialog.rename.label'])
         layout.addWidget(self.input)
         layout.addLayout(bottom)
 
@@ -801,7 +895,7 @@ class GeneratedImageLabel(QLabel):
         actions['open'].triggered.connect(
             lambda: self.action_open(event))
 
-        actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('img.action.open_dir'), self)
+        actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
         actions['open_dir'].triggered.connect(
             lambda: self.action_open_dir(event))
 
@@ -809,7 +903,7 @@ class GeneratedImageLabel(QLabel):
         actions['save'].triggered.connect(
             lambda: self.action_save(event))
 
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('img.action.delete'), self)
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 

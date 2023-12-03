@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.12 08:00:00                  #
+# Updated Date: 2023.12.03 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -124,11 +124,11 @@ class Lang:
         self.window.data['editor.btn.save'].setText(trans("dialog.editor.btn.save"))
         self.window.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
 
-        # ctx rename dialog
-        self.window.dialog['ctx.rename'].setWindowTitle(trans("dialog.ctx.rename.title"))
-        self.window.data['dialog.ctx_rename.label'].setText(trans("dialog.ctx.rename.title"))
-        self.window.data['dialog.ctx_rename.btn.update'].setText(trans("dialog.ctx.rename.update"))
-        self.window.data['dialog.ctx_rename.btn.dismiss'].setText(trans("dialog.ctx.rename.dismiss"))
+        # rename dialog
+        self.window.dialog['rename'].setWindowTitle(trans("dialog.rename.title"))
+        self.window.data['dialog.rename.label'].setText(trans("dialog.rename.title"))
+        self.window.data['dialog.rename.btn.update'].setText(trans("dialog.rename.update"))
+        self.window.data['dialog.rename.btn.dismiss'].setText(trans("dialog.rename.dismiss"))
 
         # changelog dialog
         self.window.data['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
@@ -193,6 +193,12 @@ class Lang:
         self.window.data['start.title'].setText(trans('dialog.start.title.text'))
         self.window.data['start.settings'].setText(trans('dialog.start.settings.text'))
         self.window.data['start.btn'].setText(trans('dialog.start.btn'))
+
+        # input tabs
+        self.window.data['input.tabs'].setTabText(0, trans('input.tab'))
+        self.window.data['input.tabs'].setTabText(1, trans('attachments.tab'))
+        self.window.data['attachments.btn.add'].setText(trans('attachments.btn.add'))
+        self.window.data['attachments.btn.clear'].setText(trans('attachments.btn.clear'))
 
         # plugins info
         self.window.controller.plugins.update_info()

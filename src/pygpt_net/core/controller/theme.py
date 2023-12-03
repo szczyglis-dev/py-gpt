@@ -48,7 +48,7 @@ class Theme:
         self.window.data['input.send_clear'].setStyleSheet(self.get_style('checkbox'))
 
         # dialog: ctx rename
-        self.window.dialog['ctx.rename'].input.setStyleSheet(self.get_style('line_edit'))
+        self.window.dialog['rename'].input.setStyleSheet(self.get_style('line_edit'))
 
         # ai, user names
         self.window.data['preset.ai_name'].setStyleSheet(self.get_style('line_edit'))
@@ -154,6 +154,8 @@ class Theme:
             return "QLineEdit { color: #" + label + "; }"
         elif element == "text_bold":
             return "font-weight: bold;"
+        elif element == "text_small":
+            return "font-size: 9px;"
 
     def update(self):
         """Updates theme menu"""

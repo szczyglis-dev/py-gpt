@@ -10,10 +10,12 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QSplitter, \
+    QTabWidget, QWidget
 
 from .status import Status
-from .widgets import ChatInput
+from .attachments import Attachments
+from .widgets import ChatInput, AttachmentSelectMenu
 from ..utils import trans
 
 
@@ -26,6 +28,7 @@ class Input:
         """
         self.window = window
         self.status = Status(window)
+        self.attachments = Attachments(window)
 
     def setup(self):
         """
@@ -72,7 +75,7 @@ class Input:
         self.window.data['input.send_btn'].clicked.connect(
             lambda: self.window.controller.input.user_send())
 
-        # send layout
+        # send layout (options + send button)
         send_layout = QHBoxLayout()
         send_layout.addWidget(self.window.data['input.stream'])
         send_layout.addWidget(self.window.data['input.send_clear'])
@@ -81,12 +84,12 @@ class Input:
         send_layout.addWidget(self.window.data['input.send_btn'])
         send_layout.setAlignment(Qt.AlignRight)
 
-        # bottom layout
+        # bottom layout (status + send layout)
         bottom_layout = QHBoxLayout()
         bottom_layout.addLayout(status_layout)
         bottom_layout.addLayout(send_layout)
 
-        # header
+        # header (input label + input counter)
         self.window.data['input.label'] = QLabel(trans("input.label"))
         self.window.data['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data['input.counter'] = QLabel("")
@@ -95,10 +98,32 @@ class Input:
         header.addWidget(self.window.data['input.label'])
         header.addWidget(self.window.data['input.counter'], alignment=Qt.AlignRight)
 
-        # input layout
+        # input tab
+        input_tab = QWidget()
+        input_layout = QVBoxLayout()
+        input_layout.addWidget(self.window.data['input'])
+        input_tab.setLayout(input_layout)
+
+        # attachments tab
+        attachments_layout = self.attachments.setup()
+
+        # files tab
+        files_tab = QWidget()
+        files_layout = QVBoxLayout()
+        files_layout.addLayout(attachments_layout)
+        files_tab.setLayout(files_layout)
+
+        # tabs (input + attachments)
+        self.window.data['input.tabs'] = QTabWidget()
+
+        # add tabs
+        self.window.data['input.tabs'].addTab(input_tab, trans('input.tab'))
+        self.window.data['input.tabs'].addTab(files_tab, trans('attachments.tab'))
+
+        # full input layout
         layout = QVBoxLayout()
         layout.addLayout(header)
-        layout.addWidget(self.window.data['input'])
+        layout.addWidget(self.window.data['input.tabs'])
         layout.addLayout(bottom_layout)
 
         return layout

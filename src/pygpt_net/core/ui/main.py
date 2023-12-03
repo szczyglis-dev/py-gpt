@@ -17,6 +17,7 @@ from .toolbox import Toolbox
 from .menu import Menu
 from .dialogs import Dialogs
 from .contexts import Contexts
+from .attachments import Attachments
 
 
 class UI:
@@ -38,6 +39,7 @@ class UI:
         self.chat = ChatBox(window)
         self.toolbox = Toolbox(window)
         self.contexts = Contexts(window)
+        self.attachments = Attachments(window)
         self.menu = Menu(window)
         self.dialogs = Dialogs(window)
 
@@ -57,11 +59,12 @@ class UI:
         # horizontal splitter
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.window.ctx)  # contexts
-        splitter.addWidget(self.window.toolbox)  # toolbox
         splitter.addWidget(self.window.chat)  # chat box
-        splitter.setStretchFactor(0, 3)
-        splitter.setStretchFactor(1, 3)
-        splitter.setStretchFactor(2, 9)
+        splitter.addWidget(self.window.toolbox)  # toolbox
+        #splitter.setStretchFactor(0, 3)
+        #splitter.setStretchFactor(2, 9)
+        #splitter.setStretchFactor(1, 3)
+        splitter.setSizes([1, 8, 1])
 
         # menu
         self.menu.setup()

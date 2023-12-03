@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Updated Date: 2023.12.03 20:00:00                  #
 # ================================================== #
 
 from ..widgets import RenameDialog
 from ...utils import trans
 
 
-class CtxRename:
+class Rename:
     def __init__(self, window=None):
         """
         Context rename dialog
@@ -23,7 +23,7 @@ class CtxRename:
         self.window = window
 
     def setup(self):
-        """Setups ctx rename dialog"""
-        id = 'ctx.rename'
+        """Setups rename dialog"""
+        id = 'rename'
         self.window.dialog[id] = RenameDialog(self.window, id)
-        self.window.dialog[id].setWindowTitle(trans("dialog.ctx.rename.title"))
+        self.window.dialog[id].setWindowTitle(trans("dialog.rename.title"))

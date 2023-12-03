@@ -59,9 +59,11 @@ class Contexts:
         self.window.data['contexts.new'].clicked.connect(
             lambda: self.window.controller.context.new())
 
-        self.window.data[id] = ContextSelectMenu(self.window, id)
+        self.window.data[id] = ContextSelectMenu(self.window, id) # TODO: smaller font size
+        self.window.data[id].setStyleSheet(self.window.controller.theme.get_style('text_small'))
         self.window.data['contexts.label'] = QLabel(trans("ctx.contexts.label"))
         self.window.data['contexts.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+
         layout = QVBoxLayout()
         layout.addWidget(self.window.data['contexts.label'])
         layout.addWidget(self.window.data['contexts.new'])

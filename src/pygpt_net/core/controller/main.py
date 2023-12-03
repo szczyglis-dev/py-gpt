@@ -25,6 +25,7 @@ from .lang import Lang
 from .image import Image
 from .theme import Theme
 from .audio import Audio
+from .attachment import Attachment
 
 
 class Controller:
@@ -51,6 +52,7 @@ class Controller:
         self.image = Image(window)
         self.theme = Theme(window)
         self.audio = Audio(window)
+        self.attachment = Attachment(window)
 
     def setup(self):
         """Setups controller"""
@@ -70,3 +72,4 @@ class Controller:
         self.info.setup()
         self.launcher.setup()
         self.audio.setup()
+        self.attachment.setup()
