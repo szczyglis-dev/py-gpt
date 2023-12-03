@@ -153,13 +153,12 @@ class Plugin(BasePlugin):
 
 
 class TTS(QObject):
-    finished = Signal(object)
-
     def __init__(self, client, model, path, voice, text):
         """
         Text to speech
 
         :param client: OpenAI client
+        :param model: Model name
         :param voice: Voice name
         :param text: Text to speech
         """
