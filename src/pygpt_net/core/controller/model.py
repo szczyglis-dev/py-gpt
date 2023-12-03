@@ -255,6 +255,18 @@ class Model:
             self.window.config_option['img_variants'].setVisible(False)
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
+        elif mode == 'vision':
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['img_variants.label'].setVisible(False)
+            self.window.config_option['img_variants'].setVisible(False)
+            self.window.data['temperature.label'].setVisible(True)
+            self.window.config_option['current_temperature'].setVisible(True)
 
     def update(self):
         """Updates all lists"""

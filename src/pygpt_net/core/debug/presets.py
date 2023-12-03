@@ -33,13 +33,23 @@ class PresetsDebug:
             path = os.path.join(self.window.config.path, 'presets', key + '.json')
             self.window.debugger.add(self.id, prefix + 'ID', str(key))
             self.window.debugger.add(self.id, prefix + 'File', str(path))
-            self.window.debugger.add(self.id, prefix + 'name', str(preset['name']))
-            self.window.debugger.add(self.id, prefix + 'ai_name', str(preset['ai_name']))
-            self.window.debugger.add(self.id, prefix + 'user_name', str(preset['user_name']))
-            self.window.debugger.add(self.id, prefix + 'prompt', str(preset['prompt']))
-            self.window.debugger.add(self.id, prefix + 'chat', str(preset['chat']))
-            self.window.debugger.add(self.id, prefix + 'completion', str(preset['completion']))
-            self.window.debugger.add(self.id, prefix + 'img', str(preset['img']))
-            self.window.debugger.add(self.id, prefix + 'temperature', str(preset['temperature']))
+            if 'name' in preset:
+                self.window.debugger.add(self.id, prefix + 'name', str(preset['name']))
+            if 'ai_name' in preset:
+                self.window.debugger.add(self.id, prefix + 'ai_name', str(preset['ai_name']))
+            if 'user_name' in preset:
+                self.window.debugger.add(self.id, prefix + 'user_name', str(preset['user_name']))
+            if 'prompt' in preset:
+                self.window.debugger.add(self.id, prefix + 'prompt', str(preset['prompt']))
+            if 'chat' in preset:
+                self.window.debugger.add(self.id, prefix + 'chat', str(preset['chat']))
+            if 'completion' in preset:
+                self.window.debugger.add(self.id, prefix + 'completion', str(preset['completion']))
+            if 'img' in preset:
+                self.window.debugger.add(self.id, prefix + 'img', str(preset['img']))
+            if 'vision' in preset:
+                self.window.debugger.add(self.id, prefix + 'vision', str(preset['vision']))
+            if 'temperature' in preset:
+                self.window.debugger.add(self.id, prefix + 'temperature', str(preset['temperature']))
 
         self.window.debugger.end(self.id)

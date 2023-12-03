@@ -56,6 +56,8 @@ class Preset:
                                                                     False, section)
         self.window.config_option['preset.completion'] = SettingsCheckbox(self.window, 'preset.completion',
                                                                           trans('preset.completion'), False, section)
+        self.window.config_option['preset.vision'] = SettingsCheckbox(self.window, 'preset.vision',
+                                                                      trans('preset.vision'), False, section)
         self.window.config_option['preset.temperature'] = SettingsSlider(self.window, 'preset.temperature',
                                                                          '', 0, 200,
                                                                          1, 100, True, section)
@@ -74,6 +76,7 @@ class Preset:
         options['user_name'] = self.add_option('preset.user_name', self.window.config_option['preset.user_name'])
         options['chat'] = self.add_raw_option(self.window.config_option['preset.chat'])
         options['completion'] = self.add_raw_option(self.window.config_option['preset.completion'])
+        options['vision'] = self.add_raw_option(self.window.config_option['preset.vision'])
         options['img'] = self.add_raw_option(self.window.config_option['preset.img'])
         options['temperature'] = self.add_option('preset.temperature', self.window.config_option['preset.temperature'])
 
@@ -92,6 +95,7 @@ class Preset:
         rows.addLayout(options['chat'])
         rows.addLayout(options['completion'])
         rows.addLayout(options['img'])
+        rows.addLayout(options['vision'])
         rows.addLayout(options['temperature'])
         rows.addLayout(options['prompt'])
 

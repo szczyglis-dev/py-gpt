@@ -198,6 +198,7 @@ class Config:
             'chat': False,
             'completion': False,
             'img': False,
+            'vision': False,
             'temperature': 1.0,
         }
 
@@ -315,10 +316,10 @@ class Config:
         """
         presets = {}
         for key in self.presets:
-            if (mode == 'chat' and self.presets[key]['chat']) \
-                    or (mode == 'completion' and self.presets[key]['completion']) \
-                    or (mode == 'img' and self.presets[key]['img']) \
-                    or (mode == 'vision' and self.presets[key]['vision']):
+            if (mode == 'chat' and 'chat' in self.presets[key] and self.presets[key]['chat']) \
+                    or (mode == 'completion' and 'completion' in self.presets[key] and self.presets[key]['completion']) \
+                    or (mode == 'img' and 'img' in self.presets[key] and self.presets[key]['img']) \
+                    or (mode == 'vision' and 'vision' in self.presets[key] and self.presets[key]['vision']):
                 presets[key] = self.presets[key]
         return presets
 
