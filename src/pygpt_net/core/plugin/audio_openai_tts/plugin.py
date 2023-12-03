@@ -6,16 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.03 12:00:00                  #
+# Updated Date: 2023.12.03 21:00:00                  #
 # ================================================== #
-
+import os
 import threading
 
-import requests
 from PySide6.QtCore import QObject, Signal
 from pydub import AudioSegment
 from pydub.playback import play
-import io
+from openai import OpenAI
 
 from ..base_plugin import BasePlugin
 
@@ -26,50 +25,28 @@ class Plugin(BasePlugin):
         self.id = "audio_openai_tts"
         self.name = "Audio (OpenAI TTS)"
         self.description = "Enables audio/voice output (speech synthesis) using OpenAI TTS API"
+        self.allowed_voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
+        self.allowed_models = ['tts-1', 'tts-1-hd']
         self.options = {}
-        self.options["azure_api_key"] = {
+        self.options["model"] = {
             "type": "text",
             "slider": False,
-            "label": "Azure API Key",
-            "description": "You can obtain your own API key at: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
-            "tooltip": "Azure API Key",
-            "value": '',
+            "label": "Model",
+            "description": "Specify model, available models: tts-1, tts-1-hd",
+            "tooltip": "Model",
+            "value": 'tts-1',
             "min": None,
             "max": None,
             "multiplier": None,
             "step": None,
         }
-        self.options["azure_region"] = {
+        self.options["voice"] = {
             "type": "text",
             "slider": False,
-            "label": "Azure Region",
-            "description": "Specify Azure region, e.g. eastus",
-            "tooltip": "Azure Region",
-            "value": 'eastus',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["voice_en"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Voice (EN)",
-            "description": "Specify voice for English language, e.g. en-US-AriaNeural",
-            "tooltip": "Voice (EN)",
-            "value": 'en-US-AriaNeural',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["voice_pl"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Voice (PL)",
-            "description": "Specify voice for Polish language, e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
-            "tooltip": "Voice (PL)",
-            "value": 'pl-PL-AgnieszkaNeural',
+            "label": "Voice",
+            "description": "Specify voice, available voices: alloy, echo, fable, onyx, nova, shimmer",
+            "tooltip": "Voice",
+            "value": 'alloy',
             "min": None,
             "max": None,
             "multiplier": None,
@@ -152,22 +129,21 @@ class Plugin(BasePlugin):
         :param ctx: ctx
         :return: ctx
         """
-        # Check if api key is set
-        if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == "":
-            self.window.ui.dialogs.alert("OpenAI API KEY is not set. Please set it in settings.")
-            return ctx
-
         text = ctx.output
         try:
             if text is not None and len(text) > 0:
-                lang = self.window.config.data['lang']
-                voice = None
-                if lang == "pl":
-                    voice = self.options['voice_pl']['value']
-                elif lang == "en":
-                    voice = self.options['voice_en']['value']
-                tts = TTS(self.window.config.data['api_key'], self.options['azure_region']['value'], voice,
-                          text)
+                client = OpenAI(
+                    api_key=self.window.config.data["api_key"],
+                    organization=self.window.config.data["organization_key"],
+                )
+                voice = self.options['voice']['value']
+                path = os.path.join(self.window.config.path, 'speech.mp3')
+                model = self.options['model']['value']
+                if model not in self.allowed_models:
+                    model = 'tts-1'
+                if voice not in self.allowed_voices:
+                    voice = 'alloy'
+                tts = TTS(client, model, path, voice, text)
                 t = threading.Thread(target=tts.run)
                 t.start()
         except Exception as e:
@@ -179,37 +155,31 @@ class Plugin(BasePlugin):
 class TTS(QObject):
     finished = Signal(object)
 
-    def __init__(self, subscription_key, region, voice, text):
+    def __init__(self, client, model, path, voice, text):
         """
         Text to speech
 
-        :param subscription_key: Azure API Key
-        :param region: Azure region
+        :param client: OpenAI client
         :param voice: Voice name
         :param text: Text to speech
         """
         super().__init__()
-        self.subscription_key = subscription_key
-        self.region = region
+        self.client = client
+        self.model = model
+        self.path = path
         self.text = text
         self.voice = voice
 
     def run(self):
         """Run TTS thread"""
-        url = f"https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v1"
-        headers = {
-            "Ocp-Apim-Subscription-Key": self.subscription_key,
-            "Content-Type": "application/ssml+xml",
-            "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3"
-        }
-        body = f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
-        response = requests.post(url, headers=headers, data=body.encode('utf-8'))
-        if response.status_code == 200:
-            audio_file = response.content
-            voice = AudioSegment.from_file(io.BytesIO(audio_file), format="mp3")
-            play(voice)
-            self.finished.emit(audio_file)
-        else:
-            error_msg = f"Error: {response.status_code} - {response.text}"
-            print(error_msg)
-            self.finished.emit(error_msg)
+        try:
+            response = self.client.audio.speech.create(
+                model="tts-1",
+                voice=self.voice,
+                input=self.text
+            )
+            response.stream_to_file(self.path)
+            audio = AudioSegment.from_mp3(self.path)
+            play(audio)
+        except Exception as e:
+            print(e)

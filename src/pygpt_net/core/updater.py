@@ -140,7 +140,7 @@ class Updater:
                     data['gpt-4-vision-preview'] = {}
                     data['gpt-4-vision-preview']['id'] = 'gpt-4-vision-preview'
                     data['gpt-4-vision-preview']['name'] = 'gpt-4-vision'
-                    data['gpt-4-vision-preview']['mode'] = ['chat', 'vision']
+                    data['gpt-4-vision-preview']['mode'] = ['vision']
                     data['gpt-4-vision-preview']['tokens'] = 4096
                     data['gpt-4-vision-preview']['ctx'] = 128000
 
@@ -211,6 +211,8 @@ class Updater:
             if old < parse_version("0.9.7"):
                 if 'stream' not in data:
                     data['stream'] = True
+                if 'attachments_send_clear' not in data:
+                    data['attachments_send_clear'] = True
                 updated = True
             if old < parse_version("0.9.6"):
                 print("Migrating config from < 0.9.6...")

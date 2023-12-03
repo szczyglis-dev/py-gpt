@@ -6,6 +6,7 @@
   },
   "ai_name": "",
   "api_key": "",
+  "attachments_send_clear": true,
   "context_threshold": 200,
   "ctx": "",
   "current_model": {

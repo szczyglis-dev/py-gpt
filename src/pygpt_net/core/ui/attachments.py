@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QHBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QHBoxLayout, QCheckBox
 
 from ..ui.widgets import ContextSelectMenu, AttachmentSelectMenu
 from ..utils import trans
@@ -38,6 +38,7 @@ class Attachments:
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.data['attachments.btn.add'])
         buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
+        buttons_layout.addWidget(self.window.data['attachments.send_clear'])
 
         # layout
         layout = QVBoxLayout()
@@ -63,6 +64,12 @@ class Attachments:
             lambda: self.window.controller.attachment.open_add())
         self.window.data['attachments.btn.clear'].clicked.connect(
             lambda: self.window.controller.attachment.clear())
+
+        self.window.data['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
+        self.window.data['attachments.send_clear'].setStyleSheet(
+            self.window.controller.theme.get_style('checkbox'))  # Windows fix
+        self.window.data['attachments.send_clear'].stateChanged.connect(
+            lambda: self.window.controller.attachment.toggle_send_clear(self.window.data['attachments.send_clear'].isChecked()))
 
         self.window.models[id] = self.create_model(self.window)
         self.window.data[id].setModel(self.window.models[id])

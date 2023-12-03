@@ -53,6 +53,12 @@ class Attachment:
 
     def setup(self):
         """Setup attachments"""
+        # send clear
+        if 'attachments_send_clear' in self.window.config.data and self.window.config.data['attachments_send_clear']:
+            self.window.data['attachments.send_clear'].setChecked(True)
+        else:
+            self.window.data['attachments.send_clear'].setChecked(False)
+
         self.attachments.load_list()
         self.update()
 
@@ -148,3 +154,11 @@ class Attachment:
         data = self.attachments.get_by_uuid(uuid)
         if os.path.exists(data.path):
             show_in_file_manager(data.path)
+
+    def toggle_send_clear(self, value):
+        """
+        Toggles send clear
+
+        :param value: value of the checkbox
+        """
+        self.window.config.data['attachments_send_clear'] = value

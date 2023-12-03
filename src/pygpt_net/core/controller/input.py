@@ -95,8 +95,8 @@ class Input:
         self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.data['user_name']))  # log
         self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.data['ai_name']))  # log
 
-        # store history
-        if self.window.config.data['store_history']:
+        # store history (input)
+        if self.window.config.data['store_history'] and text is not None and text.strip() != "":
             self.history.save(text)
 
         # get mode
@@ -138,8 +138,16 @@ class Input:
         # async or sync mode
         stream_mode = self.window.config.data['stream']
 
+        # disable stream mode for vision mode (tmp)
+        if mode == "vision":
+            stream_mode = False
+
         # call the model
         try:
+            # set attachments
+            self.window.gpt.attachments = self.window.controller.attachment.attachments.get_list()
+
+            # make API call
             try:
                 self.window.log("Calling OpenAI API...")  # log
                 ctx = self.window.gpt.call(text, ctx, stream_mode)
@@ -150,7 +158,7 @@ class Input:
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
-            # async stream mode
+            # if async stream mode
             if stream_mode:
                 output = ""
                 output_tokens = 0
@@ -159,7 +167,7 @@ class Input:
                     self.window.log("Reading stream...")  # log
                     for chunk in ctx.stream:
                         response = None
-                        if mode == "chat":
+                        if mode == "chat" or mode == "vision":
                             if chunk.choices[0].delta.content is not None:
                                 response = chunk.choices[0].delta.content
                         elif mode == "completion":
@@ -206,8 +214,8 @@ class Input:
             self.window.set_status(
                 trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
-            # store history
-            if self.window.config.data['store_history']:
+            # store history (output)
+            if self.window.config.data['store_history'] and ctx.output is not None and ctx.output.strip() != "":
                 self.history.save(ctx.output)
 
         except Exception as e:
@@ -269,6 +277,11 @@ class Input:
                 ctx = self.window.controller.input.send_text(text)
         else:
             self.window.statusChanged.emit("")
+
+        # clear attachments after send if enabled
+        if self.window.config.data['attachments_send_clear']:
+            self.window.controller.attachment.clear(True)
+            self.window.controller.attachment.update()
 
         if ctx is not None:
             self.window.log("Context: output: {}".format(ctx.dump()))  # log
