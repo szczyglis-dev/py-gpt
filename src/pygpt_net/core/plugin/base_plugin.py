@@ -16,6 +16,7 @@ class BasePlugin:
         self.description = ""
         self.options = {}
         self.window = None
+        self.enabled = False
 
     def setup(self):
         """

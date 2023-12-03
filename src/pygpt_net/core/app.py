@@ -31,6 +31,7 @@ from .plugin.real_time.plugin import Plugin as RealTimePlugin
 from .plugin.web_search.plugin import Plugin as WebSearchPlugin
 from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
 from .plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
+from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperlugin
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -118,6 +119,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     def setup(self):
         """Setups app"""
         self.controller.setup()
+        self.controller.setup_plugins()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(30)
@@ -203,6 +205,7 @@ def run():
     launcher.add_plugin(WebSearchPlugin())
     launcher.add_plugin(AudioAzurePlugin())
     launcher.add_plugin(AudioOpenAITTSPlugin())
+    launcher.add_plugin(AudioOpenAIWhisperlugin())
 
     # run app
     launcher.run()

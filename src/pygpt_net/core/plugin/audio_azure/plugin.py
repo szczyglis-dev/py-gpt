@@ -24,7 +24,7 @@ class Plugin(BasePlugin):
     def __init__(self):
         super(Plugin, self).__init__()
         self.id = "audio_azure"
-        self.name = "Audio (Azure)"
+        self.name = "Audio Output (MS Azure)"
         self.description = "Enables audio/voice output (speech synthesis) using Microsoft Azure API"
         self.options = {}
         self.options["azure_api_key"] = {

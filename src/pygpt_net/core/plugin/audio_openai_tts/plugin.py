@@ -11,20 +11,22 @@
 import os
 import threading
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, Qt
+from PySide6.QtWidgets import QCheckBox
 from pydub import AudioSegment
 from pydub.playback import play
 from openai import OpenAI
 
 from ..base_plugin import BasePlugin
+from ...utils import trans
 
 
 class Plugin(BasePlugin):
     def __init__(self):
         super(Plugin, self).__init__()
         self.id = "audio_openai_tts"
-        self.name = "Audio (OpenAI TTS)"
-        self.description = "Enables audio/voice output (speech synthesis) using OpenAI TTS API"
+        self.name = "Audio Output (OpenAI TTS)"
+        self.description = "Enables audio/voice output (speech synthesis) using OpenAI TTS (Text-To-Speech) API"
         self.allowed_voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
         self.allowed_models = ['tts-1', 'tts-1-hd']
         self.options = {}
@@ -62,6 +64,14 @@ class Plugin(BasePlugin):
         :return: config options
         """
         return self.options
+
+    def setup_ui(self):
+        """
+        Setup UI
+
+        :param ui: UI
+        """
+        pass
 
     def attach(self, window):
         """

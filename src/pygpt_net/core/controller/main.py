@@ -56,9 +56,6 @@ class Controller:
 
     def setup(self):
         """Setups controller"""
-        # setup plugins settings
-        self.plugins.setup_settings()
-
         # init material theme
         self.theme.setup()
 
@@ -73,3 +70,8 @@ class Controller:
         self.launcher.setup()
         self.audio.setup()
         self.attachment.setup()
+
+    def setup_plugins(self):
+        """Setup plugins"""
+        # setup plugins settings
+        self.plugins.setup_settings()

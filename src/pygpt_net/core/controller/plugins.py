@@ -29,16 +29,60 @@ class Plugins:
         self.current_plugin = None
         self.enabled = {}
 
+    def setup(self):
+        """
+        Sets up plugins
+        """
+        self.setup_menu()
+        self.setup_ui()
+        self.load_config()
+        self.update()
+
+    def setup_ui(self):
+        """
+        Sets up plugins ui
+        """
+        for id in self.handler.plugins:
+            plugin = self.handler.plugins[id]
+            try:
+                plugin.setup_ui()  # get plugin options
+            except AttributeError:
+                pass
+
+    def setup_settings(self):
+        """Sets up plugins settings"""
+        self.window.plugin_settings.setup()
+
+    def setup_menu(self):
+        """Sets up plugins menu"""
+        for id in self.handler.plugins:
+            if id in self.window.menu['plugins']:
+                continue
+            default_name = self.handler.plugins[id].name
+            trans_key = 'plugin.' + id
+            name = trans(trans_key)
+            if name == trans_key:
+                name = default_name
+            self.window.menu['plugins'][id] = QAction(name, self.window, checkable=True)
+            self.window.menu['plugins'][id].triggered.connect(
+                lambda checked=None, id=id: self.window.controller.plugins.toggle(id))
+            self.window.menu['menu.plugins'].addAction(self.window.menu['plugins'][id])
+
+    def update(self):
+        """Updates plugins menu"""
+        for id in self.window.menu['plugins']:
+            self.window.menu['plugins'][id].setChecked(False)
+
+        for id in self.enabled:
+            if self.enabled[id]:
+                self.window.menu['plugins'][id].setChecked(True)
+
     def toggle_settings(self):
         """Toggles plugins settings dialog"""
         if self.config_dialog:
             self.close_settings()
         else:
             self.open_settings()
-
-    def setup_settings(self):
-        """Sets up plugins settings"""
-        self.window.plugin_settings.setup()
 
     def open_settings(self):
         """Opens plugins settings dialog"""
@@ -128,15 +172,15 @@ class Plugins:
         self.close_settings()
         self.current_plugin = selected_plugin
 
-    def load_defaults(self):
-        """Loads plugins settings defaults"""
-        self.init_settings()
-
     def close_settings(self):
         """Closes plugins settings dialog"""
         if self.config_dialog:
             self.window.ui.dialogs.close('plugin_settings')
             self.config_dialog = False
+
+    def load_defaults(self):
+        """Loads plugins settings defaults"""
+        self.init_settings()
 
     def register(self, plugin):
         """
@@ -165,6 +209,7 @@ class Plugins:
         """
         if self.handler.is_registered(id):
             self.enabled[id] = True
+            self.handler.plugins[id].enabled = True
             self.handler.plugins[id].on_enable()  # call plugin enable method
             self.window.config.data['plugins_enabled'][id] = True
             self.window.config.save()
@@ -184,6 +229,7 @@ class Plugins:
         """
         if self.handler.is_registered(id):
             self.enabled[id] = False
+            self.handler.plugins[id].enabled = False
             self.handler.plugins[id].on_disable()  # call plugin disable method
             self.window.config.data['plugins_enabled'][id] = False
             self.window.config.save()
@@ -219,30 +265,6 @@ class Plugins:
             else:
                 self.enable(id)
 
-    def update(self):
-        """Updates plugins menu"""
-        for id in self.window.menu['plugins']:
-            self.window.menu['plugins'][id].setChecked(False)
-
-        for id in self.enabled:
-            if self.enabled[id]:
-                self.window.menu['plugins'][id].setChecked(True)
-
-    def setup_menu(self):
-        """Sets up plugins menu"""
-        for id in self.handler.plugins:
-            if id in self.window.menu['plugins']:
-                continue
-            default_name = self.handler.plugins[id].name
-            trans_key = 'plugin.' + id
-            name = trans(trans_key)
-            if name == trans_key:
-                name = default_name
-            self.window.menu['plugins'][id] = QAction(name, self.window, checkable=True)
-            self.window.menu['plugins'][id].triggered.connect(
-                lambda checked=None, id=id: self.window.controller.plugins.toggle(id))
-            self.window.menu['menu.plugins'].addAction(self.window.menu['plugins'][id])
-
     def set_plugin_by_tab(self, idx):
         """
         Sets current plugin by tab index
@@ -256,14 +278,6 @@ class Plugins:
                     self.current_plugin = id
                     break
                 plugin_idx += 1
-
-    def setup(self):
-        """
-        Sets up plugins
-        """
-        self.setup_menu()
-        self.load_config()
-        self.update()
 
     def update_info(self):
         """Updates plugins info"""
@@ -302,15 +316,6 @@ class Plugins:
         """
         key = id.replace('plugin.' + self.current_plugin + '.', '')
         self.window.plugin_option[self.current_plugin][key].box.setChecked(value)
-
-    def get_option(self, id, key):
-        """
-        Gets plugin option
-
-        :param id: option id
-        :return: option value
-        """
-        return self.handler.plugins[id].options[key]
 
     def config_change(self, id, value):
         """
@@ -397,6 +402,15 @@ class Plugins:
             txt = '{}'.format(value)
             self.window.plugin_option[self.current_plugin][key].input.setText(txt)
             self.window.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
+
+    def get_option(self, id, key):
+        """
+        Gets plugin option
+
+        :param id: option id
+        :return: option value
+        """
+        return self.handler.plugins[id].options[key]
 
     def apply(self, event, data):
         """
