@@ -14,7 +14,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import QLineEdit, QTreeView, QAbstractItemView, QMenu, QDialog, QLabel, QCheckBox, QHBoxLayout, \
-    QWidget, QSlider, QTextEdit, QDialogButtonBox, QVBoxLayout, QPushButton, QPlainTextEdit, QApplication
+    QWidget, QSlider, QTextEdit, QDialogButtonBox, QVBoxLayout, QPushButton, QPlainTextEdit, QApplication, QTextBrowser
 
 from ..utils import trans
 
@@ -72,7 +72,7 @@ class ChatInput(QTextEdit):
             self.setFocus()
 
 
-class ChatOutput(QTextEdit):
+class ChatOutput(QTextBrowser):
     def __init__(self, window=None):
         """
         Chat output

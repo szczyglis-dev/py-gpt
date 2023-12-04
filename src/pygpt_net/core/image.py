@@ -12,7 +12,7 @@
 import datetime
 import os
 import requests
-import openai
+from openai import OpenAI
 
 
 class Image:
@@ -30,8 +30,7 @@ class Image:
 
     def init(self):
         """Initialize OpenAI API key"""
-        openai.api_key = self.config.data["api_key"]
-        openai.organization = self.config.data["organization_key"]
+        pass
 
     def generate(self, prompt, model="dall-e-3", num=None):
         """
@@ -45,7 +44,14 @@ class Image:
         if num is None:
             num = int(input("How many variants generate? [1] ") or 1)
         print("Generating from: '{}'...".format(prompt))
-        response = openai.Image.create(
+
+        client = OpenAI(
+            # This is the default and can be omitted
+            api_key=self.config.data["api_key"],
+            organization=self.config.data["organization_key"],
+        )
+
+        response = client.images.generate(
             model=model,
             prompt=prompt,
             n=num,
@@ -55,7 +61,7 @@ class Image:
         # generate and download images
         paths = []
         for i in range(num):
-            url = response['data'][i]['url']
+            url = response.data[i].url
             res = requests.get(url)
             name = self.make_safe_filename(prompt) + "-" + datetime.date.today().strftime(
                 "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"

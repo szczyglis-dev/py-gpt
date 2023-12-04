@@ -97,10 +97,10 @@ class WebSearch:
                 return text
             except Exception as e:
                 self.plugin.window.log("Plugin: web_search:query_wiki [error]: {}".format(e))  # log
-                print("Error in query_wiki: " + str(e))
+                print("Error in query_wiki 1: " + str(e))
 
             self.plugin.window.log("Plugin: web_search:query_wiki [error]: {}".format(ex))  # log
-            print("Error in query_wiki: " + str(ex))
+            print("Error in query_wiki 2: " + str(ex))
 
     def query_web(self, string):
         """
@@ -257,7 +257,7 @@ class WebSearch:
             "Plugin: web_search:get_system_prompt [num chunks]: {}".format(len(chunks)))  # log
 
         # build summary
-        summary = self.get_summarized_text(chunks, question)
+        summary = self.get_summarized_text(chunks, str(question))
 
         # log
         self.plugin.window.log(

@@ -344,7 +344,8 @@ class Gpt:
                 presence_penalty=0.0,
                 stop=None,
             )
-            return response["choices"][0]["message"]["content"]
+            print(response)
+            return response.choices[0].message.content
         except Exception as e:
             print("Error in custom call: " + str(e))
 
@@ -401,9 +402,9 @@ class Gpt:
         # get output
         output = ""
         if mode == "completion":
-            output = response["choices"][0]["text"].strip()
+            output = response.choices[0].text.strip()
         elif mode == "chat" or mode == "vision":
-            output = response["choices"][0]["message"]["content"].strip()
+            output = response.choices[0].message.content.strip()
 
         # store context (memory)
         if ctx is None:
@@ -411,7 +412,7 @@ class Gpt:
             ctx.set_input(prompt, self.user_name)
 
         ctx.set_output(output, self.ai_name)
-        ctx.set_tokens(response["usage"]["prompt_tokens"], response["usage"]["completion_tokens"])
+        ctx.set_tokens(response.usage.prompt_tokens, response.usage.completion_tokens)
         self.context.add(ctx)
 
         return ctx

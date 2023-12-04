@@ -73,10 +73,10 @@ class MarkdownHighlighter(QSyntaxHighlighter):
                              "unorderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
                              "orderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
                              "blockquote": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
-                             "codespan": {"background": "#000000", "color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                             "codespan": {"background": "#000000", "color": "#dc322f", "font-weight": "bold", "font-style": "normal"},
                              "codeblock": {"background": "#000000", "color": "#ff9900", "margin-left": "20px", "font-weight": "normal", "font-style": "normal"},
                              "line": {"color": "#2aa198", "font-weight": "normal", "font-style": "normal"},
-                             "html": {"color": "#c000c0", "font-weight": "normal", "font-style": "normal"}}
+                             "html": {"color": "#859900", "font-weight": "normal", "font-style": "normal"}}
         self.setTheme(self.defaultTheme)
 
     def setTheme(self, theme):
@@ -94,11 +94,13 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         format.setFontItalic(True if theme['bold']['font-style'] == 'italic' else False)
         self.MARKDOWN_KWS_FORMAT['Bold'] = format
 
+        """
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(theme['bold']['color'])))
         format.setFontWeight(QFont.Bold if theme['bold']['font-weight'] == 'bold' else QFont.Normal)
         format.setFontItalic(True if theme['bold']['font-style'] == 'italic' else False)
         self.MARKDOWN_KWS_FORMAT['uBold'] = format
+        """
 
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(theme['emphasis']['color'])))
@@ -106,23 +108,29 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         format.setFontItalic(True if theme['emphasis']['font-style'] == 'italic' else False)
         self.MARKDOWN_KWS_FORMAT['Italic'] = format
 
+        """
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(theme['emphasis']['color'])))
         format.setFontWeight(QFont.Bold if theme['emphasis']['font-weight'] == 'bold' else QFont.Normal)
         format.setFontItalic(True if theme['emphasis']['font-style'] == 'italic' else False)
         self.MARKDOWN_KWS_FORMAT['uItalic'] = format
+        """
 
+        """
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(theme['link']['color'])))
         format.setFontWeight(QFont.Bold if theme['link']['font-weight'] == 'bold' else QFont.Normal)
         format.setFontItalic(True if theme['link']['font-style'] == 'italic' else False)
         self.MARKDOWN_KWS_FORMAT['Link'] = format
+        """
 
+        """
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(theme['image']['color'])))
         format.setFontWeight(QFont.Bold if theme['image']['font-weight'] == 'bold' else QFont.Normal)
         format.setFontItalic(True if theme['image']['font-style'] == 'italic' else False)
         self.MARKDOWN_KWS_FORMAT['Image'] = format
+        """
 
         format = QTextCharFormat()
         format.setForeground(QBrush(QColor(theme['header']['color'])))
@@ -155,7 +163,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         self.MARKDOWN_KWS_FORMAT['BlockQuote'] = format
 
         format = QTextCharFormat()
-        format.setBackground(QBrush(QColor(theme['codespan']['background'])))
+        #format.setBackground(QBrush(QColor(theme['codespan']['background'])))
         format.setForeground(QBrush(QColor(theme['codespan']['color'])))
         format.setFontWeight(QFont.Bold if theme['codespan']['font-weight'] == 'bold' else QFont.Normal)
         format.setFontItalic(True if theme['codespan']['font-style'] == 'italic' else False)
@@ -216,9 +224,9 @@ class MarkdownHighlighter(QSyntaxHighlighter):
 
         self.highlightList(text, cursor, bf, strt)
 
-        self.highlightLink(text, cursor, bf, strt)
+        #self.highlightLink(text, cursor, bf, strt)
 
-        self.highlightImage(text, cursor, bf, strt)
+        #self.highlightImage(text, cursor, bf, strt)
 
         self.highlightCodeSpan(text, cursor, bf, strt)
 
@@ -332,9 +340,11 @@ class MarkdownHighlighter(QSyntaxHighlighter):
             self.setFormat(mo.start() + strt, mo.end() - mo.start() - strt, self.MARKDOWN_KWS_FORMAT['Bold'])
             found = True
 
+        """
         for mo in re.finditer(self.MARKDOWN_KEYS_REGEX['uBold'], text):
             self.setFormat(mo.start() + strt, mo.end() - mo.start() - strt, self.MARKDOWN_KWS_FORMAT['uBold'])
             found = True
+        """
         return found
 
     def highlightEmphasis(self, text, cursor, bf, strt):
@@ -348,9 +358,12 @@ class MarkdownHighlighter(QSyntaxHighlighter):
             self.setFormat(mo.start() + strt + spcslen, mo.end() - mo.start() - strt,
                            self.MARKDOWN_KWS_FORMAT['Italic'])
             found = True
+
+        """
         for mo in re.finditer(self.MARKDOWN_KEYS_REGEX['uItalic'], text):
             self.setFormat(mo.start() + strt, mo.end() - mo.start() - strt, self.MARKDOWN_KWS_FORMAT['uItalic'])
             found = True
+        """
         return found
 
     def highlightCodeBlock(self, text, cursor, bf, strt):

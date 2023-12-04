@@ -60,7 +60,7 @@ class Image:
             string = ""
             i = 1
             for path in paths:
-                string += "{} - {}".format(i, path) + "\n"
+                string += "{} - <img src='{}'/>".format(i, path) + "\n"
                 i += 1
             self.open_images(paths)
             ctx.set_output(string.strip())
