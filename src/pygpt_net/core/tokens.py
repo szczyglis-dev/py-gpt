@@ -139,7 +139,7 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
 
-    if mode == "chat" or mode == "vision" or mode == "langchain":
+    if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
         # input message
         try:
             num_tokens += num_tokens_from_string(item.input, model)

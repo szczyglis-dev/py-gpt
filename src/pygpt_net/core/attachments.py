@@ -79,7 +79,7 @@ class Attachments:
         Saves attachments to file
         """
         try:
-            # update contexts index
+            # update attachments
             path = os.path.join(self.config.path, 'attachments.json')
             data = {}
             items = {}

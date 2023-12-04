@@ -6,16 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 21:00:00                  #
+# Updated Date: 2023.12.04 19:00:00                  #
 # ================================================== #
 import base64
 import os
 import re
+from uuid import uuid4
 
 from openai import OpenAI
 from .tokens import num_tokens_prompt, num_tokens_extra, num_tokens_from_messages, num_tokens_completion, \
     num_tokens_only
-from .context import Context, ContextItem
+from .context import ContextItem
 
 
 class Gpt:
@@ -33,15 +34,13 @@ class Gpt:
         self.system_prompt = None
         self.input_tokens = 0
         self.attachments = {}
+        self.thread_id = None  # assistant thread id
 
         if not self.config.initialized:
             self.config.init()
 
     def init(self):
-        """Initializes OpenAI API key"""
         pass
-        #openai.api_key = self.config.data["api_key"]
-        #openai.organization = self.config.data["organization_key"]
 
     def completion(self, prompt, max_tokens, stream_mode=False):
         """
@@ -61,7 +60,6 @@ class Gpt:
             stop = [self.user_name + ':']
 
         client = OpenAI(
-            # This is the default and can be omitted
             api_key=self.config.data["api_key"],
             organization=self.config.data["organization_key"],
         )
@@ -88,7 +86,6 @@ class Gpt:
         :return: Response dict or stream chunks
         """
         client = OpenAI(
-            # This is the default and can be omitted
             api_key=self.config.data["api_key"],
             organization=self.config.data["organization_key"],
         )
@@ -118,7 +115,6 @@ class Gpt:
         :return: Response dict or stream chunks
         """
         client = OpenAI(
-            # This is the default and can be omitted
             api_key=self.config.data["api_key"],
             organization=self.config.data["organization_key"],
         )
@@ -322,7 +318,6 @@ class Gpt:
         :return: Response text
         """
         client = OpenAI(
-            # This is the default and can be omitted
             api_key=self.config.data["api_key"],
             organization=self.config.data["organization_key"],
         )
@@ -344,10 +339,17 @@ class Gpt:
                 presence_penalty=0.0,
                 stop=None,
             )
-            print(response)
             return response.choices[0].message.content
         except Exception as e:
             print("Error in custom call: " + str(e))
+
+    def assistant_thread_create(self):
+        pass
+
+    def assistant_create(self, name, model, description, instructions):
+        # generate fake uuid
+        uuid = str(uuid4())
+        return uuid
 
     def call(self, prompt, ctx=None, stream_mode=False):
         """

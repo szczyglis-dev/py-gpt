@@ -218,65 +218,107 @@ class Model:
         """Updates active mode, model and preset"""
         mode = self.window.config.data['mode']
         if mode == 'chat':
-            self.window.data['preset.ai_name'].setDisabled(True)
-            self.window.data['preset.user_name'].setDisabled(True)
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
+
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['assistants.widget'].setVisible(False)
+
             self.window.data['img_variants.label'].setVisible(False)
             self.window.config_option['img_variants'].setVisible(False)
+
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
         elif mode == 'img':
+            self.window.config_option['current_temperature'].slider.setDisabled(True)
+            self.window.config_option['current_temperature'].input.setDisabled(True)
+
             self.window.data['preset.prompt'].setDisabled(False)
             self.window.data['preset.ai_name'].setDisabled(True)
             self.window.data['preset.user_name'].setDisabled(True)
-            self.window.config_option['current_temperature'].slider.setDisabled(True)
-            self.window.config_option['current_temperature'].input.setDisabled(True)
             self.window.data['preset.clear'].setVisible(False)
             self.window.data['preset.use'].setVisible(True)
 
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['assistants.widget'].setVisible(False)
+
             self.window.data['img_variants.label'].setVisible(True)
             self.window.config_option['img_variants'].setVisible(True)
+
             self.window.data['temperature.label'].setVisible(False)
             self.window.config_option['current_temperature'].setVisible(False)
         elif mode == 'completion':
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+
             self.window.data['preset.prompt'].setDisabled(False)
             self.window.data['preset.ai_name'].setDisabled(False)
             self.window.data['preset.user_name'].setDisabled(False)
-            self.window.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.config_option['current_temperature'].input.setDisabled(False)
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['assistants.widget'].setVisible(False)
+
             self.window.data['img_variants.label'].setVisible(False)
             self.window.config_option['img_variants'].setVisible(False)
+
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
         elif mode == 'vision':
-            self.window.data['preset.ai_name'].setDisabled(True)
-            self.window.data['preset.user_name'].setDisabled(True)
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
+
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['assistants.widget'].setVisible(False)
+
             self.window.data['img_variants.label'].setVisible(False)
             self.window.config_option['img_variants'].setVisible(False)
+
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
         elif mode == 'langchain':
-            self.window.data['preset.ai_name'].setDisabled(False)
-            self.window.data['preset.user_name'].setDisabled(False)
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
+
+            self.window.data['preset.ai_name'].setDisabled(False)
+            self.window.data['preset.user_name'].setDisabled(False)
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['assistants.widget'].setVisible(False)
+
             self.window.data['img_variants.label'].setVisible(False)
             self.window.config_option['img_variants'].setVisible(False)
+
+            self.window.data['temperature.label'].setVisible(True)
+            self.window.config_option['current_temperature'].setVisible(True)
+        elif mode == 'assistant':
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+
+            self.window.data['preset.ai_name'].setDisabled(False)
+            self.window.data['preset.user_name'].setDisabled(False)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['presets.widget'].setVisible(False)
+            self.window.data['assistants.widget'].setVisible(True)
+
+            self.window.data['img_variants.label'].setVisible(False)
+            self.window.config_option['img_variants'].setVisible(False)
+
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
 

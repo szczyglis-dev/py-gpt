@@ -7,8 +7,8 @@
   "completion": false,
   "img": false,
   "vision": false,
-  "langchain": true,
-  "assistant": false,
+  "langchain": false,
+  "assistant": true,
   "temperature": 1.0,
   "__meta__": {
     "version": "0.9.7",

@@ -28,6 +28,7 @@ from .audio import Audio
 from .attachment import Attachment
 from .notepad import Notepad
 from .files import Files
+from .assistant import Assistant
 
 
 class Controller:
@@ -57,6 +58,7 @@ class Controller:
         self.attachment = Attachment(window)
         self.notepad = Notepad(window)
         self.files = Files(window)
+        self.assistant = Assistant(window)
 
     def setup(self):
         """Setups controller"""
@@ -66,6 +68,7 @@ class Controller:
         # setup all controllers
         self.lang.setup()
         self.model.setup()
+        self.assistant.setup()
         self.input.setup()
         self.output.setup()
         self.context.setup()

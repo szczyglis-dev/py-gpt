@@ -215,6 +215,10 @@ class Updater:
                     data['stream'] = True
                 if 'attachments_send_clear' not in data:
                     data['attachments_send_clear'] = True
+                if 'assistant' not in data:
+                    data['assistant'] = None
+                if 'assistant_thread' not in data:
+                    data['assistant_thread'] = None
                 updated = True
             if old < parse_version("0.9.6"):
                 print("Migrating config from < 0.9.6...")

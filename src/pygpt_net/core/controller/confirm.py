@@ -43,6 +43,8 @@ class Confirm:
             self.window.controller.attachment.clear(True)
         elif type == 'files.delete':
             self.window.controller.files.delete(id, True)
+        elif type == 'assistant_delete':
+            self.window.controller.assistant.delete(id, True)
 
         self.window.dialog['confirm'].close()
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 22:00:00                  #
+# Updated Date: 2023.12.04 19:00:00                  #
 # ================================================== #
 import json
 
@@ -221,19 +221,21 @@ class Input:
                     self.window.log("Reading stream...")  # log
                     for chunk in ctx.stream:
                         response = None
-                        if mode == "chat" or mode == "vision":
+                        if mode == "chat" or mode == "vision" or mode == "assistant":
                             if chunk.choices[0].delta.content is not None:
                                 response = chunk.choices[0].delta.content
                         elif mode == "completion":
                             if chunk.choices[0].text is not None:
                                 response = chunk.choices[0].text
 
-                        # langchain can have different submodes
+                        # langchain can provide different modes itself
                         elif mode == "langchain":
                             if submode == 'chat':
+                                # if chat model response is object
                                 if chunk.content is not None:
                                     response = chunk.content
                             elif submode == 'completion':
+                                # if completion response is string
                                 if chunk is not None:
                                     response = chunk
 

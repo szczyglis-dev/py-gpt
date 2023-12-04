@@ -12,7 +12,7 @@
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget, QCheckBox
 
-from .widgets import NameInput, SelectMenu, SettingsSlider, SettingsTextarea, PresetSelectMenu
+from .widgets import NameInput, SelectMenu, SettingsSlider, SettingsTextarea, PresetSelectMenu, AssistantSelectMenu
 from ..utils import trans
 
 
@@ -47,19 +47,28 @@ class Toolbox:
         self.window.models['preset.presets'] = self.create_model(self.window)
         self.window.data['preset.presets'].setModel(self.window.models['preset.presets'])
 
-        presets_widget = QWidget()
-        presets_widget.setLayout(presets)
-        presets_widget.setMinimumHeight(150)
+        self.window.data['presets.widget'] = QWidget()
+        self.window.data['presets.widget'].setLayout(presets)
+        self.window.data['presets.widget'].setMinimumHeight(150)
+
+        # assistants
+        assistants = self.setup_assistants('assistants', trans("toolbox.assistants.label"))
+        self.window.models['assistants'] = self.create_model(self.window)
+        self.window.data['assistants'].setModel(self.window.models['assistants'])
+
+        self.window.data['assistants.widget'] = QWidget()
+        self.window.data['assistants.widget'].setLayout(assistants)
+        self.window.data['assistants.widget'].setMinimumHeight(150)
 
         # initial prompt text
         prompt = self.setup_prompt()
-
         prompt_widget = QWidget()
         prompt_widget.setLayout(prompt)
 
         layout = QSplitter(Qt.Vertical)
         layout.addWidget(modes_splitter)  # mode and model list
-        layout.addWidget(presets_widget)  # prompts list
+        layout.addWidget(self.window.data['presets.widget'])  # prompts list
+        layout.addWidget(self.window.data['assistants.widget'])  # assistants list
         layout.addWidget(prompt_widget)  # prompt text (editable)
 
         # AI and users names
@@ -68,7 +77,6 @@ class Toolbox:
         names_layout.addLayout(self.setup_name_input('preset.user_name', trans("toolbox.name.user")))
 
         # bottom
-
         self.window.data['temperature.label'] = QLabel(trans("toolbox.temperature.label"))
         self.window.config_option['current_temperature'] = SettingsSlider(self.window, 'current_temperature',
                                                                           '', 0, 200,
@@ -112,6 +120,7 @@ class Toolbox:
 
         self.window.data['toolbox.prompt.label'] = QLabel(trans("toolbox.prompt"))
         self.window.data['toolbox.prompt.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+
         self.window.data['preset.clear'] = QPushButton(trans('preset.clear'))
         self.window.data['preset.clear'].clicked.connect(
             lambda: self.window.controller.presets.clear())
@@ -119,6 +128,7 @@ class Toolbox:
         self.window.data['preset.use'].clicked.connect(
             lambda: self.window.controller.presets.use())
         self.window.data['preset.use'].setVisible(False)
+
         header = QHBoxLayout()
         header.addWidget(self.window.data['toolbox.prompt.label'])
         header.addWidget(self.window.data['cmd.enabled'])
@@ -174,6 +184,37 @@ class Toolbox:
         header_widget.setLayout(header)
 
         self.window.data[id] = PresetSelectMenu(self.window, id)
+        layout = QVBoxLayout()
+        layout.addWidget(header_widget)
+        layout.addWidget(self.window.data[id])
+
+        self.window.models[id] = self.create_model(self.window)
+        self.window.data[id].setModel(self.window.models[id])
+        return layout
+
+    def setup_assistants(self, id, title):
+        """
+        Setups list
+
+        :param id: ID of the list
+        :param title: Title of the list
+        :return: QVBoxLayout
+        """
+        self.window.data['assistants.new'] = QPushButton(trans('preset.new'))
+        self.window.data['assistants.new'].clicked.connect(
+            lambda: self.window.controller.assistant.edit())
+
+        self.window.data['assistants.label'] = QLabel(title)
+        self.window.data['assistants.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        header = QHBoxLayout()
+        header.addWidget(self.window.data['assistants.label'])
+        header.addWidget(self.window.data['assistants.new'], alignment=Qt.AlignRight)
+        header.setContentsMargins(0, 0, 0, 0)
+
+        header_widget = QWidget()
+        header_widget.setLayout(header)
+
+        self.window.data[id] = AssistantSelectMenu(self.window, id)
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.data[id])

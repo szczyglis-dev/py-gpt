@@ -42,7 +42,7 @@ class UI:
         prompt_tokens = 0
         input_tokens = 0
 
-        if mode == "chat" or mode == "vision" or mode == "langchain":
+        if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.config.data['prompt']).strip()
             prompt_tokens = num_tokens_prompt(system_prompt, "", model)

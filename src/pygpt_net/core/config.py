@@ -31,6 +31,7 @@ class Config:
         self.models = {}
         self.data = {}
         self.presets = {}
+        self.assistants = {}
         self.version = self.get_version()
 
     def get_root_path(self):
@@ -105,6 +106,7 @@ class Config:
         if all:
             self.load_models(log)
             self.load_presets()
+            self.load_assistants()
 
     def save_preset(self, preset):
         """
@@ -200,6 +202,7 @@ class Config:
             'img': False,
             'vision': False,
             'langchain': False,
+            'assistant': False,
             'temperature': 1.0,
         }
 
@@ -211,6 +214,7 @@ class Config:
         curr_img = self.build_empty_preset()
         curr_vision = self.build_empty_preset()
         curr_langchain = self.build_empty_preset()
+        curr_assistant = self.build_empty_preset()
 
         # prepare ids
         id_chat = 'current.chat'
@@ -218,6 +222,7 @@ class Config:
         id_img = 'current.img'
         id_vision = 'current.vision'
         id_langchain = 'current.langchain'
+        id_assistant = 'current.assistant'
 
         # set default initial prompt for chat mode
         curr_chat['prompt'] = self.data['default_prompt']
@@ -238,6 +243,9 @@ class Config:
         if id_langchain in self.presets:
             curr_langchain = self.presets[id_langchain].copy()
             del self.presets[id_langchain]
+        if id_assistant in self.presets:
+            curr_assistant = self.presets[id_assistant].copy()
+            del self.presets[id_assistant]
 
         # allow usage in specific mode
         curr_chat['chat'] = True
@@ -245,6 +253,7 @@ class Config:
         curr_img['img'] = True
         curr_vision['vision'] = True
         curr_langchain['langchain'] = True
+        curr_assistant['assistant'] = True
 
         # always apply default name
         curr_chat['name'] = '*'
@@ -252,6 +261,7 @@ class Config:
         curr_img['name'] = '*'
         curr_vision['name'] = '*'
         curr_langchain['name'] = '*'
+        curr_assistant['name'] = '*'
 
         # append at first position
         self.presets = {
@@ -260,6 +270,7 @@ class Config:
             id_img: curr_img,
             id_vision: curr_vision,
             id_langchain: curr_langchain,
+            id_assistant: curr_assistant,
             **self.presets
         }
 
@@ -295,6 +306,17 @@ class Config:
         presets = self.get_presets(mode)
         return list(presets.keys())[idx]
 
+    def get_assistant_by_idx(self, idx):
+        """
+        Returns preset by index
+
+        :param idx: index
+        :param mode: mode
+        :return: preset name
+        """
+        assistants = self.get_assistants()
+        return list(assistants.keys())[idx]
+
     def get_modes(self):
         """
         Returns modes
@@ -317,6 +339,9 @@ class Config:
         modes['langchain'] = {
             'name': 'mode.langchain'
         }
+        modes['assistant'] = {
+            'name': 'mode.assistant'
+        }
         return modes
 
     def get_presets(self, mode):
@@ -332,7 +357,8 @@ class Config:
                     or (mode == 'completion' and 'completion' in self.presets[key] and self.presets[key]['completion']) \
                     or (mode == 'img' and 'img' in self.presets[key] and self.presets[key]['img']) \
                     or (mode == 'vision' and 'vision' in self.presets[key] and self.presets[key]['vision']) \
-                    or (mode == 'langchain' and 'langchain' in self.presets[key] and self.presets[key]['langchain']):
+                    or (mode == 'langchain' and 'langchain' in self.presets[key] and self.presets[key]['langchain']) \
+                    or (mode == 'assistant' and 'assistant' in self.presets[key] and self.presets[key]['assistant']):
                 presets[key] = self.presets[key]
         return presets
 
@@ -350,6 +376,14 @@ class Config:
             if mode in self.models[key]['mode']:
                 models[key] = self.models[key]
         return models
+
+    def get_assistants(self):
+        """
+        Returns assistants
+
+        :return: assistants dict
+        """
+        return self.assistants
 
     def get_preset_idx(self, mode, name):
         """
@@ -385,6 +419,16 @@ class Config:
                 except Exception as e:
                     print(e)
             self.load_presets()
+
+    def delete_assistant(self, id):
+        """
+        Deletes assistant
+
+        :param id: id of assistant
+        """
+        if id in self.assistants:
+            self.assistants.pop(id)
+        self.save_assistants()
 
     def get_default_mode(self):
         """
@@ -531,6 +575,40 @@ class Config:
             'app.version': self.version,
             'updated_at': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         }
+
+    def load_assistants(self):
+        """Loads assistants list from file"""
+        path = os.path.join(self.path, 'assistants.json')
+        try:
+            if os.path.exists(path):
+                with open(path, 'r', encoding="utf-8") as file:
+                    data = json.load(file)
+                    file.close()
+                    if data == "" or data is None or 'items' not in data:
+                        self.assistants = {}
+                        return
+                    self.assistants = data['items']
+        except Exception as e:
+            print(e)
+            self.assistants = {}
+
+    def save_assistants(self):
+        """
+        Saves assistants to file
+        """
+        try:
+            # update assistants
+            path = os.path.join(self.path, 'assistants.json')
+            data = {}
+            data['__meta__'] = self.append_meta()
+            data['items'] = self.assistants
+            dump = json.dumps(data, indent=4)
+            with open(path, 'w', encoding="utf-8") as f:
+                f.write(dump)
+                f.close()
+
+        except Exception as e:
+            print("Error while saving assistants: {}".format(str(e)))
 
     def install(self):
         """Installs config files"""

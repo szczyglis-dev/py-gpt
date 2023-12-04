@@ -180,7 +180,7 @@ class PresetSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 1:
-            self.window.controller.model.select(self.id, item.row())
+            # self.window.controller.model.select(self.id, item.row())
             menu.exec_(event.globalPos())
 
     def action_edit(self, event):
@@ -215,6 +215,79 @@ class PresetSelectMenu(SelectMenu):
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.delete(idx)
+
+
+class AssistantSelectMenu(SelectMenu):
+    def __init__(self, window=None, id=None):
+        """
+        Presets select menu
+
+        :param window: main window
+        :param id: input id
+        """
+        super(AssistantSelectMenu, self).__init__(window)
+        self.window = window
+        self.id = id
+
+        self.doubleClicked.connect(self.dblclick)
+
+    def click(self, val):
+        self.window.controller.assistant.select(val.row())
+
+    def dblclick(self, val):
+        """
+        Double click event
+
+        :param val: double click event
+        """
+        self.window.controller.assistant.edit(val.row())
+
+    def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: context menu event
+        """
+        actions = {}
+        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('assistant.action.edit'), self)
+        actions['edit'].triggered.connect(
+            lambda: self.action_edit(event))
+
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('assistant.action.delete'), self)
+        actions['delete'].triggered.connect(
+            lambda: self.action_delete(event))
+
+        menu = QMenu(self)
+        menu.addAction(actions['edit'])
+        menu.addAction(actions['delete'])
+
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant.select(item.row())
+            menu.exec_(event.globalPos())
+
+    def action_edit(self, event):
+        """
+        Edit action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant.edit(idx)
+
+    def action_delete(self, event):
+        """
+        Delete action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant.delete(idx)
 
 
 class ContextSelectMenu(SelectMenu):

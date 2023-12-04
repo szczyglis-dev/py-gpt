@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.14 20:00:00                  #
+# Updated Date: 2023.12.04 20:00:00                  #
 # ================================================== #
 
 from .dialog.settings import Settings
@@ -21,6 +21,7 @@ from .dialog.update import Update
 from .dialog.image import Image
 from .dialog.plugins import Plugins
 from .dialog.logger import Logger
+from .dialog.assistant import Assistant
 from .widgets import AlertDialog, ConfirmDialog
 
 
@@ -57,6 +58,10 @@ class Dialogs:
         # setup preset editor dialog
         preset = Preset(self.window)
         preset.setup()
+
+        # setup assistant editor dialog
+        assistant = Assistant(self.window)
+        assistant.setup()
 
         # setup editor dialog
         editor = Editor(self.window)

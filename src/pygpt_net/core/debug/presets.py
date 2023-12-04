@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.03 12:00:00                  #
+# Updated Date: 2023.12.04 12:00:00                  #
 # ================================================== #
 
 import os
@@ -51,6 +51,8 @@ class PresetsDebug:
                 self.window.debugger.add(self.id, prefix + 'vision', str(preset['vision']))
             if 'langchain' in preset:
                 self.window.debugger.add(self.id, prefix + 'langchain', str(preset['langchain']))
+            if 'assistant' in preset:
+                self.window.debugger.add(self.id, prefix + 'assistant', str(preset['assistant']))
             if 'temperature' in preset:
                 self.window.debugger.add(self.id, prefix + 'temperature', str(preset['temperature']))
 

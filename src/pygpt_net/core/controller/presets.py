@@ -87,6 +87,7 @@ class Presets:
         data['completion'] = False
         data['vision'] = False
         data['langchain'] = False
+        data['assistant'] = False
         data['name'] = ""
         data['filename'] = ""
 
@@ -118,6 +119,8 @@ class Presets:
                 data['vision'] = True
             elif mode == 'langchain':
                 data['langchain'] = True
+            elif mode == 'assistant':
+                data['assistant'] = True
 
         self.config_change('preset.filename', data['filename'], 'preset.editor')
         self.config_change('preset.ai_name', data['ai_name'], 'preset.editor')
@@ -127,9 +130,14 @@ class Presets:
         self.config_slider('preset.temperature', data['temperature'], '', 'preset.editor')
         self.config_toggle('preset.img', data['img'], 'preset.editor')
         self.config_toggle('preset.chat', data['chat'], 'preset.editor')
-        self.config_toggle('preset.completion', data['completion'], 'preset.editor')
-        self.config_toggle('preset.vision', data['vision'], 'preset.editor')
-        self.config_toggle('preset.langchain', data['langchain'], 'preset.editor')
+        if 'completion' in data:
+            self.config_toggle('preset.completion', data['completion'], 'preset.editor')
+        if 'vision' in data:
+            self.config_toggle('preset.vision', data['vision'], 'preset.editor')
+        if 'langchain' in data:
+            self.config_toggle('preset.langchain', data['langchain'], 'preset.editor')
+        if 'assistant' in data:
+            self.config_toggle('preset.assistant', data['assistant'], 'preset.editor')
 
     def save(self, force=False):
         """
@@ -162,9 +170,10 @@ class Presets:
         is_img = self.window.config_option['preset.img'].box.isChecked()
         is_vision = self.window.config_option['preset.vision'].box.isChecked()
         is_langchain = self.window.config_option['preset.langchain'].box.isChecked()
+        is_assistant = self.window.config_option['preset.assistant'].box.isChecked()
 
         # if not chat or completion then show warning
-        if not is_chat and not is_completion and not is_img and not is_vision and not is_langchain:
+        if not is_chat and not is_completion and not is_img and not is_vision and not is_langchain and not is_assistant:
             self.window.ui.dialogs.alert(trans('alert.preset.no_chat_completion'))
             return
 
@@ -199,6 +208,7 @@ class Presets:
             'preset.completion'].box.isChecked()
         self.window.config.presets[preset]['vision'] = self.window.config_option['preset.vision'].box.isChecked()
         self.window.config.presets[preset]['langchain'] = self.window.config_option['preset.langchain'].box.isChecked()
+        self.window.config.presets[preset]['assistant'] = self.window.config_option['preset.assistant'].box.isChecked()
 
     def duplicate(self, idx=None):
         """
