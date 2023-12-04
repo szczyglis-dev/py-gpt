@@ -26,6 +26,7 @@ from .image import Image
 from .theme import Theme
 from .audio import Audio
 from .attachment import Attachment
+from .notepad import Notepad
 
 
 class Controller:
@@ -53,6 +54,7 @@ class Controller:
         self.theme = Theme(window)
         self.audio = Audio(window)
         self.attachment = Attachment(window)
+        self.notepad = Notepad(window)
 
     def setup(self):
         """Setups controller"""
@@ -70,6 +72,7 @@ class Controller:
         self.launcher.setup()
         self.audio.setup()
         self.attachment.setup()
+        self.notepad.setup()
 
     def setup_plugins(self):
         """Setup plugins"""

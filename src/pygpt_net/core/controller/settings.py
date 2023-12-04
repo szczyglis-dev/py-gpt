@@ -47,6 +47,7 @@ class Settings:
         info = trans('info.settings.all.saved')
         self.window.config.save()
         self.window.config.save_presets()
+        self.window.controller.notepad.save()
         self.window.ui.dialogs.alert(info)
         self.window.set_status(info)
         self.window.controller.ui.update()

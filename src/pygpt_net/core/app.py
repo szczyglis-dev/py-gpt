@@ -147,8 +147,12 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param event: close event
         """
         print("Closing...")
-        print("Saving config...")
+        print("Sending terminate signal to plugins...")
+        self.controller.plugins.destroy()
+        print("Saving notepad...")
+        self.controller.notepad.save()
         self.timer.stop()
+        print("Saving config...")
         self.config.save()
         print("Saving presets...")
         self.config.save_presets()

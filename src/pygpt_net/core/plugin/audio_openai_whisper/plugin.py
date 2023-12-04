@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.03 21:00:00                  #
+# Updated Date: 2023.12.04 01:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -26,7 +26,80 @@ class Plugin(BasePlugin):
         self.id = "audio_openai_whisper"
         self.name = "Audio Input (OpenAI Whisper)"
         self.description = "Enables speech recognition using OpenAI Whisper API"
+        self.stop_words = ['stop', 'exit', 'quit', 'end', 'finish', 'close', 'terminate', 'kill', 'halt', 'abort']
         self.options = {}
+        self.options["model"] = {
+            "type": "text",
+            "slider": False,
+            "label": "Model",
+            "description": "Specify model, default: whisper-1",
+            "tooltip": "Model",
+            "value": 'whisper-1',
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["timeout"] = {
+            "type": "int",
+            "slider": True,
+            "label": "Timeout",
+            "description": "Speech recognition timeout",
+            "tooltip": "Timeout, default: 2",
+            "value": 1,
+            "min": 1,
+            "max": 30,
+            "multiplier": 1,
+            "step": 1,
+        }
+        self.options["phrase_length"] = {
+            "type": "int",
+            "slider": True,
+            "label": "Phrase max length",
+            "description": "Speech recognition phrase length",
+            "tooltip": "Phrase max length, default: 3",
+            "value": 3,
+            "min": 1,
+            "max": 30,
+            "multiplier": 1,
+            "step": 1,
+        }
+        self.options["min_energy"] = {
+            "type": "int",
+            "slider": True,
+            "label": "Min. energy",
+            "description": "Minimum energy (loudness) to start recording, 0 = disabled",
+            "tooltip": "Min. energy, default: 4000, 0 = disabled, adjust for your microphone",
+            "value": 4000,
+            "min": 0,
+            "max": 20000,
+            "multiplier": 1,
+            "step": 1,
+        }
+        self.options["adjust_noise"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Adjust ambient noise",
+            "description": "Adjust for ambient noise",
+            "tooltip": "Adjust for ambient noise",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["continuous_listen"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Continuous listen",
+            "description": "Continuous listen (do not stop after single input)",
+            "tooltip": "Continuous listen",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
         self.input_text = None
         self.window = None
         self.speech_enabled = False
@@ -46,22 +119,17 @@ class Plugin(BasePlugin):
     def setup_ui(self):
         """
         Setup UI
-
-        :param ui: UI
         """
         self.window.plugin_data['speech.enable'] = QCheckBox(trans('speech.enable'))
         self.window.plugin_data['speech.enable'].setStyleSheet(
             self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.plugin_data['speech.enable'].stateChanged.connect(
             lambda: self.toggle_speech(self.window.plugin_data['speech.enable'].isChecked()))
-
         self.window.data['ui.input.buttons'].addWidget(self.window.plugin_data['speech.enable'], 0, Qt.AlignLeft)
-
         if self.enabled:
             self.window.plugin_data['speech.enable'].setVisible(True)
         else:
             self.window.plugin_data['speech.enable'].setVisible(False)
-        pass
 
     def toggle_speech(self, state):
         """
@@ -155,6 +223,14 @@ class Plugin(BasePlugin):
         """
         return ctx
 
+    def destroy(self):
+        """
+        Destroy thread
+        """
+        self.waiting = True
+        self.listening = False
+        self.thread_started = False
+
     def handle_thread(self):
         """
         Handle listener thread
@@ -165,6 +241,7 @@ class Plugin(BasePlugin):
         listener.finished.connect(self.handle_input)
         listener.destroyed.connect(self.handle_destroy)
         listener.started.connect(self.handle_started)
+        listener.stopped.connect(self.handle_stop)
 
         self.thread = threading.Thread(target=listener.run)
         self.thread.start()
@@ -197,11 +274,23 @@ class Plugin(BasePlugin):
         print("Whisper is listening...")
         self.window.statusChanged.emit(trans('speech.listening'))
 
+    @Slot()
+    def handle_stop(self):
+        """
+        Stop listening
+        """
+        self.thread_started = False
+        self.listening = False
+        self.window.statusChanged.emit("")
+        print("Whisper stopped listening...")
+        self.toggle_speech(False)
+
 
 class AudioInputThread(QObject):
     finished = Signal(object)
     destroyed = Signal()
     started = Signal()
+    stopped = Signal()
 
     def __init__(self, plugin=None):
         """
@@ -220,10 +309,20 @@ class AudioInputThread(QObject):
                 self.started.emit()
                 try:
                     with sr.Microphone() as source:
-                        recognizer.adjust_for_ambient_noise(source)
-                        audio_data = recognizer.listen(source, 2, 3)
+                        if self.plugin.options["adjust_noise"]['value']:
+                            recognizer.adjust_for_ambient_noise(source)
+                        timeout = self.plugin.options["timeout"]['value']
+                        phrase_length = self.plugin.options["phrase_length"]['value']
+                        audio_data = recognizer.listen(source, timeout, phrase_length)
+
+                        # check if audio data is not too silent
+                        if audio_data.get_wav_data():
+                            energy = recognizer.energy_threshold
+                            if self.plugin.options["min_energy"]['value'] > 0 \
+                                    and energy < self.plugin.options["min_energy"]['value']:
+                                continue
                     try:
-                        if not self.plugin.waiting:
+                        if not self.plugin.waiting and audio_data.get_wav_data():
                             with open(path, "wb") as file:
                                 file.write(audio_data.get_wav_data())
                                 file.close()
@@ -232,7 +331,7 @@ class AudioInputThread(QObject):
                             if os.path.exists(path):
                                 audio_file = open(path, "rb")
                                 transcript = client.audio.transcriptions.create(
-                                    model="whisper-1",
+                                    model=self.plugin.options["model"]['value'],
                                     file=audio_file,
                                     response_format="text"
                                 )
@@ -242,6 +341,13 @@ class AudioInputThread(QObject):
                                 os.remove(path)
                                 if transcript is not None and transcript.strip() != '':
                                     self.finished.emit(transcript)
+
+                                    # stop listening if not continuous
+                                    if not self.plugin.options["continuous_listen"]['value'] \
+                                            or transcript.replace('.', '').strip().lower() in self.plugin.stop_words:
+                                        self.plugin.listening = False
+                                        self.stopped.emit()
+                                        break
 
                     except sr.UnknownValueError:
                         pass

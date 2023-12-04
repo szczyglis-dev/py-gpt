@@ -11,9 +11,9 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter, QTabWidget
 
-from ..ui.widgets import ChatOutput
+from ..ui.widgets import ChatOutput, NotepadOutput
 from ..ui.input import Input
 from ..utils import trans
 from ..ui.highlighter import MarkdownHighlighter
@@ -43,6 +43,19 @@ class ChatBox:
         self.window.data['output'] = ChatOutput(self.window)
         self.window.data['output'].setFont(monofont)
 
+        # notepads
+        self.window.data['notepad1'] = NotepadOutput(self.window)
+        self.window.data['notepad2'] = NotepadOutput(self.window)
+        self.window.data['notepad3'] = NotepadOutput(self.window)
+        self.window.data['notepad4'] = NotepadOutput(self.window)
+        self.window.data['notepad5'] = NotepadOutput(self.window)
+        self.window.data['notepad1'].setFont(monofont)
+        self.window.data['notepad2'].setFont(monofont)
+        self.window.data['notepad3'].setFont(monofont)
+        self.window.data['notepad4'].setFont(monofont)
+        self.window.data['notepad5'].setFont(monofont)
+
+        # markup highlighter
         self.highlighter = MarkdownHighlighter(self.window.data['output'])
 
         self.window.data['chat.model'] = QLabel("")
@@ -60,9 +73,20 @@ class ChatBox:
         header.addWidget(self.window.data['chat.plugins'])
         header.addWidget(self.window.data['chat.model'])
 
+        # tabs
+        self.window.data['output.tabs'] = QTabWidget()
+
+        # add tabs
+        self.window.data['output.tabs'].addTab(self.window.data['output'], trans('output.tab.chat'))
+        self.window.data['output.tabs'].addTab(self.window.data['notepad1'], trans('output.tab.notepad') + " 1")
+        self.window.data['output.tabs'].addTab(self.window.data['notepad2'], trans('output.tab.notepad') + " 2")
+        self.window.data['output.tabs'].addTab(self.window.data['notepad3'], trans('output.tab.notepad') + " 3")
+        self.window.data['output.tabs'].addTab(self.window.data['notepad4'], trans('output.tab.notepad') + " 4")
+        self.window.data['output.tabs'].addTab(self.window.data['notepad5'], trans('output.tab.notepad') + " 5")
+
         layout = QVBoxLayout()
         layout.addLayout(header)
-        layout.addWidget(self.window.data['output'])
+        layout.addWidget(self.window.data['output.tabs'])
         layout.addLayout(context_layout)
 
         output_widget = QWidget()

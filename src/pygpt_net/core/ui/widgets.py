@@ -75,7 +75,7 @@ class ChatInput(QTextEdit):
 class ChatOutput(QTextEdit):
     def __init__(self, window=None):
         """
-        Chat input
+        Chat output
 
         :param window: main window
         """
@@ -83,6 +83,27 @@ class ChatOutput(QTextEdit):
         self.window = window
         self.setReadOnly(True)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+
+
+class NotepadOutput(QTextEdit):
+    def __init__(self, window=None):
+        """
+        Notepad
+
+        :param window: main window
+        """
+        super(NotepadOutput, self).__init__(window)
+        self.window = window
+        self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key event
+        """
+        super(NotepadOutput, self).keyPressEvent(event)
+        self.window.controller.notepad.save()
 
 
 class SelectMenu(QTreeView):

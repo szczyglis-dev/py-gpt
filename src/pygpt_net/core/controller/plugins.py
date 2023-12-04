@@ -45,7 +45,7 @@ class Plugins:
         for id in self.handler.plugins:
             plugin = self.handler.plugins[id]
             try:
-                plugin.setup_ui()  # get plugin options
+                plugin.setup_ui()  # setup UI
             except AttributeError:
                 pass
 
@@ -76,6 +76,17 @@ class Plugins:
         for id in self.enabled:
             if self.enabled[id]:
                 self.window.menu['plugins'][id].setChecked(True)
+
+    def destroy(self):
+        """
+        Destroy plugins workers
+        """
+        for id in self.handler.plugins:
+            plugin = self.handler.plugins[id]
+            try:
+                plugin.destroy()  # destroy plugin workers
+            except AttributeError:
+                pass
 
     def toggle_settings(self):
         """Toggles plugins settings dialog"""

@@ -161,6 +161,12 @@ class Plugin(BasePlugin):
 
         return ctx
 
+    def destroy(self):
+        """
+        Destroy thread
+        """
+        pass
+
 
 class TTS(QObject):
     def __init__(self, client, model, path, voice, text):

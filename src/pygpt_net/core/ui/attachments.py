@@ -42,8 +42,8 @@ class Attachments:
 
         # layout
         layout = QVBoxLayout()
-        layout.addLayout(buttons_layout)
         layout.addWidget(self.window.data['attachments'])
+        layout.addLayout(buttons_layout)
 
         return layout
 
