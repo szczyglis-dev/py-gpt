@@ -41,6 +41,8 @@ class Confirm:
             self.window.controller.attachment.delete(id, True)
         elif type == 'attachments.clear':
             self.window.controller.attachment.clear(True)
+        elif type == 'files.delete':
+            self.window.controller.files.delete(id, True)
 
         self.window.dialog['confirm'].close()
 
@@ -61,6 +63,8 @@ class Confirm:
             self.window.controller.context. update_name(id, name)
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
+        elif type == 'output_file':
+            self.window.controller.files.update_name(id, name)
 
     def dismiss_rename(self):
         """Dismisses rename dialog"""

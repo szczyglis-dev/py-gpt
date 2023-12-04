@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.02 22:00:00                  #
 # ================================================== #
+import json
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
@@ -50,6 +51,12 @@ class Input:
             self.window.data['input.send_enter'].setChecked(True)
             self.window.data['input.send_shift_enter'].setChecked(False)
 
+        # cmd enabled
+        if self.window.config.data['cmd']:
+            self.window.data['cmd.enabled'].setChecked(True)
+        else:
+            self.window.data['cmd.enabled'].setChecked(False)
+
         # set focus to input
         self.window.data['input'].setFocus()
 
@@ -60,6 +67,14 @@ class Input:
         :param value: value of the checkbox
         """
         self.window.config.data['stream'] = value
+
+    def toggle_cmd(self, value):
+        """
+        Toggles cmd enabled
+
+        :param value: value of the checkbox
+        """
+        self.window.config.data['cmd'] = value
 
     def toggle_send_clear(self, value):
         """
@@ -118,11 +133,19 @@ class Input:
         self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))
         self.window.log("System: {}".format(self.window.gpt.system_prompt))
 
-        # apply cfg
+        # apply cfg, plugins
         self.window.gpt.user_name = ctx.input_name
         self.window.gpt.ai_name = ctx.output_name
-        self.window.gpt.system_prompt = self.window.controller.plugins.apply('system.prompt',
-                                                                             self.window.config.data['prompt'])
+        sys_prompt = self.window.config.data['prompt']
+        sys_prompt = self.window.controller.plugins.apply('system.prompt', sys_prompt)
+
+        # if commands enabled: append commands prompt
+        if self.window.config.data['cmd']:
+            sys_prompt += " " + self.window.command.get_prompt()
+            sys_prompt = self.window.gpt.system_prompt = self.window.controller.plugins.apply('cmd.syntax', sys_prompt)
+
+        # set system prompt
+        self.window.gpt.system_prompt = sys_prompt
 
         # log
         self.window.log("System [after plugin: system.prompt]: {}".format(self.window.gpt.system_prompt))
@@ -224,6 +247,15 @@ class Input:
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
+        # if commands enabled: execute commands
+        if self.window.config.data['cmd']:
+            cmds = self.window.command.extract_cmds(ctx.output)
+            self.window.log("Executing commands...")
+            self.window.set_status("Executing commands...")
+            ctx = self.window.controller.plugins.apply_cmds(ctx, cmds)
+            self.window.set_status("")
+            print(cmds)
+
         return ctx
 
     def user_send(self, text=None):
@@ -288,9 +320,14 @@ class Input:
             ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
             self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
             self.window.controller.ui.update()  # update UI
+
+            # if reply from commands then send reply (as response JSON)
+            if ctx.reply:
+                self.window.controller.input.send(json.dumps(ctx.results))
+                self.window.controller.ui.update()
             return
 
-        self.window.controller.ui.update()
+        self.window.controller.ui.update()  # update UI
 
     def append(self, text):
         """

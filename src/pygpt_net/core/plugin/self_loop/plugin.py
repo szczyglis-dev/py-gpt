@@ -59,6 +59,7 @@ class Plugin(BasePlugin):
         self.iteration = 0
         self.prev_output = None
         self.window = None
+        self.order = 9998
 
     def setup(self):
         """

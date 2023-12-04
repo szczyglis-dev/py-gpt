@@ -29,30 +29,51 @@ class Plugins:
         :return: Event data
         """
         if id in self.plugins:
-            if event == 'input.before':
-                return self.plugins[id].on_input_before(data)
-            elif event == 'ctx.before':
-                return self.plugins[id].on_ctx_before(data)
-            elif event == 'ctx.after':
-                return self.plugins[id].on_ctx_after(data)
-            elif event == 'ctx.begin':
-                return self.plugins[id].on_ctx_begin(data)
-            elif event == 'ctx.end':
-                return self.plugins[id].on_ctx_end(data)
-            elif event == 'system.prompt':
-                return self.plugins[id].on_system_prompt(data)
-            elif event == 'ai.name':
-                return self.plugins[id].on_ai_name(data)
-            elif event == 'user.name':
-                return self.plugins[id].on_user_name(data)
-            elif event == 'user.send':
-                return self.plugins[id].on_user_send(data)
-            elif event == 'enable':
-                return self.plugins[id].on_enable()
-            elif event == 'disable':
-                return self.plugins[id].on_disable()
+            try:
+                if event == 'input.before':
+                    return self.plugins[id].on_input_before(data)
+                elif event == 'ctx.before':
+                    return self.plugins[id].on_ctx_before(data)
+                elif event == 'ctx.after':
+                    return self.plugins[id].on_ctx_after(data)
+                elif event == 'ctx.begin':
+                    return self.plugins[id].on_ctx_begin(data)
+                elif event == 'ctx.end':
+                    return self.plugins[id].on_ctx_end(data)
+                elif event == 'system.prompt':
+                    return self.plugins[id].on_system_prompt(data)
+                elif event == 'ai.name':
+                    return self.plugins[id].on_ai_name(data)
+                elif event == 'user.name':
+                    return self.plugins[id].on_user_name(data)
+                elif event == 'user.send':
+                    return self.plugins[id].on_user_send(data)
+                elif event == 'enable':
+                    return self.plugins[id].on_enable()
+                elif event == 'disable':
+                    return self.plugins[id].on_disable()
+                elif event == 'cmd.syntax':
+                    return self.plugins[id].cmd_syntax(data)
+            except AttributeError:
+                pass
 
         return data
+
+    def apply_cmd(self, id, ctx, cmds):
+        """
+        Applies commands
+
+        :param id: Plugin id
+        :param ctx: Event data
+        :return: Event data
+        """
+        if id in self.plugins:
+            try:
+                return self.plugins[id].cmd(ctx, cmds)
+            except AttributeError:
+                pass
+
+        return ctx
 
     def is_registered(self, id):
         """

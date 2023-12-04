@@ -272,7 +272,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
                 formatRange.format = self.MARKDOWN_KWS_FORMAT['Header']
                 formatRange.length = prevCursor.block().length()
                 formatRange.start = 0
-                prevCursor.block().layout().setAdditionalFormats([formatRange])
+                #prevCursor.block().layout().setAdditionalFormats([formatRange])
             self.setFormat(mo.start() + strt, mo.end() - mo.start(), self.MARKDOWN_KWS_FORMAT['HR'])
 
         for mo in re.finditer(self.MARKDOWN_KEYS_REGEX['eHR'], text):
@@ -288,7 +288,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
                 formatRange.format = self.MARKDOWN_KWS_FORMAT['Header']
                 formatRange.length = prevCursor.block().length()
                 formatRange.start = 0
-                prevCursor.block().layout().setAdditionalFormats([formatRange])
+                #prevCursor.block().layout().setAdditionalFormats([formatRange])
             self.setFormat(mo.start() + strt, mo.end() - mo.start(), self.MARKDOWN_KWS_FORMAT['HR'])
         return found
 

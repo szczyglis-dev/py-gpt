@@ -8,12 +8,13 @@
 # Created By  : Marcin Szczygliński                  #
 # Created Date: 2023.04.09 20:00:00                  #
 # ================================================== #
+import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter, QTabWidget
 
-from ..ui.widgets import ChatOutput, NotepadOutput
+from ..ui.widgets import ChatOutput, NotepadOutput, FileExplorerWidget
 from ..ui.input import Input
 from ..utils import trans
 from ..ui.highlighter import MarkdownHighlighter
@@ -55,6 +56,9 @@ class ChatBox:
         self.window.data['notepad4'].setFont(monofont)
         self.window.data['notepad5'].setFont(monofont)
 
+        path = os.path.join(self.window.config.path, 'output')
+        self.window.data['output_files'] = FileExplorerWidget(self.window, path)
+
         # markup highlighter
         self.highlighter = MarkdownHighlighter(self.window.data['output'])
 
@@ -78,6 +82,7 @@ class ChatBox:
 
         # add tabs
         self.window.data['output.tabs'].addTab(self.window.data['output'], trans('output.tab.chat'))
+        self.window.data['output.tabs'].addTab(self.window.data['output_files'], trans('output.tab.files'))
         self.window.data['output.tabs'].addTab(self.window.data['notepad1'], trans('output.tab.notepad') + " 1")
         self.window.data['output.tabs'].addTab(self.window.data['notepad2'], trans('output.tab.notepad') + " 2")
         self.window.data['output.tabs'].addTab(self.window.data['notepad3'], trans('output.tab.notepad') + " 3")

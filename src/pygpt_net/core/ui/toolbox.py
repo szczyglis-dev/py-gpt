@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget, QCheckBox
 
 from .widgets import NameInput, SelectMenu, SettingsSlider, SettingsTextarea, PresetSelectMenu
 from ..utils import trans
@@ -104,6 +104,12 @@ class Toolbox:
 
         :return: QVBoxLayout
         """
+        self.window.data['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))
+        self.window.data['cmd.enabled'].setStyleSheet(
+            self.window.controller.theme.get_style('checkbox'))  # Windows fix
+        self.window.data['cmd.enabled'].stateChanged.connect(
+            lambda: self.window.controller.input.toggle_cmd(self.window.data['cmd.enabled'].isChecked()))
+
         self.window.data['toolbox.prompt.label'] = QLabel(trans("toolbox.prompt"))
         self.window.data['toolbox.prompt.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data['preset.clear'] = QPushButton(trans('preset.clear'))
@@ -115,6 +121,7 @@ class Toolbox:
         self.window.data['preset.use'].setVisible(False)
         header = QHBoxLayout()
         header.addWidget(self.window.data['toolbox.prompt.label'])
+        header.addWidget(self.window.data['cmd.enabled'])
         header.addWidget(self.window.data['preset.use'], alignment=Qt.AlignRight)
         header.addWidget(self.window.data['preset.clear'], alignment=Qt.AlignRight)
 

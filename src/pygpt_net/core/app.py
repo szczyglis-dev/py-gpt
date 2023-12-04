@@ -23,15 +23,17 @@ from .debugger import Debug
 from .settings import Settings
 from .info import Info
 from .gpt import Gpt
+from .command import Command
 from .image import Image
 from .utils import get_init_value
 
 from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 from .plugin.real_time.plugin import Plugin as RealTimePlugin
-from .plugin.web_search.plugin import Plugin as WebSearchPlugin
 from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
 from .plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
 from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperlugin
+from .plugin.cmd_web_google.plugin import Plugin as WebSearchPlugin
+from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -58,6 +60,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.debugger = Debug(self)
         self.info = Info(self)
         self.settings = Settings(self)
+        self.command = Command(self)
 
         # handle config migration if needed
         self.controller.launcher.migrate_version()
@@ -210,6 +213,7 @@ def run():
     launcher.add_plugin(AudioAzurePlugin())
     launcher.add_plugin(AudioOpenAITTSPlugin())
     launcher.add_plugin(AudioOpenAIWhisperlugin())
+    launcher.add_plugin(CmdFilesPlugin())
 
     # run app
     launcher.run()

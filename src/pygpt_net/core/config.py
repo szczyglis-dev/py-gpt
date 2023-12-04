@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.03 12:00:00                  #
+# Updated Date: 2023.12.04 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -548,6 +548,11 @@ class Config:
             img_dir = os.path.join(self.path, 'img')
             if not os.path.exists(img_dir):
                 os.mkdir(img_dir)
+
+            # create output files directory
+            files_dir = os.path.join(self.path, 'output')
+            if not os.path.exists(files_dir):
+                os.mkdir(files_dir)
 
         except Exception as e:
             print(e)

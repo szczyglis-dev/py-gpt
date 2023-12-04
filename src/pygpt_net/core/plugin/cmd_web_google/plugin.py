@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.16 22:00:00                  #
+# Updated Date: 2023.12.04 14:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -16,9 +16,9 @@ from .websearch import WebSearch
 class Plugin(BasePlugin):
     def __init__(self):
         super(Plugin, self).__init__()
-        self.id = "web_search"
-        self.name = "Web Search"
-        self.description = "Allows GPT to connect with the Internet and search web pages when generating answers (experimental alpha)."
+        self.id = "cmd_web_google"
+        self.name = "Command: Google Web Search"
+        self.description = "Allows to connect to the Web and search web pages for actual data."
         self.options = {}
         self.options["google_api_key"] = {
             "type": "text",
@@ -51,7 +51,7 @@ class Plugin(BasePlugin):
             "label": "Number of max pages to search per query",
             "description": "",
             "tooltip": "",
-            "value": 1,
+            "value": 10,
             "min": 1,
             "max": None,
             "multiplier": None,
@@ -85,7 +85,7 @@ class Plugin(BasePlugin):
             "type": "bool",
             "slider": False,
             "label": "Use Google Custom Search",
-            "description": "Enable above option to use Google Custom Search API (API key required)",
+            "description": "Enable Google Custom Search API (API key required)",
             "tooltip": "Google Custom Search",
             "value": True,
             "min": None,
@@ -93,6 +93,7 @@ class Plugin(BasePlugin):
             "multiplier": None,
             "step": None,
         }
+        """
         self.options["use_wikipedia"] = {
             "type": "bool",
             "slider": False,
@@ -105,62 +106,14 @@ class Plugin(BasePlugin):
             "multiplier": None,
             "step": None,
         }
-        self.options["rebuild_question"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Rebuild question to search engine",
-            "description": "Enables building question to search engine from original question",
-            "tooltip": "Rebuild question to search engine",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["rebuild_question_context"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Use context memory when rebuilding question to search engine",
-            "description": "Appends also context memory when building question to search engine from original question",
-            "tooltip": "Enable or disable context memory when rebuilding question to search engine",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
+        """
         self.options["disable_ssl"] = {
             "type": "bool",
             "slider": False,
             "label": "Disable SSL verify",
             "description": "Disables SSL verification when crawling web pages",
             "tooltip": "Disable SSL verify",
-            "value": False,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["prompt_question"] = {
-            "type": "textarea",
-            "slider": False,
-            "label": "Question build prompt",
-            "description": "Prompt used for building question to search engine",
-            "tooltip": "Prompt",
-            "value": "Today is {time}. You are providing single best query for search in Google based on the question "
-                     "and context of whole conversation and nothing more in the answer.",
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["prompt_question_prefix"] = {
-            "type": "textarea",
-            "slider": False,
-            "label": "Question prefix prompt",
-            "description": "Prefix added to original question to build question to search engine",
-            "tooltip": "Prompt",
-            "value": "Prepare single query for this question and put it in <query>: ",
+            "value": True,
             "min": None,
             "max": None,
             "multiplier": None,
@@ -170,34 +123,22 @@ class Plugin(BasePlugin):
             "type": "textarea",
             "slider": False,
             "label": "Summarize prompt",
-            "description": "Prompt used for summarizing web search results",
+            "description": "Prompt used for summarize web search results",
             "tooltip": "Prompt",
-            "value": "Summarize this text from website into 3 paragraphs trying to find the most "
-                     "important content which will help answering for question: ",
+            "value": "Summarize in English text from website into 3 paragraphs trying to find the most important "
+                     "content which can help answer for question. "
+                     "If there is no info about it then return only **FAILED** without any additional info: ",
             "min": None,
             "max": None,
             "multiplier": None,
             "step": None,
         }
-        self.options["prompt_system"] = {
-            "type": "textarea",
-            "slider": False,
-            "label": "System append prompt",
-            "description": "Prompt appended to system prompt after summarize web search results",
-            "tooltip": "Prompt",
-            "value": " Use this summary text to answer the question or try to answer without it "
-                     "if summary text do not have sufficient info: ",
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["prompt_system_length"] = {
+        self.options["max_result_length"] = {
             "type": "int",
             "slider": False,
-            "label": "System append prompt max length",
-            "description": "Max length of system append prompt (characters)",
-            "tooltip": "Prompt max length",
+            "label": "Max result length",
+            "description": "Max length of sumamrized result (characters)",
+            "tooltip": "Max result length",
             "value": 1500,
             "min": 0,
             "max": None,
@@ -219,6 +160,8 @@ class Plugin(BasePlugin):
         self.input_text = None
         self.window = None
         self.websearch = WebSearch(self)
+        self.allowed_cmds = ["web_search"]
+        self.order = 100
 
     def setup(self):
         """
@@ -250,6 +193,7 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt):
         """Event: On prepare system prompt"""
+        return prompt
         self.window.log("Plugin: web_search:on_system_prompt [before] (input_text, prompt): {}, {}".
                         format(self.input_text, prompt))  # log
         prompt = self.websearch.get_system_prompt(self.input_text, prompt)
@@ -296,4 +240,30 @@ class Plugin(BasePlugin):
 
         :param ctx: ctx
         """
+        return ctx
+
+    def cmd_syntax(self, syntax):
+        """Event: On cmd syntax prepare"""
+        syntax += '\n"web_search": use it for search Web for more info, prepare query for search engine itself, params: "query"'
+        return syntax
+
+    def cmd(self, ctx, cmds):
+        msg = None
+        for item in cmds:
+            try:
+                if item["cmd"] in self.allowed_cmds:
+                    if item["cmd"] == "web_search":
+                        msg = "Web search: '{}'".format(item["params"]["query"])
+                        result = self.websearch.make_query(item["params"]["query"])
+                        if result is not None and result != "":
+                            ctx.results.append({"request": item, "result": result})
+                            ctx.reply = True
+                        print(item)
+                        pass
+            except Exception as e:
+                print("Error: {}".format(e))
+
+        if msg is not None:
+            print(msg)
+            self.window.statusChanged.emit(msg)
         return ctx

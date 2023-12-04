@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 14:00:00                  #
+# Updated Date: 2023.12.04 14:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -209,6 +209,8 @@ class Updater:
         current = parse_version(self.window.version)
         if old < current:
             if old < parse_version("0.9.7"):
+                if 'cmd' not in data:
+                    data['cmd'] = True
                 if 'stream' not in data:
                     data['stream'] = True
                 if 'attachments_send_clear' not in data:

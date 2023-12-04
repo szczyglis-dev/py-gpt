@@ -8,6 +8,7 @@
   "api_key": "",
   "attachments_send_clear": true,
   "context_threshold": 200,
+  "cmd": true,
   "ctx": "",
   "current_model": {
     "completion": "text-davinci-003",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.04.15 02:00:00                  #
+# Updated Date: 2023.12.04 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -435,3 +435,21 @@ class Plugins:
                 data = self.handler.apply(id, event, data)
 
         return data
+
+    def apply_cmds(self, ctx, cmds):
+        """
+        Applies commands
+        """
+        commands = []
+        for cmd in cmds:
+            if 'cmd' in cmd:
+                commands.append(cmd)
+
+        if len(commands) == 0:
+            return ctx
+
+        for id in self.handler.plugins:
+            if self.is_enabled(id):
+                ctx = self.handler.apply_cmd(id, ctx, commands)
+
+        return ctx

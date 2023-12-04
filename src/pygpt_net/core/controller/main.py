@@ -27,6 +27,7 @@ from .theme import Theme
 from .audio import Audio
 from .attachment import Attachment
 from .notepad import Notepad
+from .files import Files
 
 
 class Controller:
@@ -55,6 +56,7 @@ class Controller:
         self.audio = Audio(window)
         self.attachment = Attachment(window)
         self.notepad = Notepad(window)
+        self.files = Files(window)
 
     def setup(self):
         """Setups controller"""

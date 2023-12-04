@@ -77,6 +77,7 @@ class Plugin(BasePlugin):
         }
         self.input_text = None
         self.window = None
+        self.order = 9999
 
     def setup(self):
         """

@@ -17,6 +17,7 @@ class BasePlugin:
         self.options = {}
         self.window = None
         self.enabled = False
+        self.order = 0
 
     def setup(self):
         """

@@ -107,6 +107,7 @@ class Plugin(BasePlugin):
         self.thread = None
         self.listening = False
         self.waiting = False
+        self.order = 1
 
     def setup(self):
         """

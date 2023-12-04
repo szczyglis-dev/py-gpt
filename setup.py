@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 VERSION = '0.9.7'
-DESCRIPTION = 'GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 desktop assistant with chatbot, text completion and ' \
+DESCRIPTION = 'GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, text completion and ' \
               'image analyze and image generation'
-LONG_DESCRIPTION = 'A package containing a GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 desktop assistant, chatbot, ' \
+LONG_DESCRIPTION = 'A package containing a GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant, chatbot, ' \
                    'text completion and image analyze and image generation app, using OpenAI API and your own API ' \
                    'Key. It includes context memory and history, editable presets, customizable UI and more. '
 
@@ -25,13 +25,18 @@ setup(
              'chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, context memory, '
              'history, presets, ui, qt, pyside',
     install_requires=[
+        'azure-cognitiveservices-speech>=1.27.0',
         'beautifulsoup4>=4.12.2',
         'openai>=1.3.7',
         'packaging>=23.0',
+        'PyAudio>=0.2.14',
         'pydub>=0.25.1',
         'pyinstaller>=5.9.0',
+        'PySide6>=6.4.2',
+        'PySide6-Addons>=6.4.2',
         'PySide6-Essentials>=6.4.2',
         'qt-material>=2.14',
+        'SpeechRecognition>=3.10.0',
         'show-in-file-manager>=1.1.4',
         'tiktoken>=0.3.3',
         'wikipedia>=1.4.0',

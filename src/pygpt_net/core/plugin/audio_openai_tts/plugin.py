@@ -56,6 +56,7 @@ class Plugin(BasePlugin):
         }
         self.input_text = None
         self.window = None
+        self.order = 1
 
     def setup(self):
         """
@@ -147,7 +148,7 @@ class Plugin(BasePlugin):
                     organization=self.window.config.data["organization_key"],
                 )
                 voice = self.options['voice']['value']
-                path = os.path.join(self.window.config.path, 'speech.mp3')
+                path = os.path.join(self.window.config.path, 'output.mp3')
                 model = self.options['model']['value']
                 if model not in self.allowed_models:
                     model = 'tts-1'

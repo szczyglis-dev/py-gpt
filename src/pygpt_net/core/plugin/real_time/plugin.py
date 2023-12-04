@@ -58,6 +58,7 @@ class Plugin(BasePlugin):
             "step": None,
         }
         self.window = None
+        self.order = 2
 
     def setup(self):
         """
