@@ -66,7 +66,7 @@ class Assistant:
         data['name'] = ""
         data['description'] = ""
         data['instructions'] = ""
-        data['model'] = ""
+        data['model'] = "gpt-4-1106-preview"
         data['tool.code_interpreter'] = False
         data['tool.retrieval'] = False
         data['tool.function'] = False
@@ -84,7 +84,7 @@ class Assistant:
         if data['instructions'] is None:
             data['instructions'] = ""
 
-        self.window.config_option['assistant.id'] = id
+        self.window.config_option['assistant.id'].setText(id)
 
         self.config_change('assistant.name', data['name'], 'assistant.editor')
         self.config_change('assistant.description', data['description'], 'assistant.editor')
@@ -104,17 +104,23 @@ class Assistant:
 
         :param force: force overwrite file
         """
-        id = self.window.config_option['assistant.id']
+        create = False
+        id = self.window.config_option['assistant.id'].text()
         if id is None or id == "" or id not in self.window.config.assistants:
             id = self.create()
             if id is None:
                 print("Assistant not created")
                 return
             self.window.config.assistants[id] = {}
-            self.window.config_option['assistant.id'] = id
+            self.window.config_option['assistant.id'].setText(id)
+            create = True
 
         # assign data from fields to preset
         self.assign_data(id)
+
+        # update in API
+        if not create:
+            self.assistent_update(id)
 
         # save file
         self.window.config.save_assistants()
@@ -136,7 +142,54 @@ class Assistant:
         tool_retrieval = self.window.config_option['assistant.tool.retrieval'].box.isChecked()
         tool_function = self.window.config_option['assistant.tool.function'].box.isChecked()
 
-        return self.window.gpt.assistant_create(name, model, description, instructions)
+        tools = []
+        if tool_code_interpreter:
+            tools.append({"type": "code_interpreter"})
+        if tool_retrieval:
+            tools.append({"type": "retrieval"})
+        if tool_function:
+            tools.append({"type": "function"})
+
+        try:
+            return self.window.gpt.assistant_create(name, model, description, instructions, tools)
+        except Exception as e:
+            self.window.ui.dialogs.alert(str(e))
+
+    def assistent_update(self, id):
+        """
+        Updated assistant
+        """
+        name = self.window.config_option['assistant.name'].text()
+        model = self.window.config_option['assistant.model'].text()
+        description = self.window.config_option['assistant.description'].text()
+        instructions = self.window.config_option['assistant.instructions'].toPlainText()
+        tool_code_interpreter = self.window.config_option['assistant.tool.code_interpreter'].box.isChecked()
+        tool_retrieval = self.window.config_option['assistant.tool.retrieval'].box.isChecked()
+        tool_function = self.window.config_option['assistant.tool.function'].box.isChecked()
+
+        tools = []
+        if tool_code_interpreter:
+            tools.append({"type": "code_interpreter"})
+        if tool_retrieval:
+            tools.append({"type": "retrieval"})
+        if tool_function:
+            tools.append({"type": "function"})
+
+        try:
+            return self.window.gpt.assistant_update(id, name, model, description, instructions, tools)
+        except Exception as e:
+            self.window.ui.dialogs.alert(str(e))
+
+    def import_all(self):
+        """
+        Imports all assistants
+        """
+        try:
+            self.window.gpt.assistant_import()
+        except Exception as e:
+            print(e)
+            self.window.ui.dialogs.alert(str(e))
+        self.update()
 
     def assign_data(self, id):
         """
@@ -144,13 +197,17 @@ class Assistant:
 
         :param id: assistant ID
         """
+        self.window.config.assistants[id]['id'] = id
         self.window.config.assistants[id]['name'] = self.window.config_option['assistant.name'].text()
         self.window.config.assistants[id]['model'] = self.window.config_option['assistant.model'].text()
         self.window.config.assistants[id]['description'] = self.window.config_option['assistant.description'].text()
         self.window.config.assistants[id]['instructions'] = self.window.config_option['assistant.instructions'].toPlainText()
-        self.window.config.assistants[id]['tool.code_interpreter'] = self.window.config_option['assistant.tool.code_interpreter'].box.isChecked()
-        self.window.config.assistants[id]['tool.retrieval'] = self.window.config_option['assistant.tool.retrieval'].box.isChecked()
-        self.window.config.assistants[id]['tool.function'] = self.window.config_option['assistant.tool.function'].box.isChecked()
+        self.window.config.assistants[id]['files'] = {}
+        self.window.config.assistants[id]['tools'] = {
+            'code_interpreter': self.window.config_option['assistant.tool.code_interpreter'].box.isChecked(),
+            'retrieval': self.window.config_option['assistant.tool.retrieval'].box.isChecked(),
+            'function': self.window.config_option['assistant.tool.function'].box.isChecked(),
+        }
 
     def clear(self, force=False):
         """
@@ -194,6 +251,13 @@ class Assistant:
                     if id == self.window.config.data['assistant']:
                         self.window.config.data['assistant'] = None
                         self.window.config.data['assistant_thread'] = None
+
+                    # delete in API
+                    try:
+                        return self.window.gpt.assistant_delete(id)
+                    except Exception as e:
+                        self.window.ui.dialogs.alert(str(e))
+
                     self.window.config.delete_assistant(id)
                     self.update()
                     self.window.set_status(trans('status.assistant.deleted'))
@@ -238,10 +302,15 @@ class Assistant:
         """
         Selects assistant
 
-        :param id: ID of the list
+        :param idx: IDx on the list
         """
+        # mark assistant as selected
         id = self.window.config.get_assistant_by_idx(idx)
         self.window.config.data['assistant'] = id
+
+        # update attachments list with list of attachments from assistant
+        self.window.controller.attachment.attachments.from_assistant(id)
+        self.window.controller.attachment.update()
 
     def update_list_assistants(self):
         """Updates assistants list"""

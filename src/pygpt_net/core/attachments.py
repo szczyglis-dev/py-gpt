@@ -236,6 +236,57 @@ class Attachments:
         if uuid is not None:
             return self.items[uuid]
 
+    def replace_id(self, tmp_id, attachment):
+        """
+        Replaces temporary id with real one
+
+        :param tmp_id: temporary id
+        :param attachment: attachment
+        """
+        if tmp_id in self.items:
+            self.items[attachment.uuid] = self.items[tmp_id]
+            del self.items[tmp_id]
+            self.save()
+
+    def rename_in_assistant(self, assistent_id, file_id, name):
+        """
+        Renames attachment in assistant
+
+        :param id: attachment id
+        :param name: new name
+        """
+        assistent = self.config.get_assistant_by_id(assistent_id)
+        if assistent is None:
+            return
+        files = assistent['files']
+        if file_id in files:
+            files[file_id]['name'] = name
+            self.config.save_assistants()
+
+    def from_assistant(self, id):
+        """
+        Loads attachments from assistant
+
+        :param assistant: assistant
+        """
+        self.clear()
+        assistant = self.config.get_assistant_by_id(id)
+        if assistant is None:
+            return
+        files = assistant['files']
+        for id in files:
+            file = files[id]
+            item = AttachmentItem()
+            item.name = id
+            if 'name' in file and file['name'] is not None and file['name'] != "":
+                item.name = file['name']
+            if 'path' in file and file['path'] is not None and file['path'] != "":
+                item.path = file['path']
+            item.uuid = id
+            item.remote = id
+            item.send = True
+            self.add(item)
+
 
 class AttachmentItem:
     def __init__(self):

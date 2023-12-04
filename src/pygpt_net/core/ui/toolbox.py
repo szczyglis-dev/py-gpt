@@ -200,14 +200,20 @@ class Toolbox:
         :param title: Title of the list
         :return: QVBoxLayout
         """
-        self.window.data['assistants.new'] = QPushButton(trans('preset.new'))
+        self.window.data['assistants.new'] = QPushButton(trans('assistant.new'))
         self.window.data['assistants.new'].clicked.connect(
             lambda: self.window.controller.assistant.edit())
 
+        self.window.data['assistants.import'] = QPushButton(trans('assistant.import'))
+        self.window.data['assistants.import'].clicked.connect(
+            lambda: self.window.controller.assistant.import_all())
+
         self.window.data['assistants.label'] = QLabel(title)
         self.window.data['assistants.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+
         header = QHBoxLayout()
         header.addWidget(self.window.data['assistants.label'])
+        header.addWidget(self.window.data['assistants.import'], alignment=Qt.AlignRight)
         header.addWidget(self.window.data['assistants.new'], alignment=Qt.AlignRight)
         header.setContentsMargins(0, 0, 0, 0)
 

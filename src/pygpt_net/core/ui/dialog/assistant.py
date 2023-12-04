@@ -45,7 +45,7 @@ class Assistant:
 
         # fields
         self.window.path_label[id] = QLabel(str(path))
-        self.window.config_option['assistant.id'] = ""
+        self.window.config_option['assistant.id'] = SettingsInput(self.window, 'assistant.id', False, section)
         self.window.config_option['assistant.name'] = SettingsInput(self.window, 'assistant.name', False, section)
         self.window.config_option['assistant.instructions'] = SettingsTextarea(self.window, 'assistant.instructions', False, section)
 
@@ -62,11 +62,13 @@ class Assistant:
 
         # set max width
         max_width = 240
+        self.window.config_option['assistant.id'].setMaximumWidth(max_width)
         self.window.config_option['assistant.name'].setMaximumWidth(max_width)
         self.window.config_option['assistant.model'].setMaximumWidth(max_width)
         self.window.config_option['assistant.description'].setMaximumWidth(max_width)
 
         options = {}
+        options['id'] = self.add_option('assistant.id', self.window.config_option['assistant.id'])
         options['name'] = self.add_option('assistant.name', self.window.config_option['assistant.name'])
         options['model'] = self.add_option('assistant.model', self.window.config_option['assistant.model'])
         options['description'] = self.add_option('assistant.description', self.window.config_option['assistant.description'])
@@ -82,6 +84,7 @@ class Assistant:
         options['instructions'].addWidget(self.window.config_option['assistant.instructions'])
 
         rows = QVBoxLayout()
+        rows.addLayout(options['id'])
         rows.addLayout(options['name'])
         rows.addLayout(options['model'])
         rows.addLayout(options['description'])

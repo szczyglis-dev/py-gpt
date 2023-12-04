@@ -131,6 +131,11 @@ class Attachment:
         """
         data = self.attachments.get_by_uuid(uuid)
         data.name = name
+
+        # rename filename in assistant data
+        if self.window.config.data['mode'] == 'assistant' and self.window.config.data['assistant'] is not None:
+            self.attachments.rename_in_assistant(self.window.config.data['assistant'], uuid, name)
+
         self.attachments.save()
         self.window.dialog['rename'].close()
         self.update()
@@ -152,7 +157,7 @@ class Attachment:
         """
         uuid = self.attachments.get_uuid_by_idx(idx)
         data = self.attachments.get_by_uuid(uuid)
-        if os.path.exists(data.path):
+        if data.path is not None and data.path != '' and os.path.exists(data.path):
             show_in_file_manager(data.path)
 
     def toggle_send_clear(self, value):
@@ -162,3 +167,41 @@ class Attachment:
         :param value: value of the checkbox
         """
         self.window.config.data['attachments_send_clear'] = value
+
+    def upload_to_assistant(self):
+        """
+        Uploads attachments to assistant
+        """
+        # get current chosen assistant
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None:
+            return
+        assistant = self.window.config.get_assistant_by_id(assistant_id)
+
+        # get attachments
+        attachments = self.attachments.get_list()
+        for uuid in attachments:
+            attachment = attachments[uuid]
+            tmp_id = attachment.uuid  # tmp id
+            # check if not already uploaded
+            if not attachment.send:
+                # upload file and get new ID
+                file_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
+                if file_id is not None:
+                    # mark as uploaded
+                    attachment.send = True
+                    attachment.uuid = file_id
+                    attachment.remote = file_id
+
+                    # replace old ID with new one
+                    self.attachments.replace_id(tmp_id, attachment)
+
+                    # update assistant files list
+                    assistant['files'][file_id] = {
+                        'name': attachment.name,
+                        'id': file_id,
+                        'path': attachment.path
+                    }
+        # update assistant
+        self.window.config.save_assistants()
+        self.update()  # update UI

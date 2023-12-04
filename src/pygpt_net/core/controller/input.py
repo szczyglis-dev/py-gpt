@@ -117,6 +117,16 @@ class Input:
         # get mode
         mode = self.window.config.data['mode']
 
+        # upload new attachments if assistant mode
+        if mode == 'assistant':
+            self.window.set_status(trans('status.uploading'))
+            try:
+                self.window.controller.attachment.upload_to_assistant()
+            except Exception as e:
+                print(e)
+                self.window.ui.dialogs.alert(str(e))
+            self.window.set_status(trans('status.uploaded'))
+
         # create ctx item
         ctx = ContextItem()
         ctx.mode = mode

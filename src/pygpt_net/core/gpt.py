@@ -42,6 +42,12 @@ class Gpt:
     def init(self):
         pass
 
+    def get_client(self):
+        return OpenAI(
+            api_key=self.config.data["api_key"],
+            organization=self.config.data["organization_key"],
+        )
+
     def completion(self, prompt, max_tokens, stream_mode=False):
         """
         Calls OpenAI API for completion
@@ -59,10 +65,7 @@ class Gpt:
         if self.user_name is not None and self.user_name != '':
             stop = [self.user_name + ':']
 
-        client = OpenAI(
-            api_key=self.config.data["api_key"],
-            organization=self.config.data["organization_key"],
-        )
+        client = self.get_client()
         response = client.completions.create(
             prompt=message,
             model=self.config.data['model'],
@@ -85,10 +88,7 @@ class Gpt:
         :param stream_mode: Stream mode
         :return: Response dict or stream chunks
         """
-        client = OpenAI(
-            api_key=self.config.data["api_key"],
-            organization=self.config.data["organization_key"],
-        )
+        client = self.get_client()
 
         # build chat messages
         messages = self.build_chat_messages(prompt)
@@ -114,10 +114,7 @@ class Gpt:
         :param stream_mode: Stream mode
         :return: Response dict or stream chunks
         """
-        client = OpenAI(
-            api_key=self.config.data["api_key"],
-            organization=self.config.data["organization_key"],
-        )
+        client = self.get_client()
 
         # build chat messages
         messages = self.build_chat_messages(prompt)
@@ -317,10 +314,7 @@ class Gpt:
         :param max_tokens: Max output tokens
         :return: Response text
         """
-        client = OpenAI(
-            api_key=self.config.data["api_key"],
-            organization=self.config.data["organization_key"],
-        )
+        client = self.get_client()
 
         if append_context:
             messages = self.build_chat_messages(prompt, sys_prompt)
@@ -346,10 +340,116 @@ class Gpt:
     def assistant_thread_create(self):
         pass
 
-    def assistant_create(self, name, model, description, instructions):
-        # generate fake uuid
-        uuid = str(uuid4())
-        return uuid
+    def assistant_file_upload(self, id, path):
+        client = self.get_client()
+
+        # upload file
+        response = client.files.create(
+            file=open(path, "rb"),
+            purpose="assistants"
+        )
+
+        # attach to assistant
+        if response is not None:
+            file_id = response.id
+            assistant_file = client.beta.assistants.files.create(
+                assistant_id=id,
+                file_id=file_id
+            )
+            if assistant_file is not None:
+                return assistant_file.id
+
+    def assistant_create(self, name, model, description, instructions, tools):
+        client = self.get_client()
+        assistant = client.beta.assistants.create(
+            instructions=instructions,
+            description=description,
+            name=name,
+            tools=tools,
+            model=model,
+        )
+        if assistant is not None:
+            print(assistant)
+            return assistant.id
+
+    def assistant_update(self, id, name, model, description, instructions, tools):
+        client = self.get_client()
+        assistant = client.beta.assistants.update(
+            id,
+            instructions=instructions,
+            description=description,
+            name=name,
+            tools=tools,
+            model=model,
+        )
+        if assistant is not None:
+            print(assistant)
+            return assistant.id
+
+    def assistant_delete(self, id):
+        client = self.get_client()
+        response = client.beta.assistants.delete(id)
+        if response is not None:
+            return response.id
+
+    def assistant_get_files(self, id):
+        client = self.get_client()
+        files = client.beta.assistants.files.list(
+            assistant_id=id,
+            limit=100,
+        )
+        for file in files:
+            print(file)
+
+    def assistant_import(self):
+        client = self.get_client()
+        assistants = client.beta.assistants.list(
+            order="asc",
+            limit="100",
+        )
+        if assistants is not None:
+            for assistant in assistants.data:
+                id = assistant.id
+                local_assistants = self.config.get_assistants()
+                if id in local_assistants:
+                    local_assistants[id]['name'] = assistant.name
+                    local_assistants[id]['description'] = assistant.description
+                    local_assistants[id]['instructions'] = assistant.instructions
+                    local_assistants[id]['model'] = assistant.model
+                    local_assistants[id]['metadata'] = assistant.metadata
+                    if 'files' not in local_assistants[id]:
+                        local_assistants[id]['files'] = {}
+                    if 'tools' not in local_assistants[id]:
+                        local_assistants[id]['tools'] = {}
+                    for k in assistant.file_ids:
+                        filename = str(k)
+                        if k not in local_assistants[id]['files']:
+                            local_assistants[id]['files'][k] = {}
+                        local_assistants[id]['files'][k]['id'] = filename
+                    for k in assistant.tools:
+                        type = k.type
+                        local_assistants[id]['tools'][type] = True
+                else:
+                    local_assistants[id] = {}
+                    local_assistants[id]['name'] = assistant.name
+                    local_assistants[id]['description'] = assistant.description
+                    local_assistants[id]['instructions'] = assistant.instructions
+                    local_assistants[id]['model'] = assistant.model
+                    local_assistants[id]['metadata'] = assistant.metadata
+                    if 'files' not in local_assistants[id]:
+                        local_assistants[id]['files'] = {}
+                    if 'tools' not in local_assistants[id]:
+                        local_assistants[id]['tools'] = {}
+                    for k in assistant.file_ids:
+                        filename = str(k)
+                        if k not in local_assistants[id]['files']:
+                            local_assistants[id]['files'][k] = {}
+                        local_assistants[id]['files'][k]['id'] = filename
+                    for k in assistant.tools:
+                        type = k.type
+                        local_assistants[id]['tools'][type] = True
+                self.config.assistants = local_assistants
+                self.config.save_assistants()
 
     def call(self, prompt, ctx=None, stream_mode=False):
         """

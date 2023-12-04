@@ -308,14 +308,33 @@ class Config:
 
     def get_assistant_by_idx(self, idx):
         """
-        Returns preset by index
+        Returns assistant by index
 
         :param idx: index
         :param mode: mode
-        :return: preset name
+        :return: assistant ID
         """
         assistants = self.get_assistants()
         return list(assistants.keys())[idx]
+
+    def get_assistant_by_id(self, id):
+        """
+        Returns assistant by ID
+
+        :param idx: index
+        :param mode: mode
+        :return: assistant
+        """
+        assistants = self.get_assistants()
+        return assistants[id]
+
+    def get_assistants(self):
+        """
+        Returns assistants
+
+        :return: assistants dict
+        """
+        return self.assistants
 
     def get_modes(self):
         """
@@ -376,14 +395,6 @@ class Config:
             if mode in self.models[key]['mode']:
                 models[key] = self.models[key]
         return models
-
-    def get_assistants(self):
-        """
-        Returns assistants
-
-        :return: assistants dict
-        """
-        return self.assistants
 
     def get_preset_idx(self, mode, name):
         """
