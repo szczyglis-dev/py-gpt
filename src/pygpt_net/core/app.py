@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.03 12:00:00                  #
+# Updated Date: 2023.12.04 18:00:00                  #
 # ================================================== #
 
 import sys
@@ -23,6 +23,8 @@ from .debugger import Debug
 from .settings import Settings
 from .info import Info
 from .gpt import Gpt
+from .chain import Chain
+from .context import Context
 from .command import Command
 from .image import Image
 from .utils import get_init_value
@@ -55,6 +57,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup config
         self.config = Config()
         self.config.init(True, True)
+        self.context = Context(self.config)
 
         # app controller
         self.controller = Controller(self)
@@ -66,8 +69,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         # handle config migration if needed
         self.controller.launcher.migrate_version()
 
-        # setup GPT and DALL-E
-        self.gpt = Gpt(self.config)
+        # setup GPT, Langchain and DALL-E
+        self.gpt = Gpt(self.config, self.context)
+        self.chain = Chain(self.config, self.context)
         self.images = Image(self.config)
 
         # setup UI

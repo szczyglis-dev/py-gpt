@@ -136,6 +136,10 @@ class Input:
         # apply cfg, plugins
         self.window.gpt.user_name = ctx.input_name
         self.window.gpt.ai_name = ctx.output_name
+        self.window.chain.user_name = ctx.input_name
+        self.window.chain.ai_name = ctx.output_name
+
+        # prepare system prompt
         sys_prompt = self.window.config.data['prompt']
         sys_prompt = self.window.controller.plugins.apply('system.prompt', sys_prompt)
 
@@ -146,6 +150,7 @@ class Input:
 
         # set system prompt
         self.window.gpt.system_prompt = sys_prompt
+        self.window.chain.system_prompt = sys_prompt
 
         # log
         self.window.log("System [after plugin: system.prompt]: {}".format(self.window.gpt.system_prompt))
@@ -172,9 +177,21 @@ class Input:
 
             # make API call
             try:
-                self.window.log("Calling OpenAI API...")  # log
-                ctx = self.window.gpt.call(text, ctx, stream_mode)
-                self.window.log("Context: output: {}".format(ctx.dump()))  # log
+                if mode == "langchain":
+                    self.window.log("Calling LangChain...")  # log
+                    ctx = self.window.chain.call(text, ctx, stream_mode)
+                else:
+                    self.window.log("Calling OpenAI API...")  # log
+                    ctx = self.window.gpt.call(text, ctx, stream_mode)
+
+                if ctx is not None:
+                    self.window.log("Context: output: {}".format(ctx.dump()))  # log
+                else:
+                    # error in call if ctx is None
+                    self.window.log("Context: output: None")
+                    self.window.ui.dialogs.alert(trans('status.error'))
+                    self.window.set_status(trans('status.error'))
+
             except Exception as e:
                 self.window.log("GPT output error: {}".format(e))  # log
                 print("Error in send text (GPT call): " + str(e))
@@ -186,6 +203,20 @@ class Input:
                 output = ""
                 output_tokens = 0
                 begin = True
+                submode = None  # submode for langchain (chat, completion)
+
+                # get submode for langchain
+                if mode == "langchain":
+                    cfg = self.window.config.get_model_cfg(self.window.config.data['model'])
+                    submode = 'chat'
+                    # get available modes for langchain
+                    if 'langchain' in cfg:
+                        if 'chat' in cfg['langchain']['mode']:
+                            submode = 'chat'
+                        elif 'completion' in cfg['langchain']['mode']:
+                            submode = 'completion'
+
+                # read stream
                 try:
                     self.window.log("Reading stream...")  # log
                     for chunk in ctx.stream:
@@ -196,6 +227,16 @@ class Input:
                         elif mode == "completion":
                             if chunk.choices[0].text is not None:
                                 response = chunk.choices[0].text
+
+                        # langchain can have different submodes
+                        elif mode == "langchain":
+                            if submode == 'chat':
+                                if chunk.content is not None:
+                                    response = chunk.content
+                            elif submode == 'completion':
+                                if chunk is not None:
+                                    response = chunk
+
                         if response is not None:
                             # prevent empty begin
                             if begin and response == "":
@@ -205,7 +246,6 @@ class Input:
                             self.window.controller.output.append_chunk(ctx, response, begin)
                             QApplication.processEvents()  # process events to update UI
                             self.window.controller.ui.update()  # update UI
-                            # print(chunk.choices[0].text)
                             begin = False
 
                 except Exception as e:
@@ -219,27 +259,31 @@ class Input:
                 self.window.log("End of stream.")  # log
 
                 # update ctx
-                ctx.output = output
-                ctx.set_tokens(ctx.input_tokens, output_tokens)
+                if ctx is not None:
+                    ctx.output = output
+                    ctx.set_tokens(ctx.input_tokens, output_tokens)
 
             # apply plugins
-            ctx = self.window.controller.plugins.apply('ctx.after', ctx)
+            if ctx is not None:
+                ctx = self.window.controller.plugins.apply('ctx.after', ctx)
 
             # log
-            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
-            self.window.log("Appending output to chat window...")
+            if ctx is not None:
+                self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
+                self.window.log("Appending output to chat window...")
 
-            # only append output if not in async stream mode, TODO: plugin output add
-            if not stream_mode:
-                self.window.controller.output.append_output(ctx)
+                # only append output if not in async stream mode, TODO: plugin output add
+                if not stream_mode:
+                    self.window.controller.output.append_output(ctx)
 
-            self.window.gpt.context.store()
-            self.window.set_status(
-                trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
+                # save context
+                self.window.gpt.context.store()
+                self.window.set_status(
+                    trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
-            # store history (output)
-            if self.window.config.data['store_history'] and ctx.output is not None and ctx.output.strip() != "":
-                self.history.save(ctx.output)
+                # store history (output)
+                if self.window.config.data['store_history'] and ctx.output is not None and ctx.output.strip() != "":
+                    self.history.save(ctx.output)
 
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
@@ -248,13 +292,12 @@ class Input:
             self.window.set_status(trans('status.error'))
 
         # if commands enabled: execute commands
-        if self.window.config.data['cmd']:
+        if ctx is not None and self.window.config.data['cmd']:
             cmds = self.window.command.extract_cmds(ctx.output)
             self.window.log("Executing commands...")
             self.window.set_status("Executing commands...")
             ctx = self.window.controller.plugins.apply_cmds(ctx, cmds)
             self.window.set_status("")
-            print(cmds)
 
         return ctx
 

@@ -199,6 +199,7 @@ class Config:
             'completion': False,
             'img': False,
             'vision': False,
+            'langchain': False,
             'temperature': 1.0,
         }
 
@@ -209,12 +210,14 @@ class Config:
         curr_completion = self.build_empty_preset()
         curr_img = self.build_empty_preset()
         curr_vision = self.build_empty_preset()
+        curr_langchain = self.build_empty_preset()
 
         # prepare ids
         id_chat = 'current.chat'
         id_completion = 'current.completion'
         id_img = 'current.img'
         id_vision = 'current.vision'
+        id_langchain = 'current.langchain'
 
         # set default initial prompt for chat mode
         curr_chat['prompt'] = self.data['default_prompt']
@@ -232,18 +235,23 @@ class Config:
         if id_vision in self.presets:
             curr_vision = self.presets[id_vision].copy()
             del self.presets[id_vision]
+        if id_langchain in self.presets:
+            curr_langchain = self.presets[id_langchain].copy()
+            del self.presets[id_langchain]
 
         # allow usage in specific mode
         curr_chat['chat'] = True
         curr_completion['completion'] = True
         curr_img['img'] = True
         curr_vision['vision'] = True
+        curr_langchain['langchain'] = True
 
         # always apply default name
         curr_chat['name'] = '*'
         curr_completion['name'] = '*'
         curr_img['name'] = '*'
         curr_vision['name'] = '*'
+        curr_langchain['name'] = '*'
 
         # append at first position
         self.presets = {
@@ -251,6 +259,7 @@ class Config:
             id_completion: curr_completion,
             id_img: curr_img,
             id_vision: curr_vision,
+            id_langchain: curr_langchain,
             **self.presets
         }
 
@@ -305,6 +314,9 @@ class Config:
         modes['vision'] = {
             'name': 'mode.vision'
         }
+        modes['langchain'] = {
+            'name': 'mode.langchain'
+        }
         return modes
 
     def get_presets(self, mode):
@@ -319,7 +331,8 @@ class Config:
             if (mode == 'chat' and 'chat' in self.presets[key] and self.presets[key]['chat']) \
                     or (mode == 'completion' and 'completion' in self.presets[key] and self.presets[key]['completion']) \
                     or (mode == 'img' and 'img' in self.presets[key] and self.presets[key]['img']) \
-                    or (mode == 'vision' and 'vision' in self.presets[key] and self.presets[key]['vision']):
+                    or (mode == 'vision' and 'vision' in self.presets[key] and self.presets[key]['vision']) \
+                    or (mode == 'langchain' and 'langchain' in self.presets[key] and self.presets[key]['langchain']):
                 presets[key] = self.presets[key]
         return presets
 
@@ -497,6 +510,16 @@ class Config:
             return self.models[model]['ctx']
         return 4096
 
+    def get_model_cfg(self, model):
+        """
+        Returns model context window tokens
+
+        :param model: model name
+        :return: number of ctx tokens
+        """
+        if model in self.models:
+            return self.models[model]
+
     def append_meta(self):
         """
         Appends meta data
@@ -533,6 +556,14 @@ class Config:
             if not os.path.exists(presets_dir):
                 src = os.path.join(self.get_root_path(), 'data', 'config', 'presets')
                 shutil.copytree(src, presets_dir)
+            else:
+                # copy missing presets
+                src = os.path.join(self.get_root_path(), 'data', 'config', 'presets')
+                for file in os.listdir(src):
+                    src_file = os.path.join(src, file)
+                    dst_file = os.path.join(presets_dir, file)
+                    if not os.path.exists(dst_file):
+                        shutil.copyfile(src_file, dst_file)
 
             # create history directory
             history_dir = os.path.join(self.path, 'history')

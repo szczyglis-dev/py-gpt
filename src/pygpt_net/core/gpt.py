@@ -19,14 +19,14 @@ from .context import Context, ContextItem
 
 
 class Gpt:
-    def __init__(self, config):
+    def __init__(self, config, context):
         """
         GPT Wrapper
 
         :param config: Config object
         """
         self.config = config
-        self.context = Context(config)
+        self.context = context
 
         self.ai_name = None
         self.user_name = None

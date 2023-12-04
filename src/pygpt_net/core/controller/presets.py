@@ -86,6 +86,7 @@ class Presets:
         data['chat'] = False
         data['completion'] = False
         data['vision'] = False
+        data['langchain'] = False
         data['name'] = ""
         data['filename'] = ""
 
@@ -115,6 +116,8 @@ class Presets:
                 data['img'] = True
             elif mode == 'vision':
                 data['vision'] = True
+            elif mode == 'langchain':
+                data['langchain'] = True
 
         self.config_change('preset.filename', data['filename'], 'preset.editor')
         self.config_change('preset.ai_name', data['ai_name'], 'preset.editor')
@@ -126,6 +129,7 @@ class Presets:
         self.config_toggle('preset.chat', data['chat'], 'preset.editor')
         self.config_toggle('preset.completion', data['completion'], 'preset.editor')
         self.config_toggle('preset.vision', data['vision'], 'preset.editor')
+        self.config_toggle('preset.langchain', data['langchain'], 'preset.editor')
 
     def save(self, force=False):
         """
@@ -157,9 +161,10 @@ class Presets:
         is_completion = self.window.config_option['preset.completion'].box.isChecked()
         is_img = self.window.config_option['preset.img'].box.isChecked()
         is_vision = self.window.config_option['preset.vision'].box.isChecked()
+        is_langchain = self.window.config_option['preset.langchain'].box.isChecked()
 
         # if not chat or completion then show warning
-        if not is_chat and not is_completion and not is_img and not is_vision:
+        if not is_chat and not is_completion and not is_img and not is_vision and not is_langchain:
             self.window.ui.dialogs.alert(trans('alert.preset.no_chat_completion'))
             return
 
@@ -193,6 +198,7 @@ class Presets:
         self.window.config.presets[preset]['completion'] = self.window.config_option[
             'preset.completion'].box.isChecked()
         self.window.config.presets[preset]['vision'] = self.window.config_option['preset.vision'].box.isChecked()
+        self.window.config.presets[preset]['langchain'] = self.window.config_option['preset.langchain'].box.isChecked()
 
     def duplicate(self, idx=None):
         """

@@ -21,7 +21,6 @@
   },
   "debug": true,
   "default_prompt": "You are a helpful assistant.",
-  
   "font_size": 11,
   "frequency_penalty": 0.0,
   "img_resolution": "1024x1024",

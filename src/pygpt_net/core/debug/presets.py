@@ -49,6 +49,8 @@ class PresetsDebug:
                 self.window.debugger.add(self.id, prefix + 'img', str(preset['img']))
             if 'vision' in preset:
                 self.window.debugger.add(self.id, prefix + 'vision', str(preset['vision']))
+            if 'langchain' in preset:
+                self.window.debugger.add(self.id, prefix + 'langchain', str(preset['langchain']))
             if 'temperature' in preset:
                 self.window.debugger.add(self.id, prefix + 'temperature', str(preset['temperature']))
 

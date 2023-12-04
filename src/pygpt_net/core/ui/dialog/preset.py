@@ -58,6 +58,8 @@ class Preset:
                                                                           trans('preset.completion'), False, section)
         self.window.config_option['preset.vision'] = SettingsCheckbox(self.window, 'preset.vision',
                                                                       trans('preset.vision'), False, section)
+        self.window.config_option['preset.langchain'] = SettingsCheckbox(self.window, 'preset.langchain',
+                                                                      trans('preset.langchain'), False, section)
         self.window.config_option['preset.temperature'] = SettingsSlider(self.window, 'preset.temperature',
                                                                          '', 0, 200,
                                                                          1, 100, True, section)
@@ -77,6 +79,7 @@ class Preset:
         options['chat'] = self.add_raw_option(self.window.config_option['preset.chat'])
         options['completion'] = self.add_raw_option(self.window.config_option['preset.completion'])
         options['vision'] = self.add_raw_option(self.window.config_option['preset.vision'])
+        options['langchain'] = self.add_raw_option(self.window.config_option['preset.langchain'])
         options['img'] = self.add_raw_option(self.window.config_option['preset.img'])
         options['temperature'] = self.add_option('preset.temperature', self.window.config_option['preset.temperature'])
 
@@ -96,6 +99,7 @@ class Preset:
         rows.addLayout(options['completion'])
         rows.addLayout(options['img'])
         rows.addLayout(options['vision'])
+        rows.addLayout(options['langchain'])
         rows.addLayout(options['temperature'])
         rows.addLayout(options['prompt'])
 

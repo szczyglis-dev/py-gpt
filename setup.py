@@ -27,6 +27,7 @@ setup(
     install_requires=[
         'azure-cognitiveservices-speech>=1.27.0',
         'beautifulsoup4>=4.12.2',
+        'langchain>=0.0.345',
         'openai>=1.3.7',
         'packaging>=23.0',
         'PyAudio>=0.2.14',

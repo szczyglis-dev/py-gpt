@@ -286,6 +286,19 @@ class Context:
         items.reverse()
         return items
 
+    def get_all_items(self):
+        """
+        Returns all context items
+        :return: context items list
+        """
+        items = []
+        for item in reversed(self.items):
+            items.append(item)
+
+        # reverse items
+        items.reverse()
+        return items
+
     def clear(self):
         """Clears context"""
         self.items = []

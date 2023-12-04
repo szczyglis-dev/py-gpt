@@ -42,9 +42,9 @@ class UI:
         prompt_tokens = 0
         input_tokens = 0
 
-        if mode == "chat" or mode == "vision":
+        if mode == "chat" or mode == "vision" or mode == "langchain":
             # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.config.data['prompt'].strip())
+            system_prompt = str(self.window.config.data['prompt']).strip()
             prompt_tokens = num_tokens_prompt(system_prompt, "", model)
             prompt_tokens += num_tokens_only("system", model)
 
@@ -54,7 +54,7 @@ class UI:
             input_tokens += num_tokens_only("user", model)
         elif mode == "completion":
             # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.config.data['prompt'].strip())
+            system_prompt = str(self.window.config.data['prompt']).strip()
             prompt_tokens = num_tokens_only(system_prompt, model)
 
             # input tokens
