@@ -119,7 +119,7 @@ class Plugin(BasePlugin):
 
                         # run code
                         process = subprocess.Popen("python3 {}".format(path), shell=True, stdout=subprocess.PIPE,
-                                                    stderr=subprocess.PIPE)
+                                                   stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
                         if stdout:
                             ctx.results.append({"request": item, "result": stdout.decode("utf-8")})
@@ -144,4 +144,3 @@ class Plugin(BasePlugin):
             print(msg)
             self.window.statusChanged.emit(msg)
         return ctx
-
