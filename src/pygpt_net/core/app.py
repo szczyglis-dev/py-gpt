@@ -46,6 +46,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """App main window"""
         super().__init__()
         self.timer = None
+        self.is_closing = False
         self.github = get_init_value("__github__")
         self.website = get_init_value("__website__")
         self.version = get_init_value("__version__")
@@ -154,6 +155,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param event: close event
         """
+        self.is_closing = True
         print("Closing...")
         print("Sending terminate signal to plugins...")
         self.controller.plugins.destroy()

@@ -9,6 +9,10 @@
 # Updated Date: 2023.12.05 10:00:00                  #
 # ================================================== #
 import os
+import threading
+import time
+
+from PySide6.QtCore import QObject, Signal, Slot
 
 from ..utils import trans
 from ..assistants import Assistants
@@ -23,8 +27,11 @@ class Assistant:
         """
         self.window = window
         self.assistants = Assistants(self.window.config)
+        self.thread_run = None
+        self.thread_run_started = False
 
     def setup(self):
+        """Setup assistants"""
         self.assistants.load()
         self.update()
         self.select_assistant_by_current()
@@ -35,6 +42,7 @@ class Assistant:
         self.window.ui.toolbox.update_list_assistants('assistants', items)
 
     def update(self):
+        """Updates assistants list"""
         self.update_list()
 
     def select(self, idx):
@@ -95,7 +103,6 @@ class Assistant:
 
         :param id: assistant ID
         """
-
         assistant = self.assistants.create()
         assistant.model = "gpt-4-1106-preview"  # default model
 
@@ -270,7 +277,7 @@ class Assistant:
         if assistant_id is not None and assistant_id != "":
             if self.assistants.has(assistant_id):
                 assistant = self.assistants.get_by_id(assistant_id)
-                for file_id in assistant.files.keys():
+                for file_id in list(assistant.files):
                     try:
                         self.window.gpt.assistant_file_delete(assistant_id, file_id)
                         assistant.delete_file(file_id)
@@ -357,10 +364,13 @@ class Assistant:
         self.assistants.rename_file(assistant_id, file_id, name)
 
     def create_thread(self):
-        id = self.window.gpt.assistant_thread_create()
-        self.window.config.data['assistant_thread'] = id
-        self.window.gpt.context.append_thread(id)
-        return id
+        """
+        Creates assistant thread
+        """
+        thread_id = self.window.gpt.assistant_thread_create()
+        self.window.config.data['assistant_thread'] = thread_id
+        self.window.gpt.context.append_thread(thread_id)
+        return thread_id
 
     def select_assistant_by_current(self):
         """Selects assistant by current"""
@@ -371,6 +381,84 @@ class Assistant:
             current = self.window.models['assistants'].index(idx, 0)
             self.window.data['assistants'].setCurrentIndex(current)
 
+    def handle_message_files(self, msg):
+        """
+        Handles (download) message files
+
+        :param msg: message
+        :return:
+        """
+        num_downloaded = 0
+        paths = []
+        for file_id in msg.file_ids:
+            path = self.window.controller.attachment.download(file_id)
+            if path is not None:
+                paths.append(path)
+                num_downloaded += 1
+        if num_downloaded > 0:
+            # show alert with downloaded files
+            msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
+            self.window.ui.dialogs.alert(msg)
+
+    def handle_run_messages(self, ctx):
+        """
+        Handles run messages
+
+        :param ctx: context
+        :return:
+        """
+        data = self.window.gpt.assistant_msg_list(ctx.thread)
+        for msg in data:
+            if msg.role == "assistant":
+                print(msg)
+                ctx.set_output(msg.content[0].text.value)
+                self.handle_message_files(msg)
+                self.window.controller.input.handle_response(ctx, 'assistant', False)
+                self.window.controller.input.handle_commands(ctx)
+                break
+
+    def handle_run(self, ctx):
+        """
+        Handles run
+
+        :param ctx: context
+        :return:
+        """
+        listener = AssistantRunThread(window=self.window, ctx=ctx)
+        listener.updated.connect(self.handle_status)
+        listener.destroyed.connect(self.handle_destroy)
+        listener.started.connect(self.handle_started)
+
+        self.thread_run = threading.Thread(target=listener.run)
+        self.thread_run.start()
+        self.thread_run_started = True
+
+    @Slot(str, object)
+    def handle_status(self, status, ctx):
+        """
+        Insert text to input and send
+
+        :param status: status
+        """
+        print("Run status: {}".format(status))
+        if status == "completed":
+            self.handle_run_messages(ctx)
+
+    @Slot()
+    def handle_destroy(self):
+        """
+        Insert text to input and send
+        """
+        self.thread_run_started = False
+
+    @Slot()
+    def handle_started(self):
+        """
+        Handle listening started
+        """
+        print("Run: assistant is listening status...")
+        self.window.statusChanged.emit(trans('assistant.run.listening'))
+
     def upload_attachments(self, mode, attachments):
         """
         Uploads attachments to assistant
@@ -378,11 +466,12 @@ class Assistant:
         # get current chosen assistant
         assistant_id = self.window.config.data['assistant']
         if assistant_id is None:
-            return
+            return 0
         assistant = self.assistants.get_by_id(assistant_id)
 
+        num = 0
         # loop on attachments
-        for id in attachments:
+        for id in list(attachments):
             attachment = attachments[id]
             tmp_id = attachment.id  # tmp id
 
@@ -400,6 +489,8 @@ class Assistant:
                     attachment.id = file_id
                     attachment.remote = file_id
 
+                    print(file_id)
+
                     # replace old ID with new one
                     self.window.controller.attachment.attachments.replace_id(mode, tmp_id, attachment)
 
@@ -409,6 +500,41 @@ class Assistant:
                         'name': attachment.name,
                         'path': attachment.path,
                     }
+                    num += 1
         # update assistants
         self.assistants.save()
         self.window.controller.attachment.update()  # update attachments UI
+        return num
+
+
+class AssistantRunThread(QObject):
+    updated = Signal(object, object)
+    destroyed = Signal()
+    started = Signal()
+
+    def __init__(self, window=None, ctx=None):
+        """
+        Run assistant run status check thread
+        """
+        super().__init__()
+        self.window = window
+        self.ctx = ctx
+        self.check = True
+        self.stop_reasons = ["cancelling", "cancelled", "failed", "completed", "expired", "requires_action"]
+
+    def run(self):
+        try:
+            self.started.emit()
+            while self.check and not self.window.is_closing:
+                status = self.window.gpt.assistant_run_status(self.ctx.thread, self.ctx.run_id)
+                self.updated.emit(status, self.ctx)
+                # finished or failed
+                if status in self.stop_reasons:
+                    self.check = False
+                    self.destroyed.emit()
+                    break
+                time.sleep(1)
+            self.destroyed.emit()
+        except Exception as e:
+            print(e)
+            self.destroyed.emit()

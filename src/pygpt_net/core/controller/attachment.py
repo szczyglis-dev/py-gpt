@@ -9,6 +9,7 @@
 # Updated Date: 2023.12.03 16:00:00                  #
 # ================================================== #
 import os
+from datetime import datetime
 
 from PySide6.QtWidgets import QFileDialog
 from showinfm import show_in_file_manager
@@ -73,7 +74,7 @@ class Attachment:
         # TODO: implement this
         pass
 
-    def delete(self, mode, idx, force=False):
+    def delete(self, idx, force=False):
         """
         Deletes attachment
 
@@ -81,12 +82,12 @@ class Attachment:
         :param idx: index
         :param force: force delete
         """
+        mode = self.window.config.data['mode']
         if not force:
             self.window.ui.dialogs.confirm('attachments.delete', idx, trans('attachments.delete.confirm'))
             return
 
         file_id = self.attachments.get_id_by_idx(mode, idx)
-
         self.attachments.delete(mode, file_id)
         if self.attachments.current == file_id:
             self.attachments.current = None
@@ -209,3 +210,28 @@ class Attachment:
         if assistant is None:
             return
         self.attachments.from_files(mode, assistant.files)
+
+    def download(self, file_id):
+        """
+        Downloads file
+
+        :param file_id: file id
+        :return:
+        """
+        try:
+            data = self.window.gpt.assistant_file_info(file_id)
+            if data is None:
+                return
+            data.filename = os.path.basename(data.filename)
+            path = os.path.join(self.window.config.path, 'output', data.filename)
+            if os.path.exists(path):
+                # append timestamp prefix to filename
+                filename = f'{datetime.now().strftime("%Y%m%d%H%M%S")}_{data.filename}'
+                path = os.path.join(self.window.config.path, 'output', filename)
+
+            self.window.gpt.assistant_file_download(file_id, path)
+            return path
+        except Exception as e:
+            print(e)
+            self.window.ui.dialogs.alert(str(e))
+

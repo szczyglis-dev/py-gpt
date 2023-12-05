@@ -117,13 +117,19 @@ class Input:
         # get mode
         mode = self.window.config.data['mode']
 
+        # clear
+        self.window.gpt.file_ids = []  # file ids
+
         # upload new attachments if assistant mode
         if mode == 'assistant':
-            self.window.set_status(trans('status.uploading'))
             try:
                 # it uploads only new attachments (not uploaded before to remote)
                 attachments = self.window.controller.attachment.attachments.get_all(mode)
+                if len(attachments) > 0:
+                    self.window.set_status(trans('status.uploading'))
                 self.window.controller.assistant.upload_attachments(mode, attachments)
+                self.window.gpt.file_ids = self.window.controller.attachment.attachments.get_ids(mode)
+
             except Exception as e:
                 print(e)
                 self.window.ui.dialogs.alert(str(e))
@@ -131,7 +137,11 @@ class Input:
 
             # create or get current thread, it is required here
             if self.window.config.data['assistant_thread'] is None:
-                self.window.config.data['assistant_thread'] = self.window.controller.assistant.create_thread()
+                try:
+                    self.window.config.data['assistant_thread'] = self.window.controller.assistant.create_thread()
+                except Exception as e:
+                    print(e)
+                    self.window.ui.dialogs.alert(str(e))
 
         # create ctx item
         ctx = ContextItem()
@@ -139,9 +149,11 @@ class Input:
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
-        # store thread id
+        # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
             ctx.thread = self.window.config.data['assistant_thread']
+            self.window.gpt.assistant_id = self.window.config.data['assistant']
+            self.window.gpt.thread_id = ctx.thread
 
         # log
         self.window.log("Context: input: {}".format(ctx.dump()))
@@ -204,6 +216,13 @@ class Input:
                     self.window.log("Calling OpenAI API...")  # log
                     ctx = self.window.gpt.call(text, ctx, stream_mode)
 
+                    if mode == 'assistant':
+                        # get run ID and save it in ctx
+                        self.window.gpt.context.append_run(ctx.run_id)
+
+                        # handle assistant run
+                        self.window.controller.assistant.handle_run(ctx)
+
                 if ctx is not None:
                     self.window.log("Context: output: {}".format(ctx.dump()))  # log
                 else:
@@ -218,94 +237,9 @@ class Input:
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
-            # if async stream mode
-            if stream_mode:
-                output = ""
-                output_tokens = 0
-                begin = True
-                submode = None  # submode for langchain (chat, completion)
-
-                # get submode for langchain
-                if mode == "langchain":
-                    cfg = self.window.config.get_model_cfg(self.window.config.data['model'])
-                    submode = 'chat'
-                    # get available modes for langchain
-                    if 'langchain' in cfg:
-                        if 'chat' in cfg['langchain']['mode']:
-                            submode = 'chat'
-                        elif 'completion' in cfg['langchain']['mode']:
-                            submode = 'completion'
-
-                # read stream
-                try:
-                    self.window.log("Reading stream...")  # log
-                    for chunk in ctx.stream:
-                        response = None
-                        if mode == "chat" or mode == "vision" or mode == "assistant":
-                            if chunk.choices[0].delta.content is not None:
-                                response = chunk.choices[0].delta.content
-                        elif mode == "completion":
-                            if chunk.choices[0].text is not None:
-                                response = chunk.choices[0].text
-
-                        # langchain can provide different modes itself
-                        elif mode == "langchain":
-                            if submode == 'chat':
-                                # if chat model response is object
-                                if chunk.content is not None:
-                                    response = chunk.content
-                            elif submode == 'completion':
-                                # if completion response is string
-                                if chunk is not None:
-                                    response = chunk
-
-                        if response is not None:
-                            # prevent empty begin
-                            if begin and response == "":
-                                continue
-                            output += response
-                            output_tokens += 1
-                            self.window.controller.output.append_chunk(ctx, response, begin)
-                            QApplication.processEvents()  # process events to update UI
-                            self.window.controller.ui.update()  # update UI
-                            begin = False
-
-                except Exception as e:
-                    # debug
-                    # self.window.log("Stream error: {}".format(e))  # log
-                    # print("Error in stream: " + str(e))
-                    # self.window.ui.dialogs.alert(str(e))
-                    pass
-
-                self.window.controller.output.append("\n")  # append EOL
-                self.window.log("End of stream.")  # log
-
-                # update ctx
-                if ctx is not None:
-                    ctx.output = output
-                    ctx.set_tokens(ctx.input_tokens, output_tokens)
-
-            # apply plugins
-            if ctx is not None:
-                ctx = self.window.controller.plugins.apply('ctx.after', ctx)
-
-            # log
-            if ctx is not None:
-                self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
-                self.window.log("Appending output to chat window...")
-
-                # only append output if not in async stream mode, TODO: plugin output add
-                if not stream_mode:
-                    self.window.controller.output.append_output(ctx)
-
-                # save context
-                self.window.gpt.context.store()
-                self.window.set_status(
-                    trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
-
-                # store history (output)
-                if self.window.config.data['store_history'] and ctx.output is not None and ctx.output.strip() != "":
-                    self.history.save(ctx.output)
+            # handle response (if no assistant mode)
+            if mode != "assistant":
+                self.handle_response(ctx, mode, stream_mode)
 
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
@@ -313,7 +247,13 @@ class Input:
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
-        # if commands enabled: execute commands
+        # if commands enabled: post-execute commands (if no assistant mode)
+        if mode != "assistant":
+            self.handle_commands(ctx)
+
+        return ctx
+
+    def handle_commands(self, ctx):
         if ctx is not None and self.window.config.data['cmd']:
             cmds = self.window.command.extract_cmds(ctx.output)
             self.window.log("Executing commands...")
@@ -321,7 +261,101 @@ class Input:
             ctx = self.window.controller.plugins.apply_cmds(ctx, cmds)
             self.window.set_status("")
 
-        return ctx
+    def handle_response(self, ctx, mode, stream_mode=False):
+        # if async stream mode
+        if stream_mode and mode != 'assistant':
+            output = ""
+            output_tokens = 0
+            begin = True
+            submode = None  # submode for langchain (chat, completion)
+
+            # get submode for langchain
+            if mode == "langchain":
+                cfg = self.window.config.get_model_cfg(self.window.config.data['model'])
+                submode = 'chat'
+                # get available modes for langchain
+                if 'langchain' in cfg:
+                    if 'chat' in cfg['langchain']['mode']:
+                        submode = 'chat'
+                    elif 'completion' in cfg['langchain']['mode']:
+                        submode = 'completion'
+
+            # read stream
+            try:
+                self.window.log("Reading stream...")  # log
+                for chunk in ctx.stream:
+                    response = None
+                    if mode == "chat" or mode == "vision" or mode == "assistant":
+                        if chunk.choices[0].delta.content is not None:
+                            response = chunk.choices[0].delta.content
+                    elif mode == "completion":
+                        if chunk.choices[0].text is not None:
+                            response = chunk.choices[0].text
+
+                    # langchain can provide different modes itself
+                    elif mode == "langchain":
+                        if submode == 'chat':
+                            # if chat model response is object
+                            if chunk.content is not None:
+                                response = chunk.content
+                        elif submode == 'completion':
+                            # if completion response is string
+                            if chunk is not None:
+                                response = chunk
+
+                    if response is not None:
+                        # prevent empty begin
+                        if begin and response == "":
+                            continue
+                        output += response
+                        output_tokens += 1
+                        self.window.controller.output.append_chunk(ctx, response, begin)
+                        QApplication.processEvents()  # process events to update UI
+                        self.window.controller.ui.update()  # update UI
+                        begin = False
+
+            except Exception as e:
+                # debug
+                # self.window.log("Stream error: {}".format(e))  # log
+                # print("Error in stream: " + str(e))
+                # self.window.ui.dialogs.alert(str(e))
+                pass
+
+            self.window.controller.output.append("\n")  # append EOL
+            self.window.log("End of stream.")  # log
+
+            # update ctx
+            if ctx is not None:
+                ctx.output = output
+                ctx.set_tokens(ctx.input_tokens, output_tokens)
+
+            # --- end of stream mode ---
+
+        # apply plugins
+        if ctx is not None:
+            ctx = self.window.controller.plugins.apply('ctx.after', ctx)
+
+        # log
+        if ctx is not None:
+            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
+            self.window.log("Appending output to chat window...")
+
+            # only append output if not in async stream mode, TODO: plugin output add
+            if not stream_mode:
+                self.window.controller.output.append_output(ctx)
+
+            self.handle_complete(ctx)
+
+    def handle_complete(self, ctx):
+        """Handles completed context"""
+        # save context
+        self.window.gpt.context.store()
+        self.window.set_status(
+            trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
+
+        # store history (output)
+        if self.window.config.data['store_history'] and ctx.output is not None and ctx.output.strip() != "":
+            self.history.save(ctx.output)
 
     def user_send(self, text=None):
         """Sends real user input"""

@@ -65,10 +65,13 @@ class Toolbox:
         prompt_widget = QWidget()
         prompt_widget.setLayout(prompt)
 
+        middle_layout = QSplitter(Qt.Horizontal)
+        middle_layout.addWidget(self.window.data['presets.widget'])  # prompts list
+        middle_layout.addWidget(self.window.data['assistants.widget'])  # assistants list
+
         layout = QSplitter(Qt.Vertical)
         layout.addWidget(modes_splitter)  # mode and model list
-        layout.addWidget(self.window.data['presets.widget'])  # prompts list
-        layout.addWidget(self.window.data['assistants.widget'])  # assistants list
+        layout.addWidget(middle_layout)  # presets and assistants list
         layout.addWidget(prompt_widget)  # prompt text (editable)
 
         # AI and users names

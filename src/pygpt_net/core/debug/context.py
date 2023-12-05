@@ -25,6 +25,8 @@ class ContextDebug:
 
         self.window.debugger.add(self.id, 'current_ctx', str(self.window.gpt.context.current_ctx))
         self.window.debugger.add(self.id, 'current_thread', str(self.window.gpt.context.current_thread))
+        self.window.debugger.add(self.id, 'current_run', str(self.window.gpt.context.current_run))
+        self.window.debugger.add(self.id, 'current_status', str(self.window.gpt.context.current_status))
         self.window.debugger.add(self.id, 'current_mode', str(self.window.gpt.context.current_mode))
 
         current = None
@@ -40,6 +42,10 @@ class ContextDebug:
                     self.window.debugger.add(self.id, '[current] date', str(current['date']))
                 if 'thread' in current:
                     self.window.debugger.add(self.id, '[current] thread', str(current['thread']))
+                if 'run' in current:
+                    self.window.debugger.add(self.id, '[current] run', str(current['run']))
+                if 'status' in current:
+                    self.window.debugger.add(self.id, '[current] status', str(current['status']))
                 if 'mode' in current:
                     self.window.debugger.add(self.id, '[current] mode', str(current['mode']))
 

@@ -464,8 +464,7 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.config.data['mode']
-            self.window.controller.attachment.delete(mode, idx)
+            self.window.controller.attachment.delete(idx)
 
 
 class DebugDialog(QDialog):

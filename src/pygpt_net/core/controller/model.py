@@ -314,7 +314,7 @@ class Model:
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 
-            self.window.data['presets.widget'].setVisible(False)
+            self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(True)
 
             self.window.data['img_variants.label'].setVisible(False)

@@ -30,6 +30,8 @@ class Context:
         self.items = []
         self.current_ctx = None
         self.current_thread = None
+        self.current_run = None
+        self.current_status = None
         self.current_mode = None
 
     def load_list(self):
@@ -108,6 +110,8 @@ class Context:
             "date": datetime.datetime.now().strftime("%Y-%m-%d"),
             'mode': self.config.data['mode'],
             'thread': None,
+            'run': None,
+            'status': None,
         }
         self.current_ctx = name
         self.current_thread = None
@@ -128,6 +132,32 @@ class Context:
             return
         if self.current_ctx in self.contexts:
             self.contexts[self.current_ctx]['thread'] = self.current_thread
+            self.dump_context(self.current_ctx)
+
+    def append_run(self, run):
+        """
+        Appends run ID to context
+
+        :param run: run ID
+        """
+        self.current_run = run
+        if self.current_ctx is None:
+            return
+        if self.current_ctx in self.contexts:
+            self.contexts[self.current_ctx]['run'] = self.current_run
+            self.dump_context(self.current_ctx)
+
+    def append_status(self, status):
+        """
+        Appends status to context
+
+        :param status: status
+        """
+        self.current_status = status
+        if self.current_ctx is None:
+            return
+        if self.current_ctx in self.contexts:
+            self.contexts[self.current_ctx]['status'] = self.current_status
             self.dump_context(self.current_ctx)
 
     def dump_context(self, name):
@@ -457,6 +487,8 @@ class ContextItem:
         self.output = None
         self.mode = mode
         self.thread = None
+        self.msg_id = None
+        self.run_id = None
         self.input_name = None
         self.output_name = None
         self.input_timestamp = None
@@ -509,6 +541,8 @@ class ContextItem:
             'output': self.output,
             'mode': self.mode,
             'thread': self.thread,
+            'msg_id': self.msg_id,
+            'run_id': self.run_id,
             'input_name': self.input_name,
             'output_name': self.output_name,
             'input_tokens': self.input_tokens,
@@ -528,6 +562,10 @@ class ContextItem:
             self.mode = data['mode']
         if 'thread' in data:
             self.thread = data['thread']
+        if 'msg_id' in data:
+            self.msg_id = data['msg_id']
+        if 'run_id' in data:
+            self.run_id = data['run_id']
         if 'input_name' in data:
             self.input_name = data['input_name']
         if 'output_name' in data:

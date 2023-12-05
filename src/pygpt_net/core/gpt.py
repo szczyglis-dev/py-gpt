@@ -37,6 +37,8 @@ class Gpt:
         self.input_tokens = 0
         self.attachments = {}
         self.thread_id = None  # assistant thread id
+        self.assistant_id = None  # assistant id
+        self.file_ids = []  # file ids
 
         if not self.config.initialized:
             self.config.init()
@@ -340,7 +342,126 @@ class Gpt:
             print("Error in custom call: " + str(e))
 
     def assistant_thread_create(self):
-        return str(uuid.uuid4())
+        """
+        Creates thread
+        :return: Thread ID
+        """
+        client = self.get_client()
+        thread = client.beta.threads.create()
+        if thread is not None:
+            return thread.id
+
+    def assistant_thread_delete(self, id):
+        """
+        Deletes thread
+
+        :param id: Thread ID
+        :return: Thread ID
+        """
+        client = self.get_client()
+        response = client.beta.threads.delete(id)
+        if response is not None:
+            return response.id
+
+    def assistant_msg_send(self, id, text):
+        """
+        Sends message to thread
+
+        :param id: Thread ID
+        :param text: Message text
+        :return: Message
+        """
+        client = self.get_client()
+        additional_args = {}
+        ids = []
+        for file_id in self.file_ids:
+            ids.append(file_id)
+        if ids:
+            additional_args['file_ids'] = ids
+
+        print(additional_args)
+        message = client.beta.threads.messages.create(
+            id,
+            role="user",
+            content=text,
+            **additional_args
+        )
+        if message is not None:
+            return message
+
+    def assistant_msg_list(self, thread_id):
+        """
+        Gets messages from thread
+
+        :param thread_id: Thread ID
+        :return: Messages
+        """
+        client = self.get_client()
+        thread_messages = client.beta.threads.messages.list(thread_id)
+        return thread_messages.data
+
+    def assistant_file_info(self, file_id):
+        """
+        Gets file info
+
+        :param file_id: File ID
+        :return: File info
+        """
+        client = self.get_client()
+        return client.files.retrieve(file_id)
+
+    def assistant_file_download(self, file_id, path):
+        """
+        Downloads file
+
+        :param file_id: File ID
+        :param path: Path
+        """
+        client = self.get_client()
+        content = client.files.retrieve_content(file_id)
+        with open(path, 'wb',) as f:
+            f.write(content.encode())
+            f.close()
+
+    def assistant_run_create(self, thread_id, assistant_id, instructions=None):
+        """
+        Creates assistant run
+
+        :param thread_id: Thread ID
+        :param assistant_id: Assistant ID
+        :param instructions: Instructions
+        :return: Run
+        """
+        client = self.get_client()
+        additional_args = {}
+        if instructions is not None and instructions != "":
+            additional_args['instructions'] = instructions
+        if self.config.data['model'] is not None:
+            additional_args['model'] = self.config.data['model']
+
+        run = client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=assistant_id,
+            **additional_args
+        )
+        if run is not None:
+            return run
+
+    def assistant_run_status(self, thread_id, run_id):
+        """
+        Gets assistant run status
+
+        :param thread_id: Thread ID
+        :param run_id: Run ID
+        :return: Run status
+        """
+        client = self.get_client()
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run_id
+        )
+        if run is not None:
+            return run.status
 
     def assistant_file_upload(self, id, path, purpose="assistants"):
         """
@@ -532,6 +653,15 @@ class Gpt:
             response = self.chat(prompt, max_tokens, stream_mode)
         elif mode == "vision":
             response = self.vision(prompt, max_tokens, stream_mode)
+        elif mode == "assistant":
+            response = self.assistant_msg_send(self.thread_id, prompt)
+            if response is not None:
+                ctx.msg_id = response.id
+                run = self.assistant_run_create(self.thread_id, self.assistant_id, self.system_prompt)
+                if run is not None:
+                    ctx.run_id = run.id
+            self.context.add(ctx)
+            return ctx  # if assistant then return here
 
         # async mode (stream)
         if stream_mode:

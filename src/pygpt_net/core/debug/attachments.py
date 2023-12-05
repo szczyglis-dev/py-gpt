@@ -32,7 +32,7 @@ class AttachmentsDebug:
         for mode in modes:
             self.window.debugger.add(self.id, '[mode]', mode)
             attachments = self.window.controller.attachment.attachments.get_all(mode)
-            for key in attachments:
+            for key in list(attachments):
                 prefix = "[{}] ".format(key)
                 attachment = attachments[key]
                 self.window.debugger.add(self.id, prefix + 'ID', str(key))
