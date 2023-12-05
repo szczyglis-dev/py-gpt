@@ -283,9 +283,29 @@ class Input:
             self.handle_commands(ctx)
             self.unlock_input()
 
+        # handle ctx name (generate name if not initialized)
+        self.handle_ctx_name(ctx)
+
         return ctx
 
+    def handle_ctx_name(self, ctx):
+        """
+        Handle context name (summarize input and output)
+        :param ctx: ContextItem
+        """
+        if ctx is not None:
+            if not self.window.gpt.context.is_ctx_initialized():
+                current = self.window.gpt.context.current_ctx
+                title = self.window.gpt.prepare_ctx_name(ctx)
+                if title is not None and title != "":
+                    self.window.controller.context.update_name(current, title)
+
     def handle_commands(self, ctx):
+        """
+        Handle plugin commands
+
+        :param ctx: ContextItem
+        """
         if ctx is not None and self.window.config.data['cmd']:
             cmds = self.window.command.extract_cmds(ctx.output)
             self.window.log("Executing commands...")
@@ -294,6 +314,13 @@ class Input:
             self.window.set_status("")
 
     def handle_response(self, ctx, mode, stream_mode=False):
+        """
+        Handle response from LLM
+
+        :param ctx: ContextItem
+        :param mode: Mode
+        :param stream_mode: Async stream mode
+        """
         # if async stream mode
         if stream_mode and mode != 'assistant':
             output = ""

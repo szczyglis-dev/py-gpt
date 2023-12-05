@@ -1,14 +1,14 @@
 {
-  "name": "*",
+  "name": "white Siamese cat",
   "ai_name": "",
   "user_name": "",
-  "prompt": "Question: {question}\n\nAnswer: ",
+  "prompt": "A photograph of a white Siamese cat.",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
-  "img": false,
+  "img": true,
   "vision": false,
-  "langchain": true,
+  "langchain": false,
   "assistant": false,
   "__meta__": {
     "version": "2.0.0",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.02 22:00:00                  #
+# Updated Date: 2023.12.05 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -124,6 +124,7 @@ class Context:
             'thread': None,
             'run': None,
             'status': None,
+            'initialized': False,
         }
         self.current_ctx = name
         self.current_thread = None
@@ -132,6 +133,29 @@ class Context:
         self.dump_context(name)
 
         return name
+
+    def is_ctx_initialized(self):
+        """
+        Checks if context is initialized (name assigned)
+
+        :return: True if initialized, False otherwise
+        """
+        if self.current_ctx is None:
+            return
+        if self.current_ctx in self.contexts:
+            if 'initialized' in self.contexts[self.current_ctx]:
+                return self.contexts[self.current_ctx]['initialized']
+        return True  # old versions compatibility
+
+    def set_ctx_initialized(self):
+        """
+        Sets context as initialized (name assigned)
+        """
+        if self.current_ctx is None:
+            return
+        if self.current_ctx in self.contexts:
+            self.contexts[self.current_ctx]['initialized'] = True
+            self.dump_context(self.current_ctx)
 
     def append_thread(self, thread):
         """

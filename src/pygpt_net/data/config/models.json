@@ -162,8 +162,8 @@
         "tokens": 4096
     },
     "__meta__": {
-        "version": "0.9.7",
-        "app.version": "0.9.7",
-        "updated_at": "2023-12-05T19:41:43"
+        "version": "2.0.0",
+        "app.version": "2.0.0",
+        "updated_at": "2023-12-05T22:00:00"
     }
 }

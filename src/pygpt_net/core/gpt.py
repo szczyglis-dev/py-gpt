@@ -705,6 +705,17 @@ class Gpt:
         """Stops OpenAI API"""
         pass
 
+    def prepare_ctx_name(self, ctx):
+        """Summarizes conversation begin"""
+        sys_prompt = "You are an expert in conversation summarization"
+        text = "Summarize topic of this conversation in one sentence. Use best keywords to describe it. " \
+               "Summary must be in the same language as the conversation and it will be used for conversation title " \
+               "so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\n"
+        text += "User: " + ctx.input + "\nAI Assistant: " + ctx.output
+        response = self.quick_call(text, sys_prompt, False)
+        if response is not None:
+            return response
+
     def clear(self):
         """Clears context (memory)"""
         self.context.clear()

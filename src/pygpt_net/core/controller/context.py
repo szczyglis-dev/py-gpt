@@ -170,6 +170,7 @@ class Context:
         :param name: context name
         """
         self.window.gpt.context.contexts[ctx]['name'] = name
+        self.window.gpt.context.set_ctx_initialized()
         self.window.gpt.context.dump_context(ctx)
         self.window.dialog['rename'].close()
         self.update()

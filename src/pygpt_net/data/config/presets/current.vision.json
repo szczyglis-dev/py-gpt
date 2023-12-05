@@ -3,15 +3,16 @@
   "ai_name": "",
   "user_name": "",
   "prompt": "You are a helpful assistant.",
+  "temperature": 1.0,
   "chat": false,
   "completion": false,
   "img": false,
   "vision": true,
   "langchain": false,
-  "temperature": 1.0,
+  "assistant": false,
   "__meta__": {
-    "version": "0.9.7",
-    "app.version": "0.9.7",
-    "updated_at": "2023-12-04T20:17:41"
+    "version": "2.0.0",
+    "app.version": "2.0.0",
+    "updated_at": "2023-12-05T22:00:00"
   }
 }

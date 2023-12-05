@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.04 14:00:00                  #
+# Updated Date: 2023.12.06 14:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
 from packaging.version import parse as parse_version
+import os
+import shutil
 import json
 import ssl
 from .utils import trans
@@ -19,7 +21,7 @@ from .utils import trans
 class Updater:
     def __init__(self, window=None):
         """
-        Updates handler
+        Updater (patcher)
 
         :param window: main window
         """
@@ -84,6 +86,39 @@ class Updater:
             print("Failed to patch config files!")
             print(e)
 
+    def patch_dir(self, dirname="", force=False):
+        """
+        Patches directory
+        :param dirname: Directory name
+        :param force: Force update
+        """
+        try:
+            # dir
+            dst_dir = os.path.join(self.window.config.path, dirname)
+            src = os.path.join(self.window.config.get_root_path(), 'data', 'config', dirname)
+            for file in os.listdir(src):
+                src_file = os.path.join(src, file)
+                dst_file = os.path.join(dst_dir, file)
+                if not os.path.exists(dst_file) or force:
+                    shutil.copyfile(src_file, dst_file)
+        except Exception as e:
+            print(e)
+
+    def patch_file(self, filename="", force=False):
+        """
+        Patches file
+        :param filename: File name
+        :param force: Force update
+        """
+        try:
+            # file
+            dst = os.path.join(self.window.config.path, filename)
+            if not os.path.exists(dst) or force:
+                src = os.path.join(self.window.config.get_root_path(), 'data', 'config', filename)
+                shutil.copyfile(src, dst)
+        except Exception as e:
+            print(e)
+
     def patch_models(self):
         """Migrates models to current version"""
         data = self.window.config.models
@@ -94,77 +129,8 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
-            if old < parse_version("0.9.7"):
-                if 'dall-e-2' not in data:
-                    data['dall-e-2'] = {}
-                    data['dall-e-2']['id'] = 'dall-e-2'
-                    data['dall-e-2']['name'] = 'DALL-E 2'
-                    data['dall-e-2']['mode'] = ['img']
-                    data['dall-e-2']['tokens'] = 0
-                    data['dall-e-2']['ctx'] = 0
-
-                if 'dall-e-3' not in data:
-                    data['dall-e-3'] = {}
-                    data['dall-e-3']['id'] = 'dall-e-3'
-                    data['dall-e-3']['name'] = 'DALL-E 3'
-                    data['dall-e-3']['mode'] = ['img']
-                    data['dall-e-3']['tokens'] = 0
-                    data['dall-e-3']['ctx'] = 0
-                    data['dall-e-3']['default'] = True
-
-                if 'gpt-4-1106-preview' not in data:
-                    data['gpt-4-1106-preview'] = {}
-                    data['gpt-4-1106-preview']['id'] = 'gpt-4-1106-preview'
-                    data['gpt-4-1106-preview']['name'] = 'gpt-4-turbo'
-                    data['gpt-4-1106-preview']['mode'] = ['chat']
-                    data['gpt-4-1106-preview']['tokens'] = 4096
-                    data['gpt-4-1106-preview']['ctx'] = 8192
-
-                if 'gpt-3.5-turbo-16k' not in data:
-                    data['gpt-3.5-turbo-16k'] = {}
-                    data['gpt-3.5-turbo-16k']['id'] = 'gpt-3.5-turbo-16k'
-                    data['gpt-3.5-turbo-16k']['name'] = 'gpt-3.5-turbo-16k'
-                    data['gpt-3.5-turbo-16k']['mode'] = ['chat']
-                    data['gpt-3.5-turbo-16k']['tokens'] = 4096
-                    data['gpt-3.5-turbo-16k']['ctx'] = 16385
-
-                if 'gpt-4-32k' not in data:
-                    data['gpt-4-32k'] = {}
-                    data['gpt-4-32k']['id'] = 'gpt-4-32k'
-                    data['gpt-4-32k']['name'] = 'gpt-4-32k'
-                    data['gpt-4-32k']['mode'] = ['chat']
-                    data['gpt-4-32k']['tokens'] = 4096
-                    data['gpt-4-32k']['ctx'] = 32768
-
-                if 'gpt-4-vision-preview' not in data:
-                    data['gpt-4-vision-preview'] = {}
-                    data['gpt-4-vision-preview']['id'] = 'gpt-4-vision-preview'
-                    data['gpt-4-vision-preview']['name'] = 'gpt-4-vision'
-                    data['gpt-4-vision-preview']['mode'] = ['vision']
-                    data['gpt-4-vision-preview']['tokens'] = 4096
-                    data['gpt-4-vision-preview']['ctx'] = 128000
-
-                # update all models
-                for k in data:
-                    if k == "__meta__":
-                        continue
-                    if k == "gpt-3.5-turbo":
-                        data[k]['ctx'] = 4096
-                    elif k == "gpt-3.5-turbo-16k":
-                        data[k]['ctx'] = 16385
-                    elif k == "gpt-4":
-                        data[k]['ctx'] = 8192
-                    elif k == "gpt-4-1106-preview":
-                        data[k]['ctx'] = 8192
-                    elif k == "gpt-4-1106-preview":
-                        data[k]['ctx'] = 8192
-                    elif k == "gpt-4-vision-preview":
-                        data[k]['ctx'] = 128000
-                    elif k == "text-davinci-002":
-                        data[k]['ctx'] = 4096
-                    elif k == "text-davinci-003":
-                        data[k]['ctx'] = 4096
-
+            if old < parse_version("2.0.0"):
+                self.patch_file('models.json', True)
                 updated = True
             if old < parse_version("0.9.1"):
                 # apply meta only (not attached in 0.9.0)
@@ -188,8 +154,8 @@ class Updater:
             old = parse_version(version)
             current = parse_version(self.window.version)
             if old < current:
-                if old < parse_version("0.9.1"):
-                    pass
+                if old < parse_version("2.0.0"):
+                    self.patch_file('presets', True)
 
             # update file
             if updated:
@@ -208,7 +174,7 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
-            if old < parse_version("0.9.7"):
+            if old < parse_version("2.0.0"):
                 data['theme'] = 'dark_teal'  # force, because removed light themes!
                 if 'cmd' not in data:
                     data['cmd'] = True
