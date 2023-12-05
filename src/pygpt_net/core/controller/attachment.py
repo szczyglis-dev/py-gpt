@@ -78,10 +78,18 @@ class Attachment:
             self.window.ui.dialogs.confirm('attachments.delete', idx, trans('attachments.delete.confirm'))
             return
 
-        uuid = self.attachments.get_uuid_by_idx(idx)
-        self.attachments.delete(uuid)
-        if self.attachments.current == uuid:
+        file_id = self.attachments.get_uuid_by_idx(idx)
+
+        self.attachments.delete(file_id)
+        if self.attachments.current == file_id:
             self.attachments.current = None
+
+        # delete file from assistant data
+        if self.window.config.data['mode'] == 'assistant':
+            assistant_id = self.window.config.data['assistant']
+            if assistant_id is not None:
+                self.window.controller.assistant.delete_file(assistant_id, file_id)
+
         self.update()
 
     def rename(self, idx):
@@ -137,7 +145,15 @@ class Attachment:
             self.window.ui.dialogs.confirm('attachments.clear', -1, trans('attachments.clear.confirm'))
             return
 
+        # delete from attachments
         self.attachments.delete_all()
+
+        # delete files from assistant
+        if self.window.config.data['mode'] == 'assistant':
+            assistant_id = self.window.config.data['assistant']
+            if assistant_id is not None:
+                self.window.controller.assistant.clear_files(assistant_id)
+
         self.update()
 
     def open_add(self):
@@ -178,5 +194,4 @@ class Attachment:
         """
         if assistant is None:
             return
-        files = assistant['files']
-        self.attachments.from_files(files)
+        self.attachments.from_files(assistant.files)

@@ -17,6 +17,7 @@ from openai import OpenAI
 from .tokens import num_tokens_prompt, num_tokens_extra, num_tokens_from_messages, num_tokens_completion, \
     num_tokens_only
 from .context import ContextItem
+from .assistants import AssistantItem
 
 
 class Gpt:
@@ -340,116 +341,167 @@ class Gpt:
     def assistant_thread_create(self):
         pass
 
-    def assistant_file_upload(self, id, path):
+    def assistant_file_upload(self, id, path, purpose="assistants"):
+        """
+        Uploads file to assistant
+
+        :param id: Assistant ID
+        :param path: File path
+        :param purpose: File purpose
+        :return: File ID
+        """
         client = self.get_client()
 
+        if not os.path.exists(path):
+            return None
+
         # upload file
-        response = client.files.create(
+        result = client.files.create(
             file=open(path, "rb"),
-            purpose="assistants"
+            purpose=purpose,
         )
 
         # attach to assistant
-        if response is not None:
-            file_id = response.id
+        if result is not None:
+            file_id = result.id
             assistant_file = client.beta.assistants.files.create(
                 assistant_id=id,
-                file_id=file_id
+                file_id=file_id,
             )
             if assistant_file is not None:
                 return assistant_file.id
 
-    def assistant_create(self, name, model, description, instructions, tools):
-        client = self.get_client()
-        assistant = client.beta.assistants.create(
-            instructions=instructions,
-            description=description,
-            name=name,
-            tools=tools,
-            model=model,
-        )
-        if assistant is not None:
-            print(assistant)
-            return assistant.id
+    def assistant_file_delete(self, assistant_id, file_id):
+        """
+        Deletes file from assistant
 
-    def assistant_update(self, id, name, model, description, instructions, tools):
+        :param assistant_id: Assistant ID
+        :param file_id: File ID
+        :return: File ID
+        """
         client = self.get_client()
-        assistant = client.beta.assistants.update(
-            id,
-            instructions=instructions,
-            description=description,
-            name=name,
-            tools=tools,
-            model=model,
+        deleted_file = client.beta.assistants.files.delete(
+            assistant_id=assistant_id,
+            file_id=file_id
         )
-        if assistant is not None:
-            print(assistant)
-            return assistant.id
+        if deleted_file is not None:
+            if deleted_file is not None:
+                return deleted_file.id
+
+    def assistant_create(self, assistant):
+        """
+        Creates assistant
+
+        :param assistant: Assistant object
+        :return: Assistant object
+        """
+        client = self.get_client()
+        tools = self.assistant_get_tools(assistant)
+        result = client.beta.assistants.create(
+            instructions=assistant.instructions,
+            description=assistant.description,
+            name=assistant.name,
+            tools=tools,
+            model=assistant.model,
+        )
+        if result is not None:
+            assistant.id = result.id
+            return assistant
+
+    def assistant_update(self, assistant):
+        """
+        Updates assistant
+
+        :param assistant: Assistant object
+        :return: Assistant object
+        """
+        client = self.get_client()
+        tools = self.assistant_get_tools(assistant)
+        result = client.beta.assistants.update(
+            assistant.id,
+            instructions=assistant.instructions,
+            description=assistant.description,
+            name=assistant.name,
+            tools=tools,
+            model=assistant.model,
+        )
+        if result is not None:
+            assistant.id = result.id
+            return assistant
 
     def assistant_delete(self, id):
+        """
+        Deletes assistant
+
+        :param id: Assistant ID
+        :return: Assistant ID
+        """
         client = self.get_client()
         response = client.beta.assistants.delete(id)
         if response is not None:
             return response.id
 
-    def assistant_get_files(self, id):
-        client = self.get_client()
-        files = client.beta.assistants.files.list(
-            assistant_id=id,
-            limit=100,
-        )
-        for file in files:
-            print(file)
+    def assistant_get_files(self, id, limit=100):
+        """
+        Gets assistant files
 
-    def assistant_import(self):
+        :param id: Assistant ID
+        :param limit: Limit
+        :return: Files list
+        """
+        client = self.get_client()
+        return client.beta.assistants.files.list(
+            assistant_id=id,
+            limit=limit,
+        )
+
+    def assistant_import(self, items, order="asc", limit=100):
+        """
+        Imports assistants from API
+
+        :param items: Items
+        :param order: Order
+        :param limit: Limit
+        :return: Items
+        """
         client = self.get_client()
         assistants = client.beta.assistants.list(
-            order="asc",
-            limit="100",
+            order=order,
+            limit=limit,
         )
         if assistants is not None:
             for remote in assistants.data:
                 id = remote.id
-                local = self.config.get_assistants()
-                if id in local:
-                    local[id]['name'] = remote.name
-                    local[id]['description'] = remote.description
-                    local[id]['instructions'] = remote.instructions
-                    local[id]['model'] = remote.model
-                    local[id]['metadata'] = remote.metadata
-                    if 'files' not in local[id]:
-                        local[id]['files'] = {}
-                    if 'tools' not in local[id]:
-                        local[id]['tools'] = {}
-                    for k in remote.file_ids:
-                        filename = str(k)
-                        if k not in local[id]['files']:
-                            local[id]['files'][k] = {}
-                        local[id]['files'][k]['id'] = filename
-                    for k in remote.tools:
-                        type = k.type
-                        local[id]['tools'][type] = True
-                else:
-                    local[id] = {}
-                    local[id]['name'] = remote.name
-                    local[id]['description'] = remote.description
-                    local[id]['instructions'] = remote.instructions
-                    local[id]['model'] = remote.model
-                    local[id]['metadata'] = remote.metadata
-                    if 'files' not in local[id]:
-                        local[id]['files'] = {}
-                    if 'tools' not in local[id]:
-                        local[id]['tools'] = {}
-                    for k in remote.file_ids:
-                        filename = str(k)
-                        if k not in local[id]['files']:
-                            local[id]['files'][k] = {}
-                        local[id]['files'][k]['id'] = filename
-                    for k in remote.tools:
-                        type = k.type
-                        local[id]['tools'][type] = True
-                self.config.assistants = local
-                self.config.save_assistants()
+                if id not in items:
+                    items[id] = AssistantItem()
+                items[id].id = id
+                items[id].name = remote.name
+                items[id].description = remote.description
+                items[id].instructions = remote.instructions
+                items[id].model = remote.model
+                items[id].meta = remote.metadata
+                for file_id in remote.file_ids:
+                    if not items[id].has_file(file_id):
+                        items[id].add_file(file_id)
+                for tool in remote.tools:
+                    items[id].tools[tool.type] = True
+        return items
+
+    def assistant_get_tools(self, assistant):
+        """
+        Gets assistant tools
+
+        :param assistant: Assistant
+        :return: Tools list
+        """
+        tools = []
+        if assistant.has_tool("code_interpreter"):
+            tools.append({"type": "code_interpreter"})
+        if assistant.has_tool("retrieval"):
+            tools.append({"type": "retrieval"})
+        if assistant.has_tool("function"):
+            tools.append({"type": "function"})
+        return tools
 
     def call(self, prompt, ctx=None, stream_mode=False):
         """

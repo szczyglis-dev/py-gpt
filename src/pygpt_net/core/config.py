@@ -106,7 +106,6 @@ class Config:
         if all:
             self.load_models(log)
             self.load_presets()
-            self.load_assistants()
 
     def save_preset(self, preset):
         """
@@ -409,16 +408,6 @@ class Config:
                     print(e)
             self.load_presets()
 
-    def delete_assistant(self, id):
-        """
-        Deletes assistant
-
-        :param id: id of assistant
-        """
-        if id in self.assistants:
-            self.assistants.pop(id)
-        self.save_assistants()
-
     def get_default_mode(self):
         """
         Returns default mode name
@@ -580,24 +569,6 @@ class Config:
         except Exception as e:
             print(e)
             self.assistants = {}
-
-    def save_assistants(self):
-        """
-        Saves assistants to file
-        """
-        try:
-            # update assistants
-            path = os.path.join(self.path, 'assistants.json')
-            data = {}
-            data['__meta__'] = self.append_meta()
-            data['items'] = self.assistants
-            dump = json.dumps(data, indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-
-        except Exception as e:
-            print("Error while saving assistants: {}".format(str(e)))
 
     def install(self):
         """Installs config files"""

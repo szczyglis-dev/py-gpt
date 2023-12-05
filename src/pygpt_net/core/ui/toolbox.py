@@ -274,3 +274,18 @@ class Toolbox:
                     name = trans(name)
                 self.window.models[id].setData(self.window.models[id].index(i, 0), name)
                 i += 1
+
+    def update_list_assistants(self, id, data):
+        """
+        Updates list
+
+        :param id: ID of the list
+        :param data: Data to update
+        """
+        self.window.models[id].removeRows(0, self.window.models[id].rowCount())
+        i = 0
+        for n in data:
+            self.window.models[id].insertRow(i)
+            name = data[n].name
+            self.window.models[id].setData(self.window.models[id].index(i, 0), name)
+            i += 1

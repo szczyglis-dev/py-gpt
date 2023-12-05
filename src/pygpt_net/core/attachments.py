@@ -22,6 +22,7 @@ class Attachments:
         :param config: config object
         """
         self.config = config
+        self.config_file = 'attachments.json'
         self.items = {}
         self.current = None
 
@@ -49,52 +50,6 @@ class Attachments:
         :return: attachments count
         """
         return len(self.items)
-
-    def load(self):
-        """Loads attachments list from file"""
-        path = os.path.join(self.config.path, 'attachments.json')
-        try:
-            if os.path.exists(path):
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
-                    file.close()
-                    if data == "" or data is None or 'items' not in data:
-                        self.items = {}
-                        return
-                    # deserialize
-                    for uuid in data['items']:
-                        attachment = data['items'][uuid]
-                        item = AttachmentItem()
-                        item.deserialize(attachment)
-                        self.items[uuid] = item
-        except Exception as e:
-            print(e)
-            self.items = {}
-
-    def save(self):
-        """
-        Saves attachments to file
-        """
-        try:
-            # update attachments
-            path = os.path.join(self.config.path, 'attachments.json')
-            data = {}
-            items = {}
-
-            # serialize
-            for uuid in self.items:
-                attachment = self.items[uuid]
-                items[uuid] = attachment.serialize()
-
-            data['__meta__'] = self.config.append_meta()
-            data['items'] = items
-            dump = json.dumps(data, indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-
-        except Exception as e:
-            print("Error while saving attachments: {}".format(str(e)))
 
     def exists_by_uuid(self, uuid):
         """
@@ -182,7 +137,7 @@ class Attachments:
         self.clear()
 
         # update index
-        path = os.path.join(self.config.path, 'attachments.json')
+        path = os.path.join(self.config.path, self.config_file)
         data = {'__meta__': self.config.append_meta(), 'items': {}}
         try:
             dump = json.dumps(data, indent=4)
@@ -270,6 +225,52 @@ class Attachments:
             item.remote = id
             item.send = True
             self.add(item)
+
+    def load(self):
+        """Loads attachments from file"""
+        path = os.path.join(self.config.path, self.config_file)
+        try:
+            if os.path.exists(path):
+                with open(path, 'r', encoding="utf-8") as file:
+                    data = json.load(file)
+                    file.close()
+                    if data == "" or data is None or 'items' not in data:
+                        self.items = {}
+                        return
+                    # deserialize
+                    for id in data['items']:
+                        attachment = data['items'][id]
+                        item = AttachmentItem()
+                        item.deserialize(attachment)
+                        self.items[id] = item
+        except Exception as e:
+            print(e)
+            self.items = {}
+
+    def save(self):
+        """
+        Saves attachments to file
+        """
+        try:
+            # update attachments
+            path = os.path.join(self.config.path, self.config_file)
+            data = {}
+            items = {}
+
+            # serialize
+            for uuid in self.items:
+                attachment = self.items[uuid]
+                items[uuid] = attachment.serialize()
+
+            data['__meta__'] = self.config.append_meta()
+            data['items'] = items
+            dump = json.dumps(data, indent=4)
+            with open(path, 'w', encoding="utf-8") as f:
+                f.write(dump)
+                f.close()
+
+        except Exception as e:
+            print("Error while saving attachments: {}".format(str(e)))
 
 
 class AttachmentItem:

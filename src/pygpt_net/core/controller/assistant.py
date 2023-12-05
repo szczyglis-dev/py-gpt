@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.04 20:00:00                  #
+# Updated Date: 2023.12.05 10:00:00                  #
 # ================================================== #
 import os
 
@@ -25,20 +25,20 @@ class Assistant:
         self.assistants = Assistants(self.window.config)
 
     def setup(self):
+        self.assistants.load()
         self.update()
 
     def update_list(self):
         """Updates assistants list"""
-        # update model
         items = self.assistants.get_all()
-        self.window.ui.toolbox.update_list('assistants', items)
+        self.window.ui.toolbox.update_list_assistants('assistants', items)
 
     def update(self):
         self.update_list()
 
     def select(self, idx):
         """
-        Selects assistant
+        Selects assistant on the list
 
         :param idx: IDx on the list
         """
@@ -57,19 +57,20 @@ class Assistant:
 
         :param id: field id
         :param value: field value
-        :param assistant: assistant ID
+        :param assistant_id: assistant ID
         :param current: if True, updates current assistant
         """
         if assistant_id is not None and assistant_id != "":
-            if assistant_id in self.window.config.assistants:
+            if self.assistants.has(assistant_id):
+                assistant = self.assistants.get_by_id(assistant_id)
                 if id == 'assistant.name':
-                    self.window.config.assistants[assistant_id]['name'] = value
+                    assistant.name = value
                 elif id == 'assistant.description':
-                    self.window.config.assistants[assistant_id]['description'] = value
+                    assistant.description = value
                 elif id == 'assistant.instructions':
-                    self.window.config.assistants[assistant_id]['instructions'] = value
+                    assistant.instructions = value
                 elif id == 'assistant.model':
-                    self.window.config.assistants[assistant_id]['model'] = value
+                    assistant.model = value
 
         self.window.controller.ui.update()
 
@@ -92,68 +93,71 @@ class Assistant:
 
         :param id: assistant ID
         """
-        data = {}
-        data['name'] = ""
-        data['description'] = ""
-        data['instructions'] = ""
-        data['model'] = "gpt-4-1106-preview"
-        data['tool.code_interpreter'] = False
-        data['tool.retrieval'] = False
-        data['tool.function'] = False
+
+        assistant = self.assistants.create()
+        assistant.model = "gpt-4-1106-preview"  # default model
 
         if id is not None and id != "":
-            if id in self.window.config.assistants:
-                data = self.window.config.assistants[id]
-                data['id'] = id
-        if data['name'] is None:
-            data['name'] = ""
-        if data['description'] is None:
-            data['description'] = ""
-        if data['model'] is None:
-            data['model'] = ""
-        if data['instructions'] is None:
-            data['instructions'] = ""
+            if self.assistants.has(id):
+                assistant = self.assistants.get_by_id(id)
+
+        if assistant.name is None:
+            assistant.name = ""
+        if assistant.description is None:
+            assistant.description = ""
+        if assistant.instructions is None:
+            assistant.instructions = ""
+        if assistant.model is None:
+            assistant.model = ""
 
         self.window.config_option['assistant.id'].setText(id)
+        self.config_change('assistant.name', assistant.name, 'assistant.editor')
+        self.config_change('assistant.description', assistant.description, 'assistant.editor')
+        self.config_change('assistant.instructions', assistant.instructions, 'assistant.editor')
+        self.config_change('assistant.model', assistant.model, 'assistant.editor')
 
-        self.config_change('assistant.name', data['name'], 'assistant.editor')
-        self.config_change('assistant.description', data['description'], 'assistant.editor')
-        self.config_change('assistant.instructions', data['instructions'], 'assistant.editor')
-        self.config_change('assistant.model', data['model'], 'assistant.editor')
+        if assistant.has_tool('code_interpreter'):
+            self.config_toggle('assistant.tool.code_interpreter', True, 'assistant.editor')
+        else:
+            self.config_toggle('assistant.tool.code_interpreter', False, 'assistant.editor')
 
-        if 'tool.code_interpreter' in data:
-            self.config_toggle('assistant.tool.code_interpreter', data['tool.code_interpreter'], 'assistant.editor')
-        if 'tool.retrieval' in data:
-            self.config_toggle('assistant.tool.retrieval', data['tool.retrieval'], 'assistant.editor')
-        if 'tool.function' in data:
-            self.config_toggle('assistant.tool.function', data['tool.function'], 'assistant.editor')
+        if assistant.has_tool('retrieval'):
+            self.config_toggle('assistant.tool.retrieval', True, 'assistant.editor')
+        else:
+            self.config_toggle('assistant.tool.retrieval', False, 'assistant.editor')
 
-    def save(self, force=False):
+        if assistant.has_tool('function'):
+            self.config_toggle('assistant.tool.function', True, 'assistant.editor')
+        else:
+            self.config_toggle('assistant.tool.function', False, 'assistant.editor')
+
+    def save(self):
         """
         Saves assistant
-
-        :param force: force overwrite file
         """
-        create = False
+        created = False
         id = self.window.config_option['assistant.id'].text()
-        if id is None or id == "" or id not in self.window.config.assistants:
-            id = self.create()
-            if id is None:
+        if id is None or id == "" or not self.assistants.has(id):
+            assistant = self.create()  # id created in API
+            if assistant is None:
                 print("Assistant not created")
                 return
-            self.window.config.assistants[id] = {}
+            id = assistant.id
+            self.assistants.add(assistant)
             self.window.config_option['assistant.id'].setText(id)
-            create = True
+            created = True
+        else:
+            assistant = self.assistants.get_by_id(id)
 
-        # assign data from fields to preset
-        self.assign_data(id)
+        # assign data from fields to assistant
+        self.assign_data(assistant)
 
         # update in API
-        if not create:
-            self.assistant_update(id)
+        if not created:
+            self.assistant_update(assistant)
 
         # save file
-        self.window.config.save_assistants()
+        self.assistants.save()
         self.window.controller.model.update()
         self.update()
 
@@ -164,49 +168,20 @@ class Assistant:
         """
         Creates assistant
         """
-        name = self.window.config_option['assistant.name'].text()
-        model = self.window.config_option['assistant.model'].text()
-        description = self.window.config_option['assistant.description'].text()
-        instructions = self.window.config_option['assistant.instructions'].toPlainText()
-        tool_code_interpreter = self.window.config_option['assistant.tool.code_interpreter'].box.isChecked()
-        tool_retrieval = self.window.config_option['assistant.tool.retrieval'].box.isChecked()
-        tool_function = self.window.config_option['assistant.tool.function'].box.isChecked()
-
-        tools = []
-        if tool_code_interpreter:
-            tools.append({"type": "code_interpreter"})
-        if tool_retrieval:
-            tools.append({"type": "retrieval"})
-        if tool_function:
-            tools.append({"type": "function"})
-
+        assistant = self.assistants.create()
+        self.assign_data(assistant)
         try:
-            return self.window.gpt.assistant_create(name, model, description, instructions, tools)
+            return self.window.gpt.assistant_create(assistant)
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
-    def assistant_update(self, id):
+    def assistant_update(self, assistant):
         """
         Update assistant
         """
-        name = self.window.config_option['assistant.name'].text()
-        model = self.window.config_option['assistant.model'].text()
-        description = self.window.config_option['assistant.description'].text()
-        instructions = self.window.config_option['assistant.instructions'].toPlainText()
-        tool_code_interpreter = self.window.config_option['assistant.tool.code_interpreter'].box.isChecked()
-        tool_retrieval = self.window.config_option['assistant.tool.retrieval'].box.isChecked()
-        tool_function = self.window.config_option['assistant.tool.function'].box.isChecked()
-
-        tools = []
-        if tool_code_interpreter:
-            tools.append({"type": "code_interpreter"})
-        if tool_retrieval:
-            tools.append({"type": "retrieval"})
-        if tool_function:
-            tools.append({"type": "function"})
-
+        self.assign_data(assistant)
         try:
-            return self.window.gpt.assistant_update(id, name, model, description, instructions, tools)
+            return self.window.gpt.assistant_update(assistant)
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
@@ -215,25 +190,26 @@ class Assistant:
         Imports all remote assistants from API
         """
         try:
-            self.window.gpt.assistant_import()
+            items = self.assistants.get_all()
+            self.window.gpt.assistant_import(items)
+            self.assistants.items = items
+            self.assistants.save()
         except Exception as e:
             print(e)
             self.window.ui.dialogs.alert(str(e))
         self.update()
 
-    def assign_data(self, id):
+    def assign_data(self, assistant):
         """
         Assigns data from fields to assistant
 
-        :param id: assistant ID
+        :param assistant: assistant
         """
-        self.window.config.assistants[id]['id'] = id
-        self.window.config.assistants[id]['name'] = self.window.config_option['assistant.name'].text()
-        self.window.config.assistants[id]['model'] = self.window.config_option['assistant.model'].text()
-        self.window.config.assistants[id]['description'] = self.window.config_option['assistant.description'].text()
-        self.window.config.assistants[id]['instructions'] = self.window.config_option['assistant.instructions'].toPlainText()
-        self.window.config.assistants[id]['files'] = {}
-        self.window.config.assistants[id]['tools'] = {
+        assistant.name = self.window.config_option['assistant.name'].text()
+        assistant.model = self.window.config_option['assistant.model'].text()
+        assistant.description = self.window.config_option['assistant.description'].text()
+        assistant.instructions = self.window.config_option['assistant.instructions'].toPlainText()
+        assistant.tools = {
             'code_interpreter': self.window.config_option['assistant.tool.code_interpreter'].box.isChecked(),
             'retrieval': self.window.config_option['assistant.tool.retrieval'].box.isChecked(),
             'function': self.window.config_option['assistant.tool.function'].box.isChecked(),
@@ -252,15 +228,54 @@ class Assistant:
             return
 
         if id is not None and id != "":
-            if id in self.window.config.assistants:
-                self.window.config.assistants[id]['name'] = ""
-                self.window.config.assistants[id]['model'] = ""
-                self.window.config.assistants[id]['description'] = ""
-                self.window.config.assistants[id]['instructions'] = ""
-                self.window.controller.model.update()
+            if self.assistants.has(id):
+                assistant = self.assistants.get_by_id(id)
+                assistant.reset()
 
         self.window.set_status(trans('status.assistant.cleared'))
         self.update()
+
+    def delete_file(self, assistant_id, file_id):
+        """
+        Deletes file
+
+        :param assistant_id: assistant id
+        :param file_id: file id
+        """
+        # delete in API
+        try:
+            self.window.gpt.assistant_file_delete(assistant_id, file_id)
+        except Exception as e:
+            self.window.ui.dialogs.alert(str(e))
+            return
+
+        # delete locally
+        if assistant_id is not None and assistant_id != "":
+            if self.assistants.has(assistant_id):
+                assistant = self.assistants.get_by_id(assistant_id)
+                if assistant.has_file(file_id):
+                    assistant.delete_file(file_id)
+                    self.assistants.save()
+                    self.update()
+
+    def clear_files(self, assistant_id):
+        """
+        Deletes all files
+
+        :param assistant_id: assistant id
+        """
+        # delete all files
+        if assistant_id is not None and assistant_id != "":
+            if self.assistants.has(assistant_id):
+                assistant = self.assistants.get_by_id(assistant_id)
+                for file_id in assistant.files.keys():
+                    try:
+                        self.window.gpt.assistant_file_delete(assistant_id, file_id)
+                        assistant.delete_file(file_id)
+                    except Exception as e:
+                        self.window.ui.dialogs.alert(str(e))
+                self.assistants.save()
+                self.update()
 
     def delete(self, idx=None, force=False):
         """
@@ -272,7 +287,7 @@ class Assistant:
         if idx is not None:
             id = self.assistants.get_by_idx(idx)
             if id is not None and id != "":
-                if id in self.window.config.assistants:
+                if self.assistants.has(id):
                     # if exists then show confirmation dialog
                     if not force:
                         self.window.ui.dialogs.confirm('assistant_delete', idx, trans('confirm.assistant.delete'))
@@ -289,7 +304,7 @@ class Assistant:
                     except Exception as e:
                         self.window.ui.dialogs.alert(str(e))
 
-                    self.window.config.delete_assistant(id)
+                    self.assistants.delete(id)
                     self.update()
                     self.window.set_status(trans('status.assistant.deleted'))
 
@@ -353,9 +368,9 @@ class Assistant:
         for uuid in attachments:
             attachment = attachments[uuid]
             tmp_id = attachment.uuid  # tmp id
-            # check if not already uploaded
-            if not attachment.send:
 
+            # check if not already uploaded (ignore already uploaded files)
+            if not attachment.send:
                 # check if file exists
                 if not os.path.exists(attachment.path):
                     continue
@@ -372,11 +387,11 @@ class Assistant:
                     self.window.controller.attachment.attachments.replace_id(tmp_id, attachment)
 
                     # update assistant files list
-                    assistant['files'][file_id] = {
-                        'name': attachment.name,
+                    assistant.files[file_id] = {
                         'id': file_id,
-                        'path': attachment.path
+                        'name': attachment.name,
+                        'path': attachment.path,
                     }
         # update assistants
-        self.window.config.save_assistants()
+        self.assistants.save()
         self.window.controller.attachment.update()  # update attachments UI

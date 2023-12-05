@@ -90,7 +90,7 @@ class UI:
         string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
         self.window.data['prompt.context'].setText(string)
 
-        threshold = str(int(self.window.config.data['context_threshold']))
+        # threshold = str(int(self.window.config.data['context_threshold']))
 
         parsed_total = str(int(total_tokens))
         parsed_total = parsed_total.replace("000000", "M").replace("000", "k")
@@ -98,6 +98,6 @@ class UI:
         parsed_max_total = str(int(max_total_tokens))
         parsed_max_total = parsed_max_total.replace("000000", "M").replace("000", "k")
 
-        string = "{} + {} + {} + {} = {} / {} (-{})".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,
-                                                            parsed_total, parsed_max_total, threshold)
+        string = "{} + {} + {} + {} = {} / {}".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,
+                                                            parsed_total, parsed_max_total)
         self.window.data['input.counter'].setText(string)
