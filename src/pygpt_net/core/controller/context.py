@@ -38,6 +38,7 @@ class Context:
     def new(self):
         """Creates new context"""
         self.window.gpt.context.new()
+        self.window.config.data['assistant_thread'] = None  # reset thread
         self.update()
         self.window.controller.output.clear()
 
@@ -51,8 +52,10 @@ class Context:
         self.window.debugger.update(True)
 
         ctx = self.window.gpt.context.current_ctx
+        thread = self.window.gpt.context.current_thread
         if ctx is not None:
             self.window.config.data['ctx'] = ctx
+            self.window.config.data['assistant_thread'] = thread
             self.window.config.save()
 
     def load(self, ctx):
@@ -62,6 +65,12 @@ class Context:
         :param ctx: context name (id)
         """
         self.window.gpt.context.select(ctx)
+
+        # set current thread
+        thread = self.window.gpt.context.current_thread
+        self.window.config.data['assistant_thread'] = thread
+
+        # update output and context list
         self.window.controller.output.clear()
         self.window.controller.output.append_context()
         self.update()

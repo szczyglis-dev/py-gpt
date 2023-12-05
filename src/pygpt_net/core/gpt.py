@@ -11,6 +11,7 @@
 import base64
 import os
 import re
+import uuid
 from uuid import uuid4
 
 from openai import OpenAI
@@ -339,7 +340,7 @@ class Gpt:
             print("Error in custom call: " + str(e))
 
     def assistant_thread_create(self):
-        pass
+        return str(uuid.uuid4())
 
     def assistant_file_upload(self, id, path, purpose="assistants"):
         """

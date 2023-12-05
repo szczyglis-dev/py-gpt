@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Created Date: 2023.04.09 20:00:00                  #
+# Created Date: 2023.12.05 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -18,6 +18,7 @@ from .debug.presets import PresetsDebug
 from .debug.models import ModelsDebug
 from .debug.plugins import PluginsDebug
 from .debug.assistants import AssistantsDebug
+from .debug.attachments import AttachmentsDebug
 
 
 class Debug:
@@ -39,6 +40,7 @@ class Debug:
         self.workers['models'] = ModelsDebug(self.window)
         self.workers['plugins'] = PluginsDebug(self.window)
         self.workers['assistants'] = AssistantsDebug(self.window)
+        self.workers['attachments'] = AttachmentsDebug(self.window)
 
         # prepare debug ids
         self.ids = self.workers.keys()

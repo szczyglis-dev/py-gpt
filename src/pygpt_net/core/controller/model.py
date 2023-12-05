@@ -222,8 +222,8 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
-            self.window.data['preset.ai_name'].setDisabled(True)
-            self.window.data['preset.user_name'].setDisabled(True)
+            self.window.data['preset.ai_name'].setDisabled(False)
+            self.window.data['preset.user_name'].setDisabled(False)
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 
@@ -309,8 +309,8 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
-            self.window.data['preset.ai_name'].setDisabled(False)
-            self.window.data['preset.user_name'].setDisabled(False)
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
             self.window.data['preset.clear'].setVisible(True)
             self.window.data['preset.use'].setVisible(False)
 

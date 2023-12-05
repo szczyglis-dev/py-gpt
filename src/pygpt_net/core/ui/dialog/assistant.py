@@ -32,13 +32,10 @@ class Assistant:
 
         self.window.data['assistant.btn.current'] = QPushButton(trans("dialog.assistant.btn.current"))
         self.window.data['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
-        self.window.data['assistant.btn.current'].clicked.connect(
-            lambda: self.window.controller.assistant.from_current())
         self.window.data['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.save())
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['assistant.btn.current'])
         bottom_layout.addWidget(self.window.data['assistant.btn.save'])
 
         section = 'assistant.editor'  # prevent autoupdate current assistant

@@ -29,6 +29,8 @@ class Context:
         self.contexts = {}
         self.items = []
         self.current_ctx = None
+        self.current_thread = None
+        self.current_mode = None
 
     def load_list(self):
         """Loads contexts list from file"""
@@ -103,13 +105,30 @@ class Context:
         self.contexts[name] = {
             'id': name,
             "name": "{}".format(trans('ctx.new.prefix')),
-            "date": datetime.datetime.now().strftime("%Y-%m-%d")
+            "date": datetime.datetime.now().strftime("%Y-%m-%d"),
+            'mode': self.config.data['mode'],
+            'thread': None,
         }
         self.current_ctx = name
+        self.current_thread = None
+        self.current_mode = self.config.data['mode']
         self.items = []
         self.dump_context(name)
 
         return name
+
+    def append_thread(self, thread):
+        """
+        Appends thread to context
+
+        :param thread: thread ID
+        """
+        self.current_thread = thread
+        if self.current_ctx is None:
+            return
+        if self.current_ctx in self.contexts:
+            self.contexts[self.current_ctx]['thread'] = self.current_thread
+            self.dump_context(self.current_ctx)
 
     def dump_context(self, name):
         """
@@ -310,7 +329,14 @@ class Context:
         :param name: context name (id)
         """
         if name in self.contexts:
+            ctx = self.contexts[name]
             self.current_ctx = name
+            self.current_thread = None
+            if 'thread' in ctx:
+                self.current_thread = ctx['thread']
+            if 'mode' in ctx:
+                self.current_mode = ctx['mode']
+
             self.items = self.load(name)
 
     def add(self, item):
@@ -422,7 +448,7 @@ class ContextItem:
         """
         Context item
 
-        :param mode: Mode (completion or chat)
+        :param mode: Mode (completion, chat, langchain, assistant)
         """
         self.stream = None
         self.results = []
@@ -430,6 +456,7 @@ class ContextItem:
         self.input = None
         self.output = None
         self.mode = mode
+        self.thread = None
         self.input_name = None
         self.output_name = None
         self.input_timestamp = None
@@ -481,6 +508,7 @@ class ContextItem:
             'input': self.input,
             'output': self.output,
             'mode': self.mode,
+            'thread': self.thread,
             'input_name': self.input_name,
             'output_name': self.output_name,
             'input_tokens': self.input_tokens,
@@ -498,6 +526,8 @@ class ContextItem:
             self.output = data['output']
         if 'mode' in data:
             self.mode = data['mode']
+        if 'thread' in data:
+            self.thread = data['thread']
         if 'input_name' in data:
             self.input_name = data['input_name']
         if 'output_name' in data:

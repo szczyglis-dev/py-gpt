@@ -129,11 +129,19 @@ class Input:
                 self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.uploaded'))
 
+            # create or get current thread, it is required here
+            if self.window.config.data['assistant_thread'] is None:
+                self.window.config.data['assistant_thread'] = self.window.controller.assistant.create_thread()
+
         # create ctx item
         ctx = ContextItem()
         ctx.mode = mode
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
+
+        # store thread id
+        if mode == 'assistant':
+            ctx.thread = self.window.config.data['assistant_thread']
 
         # log
         self.window.log("Context: input: {}".format(ctx.dump()))

@@ -27,6 +27,7 @@ class Assistant:
     def setup(self):
         self.assistants.load()
         self.update()
+        self.select_assistant_by_current()
 
     def update_list(self):
         """Updates assistants list"""
@@ -355,6 +356,21 @@ class Assistant:
         """
         self.assistants.rename_file(assistant_id, file_id, name)
 
+    def create_thread(self):
+        id = self.window.gpt.assistant_thread_create()
+        self.window.config.data['assistant_thread'] = id
+        self.window.gpt.context.append_thread(id)
+        return id
+
+    def select_assistant_by_current(self):
+        """Selects assistant by current"""
+        assistant_id = self.window.config.data['assistant']
+        items = self.window.controller.assistant.assistants.get_all()
+        if assistant_id in items:
+            idx = list(items.keys()).index(assistant_id)
+            current = self.window.models['assistants'].index(idx, 0)
+            self.window.data['assistants'].setCurrentIndex(current)
+
     def upload_attachments(self, mode, attachments):
         """
         Uploads attachments to assistant
@@ -366,9 +382,9 @@ class Assistant:
         assistant = self.assistants.get_by_id(assistant_id)
 
         # loop on attachments
-        for uuid in attachments:
-            attachment = attachments[uuid]
-            tmp_id = attachment.uuid  # tmp id
+        for id in attachments:
+            attachment = attachments[id]
+            tmp_id = attachment.id  # tmp id
 
             # check if not already uploaded (ignore already uploaded files)
             if not attachment.send:
@@ -379,9 +395,9 @@ class Assistant:
                 # upload file and get new ID
                 file_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
                 if file_id is not None:
-                    # mark as uploaded
+                    # mark as already uploaded
                     attachment.send = True
-                    attachment.uuid = file_id
+                    attachment.id = file_id
                     attachment.remote = file_id
 
                     # replace old ID with new one

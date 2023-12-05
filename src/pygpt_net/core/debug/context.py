@@ -24,6 +24,25 @@ class ContextDebug:
         self.window.debugger.begin(self.id)
 
         self.window.debugger.add(self.id, 'current_ctx', str(self.window.gpt.context.current_ctx))
+        self.window.debugger.add(self.id, 'current_thread', str(self.window.gpt.context.current_thread))
+        self.window.debugger.add(self.id, 'current_mode', str(self.window.gpt.context.current_mode))
+
+        current = None
+        if self.window.gpt.context.current_ctx is not None:
+            if self.window.gpt.context.current_ctx in self.window.gpt.context.contexts:
+                current = self.window.gpt.context.contexts[self.window.gpt.context.current_ctx]
+            if current is not None:
+                if 'id' in current:
+                    self.window.debugger.add(self.id, '[current] id', str(current['id']))
+                if 'name' in current:
+                    self.window.debugger.add(self.id, '[current] name', str(current['name']))
+                if 'date' in current:
+                    self.window.debugger.add(self.id, '[current] date', str(current['date']))
+                if 'thread' in current:
+                    self.window.debugger.add(self.id, '[current] thread', str(current['thread']))
+                if 'mode' in current:
+                    self.window.debugger.add(self.id, '[current] mode', str(current['mode']))
+
         self.window.debugger.add(self.id, 'len(contexts)', str(len(self.window.gpt.context.contexts)))
         self.window.debugger.add(self.id, 'len(items)', str(len(self.window.gpt.context.items)))
 

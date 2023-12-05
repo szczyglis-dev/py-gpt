@@ -6,16 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.04 12:00:00                  #
+# Updated Date: 2023.12.05 12:00:00                  #
 # ================================================== #
-
 import os
 
 
 class AssistantsDebug:
     def __init__(self, window=None):
         """
-        Presets debug
+        Assistants debug
 
         :param window: main window object
         """
@@ -26,26 +25,22 @@ class AssistantsDebug:
         """Updates debug window."""
         self.window.debugger.begin(self.id)
 
+        path = os.path.join(self.window.config.path, '', self.window.controller.assistant.assistants.config_file)
+        self.window.debugger.add(self.id, 'File', path)
+
         # assistants
-        for key in self.window.config.assistants:
+        assistants = self.window.controller.assistant.assistants.get_all()
+        for key in assistants:
             prefix = "[{}] ".format(key)
-            assistant = self.window.config.assistants[key]
-            path = os.path.join(self.window.config.path,  'assistants.json')
+            assistant = assistants[key]
             self.window.debugger.add(self.id, prefix + 'ID', str(key))
-            self.window.debugger.add(self.id, prefix + 'File', str(path))
-            if 'name' in assistant:
-                self.window.debugger.add(self.id, 'name', str(assistant['name']))
-            if 'description' in assistant:
-                self.window.debugger.add(self.id, 'description', str(assistant['description']))
-            if 'model' in assistant:
-                self.window.debugger.add(self.id, 'model', str(assistant['model']))
-            if 'instructions' in assistant:
-                self.window.debugger.add(self.id, 'instructions', str(assistant['instructions']))
-            if 'tool.code_interpreter' in assistant:
-                self.window.debugger.add(self.id, 'tool.code_interpreter', str(assistant['tool.code_interpreter']))
-            if 'tool.retrieval' in assistant:
-                self.window.debugger.add(self.id, 'tool.retrieval', str(assistant['tool.retrieval']))
-            if 'tool.function' in assistant:
-                self.window.debugger.add(self.id, 'tool.function', str(assistant['tool.function']))
+            self.window.debugger.add(self.id, 'id', str(assistant.id))
+            self.window.debugger.add(self.id, 'name', str(assistant.name))
+            self.window.debugger.add(self.id, 'description', str(assistant.description))
+            self.window.debugger.add(self.id, 'model', str(assistant.model))
+            self.window.debugger.add(self.id, 'instructions', str(assistant.instructions))
+            self.window.debugger.add(self.id, 'meta', str(assistant.meta))
+            self.window.debugger.add(self.id, 'tools', str(assistant.tools))
+            self.window.debugger.add(self.id, 'files', str(assistant.files))
 
         self.window.debugger.end(self.id)
