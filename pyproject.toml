@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygpt-net"
-version = "0.9.7"
+version = "2.0.0"
 description = "GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, text completion and image analyze and image generation"
 readme = "README.md"
 authors = [{ name = "Marcin Szczygliński", email = "info@pygpt.net" }]
