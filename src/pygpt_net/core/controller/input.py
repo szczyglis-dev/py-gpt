@@ -407,6 +407,11 @@ class Input:
         if self.locked:
             return
 
+        if self.window.config.data['mode'] == 'assistant':
+            if self.window.config.data['assistant'] is None or self.window.config.data['assistant'] == "":
+                self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
+                return
+
         # unlock run thread if locked
         self.window.controller.assistant.force_stop = False
         self.force_stop = False

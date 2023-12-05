@@ -1,15 +1,54 @@
 {
-    "__meta__": {
-        "version": "0.9.7",
-        "app.version": "0.9.7",
-        "updated_at": "2023-12-02T15:10:59"
+    "dall-e-2": {
+        "id": "dall-e-2",
+        "name": "DALL-E 2",
+        "mode": [
+            "img"
+        ],
+        "tokens": 0,
+        "ctx": 0
+    },
+    "dall-e-3": {
+        "id": "dall-e-3",
+        "name": "DALL-E 3",
+        "mode": [
+            "img"
+        ],
+        "tokens": 0,
+        "ctx": 0,
+        "default": true
+    },
+    "gpt-3.5-turbo-1106": {
+        "id": "gpt-3.5-turbo-1106",
+        "name": "gpt-3.5-turbo-1106",
+        "mode": [
+            "chat",
+            "assistant",
+            "langchain"
+        ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "chat"
+            ]
+        },
+        "ctx": 16385,
+        "tokens": 4096
     },
     "gpt-3.5-turbo": {
         "id": "gpt-3.5-turbo",
         "name": "gpt-3.5-turbo",
         "mode": [
-            "chat"
+            "chat",
+            "assistant",
+            "langchain"
         ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "chat"
+            ]
+        },
         "ctx": 4096,
         "tokens": 4096
     },
@@ -17,8 +56,16 @@
         "id": "gpt-3.5-turbo-16k",
         "name": "gpt-3.5-turbo-16k",
         "mode": [
-            "chat"
+            "chat",
+            "assistant",
+            "langchain"
         ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "chat"
+            ]
+        },
         "ctx": 16385,
         "tokens": 4096
     },
@@ -26,26 +73,50 @@
         "id": "gpt-4",
         "name": "gpt-4",
         "mode": [
-            "chat"
+            "chat",
+            "assistant",
+            "langchain"
         ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "chat"
+            ]
+        },
         "ctx": 8192,
         "tokens": 4096
     },
     "gpt-4-1106-preview": {
         "id": "gpt-4-1106-preview",
-        "name": "gpt-4-turbo",
+        "name": "gpt-4-turbo-1106",
         "mode": [
-            "chat"
+            "chat",
+            "assistant",
+            "langchain"
         ],
-        "ctx": 8192,
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "chat"
+            ]
+        },
+        "ctx": 128000,
         "tokens": 4096
     },
     "gpt-4-32k": {
         "id": "gpt-4-32k",
         "name": "gpt-4-32k",
         "mode": [
-            "chat"
+            "chat",
+            "assistant",
+            "langchain"
         ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "chat"
+            ]
+        },
         "ctx": 32768,
         "tokens": 4096
     },
@@ -62,8 +133,15 @@
         "id": "text-davinci-002",
         "name": "gpt-3 (davinci-002)",
         "mode": [
-            "completion"
+            "completion",
+            "langchain"
         ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "completion"
+            ]
+        },
         "ctx": 4096,
         "tokens": 4096
     },
@@ -71,9 +149,21 @@
         "id": "text-davinci-003",
         "name": "gpt-3.5 (davinci-003)",
         "mode": [
-            "completion"
+            "completion",
+            "langchain"
         ],
+        "langchain": {
+            "llm": "openai",
+            "mode": [
+                "completion"
+            ]
+        },
         "ctx": 4096,
         "tokens": 4096
+    },
+    "__meta__": {
+        "version": "0.9.7",
+        "app.version": "0.9.7",
+        "updated_at": "2023-12-05T19:41:43"
     }
 }

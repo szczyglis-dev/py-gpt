@@ -108,6 +108,17 @@ class Assistants:
             assistant.files[file_id]['name'] = name
             self.save()
 
+    def get_default_assistant(self):
+        """
+        Returns default assistant
+
+        :return: default assistant
+        """
+        assistants = self.get_all()
+        if len(assistants) == 0:
+            return None
+        return list(assistants.keys())[0]
+
     def load(self):
         """Loads assistants from file"""
         path = os.path.join(self.config.path, self.config_file)

@@ -159,9 +159,11 @@ class Model:
 
     def select_default(self):
         """Sets default mode, model and preset"""
+        # mode
         if self.window.config.data['mode'] is None or self.window.config.data['mode'] == "":
             self.window.config.data['mode'] = self.window.config.get_default_mode()
 
+        # model
         if self.window.config.data['model'] is None or self.window.config.data['model'] == "":
             mode = self.window.config.data['mode']
 
@@ -175,6 +177,7 @@ class Model:
                 # or set default model
                 self.window.config.data['model'] = self.window.config.get_default_model(self.window.config.data['mode'])
 
+        # preset
         if self.window.config.data['preset'] is None or self.window.config.data['preset'] == "":
             mode = self.window.config.data['mode']
 
@@ -188,6 +191,13 @@ class Model:
                 # or set default preset
                 self.window.config.data['preset'] = self.window.config.get_default_preset(
                     self.window.config.data['mode'])
+
+        # assistant
+        if self.window.config.data['assistant'] is None or self.window.config.data['assistant'] == "":
+            mode = self.window.config.data['mode']
+            if mode == 'assistant':
+                self.window.config.data['assistant'] = self.window.controller.assistant.assistants.get_default_assistant()
+                self.window.controller.assistant.update()
 
     def update_current_temperature(self, temperature=None):
         """

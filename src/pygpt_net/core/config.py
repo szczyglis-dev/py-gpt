@@ -166,7 +166,7 @@ class Config:
 
     def sort_presets_by_name(self):
         """Sorts presets by name"""
-        self.presets = dict(sorted(self.presets.items(), key=lambda item: item[1]['name']))
+        pass  # TODO
 
     def load_presets(self):
         """Loads presets templates from JSON files"""
@@ -304,14 +304,6 @@ class Config:
         """
         presets = self.get_presets(mode)
         return list(presets.keys())[idx]
-
-    def get_assistants(self):
-        """
-        Returns assistants
-
-        :return: assistants dict
-        """
-        return self.assistants
 
     def get_modes(self):
         """
@@ -553,22 +545,6 @@ class Config:
             'app.version': self.version,
             'updated_at': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         }
-
-    def load_assistants(self):
-        """Loads assistants list from file"""
-        path = os.path.join(self.path, 'assistants.json')
-        try:
-            if os.path.exists(path):
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
-                    file.close()
-                    if data == "" or data is None or 'items' not in data:
-                        self.assistants = {}
-                        return
-                    self.assistants = data['items']
-        except Exception as e:
-            print(e)
-            self.assistants = {}
 
     def install(self):
         """Installs config files"""
