@@ -209,6 +209,7 @@ class Updater:
         current = parse_version(self.window.version)
         if old < current:
             if old < parse_version("0.9.7"):
+                data['theme'] = 'dark_teal'  # force, because removed light themes!
                 if 'cmd' not in data:
                     data['cmd'] = True
                 if 'stream' not in data:

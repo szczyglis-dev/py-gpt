@@ -60,7 +60,7 @@ class ChatBox:
         self.window.data['output_files'] = FileExplorerWidget(self.window, path)
 
         # markup highlighter
-        self.highlighter = MarkdownHighlighter(self.window.data['output'])
+        self.window.data['output_highlighter'] = MarkdownHighlighter(self.window.data['output'])
 
         self.window.data['chat.model'] = QLabel("")
         self.window.data['chat.model'].setAlignment(Qt.AlignRight)

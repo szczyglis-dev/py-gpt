@@ -46,6 +46,8 @@ class Theme:
         self.window.data['input.send_enter'].setStyleSheet(self.get_style('radio'))
         self.window.data['input.send_shift_enter'].setStyleSheet(self.get_style('radio'))
         self.window.data['input.send_clear'].setStyleSheet(self.get_style('checkbox'))
+        self.window.data['input'].setStyleSheet(self.get_style('line_edit'))
+        self.window.data['presets.widget'].setStyleSheet(self.get_style('line_edit'))
 
         # dialog: ctx rename
         self.window.dialog['rename'].input.setStyleSheet(self.get_style('line_edit'))
@@ -70,6 +72,9 @@ class Theme:
 
         # dialog: plugin settings
         self.apply_plugins_settings()
+
+        # apply to syntax highlighter
+        self.apply_syntax_highlighter(self.window.config.data['theme'])
 
     def apply_plugins_settings(self):
         """Applies theme to plugin settings"""
@@ -157,6 +162,48 @@ class Theme:
         elif element == "text_small":
             return "font-size: 9px;"
 
+    def get_higthlight_theme(self, theme):
+        dark = {"background-color": "#d7d7d7", "color": "#fff",
+                             "bold": {"color": "#859900", "font-weight": "bold", "font-style": "normal"},
+                             "emphasis": {"color": "#b58900", "font-weight": "bold", "font-style": "italic"},
+                             "link": {"color": "#cb4b16", "font-weight": "normal", "font-style": "normal"},
+                             "image": {"color": "#cb4b16", "font-weight": "normal", "font-style": "normal"},
+                             "header": {"color": "#2aa198", "font-weight": "bold", "font-style": "normal"},
+                             "unorderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                             "orderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                             "blockquote": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                             "codespan": {"background": "#000000", "color": "#dc322f", "font-weight": "bold",
+                                          "font-style": "normal"},
+                             "codeblock": {"background": "#000000", "color": "#ff9900", "margin-left": "20px",
+                                           "font-weight": "normal", "font-style": "normal"},
+                             "line": {"color": "#2aa198", "font-weight": "normal", "font-style": "normal"},
+                             "html": {"color": "#859900", "font-weight": "normal", "font-style": "normal"}}
+
+        light = {"background-color": "#fff", "color": "#000",
+                "bold": {"color": "#859900", "font-weight": "bold", "font-style": "normal"},
+                "emphasis": {"color": "#b58900", "font-weight": "bold", "font-style": "italic"},
+                "link": {"color": "#cb4b16", "font-weight": "normal", "font-style": "normal"},
+                "image": {"color": "#cb4b16", "font-weight": "normal", "font-style": "normal"},
+                "header": {"color": "#2aa198", "font-weight": "bold", "font-style": "normal"},
+                "unorderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                "orderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                "blockquote": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
+                "codespan": {"background": "#000000", "color": "#dc322f", "font-weight": "bold",
+                             "font-style": "normal"},
+                "codeblock": {"background": "#000000", "color": "#ff9900", "margin-left": "20px",
+                              "font-weight": "normal", "font-style": "normal"},
+                "line": {"color": "#2aa198", "font-weight": "normal", "font-style": "normal"},
+                "html": {"color": "#859900", "font-weight": "normal", "font-style": "normal"}}
+
+        if theme.startswith('dark'):
+            return dark
+        else:
+            return light
+
+    def apply_syntax_highlighter(self, theme):
+        """Applies syntax highlight"""
+        self.window.data['output_highlighter'].setTheme(self.get_higthlight_theme(theme))
+
     def update(self):
         """Updates theme menu"""
         for theme in self.window.menu['theme']:
@@ -180,16 +227,17 @@ class Theme:
                 'dark_red',
                 'dark_teal',
                 'dark_yellow',
-                'light_amber',
-                'light_blue',
-                'light_cyan',
-                'light_cyan_500',
-                'light_lightgreen',
-                'light_pink',
-                'light_purple',
-                'light_red',
-                'light_teal',
-                'light_yellow']
+                # 'light_amber',
+                # 'light_blue',
+                # 'light_cyan',
+                # 'light_cyan_500',
+                # 'light_lightgreen',
+                # 'light_pink',
+                # 'light_purple',
+                # 'light_red',
+                # 'light_teal',
+                # 'light_yellow'
+        ]
 
     def trans_theme(self, theme):
         """
