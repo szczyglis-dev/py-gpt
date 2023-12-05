@@ -122,12 +122,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         plugin.attach(self)
         self.controller.plugins.register(plugin)
 
-    def setup_plugins(self):
-        self.controller.plugins.setup()
-
     def setup(self):
         """Setups app"""
         self.controller.setup()
+        self.controller.plugins.setup()
         self.controller.setup_plugins()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
@@ -189,7 +187,6 @@ class Launcher:
         :param plugin: plugin instance
         """
         self.window.add_plugin(plugin)
-        self.window.setup_plugins()
 
     def run(self):
         """Runs app"""

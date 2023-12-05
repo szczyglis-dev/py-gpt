@@ -67,14 +67,24 @@ class Menu:
 
     def setup_audio(self):
         """Setups audio menu"""
-        self.window.menu['audio.output'] = QAction(trans("menu.audio.output"),
+        self.window.menu['audio.output.azure'] = QAction(trans("menu.audio.output.azure"),
+                                                   self.window, checkable=True)
+        self.window.menu['audio.output.tts'] = QAction(trans("menu.audio.output.tts"),
+                                                   self.window, checkable=True)
+        self.window.menu['audio.input.whisper'] = QAction(trans("menu.audio.input.whisper"),
                                                    self.window, checkable=True)
 
-        self.window.menu['audio.output'].triggered.connect(
+        self.window.menu['audio.output.azure'].triggered.connect(
             lambda: self.window.controller.plugins.toggle('audio_azure'))
+        self.window.menu['audio.output.tts'].triggered.connect(
+            lambda: self.window.controller.plugins.toggle('audio_openai_tts'))
+        self.window.menu['audio.input.whisper'].triggered.connect(
+            lambda: self.window.controller.plugins.toggle('audio_openai_whisper'))
 
         self.window.menu['menu.audio'] = self.window.menuBar().addMenu(trans("menu.audio"))
-        self.window.menu['menu.audio'].addAction(self.window.menu['audio.output'])
+        self.window.menu['menu.audio'].addAction(self.window.menu['audio.output.azure'])
+        self.window.menu['menu.audio'].addAction(self.window.menu['audio.output.tts'])
+        self.window.menu['menu.audio'].addAction(self.window.menu['audio.input.whisper'])
 
     def setup_config(self):
         """Setups config menu"""

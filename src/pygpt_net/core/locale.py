@@ -22,7 +22,9 @@ class Locale:
         """Locale handler"""
         self.config = Config()
         self.config.init(False)
-        self.lang = self.config.data['lang']
+        self.lang = 'en'
+        if 'lang' in self.config.data:
+            self.lang = self.config.data['lang']
         self.data = {}
         self.load(self.lang)
 
@@ -31,7 +33,8 @@ class Locale:
         Reload translations
         """
         self.config.load_config()
-        self.lang = self.config.data['lang']
+        if 'lang' in self.config.data:
+            self.lang = self.config.data['lang']
         self.load(self.lang)
 
     def load(self, lang):

@@ -379,7 +379,6 @@ class Gpt:
         if ids:
             additional_args['file_ids'] = ids
 
-        print(additional_args)
         message = client.beta.threads.messages.create(
             id,
             role="user",
@@ -701,6 +700,10 @@ class Gpt:
         self.context.add(ctx)
 
         return ctx
+
+    def stop(self):
+        """Stops OpenAI API"""
+        pass
 
     def clear(self):
         """Clears context (memory)"""

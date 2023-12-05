@@ -75,6 +75,12 @@ class Input:
         self.window.data['input.send_btn'].clicked.connect(
             lambda: self.window.controller.input.user_send())
 
+        # send button
+        self.window.data['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
+        self.window.data['input.stop_btn'].setVisible(False)
+        self.window.data['input.stop_btn'].clicked.connect(
+            lambda: self.window.controller.input.stop())
+
         # send layout (options + send button)
         self.window.data['ui.input.buttons'] = QHBoxLayout()
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.stream'])
@@ -82,6 +88,7 @@ class Input:
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_enter'])
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_shift_enter'])
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_btn'])
+        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.stop_btn'])
         self.window.data['ui.input.buttons'].setAlignment(Qt.AlignRight)
 
         # bottom layout (status + send layout)

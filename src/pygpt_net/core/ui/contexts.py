@@ -11,6 +11,7 @@
 
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
+from datetime import datetime, timedelta
 
 from ..ui.widgets import ContextSelectMenu
 from ..utils import trans
@@ -95,6 +96,41 @@ class Contexts:
         for n in data:
             if 'name' in data[n] and 'date' in data[n]:
                 self.window.models[id].insertRow(i)
-                name = data[n]['name'] + ' (' + data[n]['date'] + ')'
+                dt = self.convert_date(data[n]['date'])
+                name = data[n]['name'] + ' (' + dt + ')'
                 self.window.models[id].setData(self.window.models[id].index(i, 0), name)
                 i += 1
+
+    def convert_date(self, date_str):
+        """
+        Converts date to human readable format
+
+        :param date_str: date string in format YYYY-MM-DD
+        :return: string
+        """
+        today = datetime.today().date()
+        yesterday = today - timedelta(days=1)
+        one_week_ago = today - timedelta(weeks=1)
+        two_weeks_ago = today - timedelta(weeks=2)
+        three_weeks_ago = today - timedelta(weeks=3)
+        one_month_ago = today - timedelta(days=30)
+
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
+        if date == today:
+            return trans('dt.today')
+        elif date == yesterday:
+            return trans('dt.yesterday')
+        elif date > one_week_ago:
+            days_ago = (today - date).days
+            return f"{days_ago} " + trans('dt.days_ago')
+        elif date == one_week_ago:
+            return trans('dt.week')
+        elif date == two_weeks_ago:
+            return "2 " + trans('dt.weeks')
+        elif date == three_weeks_ago:
+            return "3 " + trans('dt.weeks')
+        elif date >= one_month_ago:
+            return trans('dt.month')
+        else:
+            return date.strftime("%Y-%m-%d")

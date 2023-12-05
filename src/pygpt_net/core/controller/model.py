@@ -34,10 +34,8 @@ class Model:
         """
         if id == 'prompt.mode':
             mode = self.window.config.get_mode_by_idx(value)
-            self.window.config.data['mode'] = mode
-            self.window.config.data['model'] = ""
-            self.window.config.data['preset'] = ""
-            self.window.controller.attachment.update()  # reload attachments
+            self.set_mode(mode)
+            return
         elif id == 'prompt.model':
             mode = self.window.config.data['mode']
             model = self.window.config.get_model_by_idx(value, mode)
@@ -49,6 +47,19 @@ class Model:
             self.window.config.data['preset'] = preset
             self.window.config.data['current_preset'][mode] = preset
 
+        self.update()
+
+    def set_mode(self, mode):
+        """
+        Sets mode
+
+        :param mode: mode name
+        """
+        self.window.config.data['mode'] = mode
+        self.window.config.data['model'] = ""
+        self.window.config.data['preset'] = ""
+        self.window.controller.attachment.update()
+        self.window.controller.context.update_ctx()
         self.update()
 
     def reset_preset_data(self):

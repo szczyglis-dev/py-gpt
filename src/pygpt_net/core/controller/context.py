@@ -41,6 +41,7 @@ class Context:
         self.window.config.data['assistant_thread'] = None  # reset thread
         self.update()
         self.window.controller.output.clear()
+        self.window.controller.input.unlock_input()  # force unlock input
 
     def update(self):
         """Updates context list"""
@@ -58,6 +59,10 @@ class Context:
             self.window.config.data['assistant_thread'] = thread
             self.window.config.save()
 
+    def update_ctx(self):
+        """Updates context list"""
+        self.window.gpt.context.update()
+
     def load(self, ctx):
         """
         Loads context
@@ -68,12 +73,17 @@ class Context:
 
         # set current thread
         thread = self.window.gpt.context.current_thread
+        mode = self.window.gpt.context.current_mode
         self.window.config.data['assistant_thread'] = thread
 
         # update output and context list
         self.window.controller.output.clear()
         self.window.controller.output.append_context()
         self.update()
+
+        # change to saved mode
+        if mode is not None:
+            self.window.controller.model.set_mode(mode)
 
     def refresh(self):
         """Refreshes context"""

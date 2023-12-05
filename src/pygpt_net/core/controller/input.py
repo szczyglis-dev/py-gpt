@@ -27,6 +27,8 @@ class Input:
         """
         self.window = window
         self.history = History(self.window.config)
+        self.locked = False
+        self.force_stop = False
 
     def setup(self):
         """Sets up input"""
@@ -91,6 +93,31 @@ class Input:
         :param value: value of the checkbox
         """
         self.window.config.data['send_shift_enter'] = value
+
+    def lock_input(self):
+        """
+        Locks input
+        """
+        self.locked = True
+        self.window.data['input.send_btn'].setEnabled(False)
+        self.window.data['input.stop_btn'].setVisible(True)
+
+    def unlock_input(self):
+        """
+        Unlocks input
+        """
+        self.locked = False
+        self.window.data['input.send_btn'].setEnabled(True)
+        self.window.data['input.stop_btn'].setVisible(False)
+
+    def stop(self):
+        """
+        Stops input
+        """
+        self.window.controller.assistant.force_stop = True
+        self.force_stop = True
+        self.window.gpt.stop()
+        self.unlock_input()
 
     def send_text(self, text):
         """
@@ -209,6 +236,9 @@ class Input:
 
             # make API call
             try:
+                # lock input
+                self.lock_input()
+
                 if mode == "langchain":
                     self.window.log("Calling LangChain...")  # log
                     ctx = self.window.chain.call(text, ctx, stream_mode)
@@ -217,6 +247,7 @@ class Input:
                     ctx = self.window.gpt.call(text, ctx, stream_mode)
 
                     if mode == 'assistant':
+
                         # get run ID and save it in ctx
                         self.window.gpt.context.append_run(ctx.run_id)
 
@@ -250,6 +281,7 @@ class Input:
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
             self.handle_commands(ctx)
+            self.unlock_input()
 
         return ctx
 
@@ -284,6 +316,10 @@ class Input:
             try:
                 self.window.log("Reading stream...")  # log
                 for chunk in ctx.stream:
+                    # if force stop then break
+                    if self.force_stop:
+                        break
+
                     response = None
                     if mode == "chat" or mode == "vision" or mode == "assistant":
                         if chunk.choices[0].delta.content is not None:
@@ -366,6 +402,15 @@ class Input:
         """
         Sends input text to API
         """
+
+        # check if input is locked
+        if self.locked:
+            return
+
+        # unlock run thread if locked
+        self.window.controller.assistant.force_stop = False
+        self.force_stop = False
+
         self.window.statusChanged.emit(trans('status.sending'))
 
         ctx = None

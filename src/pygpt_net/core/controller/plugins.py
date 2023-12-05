@@ -226,7 +226,7 @@ class Plugins:
             self.window.config.save()
 
             # update audio menu
-            if id == 'audio_azure':
+            if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
                 self.window.controller.audio.update()
 
         self.update_info()
@@ -246,7 +246,7 @@ class Plugins:
             self.window.config.save()
 
             # update audio menu
-            if id == 'audio_azure':
+            if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
                 self.window.controller.audio.update()
 
         self.update_info()

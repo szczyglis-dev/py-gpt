@@ -29,12 +29,12 @@ class Assistant:
         self.assistants = Assistants(self.window.config)
         self.thread_run = None
         self.thread_run_started = False
+        self.force_stop = False
 
     def setup(self):
         """Setup assistants"""
         self.assistants.load()
         self.update()
-        self.select_assistant_by_current()
 
     def update_list(self):
         """Updates assistants list"""
@@ -44,6 +44,7 @@ class Assistant:
     def update(self):
         """Updates assistants list"""
         self.update_list()
+        self.select_assistant_by_current()
 
     def select(self, idx):
         """
@@ -410,7 +411,6 @@ class Assistant:
         data = self.window.gpt.assistant_msg_list(ctx.thread)
         for msg in data:
             if msg.role == "assistant":
-                print(msg)
                 ctx.set_output(msg.content[0].text.value)
                 self.handle_message_files(msg)
                 self.window.controller.input.handle_response(ctx, 'assistant', False)
@@ -419,7 +419,7 @@ class Assistant:
 
     def handle_run(self, ctx):
         """
-        Handles run
+        Handles assistant's run
 
         :param ctx: context
         :return:
@@ -441,7 +441,10 @@ class Assistant:
         :param status: status
         """
         print("Run status: {}".format(status))
+        if status != "queued" and status != "in_progress":
+            self.window.controller.input.unlock_input()  # unlock input
         if status == "completed":
+            self.force_stop = False
             self.handle_run_messages(ctx)
 
     @Slot()
@@ -450,6 +453,7 @@ class Assistant:
         Insert text to input and send
         """
         self.thread_run_started = False
+        self.force_stop = False
 
     @Slot()
     def handle_started(self):
@@ -489,8 +493,6 @@ class Assistant:
                     attachment.id = file_id
                     attachment.remote = file_id
 
-                    print(file_id)
-
                     # replace old ID with new one
                     self.window.controller.attachment.attachments.replace_id(mode, tmp_id, attachment)
 
@@ -525,7 +527,9 @@ class AssistantRunThread(QObject):
     def run(self):
         try:
             self.started.emit()
-            while self.check and not self.window.is_closing:
+            while self.check \
+                    and not self.window.is_closing \
+                    and not self.window.controller.assistant.force_stop:
                 status = self.window.gpt.assistant_run_status(self.ctx.thread, self.ctx.run_id)
                 self.updated.emit(status, self.ctx)
                 # finished or failed

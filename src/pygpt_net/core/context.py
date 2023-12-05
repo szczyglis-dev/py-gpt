@@ -87,6 +87,18 @@ class Context:
             items.append(ctx)
         return items
 
+    def update(self):
+        """
+        Updates current context mode
+
+        :return: None
+        """
+        self.current_mode = self.config.data['mode']
+        if self.current_ctx is None:
+            return
+        self.contexts[self.current_ctx]['mode'] = self.current_mode
+        self.dump_context(self.current_ctx)
+
     def create_id(self):
         """
         Creates context ID
