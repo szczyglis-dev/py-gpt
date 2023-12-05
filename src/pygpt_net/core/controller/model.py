@@ -37,7 +37,7 @@ class Model:
             self.window.config.data['mode'] = mode
             self.window.config.data['model'] = ""
             self.window.config.data['preset'] = ""
-            self.window.controller.attachment.update()
+            self.window.controller.attachment.update()  # reload attachments
         elif id == 'prompt.model':
             mode = self.window.config.data['mode']
             model = self.window.config.get_model_by_idx(value, mode)
