@@ -122,8 +122,8 @@ class Input:
             self.window.set_status(trans('status.uploading'))
             try:
                 # it uploads only new attachments (not uploaded before to remote)
-                attachments = self.window.controller.attachment.attachments.get_all()
-                self.window.controller.assistant.upload_attachments(attachments)
+                attachments = self.window.controller.attachment.attachments.get_all(mode)
+                self.window.controller.assistant.upload_attachments(mode, attachments)
             except Exception as e:
                 print(e)
                 self.window.ui.dialogs.alert(str(e))
@@ -184,8 +184,8 @@ class Input:
 
         # call the model
         try:
-            # set attachments
-            self.window.gpt.attachments = self.window.controller.attachment.attachments.get_all()
+            # set attachments (attachments are separated by mode)
+            self.window.gpt.attachments = self.window.controller.attachment.attachments.get_all(mode)
 
             # make API call
             try:

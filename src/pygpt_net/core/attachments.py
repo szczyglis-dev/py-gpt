@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.03 15:00:00                  #
+# Updated Date: 2023.12.05 15:00:00                  #
 # ================================================== #
 
 import json
@@ -34,107 +34,115 @@ class Attachments:
         """
         return str(uuid.uuid4())
 
-    def select(self, file_id):
+    def select(self, mode, file_id):
         """
         Select attachment by uuid
 
+        :param mode: mode
         :param file_id: file_id
         """
-        if file_id in self.items:
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        if file_id in self.items[mode]:
             self.current = file_id
 
-    def count(self):
+    def count(self, mode):
         """
         Counts attachments
 
+        :param mode: mode
         :return: attachments count
         """
-        return len(self.items)
+        if mode not in self.items:
+            self.items[mode] = {}
 
-    def exists_by_uuid(self, file_id):
+        return len(self.items[mode])
+
+    def get_ids(self, mode):
         """
-        Checks if attachment exists
+        Gets items IDs
 
-        :param file_id: file_id
-        :return: bool
-        """
-        return file_id in self.items
-
-    def exists_by_path(self, path):
-        """
-        Checks if attachment exists
-
-        :param path: path
-        :return: bool
-        """
-        for file_id in self.items:
-            if self.items[file_id].path == path:
-                return True
-        return False
-
-    def get_ids(self):
-        """
-        Gets items
-
+        :param mode: mode
         :return: items UUIDs
         """
-        return self.items.keys()
+        if mode not in self.items:
+            self.items[mode] = {}
 
-    def get_uuid_by_idx(self, idx):
+        return self.items[mode].keys()
+
+    def get_id_by_idx(self, mode, idx):
         """
-        Gets UUID by index
+        Gets ID by index
 
+        :param mode: mode
         :param idx: index
         :return: uuid
         """
         i = 0
-        for file_id in self.get_ids():
+        for file_id in self.get_ids(mode):
             if i == idx:
                 return file_id
             i += 1
 
-    def get_by_uuid(self, file_id):
+    def get_by_id(self, mode, file_id):
         """
-        Returns attachment by uuid
+        Returns attachment by ID
 
+        :param mode: mode
         :param file_id: file_id
         :return: dict
         """
-        if file_id in self.items:
-            return self.items[file_id]
+        if mode not in self.items:
+            self.items[mode] = {}
 
-    def get_by_idx(self, index):
+        if file_id in self.items[mode]:
+            return self.items[mode][file_id]
+
+    def get_by_idx(self, mode, index):
         """
         Returns item by index
 
+        :param mode: mode
         :param index: item index
         :return: context item
         """
-        file_id = self.get_uuid_by_idx(index)
+        file_id = self.get_id_by_idx(mode, index)
         if file_id is not None:
-            return self.items[file_id]
+            return self.items[mode][file_id]
 
-    def get_all(self):
+    def get_all(self, mode):
         """
-        Returns all items
+        Returns all items in mode
 
         :return: attachments items
         """
-        return self.items
+        if mode not in self.items:
+            self.items[mode] = {}
 
-    def delete(self, file_id):
+        return self.items[mode]
+
+    def delete(self, mode, file_id):
         """
         Deletes attachment by file_id
 
+        :param mode: mode
         :param file_id: file_id
         """
-        if file_id in self.items:
-            del self.items[file_id]
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        if file_id in self.items[mode]:
+            del self.items[mode][file_id]
             self.save()
 
-    def delete_all(self):
-        """Deletes all attachments"""
-        self.clear()
+    def delete_all(self, mode):
+        """
+        Deletes all attachments
+
+        :param mode: mode
+        """
+        self.clear(mode)
 
         # update index
         path = os.path.join(self.config.path, self.config_file)
@@ -147,14 +155,28 @@ class Attachments:
         except Exception as e:
             print(e)
 
-    def clear(self):
-        """Clear all attachments"""
+    def clear(self, mode):
+        """
+        Clear all attachments in mode
+
+        :param mode: mode
+        """
+        self.items[mode] = {}
+
+    def clear_all(self):
+        """
+        Clear all attachments
+        """
         self.items = {}
 
-    def new(self, name=None, path=None, auto_save=True):
+    def new(self, mode, name=None, path=None, auto_save=True):
         """
         Creates new attachment
 
+        :param mode: mode
+        :param name: name
+        :param path: path
+        :param auto_save: auto_save
         :return: created UUID
         """
         file_id = self.create_id()  # create unique id
@@ -163,7 +185,10 @@ class Attachments:
         attachment.name = name
         attachment.path = path
 
-        self.items[file_id] = attachment
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        self.items[mode][file_id] = attachment
         self.current = file_id
 
         if auto_save:
@@ -171,48 +196,58 @@ class Attachments:
 
         return file_id
 
-    def add(self, item):
+    def add(self, mode, item):
         """
         Adds item to attachments
 
+        :param mode: mode
         :param item: item to add
         """
+        if mode not in self.items:
+            self.items[mode] = {}
+
         file_id = item.id
-        self.items[file_id] = item  # add item to attachments
+        self.items[mode][file_id] = item  # add item to attachments
 
         # save to file
         self.save()
 
-    def replace_id(self, tmp_id, attachment):
+    def replace_id(self, mode, tmp_id, attachment):
         """
         Replaces temporary id with real one
 
+        :param mode: mode
         :param tmp_id: temporary id
         :param attachment: attachment
         """
-        if tmp_id in self.items:
-            self.items[attachment.uuid] = self.items[tmp_id]
-            del self.items[tmp_id]
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        if tmp_id in self.items[mode]:
+            self.items[mode][attachment.id] = self.items[mode][tmp_id]
+            del self.items[mode][tmp_id]
             self.save()
 
-    def rename_file(self, file_id, name):
+    def rename_file(self, mode, file_id, name):
         """
         Updates name
 
+        :param mode: mode
         :param file_id: file_id
         :param name: new name
         """
-        data = self.get_by_uuid(file_id)
+        data = self.get_by_id(mode, file_id)
         data.name = name
         self.save()
 
-    def from_files(self, files):
+    def from_files(self, mode, files):
         """
         Loads attachments from assistant files
 
+        :param mode: mode
         :param files: files
         """
-        self.clear()
+        self.clear(mode)
         for id in files:
             file = files[id]
             item = AttachmentItem()
@@ -224,7 +259,7 @@ class Attachments:
             item.id = id
             item.remote = id
             item.send = True
-            self.add(item)
+            self.add(mode, item)
 
     def load(self):
         """Loads attachments from file"""
@@ -238,11 +273,13 @@ class Attachments:
                         self.items = {}
                         return
                     # deserialize
-                    for id in data['items']:
-                        attachment = data['items'][id]
-                        item = AttachmentItem()
-                        item.deserialize(attachment)
-                        self.items[id] = item
+                    for mode in data['items']:
+                        self.items[mode] = {}
+                        for id in data['items'][mode]:
+                            attachment = data['items'][mode][id]
+                            item = AttachmentItem()
+                            item.deserialize(attachment)
+                            self.items[mode][id] = item
         except Exception as e:
             print(e)
             self.items = {}
@@ -258,9 +295,11 @@ class Attachments:
             items = {}
 
             # serialize
-            for uuid in self.items:
-                attachment = self.items[uuid]
-                items[uuid] = attachment.serialize()
+            for mode in self.items:
+                items[mode] = {}
+                for id in self.items[mode]:
+                    attachment = self.items[mode][id]
+                    items[mode][id] = attachment.serialize()
 
             data['__meta__'] = self.config.append_meta()
             data['items'] = items

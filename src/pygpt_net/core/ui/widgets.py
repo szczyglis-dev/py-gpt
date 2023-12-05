@@ -388,7 +388,8 @@ class AttachmentSelectMenu(SelectMenu):
 
         :param val: click event
         """
-        self.window.controller.attachment.select(val.row())
+        mode = self.window.config.data['mode']
+        self.window.controller.attachment.select(mode, val.row())
 
     def dblclick(self, val):
         """
@@ -396,7 +397,8 @@ class AttachmentSelectMenu(SelectMenu):
 
         :param val: double click event
         """
-        self.window.controller.attachment.select(val.row())
+        mode = self.window.config.data['mode']
+        self.window.controller.attachment.select(mode, val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -425,7 +427,8 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.attachment.select(item.row())
+            mode = self.window.config.data['mode']
+            self.window.controller.attachment.select(mode, item.row())
             menu.exec_(event.globalPos())
 
     def action_open_dir(self, event):
@@ -437,7 +440,8 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.attachment.open_dir(idx)
+            mode = self.window.config.data['mode']
+            self.window.controller.attachment.open_dir(mode, idx)
 
     def action_rename(self, event):
         """
@@ -448,7 +452,8 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.attachment.rename(idx)
+            mode = self.window.config.data['mode']
+            self.window.controller.attachment.rename(mode, idx)
 
     def action_delete(self, event):
         """
@@ -459,7 +464,8 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.attachment.delete(idx)
+            mode = self.window.config.data['mode']
+            self.window.controller.attachment.delete(mode, idx)
 
 
 class DebugDialog(QDialog):

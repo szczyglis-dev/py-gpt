@@ -40,25 +40,31 @@ class Attachment:
 
     def update(self):
         """Update attachments list"""
-        items = self.attachments.get_all()
+        mode = self.window.config.data['mode']
+        items = self.attachments.get_all(mode)
         self.window.ui.attachments.update_list('attachments', items)
-        self.update_tab_label()
+        self.update_tab_label(mode)
 
-    def update_tab_label(self):
-        """Updates tab label"""
-        num_files = self.attachments.count()
+    def update_tab_label(self, mode):
+        """
+        Updates tab label
+
+        :param mode: mode
+        """
+        num_files = self.attachments.count(mode)
         suffix = ''
         if num_files > 0:
             suffix = f' ({num_files})'
         self.window.data['input.tabs'].setTabText(1, trans('attachments.tab') + suffix)
 
-    def select(self, idx):
+    def select(self, mode, idx):
         """
         Selects attachment
 
+        :param mode: mode
         :param idx: index
         """
-        self.attachments.current = self.attachments.get_uuid_by_idx(idx)
+        self.attachments.current = self.attachments.get_id_by_idx(mode, idx)
 
     def selection_change(self):
         """
@@ -67,10 +73,11 @@ class Attachment:
         # TODO: implement this
         pass
 
-    def delete(self, idx, force=False):
+    def delete(self, mode, idx, force=False):
         """
         Deletes attachment
 
+        :param mode: mode
         :param idx: index
         :param force: force delete
         """
@@ -78,9 +85,9 @@ class Attachment:
             self.window.ui.dialogs.confirm('attachments.delete', idx, trans('attachments.delete.confirm'))
             return
 
-        file_id = self.attachments.get_uuid_by_idx(idx)
+        file_id = self.attachments.get_id_by_idx(mode, idx)
 
-        self.attachments.delete(file_id)
+        self.attachments.delete(mode, file_id)
         if self.attachments.current == file_id:
             self.attachments.current = None
 
@@ -92,20 +99,21 @@ class Attachment:
 
         self.update()
 
-    def rename(self, idx):
+    def rename(self, mode, idx):
         """
         Renames attachment
 
+        :param mode: mode
         :param idx: selected attachment index
         """
-        uuid = self.attachments.get_uuid_by_idx(idx)
-        data = self.attachments.get_by_uuid(uuid)
+        file_id = self.attachments.get_id_by_idx(mode, idx)
+        data = self.attachments.get_by_id(mode, file_id)
         if data is None:
             return
 
         self.window.dialog['rename'].id = 'attachment'
         self.window.dialog['rename'].input.setText(data.name)
-        self.window.dialog['rename'].current = uuid
+        self.window.dialog['rename'].current = file_id
         self.window.dialog['rename'].show()
         self.update()
 
@@ -116,7 +124,8 @@ class Attachment:
         :param file_id: file_id
         :param name: name
         """
-        self.attachments.rename_file(file_id, name)
+        mode = self.window.config.data['mode']
+        self.attachments.rename_file(mode, file_id, name)
 
         # rename filename in assistant data
         assistant_id = self.window.config.data['assistant']
@@ -126,13 +135,14 @@ class Attachment:
         self.window.dialog['rename'].close()
         self.update()
 
-    def add(self, item):
+    def add(self, mode, item):
         """
         Adds attachment item
 
+        :param mode: mode
         :param item: item
         """
-        self.attachments.add(item)
+        self.attachments.add(mode, item)
         self.update()
 
     def clear(self, force=False):
@@ -146,7 +156,8 @@ class Attachment:
             return
 
         # delete from attachments
-        self.attachments.delete_all()
+        mode = self.window.config.data['mode']
+        self.attachments.delete_all(mode)
 
         # delete files from assistant
         if self.window.config.data['mode'] == 'assistant':
@@ -157,24 +168,26 @@ class Attachment:
         self.update()
 
     def open_add(self):
+        mode = self.window.config.data['mode']
         dialog = QFileDialog(self.window)
         dialog.setFileMode(QFileDialog.ExistingFiles)
         if dialog.exec():
             files = dialog.selectedFiles()
             for path in files:
                 basename = os.path.basename(path)
-                self.attachments.new(basename, path, False)
+                self.attachments.new(mode, basename, path, False)
             self.attachments.save()
             self.update()
 
-    def open_dir(self, idx):
+    def open_dir(self, mode, idx):
         """
         Opens in directory
 
+        :param mode: mode
         :param idx: index
         """
-        uuid = self.attachments.get_uuid_by_idx(idx)
-        data = self.attachments.get_by_uuid(uuid)
+        file_id = self.attachments.get_id_by_idx(mode, idx)
+        data = self.attachments.get_by_id(mode, file_id)
         if data.path is not None and data.path != '' and os.path.exists(data.path):
             show_in_file_manager(data.path)
 
@@ -186,12 +199,13 @@ class Attachment:
         """
         self.window.config.data['attachments_send_clear'] = value
 
-    def import_from_assistant(self, assistant):
+    def import_from_assistant(self, mode, assistant):
         """
         Loads attachments from assistant
 
+        :param mode: mode
         :param assistant: assistant
         """
         if assistant is None:
             return
-        self.attachments.from_files(assistant.files)
+        self.attachments.from_files(mode, assistant.files)

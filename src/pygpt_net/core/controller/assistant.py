@@ -47,8 +47,9 @@ class Assistant:
         self.window.config.data['assistant'] = id
 
         # update attachments list with list of attachments from assistant
+        mode = self.window.config.data['mode']
         assistant = self.assistants.get_by_id(id)
-        self.window.controller.attachment.import_from_assistant(assistant)
+        self.window.controller.attachment.import_from_assistant(mode, assistant)
         self.window.controller.attachment.update()
 
     def update_field(self, id, value, assistant_id=None, current=False):
@@ -354,7 +355,7 @@ class Assistant:
         """
         self.assistants.rename_file(assistant_id, file_id, name)
 
-    def upload_attachments(self, attachments):
+    def upload_attachments(self, mode, attachments):
         """
         Uploads attachments to assistant
         """
@@ -384,7 +385,7 @@ class Assistant:
                     attachment.remote = file_id
 
                     # replace old ID with new one
-                    self.window.controller.attachment.attachments.replace_id(tmp_id, attachment)
+                    self.window.controller.attachment.attachments.replace_id(mode, tmp_id, attachment)
 
                     # update assistant files list
                     assistant.files[file_id] = {
