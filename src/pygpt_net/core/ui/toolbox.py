@@ -206,7 +206,7 @@ class Toolbox:
 
         self.window.data['assistants.import'] = QPushButton(trans('assistant.import'))
         self.window.data['assistants.import'].clicked.connect(
-            lambda: self.window.controller.assistant.import_all())
+            lambda: self.window.controller.assistant.import_from_api())
 
         self.window.data['assistants.label'] = QLabel(title)
         self.window.data['assistants.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))

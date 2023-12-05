@@ -306,28 +306,6 @@ class Config:
         presets = self.get_presets(mode)
         return list(presets.keys())[idx]
 
-    def get_assistant_by_idx(self, idx):
-        """
-        Returns assistant by index
-
-        :param idx: index
-        :param mode: mode
-        :return: assistant ID
-        """
-        assistants = self.get_assistants()
-        return list(assistants.keys())[idx]
-
-    def get_assistant_by_id(self, id):
-        """
-        Returns assistant by ID
-
-        :param idx: index
-        :param mode: mode
-        :return: assistant
-        """
-        assistants = self.get_assistants()
-        return assistants[id]
-
     def get_assistants(self):
         """
         Returns assistants

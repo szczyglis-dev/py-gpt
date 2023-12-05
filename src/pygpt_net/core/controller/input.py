@@ -121,7 +121,8 @@ class Input:
         if mode == 'assistant':
             self.window.set_status(trans('status.uploading'))
             try:
-                self.window.controller.attachment.upload_to_assistant()
+                attachments = self.window.controller.attachment.attachments.get_all()
+                self.window.controller.assistant.upload_attachments(attachments)
             except Exception as e:
                 print(e)
                 self.window.ui.dialogs.alert(str(e))

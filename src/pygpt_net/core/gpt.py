@@ -408,47 +408,47 @@ class Gpt:
             limit="100",
         )
         if assistants is not None:
-            for assistant in assistants.data:
-                id = assistant.id
-                local_assistants = self.config.get_assistants()
-                if id in local_assistants:
-                    local_assistants[id]['name'] = assistant.name
-                    local_assistants[id]['description'] = assistant.description
-                    local_assistants[id]['instructions'] = assistant.instructions
-                    local_assistants[id]['model'] = assistant.model
-                    local_assistants[id]['metadata'] = assistant.metadata
-                    if 'files' not in local_assistants[id]:
-                        local_assistants[id]['files'] = {}
-                    if 'tools' not in local_assistants[id]:
-                        local_assistants[id]['tools'] = {}
-                    for k in assistant.file_ids:
+            for remote in assistants.data:
+                id = remote.id
+                local = self.config.get_assistants()
+                if id in local:
+                    local[id]['name'] = remote.name
+                    local[id]['description'] = remote.description
+                    local[id]['instructions'] = remote.instructions
+                    local[id]['model'] = remote.model
+                    local[id]['metadata'] = remote.metadata
+                    if 'files' not in local[id]:
+                        local[id]['files'] = {}
+                    if 'tools' not in local[id]:
+                        local[id]['tools'] = {}
+                    for k in remote.file_ids:
                         filename = str(k)
-                        if k not in local_assistants[id]['files']:
-                            local_assistants[id]['files'][k] = {}
-                        local_assistants[id]['files'][k]['id'] = filename
-                    for k in assistant.tools:
+                        if k not in local[id]['files']:
+                            local[id]['files'][k] = {}
+                        local[id]['files'][k]['id'] = filename
+                    for k in remote.tools:
                         type = k.type
-                        local_assistants[id]['tools'][type] = True
+                        local[id]['tools'][type] = True
                 else:
-                    local_assistants[id] = {}
-                    local_assistants[id]['name'] = assistant.name
-                    local_assistants[id]['description'] = assistant.description
-                    local_assistants[id]['instructions'] = assistant.instructions
-                    local_assistants[id]['model'] = assistant.model
-                    local_assistants[id]['metadata'] = assistant.metadata
-                    if 'files' not in local_assistants[id]:
-                        local_assistants[id]['files'] = {}
-                    if 'tools' not in local_assistants[id]:
-                        local_assistants[id]['tools'] = {}
-                    for k in assistant.file_ids:
+                    local[id] = {}
+                    local[id]['name'] = remote.name
+                    local[id]['description'] = remote.description
+                    local[id]['instructions'] = remote.instructions
+                    local[id]['model'] = remote.model
+                    local[id]['metadata'] = remote.metadata
+                    if 'files' not in local[id]:
+                        local[id]['files'] = {}
+                    if 'tools' not in local[id]:
+                        local[id]['tools'] = {}
+                    for k in remote.file_ids:
                         filename = str(k)
-                        if k not in local_assistants[id]['files']:
-                            local_assistants[id]['files'][k] = {}
-                        local_assistants[id]['files'][k]['id'] = filename
-                    for k in assistant.tools:
+                        if k not in local[id]['files']:
+                            local[id]['files'][k] = {}
+                        local[id]['files'][k]['id'] = filename
+                    for k in remote.tools:
                         type = k.type
-                        local_assistants[id]['tools'][type] = True
-                self.config.assistants = local_assistants
+                        local[id]['tools'][type] = True
+                self.config.assistants = local
                 self.config.save_assistants()
 
     def call(self, prompt, ctx=None, stream_mode=False):

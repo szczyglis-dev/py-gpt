@@ -33,7 +33,24 @@ class Attachments:
         """
         return str(uuid.uuid4())
 
-    def load_list(self):
+    def select(self, uuid):
+        """
+        Select attachment by uuid
+
+        :param uuid: uuid
+        """
+        if uuid in self.items:
+            self.current = uuid
+
+    def count(self):
+        """
+        Counts attachments
+
+        :return: attachments count
+        """
+        return len(self.items)
+
+    def load(self):
         """Loads attachments list from file"""
         path = os.path.join(self.config.path, 'attachments.json')
         try:
@@ -53,26 +70,6 @@ class Attachments:
         except Exception as e:
             print(e)
             self.items = {}
-
-    def new(self, name=None, path=None, auto_save=True):
-        """
-        Creates new attachment
-
-        :return: created UUID
-        """
-        uuid = self.create_id()  # create unique id
-        attachment = AttachmentItem()
-        attachment.id = uuid
-        attachment.name = name
-        attachment.path = path
-
-        self.items[uuid] = attachment
-        self.current = uuid
-
-        if auto_save:
-            self.save()
-
-        return uuid
 
     def save(self):
         """
@@ -99,13 +96,26 @@ class Attachments:
         except Exception as e:
             print("Error while saving attachments: {}".format(str(e)))
 
-    def get_list(self):
+    def exists_by_uuid(self, uuid):
         """
-        Gets items
+        Checks if attachment exists
 
-        :return: dict
+        :param uuid: uuid
+        :return: bool
         """
-        return self.items
+        return uuid in self.items
+
+    def exists_by_path(self, path):
+        """
+        Checks if attachment exists
+
+        :param path: path
+        :return: bool
+        """
+        for uuid in self.items:
+            if self.items[uuid].path == path:
+                return True
+        return False
 
     def get_ids(self):
         """
@@ -128,27 +138,6 @@ class Attachments:
                 return uuid
             i += 1
 
-    def exists_by_uuid(self, uuid):
-        """
-        Checks if attachment exists
-
-        :param uuid: uuid
-        :return: bool
-        """
-        return uuid in self.items
-
-    def exists_by_path(self, path):
-        """
-        Checks if attachment exists
-
-        :param path: path
-        :return: bool
-        """
-        for uuid in self.items:
-            if self.items[uuid].path == path:
-                return True
-        return False
-
     def get_by_uuid(self, uuid):
         """
         Returns attachment by uuid
@@ -158,6 +147,25 @@ class Attachments:
         """
         if uuid in self.items:
             return self.items[uuid]
+
+    def get_by_idx(self, index):
+        """
+        Returns item by index
+
+        :param index: item index
+        :return: context item
+        """
+        uuid = self.get_uuid_by_idx(index)
+        if uuid is not None:
+            return self.items[uuid]
+
+    def get_all(self):
+        """
+        Returns all items
+
+        :return: attachments items
+        """
+        return self.items
 
     def delete(self, uuid):
         """
@@ -188,14 +196,25 @@ class Attachments:
         """Clear all attachments"""
         self.items = {}
 
-    def select(self, uuid):
+    def new(self, name=None, path=None, auto_save=True):
         """
-        Select attachment by uuid
+        Creates new attachment
 
-        :param uuid: uuid
+        :return: created UUID
         """
-        if uuid in self.items:
-            self.current = uuid
+        uuid = self.create_id()  # create unique id
+        attachment = AttachmentItem()
+        attachment.id = uuid
+        attachment.name = name
+        attachment.path = path
+
+        self.items[uuid] = attachment
+        self.current = uuid
+
+        if auto_save:
+            self.save()
+
+        return uuid
 
     def add(self, item):
         """
@@ -209,33 +228,6 @@ class Attachments:
         # save to file
         self.save()
 
-    def count(self):
-        """
-        Counts attachments
-
-        :return: attachments count
-        """
-        return len(self.items)
-
-    def all(self):
-        """
-        Returns all items
-
-        :return: attachments items
-        """
-        return self.items
-
-    def get(self, index):
-        """
-        Returns item by index
-
-        :param index: item index
-        :return: context item
-        """
-        uuid = self.get_uuid_by_idx(index)
-        if uuid is not None:
-            return self.items[uuid]
-
     def replace_id(self, tmp_id, attachment):
         """
         Replaces temporary id with real one
@@ -248,32 +240,24 @@ class Attachments:
             del self.items[tmp_id]
             self.save()
 
-    def rename_in_assistant(self, assistent_id, file_id, name):
+    def rename_file(self, file_id, name):
         """
-        Renames attachment in assistant
+        Updates name
 
-        :param id: attachment id
+        :param file_id: file_id
         :param name: new name
         """
-        assistent = self.config.get_assistant_by_id(assistent_id)
-        if assistent is None:
-            return
-        files = assistent['files']
-        if file_id in files:
-            files[file_id]['name'] = name
-            self.config.save_assistants()
+        data = self.get_by_uuid(file_id)
+        data.name = name
+        self.save()
 
-    def from_assistant(self, id):
+    def from_files(self, files):
         """
-        Loads attachments from assistant
+        Loads attachments from assistant files
 
-        :param assistant: assistant
+        :param files: files
         """
         self.clear()
-        assistant = self.config.get_assistant_by_id(id)
-        if assistant is None:
-            return
-        files = assistant['files']
         for id in files:
             file = files[id]
             item = AttachmentItem()

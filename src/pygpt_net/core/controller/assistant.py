@@ -8,8 +8,10 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.04 20:00:00                  #
 # ================================================== #
+import os
 
 from ..utils import trans
+from ..assistants import Assistants
 
 
 class Assistant:
@@ -20,6 +22,34 @@ class Assistant:
         :param window: main window object
         """
         self.window = window
+        self.assistants = Assistants(self.window.config)
+
+    def setup(self):
+        self.update()
+
+    def update_list(self):
+        """Updates assistants list"""
+        # update model
+        items = self.assistants.get_all()
+        self.window.ui.toolbox.update_list('assistants', items)
+
+    def update(self):
+        self.update_list()
+
+    def select(self, idx):
+        """
+        Selects assistant
+
+        :param idx: IDx on the list
+        """
+        # mark assistant as selected
+        id = self.assistants.get_by_idx(idx)
+        self.window.config.data['assistant'] = id
+
+        # update attachments list with list of attachments from assistant
+        assistant = self.assistants.get_by_id(id)
+        self.window.controller.attachment.import_from_assistant(assistant)
+        self.window.controller.attachment.update()
 
     def update_field(self, id, value, assistant_id=None, current=False):
         """
@@ -51,7 +81,7 @@ class Assistant:
         """
         id = None
         if idx is not None:
-            id = self.window.config.get_assistant_by_idx(idx)
+            id = self.assistants.get_by_idx(idx)
 
         self.init_editor(id)
         self.window.ui.dialogs.open_editor('editor.assistants', idx)
@@ -120,7 +150,7 @@ class Assistant:
 
         # update in API
         if not create:
-            self.assistent_update(id)
+            self.assistant_update(id)
 
         # save file
         self.window.config.save_assistants()
@@ -155,9 +185,9 @@ class Assistant:
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
-    def assistent_update(self, id):
+    def assistant_update(self, id):
         """
-        Updated assistant
+        Update assistant
         """
         name = self.window.config_option['assistant.name'].text()
         model = self.window.config_option['assistant.model'].text()
@@ -180,9 +210,9 @@ class Assistant:
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
-    def import_all(self):
+    def import_from_api(self):
         """
-        Imports all assistants
+        Imports all remote assistants from API
         """
         try:
             self.window.gpt.assistant_import()
@@ -240,7 +270,7 @@ class Assistant:
         :param force: force delete without confirmation
         """
         if idx is not None:
-            id = self.window.config.get_assistant_by_idx(idx)
+            id = self.assistants.get_by_idx(idx)
             if id is not None and id != "":
                 if id in self.window.config.assistants:
                     # if exists then show confirmation dialog
@@ -248,6 +278,7 @@ class Assistant:
                         self.window.ui.dialogs.confirm('assistant_delete', idx, trans('confirm.assistant.delete'))
                         return
 
+                    # clear if this is current assistant
                     if id == self.window.config.data['assistant']:
                         self.window.config.data['assistant'] = None
                         self.window.config.data['assistant_thread'] = None
@@ -298,28 +329,54 @@ class Assistant:
         self.update_field(id, value, assistant_id, is_current)
         self.window.config_option[id].setText('{}'.format(value))
 
-    def select(self, idx):
+    def rename_file(self, assistant_id, file_id, name):
         """
-        Selects assistant
+        Renames uploaded remote file name
 
-        :param idx: IDx on the list
+        :param assistant_id: assistant_id
+        :param file_id: file_id
+        :param name: new name
         """
-        # mark assistant as selected
-        id = self.window.config.get_assistant_by_idx(idx)
-        self.window.config.data['assistant'] = id
+        self.assistants.rename_file(assistant_id, file_id, name)
 
-        # update attachments list with list of attachments from assistant
-        self.window.controller.attachment.attachments.from_assistant(id)
-        self.window.controller.attachment.update()
+    def upload_attachments(self, attachments):
+        """
+        Uploads attachments to assistant
+        """
+        # get current chosen assistant
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None:
+            return
+        assistant = self.assistants.get_by_id(assistant_id)
 
-    def update_list_assistants(self):
-        """Updates assistants list"""
-        # update model
-        items = self.window.config.get_assistants()
-        self.window.ui.toolbox.update_list('assistants', items)
+        # loop on attachments
+        for uuid in attachments:
+            attachment = attachments[uuid]
+            tmp_id = attachment.uuid  # tmp id
+            # check if not already uploaded
+            if not attachment.send:
 
-    def update(self):
-        self.update_list_assistants()
+                # check if file exists
+                if not os.path.exists(attachment.path):
+                    continue
 
-    def setup(self):
-        self.update()
+                # upload file and get new ID
+                file_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
+                if file_id is not None:
+                    # mark as uploaded
+                    attachment.send = True
+                    attachment.uuid = file_id
+                    attachment.remote = file_id
+
+                    # replace old ID with new one
+                    self.window.controller.attachment.attachments.replace_id(tmp_id, attachment)
+
+                    # update assistant files list
+                    assistant['files'][file_id] = {
+                        'name': attachment.name,
+                        'id': file_id,
+                        'path': attachment.path
+                    }
+        # update assistants
+        self.window.config.save_assistants()
+        self.window.controller.attachment.update()  # update attachments UI

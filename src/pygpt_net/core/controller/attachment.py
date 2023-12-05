@@ -27,30 +27,6 @@ class Attachment:
         self.window = window
         self.attachments = Attachments(self.window.config)
 
-    def open_add(self):
-        dialog = QFileDialog(self.window)
-        dialog.setFileMode(QFileDialog.ExistingFiles)
-        if dialog.exec():
-            files = dialog.selectedFiles()
-            for path in files:
-                basename = os.path.basename(path)
-                self.attachments.new(basename, path, False)
-            self.attachments.save()
-            self.update()
-
-    def clear(self, force=False):
-        """
-        Clears attachments list
-
-        :param force: force clear
-        """
-        if not force:
-            self.window.ui.dialogs.confirm('attachments.clear', -1, trans('attachments.clear.confirm'))
-            return
-
-        self.attachments.delete_all()
-        self.update()
-
     def setup(self):
         """Setup attachments"""
         # send clear
@@ -59,12 +35,12 @@ class Attachment:
         else:
             self.window.data['attachments.send_clear'].setChecked(False)
 
-        self.attachments.load_list()
+        self.attachments.load()
         self.update()
 
     def update(self):
         """Update attachments list"""
-        items = self.attachments.get_list()
+        items = self.attachments.get_all()
         self.window.ui.attachments.update_list('attachments', items)
         self.update_tab_label()
 
@@ -76,13 +52,6 @@ class Attachment:
             suffix = f' ({num_files})'
         self.window.data['input.tabs'].setTabText(1, trans('attachments.tab') + suffix)
 
-    def selection_change(self):
-        """
-        Selects on list change
-        """
-        # TODO: implement this
-        pass
-
     def select(self, idx):
         """
         Selects attachment
@@ -90,6 +59,13 @@ class Attachment:
         :param idx: index
         """
         self.attachments.current = self.attachments.get_uuid_by_idx(idx)
+
+    def selection_change(self):
+        """
+        Selects on list change
+        """
+        # TODO: implement this
+        pass
 
     def delete(self, idx, force=False):
         """
@@ -116,27 +92,29 @@ class Attachment:
         """
         uuid = self.attachments.get_uuid_by_idx(idx)
         data = self.attachments.get_by_uuid(uuid)
+        if data is None:
+            return
+
         self.window.dialog['rename'].id = 'attachment'
         self.window.dialog['rename'].input.setText(data.name)
         self.window.dialog['rename'].current = uuid
         self.window.dialog['rename'].show()
         self.update()
 
-    def update_name(self, uuid, name):
+    def update_name(self, file_id, name):
         """
         Updates name
 
-        :param uuid: uuid
+        :param file_id: file_id
         :param name: name
         """
-        data = self.attachments.get_by_uuid(uuid)
-        data.name = name
+        self.attachments.rename_file(file_id, name)
 
         # rename filename in assistant data
-        if self.window.config.data['mode'] == 'assistant' and self.window.config.data['assistant'] is not None:
-            self.attachments.rename_in_assistant(self.window.config.data['assistant'], uuid, name)
+        assistant_id = self.window.config.data['assistant']
+        if self.window.config.data['mode'] == 'assistant' and assistant_id is not None:
+            self.window.controller.assistant.rename_file(assistant_id, file_id, name)
 
-        self.attachments.save()
         self.window.dialog['rename'].close()
         self.update()
 
@@ -148,6 +126,30 @@ class Attachment:
         """
         self.attachments.add(item)
         self.update()
+
+    def clear(self, force=False):
+        """
+        Clears attachments list
+
+        :param force: force clear
+        """
+        if not force:
+            self.window.ui.dialogs.confirm('attachments.clear', -1, trans('attachments.clear.confirm'))
+            return
+
+        self.attachments.delete_all()
+        self.update()
+
+    def open_add(self):
+        dialog = QFileDialog(self.window)
+        dialog.setFileMode(QFileDialog.ExistingFiles)
+        if dialog.exec():
+            files = dialog.selectedFiles()
+            for path in files:
+                basename = os.path.basename(path)
+                self.attachments.new(basename, path, False)
+            self.attachments.save()
+            self.update()
 
     def open_dir(self, idx):
         """
@@ -168,40 +170,13 @@ class Attachment:
         """
         self.window.config.data['attachments_send_clear'] = value
 
-    def upload_to_assistant(self):
+    def import_from_assistant(self, assistant):
         """
-        Uploads attachments to assistant
+        Loads attachments from assistant
+
+        :param assistant: assistant
         """
-        # get current chosen assistant
-        assistant_id = self.window.config.data['assistant']
-        if assistant_id is None:
+        if assistant is None:
             return
-        assistant = self.window.config.get_assistant_by_id(assistant_id)
-
-        # get attachments
-        attachments = self.attachments.get_list()
-        for uuid in attachments:
-            attachment = attachments[uuid]
-            tmp_id = attachment.uuid  # tmp id
-            # check if not already uploaded
-            if not attachment.send:
-                # upload file and get new ID
-                file_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
-                if file_id is not None:
-                    # mark as uploaded
-                    attachment.send = True
-                    attachment.uuid = file_id
-                    attachment.remote = file_id
-
-                    # replace old ID with new one
-                    self.attachments.replace_id(tmp_id, attachment)
-
-                    # update assistant files list
-                    assistant['files'][file_id] = {
-                        'name': attachment.name,
-                        'id': file_id,
-                        'path': attachment.path
-                    }
-        # update assistant
-        self.window.config.save_assistants()
-        self.update()  # update UI
+        files = assistant['files']
+        self.attachments.from_files(files)
