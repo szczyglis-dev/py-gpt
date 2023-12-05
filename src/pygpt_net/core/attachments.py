@@ -34,14 +34,14 @@ class Attachments:
         """
         return str(uuid.uuid4())
 
-    def select(self, uuid):
+    def select(self, file_id):
         """
         Select attachment by uuid
 
-        :param uuid: uuid
+        :param file_id: file_id
         """
-        if uuid in self.items:
-            self.current = uuid
+        if file_id in self.items:
+            self.current = file_id
 
     def count(self):
         """
@@ -51,14 +51,14 @@ class Attachments:
         """
         return len(self.items)
 
-    def exists_by_uuid(self, uuid):
+    def exists_by_uuid(self, file_id):
         """
         Checks if attachment exists
 
-        :param uuid: uuid
+        :param file_id: file_id
         :return: bool
         """
-        return uuid in self.items
+        return file_id in self.items
 
     def exists_by_path(self, path):
         """
@@ -67,8 +67,8 @@ class Attachments:
         :param path: path
         :return: bool
         """
-        for uuid in self.items:
-            if self.items[uuid].path == path:
+        for file_id in self.items:
+            if self.items[file_id].path == path:
                 return True
         return False
 
@@ -88,20 +88,20 @@ class Attachments:
         :return: uuid
         """
         i = 0
-        for uuid in self.get_ids():
+        for file_id in self.get_ids():
             if i == idx:
-                return uuid
+                return file_id
             i += 1
 
-    def get_by_uuid(self, uuid):
+    def get_by_uuid(self, file_id):
         """
         Returns attachment by uuid
 
-        :param uuid: uuid
+        :param file_id: file_id
         :return: dict
         """
-        if uuid in self.items:
-            return self.items[uuid]
+        if file_id in self.items:
+            return self.items[file_id]
 
     def get_by_idx(self, index):
         """
@@ -110,9 +110,9 @@ class Attachments:
         :param index: item index
         :return: context item
         """
-        uuid = self.get_uuid_by_idx(index)
-        if uuid is not None:
-            return self.items[uuid]
+        file_id = self.get_uuid_by_idx(index)
+        if file_id is not None:
+            return self.items[file_id]
 
     def get_all(self):
         """
@@ -122,14 +122,14 @@ class Attachments:
         """
         return self.items
 
-    def delete(self, uuid):
+    def delete(self, file_id):
         """
-        Deletes attachment by uuid
+        Deletes attachment by file_id
 
-        :param uuid: uuid
+        :param file_id: file_id
         """
-        if uuid in self.items:
-            del self.items[uuid]
+        if file_id in self.items:
+            del self.items[file_id]
             self.save()
 
     def delete_all(self):
@@ -157,19 +157,19 @@ class Attachments:
 
         :return: created UUID
         """
-        uuid = self.create_id()  # create unique id
+        file_id = self.create_id()  # create unique id
         attachment = AttachmentItem()
-        attachment.id = uuid
+        attachment.id = file_id
         attachment.name = name
         attachment.path = path
 
-        self.items[uuid] = attachment
-        self.current = uuid
+        self.items[file_id] = attachment
+        self.current = file_id
 
         if auto_save:
             self.save()
 
-        return uuid
+        return file_id
 
     def add(self, item):
         """
@@ -177,8 +177,8 @@ class Attachments:
 
         :param item: item to add
         """
-        uuid = item.uuid
-        self.items[uuid] = item  # add item to attachments
+        file_id = item.id
+        self.items[file_id] = item  # add item to attachments
 
         # save to file
         self.save()
@@ -221,7 +221,7 @@ class Attachments:
                 item.name = file['name']
             if 'path' in file and file['path'] is not None and file['path'] != "":
                 item.path = file['path']
-            item.uuid = id
+            item.id = id
             item.remote = id
             item.send = True
             self.add(item)
@@ -279,7 +279,7 @@ class AttachmentItem:
         Attachment item
         """
         self.name = None
-        self.uuid = None
+        self.id = None
         self.path = None
         self.remote = None
         self.send = False
@@ -291,8 +291,8 @@ class AttachmentItem:
         :return: serialized item
         """
         return {
+            'id': self.id,
             'name': self.name,
-            'uuid': self.uuid,
             'path': self.path,
             'remote': self.remote,
             'send': self.send
@@ -300,10 +300,10 @@ class AttachmentItem:
 
     def deserialize(self, data):
         """Deserializes item from dict"""
+        if 'id' in data:
+            self.id = data['id']
         if 'name' in data:
             self.name = data['name']
-        if 'uuid' in data:
-            self.uuid = data['uuid']
         if 'path' in data:
             self.path = data['path']
         if 'remote_id' in data:
