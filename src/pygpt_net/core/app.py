@@ -208,7 +208,7 @@ class Launcher:
         """
         Registers LLMs
 
-        :param plugin: plugin instance
+        :param llm: llm instance
         """
         self.window.add_llm(llm)
 
