@@ -131,9 +131,9 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_llm(self, llm):
         """
-        Adds plugin
+        Adds Langchain LLM wrapper
 
-        :param plugin: plugin instance
+        :param llm: llm instance
         """
         id = llm.id
         self.chain.register(id, llm)
