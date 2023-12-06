@@ -62,9 +62,9 @@ class Output:
                 name = item.input_name + " "
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: > {}".format(name, hour, item.input))
+            self.append("{}{}: > {}\n".format(name, hour, item.input))
         else:
-            self.append("> {}".format(item.input))
+            self.append("> {}\n".format(item.input))
 
     def append_output(self, item):
         """

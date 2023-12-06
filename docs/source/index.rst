@@ -3,14 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-PYGPT - pygpt.net
-==================
+PYGPT v2 - pygpt.net
+====================
 
-| **Last update:** 2023.04.16 20:00
+| **Last update:** 2023-12-16 15:00
 | **Project website:** https://pygpt.net
-| **GitHub:** https://github.com/szczyglis-dev/py-gpt
+| **Github:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 0.9.6 (2023.04.16)
+| **Release:** 2.0.0 (2023-12-06)
 
 .. toctree::
    :maxdepth: 3
@@ -25,12 +25,17 @@ Contents
    requirements
    quick_start
    modes
+   attachments
    context
    presets
-   plugins
    images
+   plugins
+   models
+   plugins_list
    tokens
    configuration
+   notebook
    advanced   
    updates
+   coming_soon
    credits

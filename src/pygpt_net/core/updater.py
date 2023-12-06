@@ -52,6 +52,7 @@ class Updater:
 
             parsed_newest_version = parse_version(newest_version)
             parsed_current_version = parse_version(self.window.version)
+            self.show_version_dialog(newest_version, newest_build, changelog)
             if parsed_newest_version > parsed_current_version:
                 self.show_version_dialog(newest_version, newest_build, changelog)
             else:

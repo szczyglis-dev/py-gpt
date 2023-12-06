@@ -38,6 +38,13 @@ from .plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
 from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
 from .plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
 
+from .llm.OpenAI import OpenAILLM
+from .llm.AzureOpenAI import AzureOpenAILLM
+from .llm.Anthropic import AnthropicLLM
+from .llm.HuggingFace import HuggingFaceLLM
+from .llm.Llama2 import Llama2LLM
+from .llm.Ollama import OllamaLLM
+
 
 class MainWindow(QMainWindow, QtStyleTools):
     statusChanged = Signal(str)
@@ -122,6 +129,15 @@ class MainWindow(QMainWindow, QtStyleTools):
         plugin.attach(self)
         self.controller.plugins.register(plugin)
 
+    def add_llm(self, llm):
+        """
+        Adds plugin
+
+        :param plugin: plugin instance
+        """
+        id = llm.id
+        self.chain.register(id, llm)
+
     def setup(self):
         """Setups app"""
         self.controller.setup()
@@ -188,6 +204,14 @@ class Launcher:
         """
         self.window.add_plugin(plugin)
 
+    def add_llm(self, llm=None):
+        """
+        Registers LLMs
+
+        :param plugin: plugin instance
+        """
+        self.window.add_llm(llm)
+
     def run(self):
         """Runs app"""
         self.window.setup()
@@ -210,7 +234,7 @@ def run():
     launcher = Launcher()
     launcher.init()
 
-    # add plugins
+    # register plugins
     launcher.add_plugin(SelfLoopPlugin())
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(AudioAzurePlugin())
@@ -219,6 +243,14 @@ def run():
     launcher.add_plugin(CmdWebGooglePlugin())
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
+
+    # register langchain LLMs
+    launcher.add_llm(OpenAILLM())
+    launcher.add_llm(AzureOpenAILLM())
+    launcher.add_llm(AnthropicLLM())
+    launcher.add_llm(HuggingFaceLLM())
+    launcher.add_llm(Llama2LLM())
+    launcher.add_llm(OllamaLLM())
 
     # run app
     launcher.run()

@@ -4,10 +4,9 @@ Quick Start
 Setting-up OpenAI API KEY
 -------------------------
 
-During the first run, you must configure your API key in the application. 
+During the initial launch, you must configure your API key within the application.
 
-
-To do this, enter the menu:
+To do so, navigate to the menu:
 
 .. code-block:: ini
 
@@ -16,8 +15,8 @@ To do this, enter the menu:
 
 and then paste the API key into the ``OpenAI API KEY`` field.
 
-.. image:: images/api.jpg
-   :width: 600
+.. image:: images/v2_settings.png
+   :width: 400
 
 
 The API key can be obtained by registering on the OpenAI website:

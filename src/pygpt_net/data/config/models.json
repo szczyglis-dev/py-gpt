@@ -27,7 +27,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "chat"
             ]
@@ -44,7 +44,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "chat"
             ]
@@ -61,7 +61,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "chat"
             ]
@@ -78,7 +78,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "chat"
             ]
@@ -95,7 +95,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "chat"
             ]
@@ -112,7 +112,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "chat"
             ]
@@ -137,7 +137,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "completion"
             ]
@@ -153,7 +153,7 @@
             "langchain"
         ],
         "langchain": {
-            "llm": "openai",
+            "provider": "openai",
             "mode": [
                 "completion"
             ]

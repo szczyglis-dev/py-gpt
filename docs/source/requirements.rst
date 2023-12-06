@@ -18,14 +18,14 @@ Linux (64-bit)
 `````
 The application is available for 64-bit Linux in the form of an archive with
 all required dependencies. Just download the archive from the download page and
-extract it. Then run the application by running the "pygpt" binary file in the
+extract it. Then run the application by running the ``pygpt`` binary file in the
 root directory.
 
 Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
 the application using the Python interpreter (at least version 3.9).
-You can also install application from PyPi (using "pip install").
+You can also install application from PyPi (using ``pip install``).
 
 PyPi (pip)
 ```````````
@@ -58,7 +58,7 @@ If you have problems with xcb plugin with newer versions of PySide on Linux, e.g
     qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
     This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
 
-...then try downgrading PySide to `PySide6-Essentials==6.4.2`:
+...then try downgrading PySide to ``PySide6-Essentials==6.4.2``:
 
 .. code-block:: console
 
@@ -93,10 +93,11 @@ Running from GitHub source code
     cd src/pygpt_net
     python app.py
 
-**Tip**: you can use `PyInstaller` to create a compiled version of
+**Tip**: you can use ``PyInstaller`` to create a compiled version of
 the application for your system.
 
 Other requirements
 ------------------
-To operate, you need an Internet connection (for API connection), registered OpenAI account and an active API key, which must be entered in the program.
+For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
+and an active API key that must be input into the program.
 

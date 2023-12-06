@@ -3,17 +3,23 @@ Context and memory
 
 Short and long-term memory
 --------------------------
-The application allows you to conduct a conversation in a continuous mode, allowing you to use a long context. The entire context of the conversation is stored on the application side and is automatically attached to all sent to AI messages (prompts). You can also return to the context of a given conversation at any time - the application allows you to continue previous conversations and saves the history of the entire conversation, which can be easily restored and continued from this point.
+**PYGPT** lets you chat in continuous mode, which uses a long context for the conversation. 
+It saves the entire conversation context and automatically includes it with all messages sent to 
+the AI (prompts). Plus, you can go back to previous conversations at any time. 
+The app saves your chat history, and you can pick up right where you left off.
 
 
 Handling multiple contexts
 ---------------------------
-On the left side of the screen there is a list of saved contexts, you can add any number of contexts there and conveniently switch between them and easily return to previous conversations at any time.
+On the left side of the screen, you'll see a list of saved contexts. You can add as many contexts as you 
+want and easily switch between them. Whenever you need to, you can jump back to any previous conversation. 
+The app automatically makes a summary (title) for each context, just like ``ChatGPT`` does, 
+but you can also change it whenever you want.
 
-.. image:: images/context.jpg
+.. image:: images/v2_context_list.png
    :width: 400
 
-Context support can be turned off in the settings, use the option:
+You can disable context support in the settings by using the following option:
 
 .. code-block:: ini
 
@@ -23,7 +29,7 @@ Context support can be turned off in the settings, use the option:
 Clearing history
 -----------------
 
-To clear whole memory (all contexts) use the menu option:
+You can clear the entire memory (all contexts) by selecting the menu option:
 
 .. code-block:: ini
 
@@ -32,4 +38,5 @@ To clear whole memory (all contexts) use the menu option:
 
 Context storage
 -----------------
-On the application side, the context is stored in the user's directory in ``JSON`` files. In addition, all history is also saved to ``.txt`` files, which makes it easy to read.
+On the application side, the context is stored in the user's directory as ``JSON`` files. 
+In addition, all history is also saved to ``.txt`` files for easy reading.

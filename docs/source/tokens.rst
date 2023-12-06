@@ -3,14 +3,17 @@ Token usage calculation
 
 Input tokens
 --------------
-Calculation of tokens is implemented in the application. The application tries to predict the number of tokens that will be used for a given query and shows this information in real time to the user. Thanks to this, you can get better control over the tokens used. The application shows information on how many tokens will be used for the prompt itself, how much for the system prompt, how much for additional data and how many tokens will be used in the context (memory of previous entries).
+The application features a token calculator. It attempts to forecast the number of tokens that 
+a particular query will consume and displays this estimate in real time. This gives you improved 
+control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
+the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
-.. image:: images/tokens1.jpg
+.. image:: images/v2_tokens1.png
    :width: 400
 
 Total tokens
 -------------
-After receiving a response from the model, the actual amount of total tokens used to query the model is shown.
+After receiving a response from the model, the application displays the actual total number of tokens used for the query.
 
-.. image:: images/tokens2.jpg
+.. image:: images/v2_tokens2.png
    :width: 400

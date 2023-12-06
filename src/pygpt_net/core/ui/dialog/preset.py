@@ -81,8 +81,8 @@ class Preset:
         options['chat'] = self.add_raw_option(self.window.config_option['preset.chat'])
         options['completion'] = self.add_raw_option(self.window.config_option['preset.completion'])
         options['vision'] = self.add_raw_option(self.window.config_option['preset.vision'])
-        options['langchain'] = self.add_raw_option(self.window.config_option['preset.langchain'])
         options['assistant'] = self.add_raw_option(self.window.config_option['preset.assistant'])
+        options['langchain'] = self.add_raw_option(self.window.config_option['preset.langchain'])
         options['img'] = self.add_raw_option(self.window.config_option['preset.img'])
         options['temperature'] = self.add_option('preset.temperature', self.window.config_option['preset.temperature'])
 

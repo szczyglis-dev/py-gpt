@@ -324,11 +324,11 @@ class Config:
         modes['vision'] = {
             'name': 'mode.vision'
         }
-        modes['langchain'] = {
-            'name': 'mode.langchain'
-        }
         modes['assistant'] = {
             'name': 'mode.assistant'
+        }
+        modes['langchain'] = {
+            'name': 'mode.langchain'
         }
         return modes
 

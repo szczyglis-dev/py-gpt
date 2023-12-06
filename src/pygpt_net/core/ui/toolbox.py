@@ -8,9 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.05 22:00:00                  #
 # ================================================== #
+import os
 
-from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget, QCheckBox
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QStandardItemModel, Qt, QPixmap, QIcon
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget, QCheckBox, QSizePolicy
 
 from .widgets import NameInput, SelectMenu, SettingsSlider, SettingsTextarea, PresetSelectMenu, AssistantSelectMenu
 from ..utils import trans
@@ -95,8 +97,24 @@ class Toolbox:
         temp_layout.addWidget(self.window.config_option['current_temperature'])
         temp_layout.addWidget(self.window.data['img_variants.label'])
         temp_layout.addWidget(self.window.config_option['img_variants'])
+
+        path = os.path.abspath(os.path.join(self.window.config.get_root_path(), 'data', 'logo.png'))
+
+        logo_button = QPushButton()
+        logo_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        logo_button.setIcon(QIcon(path))
+        logo_button.setIconSize(QSize(100, 28))
+        logo_button.setFlat(True)
+        logo_button.clicked.connect(lambda: self.window.controller.info.goto_website())
+
+        bottom = QHBoxLayout()
+        bottom.addLayout(temp_layout, 80)
+        bottom.addWidget(logo_button, 20)
+        bottom.setStretchFactor(logo_button, 1)
+        bottom.setAlignment(logo_button, Qt.AlignRight | Qt.AlignBottom)
+
         temp_widget = QWidget()
-        temp_widget.setLayout(temp_layout)
+        temp_widget.setLayout(bottom)
 
         bottom_layout = QVBoxLayout()
         bottom_layout.addLayout(names_layout)

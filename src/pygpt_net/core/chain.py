@@ -9,16 +9,8 @@
 # Updated Date: 2023.12.05 22:00:00                  #
 # ================================================== #
 
-import os
-from .context import ContextItem
-
-from langchain.llms import OpenAI, HuggingFaceHub
-from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
-# from langchain.chains import LLMChain
-# from langchain.prompts import PromptTemplate
-# from langchain.prompts.chat import ChatPromptTemplate
-
+from .context import ContextItem
 
 class Chain:
     def __init__(self, config, context):
@@ -35,9 +27,18 @@ class Chain:
         self.system_prompt = None
         self.input_tokens = 0
         self.attachments = {}
+        self.llms = {}
 
         if not self.config.initialized:
             self.config.init()
+
+    def register(self, id, llm):
+        """
+        Registers LLM
+
+        :param id: LLM ID
+        """
+        self.llms[id] = llm
 
     def build_chat_messages(self, prompt, system_prompt=None):
         """
@@ -123,15 +124,13 @@ class Chain:
         llm = None
         cfg = self.config.get_model_cfg(self.config.data['model'])
         if 'langchain' in cfg:
-            if cfg['langchain']['llm'] == 'openai':
-                os.environ['OPENAI_API_TOKEN'] = self.config.data["api_key"]
-                llm = ChatOpenAI(model_name=self.config.data['model'])
-            elif cfg['langchain']['llm'] == 'huggingface':
-                os.environ['HUGGINGFACEHUB_API_TOKEN'] = cfg['langchain']['api_key']
-                llm = HuggingFaceHub(
-                    repo_id=self.config.data['model'], #  google/flan-t5-xl
-                    # model_kwargs={'temperature': 1e-10}
-                )
+            if 'provider' in cfg['langchain']:
+                provider = cfg['langchain']['provider']
+                if provider in self.llms:
+                    try:
+                        llm = self.llms[provider].chat(self.config.data, cfg['langchain'], stream_mode)
+                    except Exception as e:
+                        print(e)
 
         # if no LLM here then raise exception
         if llm is None:
@@ -154,15 +153,13 @@ class Chain:
         llm = None
         cfg = self.config.get_model_cfg(self.config.data['model'])
         if 'langchain' in cfg:
-            if cfg['langchain']['llm'] == 'openai':
-                os.environ['OPENAI_API_TOKEN'] = self.config.data["api_key"]
-                llm = OpenAI(model_name=self.config.data['model'])
-            elif cfg['langchain']['llm'] == 'huggingface':
-                os.environ['HUGGINGFACEHUB_API_TOKEN'] = cfg['langchain']['api_key']
-                llm = HuggingFaceHub(
-                    repo_id=self.config.data['model'], #  google/flan-t5-xl
-                    # model_kwargs={'temperature': 1e-10}
-                )
+            if 'provider' in cfg['langchain']:
+                provider = cfg['langchain']['provider']
+                if provider in self.llms:
+                    try:
+                        llm = self.llms[provider].completion(self.config.data, cfg['langchain'], stream_mode)
+                    except Exception as e:
+                        print(e)
         if llm is None:
             raise Exception("Invalid LLM")
 

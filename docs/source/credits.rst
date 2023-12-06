@@ -4,7 +4,7 @@ Credits
 **Official website:**
 https://pygpt.net
 
-**GitHub:**
+**Github:**
 https://github.com/szczyglis-dev/py-gpt
 
 **PyPI:**
