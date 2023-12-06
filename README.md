@@ -986,7 +986,7 @@ New features in version 2.0.0:
 - Local Python code interpreter that enables code execution by GPT
 - System command executions directly from GPT
 - Voice synthesis provided via Microsoft Azure TTS and OpenAI TTS (Text-To-Speech)
-- Voice recognition facilitated by OpenAI Whisper
+- Voice recognition provided by OpenAI Whisper
 - Automatic summarization of context titles
 - Upgraded Web Browser plugin
 - More precise token calculation functionality

@@ -620,8 +620,8 @@ class Gpt:
             tools.append({"type": "code_interpreter"})
         if assistant.has_tool("retrieval"):
             tools.append({"type": "retrieval"})
-        if assistant.has_tool("function"):
-            tools.append({"type": "function"})
+        # if assistant.has_tool("function"):  # TODO: implement functions adding feature
+            # tools.append({"type": "function"})
         return tools
 
     def call(self, prompt, ctx=None, stream_mode=False):
