@@ -33,7 +33,7 @@ from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 from .plugin.real_time.plugin import Plugin as RealTimePlugin
 from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
 from .plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
-from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperlugin
+from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperPlugin
 from .plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
 from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
 from .plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
@@ -239,7 +239,7 @@ def run():
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(AudioAzurePlugin())
     launcher.add_plugin(AudioOpenAITTSPlugin())
-    launcher.add_plugin(AudioOpenAIWhisperlugin())
+    launcher.add_plugin(AudioOpenAIWhisperPlugin())
     launcher.add_plugin(CmdWebGooglePlugin())
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
