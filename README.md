@@ -1,73 +1,88 @@
-# PYGPT
+# PYGPT v2
 
-Current release: **0.9.6** (build: **2023.04.16**) | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.0** build: **2023.12.05** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
-### **Compiled versions for Windows 10, 11 and Linux**: https://pygpt.net/#download
+### **Compiled versions for Linux and Windows**: https://pygpt.net/#download
 
-## What is PYGPT?
+## Overview
 
-**PYGPT** is a desktop application that allows you to talk to OpenAI\'s
-LLM models such as **GPT4** and **GPT3** using your own computer and `OpenAI API`. 
-It allows you to talk in chat mode and in completion mode, as well as generate images 
-using **DALL-E 2**. PYGPT also adds access to the Internet for GPT via Google Custom 
-Search API and Wikipedia API and includes voice synthesis using Microsoft Azure 
-Text-to-Speech API. Moreover, the application has implemented context memory support,
-context storage, history of contexts, which can be restored at any time
-and e.g. continue the conversation from point in history, and also has a
-convenient and intuitive system of presets that allows you to quickly
-and pleasantly create and manage your prompts. Plugins support is also available.
+**PYGPT** is a powerful desktop AI assistant app that enables you to converse with `OpenAI` LLMs such as `GPT-4`, 
+`GPT-4 Vision`, and `GPT-3.5` directly from your computer using the `OpenAI API`. Additionally, the application supports
+ alternative models, for instance, those from HuggingFace, facilitated through integrated `Langchain` support is built in.
+
+The assistant operates in various modes, including chat, assistant, and completion, as well as generating images 
+with `DALL-E 3` and analyzing images via `GPT-4 Vision`. PYGPT also offers access to the filesystem for reading 
+and writing files, generates and executes Python code, runs system commands, and facilitates file (attachments) 
+uploads and downloads. Moreover, it enables the model to access the internet using the `Google Custom Search API`.
+
+Incorporated within the app is speech synthesis via `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`, 
+along with speech recognition through `OpenAI Whisper`. Additionally, PYGPT boasts features such as context 
+memory support, context storage, and a history of contexts that can be restored at any moment—allowing users to, 
+for example, continue a conversation from a specific point in history. The app also offers a user-friendly 
+and intuitive presets system that simplifies prompt creation and management. Plugin support is available for even more extended functionality.
+
+Multiple operation modes are included, such as chatbot, text completion, assistance, vision, Langchain, 
+and image generation, making PYGPT a versatile and comprehensive tool for various AI-driven tasks.
 
 ![app1](https://user-images.githubusercontent.com/61396542/230803425-5035ccd8-50d9-4fef-9774-8843cf3ce5b0.jpg)
 
-You can download compiled version for Windows and Linux at: https://pygpt.net/#download
+You can download compiled version for Windows and Linux here: https://pygpt.net/#download
 
 ## Features
 
-- desktop application for `Windows` and `Linux`, written in Python
-- works similar to `ChatGPT`, but locally (on desktop)
-- 3 modes of operation: chatbot, text completion and image generation
-- supports multiple models: `GPT4` and `GPT3`
-- handles and stores full context of the conversation (short-term
-  memory)
-- adds access to the Internet for GPT via Google Custom Search API and Wikipedia API
-- includes voice synthesis using Microsoft Azure Text-to-Speech API
-- stores the history of contexts with the ability to return to
-  previous context (long-term memory)
-- allows you to easily manage prompts with handly editable presets
-- intuitive operation and interface
-- allows you to use all the powerful features of `GPT4` and `GPT3`
-- no knowledge of using AI models required
-- enables easy and convenient generation of images using `DALL-E 2`
-- has the ability to support future OpenAI models
-- fully configurable
-- plugins support
-- built-in token usage calculation
-- it\'s open source, source code is available on `GitHub`
-- **uses the user\'s API key**
+- Desktop AI assistant application for `Windows` and `Linux`, written in Python.
+- Works similarly to `ChatGPT`, but locally (on a desktop computer).
+- 6 modes of operation: Assistant, Chatbot, Langchain, Vision, Completion, Image generation.
+- Supports multiple models: `GPT-4`, `GPT-3.5`, and `GPT-3`, including any model accessible through `Langchain`.
+- Handles and stores the full context of conversations (short-term memory).
+- Provides internet access via `Google Custom Search API`.
+- Offers voice synthesis via `Microsoft Azure TTS` and `OpenAI TTS`.
+- Features voice recognition through `OpenAI Whisper`.
+- Facilitates image analysis via `GPT-4 Vision`.
+- Includes integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
+- Executes commands (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
+- Manages files and attachments with options to upload, download, and organize.
+- Maintains a context history with the capability to revert to previous contexts (long-term memory).
+- Allows you to easily manage prompts with handy editable presets.
+- Provides an intuitive operation and interface.
+- Includes a notepad.
+- Supports multiple languages.
+- Enables the use of all the powerful features of `GPT-4`, `GPT-4V`, and `GPT-3.5`.
+- Requires no previous knowledge of using AI models.
+- Simplifies image generation using `DALL-E 3` and `DALL-E 2`.
+- Possesses the potential to support future OpenAI models.
+- Fully configurable.
+- Includes themes support.
+- Offers plugin support.
+- Features built-in token usage calculation.
+- It's open source; source code is available on `GitHub`.
+- Utilizes the user's own API key.
 
-The application is free, open source and runs on PC with `Windows 10`,
-`Windows 11` and `Linux`. The full **Python** source code is available
-on `GitHub`.
+The application is free, open-source, and runs on PCs with `Windows 10`, `Windows 11`, and `Linux`. 
+The full **Python** source code is available on `GitHub`.
 
-**PYGPT uses the user\'s API key - to use the application, you must have
-a registered OpenAI account and your own API key.**
+**PYGPT uses the user's API key — to utilize the application, 
+you must possess a registered OpenAI account and your own API key.**
+
+You can also utilize the included Langchain support to connect to other Large Language Models (LLMs), 
+such as those on HuggingFace. Additional API keys may be required.
 
 
 # Requirements
 
-## Supported systems (compiled version)
+## Supported Systems (Compiled Version)
 
-PYGPT requires a PC with Windows 10, 11 or Linux. Just download the installer or 
-archive with the appropriate version from the download page and then extract it 
-or install it and run the application.
+PYGPT is compatible with PCs running Windows 10, Windows 11, or Linux. 
+Simply download the installer or the archive for the appropriate version from the download page, 
+extract it, install it, and run the application.
 
-## Python version (source code)
+## Python Version (Source Code)
 
-The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (at least version 3.9). 
-You can also install application from PyPi (using "pip install").
+An alternative method is to download the source code from GitHub and execute the application using 
+the Python interpreter (version 3.9 or higher). The application can also be installed from PyPI 
+using the command `pip install`.
 
 ### PyPi (pip)
 
@@ -96,7 +111,8 @@ If you have problems with xcb plugin with newer versions of PySide on Linux, e.g
 
 ```commandline
 qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
-This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+This application failed to start because no Qt platform plugin could be initialized. 
+Reinstalling the application may fix this problem.
 ```
 
 ...then try downgrading PySide to `PySide6-Essentials==6.4.2`:
@@ -139,19 +155,17 @@ the application for your system.
 
 ## Other requirements
 
-To operate, you need an Internet connection (for API connection),
-registered OpenAI account and an active API key, which must be entered
-in the program.
+For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
+and an active API key that must be input into the program.
 
 
 # Quick Start
 
 ## Setting-up OpenAI API KEY
 
-During the first run, you must configure your API key in the
-application.
+During the initial launch, you must configure your API key within the application.
 
-To do this, enter the menu:
+To do so, navigate to the menu:
 
 ``` ini
 Config -> Settings...
@@ -170,79 +184,98 @@ Your API keys will be available here:
 
 <https://platform.openai.com/account/api-keys>
 
-**Note:** the ability to use models in the application depends on the
-API user\'s access to a given model!
+**Note:** The ability to use models within the application depends on the API user's access to a given model!
 
-# Chatbot and completion (GPT3, GPT4)
+# Chatbot, completion, assistants (GPT-4, GPT-3.5, Langchain)
 
 ## Chatbot
 
-This is the default mode of operation and works very similarly to
-**ChatGPT**. The mode allows you to talk to models such as **GPT3**,
-**GPT3.5** and **GPT4**. You can switch between the currently used model
-at any time.
+This default mode operates very similarly to **ChatGPT**, allowing you to engage in conversation 
+with models like **GPT-4**, **GPT-4 Turbo**, **GPT-3.5**, and **GPT-3**. You have the flexibility 
+to switch between the currently active model at any time. This mode employs the **ChatCompletion API**.
 
-In the middle window of the application there is a chat window, and
-below it there is a field for the text entered by the user (prompt). On
-the right side of the application window, you can conveniently define
-your own system prompt for the model at any time, or create a preset
-with a prompt and save it, for example, for later use. This allows you
-to easily and quickly switch between different starting configurations
-for the model, and allows you to conveniently experiment with the whole
-thing.
+The central area of the application interface features a chat window, with a user text input field (prompt) 
+just below it. On the right side of the application window, you can effortlessly define or modify 
+your system prompt for the model or craft a prompt preset and save it for future use. 
+This feature enables you to swiftly move between various model configurations, facilitating convenient 
+experimentation.
 
-Under the chat window and above the input window, the calculated amount
-of tokens that will be used to perform a given query is always shown in
-real time.
+Displayed between the chat window and the input field is a real-time calculation of the number of 
+tokens that a particular query will consume. Additionally, a file (attachment) upload functionality 
+is accessible here. Simply navigate to the "Files" tab to manage files and attachments, 
+which can be uploaded to the OpenAI API.
 
 ![chat](https://user-images.githubusercontent.com/61396542/230803437-90ad1bd1-dad8-48c3-86d8-c8123943443e.jpg)
 
-## Text Completion
+## Completion
 
-This is a more advanced and capable mode that allows more extensive use
-of the **GPT3** model. It works similarly to a chat, but it allows for
-more configuration and has more features than a regular chat. In this
-mode, you can use the model for more tasks, such as completing text,
-simulating conversation as various persons, analyzing text, and many
-more.
+This advanced mode is more comprehensive and offers greater utilization of Large Language Models (LLMs). 
+While operating similarly to a chat interface, it provides more configuration options and features than 
+standard chat interactions. In this mode, you can engage the model in a wider array of tasks, 
+such as text completion, simulating conversations as various characters, text analysis, and much more. 
+It grants access to any model supported by the OpenAI API as well as models available through Langchain integration.
 
-As in the chat mode, here on the right there are convenient presets,
-thanks to which you can freely configure the model and quickly switch
-between different configurations.
+As with chat mode, on the right side, you'll find handy presets that enable you to freely configure 
+the model and rapidly switch between different configurations and prompt templates.
 
-This mode additionally has fields in which you can enter a name for the
-AI and for the user. This allows, for example, to simulate a
-conversation as two fictitious actors, if so defined in the start
-prompt. Thanks to these options, it is possible, for example, to
-simulate a conversation between e.g. Batman and the Joker. ;)
+This mode also introduces fields for naming the AI and the user, allowing you to, for instance, 
+simulate conversations between fictional characters — like Batman and the Joker — if defined in 
+the starting prompt. These options open up creative opportunities to explore various dialogue 
+scenarios in a fun and imaginative way.
 
 ![batman](https://user-images.githubusercontent.com/61396542/230803444-5c960da8-6a53-47cb-9c23-54cefa7f498f.jpg)
 
-In this mode, models from the `davinci` family - included in the
-**GPT3** - are available.
+In this mode, models from the `davinci` family within **GPT-3** are available. 
+**Note:** The `davinci` models are slated for deprecation in the near future.
+
+## Assistants
+
+This mode uses the new OpenAI's **Assistants API**.
+
+It looks similar to the standard chat mode but further provides access to tools such as a **Code Interpreter**, 
+**Retrieval Files**, and **Functions**. File uploads and downloads are also featured in this mode. 
+**PYGPT** offers pragmatic support for file management; you can rapidly upload your documents and efficiently 
+receive and handle files sent to you by the model.
+
+Creating multiple assistants is a one-click process, and they automatically synchronize with the OpenAI API. 
+Importing your existing assistants from OpenAI is smooth and straightforward.
+
+Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
+uploads are supported. Simply navigate to the "Files" tab to effortlessly manage files and attachments which 
+can be sent to the OpenAI API.
+
+## Vision (GPT-4 Vision)
+
+This mode enables image analysis using the GPT-4 Vision model. Functioning much like the chat mode, 
+it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
+images and those found online.
+
+## Langchain
+
+This mode enables you to work with models that are supported by Langchain. The Langchain wrapper is integrated 
+into the application, allowing you to connect to any Large Language Model by simply supplying a configuration 
+file for the specific model. You can add as many models as you like; just list them in the configuration 
+file named `models.json`.
 
 # Context and memory
 
 ## Short and long-term memory
 
-The application allows you to conduct a conversation in a continuous
-mode, allowing you to use a long context. The entire context of the
-conversation is stored on the application side and is automatically
-attached to all sent to AI messages (prompts). You can also return to
-the context of a given conversation at any time - the application allows
-you to continue previous conversations and saves the history of the
-entire conversation, which can be easily restored and continued from
-this point.
+The application lets you chat in continuous mode, which uses a long context for the conversation. 
+It saves the entire conversation context and automatically includes it with all messages sent to 
+the AI (prompts). Plus, you can go back to previous conversations at any time. 
+The app saves your chat history, and you can pick up right where you left off.
 
 ## Handling multiple contexts
 
-On the left side of the screen there is a list of saved contexts, you
-can add any number of contexts there and conveniently switch between
-them and easily return to previous conversations at any time.
+On the left side of the screen, you'll see a list of saved contexts. You can add as many contexts as you 
+want and easily switch between them. Whenever you need to, you can jump back to any previous conversation. 
+The app automatically makes a summary (title) for each context, just like ChatGPT does, 
+but you can also change it whenever you want.
 
 ![context](https://user-images.githubusercontent.com/61396542/230803455-81d78a08-cad5-45c3-b346-4dd3293abb5d.jpg)
 
-Context support can be turned off in the settings, use the option:
+You can disable context support in the settings by using the following option:
 
 ``` ini
 Config -> Settings -> Use context 
@@ -250,7 +283,7 @@ Config -> Settings -> Use context
 
 ## Clearing history
 
-To clear whole memory (all contexts) use the menu option:
+You can clear the entire memory (all contexts) by selecting the menu option:
 
 ``` ini
 File -> Clear history...
@@ -258,254 +291,179 @@ File -> Clear history...
 
 ## Context storage
 
-On the application side, the context is stored in the user\'s directory
-in `JSON` files. In addition, all history is also saved to `.txt` files,
-which makes it easy to read.
+On the application side, the context is stored in the user's directory as `JSON` files. 
+In addition, all history is also saved to `.txt` files for easy reading.
 
 # Presets
 
 ## What is preset?
 
-Presets are used to store different configurations and to use these
-configurations at any time. The preset includes the selected mode of
-operation (chat, completion or image generation), initialization
-(system) message, name for AI, username and conversation \"temperature\"
-(the higher the value, the more abstract the model behaves, and the
-lower the value, the more deterministic it behaves).
+Presets (templates) are designed to save various configurations and allow you to use these 
+settings at any time. A preset encompasses the chosen mode of operation (chat, completion, or image generation), 
+an initialization (system) message, a name for the AI, a username, and the conversation "temperature" 
+(where a higher value creates more abstract responses from the model, and a lower value results in more 
+deterministic behavior). Presets function like `templates`. They can be applied in any mode and with models 
+provided by both the OpenAI API and Langchain.
 
-You can add as many presets as you want and you can switch between them
-at any time. You can also duplicate them and use some presets to create
-others based on them.
+You're free to add as many presets as you wish and switch between them whenever needed. 
+Presets can also be duplicated, providing a starting point to create new ones based on existing configurations.
 
 ![preset](https://user-images.githubusercontent.com/61396542/230803464-8aaed56a-6275-43b4-9d8b-558f2c1e697d.jpg)
 
 
 ## Example usage
 
-The application contains several sample presets that allow you to
-familiarize yourself with the mechanism of their use.
+The application includes several sample presets that help you become acquainted with the mechanism of their use.
 
 
-# Image generation (DALL-E 2)
+# Images generation (DALL-E 3 and DALL-E 2)
 
-## DALL-E 2
+## DALL-E 3
 
-PYGPT allows you to quickly and easily generate images using `DALL-E 2`.
-Generating images resembles a chat conversation - the prompt sent by the
-user initiates image generation, then downloading it, saving it on the
-computer and displaying it on the screen.
+PYGPT enables quick and straightforward image creation with `DALL-E 3`. 
+The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation — 
+a user's prompt triggers the generation, followed by downloading, saving to the computer, 
+and displaying the image onscreen.
 
 ## Multiple variants
 
-You can generate up to **4 different variants** for a given prompt in
-one go. To set the required number of variants that you want to be
-generated, use the slider located in the corner on the right at the
-bottom of the screen (appears in place of the slider with the
-conversation temperature when switching to the image generation mode).
+You can generate up to **4 different variants** for a given prompt in one session. 
+To select the desired number of variants to create, use the slider located in the right-hand corner at 
+the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
 
 ![dalle](https://user-images.githubusercontent.com/61396542/230803477-8ca3b13b-080d-4acc-9f19-fc2f1762e8e4.jpg)
 
 ## Image storage
 
-The image generated in this way can then be easily saved anywhere on the
-disk (just right-click on it), deleted or displayed in full size in the
-browser.
+Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
+You also have the options to delete it or view it in full size in your web browser.
 
-**Tip:** with presets, you can save prepared prompts and use them later
-when generating subsequent images.
+**Tip:** Use presets to save your prepared prompts. 
+This lets you quickly use them again for generating new images later on.
 
-All queries are saved in the history, thanks to which you can return to
-a given session at any time and use old queries to, for example,
-generate new content.
+The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
+prompts for creating new images.
 
 # Plugins
 
-The application allows you to use plugins to extend its functionality.
+The application can be enhanced with plugins to add new features.
 
-Currently, the following plugins are available:
+The following plugins are currently available, and GPT can use them instantly:
 
-- **Web Search** - adds access to the Internet using Google Custom Search Engine and Wikipedia API
+- **Command: Google Web Search** - allows searching the internet via the Google Custom Search Engine.
 
-- **Audio (Azure)** - adds voice synthesis using Microsoft Azure Text-to-Speech API
+- **Command: Files Input / Output** - grants access to the local filesystem, enabling GPT to read and write files, 
+as well as list and create directories.
 
-- **Self Loop** - allows run GPT in a self-loop, which allows you to
-  generate a continuous conversation between AI <> AI. In this mode model talks to itself.
+- **Command: Code Interpreter** - responsible for generating and executing Python code, functioning much like 
+the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
+The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
+Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
+Python code to a file, which the `Code Interpreter` can execute subsequently.
 
-- **Real Time** - auto-append current date and time to the prompt. It tells
-  the model what time it is in real time.
+- **Audio Output (Microsoft Azure)** - provides voice synthesis using the Microsoft Azure Text To Speech API.
 
-## Plugin: Web Search
+- **Audio Output (OpenAI TTS)** - provides voice synthesis using the OpenAI Text To Speech API.
 
-PYGPT allows you to **connect GPT to the internet** and use web search during any query in real time.
+- **Audio Input (OpenAI Whisper)** - offers speech recognition through the OpenAI Whisper API.
 
-**Note: This feature is available in experimental form. It also uses additional tokens during operation to perform the entire procedure described below!**
+- **Self Loop** - creates a self-loop mode, where GPT can generate a continuous conversation between 
+two AI instances, effectively talking to itself.
 
-This is enabled by a plug-in called **Web Search** - enable it in the "Plugins" menu.
+- **Real Time** - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 
-The search is done automatically (in background) using the Google Custom Search Engine API and the Wikipedia API. 
-To use Google Search, you need an API key - you can get it by registering account on the website:
+
+# Managing models
+
+All models are specified in the configuration file `models.json`, which you can customize. 
+This file is located in your home directory. You can add new models provided by OpenAI 
+and those supported by Langchain to this file.
+
+## Adding models via langchain
+
+If you wish to add a model and use it with the Langchain wrapper, simply insert the model configuration into `models.json`. 
+You will need to provide the model name, the modes it operates in (either `chat` and/or `completion`), 
+the LLM provider (currently either `OpenAI` or `HuggingFace`), and optionally an additional `API KEY` if you're using HuggingFace.
+
+Example of models configuration - `models.json`:
+
+```
+"gpt-4-1106-preview": {
+    "id": "gpt-4-1106-preview",
+    "name": "gpt-4-turbo-1106",
+    "mode": [
+        "chat",
+        "assistant",
+        "langchain"
+    ],
+    "langchain": {
+        "llm": "openai",
+        "mode": [
+            "chat"
+        ]
+    },
+    "ctx": 128000,
+    "tokens": 4096
+},
+"google/flan-t5-xxl": {
+    "id": "google/flan-t5-xxl",
+    "name": "Google - flan-t5-xxl",
+    "mode": [
+        "langchain"
+    ],
+    "langchain": {
+        "llm": "huggingface",
+        "mode": [
+            "chat"
+        ],
+        "api_key": "XXXXXXXXXXXXXXXXXXXXXX"
+    },
+    "ctx": 4096,
+    "tokens": 4096
+},
+```
+
+
+## Plugin: Command: Google Web Search
+
+PYGPT lets you connect GPT to the internet and carry out web searches in real time as you make queries.
+
+To activate this feature, turn on the `Command: Google Web Search` plugin found in the `Plugins` menu.
+
+Web searches are automated through the Google Custom Search Engine API. 
+To use this feature, you need an API key, which you can obtain by registering an account at:
 
 https://developers.google.com/custom-search/v1/overview
 
-After registering an account, create a new project and then select it from the list of available projects:
+After registering an account, create a new project and select it from the list of available projects:
 
 https://programmablesearchengine.google.com/controlpanel/all
 
-After selecting the project, you need to enable the "Whole Internet search" option in its settings, and then copy two things into PYGPT:
+After selecting your project, you need to enable the `Whole Internet Search` option in its settings. 
+Then, copy the following two items into PYGPT:
 
-- Api Key
-- CX ID
+- `Api Key`
+- `CX ID`
 
-These data must be configured in the appropriate fields in the "Plugins / Settings..." menu:
+These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
 ![plugin_web](https://user-images.githubusercontent.com/61396542/232334238-7f1a5769-59d4-41da-99cc-f86bda3fc2b1.png)
 
-### How does internet search work in PYGPT?
 
-**Step 1)**
+## Plugin: Audio Output (Microsoft Azure)
 
-At the beginning, PYGPT retrieves the current prompt from the user.
-Then it tries to transform this prompt into a form more accessible to the search engine, i.e. by extract all keywords and edit the prompt so that it is best understood by the search engine. For this purpose, a connection to the "gpt-3.5-turbo" model is initiated in the background with the task of generating a reworded version for the given prompt for use in the search engine. To create a reworded version of the prompt, you can use the entire context of the conversation (all previous entries in the conversation), or only the current prompt - this option can be enabled or disabled in the plugin settings:
-
-**- Use context memory when rebuilding question to search engine** (rebuild_question_context)
-
-Default: `True`
-
-Creating a reworded version of the prompt can be disabled at any time - to use the original prompt, disable the creation of a new query in the settings using the option:
-
-**- Rebuild question to search engine** (rebuild_question)
-
-Default: `True`
-
-When this option is disabled, the reworded version of the query will not be generated and the original query will be used.
-
-The content of the query used by GPT3.5 when generating a more understood version of the prompt can be configured in the fields:
-
-**- Question build prompt** (prompt_question)
-
-Default: `Today is {time}. You are providing single best query for search in Google based on the questionand context of whole conversation and nothing more in the answer.`
-
-This is a system prompt sent to GPT3.5. When parsing this setting, placeholder {time} is replaced with the current time.
-
-
-**- Question prefix prompt** (prompt_question_prefix)
-
-Default: `Prepare single query for this question and put it in <query>: `
-
-This is the prefix appended to the user's query and then sent to GPT. 
-The result of executing the above will be a response with a redacted query content returned between `<query></query>`
-
-**Example:**
-
-If the user is having a conversation about a movie like "Terminator", 
-then in the last sentence they will ask "What was the last part?" then the system will try to rewrite it in the form:
-
-`<query>The title of the last part of the Terminator movie</query>`
-
-Then the content between the `<query>` tags is extracted and will be used to build a query to the search engine.
-
-
-**Step 2)**
-
-In this step, a connection to the search engine API is made and a query is sent to the Google Custom Search API.
-The results may contain many pages, therefore the number of pages to be returned by the search engine and to be processed should be defined in advance, the option is used for this:
-
-**- Number of max pages to search per query** (num_pages)
-
-Default: `1`
-
-You can specify here how many pages with results should be crawled in the Google search process.
-**Note:** the more pages will be returned, the more data will be used for processing and the execution time of the whole procedure will be longer.
-
-During the search process, queries are made to Google and Wikipedia.
-The results are sorted from the most recent to the most terrible, and if the page found first on Google leads to Wikipedia, the Wikipedia API is automatically used to speed up the whole process.
-
-The use of both Google and Wikipedia APIs can be enabled or disabled in the options:
-
-**- Use Google Custom Search** (use_google)
-
-Default: `True`
-
-**- Use Wikipedia** (use_wikipedia)
-
-Default: `True`
-
-You can enable or disable individual searches.
-
-To specify the maximum amount of text to be processed from each page, you can use the following options:
-
-**- Max characters of page content to get (0 = unlimited)** (max_page_content_length)
-
-Default: `1000`
-
-The above determines how many characters from each found page should be processed to generate a summary in the next step. 
-If "0" is given, it means no limit. The parameter applies to the already processed version, 
-with only the text extracted from the page (this is done using the "BeautifulSoup" module - 
-the text contained in the `<p>` tags is processed).
-
-**Step 3)**
-
-After fetching the search results and extracting the text from the found pages, a summary of the found text is performed. For this purpose, all found content is divided into smaller parts, so-called the chunks and so split batches are then used to get a summary which will then be made available to GPT in the main chat window. The "gpt-3.5-turbo" model is used for summarization, and the whole process takes place in the background.
-
-In the process of summarization, all chunks obtained from the downloaded content are sent to GPT one by one.
-The system prompt is also used, which can be changed in the settings in the option:
-
-**- Summarize prompt** (prompt_summarize)
-
-Default: `Summarize this text from website into 3 paragraphs trying to find the most important content which will help answering for question: `
-
-
-The size of each data chunk can be determined using the option:
-
-**- Per-page content chunk size (max characters per chunk)** (chunk_size)
-
-Default: `10000`
-
-This is the maximum number of characters that make up each chunk.
-
-The maximum number of tokens to be generated at the output of the summarization process for each chunk can be changed in the option:
-
-**- Max summary tokens** (summary_max_tokens)
-
-Default: `1500`
-
-This chunked content is then sent to GPT3.5 chunk by chunk along with the system prompt described above. The content summarized in this way is then combined into one collective text string and only then the whole summed up in this way is transferred to the main conversation window in the form of information that will be attached to the system prompt.
-
-**Step 4)**
-
-In the last step, a system prompt is prepared, enriched with the already found and summarized content.
-The summarized content is attached to the system prompt by adding a phrase that can be configured in the option:
-
-**- System append prompt** (prompt_system)
-
-Default: `Use this summary text to answer the question or try to answer without it if summary text do not have sufficient info: `
-
-The summary content is then added to the above at the end, and the system prompt prepared in this way is only sent until the next answer in the main conversation is obtained.
-
-The maximum length (in characters) of a system prompt prepared in this way can be changed in the option:
-
-**- System append prompt max length** (prompt_system_length)
-
-Default: `1500`
-
-**Step 5)**
-
-In the main conversation, the system prompt is modified, and GPT receives additional information that it can use when generating a response to the user's query.
-
-**Note:** Please note that this option is currently in experimental version, and please note that it uses additional tokens for the process of generating a modified query and summarizing the content downloaded from the Internet! You should always track the amount of tokens actually used in the statement on the OpenAI website.
-
-## Plugin: Audio (Azure)
-
-PYGPT implements voice synthesis using the **Microsoft Azure Text-To-Speech** API.
-This feature require your own Microsoft Azure API Key. 
+PYGPT implements voice synthesis using the `Microsoft Azure Text-To-Speech` API.
+This feature requires to have an Microsoft Azure API Key. 
 You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
 
-To enable voice synthesis, enable the "Audio (Azure)" plugin in the "Plugins" menu or enable the "Voice" option in the "Audio" menu (both items in the menu lead to the same thing).
+To enable voice synthesis, activate the `Audio Output (Microsoft Azure)` plugin in the `Plugins` menu or 
+turn on the `Voice` option in the `Audio / Voice` menu (both options in the menu achieve the same outcome).
 
-To use speech synthesis, you must first configure the audio plugin by providing the Azure API key and the appropriate Region in the configuration.
+Before using speech synthesis, you must configure the audio plugin with your Azure API key and the correct 
+Region in the settings.
 
-This can be done using the "Plugins / Settings..." menu and selecting the "Audio (Azure)" tab:
+This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
 
 ![plugin_azure](https://user-images.githubusercontent.com/61396542/232334272-88f1871e-04ff-4658-912f-2c977d049272.png)
 
@@ -513,20 +471,20 @@ This can be done using the "Plugins / Settings..." menu and selecting the "Audio
 
 **- Azure API Key** (azure_api_key)
 
-Here you should enter the API key, which can be obtained by registering for free on the website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
 **- Azure Region** (azure_region)
 
 Default: `eastus`
 
-The appropriate region for Azure must be provided here.
+You must also provide the appropriate region for Azure here.
 
 
 **- Voice (EN)** (voice_en)
 
 Default: `en-US-AriaNeural`
 
-Here you can specify the name of the voice used for speech synthesis for English
+Here you can specify the name of the voice used for speech synthesis for English.
 
 
 **- Voice (PL)** (voice_pl)
@@ -537,15 +495,20 @@ Here you can specify the name of the voice used for speech synthesis for the Pol
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a reply via GPT.
 
+**OpenAI TTS** and **OpenAI Whisper** not require any additional API keys (one key for OpenAI API is used).
+
 
 ## Plugin: Self Loop
 
-The plugin allows you to enable the "talk with yourself" mode - in this mode GPT starts a conversation with itself.
-You can run such a loop with any number of iterations, then during the course of such a loop the model will answer questions asked by itself, having a conversation with itself. This mode works in both Chat and Completion modes, however, for better effect in Completion mode, you can define appropriate names (roles) for each party to the conversation.
+The plugin introduces a "talk with yourself" mode, where GPT begins a conversation with itself. 
+You can set this loop to run for any number of iterations. Throughout such a sequence, the model will engage 
+in self-dialogue, responding to its own questions and comments. This feature is available in both Chat and Completion modes. 
+To enhance the experience in Completion mode, you can assign specific names (roles) to each participant in the dialogue.
 
-When initiating the mode, you should also prepare the system prompt properly, e.g. informing GPT that it is talking to itself. It's worth experimenting for yourself.
+To effectively start this mode, it's important to craft the system prompt carefully, ensuring it indicates to GPT that 
+it is conversing with itself. The outcomes can be intriguing, so it's worth exploring what happens when you try this.
 
-The number of iterations for the conversation with yourself can be set in the "Plugins / Settings..." menu in the option:
+You can adjust the number of iterations for the self-conversation in the `Plugins / Settings...` menu under the following option:
 
 **- Iterations** (iterations)
 
@@ -558,21 +521,24 @@ Default: `3`
 
 Default: `True`
 
-The option clears the previous answer in context (it is then used as input during the next pass)
+The option clears the previous answer in the context, which is then used as input for the next iteration.
 
 
 **- Reverse roles between iterations** (reverse_roles)
 
 Default: `True`
 
-If enabled, it reverses the roles (AI <> user) during each pass, i.e. if in the previous pass the answer was generated for the role "Batman", then in the next pass this answer will be used to generate the same input for the role "Joker".
+If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
+if in the previous iteration the response was generated for "Batman," the next iteration will use that 
+response to generate an input for "Joker."
 
 
 ## Plugin: Real Time
 
-This plugin allows you to automatically attach information about the current date and time to each sent system promt. You can specify whether to include only the date, time, or both.
+This plugin automatically adds the current date and time to each system prompt you send. 
+You have the option to include just the date, just the time, or both.
 
-If the plugin is enabled, each system prompt is enriched in the background with information that transfers the current time to GPT.
+When enabled, it quietly enhances each system prompt with current time information before sending it to GPT.
 
 **Options:**
 
@@ -594,26 +560,23 @@ If enabled, it appends the current date to the system prompt.
 
 Default: `Current time is {time}.`
 
-Template to append to system prompt. Placeholder {time} will be replaced with current date and time in real-time.
+Template to append to the system prompt. The placeholder `{time}` will be replaced with the 
+current date and time in real-time.
 
 # Token usage calculation
 
 ## Input tokens
 
-Calculation of tokens is implemented in the application. The application
-tries to predict the number of tokens that will be used for a given
-query and shows this information in real time to the user. Thanks to
-this, you can get better control over the tokens used. The application
-shows information on how many tokens will be used for the prompt itself,
-how much for the system prompt, how much for additional data and how
-many tokens will be used in the context (memory of previous entries).
+The application features a token calculator. It attempts to forecast the number of tokens that 
+a particular query will consume and displays this estimate in real time. This gives you improved 
+control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
+the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
 ![tokens1](https://user-images.githubusercontent.com/61396542/230803483-df959697-dfe2-4ac5-a61d-8b296062e7ef.jpg)
 
 ## Total tokens
 
-After receiving a response from the model, the actual amount of total
-tokens used to query the model is shown.
+After receiving a response from the model, the application displays the actual total number of tokens used for the query.
 
 ![tokens2](https://user-images.githubusercontent.com/61396542/230803489-ed322d63-e647-4f8f-9ee3-a7200effda24.jpg)
 
@@ -621,7 +584,7 @@ tokens used to query the model is shown.
 
 ## Settings
 
-The following basic options can be modified from the application level:
+The following basic options can be modified directly within the application:
 
 ``` ini
 Config -> Settings...
@@ -629,131 +592,148 @@ Config -> Settings...
 
 ![api](https://user-images.githubusercontent.com/61396542/230803433-4ff0dac3-634e-4133-ab51-79b69c43d5a5.jpg)
 
-- **Temperature** - defines the temperature of the conversation, the
-  lower the value, the more deterministic the model behaves, the higher
-  the value, the more abstract
+- **Temperature**: Sets the randomness of the conversation. A lower value makes the model's 
+responses more deterministic, while a higher value increases creativity and abstraction.
 
-- **Top-p** - a parameter similar to temperature, for details please
-  refer to the documentation on the OpenAI website
+- **Top-p**: A parameter that influences the model's response diversity, similar to temperature. 
+For more information, please check the OpenAI documentation.
 
-- **Frequency Penalty** - as above
+- **Frequency Penalty**: Decreases the likelihood of repetition in the model's responses.
 
-- **Presence Penalty** - as above
+- **Presence Penalty**: Discourages the model from mentioning topics that have already been 
+brought up in the conversation.
 
-- **Use context** - enables or disables the use of context (memory of
-  previous conversation components). When this option is disabled,
-  context is not saved or used during the conversation
+- **Use Context**: Toggles the use of conversation context (memory of previous inputs). 
+When turned off, the context won't be saved or factored into conversation responses.
 
-- **Store history** - enables or disables saving conversation history
-  and context. History is not written to disk after shutdown
+- **Store History**: Dictates whether the conversation history and context are saved. 
+When turned off, history won't be written to the disk upon closing the application.
 
-- **Store time in history** - enables or disables adding timestamps to
-  files. txt with history, saved in the \"history\" directory in the
-  user\'s home directory
+- **Store Time in History**: Chooses whether timestamps are added to the .txt files. 
+These files are stored in the "history" directory within the user's home directory.
 
-- **Context threshold** - specifies the reserve of tokens required to
-  execute next prompt. If we are approaching the capacity of the model
-  (e.g. if the model allows 4096 tokens), this value will be used when
-  approaching the limit to leave place for the next answer.
+- **Context Threshold**: Sets the number of tokens reserved for the model to respond to the next prompt. 
+This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
 
-- **Max output tokens** - defines the maximum number of tokens to be
-  generated by the model in response
+- **Max Output Tokens**: Determines the maximum number of tokens the model can generate for a single response.
 
-- **Max total tokens** - defines the maximum number of tokens that the
-  application can send to the model, including the entire context of the
-  conversation. It should be less than or equal to the model\'s maximum
-  capacity. By setting this limit, you can reduce the size of the
-  context attached to sent messages.
+- **Max Total Tokens**: Defines the maximum token count that the application can send to the model, 
+including the conversation context. To prevent reaching the model capacity, this setting helps 
+manage the size of the context included in messages.
 
-- **Font size** - allows you to set the font size in the chat window.
+- **Font Size**: Adjusts the font size in the chat window for better readability.
 
-- **OpenAI API KEY** - API key that you need to paste into the
-  application
-  
-- **OpenAI ORGANIZATION KEY** - Organization API key (optional)
+- **OpenAI API KEY**: The personal API key you'll need to enter into the application for it to function.
+
+- **OpenAI ORGANIZATION KEY**: The organization's API key, which is optional for use within the application.
 
 ## JSON files
 
-The configuration is stored in JSON files, which allows for easy manual
-modification outside the application itself. Configuration files are
-installed in the user\'s home directory in the subdirectory:
+The configuration is stored in JSON files for easy manual modification outside of the application. 
+These configuration files are located in the user's home directory within the following subdirectory:
 
 ``` ini
 {HOME_DIR}/.config/pygpt-net/
 ```
-
 
 # Advanced configuration
 
 ## Manual configuration
 
-You can manually edit configuration files in the directory:
+
+You can manually edit the configuration files in this directory:
 
 ``` ini
 {HOME_DIR}/.config/pygpt-net/
 ```
 
-- **config.json** - contains the main configuration
+- **assistants.json** - contains the list of assistants.
+- **attachments.json** - keeps track of the current attachments.
+- **config.json** - holds the main configuration settings.
+- **models.json** - stores models configurations.
+- **context.json** - maintains an index of contexts.
+- **context** - a directory for context files in `.json` format.
+- **history** - a directory for history logs in `.txt` format.
+- **img** - a directory for images generated with DALL-E, saved as `.png` files.
+- **output** - a directory for output files and files downloaded/generated by GPT.
+- **presets** - a directory for presets stored as `.json` files.
 
-- **models.json** - contains models configuration
+---
 
-- **context.json** - contains an index of contexts
+## Translations / Locale
 
-- **context** - directory with contexts, `.json` files
-
-- **history** - directory with history, `.txt` files
-
-- **img** - directory with images generated with DALL-E, `.png` files
-
-- **presets** - directory with presets, `.json` files
-
-## Translations / locale
-
-`ini` files with locales are placed in the directory:
+Locale `.ini` files are located in the directory:
 
 ``` ini
 ./data/locale
 ```
 
-Above directory is automatically read when the application starts -
-prepare your own new translation and save it under a name, e.g.:
+This directory is automatically scanned when the application launches. To add a new translation, 
+create and save the file with the appropriate name, for example:
 
 ``` ini
 locale.es.ini   
 ```
 
-will automatically add the language to the language selection menu in
-the application.
+This will add Spanish as a selectable language in the application's language menu.
+
+---
+
+## Updates
+
+### Updating PYGPT
+
+The application features built-in update notifications. Whenever there's a new version with fresh features 
+available, you'll be notified within the application window.
+
+To update, simply download the new version and start using it in place of the old one. All your settings, 
+including contexts and history, will be preserved and accessible in the new version.
 
 
-# Updates
+## Coming soon
 
-## Updating PYGPT
-
-The application has a built-in update notification. If there is a newer
-version with new features, you will be informed in the application
-window.
-
-Simply download the new version and use it instead of the current one,
-all configuration such as context and history will survive between
-versions and will be available in the newly installed version.
-
-
-## Next releases
-
-Support for voice recognition will be added in future versions of the application.
+- Enhanced integration with Langchain and the assistants API.
+- Vector database (DB) support.
+- Development of autonomous agents.
 
 ## DISCLAIMER
 
-This application is not affiliated with OpenAI in any way.
-Author is not responsible for any damage caused by the use of this application.
-Application is provided as is, without any warranty.
-Please also remember about tokens usage - always check the number of tokens used by 
-the model on OpenAI website and use the application responsibly.
-Enabled plugins (like e.g. Web Search) may use additional tokens,
-not listed in main window. Always control your real token usage on OpenAI website.
+This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
+resulting from the use of this application. It is provided "as is," without any form of warranty. 
+Users are reminded to be mindful of token usage—always verify the number of tokens utilized by the model on 
+the OpenAI website and engage with the application responsibly. Activating plugins, such as Web Search, 
+may consume additional tokens that are not displayed in the main window. 
+Always monitor your actual token expenditure on the OpenAI website.
+
+---
 
 # CHANGELOG
+
+## 2.0.0 (2023-12-05)
+
+New features in version 2.0.0:
+
+- Added support for new models: GPT-4 Turbo, GPT-4 Vision, and DALL-E 3.
+- Integrated Langchain with support for any model it provides.
+- Assistants API and simple assistant configuration setup.
+- Vision and image analysis capabilities through GPT-4 Vision.
+- Image generation with DALL-E 3.
+- File and attachment support including upload, download, and management.
+- New built-in notepad feature.
+- Multiple assistants support.
+- Command execution support.
+- Filesystem access allows GPT to read and write files.
+- Asynchronous (stream) mode added.
+- Local Python code interpreter that enables code execution by GPT.
+- System command executions directly from GPT.
+- Voice synthesis provided via Microsoft Azure TTS and OpenAI TTS.
+- Voice recognition facilitated by OpenAI Whisper.
+- Automatic summarization of context titles.
+- Upgraded Web Browser plugin.
+- More precise token calculation functionality.
+- Improved UX.
+- Bug fixes.
+- Plus additional enhancements and expanded capabilities.
 
 ## 0.9.6 (2023.04.16)
 
