@@ -310,7 +310,7 @@ class Assistant:
 
                     # delete in API
                     try:
-                        return self.window.gpt.assistant_delete(id)
+                        self.window.gpt.assistant_delete(id)
                     except Exception as e:
                         self.window.ui.dialogs.alert(str(e))
 

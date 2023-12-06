@@ -49,7 +49,9 @@ PyPi (pip)
 
     pygpt
 
-**Troubleshooting**:
+
+Troubleshooting
+---------------
 
 If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
 
@@ -58,7 +60,14 @@ If you have problems with xcb plugin with newer versions of PySide on Linux, e.g
     qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
     This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
 
-...then try downgrading PySide to ``PySide6-Essentials==6.4.2``:
+...then install libxcb on linux:
+
+.. code-block:: console
+
+    sudo apt install libxcb-cursor0
+
+If this not help then try to downgrade PySide to ``PySide6-Essentials==6.4.2``:
+
 
 .. code-block:: console
 

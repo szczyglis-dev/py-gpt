@@ -116,7 +116,13 @@ This application failed to start because no Qt platform plugin could be initiali
 Reinstalling the application may fix this problem.
 ```
 
-...then try downgrading PySide to `PySide6-Essentials==6.4.2`:
+...then install libxcb on linux:
+
+```commandline
+sudo apt install libxcb-cursor0
+```
+
+If this not help then try to downgrade PySide to `PySide6-Essentials==6.4.2`:
 
 ```commandline
 pip install PySide6-Essentials==6.4.2
@@ -152,7 +158,7 @@ python app.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
-the application for your system.
+the application for your system (version < 6.x, e.g. 5.13.2).
 
 ## Other requirements
 
@@ -951,7 +957,7 @@ including contexts and history, will be preserved and accessible in the new vers
 
 ## Coming soon
 
-- Enhanced integration with Langchain and the Assistants API
+- Enhanced integration with Langchain and the Assistants API (functions management, etc.)
 - Vector databases support
 - Development of autonomous agents
 

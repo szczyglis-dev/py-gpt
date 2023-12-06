@@ -1,4 +1,9 @@
 {
+    "__meta__": {
+        "version": "2.0.0",
+        "app.version": "2.0.0",
+        "updated_at": "2023-12-05T23:10:03"
+    },
     "dall-e-2": {
         "id": "dall-e-2",
         "name": "DALL-E 2",
@@ -18,23 +23,6 @@
         "ctx": 0,
         "default": true
     },
-    "gpt-3.5-turbo-1106": {
-        "id": "gpt-3.5-turbo-1106",
-        "name": "gpt-3.5-turbo-1106",
-        "mode": [
-            "chat",
-            "assistant",
-            "langchain"
-        ],
-        "langchain": {
-            "provider": "openai",
-            "mode": [
-                "chat"
-            ]
-        },
-        "ctx": 16385,
-        "tokens": 4096
-    },
     "gpt-3.5-turbo": {
         "id": "gpt-3.5-turbo",
         "name": "gpt-3.5-turbo",
@@ -47,9 +35,32 @@
             "provider": "openai",
             "mode": [
                 "chat"
-            ]
+            ],
+            "args": {
+                "model_name": "gpt-3.5-turbo"
+            }
         },
         "ctx": 4096,
+        "tokens": 4096
+    },
+    "gpt-3.5-turbo-1106": {
+        "id": "gpt-3.5-turbo-1106",
+        "name": "gpt-3.5-turbo-1106",
+        "mode": [
+            "chat",
+            "assistant",
+            "langchain"
+        ],
+        "langchain": {
+            "provider": "openai",
+            "mode": [
+                "chat"
+            ],
+            "args": {
+                "model_name": "gpt-3.5-turbo-1106"
+            }
+        },
+        "ctx": 16385,
         "tokens": 4096
     },
     "gpt-3.5-turbo-16k": {
@@ -64,7 +75,10 @@
             "provider": "openai",
             "mode": [
                 "chat"
-            ]
+            ],
+            "args": {
+                "model_name": "gpt-3.5-turbo-16k"
+            }
         },
         "ctx": 16385,
         "tokens": 4096
@@ -81,7 +95,10 @@
             "provider": "openai",
             "mode": [
                 "chat"
-            ]
+            ],
+            "args": {
+                "model_name": "gpt-4"
+            }
         },
         "ctx": 8192,
         "tokens": 4096
@@ -98,7 +115,10 @@
             "provider": "openai",
             "mode": [
                 "chat"
-            ]
+            ],
+            "args": {
+                "model_name": "gpt-4-1106-preview"
+            }
         },
         "ctx": 128000,
         "tokens": 4096
@@ -115,7 +135,10 @@
             "provider": "openai",
             "mode": [
                 "chat"
-            ]
+            ],
+            "args": {
+                "model_name": "gpt-4-32k"
+            }
         },
         "ctx": 32768,
         "tokens": 4096
@@ -140,7 +163,10 @@
             "provider": "openai",
             "mode": [
                 "completion"
-            ]
+            ],
+            "args": {
+                "model_name": "text-davinci-002"
+            }
         },
         "ctx": 4096,
         "tokens": 4096
@@ -156,14 +182,12 @@
             "provider": "openai",
             "mode": [
                 "completion"
-            ]
+            ],
+            "args": {
+                "model_name": "text-davinci-003"
+            }
         },
         "ctx": 4096,
         "tokens": 4096
-    },
-    "__meta__": {
-        "version": "2.0.0",
-        "app.version": "2.0.0",
-        "updated_at": "2023-12-05T22:00:00"
     }
 }
