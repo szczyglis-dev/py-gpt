@@ -1,24 +1,56 @@
+2.0.0 (2023-12-05)
+
+- Added support for new models: GPT-4 Turbo, GPT-4 Vision, and DALL-E 3
+- Integrated Langchain with support for any model it provides
+- Assistants API and simple assistant configuration setup
+- Vision and image analysis capabilities through GPT-4 Vision
+- Image generation with DALL-E 3
+- File and attachment support including upload, download, and management
+- New built-in notepad feature
+- Multiple assistants support
+- Command execution support
+- Filesystem access allows GPT to read and write files
+- Asynchronous (stream) mode added
+- Local Python code interpreter that enables code execution by GPT
+- System command executions directly from GPT
+- Voice synthesis provided via Microsoft Azure TTS and OpenAI TTS (Text-To-Speech)
+- Voice recognition facilitated by OpenAI Whisper
+- Automatic summarization of context titles
+- Upgraded Web Browser plugin
+- More precise token calculation functionality
+- Added output markup highlight
+- Improved UX
+- Bug fixes
+- Plus additional enhancements and expanded capabilities
+
 0.9.6 (2023.04.16)
-- added real-time logger
-- improved debug mode
+
+- Added real-time logger
+- Improved debug mode
 
 0.9.5 (2023.04.16)
-- added web plugin (adds access to the Internet using Google Custom Search Engine and Wikipedia API)
-- added voice output plugin (adds voice synthesis using Microsoft Azure)
+
+- Added web plugin (adds access to the Internet using Google Custom Search Engine and Wikipedia API)
+- Added voice output plugin (adds voice synthesis using Microsoft Azure)
 
 0.9.4 (2023.04.15)
-- added plugins support
+
+- Added plugins support
 
 0.9.3 (2023.04.14)
-- packed into PyPI package
+
+- Packed into PyPI package
 
 0.9.2 (2023.04.12)
-- added theme color settings
-- small UI fixes
+
+- Added theme color settings
+- Small UI fixes
 
 0.9.1 (2023.04.11)
-- added organization key configuration
-- added config version patching
+
+- Added organization key configuration (by @kaneda2004, PR#1)
+- Added config versions patching
 
 0.9.0 (2023.04.09)
-- initial release
+
+- Initial release
