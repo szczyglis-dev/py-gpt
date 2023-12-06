@@ -40,7 +40,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Handles and stores the full context of conversations (short-term memory).
 - Internet access via `Google Custom Search API`.
 - Voice synthesis via `Microsoft Azure TTS` and `OpenAI TTS`.
-- Voice recognition through `OpenAI Whisper`.
+- Voice recognition via `OpenAI Whisper`.
 - Image analysis via `GPT-4 Vision`.
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
@@ -894,7 +894,7 @@ These configuration files are located in the user's work directory within the fo
 {HOME_DIR}/.config/pygpt-net/
 ```
 
-# Notepad
+# Notebook
 
 The application has a built-in notebook, divided into several tabs. This can be useful for storing informations in a convenient way, without the need to open an external text editor. The content of the notebook is automatically saved whenever the content changes.
 
