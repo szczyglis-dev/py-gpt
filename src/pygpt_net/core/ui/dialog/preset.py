@@ -102,8 +102,8 @@ class Preset:
         rows.addLayout(options['completion'])
         rows.addLayout(options['img'])
         rows.addLayout(options['vision'])
-        rows.addLayout(options['langchain'])
         rows.addLayout(options['assistant'])
+        rows.addLayout(options['langchain'])
         rows.addLayout(options['temperature'])
         rows.addLayout(options['prompt'])
 
