@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
 import json
 
@@ -284,7 +284,8 @@ class Input:
             self.unlock_input()
 
         # handle ctx name (generate name if not initialized)
-        self.handle_ctx_name(ctx)
+        if self.window.config.data['ctx.auto_summary']:
+            self.handle_ctx_name(ctx)
 
         return ctx
 

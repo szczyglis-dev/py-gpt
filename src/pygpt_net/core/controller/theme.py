@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -46,8 +46,16 @@ class Theme:
         self.window.data['input.send_enter'].setStyleSheet(self.get_style('radio'))
         self.window.data['input.send_shift_enter'].setStyleSheet(self.get_style('radio'))
         self.window.data['input.send_clear'].setStyleSheet(self.get_style('checkbox'))
-        self.window.data['input'].setStyleSheet(self.get_style('line_edit'))
+        self.window.data['input'].setStyleSheet(self.get_style('chat_input'))
+        self.window.data['ctx.contexts'].setStyleSheet(self.get_style('ctx.contexts'))
         self.window.data['presets.widget'].setStyleSheet(self.get_style('line_edit'))
+
+        # notepads
+        self.window.data['notepad1'].setStyleSheet(self.get_style('chat_output'))
+        self.window.data['notepad2'].setStyleSheet(self.get_style('chat_output'))
+        self.window.data['notepad3'].setStyleSheet(self.get_style('chat_output'))
+        self.window.data['notepad4'].setStyleSheet(self.get_style('chat_output'))
+        self.window.data['notepad5'].setStyleSheet(self.get_style('chat_output'))
 
         # dialog: ctx rename
         self.window.dialog['rename'].input.setStyleSheet(self.get_style('line_edit'))
@@ -64,6 +72,7 @@ class Theme:
         self.window.config_option['use_context'].box.setStyleSheet(self.get_style('checkbox'))
         self.window.config_option['store_history'].box.setStyleSheet(self.get_style('checkbox'))
         self.window.config_option['store_history_time'].box.setStyleSheet(self.get_style('checkbox'))
+        self.window.config_option['ctx.auto_summary'].box.setStyleSheet(self.get_style('checkbox'))
 
         # dialog: preset editor
         self.window.config_option['preset.chat'].box.setStyleSheet(self.get_style('checkbox'))
@@ -155,6 +164,10 @@ class Theme:
             return "QTreeView { padding: 0px; margin: 0px; }; QTreeView::item { padding: 0px; margin: 0px; }"
         elif element == "chat_output":
             return 'color: #{}; font-size: {}px;'.format(chat_color, self.window.config.data['font_size'])
+        elif element == "chat_input":
+            return 'color: #{}; font-size: {}px;'.format(chat_color, self.window.config.data['font_size.input'])
+        elif element == "ctx.contexts":
+            return 'font-size: {}px;'.format(self.window.config.data['font_size.ctx'])
         elif element == "line_edit":
             return "QLineEdit { color: #" + label + "; }"
         elif element == "text_bold":

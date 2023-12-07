@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -174,6 +174,22 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.1"):
+                if 'font_size.input' not in data:
+                    data['font_size.input'] = 11
+                if 'font_size.ctx' not in data:
+                    data['font_size.ctx'] = 9
+                if 'ctx.auto_summary' not in data:
+                    data['ctx.auto_summary'] = True
+                if 'ctx.auto_summary.system' not in data:
+                    data['ctx.auto_summary.system'] = "You are an expert in conversation summarization"
+                if 'ctx.auto_summary.prompt' not in data:
+                    data['ctx.auto_summary.prompt'] = "Summarize topic of this conversation in one sentence. Use best " \
+                                                      "keywords to describe it. Summary must be in the same language " \
+                                                      "as the conversation and it will be used for conversation title " \
+                                                      "so it must be EXTREMELY SHORT and concise - use maximum 5 " \
+                                                      "words: \n\nUser: {input}\nAI Assistant: {output}"
+                updated = True
             if old < parse_version("2.0.0"):
                 data['theme'] = 'dark_teal'  # force, because removed light themes!
                 if 'cmd' not in data:

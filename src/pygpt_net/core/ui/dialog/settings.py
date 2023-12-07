@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget
 
-from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog
+from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog, SettingsTextarea
 from ...utils import trans
 
 
@@ -76,6 +76,18 @@ class Settings:
         self.window.config_option['font_size'] = SettingsSlider(self.window, 'font_size',
                                                                 '', 8, 20,
                                                                 1, 12)
+        self.window.config_option['font_size.input'] = SettingsSlider(self.window, 'font_size.input',
+                                                                      '', 8, 20,
+                                                                      1, 12)
+        self.window.config_option['font_size.ctx'] = SettingsSlider(self.window, 'font_size.ctx',
+                                                                    '', 8, 20,
+                                                                    1, 12)
+
+        # v2.0.1
+        self.window.config_option['ctx.auto_summary'] = SettingsCheckbox(self.window, 'ctx.auto_summary',
+                                                                         trans('settings.ctx.auto_summary'))
+        self.window.config_option['ctx.auto_summary.system'] = SettingsInput(self.window, 'ctx.auto_summary.system')
+        self.window.config_option['ctx.auto_summary.prompt'] = SettingsTextarea(self.window, 'ctx.auto_summary.prompt')
 
         options = {}
         options['api_key'] = self.add_option('settings.api_key', self.window.config_option['api_key'], True)
@@ -98,8 +110,19 @@ class Settings:
                                                       self.window.config_option['max_total_tokens'])
         options['font_size'] = self.add_option('settings.font_size',
                                                self.window.config_option['font_size'])
+        options['font_size.input'] = self.add_option('settings.font_size.input',
+                                                     self.window.config_option['font_size.input'])
+        options['font_size.ctx'] = self.add_option('settings.font_size.ctx',
+                                                   self.window.config_option['font_size.ctx'])
         options['img_resolution'] = self.add_option('settings.img_resolution',
                                                     self.window.config_option['img_resolution'])
+
+        # v2.0.1
+        options['ctx.auto_summary'] = self.add_raw_option(self.window.config_option['ctx.auto_summary'])
+        options['ctx.auto_summary.system'] = self.add_option('settings.ctx.auto_summary.system',
+                                                             self.window.config_option['ctx.auto_summary.system'])
+        options['ctx.auto_summary.prompt'] = self.add_option('settings.ctx.auto_summary.prompt',
+                                                             self.window.config_option['ctx.auto_summary.prompt'])
 
         rows = QVBoxLayout()
         rows.addLayout(options['api_key'])
@@ -110,9 +133,12 @@ class Settings:
 
         scroll_content = QVBoxLayout()
         scroll_content.addLayout(options['use_context'])
+        scroll_content.addLayout(options['ctx.auto_summary'])
         scroll_content.addLayout(options['store_history'])
         scroll_content.addLayout(options['store_history_time'])
         scroll_content.addLayout(options['font_size'])
+        scroll_content.addLayout(options['font_size.input'])
+        scroll_content.addLayout(options['font_size.ctx'])
         scroll_content.addLayout(options['context_threshold'])
         scroll_content.addLayout(options['max_output_tokens'])
         scroll_content.addLayout(options['max_total_tokens'])
@@ -121,6 +147,8 @@ class Settings:
         scroll_content.addLayout(options['frequency_penalty'])
         scroll_content.addLayout(options['presence_penalty'])
         scroll_content.addLayout(options['img_resolution'])
+        scroll_content.addLayout(options['ctx.auto_summary.system'])
+        scroll_content.addLayout(options['ctx.auto_summary.prompt'])
 
         scroll_widget = QWidget()
         scroll_widget.setLayout(scroll_content)

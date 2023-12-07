@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
 
 import os
@@ -34,6 +34,10 @@ class Settings:
             self.window.config.data['api_key'] = self.window.config_option['api_key'].text()
             self.window.config.data['organization_key'] = self.window.config_option['organization_key'].text()
             self.window.config.data['img_resolution'] = self.window.config_option['img_resolution'].text()
+            self.window.config.data['ctx.auto_summary.system'] = self.window.config_option[
+                'ctx.auto_summary.system'].text()
+            self.window.config.data['ctx.auto_summary.prompt'] = self.window.config_option[
+                'ctx.auto_summary.prompt'].toPlainText()
 
         info = trans('info.settings.saved')
         self.window.config.save()
@@ -59,8 +63,14 @@ class Settings:
 
     def update_font_size(self):
         """Updates font size"""
-        size = self.window.config.data['font_size']
         self.window.data['output'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.data['input'].setStyleSheet(self.window.controller.theme.get_style('chat_input'))
+        self.window.data['ctx.contexts'].setStyleSheet(self.window.controller.theme.get_style('ctx.contexts'))
+        self.window.data['notepad1'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.data['notepad2'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.data['notepad3'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.data['notepad4'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.data['notepad5'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
 
     def toggle_settings(self, id):
         """
@@ -164,16 +174,21 @@ class Settings:
             self.apply('max_output_tokens', self.window.config.data['max_output_tokens'])
             self.apply('max_total_tokens', self.window.config.data['max_total_tokens'])
             self.apply('font_size', self.window.config.data['font_size'])
+            self.apply('font_size.input', self.window.config.data['font_size.input'])
+            self.apply('font_size.ctx', self.window.config.data['font_size.ctx'])
 
             # input
             self.change('api_key', self.window.config.data['api_key'])
             self.change('organization_key', self.window.config.data['organization_key'])
             self.change('img_resolution', self.window.config.data['img_resolution'])
+            self.change('ctx.auto_summary.system', self.window.config.data['ctx.auto_summary.system'])
+            self.change('ctx.auto_summary.prompt', self.window.config.data['ctx.auto_summary.prompt'])
 
             # checkbox
             self.toggle('use_context', self.window.config.data['use_context'])
             self.toggle('store_history', self.window.config.data['store_history'])
             self.toggle('store_history_time', self.window.config.data['store_history_time'])
+            self.toggle('ctx.auto_summary', self.window.config.data['ctx.auto_summary'])
 
     def toggle(self, id, value, section=None):
         """
@@ -200,6 +215,8 @@ class Settings:
             self.window.config.data['store_history_time'] = value
         elif id == 'use_context':
             self.window.config.data['use_context'] = value
+        elif id == 'ctx.auto_summary':
+            self.window.config.data['ctx.auto_summary'] = value
 
         self.window.config_option[id].box.setChecked(value)
 
@@ -240,6 +257,10 @@ class Settings:
         else:
             self.window.config.data[id] = value
 
+        # update font size in real time
+        if id.startswith('font_size'):
+            self.update_font_size()
+
         txt = '{}'.format(value)
         self.window.config_option[id].setText(txt)
 
@@ -263,8 +284,22 @@ class Settings:
             return
 
         # dialog: settings
-        integer_values = ['max_output_tokens', 'max_total_tokens', 'context_threshold', 'img_variants', 'font_size']
-        params_values = ['temperature', 'current_temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
+        integer_values = [
+            'max_output_tokens',
+            'max_total_tokens',
+            'context_threshold',
+            'img_variants',
+            'font_size',
+            'font_size.input',
+            'font_size.ctx',
+        ]
+        params_values = [
+            'temperature',
+            'current_temperature',
+            'top_p',
+            'frequency_penalty',
+            'presence_penalty',
+        ]
 
         if id in integer_values:
             try:
@@ -345,7 +380,7 @@ class Settings:
             self.window.config_option[id].input.setText(txt)
 
         # update from input
-        elif type == 'input':
+        elif type == 'input' or type is None:
             if id in params_values:
                 if slider_value < 1:
                     slider_value = 1
@@ -364,10 +399,8 @@ class Settings:
             self.window.config_option[id].slider.setValue(slider_value)
 
         # update from raw value
-        else:
-            txt = '{}'.format(value)
-            self.window.config_option[id].input.setText(txt)
-            self.window.config_option[id].slider.setValue(slider_value)
+        if id.startswith('font_size'):
+            self.update_font_size()  # update font size in real time
 
     def open_config_dir(self):
         """Opens user config directory"""
