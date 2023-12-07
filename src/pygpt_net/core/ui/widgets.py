@@ -471,7 +471,7 @@ class AttachmentSelectMenu(SelectMenu):
 class PluginSelectMenu(SelectMenu):
     def __init__(self, window=None, id=None):
         """
-        Plugin select menu
+        Plugin select menu (in settings dialog)
 
         :param window: main window
         :param id: input id

@@ -10,7 +10,7 @@
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
 
 from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea, \
     PluginSelectMenu
@@ -46,6 +46,7 @@ class Plugins:
         # plugins tabs
         self.window.tabs['plugin.settings'] = QTabWidget()
 
+        # build plugin settings tabs
         for id in self.window.controller.plugins.handler.plugins:
             plugin = self.window.controller.plugins.handler.plugins[id]
 
@@ -113,7 +114,9 @@ class Plugins:
                     continue
 
                 # add option to scroll
-                scroll_content.addLayout(self.add_option(key, option, self.window.plugin_option[id][key]))
+                scroll_content.addLayout(self.add_option(key, option, self.window.plugin_option[id][key], option['type']))
+
+            scroll_content.addStretch()
 
             # scroll widget
             scroll_widget = QWidget()
@@ -125,8 +128,11 @@ class Plugins:
             desc_label.setAlignment(Qt.AlignCenter)
             desc_label.setStyleSheet("font-weight: bold;")
 
+            line = self.add_line()
+
             area = QVBoxLayout()
             area.addWidget(desc_label)
+            area.addWidget(line)
             area.addWidget(scroll)
 
             area_widget = QWidget()
@@ -155,7 +161,7 @@ class Plugins:
         main_layout.addWidget(self.window.tabs['plugin.settings'])
 
         layout = QVBoxLayout()
-        layout.addLayout(main_layout)  # plugins tabs
+        layout.addLayout(main_layout)  # list + plugins tabs
         layout.addLayout(bottom_layout)  # bottom buttons (save, defaults)
 
         self.window.dialog[dialog_id] = PluginSettingsDialog(self.window, dialog_id)
@@ -170,13 +176,23 @@ class Plugins:
             except:
                 print('Cannot restore plugin settings tab: {}'.format(idx))
 
-    def add_option(self, key, option, widget):
+    def add_line(self):
+        """
+        Makes line
+        """
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        return line
+
+    def add_option(self, key, option, widget, type):
         """
         Appends option row
 
         :param key: option key
         :param option: option
         :param widget: widget
+        :param type: option type
         :return: QVBoxLayout
         """
         widget.setToolTip(option['tooltip'])
@@ -184,22 +200,39 @@ class Plugins:
         self.window.data[label_key] = QLabel(trans(option['label']))
         self.window.data[label_key].setStyleSheet("font-weight: bold;")
 
-        cols = QHBoxLayout()
-        cols.addWidget(self.window.data[label_key])
-        cols.addWidget(widget)
+        # 2 cols layout
+        if type != 'textarea':
+            cols = QHBoxLayout()
+            cols.addWidget(self.window.data[label_key])
+            cols.addWidget(widget)
 
-        cols_widget = QWidget()
-        cols_widget.setLayout(cols)
-        cols_widget.setMaximumHeight(90)
+            cols_widget = QWidget()
+            cols_widget.setLayout(cols)
+            cols_widget.setMaximumHeight(90)
 
-        desc_label = QLabel('<i>' + option['description'] + '</i>')
-        desc_label.setWordWrap(True)
-        desc_label.setMaximumHeight(30)
-        desc_label.setStyleSheet("font-size: 10px;")
+            desc_label = QLabel('<i>' + option['description'] + '</i>')
+            desc_label.setWordWrap(True)
+            desc_label.setMaximumHeight(30)
+            desc_label.setStyleSheet("font-size: 10px;")
 
-        layout = QVBoxLayout()
-        layout.addWidget(cols_widget)
-        layout.addWidget(desc_label)
+            layout = QVBoxLayout()
+            layout.addWidget(cols_widget)
+            layout.addWidget(desc_label)
+        else:
+            # textarea
+            layout = QVBoxLayout()
+            layout.addWidget(self.window.data[label_key])
+            layout.addWidget(widget)
+
+            desc_label = QLabel('<i>' + option['description'] + '</i>')
+            desc_label.setWordWrap(True)
+            desc_label.setMaximumHeight(20)
+            desc_label.setStyleSheet("font-size: 10px;")
+
+            layout.addWidget(desc_label)
+
+        line = self.add_line()
+        layout.addWidget(line)
 
         return layout
 
