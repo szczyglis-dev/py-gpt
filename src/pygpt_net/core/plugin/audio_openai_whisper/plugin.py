@@ -91,9 +91,9 @@ class Plugin(BasePlugin):
         self.options["continuous_listen"] = {
             "type": "bool",
             "slider": False,
-            "label": "Continuous listen",
-            "description": "Continuous listen (do not stop after single input)",
-            "tooltip": "Continuous listen",
+            "label": "Continuous listening",
+            "description": "Continuous listening (do not stop after single input)",
+            "tooltip": "Continuous listening",
             "value": True,
             "min": None,
             "max": None,

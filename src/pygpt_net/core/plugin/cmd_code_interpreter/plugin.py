@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 10:00:00                  #
+# Updated Date: 2023.12.07 19:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -22,13 +22,13 @@ class Plugin(BasePlugin):
         self.name = "Command: Code Interpreter"
         self.description = "Provides Python code execution"
         self.options = {}
-        self.options["python_cmd"] = {
+        self.options["python_cmd_tpl"] = {
             "type": "text",
             "slider": False,
-            "label": "Python command",
-            "description": "Python command to execute",
-            "tooltip": "Python command to execute",
-            "value": 'python3',
+            "label": "Python command template",
+            "description": "Python command template to execute",
+            "tooltip": "Python command template to execute, use {filename} for filename placeholder",
+            "value": 'python3 {filename}',
             "min": None,
             "max": None,
             "multiplier": None,
@@ -134,7 +134,7 @@ class Plugin(BasePlugin):
                             continue
 
                         # run code
-                        cmd = "{} {}".format(self.options["python_cmd"], path)
+                        cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
                         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
