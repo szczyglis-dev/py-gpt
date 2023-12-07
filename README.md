@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.0** build: **2023.12.05** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.1** build: **2023.12.07** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 

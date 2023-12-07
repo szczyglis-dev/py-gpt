@@ -129,8 +129,10 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
-            if old < parse_version("2.0.0"):
+            if old < parse_version("2.0.1"):
                 self.patch_file('models.json', True)
+                self.window.config.load_models()
+                data = self.window.config.models
                 updated = True
             if old < parse_version("0.9.1"):
                 # apply meta only (not attached in 0.9.0)
