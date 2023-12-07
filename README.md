@@ -946,6 +946,7 @@ may consume additional tokens that are not displayed in the main window.
 ## 2.0.1 (2023-12-07)
 
 - Fixed settings dialog initialization
+- Fixed models.json migration
 - Added enter key behaviour settings
 - Added font size settings for input and context list
 - Added ctx auto-summary settings
