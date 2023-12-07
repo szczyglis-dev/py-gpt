@@ -181,7 +181,7 @@ class Plugins:
                 self.window.config.data['plugins'][id][key] = value
 
             # update config if option not exists
-            for key in self.window.config.data['plugins'].keys():
+            for key in list(self.window.config.data['plugins'].keys()):
                 if key not in self.handler.plugins:
                     self.window.config.data['plugins'].pop(key)
 
