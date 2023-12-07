@@ -156,6 +156,7 @@ class Settings:
             elif option['type'] == 'textarea':
                 # textarea
                 widgets[key] = SettingsTextarea(self.window, label)
+                widgets[key].setMinimumHeight(100)
             elif option['type'] == 'bool':
                 # checkbox
                 widgets[key] = SettingsCheckbox(self.window, label, trans('settings.' + key))

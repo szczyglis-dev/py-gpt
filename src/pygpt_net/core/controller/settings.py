@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 10:00:00                  #
+# Updated Date: 2023.12.07 19:00:00                  #
 # ================================================== #
 import json
 import os
@@ -24,6 +24,22 @@ class Settings:
         """
         self.window = window
         self.options = {}
+        self.integer_values = {
+            'img_variants': {
+                'min': 1,
+                'max': 4,
+                'multiplier': 1,
+            }
+        }
+        self.float_values = {
+            'current_temperature': {
+                'min': 0,
+                'max': 2,
+                'multiplier': 100,
+            }
+        }
+        self.width = 500
+        self.height = 600
         self.initialized = False
 
     def load(self):
@@ -115,9 +131,6 @@ class Settings:
 
         :param file: JSON file to load
         """
-        width = 500
-        height = 600
-
         id = 'editor'
         current_file = self.window.dialog['config.editor'].file
         if id in self.window.settings.active and self.window.settings.active[id]:
@@ -129,7 +142,7 @@ class Settings:
                 self.window.dialog['config.editor'].file = file
         else:
             self.window.settings.load_editor(file)  # load file to editor
-            self.window.ui.dialogs.open('config.' + id, width=width, height=height)
+            self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
             self.window.settings.active[id] = True
 
         # update menu
@@ -284,80 +297,74 @@ class Settings:
             self.window.controller.plugins.config_slider(id, value, type)
             return
 
-        # dialog: settings
-        integer_values = [
-            'max_output_tokens',
-            'max_total_tokens',
-            'context_threshold',
-            'img_variants',
-            'font_size',
-            'font_size.input',
-            'font_size.ctx',
-        ]
-        params_values = [
-            'temperature',
-            'current_temperature',
-            'top_p',
-            'frequency_penalty',
-            'presence_penalty',
-        ]
+        # dialog: settings or global settings
+        option_type = None
+        multiplier = 1  # default multiplier
 
-        if id in integer_values:
-            try:
-                value = int(value)
-            except:
-                value = 0
-                self.window.config_option[id].input.setText(str(value))
+        # check if option is in settings
+        if id in self.options:
+            if 'type' in self.options[id]:
+                option = self.options[id]
+                option_type = option['type']
+                # integers, nothing to do
+                if option_type == 'int':
+                    try:
+                        value = int(value)
+                    except:
+                        value = 0
+                        self.window.config_option[id].input.setText(str(value))
+                elif option_type == 'float':
+                    if 'multiplier' in option:
+                        multiplier = option['multiplier']
+                        if type != 'slider':
+                            try:
+                                value = float(value)
+                            except:
+                                value = option['min']
+                                self.window.config_option[id].input.setText(str(value))
+                            if value < option['min']:
+                                value = option['min']
+                            elif value > option['max']:
+                                value = option['max']
+                            self.window.config_option[id].input.setText(str(value))
 
-        multiplier = 1
-        if id in params_values:
-            multiplier = 100
-            # fix / validate
-            if type != 'slider':
+        if type != 'slider':
+            if id in self.float_values or id in self.integer_values:
+                min = None
+                max = None
+                if id in self.float_values:
+                    multiplier = self.float_values[id]['multiplier']
+                    min = self.float_values[id]['min']
+                    max = self.float_values[id]['max']
+                elif id in self.integer_values:
+                    multiplier = self.integer_values[id]['multiplier']
+                    min = self.integer_values[id]['min']
+                    max = self.integer_values[id]['max']
+
                 try:
-                    value = float(value)
+                    if id in self.float_values:
+                        value = float(value)
+                    elif id in self.integer_values:
+                        value = int(value)
                 except:
-                    value = 0.0
+                    value = min
                     self.window.config_option[id].input.setText(str(value))
-                if value < 0:
-                    value = 0.0
-                elif value > 2:
-                    value = 2.0
+
+                # fix min max values
+                if value < min:
+                    value = min
+                elif value > max:
+                    value = max
                 self.window.config_option[id].input.setText(str(value))
 
-        # img variants
-        if id == 'img_variants':
-            # fix / validate
-            if type != 'slider':
-                try:
-                    value = int(value)
-                except:
-                    value = 1
-                if value < 1:
-                    value = 1
-                elif value > 4:
-                    value = 4
-                self.window.config_option[id].input.setText(str(value))
-
-        # font size
-        elif id == 'font_size':
-            # fix / validate
-            if type != 'slider':
-                try:
-                    value = int(value)
-                except:
-                    value = 8
-                if value < 8:
-                    value = 8
-                elif value > 20:
-                    value = 20
-                self.window.config_option[id].input.setText(str(value))
-
+        # prepare slider value
         slider_value = round(float(value) * multiplier, 0)
         input_value = value
+
+        # if from slider, update input value by multiplier division
         if type == 'slider':
             input_value = value / multiplier
-            if id in integer_values:
+            if option_type == 'int' or id in self.integer_values:
                 input_value = round(int(input_value), 0)
 
         # update current preset temperature if changed global temperature
@@ -370,9 +377,11 @@ class Settings:
             self.window.controller.presets.update_field(id, input_value, preset, is_current)
             self.window.controller.presets.update_field('preset.temperature', input_value, True)
         else:
-            if id not in integer_values:
+            if option_type != 'int' and id not in self.integer_values:
+                # any float
                 self.window.config.data[id] = float(input_value)
             else:
+                # any integer
                 self.window.config.data[id] = round(int(input_value), 0)
 
         # update from slider
@@ -381,22 +390,27 @@ class Settings:
             self.window.config_option[id].input.setText(txt)
 
         # update from input
-        elif type == 'input' or type is None:
-            if id in params_values:
-                if slider_value < 1:
-                    slider_value = 1
-                elif slider_value > 200:
-                    slider_value = 200
-            elif id == 'max_output_tokens':
-                if slider_value < 1:
-                    slider_value = 1
-                elif slider_value > 32000:
-                    slider_value = 32000
-            elif id == 'max_total_tokens':
-                if slider_value < 1:
-                    slider_value = 1
-                elif slider_value > 256000:
-                    slider_value = 256000
+        elif type == 'input':
+            if option_type == 'float' or id in self.float_values:
+                if id in self.float_values:
+                    min = self.float_values[id]['min'] * self.float_values[id]['multiplier']
+                    max = self.float_values[id]['max'] * self.float_values[id]['multiplier']
+                else:
+                    min = self.options[id]['min'] * self.options[id]['multiplier']
+                    max = self.options[id]['max'] * self.options[id]['multiplier']
+                if slider_value < min:
+                    slider_value = min
+                elif slider_value > max:
+                    slider_value = max
+            elif option_type == 'int':
+                min = self.options[id]['min']
+                max = self.options[id]['max']
+                if slider_value < min:
+                    slider_value = min
+                elif slider_value > max:
+                    slider_value = max
+            self.window.config_option[id].slider.setValue(slider_value)
+        else:
             self.window.config_option[id].slider.setValue(slider_value)
 
         # update from raw value
@@ -411,4 +425,5 @@ class Settings:
             self.window.set_status('Config directory not exists: {}'.format(self.window.config.path))
 
     def get_options(self):
+        """Returns settings options dict"""
         return self.options
