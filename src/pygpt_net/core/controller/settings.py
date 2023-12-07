@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
-
+import json
 import os
 
 from showinfm import show_in_file_manager
@@ -23,6 +23,18 @@ class Settings:
         :param window: main window object
         """
         self.window = window
+        self.options = {}
+        self.initialized = False
+
+    def load(self):
+        """Loads settings options from config file"""
+        path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
+        if not os.path.isfile(path):
+            return {}
+        with open(path) as f:
+            self.options = json.load(f)
+            self.initialized = True
+            f.close()
 
     def save(self, id=None):
         """
@@ -408,3 +420,6 @@ class Settings:
             show_in_file_manager(self.window.config.path)
         else:
             self.window.set_status('Config directory not exists: {}'.format(self.window.config.path))
+
+    def get_options(self):
+        return self.options

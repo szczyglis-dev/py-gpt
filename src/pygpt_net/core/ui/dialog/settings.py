@@ -25,22 +25,9 @@ class Settings:
         :param window: main UI window object
         """
         self.window = window
-        self.options = {}
-
-    def load_options(self):
-        """Loads settings options from config file"""
-        path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
-        if not os.path.isfile(path):
-            return {}
-        with open(path) as f:
-            self.options = json.load(f)
-            f.close()
 
     def setup(self):
         """Setups settings dialog"""
-
-        # load settings options
-        self.load_options()
 
         id = "settings"
         path = self.window.config.path
@@ -62,7 +49,7 @@ class Settings:
         self.window.path_label[id].setStyleSheet("font-weight: bold;")
 
         # get settings options config
-        settings_options = self.get_options()
+        settings_options = self.window.controller.settings.get_options()
 
         # build settings widgets
         settings_widgets = self.build_settings_widgets(settings_options)
@@ -236,6 +223,3 @@ class Settings:
         layout = QHBoxLayout()
         layout.addWidget(option)
         return layout
-
-    def get_options(self):
-        return self.options
