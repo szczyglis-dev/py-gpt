@@ -8,24 +8,15 @@ PyPi: https://pypi.org/project/pygpt-net
 
 ## Overview
 
-**PYGPT** is an **"all-in-one"** desktop AI assistant that enables you to converse with `OpenAI` LLMs such as `GPT-4`, 
-`GPT-4 Vision`, and `GPT-3.5` directly from your computer using the `OpenAI API`. Additionally, the application supports
- alternative models, for instance, those from `HuggingFace`, facilitated through integrated `Langchain` support is built in.
+**PYGPT** is **all-in-one** desktop AI assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
 
-The assistant operates in various modes, including chat, assistant, and completion, as well as generating images 
-with `DALL-E 3` and analyzing images via `GPT-4 Vision`. **PYGPT** also offers access to the filesystem for reading 
-and writing files, generates and executes Python code, runs system commands, and facilitates files
-uploads and downloads. Moreover, it enables the model to access the internet using the `Google Custom Search API`.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
 
-Assistant supports speech synthesis via `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`, 
-along with speech recognition through `OpenAI Whisper`. Additionally, **PYGPT** provides features such as context 
-memory support, context storage, and a history of contexts that can be restored at any moment - allowing users to, 
-for example, continue a conversation from a specific point in history. The app also offers a user-friendly 
-and intuitive presets system that simplifies prompt creation and management. 
-Plugin support is available for even more extended functionality.
+For audio interactions, **PYGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, 
-and image generation, making **PYGPT** a versatile and comprehensive tool for various AI-driven tasks.
+**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, vision applications, natural language processing via Langchain, and creative image synthesis.
+
+Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
 
 ![v2_main](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/0c55c04c-130f-412d-8104-f5b4f7f19e7a)
 
@@ -39,8 +30,8 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and `GPT-3`, including any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Internet access via `Google Custom Search API`.
-- Voice synthesis via `Microsoft Azure TTS` and `OpenAI TTS`.
-- Voice recognition via `OpenAI Whisper`.
+- Speech synthesis via `Microsoft Azure TTS` and `OpenAI TTS`.
+- Speech recognition via `OpenAI Whisper`.
 - Image analysis via `GPT-4 Vision`.
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
@@ -64,10 +55,10 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 The application is free, open-source, and runs on PCs with `Windows 10`, `Windows 11`, and `Linux`. 
 The full Python source code is available on `GitHub`.
 
-**PYGPT uses the user's API key  -  to utilize the application, 
-you must possess a registered OpenAI account and your own API key.**
+**PYGPT uses the user's API key  -  to use the application, 
+you must have a registered OpenAI account and your own API key.**
 
-You can also utilize the included Langchain support to connect to other Large Language Models (LLMs), 
+You can also use buil-it Langchain support to connect to other Large Language Models (LLMs), 
 such as those on HuggingFace. Additional API keys may be required.
 
 
@@ -83,7 +74,7 @@ extract it, install it, and run the application.
 
 An alternative method is to download the source code from GitHub and execute the application using 
 the Python interpreter (version 3.9 or higher). The application can also be installed from PyPI 
-using the command `pip install`.
+using the command `pip install` and we recommend this type of installation.
 
 ### PyPi (pip)
 
@@ -197,55 +188,34 @@ Your API keys will be available here:
 
 ## Chatbot
 
-This default mode operates very similarly to `ChatGPT`, allowing you to engage in conversation 
-with models like `GPT-4`, `GPT-4 Turbo`, `GPT-3.5`, and `GPT-3`. You have the flexibility 
-to switch between the currently active model at any time. This mode employs the `ChatCompletion API`.
+This mode in **PYGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo`, `GPT-3.5`, and `GPT-3`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
 
-The central area of the application interface features a chat window, with a user text input field (prompt) 
-just below it. On the right side of the application window, you can effortlessly define or modify 
-your system prompt for the model or craft a prompt preset and save it for future use. 
-This feature enables you to swiftly move between various model configurations, facilitating convenient 
-experimentation.
+The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
-Displayed between the chat window and the input field is a real-time calculation of the number of 
-tokens that a particular query will consume. Additionally, a file (attachment) upload functionality 
-is accessible here. Simply navigate to the `Files` tab to manage files and attachments, 
-which can be uploaded to the OpenAI API.
+Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Files` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/39ae90c4-085c-4777-82f3-f926a3278e5e)
 
 ## Completion
 
-This advanced mode is more comprehensive and offers greater utilization of Large Language Models (LLMs). 
-While operating similarly to a chat interface, it provides more configuration options and features than 
-standard chat interactions. In this mode, you can engage the model in a wider array of tasks, 
-such as text completion, simulating conversations as various characters, text analysis, and much more. 
-It grants access to any model supported by the OpenAI API as well as models available through Langchain integration.
+This advanced mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through `Langchain`.
 
-As with chat mode, on the right side, you'll find handy presets that enable you to freely configure 
-the model and rapidly switch between different configurations and prompt templates.
+Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
 
-This mode also introduces fields for naming the AI and the user, allowing you to, for instance, 
-simulate conversations between fictional characters  -  like Batman and the Joker  -  if defined in 
-the starting prompt. These options open up creative opportunities to explore various dialogue 
-scenarios in a fun and imaginative way.
+Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
 ![v2_mode_completion](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/745eda5f-32cd-4e44-b730-92946592f4f7)
 
 In this mode, models from the `davinci` family within `GPT-3` are available. 
-**Note:** The `davinci` models are slated for deprecation in the near future.
+**Note:** The `davinci` models are tagged for deprecation in the near future.
 
 ## Assistants
 
 This mode uses the new OpenAI's **Assistants API**.
 
-It looks similar to the standard chat mode but further provides access to tools such as a `Code Interpreter`, 
-`Retrieval Files`, and `Functions`. File uploads and downloads are also featured in this mode. 
-**PYGPT** offers pragmatic support for file management; you can rapidly upload your documents and efficiently 
-receive and handle files sent to you by the model.
+This mode expands on the basic chat functionality by including additional external tools like a `Code Interpreter` for executing code, `Retrieval Files` for accessing files, and custom `Functions` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PYGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
 
-Creating multiple assistants is a one-click process, and they automatically synchronize with the OpenAI API. 
-Importing your existing assistants from OpenAI is smooth and straightforward.
+Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PYGPT** is also a seamless process.
 
 ![v2_mode_assistant](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/05a92913-1762-440f-9d5c-36ae9aa23775)
 
@@ -259,12 +229,18 @@ This mode enables image analysis using the `GPT-4 Vision` model. Functioning muc
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
+**1) you can provide an image URL**
+
 ![v2_mode_vision](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/6a78042c-0c83-4dd2-865f-48e028b16689)
+
+**2) you can also upload your local images**
+
+![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/e9a3ecc2-a083-4d79-96c0-f7b6c522525a)
 
 ## Langchain
 
-This mode enables you to work with models that are supported by `Langchain`. The Langchain wrapper is integrated 
-into the application, allowing you to connect to any Large Language Model by simply supplying a configuration 
+This mode enables you to work with models that are supported by `Langchain`. The Langchain support is integrated 
+into the application, allowing you to interact with any LLM by simply supplying a configuration 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named `models.json`.
 
@@ -281,14 +257,13 @@ Available LLMs providers supported by **PYGPT**:
 
 ![v2_mode_langchain](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/2c288bc9-41d7-4d92-ac54-68fc10974a0b)
 
-You can create and add your own model wrapper for any specified model not included by default and then register it to application.
-How to do this is described in section `Adding models to Langchain`.
+You have the ability to add custom model wrappers for models that are not available by default in **PYGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
 # Files and attachments
 
 ## Input (upload)
 
-**PYGPT** facilitates an user-friendly process for uploading files (attachments) to the server and transferring them to the model, for purposes such as analysis. This functions in a way similar to attaching files using `ChatGPT`. Adjacent to the window where text can be entered, there is another tab dedicated to file uploads called `Files`. Files can be set to automatically delete after each upload or kept on the list for reuse.
+**PYGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
 
 ![v2_file_input](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/af675e8a-6664-48ba-8241-84fe9cb378ec)
 
@@ -296,16 +271,15 @@ The attachment feature is available in both the `Assistant` and `Vision` modes.
 
 ## Output (download, generation)
 
-**PYGPT** allows for the reception of files generated by the model and their local saving. This process happens automatically in the background, and files are saved to the `output` directory created in the user's work directory. Access to received or generated files is found under the `Output` tab - there, you’ll find a file browser for this directory. You can easily manage all the files received from the AI.
+**PYGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `output` folder located within the user's working directory. To view or manage these files, users can navigate to the `Output` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
 
-The same directory is also used to store all files generated by the AI locally, such as files with generated code or any other files that the model may be requested to produce. There is an option to execute code from the files saved here and read their content, then passing the result back to the AI. This all takes place automatically using the plugin system and commands invoked by the model.
+This `output` directory is also where the application stores files that are generated locally by the AI, such as code files or any other outputs requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands.
 
-File management in the `output` directory is facilitated by the `Command: Files I/O` plugin.
-Execution of code from files saved in this directory is enabled by the `Command: Code Interpreter` plugin.
+The `Command: Files I/O` plugin takes care of file operations in the `output` directory, while the `Command: Code Interpreter` plugin allows for the execution of code from these files.
 
 ![v2_file_output](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/363ffa9f-f43e-4f87-89b9-289a3ecd7993)
 
-To allow the model to manage files, the `Execute commands` option must be active, along with the above-mentioned plugins:
+To allow the model to manage files or python code execution, the `Execute commands` option must be active, along with the above-mentioned plugins:
 
 ![v2_code_execute](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/997d98fd-8d19-47f8-9992-38f328ff3421)
 
@@ -313,17 +287,11 @@ To allow the model to manage files, the `Execute commands` option must be active
 
 ## Short and long-term memory
 
-**PYGPT** lets you chat in continuous mode, which uses a long context for the conversation. 
-It saves the entire conversation context and automatically includes it with all messages sent to 
-the AI (prompts). Plus, you can go back to previous conversations at any time. 
-The app saves your chat history, and you can pick up right where you left off.
+**PYGPT** features a continuous chat mode that maintains a long context of the ongoing dialogue. It preserves the entire conversation history and automatically appends it to each new message (prompt) you send to the AI. Additionally, you have the flexibility to revisit past conversations whenever you choose. The application keeps a record of your chat history, allowing you to resume discussions from the exact point you stopped.
 
 ## Handling multiple contexts
 
-On the left side of the screen, you'll see a list of saved contexts. You can add as many contexts as you 
-want and easily switch between them. Whenever you need to, you can jump back to any previous conversation. 
-The app automatically makes a summary (title) for each context, just like `ChatGPT` does, 
-but you can also change it whenever you want.
+On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PYGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
 
 ![v2_context_list](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/9f0ab805-b887-401e-8c22-59447893d735)
 
@@ -352,15 +320,9 @@ Once a conversation begins, a title for the chat is generated and displayed on t
 
 ## What is preset?
 
-Presets (templates) are designed to save various configurations and allow you to use these 
-settings at any time. A preset encompasses the chosen mode of operation (chat, completion, or image generation), 
-an initialization (system) message, a name for the AI, a username, and the conversation "temperature" 
-(where a higher value creates more abstract responses from the model, and a lower value results in more 
-deterministic behavior). Presets function like *templates*. They can be applied in any mode and with models 
-provided by both the `OpenAI API` and `Langchain`.
+Presets in **PYGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system message, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `Langchain`.
 
-You're free to add as many presets as you wish and switch between them whenever needed. 
-Presets can also be duplicated, providing a starting point to create new ones based on existing configurations.
+The system lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
 ![v2_preset](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/1319ab14-9be2-481c-8294-c03900062883)
 
@@ -406,14 +368,14 @@ The following plugins are currently available, and GPT can use them instantly:
 
 - `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
 
-- `Command: Files Input / Output` - grants access to the local filesystem, enabling GPT to read and write files, 
+- `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
 as well as list and create directories.
 
 - `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
 the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
 The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
-Python code to a file, which the `Code Interpreter` can execute subsequently.
+Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 
 - `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
 
@@ -430,14 +392,12 @@ two AI instances, effectively talking to itself.
 # Managing models
 
 All models are specified in the configuration file `models.json`, which you can customize. 
-This file is located in your work directory. You can add new models provided directly by `OpenAI API`
+This file is located in your working directory. You can add new models provided directly by `OpenAI API`
 and those supported by `Langchain` to this file. Configuration for Langchain wrapper is placed in `langchain` key.
 
-## Adding custom LLMs to Langchain
+## Adding custom LLMs via Langchain
 
-If you wish to add a model and use it with the Langchain wrapper, simply insert the model configuration into `models.json`. 
-You will need to provide the model name, the modes it operates in (either `chat` and/or `completion`), 
-the LLM provider (currently either `OpenAI` or `HuggingFace`), and optionally an additional `API KEY` if you're using HuggingFace.
+To add a new model using the Langchain wrapper in **PYGPT**, insert the model's configuration details into the `models.json` file. This should include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (which can be either e.g. `OpenAI` or `HuggingFace`), and, if you are using a `HuggingFace` model, an optional `API KEY`.
 
 Example of models configuration - `models.json`:
 
@@ -495,9 +455,11 @@ There is bult-in support for those LLMs providers:
 - Ollama (ollama)
 ```
 
-Handling LLMs with Langchain is implemented through modules. This allows for the addition of support for any model available via Langchain. All built-in modules for models are included in the `llm` directory.
+## Adding custom LLM providers
 
-These modules are loaded into the application during startup using `launcher.add_llm()` method:
+Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers are placed in the `llm` directory.
+
+These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
 
 ```python
 # app.py
@@ -530,11 +492,12 @@ def run():
     launcher.run()
 ```
 
-To add support for any model, simply create your own class that returns a custom model to the application and register your class in a custom launcher, like so:
+To add support for any provider not included by default, simply create your own wrapper that returns a custom model to the application and register your class in a custom launcher, like so:
 
 ```python
 # custom_launcher.py
 
+from pygpt_net.app import Launcher
 from my_llm import MyCustomLLM
 
 def run():
@@ -554,7 +517,7 @@ def run():
     launcher.run()
 ```
 
-If you want to create your own class with support for your model, look at the example classes included in the application in the `llm` directory - they can serve as a template. Each such custom wrapper must contain two methods: `chat` and `completion`, which return the model's objects for `chat` and `completion` modes, respectively.
+To integrate your own model or provider into **PYGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
 
 # Plugins
@@ -948,11 +911,9 @@ This will add Spanish as a selectable language in the application's language men
 
 ### Updating PYGPT
 
-The application features built-in update notifications. Whenever there's a new version with fresh features 
-available, you'll be notified within the application window.
+**PYGPT** comes with an integrated update notification system. When a new version with additional features is released, you'll receive an alert within the app. 
 
-To update, simply download the new version and start using it in place of the old one. All your settings, 
-including contexts and history, will be preserved and accessible in the new version.
+To update, just download the latest release and begin using it instead of the old version. Rest assured, all your personalized settings such as saved contexts and conversation history will be retained and instantly available in the new version.
 
 
 ## Coming soon

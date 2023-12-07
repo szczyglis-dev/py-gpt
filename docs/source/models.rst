@@ -2,17 +2,15 @@ Managing models
 ===============
 
 All models are specified in the configuration file ``models.json``, which you can customize. 
-This file is located in your work directory. You can add new models provided directly by ``OpenAI API``
+This file is located in your working directory. You can add new models provided directly by ``OpenAI API``
 and those supported by ``Langchain`` to this file. Configuration for Langchain wrapper is placed in ``langchain`` key.
 
-Adding custom LLMs to Langchain
+Adding custom LLMs via Langchain
 --------------------------------
 
-If you wish to add a model and use it with the Langchain wrapper, simply insert the model configuration into `models.json`. 
-You will need to provide the model name, the modes it operates in (either ``chat`` and/or ``completion``), 
-the LLM provider (currently either ``OpenAI`` or ``HuggingFace``), and optionally an additional ``API KEY`` if you're using HuggingFace.
+To add a new model using the Langchain wrapper in **PYGPT**, insert the model's configuration details into the ``models.json`` file. This should include the model's name, its supported modes (either ``chat``, ``completion``, or both), the LLM provider (which can be either e.g. ``OpenAI`` or ``HuggingFace``), and, if you are using a ``HuggingFace`` model, an optional ``API KEY``.
 
-Example of models configuration - `models.json`:
+Example of models configuration - ``models.json``:
 
 .. code-block:: json
 
@@ -68,9 +66,12 @@ There is bult-in support for those LLMs providers:
 * Llama 2 (llama2)
 * Ollama (ollama)
 
-Handling LLMs with Langchain is implemented through modules. This allows for the addition of support for any model available via Langchain. All built-in modules for models are included in the ``llm`` directory.
+Adding custom LLM providers
+---------------------------
 
-These modules are loaded into the application during startup using ``launcher.add_llm()`` method:
+Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers  are placed in the ``llm`` directory.
+
+These wrappers are loaded into the application during startup using ``launcher.add_llm()`` method:
 
 .. code-block:: python
 
@@ -103,12 +104,13 @@ These modules are loaded into the application during startup using ``launcher.ad
         # Launch the app
         launcher.run()
 
-To add support for any model, simply create your own class that returns a custom model to the application and register your class in a custom launcher, like so:
+To add support for any provider not included by default, simply create your own wrapper that returns a custom model to the application and register your class in a custom launcher, like so:
 
 .. code-block:: python
 
     # custom_launcher.py
 
+    from pygpt_net.app import Launcher
     from my_llm import MyCustomLLM
 
     def run():
@@ -128,4 +130,4 @@ To add support for any model, simply create your own class that returns a custom
         launcher.run()
 
 
-If you want to create your own class with support for your model, look at the example classes included in the application in the ``llm`` directory - they can serve as a template. Each such custom wrapper must contain two methods: ``chat`` and ``completion``, which return the model's objects for ``chat`` and ``completion`` modes, respectively.
+To integrate your own model or provider into **PYGPT**, you can reference the sample classes located in the ``llm`` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.

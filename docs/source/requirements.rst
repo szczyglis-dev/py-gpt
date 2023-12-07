@@ -25,7 +25,7 @@ Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
 the application using the Python interpreter (at least version 3.9).
-You can also install application from PyPi (using ``pip install``).
+You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
 
 PyPi (pip)
 ```````````

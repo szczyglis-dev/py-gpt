@@ -3,20 +3,11 @@ Chat, completion, assistants and vision
 
 Chat
 ----
-This default mode operates very similarly to ``ChatGPT``, allowing you to engage in conversation 
-with models like ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. You have the flexibility 
-to switch between the currently active model at any time. This mode employs the `ChatCompletion API`.
+This mode in **PYGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
 
-The central area of the application interface features a chat window, with a user text input field (prompt) 
-just below it. On the right side of the application window, you can effortlessly define or modify 
-your system prompt for the model or craft a prompt preset and save it for future use. 
-This feature enables you to swiftly move between various model configurations, facilitating convenient 
-experimentation.
+The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
-Displayed between the chat window and the input field is a real-time calculation of the number of 
-tokens that a particular query will consume. Additionally, a file (attachment) upload functionality 
-is accessible here. Simply navigate to the `Files` tab to manage files and attachments, 
-which can be uploaded to the OpenAI API.
+Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the ``Files`` tab to manage your uploads or add attachments to send to the OpenAI API (but this takes effect only in `Assisant` and `Vision` modes)..
 
 .. image:: images/v2_mode_chat.png
    :width: 800
@@ -25,42 +16,26 @@ which can be uploaded to the OpenAI API.
 
 Text Completion
 ---------------
-This advanced mode is more comprehensive and offers greater utilization of Large Language Models (LLMs). 
-While operating similarly to a chat interface, it provides more configuration options and features than 
-standard chat interactions. In this mode, you can engage the model in a wider array of tasks, 
-such as text completion, simulating conversations as various characters, text analysis, and much more. 
-It grants access to any model supported by the OpenAI API as well as models available through Langchain integration.
+This advanced mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through ``Langchain``.
 
-As with chat mode, on the right side, you'll find handy presets that enable you to freely configure 
-the model and rapidly switch between different configurations and prompt templates.
+Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
 
-This mode also introduces fields for naming the AI and the user, allowing you to, for instance, 
-simulate conversations between fictional characters  -  like Batman and the Joker  -  if defined in 
-the starting prompt. These options open up creative opportunities to explore various dialogue 
-scenarios in a fun and imaginative way.
+Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
 .. image:: images/v2_mode_completion.png
    :width: 800
 
 In this mode, models from the ``davinci`` family within ``GPT-3`` are available. 
-**Note:** The `davinci` models are slated for deprecation in the near future.
+**Note:** The `davinci` models are tagged for deprecation in the near future.
 
 
 Assistants
 ----------
 This mode uses the new OpenAI's **Assistants API**.
 
-It looks similar to the standard chat mode but further provides access to tools such as a ``Code Interpreter``, 
-``Retrieval Files``, and ``Functions``. File uploads and downloads are also featured in this mode. 
-**PYGPT** offers pragmatic support for file management; you can rapidly upload your documents and efficiently 
-receive and handle files sent to you by the model.
+This mode expands on the basic chat functionality by including additional external tools like a ``Code Interpreter`` for executing code, ``Retrieval Files`` for accessing files, and custom ``Functions`` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PYGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
 
-Creating multiple assistants is a one-click process, and they automatically synchronize with the OpenAI API. 
-Importing your existing assistants from OpenAI is smooth and straightforward.
-
-Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
-uploads are supported. Simply navigate to the ``Files`` tab to effortlessly manage files and attachments which 
-can be sent to the OpenAI API.
+Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the ``OpenAI API``. Importing assistants you've previously created with OpenAI into **PYGPT** is also a seamless process.
 
 .. image:: images/v2_mode_assistant.png
    :width: 800
@@ -87,8 +62,8 @@ images and those found online.
 Langchain
 ----------
 
-This mode enables you to work with models that are supported by ``Langchain``. The Langchain wrapper is integrated 
-into the application, allowing you to connect to any Large Language Model by simply supplying a configuration 
+This mode enables you to work with models that are supported by ``Langchain``. The Langchain support is integrated 
+into the application, allowing you to interact with any LLM by simply supplying a configuration 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named ``models.json``.
 
@@ -104,5 +79,4 @@ Available LLMs providers supported by **PYGPT**:
 .. image:: images/v2_mode_langchain.png
    :width: 800
 
-You can create and add your own model wrapper for any specified model not included by default and then register it to application.
-How to do this is described in section ``Managing models / Adding models to Langchain``.
+You have the ability to add custom model wrappers for models that are not available by default in **PYGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.

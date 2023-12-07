@@ -8,7 +8,7 @@ PYGPT v2 - pygpt.net
 
 | **Last update:** 2023-12-16 15:00
 | **Project website:** https://pygpt.net
-| **Github:** https://github.com/szczyglis-dev/py-gpt
+| **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
 | **Release:** 2.0.0 (2023-12-06)
 

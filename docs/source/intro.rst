@@ -4,24 +4,15 @@ Introduction
 Overview
 ----------------
 
-**PYGPT** is an **"all-in-one"** desktop AI assistant that enables you to converse with ``OpenAI`` LLMs such as ``GPT-4``, 
-``GPT-4 Vision``, and ``GPT-3.5`` directly from your computer using the ``OpenAI API``. Additionally, the application supports alternative models, 
-for instance, those from ``HuggingFace``, facilitated through integrated ``Langchain`` support is built in.
+**PYGPT** is **all-in-one** desktop AI assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
 
-The assistant operates in various modes, including chat, assistant, and completion, as well as generating images 
-with ``DALL-E 3`` and analyzing images via ``GPT-4 Vision``. **PYGPT** also offers access to the filesystem for reading 
-and writing files, generates and executes Python code, runs system commands, and facilitates files 
-uploads and downloads. Moreover, it enables the model to access the internet using the ``Google Custom Search API``.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google Custom Search API``.
 
-Assistant supports speech synthesis via ``Microsoft Azure Text-to-Speech API`` and ``OpenAI's TTS API``, 
-along with speech recognition through ``OpenAI Whisper``. Additionally, **PYGPT** provides features such as context 
-memory support, context storage, and a history of contexts that can be restored at any moment - allowing users to, 
-for example, continue a conversation from a specific point in history. The app also offers a user-friendly 
-and intuitive presets system that simplifies prompt creation and management. 
-Plugin support is available for even more extended functionality.
+For audio interactions, **PYGPT** includes speech synthesis using the ``Microsoft Azure Text-to-Speech API`` and ``OpenAI's TTS API``. Additionally, it features speech recognition capabilities provided by ``OpenAI Whisper``, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, 
-and image generation, making **PYGPT** a versatile and comprehensive tool for various AI-driven tasks.
+**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, vision applications, natural language processing via Langchain, and creative image synthesis.
+
+Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
 
 .. image:: images/v2_main.png
    :width: 800
@@ -34,8 +25,8 @@ Features
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and ``GPT-3``, including any model accessible through ``Langchain``.
 * Handles and stores the full context of conversations (short-term memory).
 * Internet access via ``Google Custom Search API``.
-* Voice synthesis via ``Microsoft Azure TTS`` and ``OpenAI TTS``.
-* Voice recognition through ``OpenAI Whisper``.
+* Speech synthesis via ``Microsoft Azure TTS`` and ``OpenAI TTS``.
+* Speech recognition through ``OpenAI Whisper``.
 * Image analysis via ``GPT-4 Vision``.
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
 * Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
@@ -61,8 +52,8 @@ The application is free, open-source, and runs on PCs with ``Windows 10``, ``Win
 The full Python source code is available on ``GitHub``.
 
 
-**PYGPT uses the user's API key  -  to utilize the application, 
-you must possess a registered OpenAI account and your own API key.**
+**PYGPT uses the user's API key  -  to use the application, 
+you must have a registered OpenAI account and your own API key.**
 
 .. note::
    This application is not officially associated with OpenAI. The author shall not be held liable for any damages 

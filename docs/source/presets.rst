@@ -3,15 +3,9 @@ Presets
 
 What is preset?
 ----------------
-Presets (templates) are designed to save various configurations and allow you to use these 
-settings at any time. A preset encompasses the chosen mode of operation (chat, completion, or image generation), 
-an initialization (system) message, a name for the AI, a username, and the conversation "temperature" 
-(where a higher value creates more abstract responses from the model, and a lower value results in more 
-deterministic behavior). Presets function like *templates*. They can be applied in any mode and with models 
-provided by both the ``OpenAI API`` and ``Langchain``.
+Presets in **PYGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system message, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the ``OpenAI API`` or ``Langchain``.
 
-You're free to add as many presets as you wish and switch between them whenever needed. 
-Presets can also be duplicated, providing a starting point to create new ones based on existing configurations.
+The system lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
 .. image:: images/v2_preset.png
    :width: 600
