@@ -43,13 +43,15 @@ class Settings:
         :param id: settings id
         """
         if id == "settings":
-            self.window.config.data['api_key'] = self.window.config_option['api_key'].text()
-            self.window.config.data['organization_key'] = self.window.config_option['organization_key'].text()
-            self.window.config.data['img_resolution'] = self.window.config_option['img_resolution'].text()
-            self.window.config.data['ctx.auto_summary.system'] = self.window.config_option[
-                'ctx.auto_summary.system'].text()
-            self.window.config.data['ctx.auto_summary.prompt'] = self.window.config_option[
-                'ctx.auto_summary.prompt'].toPlainText()
+            # save settings from input fields
+            for option in self.options:
+                if 'type' not in self.options[option]:
+                    continue
+                type = self.options[option]['type']
+                if type == 'text':
+                    self.window.config.data[option] = self.window.config_option[option].text()
+                elif type == 'textarea':
+                    self.window.config.data[option] = self.window.config_option[option].toPlainText()
 
         info = trans('info.settings.saved')
         self.window.config.save()
@@ -177,30 +179,17 @@ class Settings:
         :param id: settings window id
         """
         if id == 'settings':
-            # slider + input
-            self.apply('temperature', self.window.config.data['temperature'])
-            self.apply('top_p', self.window.config.data['top_p'])
-            self.apply('frequency_penalty', self.window.config.data['frequency_penalty'])
-            self.apply('presence_penalty', self.window.config.data['presence_penalty'])
-            self.apply('context_threshold', self.window.config.data['context_threshold'])
-            self.apply('max_output_tokens', self.window.config.data['max_output_tokens'])
-            self.apply('max_total_tokens', self.window.config.data['max_total_tokens'])
-            self.apply('font_size', self.window.config.data['font_size'])
-            self.apply('font_size.input', self.window.config.data['font_size.input'])
-            self.apply('font_size.ctx', self.window.config.data['font_size.ctx'])
-
-            # input
-            self.change('api_key', self.window.config.data['api_key'])
-            self.change('organization_key', self.window.config.data['organization_key'])
-            self.change('img_resolution', self.window.config.data['img_resolution'])
-            self.change('ctx.auto_summary.system', self.window.config.data['ctx.auto_summary.system'])
-            self.change('ctx.auto_summary.prompt', self.window.config.data['ctx.auto_summary.prompt'])
-
-            # checkbox
-            self.toggle('use_context', self.window.config.data['use_context'])
-            self.toggle('store_history', self.window.config.data['store_history'])
-            self.toggle('store_history_time', self.window.config.data['store_history_time'])
-            self.toggle('ctx.auto_summary', self.window.config.data['ctx.auto_summary'])
+            for option in self.options:
+                if 'type' not in self.options[option]:
+                    continue
+                type = self.options[option]['type']
+                # apply initial settings from current config
+                if type == 'int' or type == 'float':
+                    self.apply(option, self.window.config.data[option])
+                elif type == 'bool':
+                    self.toggle(option, self.window.config.data[option])
+                elif type == 'text' or type == 'textarea':
+                    self.change(option, self.window.config.data[option])
 
     def toggle(self, id, value, section=None):
         """
