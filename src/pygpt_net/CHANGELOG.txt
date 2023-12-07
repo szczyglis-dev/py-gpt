@@ -1,3 +1,11 @@
+2.0.1 (2023-12-07)
+
+- Fixed settings dialog initialization
+- Added enter key behaviour settings
+- Added font size settings for input and context list
+- Added ctx auto-summary settings
+- Added python command plugin settings
+
 2.0.0 (2023-12-05)
 
 - Added support for new models: GPT-4 Turbo, GPT-4 Vision, and DALL-E 3

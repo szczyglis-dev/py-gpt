@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 10:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -22,6 +22,18 @@ class Plugin(BasePlugin):
         self.name = "Command: Code Interpreter"
         self.description = "Provides Python code execution"
         self.options = {}
+        self.options["python_cmd"] = {
+            "type": "text",
+            "slider": False,
+            "label": "Python command",
+            "description": "Python command to execute",
+            "tooltip": "Python command to execute",
+            "value": 'python3',
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
         self.window = None
         self.order = 100
         self.allowed_cmds = ["code_execute", "sys_exec"]
@@ -101,6 +113,7 @@ class Plugin(BasePlugin):
     def cmd_syntax(self, syntax):
         """Event: On cmd syntax prepare"""
         syntax += '\n"code_execute": create and execute Python code, params: "filename", "code"'
+        syntax += '\n"code_execute_file": execute Python code from existing file, params: "filename"'
         syntax += '\n"sys_exec": execute system command, params: "command"'
         return syntax
 
@@ -109,7 +122,29 @@ class Plugin(BasePlugin):
         for item in cmds:
             try:
                 if item["cmd"] in self.allowed_cmds:
-                    if item["cmd"] == "code_execute":
+                    if item["cmd"] == "code_execute_file":
+                        msg = "Executing Python file: {}".format(item["params"]['filename'])
+                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+
+                        # check if file exists
+                        if not os.path.isfile(path):
+                            msg = "File not found: {}".format(item["params"]['filename'])
+                            ctx.results.append({"request": item, "result": "File not found"})
+                            ctx.reply = True  # send result message
+                            continue
+
+                        # run code
+                        cmd = "{} {}".format(self.options["python_cmd"], path)
+                        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                                                   stderr=subprocess.PIPE)
+                        stdout, stderr = process.communicate()
+                        if stdout:
+                            ctx.results.append({"request": item, "result": stdout.decode("utf-8")})
+                        if stderr:
+                            ctx.results.append({"request": item, "result": stderr.decode("utf-8")})
+                        ctx.reply = True  # send result message
+
+                    elif item["cmd"] == "code_execute":
                         msg = "Saving Python file: {}".format(item["params"]['filename'])
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                         data = item["params"]['code']
@@ -118,7 +153,8 @@ class Plugin(BasePlugin):
                             file.close()
 
                         # run code
-                        process = subprocess.Popen("python3 {}".format(path), shell=True, stdout=subprocess.PIPE,
+                        cmd = "{} {}".format(self.options["python_cmd"], path)
+                        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
                         if stdout:

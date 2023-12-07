@@ -28,6 +28,14 @@ The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with t
 
 Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
+**Options:**
+
+``Python command`` *python_cmd*
+
+*Default:* `python3`
+
+Python command name.
+
 Command: Google Web Search
 --------------------------
 

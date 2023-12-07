@@ -64,13 +64,14 @@ class ChatInput(QTextEdit):
         super(ChatInput, self).keyPressEvent(event)
         self.window.controller.ui.update()
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            if self.window.config.data['send_shift_enter']:
-                modifiers = QApplication.keyboardModifiers()
-                if modifiers == QtCore.Qt.ShiftModifier:
+            if self.window.config.data['send_mode'] > 0:
+                if self.window.config.data['send_mode'] == 2:
+                    modifiers = QApplication.keyboardModifiers()
+                    if modifiers == QtCore.Qt.ShiftModifier:
+                        self.window.controller.input.user_send()
+                else:
                     self.window.controller.input.user_send()
-            else:
-                self.window.controller.input.user_send()
-            self.setFocus()
+                self.setFocus()
 
 
 class ChatOutput(QTextBrowser):

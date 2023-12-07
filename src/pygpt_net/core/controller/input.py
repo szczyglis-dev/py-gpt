@@ -45,13 +45,19 @@ class Input:
         else:
             self.window.data['input.send_clear'].setChecked(False)
 
-        # send with shift
-        if self.window.config.data['send_shift_enter']:
+        # send with enter/shift/disabled
+        if self.window.config.data['send_mode'] == 2:
             self.window.data['input.send_shift_enter'].setChecked(True)
             self.window.data['input.send_enter'].setChecked(False)
-        else:
+            self.window.data['input.send_none'].setChecked(False)
+        elif self.window.config.data['send_mode'] == 1:
             self.window.data['input.send_enter'].setChecked(True)
             self.window.data['input.send_shift_enter'].setChecked(False)
+            self.window.data['input.send_none'].setChecked(False)
+        elif self.window.config.data['send_mode'] == 0:
+            self.window.data['input.send_enter'].setChecked(False)
+            self.window.data['input.send_shift_enter'].setChecked(False)
+            self.window.data['input.send_none'].setChecked(True)
 
         # cmd enabled
         if self.window.config.data['cmd']:
@@ -92,7 +98,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.data['send_shift_enter'] = value
+        self.window.config.data['send_mode'] = value
 
     def lock_input(self):
         """

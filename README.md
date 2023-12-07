@@ -547,6 +547,14 @@ The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the k
 
 Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
+**Options:**
+
+- `Python command` *python_cmd*
+
+*Default:* `python3`
+
+Python command name.
+
 ## Command: Google Web Search
 
 **PYGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
@@ -934,6 +942,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.1 (2023-12-07)
+
+- Fixed settings dialog initialization
+- Added enter key behaviour settings
+- Added font size settings for input and context list
+- Added ctx auto-summary settings
+- Added python command plugin settings
 
 ## 2.0.0 (2023-12-05)
 

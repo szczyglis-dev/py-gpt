@@ -49,14 +49,21 @@ class Input:
             self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
-                not self.window.data['input.send_enter'].isChecked()))
+                1))
 
         self.window.data['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
         self.window.data['input.send_shift_enter'].setStyleSheet(
             self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_shift_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
-                self.window.data['input.send_shift_enter'].isChecked()))
+                2))
+
+        self.window.data['input.send_none'] = QRadioButton(trans("input.radio.none"))
+        self.window.data['input.send_none'].setStyleSheet(
+            self.window.controller.theme.get_style('radio'))  # Windows fix
+        self.window.data['input.send_none'].clicked.connect(
+            lambda: self.window.controller.input.toggle_send_shift(
+                0))
 
         self.window.data['input.send_clear'] = QCheckBox(trans('input.send_clear'))
         self.window.data['input.send_clear'].setStyleSheet(
@@ -87,6 +94,7 @@ class Input:
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_clear'])
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_enter'])
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_shift_enter'])
+        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_none'])
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_btn'])
         self.window.data['ui.input.buttons'].addWidget(self.window.data['input.stop_btn'])
         self.window.data['ui.input.buttons'].setAlignment(Qt.AlignRight)

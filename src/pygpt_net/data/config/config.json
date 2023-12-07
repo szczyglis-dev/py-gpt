@@ -12,7 +12,7 @@
   "context_threshold": 200,
   "cmd": true,
   "ctx": "",
-  "ctx.auto_summary": false,
+  "ctx.auto_summary": true,
   "ctx.auto_summary.prompt": "Summarize topic of this conversation in one sentence. Use best keywords to describe it. Summary must be in the same language as the conversation and it will be used for conversation title so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\nUser: {input}\nAI Assistant: {output}",
   "ctx.auto_summary.system": "You are an expert in conversation summarization",
   "current_model": {
@@ -73,7 +73,7 @@
   "preset": "current.chat",
   "prompt": "",
   "send_clear": true,
-  "send_shift_enter": false,
+  "send_mode": 1,
   "store_history": true,
   "store_history_time": true,
   "stream": true,

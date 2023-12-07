@@ -175,6 +175,10 @@ class Updater:
         current = parse_version(self.window.version)
         if old < current:
             if old < parse_version("2.0.1"):
+                if 'send_mode' not in data:
+                    data['send_mode'] = 1
+                if 'send_shift_enter' in data:
+                    del data['send_shift_enter']
                 if 'font_size.input' not in data:
                     data['font_size.input'] = 11
                 if 'font_size.ctx' not in data:
