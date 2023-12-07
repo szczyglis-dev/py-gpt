@@ -1,0 +1,198 @@
+{
+    "api_key": {
+        "type": "text",
+        "slider": false,
+        "label": "api_key",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        }
+    },
+    "organization_key": {
+        "type": "text",
+        "slider": false,
+        "label": "organization_key",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "extra": {
+            "bold": true
+        }
+    },
+    "temperature": {
+        "type": "float",
+        "slider": true,
+        "label": "temperature",
+        "value": 0.0,
+        "min": 0.0,
+        "max": 2.0,
+        "multiplier": 100,
+        "step": 1
+    },
+    "top_p": {
+        "type": "float",
+        "slider": true,
+        "label": "top_p",
+        "value": 0.0,
+        "min": 0.0,
+        "max": 2.0,
+        "multiplier": 100,
+        "step": 1
+    },
+    "frequency_penalty": {
+        "type": "float",
+        "slider": true,
+        "label": "frequency_penalty",
+        "value": 0.0,
+        "min": 0.0,
+        "max": 2.0,
+        "multiplier": 100,
+        "step": 1
+    },
+    "presence_penalty": {
+        "type": "float",
+        "slider": true,
+        "label": "presence_penalty",
+        "value": 0.0,
+        "min": 0.0,
+        "max": 2.0,
+        "multiplier": 100,
+        "step": 1
+    },
+    "use_context": {
+        "type": "bool",
+        "slider": false,
+        "label": "use_context",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "store_history": {
+        "type": "bool",
+        "slider": false,
+        "label": "store_history",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "store_history_time": {
+        "type": "bool",
+        "slider": false,
+        "label": "store_history_time",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "ctx.auto_summary": {
+        "type": "bool",
+        "slider": false,
+        "label": "ctx.auto_summary",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "context_threshold": {
+        "type": "int",
+        "slider": true,
+        "label": "context_threshold",
+        "value": 80,
+        "min": 1,
+        "max": 1000,
+        "multiplier": 1,
+        "step": 1
+    },
+    "max_output_tokens": {
+        "type": "int",
+        "slider": true,
+        "label": "max_output_tokens",
+        "value": 50,
+        "min": 0,
+        "max": 32000,
+        "multiplier": 1,
+        "step": 1
+    },
+    "max_total_tokens": {
+        "type": "int",
+        "slider": true,
+        "label": "max_total_tokens",
+        "value": 400,
+        "min": 0,
+        "max": 256000,
+        "multiplier": 1,
+        "step": 1
+    },
+    "font_size": {
+        "type": "int",
+        "slider": true,
+        "label": "font_size",
+        "value": 12,
+        "min": 8,
+        "max": 20,
+        "multiplier": 1,
+        "step": 1
+    },
+    "font_size.input": {
+        "type": "int",
+        "slider": true,
+        "label": "font_size.input",
+        "value": 12,
+        "min": 8,
+        "max": 20,
+        "multiplier": 1,
+        "step": 1
+    },
+    "font_size.ctx": {
+        "type": "int",
+        "slider": true,
+        "label": "font_size.ctx",
+        "value": 12,
+        "min": 8,
+        "max": 20,
+        "multiplier": 1,
+        "step": 1
+    },
+    "img_resolution": {
+        "type": "text",
+        "slider": false,
+        "label": "img_resolution",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "ctx.auto_summary.system": {
+        "type": "text",
+        "slider": false,
+        "label": "ctx.auto_summary.system",
+        "value": null,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "ctx.auto_summary.prompt": {
+        "type": "textarea",
+        "slider": false,
+        "label": "ctx.auto_summary.prompt",
+        "value": null,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    }
+}

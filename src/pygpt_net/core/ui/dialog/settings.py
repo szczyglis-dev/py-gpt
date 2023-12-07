@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 10:00:00                  #
+# Updated Date: 2023.12.07 17:00:00                  #
 # ================================================== #
+import json
+import os
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame
 
@@ -23,13 +25,27 @@ class Settings:
         :param window: main UI window object
         """
         self.window = window
+        self.options = {}
+
+    def load_options(self):
+        """Loads settings options from config file"""
+        path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
+        if not os.path.isfile(path):
+            return {}
+        with open(path) as f:
+            self.options = json.load(f)
+            f.close()
 
     def setup(self):
         """Setups settings dialog"""
 
+        # load settings options
+        self.load_options()
+
         id = "settings"
         path = self.window.config.path
 
+        # buttons
         self.window.data['settings.btn.defaults'] = QPushButton(trans("dialog.settings.btn.defaults"))
         self.window.data['settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
         self.window.data['settings.btn.defaults'].clicked.connect(
@@ -37,6 +53,7 @@ class Settings:
         self.window.data['settings.btn.save'].clicked.connect(
             lambda: self.window.controller.settings.save(id))
 
+        # bottom buttons layout
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['settings.btn.defaults'])
         bottom_layout.addWidget(self.window.data['settings.btn.save'])
@@ -44,92 +61,32 @@ class Settings:
         self.window.path_label[id] = QLabel(str(path))
         self.window.path_label[id].setStyleSheet("font-weight: bold;")
 
-        
+        # get settings options config
+        settings_options = self.get_options()
 
-        self.window.config_option['api_key'] = SettingsInput(self.window, 'api_key')
-        self.window.config_option['organization_key'] = SettingsInput(self.window, 'organization_key')
-        self.window.config_option['img_resolution'] = SettingsInput(self.window, 'img_resolution')
-        self.window.config_option['temperature'] = SettingsSlider(self.window, 'temperature',
-                                                                  '', 0, 200,
-                                                                  1, 100)
-        self.window.config_option['top_p'] = SettingsSlider(self.window, 'top_p',
-                                                            '', 0, 200,
-                                                            1, 100)
-        self.window.config_option['frequency_penalty'] = SettingsSlider(self.window, 'frequency_penalty',
-                                                                        '', 0, 200,
-                                                                        1, 0)
-        self.window.config_option['presence_penalty'] = SettingsSlider(self.window, 'presence_penalty',
-                                                                       '', 0, 200,
-                                                                       1, 0)
-        self.window.config_option['use_context'] = SettingsCheckbox(self.window, 'use_context',
-                                                                    trans('settings.use_context'))
-        self.window.config_option['store_history'] = SettingsCheckbox(self.window, 'store_history',
-                                                                      trans('settings.store_history'))
-        self.window.config_option['store_history_time'] = SettingsCheckbox(self.window, 'store_history_time',
-                                                                           trans('settings.store_history_time'))
-        self.window.config_option['context_threshold'] = SettingsSlider(self.window, 'context_threshold',
-                                                                        '', 0, 1000,
-                                                                        1, 80)
-        self.window.config_option['max_output_tokens'] = SettingsSlider(self.window, 'max_output_tokens',
-                                                                        '', 1, 32000,
-                                                                        1, 50)
-        self.window.config_option['max_total_tokens'] = SettingsSlider(self.window, 'max_total_tokens',
-                                                                       '', 1, 256000,
-                                                                       1, 400)
-        self.window.config_option['font_size'] = SettingsSlider(self.window, 'font_size',
-                                                                '', 8, 20,
-                                                                1, 12)
-        self.window.config_option['font_size.input'] = SettingsSlider(self.window, 'font_size.input',
-                                                                      '', 8, 20,
-                                                                      1, 12)
-        self.window.config_option['font_size.ctx'] = SettingsSlider(self.window, 'font_size.ctx',
-                                                                    '', 8, 20,
-                                                                    1, 12)
+        # build settings widgets
+        settings_widgets = self.build_settings_widgets(settings_options)
 
-        # v2.0.1
-        self.window.config_option['ctx.auto_summary'] = SettingsCheckbox(self.window, 'ctx.auto_summary',
-                                                                         trans('settings.ctx.auto_summary'))
-        self.window.config_option['ctx.auto_summary.system'] = SettingsInput(self.window, 'ctx.auto_summary.system')
-        self.window.config_option['ctx.auto_summary.prompt'] = SettingsTextarea(self.window, 'ctx.auto_summary.prompt')
+        # apply settings widgets
+        for key in settings_widgets:
+            self.window.config_option[key] = settings_widgets[key]
 
+        # apply widgets to layouts
         options = {}
-        options['api_key'] = self.add_option('settings.api_key', self.window.config_option['api_key'], 'text', True)
-        options['organization_key'] = self.add_option('settings.organization_key',
-                                                      self.window.config_option['organization_key'], 'text', True)
-        options['temperature'] = self.add_option('settings.temperature', self.window.config_option['temperature'],
-                                                 'float')
-        options['top_p'] = self.add_option('settings.top_p', self.window.config_option['top_p'], 'float')
-        options['frequency_penalty'] = self.add_option('settings.frequency_penalty',
-                                                       self.window.config_option['frequency_penalty'], 'float')
-        options['presence_penalty'] = self.add_option('settings.presence_penalty',
-                                                      self.window.config_option['presence_penalty'], 'float')
-        options['use_context'] = self.add_raw_option(self.window.config_option['use_context'], 'bool')
-        options['store_history'] = self.add_raw_option(self.window.config_option['store_history'], 'bool')
-        options['store_history_time'] = self.add_raw_option(self.window.config_option['store_history_time'], 'bool')
-        options['context_threshold'] = self.add_option('settings.context_threshold',
-                                                       self.window.config_option['context_threshold'], 'int')
-        options['max_output_tokens'] = self.add_option('settings.max_output_tokens',
-                                                       self.window.config_option['max_output_tokens'], 'int')
-        options['max_total_tokens'] = self.add_option('settings.max_total_tokens',
-                                                      self.window.config_option['max_total_tokens'], 'int')
-        options['font_size'] = self.add_option('settings.font_size',
-                                               self.window.config_option['font_size'], 'int')
-        options['font_size.input'] = self.add_option('settings.font_size.input',
-                                                     self.window.config_option['font_size.input'], 'int')
-        options['font_size.ctx'] = self.add_option('settings.font_size.ctx',
-                                                   self.window.config_option['font_size.ctx'], 'int')
-        options['img_resolution'] = self.add_option('settings.img_resolution',
-                                                    self.window.config_option['img_resolution'], 'text')
+        for key in settings_widgets:
+            type = settings_options[key]['type']
+            label = 'settings.' + settings_options[key]['label']
+            extra = {}
+            if 'extra' in settings_options[key]:
+                extra = settings_options[key]['extra']
+            if type == 'text' or type == 'int' or type == 'float':
+                options[key] = self.add_option(label, settings_widgets[key], type, extra)
+            elif type == 'textarea':
+                options[key] = self.add_row_option(label, settings_widgets[key], type, extra)
+            elif type == 'bool':
+                options[key] = self.add_raw_option(settings_widgets[key], type)
 
-        # v2.0.1
-        options['ctx.auto_summary'] = self.add_raw_option(self.window.config_option['ctx.auto_summary'])
-        options['ctx.auto_summary.system'] = self.add_option('settings.ctx.auto_summary.system',
-                                                             self.window.config_option['ctx.auto_summary.system'],
-                                                             'text')
-        options['ctx.auto_summary.prompt'] = self.add_row_option('settings.ctx.auto_summary.prompt',
-                                                                 self.window.config_option['ctx.auto_summary.prompt'],
-                                                                 'textarea')
-
+        # API keys at the top
         rows = QVBoxLayout()
         rows.addLayout(options['api_key'])
         rows.addLayout(options['organization_key'])
@@ -141,11 +98,11 @@ class Settings:
         scroll_content = QVBoxLayout()
         scroll_content.addWidget(line)
 
+        # append widgets options layouts to scroll area
         for option in options.values():
-            # prevent already added options
+            # prevent already added options from being added again
             if option in [options['api_key'], options['organization_key']]:
                 continue
-
             # add option
             scroll_content.addLayout(option)
             line = self.add_line()
@@ -153,17 +110,70 @@ class Settings:
 
         scroll_widget = QWidget()
         scroll_widget.setLayout(scroll_content)
-
         scroll.setWidget(scroll_widget)
 
         layout = QVBoxLayout()
-        layout.addLayout(rows)
-        layout.addWidget(scroll)
-        layout.addLayout(bottom_layout)
+        layout.addLayout(rows)  # api keys
+        layout.addWidget(scroll)  # rest of options widgets
+        layout.addLayout(bottom_layout)  # buttons (save, defaults)
 
         self.window.dialog['config.' + id] = SettingsDialog(self.window, id)
         self.window.dialog['config.' + id].setLayout(layout)
         self.window.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
+
+    def build_settings_widgets(self, options):
+        widgets = {}
+        for key in options:
+            option = options[key]
+            label = options[key]['label']
+
+            # create widget by option type
+            if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
+                if 'slider' in option and option['slider'] \
+                        and (option['type'] == 'int' or option['type'] == 'float'):
+                    min = 0
+                    max = 1
+                    step = 1
+
+                    if 'min' in option:
+                        min = option['min']
+                    if 'max' in option:
+                        max = option['max']
+                    if 'step' in option:
+                        step = option['step']
+                    value = min
+                    if 'value' in option:
+                        value = option['value']
+
+                    multiplier = 1
+                    if 'multiplier' in option:
+                        multiplier = option['multiplier']
+
+                    if option['type'] == 'float':
+                        value = value * multiplier  # multiplier makes effect only on float
+                        min = min * multiplier
+                        max = max * multiplier
+                        # step = step * multiplier
+                    elif option['type'] == 'int':
+                        value = int(value)
+
+                    # slider + text input
+                    widgets[key] = SettingsSlider(self.window, label, '',
+                                                           min,
+                                                           max,
+                                                           step,
+                                                           value)
+                else:
+                    # text input
+                    widgets[key] = SettingsInput(self.window, label)
+            elif option['type'] == 'textarea':
+                # textarea
+                widgets[key] = SettingsTextarea(self.window, label)
+            elif option['type'] == 'bool':
+                # checkbox
+                widgets[key] = SettingsCheckbox(self.window, label, trans('settings.' + key))
+
+        return widgets
 
     def add_line(self):
         """
@@ -174,7 +184,7 @@ class Settings:
         line.setFrameShadow(QFrame.Sunken)
         return line
 
-    def add_option(self, title, option, type, bold=False):
+    def add_option(self, title, option, type, extra=None):
         """
         Adds option
 
@@ -185,7 +195,7 @@ class Settings:
         """
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
-        if bold:
+        if extra is not None and 'bold' in extra and extra['bold']:
             self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
         layout.addWidget(self.window.data[label_key])
@@ -195,7 +205,7 @@ class Settings:
             self.window.data[label_key].setMinimumHeight(60)
         return layout
 
-    def add_row_option(self, title, option, type, bold=False):
+    def add_row_option(self, title, option, type, extra=None):
         """
         Adds option
 
@@ -206,7 +216,7 @@ class Settings:
         """
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
-        if bold:
+        if extra is not None and 'bold' in extra and extra['bold']:
             self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QVBoxLayout()
         layout.addWidget(self.window.data[label_key])
@@ -226,3 +236,6 @@ class Settings:
         layout = QHBoxLayout()
         layout.addWidget(option)
         return layout
+
+    def get_options(self):
+        return self.options
