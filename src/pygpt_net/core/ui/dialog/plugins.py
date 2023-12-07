@@ -9,9 +9,11 @@
 # Updated Date: 2023.12.07 14:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget
 
-from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea
+from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea, \
+    PluginSelectMenu
 from ...utils import trans
 
 
@@ -136,8 +138,24 @@ class Plugins:
         self.window.tabs['plugin.settings'].currentChanged.connect(
             lambda: self.window.controller.plugins.set_plugin_by_tab(self.window.tabs['plugin.settings'].currentIndex()))
 
+        # plugins list
+        id = 'plugin.list'
+        self.window.data[id] = PluginSelectMenu(self.window, id)
+        self.window.models[id] = self.create_model(self.window)
+        self.window.data[id].setModel(self.window.models[id])
+
+        data = {}
+        for plugin_id in self.window.controller.plugins.handler.plugins:
+            plugin = self.window.controller.plugins.handler.plugins[plugin_id]
+            data[plugin_id] = plugin
+        self.update_list(id, data)
+
+        main_layout = QHBoxLayout()
+        main_layout.addWidget(self.window.data[id])
+        main_layout.addWidget(self.window.tabs['plugin.settings'])
+
         layout = QVBoxLayout()
-        layout.addWidget(self.window.tabs['plugin.settings'])  # plugins tabs
+        layout.addLayout(main_layout)  # plugins tabs
         layout.addLayout(bottom_layout)  # bottom buttons (save, defaults)
 
         self.window.dialog[dialog_id] = PluginSettingsDialog(self.window, dialog_id)
@@ -194,3 +212,27 @@ class Plugins:
         layout = QHBoxLayout()
         layout.addWidget(option)
         return layout
+
+    def create_model(self, parent):
+        """
+        Creates list model
+        :param parent: parent widget
+        :return: QStandardItemModel
+        """
+        model = QStandardItemModel(0, 1, parent)
+        return model
+
+    def update_list(self, id, data):
+        """
+        Updates list
+
+        :param id: ID of the list
+        :param data: Data to update
+        """
+        self.window.models[id].removeRows(0, self.window.models[id].rowCount())
+        i = 0
+        for n in data:
+            self.window.models[id].insertRow(i)
+            name = data[n].name
+            self.window.models[id].setData(self.window.models[id].index(i, 0), name)
+            i += 1

@@ -106,7 +106,7 @@ class Plugins:
             self.config_initialized = True
         if not self.config_dialog:
             self.init_settings()
-            self.window.ui.dialogs.open('plugin_settings', width=600, height=500)
+            self.window.ui.dialogs.open('plugin_settings', width=800, height=500)
             self.config_dialog = True
 
     def init_settings(self):
@@ -296,6 +296,8 @@ class Plugins:
                     self.current_plugin = id
                     break
                 plugin_idx += 1
+        current = self.window.models['plugin.list'].index(idx, 0)
+        self.window.data['plugin.list'].setCurrentIndex(current)
 
     def update_info(self):
         """Updates plugins info"""

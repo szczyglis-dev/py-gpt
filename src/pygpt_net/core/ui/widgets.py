@@ -468,6 +468,34 @@ class AttachmentSelectMenu(SelectMenu):
             self.window.controller.attachment.delete(idx)
 
 
+class PluginSelectMenu(SelectMenu):
+    def __init__(self, window=None, id=None):
+        """
+        Plugin select menu
+
+        :param window: main window
+        :param id: input id
+        """
+        super(PluginSelectMenu, self).__init__(window)
+        self.window = window
+        self.id = id
+
+        self.doubleClicked.connect(self.dblclick)
+
+    def click(self, val):
+        idx = val.row()
+        self.window.tabs['plugin.settings'].setCurrentIndex(idx)
+        self.window.controller.plugins.set_plugin_by_tab(idx)
+
+    def dblclick(self, val):
+        """
+        Double click event
+
+        :param val: double click event
+        """
+        self.window.controller.presets.edit(val.row())
+
+
 class DebugDialog(QDialog):
     def __init__(self, window=None, id=None):
         """
