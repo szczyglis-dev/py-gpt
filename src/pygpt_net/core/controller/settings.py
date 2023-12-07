@@ -209,16 +209,13 @@ class Settings:
             self.window.controller.plugins.config_toggle(id, value)
             return
 
-        # dialog: settings
-        if id == 'store_history':
-            self.window.config.data['store_history'] = value
-        elif id == 'store_history_time':
-            self.window.config.data['store_history_time'] = value
-        elif id == 'use_context':
-            self.window.config.data['use_context'] = value
-        elif id == 'ctx.auto_summary':
-            self.window.config.data['ctx.auto_summary'] = value
+        # dialog: settings, apply boolean values to config
+        if id in self.options:
+            if 'type' in self.options[id]:
+                if self.options[id]['type'] == 'bool':
+                    self.window.config.data[id] = value
 
+        # update checkbox
         self.window.config_option[id].box.setChecked(value)
 
     def change(self, id, value, section=None):
@@ -239,24 +236,27 @@ class Settings:
             self.window.controller.plugins.config_change(id, value)
             return
 
-        # dialog: settings
-        if id == 'temperature' \
-                or id == 'top_p' \
-                or id == 'frequency_penalty' \
-                or id == 'presence_penalty':
-            if value < 0:
-                value = 0.0
-            elif value > 2:
-                value = 2.0
-            self.window.config.data[id] = value
-        elif id == 'context_threshold':
-            if value < 0:
-                value = 0.0
-            elif value > 1000:
-                value = 1000
-            self.window.config.data[id] = round(int(value), 0)
-        else:
-            self.window.config.data[id] = value
+        # update config value
+        if id in self.options:
+            if 'type' in self.options[id]:
+                option = self.options[id]
+                # floats
+                if option['type'] == 'float':
+                    if value < option['min']:
+                        value = option['min']
+                    elif value > option['max']:
+                        value = option['max']
+                    self.window.config.data[id] = value
+                # integers
+                elif option['type'] == 'int':
+                    if value < option['min']:
+                        value = option['min']
+                    elif value > option['max']:
+                        value = option['max']
+                    self.window.config.data[id] = round(int(value), 0)
+                # text
+                else:
+                    self.window.config.data[id] = value
 
         # update font size in real time
         if id.startswith('font_size'):
