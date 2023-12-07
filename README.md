@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.2** build: **2023.12.07** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.3** build: **2023.12.07** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -942,6 +942,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.3 (2023-12-07)
+
+- Python code execution fix
 
 ## 2.0.2 (2023-12-07)
 

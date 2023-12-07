@@ -153,7 +153,7 @@ class Plugin(BasePlugin):
                             file.close()
 
                         # run code
-                        cmd = "{} {}".format(self.options["python_cmd"], path)
+                        cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
                         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
