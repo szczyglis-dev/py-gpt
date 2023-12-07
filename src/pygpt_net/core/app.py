@@ -147,6 +147,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.timer.timeout.connect(self.update)
         self.timer.start(30)
 
+    def post_setup(self):
+        """Called after setup"""
+        self.controller.layout.post_setup()
+
     def update(self):
         """Called on update"""
         self.debugger.update()
@@ -175,6 +179,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.plugins.destroy()
         print("Saving notepad...")
         self.controller.notepad.save()
+        print("Saving layout state...")
+        self.controller.layout.save()
+        print("Stopping event loop...")
         self.timer.stop()
         print("Saving config...")
         self.config.save()
@@ -221,6 +228,7 @@ class Launcher:
         # self.window.showMaximized()
         self.window.show()
         self.window.move(pos)
+        self.window.post_setup()
 
         try:
             sys.exit(self.app.exec())

@@ -129,16 +129,16 @@ class Input:
         files_tab.setLayout(files_layout)
 
         # tabs (input + attachments)
-        self.window.data['input.tabs'] = QTabWidget()
+        self.window.tabs['input'] = QTabWidget()
 
         # add tabs
-        self.window.data['input.tabs'].addTab(input_tab, trans('input.tab'))
-        self.window.data['input.tabs'].addTab(files_tab, trans('attachments.tab'))
+        self.window.tabs['input'].addTab(input_tab, trans('input.tab'))
+        self.window.tabs['input'].addTab(files_tab, trans('attachments.tab'))
 
         # full input layout
         layout = QVBoxLayout()
         layout.addLayout(header)
-        layout.addWidget(self.window.data['input.tabs'])
+        layout.addWidget(self.window.tabs['input'])
         layout.addLayout(bottom_layout)
 
         return layout

@@ -31,6 +31,8 @@ class UI:
         self.window.data = {}
         self.window.plugin_data = {}
         self.window.menus = {}
+        self.window.splitters = {}
+        self.window.tabs = {}
         self.window.models = {}
         self.window.path_label = {}
         self.window.config_option = {}
@@ -57,14 +59,11 @@ class UI:
         self.window.ctx.setMinimumWidth(200)
 
         # horizontal splitter
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(self.window.ctx)  # contexts
-        splitter.addWidget(self.window.chat)  # chat box
-        splitter.addWidget(self.window.toolbox)  # toolbox
-        #splitter.setStretchFactor(0, 3)
-        #splitter.setStretchFactor(2, 9)
-        #splitter.setStretchFactor(1, 3)
-        splitter.setSizes([1, 8, 1])
+        self.window.splitters['main'] = QSplitter(Qt.Horizontal)
+        self.window.splitters['main'].addWidget(self.window.ctx)  # contexts
+        self.window.splitters['main'].addWidget(self.window.chat)  # chat box
+        self.window.splitters['main'].addWidget(self.window.toolbox)  # toolbox
+        self.window.splitters['main'].setSizes([1, 8, 1])
 
         # menu
         self.menu.setup()
@@ -73,4 +72,4 @@ class UI:
         self.dialogs.setup()
 
         # set central widget
-        self.window.setCentralWidget(splitter)
+        self.window.setCentralWidget(self.window.splitters['main'])

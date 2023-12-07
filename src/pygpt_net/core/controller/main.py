@@ -29,6 +29,7 @@ from .attachment import Attachment
 from .notepad import Notepad
 from .files import Files
 from .assistant import Assistant
+from .layout import Layout
 
 
 class Controller:
@@ -59,11 +60,12 @@ class Controller:
         self.notepad = Notepad(window)
         self.files = Files(window)
         self.assistant = Assistant(window)
+        self.layout = Layout(window)
 
     def setup(self):
         """Setups controller"""
         # init material theme
-        self.theme.setup()
+        self.layout.setup()
 
         # setup all controllers
         self.lang.setup()

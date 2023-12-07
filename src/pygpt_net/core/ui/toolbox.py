@@ -40,9 +40,9 @@ class Toolbox:
         model_widget.setLayout(self.setup_list('prompt.model', trans("toolbox.model.label")))
         mode_widget.setMinimumHeight(150)
 
-        modes_splitter = QSplitter(Qt.Horizontal)
-        modes_splitter.addWidget(mode_widget)
-        modes_splitter.addWidget(model_widget)
+        self.window.splitters['toolbox.mode'] = QSplitter(Qt.Horizontal)
+        self.window.splitters['toolbox.mode'].addWidget(mode_widget)
+        self.window.splitters['toolbox.mode'].addWidget(model_widget)
 
         # presets
         presets = self.setup_presets('preset.presets', trans("toolbox.presets.label"))
@@ -67,14 +67,14 @@ class Toolbox:
         prompt_widget = QWidget()
         prompt_widget.setLayout(prompt)
 
-        middle_layout = QSplitter(Qt.Horizontal)
-        middle_layout.addWidget(self.window.data['presets.widget'])  # prompts list
-        middle_layout.addWidget(self.window.data['assistants.widget'])  # assistants list
+        self.window.splitters['toolbox.presets'] = QSplitter(Qt.Horizontal)
+        self.window.splitters['toolbox.presets'].addWidget(self.window.data['presets.widget'])  # prompts list
+        self.window.splitters['toolbox.presets'].addWidget(self.window.data['assistants.widget'])  # assistants list
 
-        layout = QSplitter(Qt.Vertical)
-        layout.addWidget(modes_splitter)  # mode and model list
-        layout.addWidget(middle_layout)  # presets and assistants list
-        layout.addWidget(prompt_widget)  # prompt text (editable)
+        self.window.splitters['toolbox'] = QSplitter(Qt.Vertical)
+        self.window.splitters['toolbox'].addWidget(self.window.splitters['toolbox.mode'])  # mode and model list
+        self.window.splitters['toolbox'].addWidget(self.window.splitters['toolbox.presets'])  # presets and assistants list
+        self.window.splitters['toolbox'].addWidget(prompt_widget)  # prompt text (editable)
 
         # AI and users names
         names_layout = QHBoxLayout()
@@ -123,9 +123,9 @@ class Toolbox:
         names_widget = QWidget()
         names_widget.setLayout(bottom_layout)
 
-        layout.addWidget(names_widget)
+        self.window.splitters['toolbox'].addWidget(names_widget)
 
-        return layout
+        return self.window.splitters['toolbox']
 
     def setup_prompt(self):
         """

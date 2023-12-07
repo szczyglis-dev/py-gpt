@@ -195,8 +195,8 @@ class Lang:
         self.window.data['start.btn'].setText(trans('dialog.start.btn'))
 
         # input tabs
-        self.window.data['input.tabs'].setTabText(0, trans('input.tab'))
-        self.window.data['input.tabs'].setTabText(1, trans('attachments.tab'))
+        self.window.tabs['input'].setTabText(0, trans('input.tab'))
+        self.window.tabs['input'].setTabText(1, trans('attachments.tab'))
         self.window.data['attachments.btn.add'].setText(trans('attachments.btn.add'))
         self.window.data['attachments.btn.clear'].setText(trans('attachments.btn.clear'))
 

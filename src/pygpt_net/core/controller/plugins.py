@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -51,7 +51,11 @@ class Plugins:
 
     def setup_settings(self):
         """Sets up plugins settings"""
-        self.window.plugin_settings.setup()
+        idx = None
+        # restore previous selected or restored tab on dialog create
+        if 'plugin.settings' in self.window.tabs:
+            idx = self.window.tabs['plugin.settings'].currentIndex()
+        self.window.plugin_settings.setup(idx)  # widget dialog Plugins
 
     def setup_menu(self):
         """Sets up plugins menu"""
@@ -108,10 +112,13 @@ class Plugins:
     def init_settings(self):
         """Initializes plugins settings options"""
         selected_plugin = self.current_plugin
+
+        # select first plugin on list if no plugin selected yet
         if selected_plugin is None:
             if len(self.handler.plugins) > 0:
                 selected_plugin = list(self.handler.plugins.keys())[0]
 
+        # assign plugin options to config dialog fields
         for id in self.handler.plugins:
             plugin = self.handler.plugins[id]
             options = plugin.setup()  # get plugin options
@@ -131,7 +138,7 @@ class Plugins:
                 elif option['type'] == 'bool':
                     self.config_toggle(option_id, option['value'])
 
-        self.current_plugin = selected_plugin
+        self.current_plugin = selected_plugin  # restore selected plugin
 
     def save_settings(self):
         """Saves plugins settings"""

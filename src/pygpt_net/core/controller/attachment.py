@@ -56,7 +56,7 @@ class Attachment:
         suffix = ''
         if num_files > 0:
             suffix = f' ({num_files})'
-        self.window.data['input.tabs'].setTabText(1, trans('attachments.tab') + suffix)
+        self.window.tabs['input'].setTabText(1, trans('attachments.tab') + suffix)
 
     def select(self, mode, idx):
         """

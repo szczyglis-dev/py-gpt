@@ -78,20 +78,20 @@ class ChatBox:
         header.addWidget(self.window.data['chat.model'])
 
         # tabs
-        self.window.data['output.tabs'] = QTabWidget()
+        self.window.tabs['output'] = QTabWidget()
 
         # add tabs
-        self.window.data['output.tabs'].addTab(self.window.data['output'], trans('output.tab.chat'))
-        self.window.data['output.tabs'].addTab(self.window.data['output_files'], trans('output.tab.files'))
-        self.window.data['output.tabs'].addTab(self.window.data['notepad1'], trans('output.tab.notepad') + " 1")
-        self.window.data['output.tabs'].addTab(self.window.data['notepad2'], trans('output.tab.notepad') + " 2")
-        self.window.data['output.tabs'].addTab(self.window.data['notepad3'], trans('output.tab.notepad') + " 3")
-        self.window.data['output.tabs'].addTab(self.window.data['notepad4'], trans('output.tab.notepad') + " 4")
-        self.window.data['output.tabs'].addTab(self.window.data['notepad5'], trans('output.tab.notepad') + " 5")
+        self.window.tabs['output'].addTab(self.window.data['output'], trans('output.tab.chat'))
+        self.window.tabs['output'].addTab(self.window.data['output_files'], trans('output.tab.files'))
+        self.window.tabs['output'].addTab(self.window.data['notepad1'], trans('output.tab.notepad') + " 1")
+        self.window.tabs['output'].addTab(self.window.data['notepad2'], trans('output.tab.notepad') + " 2")
+        self.window.tabs['output'].addTab(self.window.data['notepad3'], trans('output.tab.notepad') + " 3")
+        self.window.tabs['output'].addTab(self.window.data['notepad4'], trans('output.tab.notepad') + " 4")
+        self.window.tabs['output'].addTab(self.window.data['notepad5'], trans('output.tab.notepad') + " 5")
 
         layout = QVBoxLayout()
         layout.addLayout(header)
-        layout.addWidget(self.window.data['output.tabs'])
+        layout.addWidget(self.window.tabs['output'])
         layout.addLayout(context_layout)
 
         output_widget = QWidget()
@@ -101,13 +101,13 @@ class ChatBox:
         input_widget.setLayout(self.window.layout_input)
 
         # main vertical splitter
-        vsplitter = QSplitter(Qt.Vertical)
-        vsplitter.addWidget(output_widget)
-        vsplitter.addWidget(input_widget)
-        vsplitter.setStretchFactor(0, 4)
-        vsplitter.setStretchFactor(1, 1)
+        self.window.splitters['main.output'] = QSplitter(Qt.Vertical)
+        self.window.splitters['main.output'].addWidget(output_widget)
+        self.window.splitters['main.output'].addWidget(input_widget)
+        self.window.splitters['main.output'].setStretchFactor(0, 4)
+        self.window.splitters['main.output'].setStretchFactor(1, 1)
 
-        return vsplitter
+        return self.window.splitters['main.output']
 
     def setup_context(self):
         """

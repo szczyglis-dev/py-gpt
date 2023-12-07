@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.07 14:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget
@@ -24,7 +24,7 @@ class Plugins:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self, idx=None):
         """Setups plugin settings dialog"""
 
         dialog_id = "plugin_settings"
@@ -42,7 +42,7 @@ class Plugins:
         bottom_layout.addWidget(self.window.data['settings.btn.save'])
 
         # plugins tabs
-        tabs = QTabWidget()
+        self.window.tabs['plugin.settings'] = QTabWidget()
 
         for id in self.window.controller.plugins.handler.plugins:
             plugin = self.window.controller.plugins.handler.plugins[id]
@@ -131,18 +131,26 @@ class Plugins:
             area_widget.setLayout(area)
 
             # append to tab
-            tabs.addTab(area_widget, plugin.name)
+            self.window.tabs['plugin.settings'].addTab(area_widget, plugin.name)
 
-        tabs.currentChanged.connect(
-            lambda: self.window.controller.plugins.set_plugin_by_tab(tabs.currentIndex()))
+        self.window.tabs['plugin.settings'].currentChanged.connect(
+            lambda: self.window.controller.plugins.set_plugin_by_tab(self.window.tabs['plugin.settings'].currentIndex()))
 
         layout = QVBoxLayout()
-        layout.addWidget(tabs)  # plugins tabs
+        layout.addWidget(self.window.tabs['plugin.settings'])  # plugins tabs
         layout.addLayout(bottom_layout)  # bottom buttons (save, defaults)
 
         self.window.dialog[dialog_id] = PluginSettingsDialog(self.window, dialog_id)
         self.window.dialog[dialog_id].setLayout(layout)
         self.window.dialog[dialog_id].setWindowTitle(trans('dialog.plugin_settings'))
+
+        # restore current opened tab if idx is set
+        if idx is not None:
+            try:
+                self.window.tabs['plugin.settings'].setCurrentIndex(idx)
+                self.window.controller.plugins.set_plugin_by_tab(idx)
+            except:
+                print('Cannot restore plugin settings tab: {}'.format(idx))
 
     def add_option(self, key, option, widget):
         """
