@@ -1,3 +1,11 @@
+2.0.2 (2023-12-07)
+
+- Added python command template settings
+- Added layout state restore
+- Refactored settings
+- Improved settings window
+- Bugfixes
+
 2.0.1 (2023-12-07)
 
 - Fixed settings dialog initialization

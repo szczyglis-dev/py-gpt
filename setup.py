@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.1'
+VERSION = '2.0.2'
 DESCRIPTION = 'GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, text completion and ' \
               'image analyze and image generation'
 LONG_DESCRIPTION = 'A package containing a GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant, chatbot, ' \

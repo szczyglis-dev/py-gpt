@@ -30,11 +30,11 @@ Another feature is the ability to execute system commands and return their resul
 
 **Options:**
 
-``Python command`` *python_cmd*
+``Python command template`` *python_cmd_tpl*
 
-*Default:* `python3`
+*Default:* `python3 {filename}`
 
-Python command name.
+Python command template.
 
 Command: Google Web Search
 --------------------------

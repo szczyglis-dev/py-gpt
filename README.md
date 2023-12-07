@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.1** build: **2023.12.07** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.2** build: **2023.12.07** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -549,11 +549,11 @@ Another feature is the ability to execute system commands and return their resul
 
 **Options:**
 
-- `Python command` *python_cmd*
+- `Python command template` *python_cmd_tpl*
 
-*Default:* `python3`
+*Default:* `python3 {filename}`
 
-Python command name.
+Python command template.
 
 ## Command: Google Web Search
 
@@ -942,6 +942,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.2 (2023-12-07)
+
+- Added python command template settings
+- Added layout state restore
+- Refactored settings
+- Improved settings window
+- Bugfixes
 
 ## 2.0.1 (2023-12-07)
 
