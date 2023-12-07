@@ -297,6 +297,8 @@ class Settings:
             self.window.controller.plugins.config_slider(id, value, type)
             return
 
+        orig_value = value
+
         # dialog: settings or global settings
         option_type = None
         multiplier = 1  # default multiplier
@@ -328,19 +330,21 @@ class Settings:
                                 value = option['max']
                             self.window.config_option[id].input.setText(str(value))
 
+        if id in self.float_values:
+            multiplier = self.float_values[id]['multiplier']
+        elif id in self.integer_values:
+            multiplier = self.integer_values[id]['multiplier']
+
         if type != 'slider':
             if id in self.float_values or id in self.integer_values:
                 min = None
                 max = None
                 if id in self.float_values:
-                    multiplier = self.float_values[id]['multiplier']
                     min = self.float_values[id]['min']
                     max = self.float_values[id]['max']
                 elif id in self.integer_values:
-                    multiplier = self.integer_values[id]['multiplier']
                     min = self.integer_values[id]['min']
                     max = self.integer_values[id]['max']
-
                 try:
                     if id in self.float_values:
                         value = float(value)
@@ -349,7 +353,6 @@ class Settings:
                 except:
                     value = min
                     self.window.config_option[id].input.setText(str(value))
-
                 # fix min max values
                 if value < min:
                     value = min
@@ -416,6 +419,10 @@ class Settings:
         # update from raw value
         if id.startswith('font_size'):
             self.update_font_size()  # update font size in real time
+
+        # update current
+        if id == "temperature":
+            self.apply('current_temperature', input_value, 'input', section)
 
     def open_config_dir(self):
         """Opens user config directory"""
