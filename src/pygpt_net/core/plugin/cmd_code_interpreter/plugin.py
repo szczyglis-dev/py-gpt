@@ -26,9 +26,45 @@ class Plugin(BasePlugin):
             "type": "text",
             "slider": False,
             "label": "Python command template",
-            "description": "Python command template to execute",
+            "description": "Python command template to execute, use {filename} for filename placeholder",
             "tooltip": "Python command template to execute, use {filename} for filename placeholder",
             "value": 'python3 {filename}',
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_code_execute"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Python Code Generate and Execute",
+            "description": "Allow Python code execution (generate and execute from file)",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_code_execute_file"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Python Code Execute (File)",
+            "description": "Allow Python code execution from existing file",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_sys_exec"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: System Command Execute",
+            "description": "Allow system commands execution",
+            "tooltip": "",
+            "value": True,
             "min": None,
             "max": None,
             "multiplier": None,
@@ -110,6 +146,13 @@ class Plugin(BasePlugin):
         """
         return ctx
 
+    def is_cmd_allowed(self, cmd):
+        """Checks if cmd is allowed"""
+        key = "cmd_" + cmd
+        if key in self.options and self.options[key]["value"] is True:
+            return True
+        return False
+
     def cmd_syntax(self, syntax):
         """Event: On cmd syntax prepare"""
         syntax += '\n"code_execute": create and execute Python code, params: "filename", "code"'
@@ -122,7 +165,7 @@ class Plugin(BasePlugin):
         for item in cmds:
             try:
                 if item["cmd"] in self.allowed_cmds:
-                    if item["cmd"] == "code_execute_file":
+                    if item["cmd"] == "code_execute_file" and self.is_cmd_allowed("code_execute_file"):
                         msg = "Executing Python file: {}".format(item["params"]['filename'])
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
 
@@ -144,7 +187,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": item, "result": stderr.decode("utf-8")})
                         ctx.reply = True  # send result message
 
-                    elif item["cmd"] == "code_execute":
+                    elif item["cmd"] == "code_execute" and self.is_cmd_allowed("code_execute"):
                         msg = "Saving Python file: {}".format(item["params"]['filename'])
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                         data = item["params"]['code']
@@ -163,7 +206,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": item, "result": stderr.decode("utf-8")})
                         ctx.reply = True  # send result message
 
-                    elif item["cmd"] == "sys_exec":
+                    elif item["cmd"] == "sys_exec" and self.is_cmd_allowed("sys_exec"):
                         msg = "Executing system command: {}".format(item["params"]['command'])
                         process = subprocess.Popen(item["params"]['command'], shell=True, stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE)

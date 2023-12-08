@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.3** build: **2023.12.07** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.4** build: **2023.12.08** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -14,9 +14,9 @@ This assistant offers multiple modes of operation such as chat, assistants, comp
 
 For audio interactions, **PYGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, vision applications, natural language processing via Langchain, and creative image synthesis.
+**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
 
 ![v2_main](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/0c55c04c-130f-412d-8104-f5b4f7f19e7a)
 
@@ -942,6 +942,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.4 (2023-12-08)
+
+- Added configuration options for plugins: Files I/O, Code Interpreter
+- UI fixes
 
 ## 2.0.3 (2023-12-07)
 

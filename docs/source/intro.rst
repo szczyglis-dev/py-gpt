@@ -10,9 +10,9 @@ This assistant offers multiple modes of operation such as chat, assistants, comp
 
 For audio interactions, **PYGPT** includes speech synthesis using the ``Microsoft Azure Text-to-Speech API`` and ``OpenAI's TTS API``. Additionally, it features speech recognition capabilities provided by ``OpenAI Whisper``, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, vision applications, natural language processing via Langchain, and creative image synthesis.
+**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
+Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, commands execution and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
 
 .. image:: images/v2_main.png
    :width: 800

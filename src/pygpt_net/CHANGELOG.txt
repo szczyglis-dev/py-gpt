@@ -1,3 +1,8 @@
+2.0.4 (2023-12-08)
+
+- Added configuration options for plugins: Files I/O, Code Interpreter
+- UI fixes
+
 2.0.3 (2023-12-07)
 
 - Python code execution fix

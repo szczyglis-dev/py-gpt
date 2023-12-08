@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 10:00:00                  #
 # ================================================== #
-
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from ..widgets import SettingsTextarea, SettingsInput, SettingsCheckbox, EditorDialog
@@ -57,6 +57,8 @@ class Assistant:
         self.window.config_option['assistant.tool.function'] = SettingsCheckbox(self.window, 'assistant.tool.function',
                                                                       trans('assistant.tool.function'), False, section)
 
+        self.window.config_option['assistant.tool.function'].setDisabled(True)
+
         # set max width
         max_width = 240
         self.window.config_option['assistant.id'].setMaximumWidth(max_width)
@@ -80,6 +82,12 @@ class Assistant:
         options['instructions'].addWidget(self.window.data['assistant.instructions.label'])
         options['instructions'].addWidget(self.window.config_option['assistant.instructions'])
 
+        label_info = QLabel("TIP: Leave empty ID if creating new agent.\nFunctions management will be available soon...")
+        label_info.setMinimumHeight(40)
+
+        # align: center
+        label_info.setAlignment(Qt.AlignCenter)
+
         rows = QVBoxLayout()
         rows.addLayout(options['id'])
         rows.addLayout(options['name'])
@@ -88,6 +96,7 @@ class Assistant:
         rows.addLayout(options['tool.code_interpreter'])
         rows.addLayout(options['tool.retrieval'])
         rows.addLayout(options['tool.function'])
+        rows.addWidget(label_info)
         rows.addLayout(options['instructions'])
 
         layout = QVBoxLayout()

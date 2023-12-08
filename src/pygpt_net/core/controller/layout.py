@@ -21,7 +21,8 @@ class Layout:
         :param window: main window object
         """
         self.window = window
-        self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
+        # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
+        self.splitters = ["main", "main.output", "toolbox", "toolbox.mode"]  # prevent assistants column disappearing
 
     def setup(self):
         """Setups layout"""
