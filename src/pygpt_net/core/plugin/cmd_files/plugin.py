@@ -214,22 +214,29 @@ class Plugin(BasePlugin):
                 if item["cmd"] in self.allowed_cmds and self.is_cmd_allowed(item["cmd"]):
                     if item["cmd"] == "save_file":
                         msg = "Saving file: {}".format(item["params"]['filename'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                         data = item["params"]['data']
                         with open(path, 'w', encoding="utf-8") as file:
                             file.write(data)
                             file.close()
                             ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("File saved: {}".format(path))
                     elif item["cmd"] == "append_file" and self.is_cmd_allowed("append_file"):
                         msg = "Appending file: {}".format(item["params"]['filename'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                         data = item["params"]['data']
                         with open(path, 'a', encoding="utf-8") as file:
                             file.write(data)
                             file.close()
                             ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("File appended: {}".format(path))
                     elif item["cmd"] == "read_file" and self.is_cmd_allowed("read_file"):
                         msg = "Reading file: {}".format(item["params"]['filename'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                         if os.path.exists(path):
                             with open(path, 'r', encoding="utf-8") as file:
@@ -237,37 +244,71 @@ class Plugin(BasePlugin):
                                 ctx.results.append({"request": item, "result": data})
                                 ctx.reply = True  # send result message
                                 file.close()
+                                print("File read: {}".format(path))
+                        else:
+                            ctx.results.append({"request": item, "result": "File not found"})
+                            ctx.reply = True
+                            print("File not found: {}".format(path))
                     elif item["cmd"] == "delete_file" and self.is_cmd_allowed("delete_file"):
                         msg = "Deleting file: {}".format(item["params"]['filename'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                         if os.path.exists(path):
                             os.remove(path)
                             ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("File deleted: {}".format(path))
+                        else:
+                            ctx.results.append({"request": item, "result": "File not found"})
+                            ctx.reply = True
+                            print("File not found: {}".format(path))
                     elif item["cmd"] == "list_files" and self.is_cmd_allowed("list_files"):
                         msg = "Listing files: {}".format(item["params"]['path'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                         if os.path.exists(path):
                             files = os.listdir(path)
                             ctx.results.append({"request": item, "result": files})
                             ctx.reply = True
+                            print("Files listed: {}".format(path))
+                            print("Result: {}".format(files))
+                        else:
+                            ctx.results.append({"request": item, "result": "Directory not found"})
+                            ctx.reply = True
+                            print("Directory not found: {}".format(path))
                     elif item["cmd"] == "list_dirs" and self.is_cmd_allowed("list_dirs"):
                         msg = "Listing directories: {}".format(item["params"]['path'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                         if os.path.exists(path):
                             dirs = os.listdir(path)
                             ctx.results.append({"request": item, "result": dirs})
                             ctx.reply = True
+                            print("Directories listed: {}".format(path))
+                            print("Result: {}".format(dirs))
+                        else:
+                            ctx.results.append({"request": item, "result": "Directory not found"})
+                            ctx.reply = True
+                            print("Directory not found: {}".format(path))
                     elif item["cmd"] == "mkdir" and self.is_cmd_allowed("mkdir"):
                         msg = "Creating directory: {}".format(item["params"]['path'])
+                        print(msg)
                         path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                         if not os.path.exists(path):
                             os.makedirs(path)
                             ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("Directory created: {}".format(path))
+                        else:
+                            ctx.results.append({"request": item, "result": "Directory already exists"})
+                            ctx.reply = True
+                            print("Directory already exists: {}".format(path))
             except Exception as e:
+                ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                ctx.reply = True
                 print("Error: {}".format(e))
 
         if msg is not None:
-            print(msg)
             self.window.statusChanged.emit(msg)
         return ctx
 
