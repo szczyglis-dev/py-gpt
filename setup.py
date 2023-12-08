@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 VERSION = '2.0.8'
-DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chat, assistant, text completion, ' \
-              'vision and image generation'
-LONG_DESCRIPTION = 'A package containing a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 AI desktop assistant, chatbot, ' \
-                   'text completion, vision and image generation app, using OpenAI API and your own API ' \
-                   'Key. It includes context memory and history, editable presets, customizable UI and more. '
+DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, ' \
+              'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
+LONG_DESCRIPTION = 'Package containing a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, ' \
+                   'text completion, vision and image generation, internet access and more - using OpenAI API and your own API ' \
+                   'Key. Includes context memory and history, editable presets, customizable UI and more. '
 
 setup(
     name='pygpt-net',
