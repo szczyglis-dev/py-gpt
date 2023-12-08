@@ -63,7 +63,7 @@ class Plugin(BasePlugin):
             "label": "Max characters of page content to get (0 = unlimited)",
             "description": "",
             "tooltip": "",
-            "value": 1000,
+            "value": 0,
             "min": 0,
             "max": None,
             "multiplier": None,
@@ -75,7 +75,7 @@ class Plugin(BasePlugin):
             "label": "Per-page content chunk size (max characters per chunk)",
             "description": "",
             "tooltip": "",
-            "value": 10000,
+            "value": 100000,
             "min": None,
             "max": None,
             "multiplier": None,
@@ -157,6 +157,18 @@ class Plugin(BasePlugin):
             "multiplier": None,
             "step": None,
         }
+        self.options["summary_model"] = {
+            "type": "text",
+            "slider": False,
+            "label": "Model used to summarize page",
+            "description": "Model used to summarize page, default: gpt-3.5-turbo-1106",
+            "tooltip": "Max tokens",
+            "value": "gpt-3.5-turbo-1106",
+            "min": 0,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
         self.input_text = None
         self.window = None
         self.websearch = WebSearch(self)
@@ -193,12 +205,6 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt):
         """Event: On prepare system prompt"""
-        return prompt
-        self.window.log("Plugin: web_search:on_system_prompt [before] (input_text, prompt): {}, {}".
-                        format(self.input_text, prompt))  # log
-        prompt = self.websearch.get_system_prompt(self.input_text, prompt)
-        self.window.log("Plugin: web_search:on_system_prompt [after] (input_text, prompt): {}, {}".
-                        format(self.input_text, prompt))  # log
         return prompt
 
     def on_ai_name(self, name):
@@ -244,7 +250,9 @@ class Plugin(BasePlugin):
 
     def cmd_syntax(self, syntax):
         """Event: On cmd syntax prepare"""
-        syntax += '\n"web_search": use it for search Web for more info, prepare query for search engine itself, params: "query"'
+        syntax += '\n"web_search": use it for search Web for more info, prepare query for search engine itself, ' \
+                  'start from page 1, If you don\'t find anything or don\'t find enough information, try the next ' \
+                  'page. Max pages limit: {}, params: "query", "page"'.format(self.options["num_pages"]["value"])
         return syntax
 
     def cmd(self, ctx, cmds):
@@ -253,14 +261,24 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] in self.allowed_cmds:
                     if item["cmd"] == "web_search":
-                        msg = "Web search: '{}'".format(item["params"]["query"])
-                        result = self.websearch.make_query(item["params"]["query"])
-                        if result is not None and result != "":
-                            ctx.results.append({"request": item, "result": result})
-                            ctx.reply = True
-                        print(item)
-                        pass
+                        page = 1
+                        if "page" in item["params"]:
+                            page = int(item["params"]["page"])
+                        msg = "Web search finished: '{}'".format(item["params"]["query"])
+                        result, total_found, current, url = self.websearch.make_query(item["params"]["query"], page)
+                        data = {
+                            'content': result,
+                            'url': url,
+                            'page': current,
+                            'total_found': total_found,
+                        }
+                        response = {"request": item, "result": data}
+                        ctx.results.append(response)
+                        ctx.reply = True
             except Exception as e:
+                response = {"request": item, "result": "Error: {}".format(e)}
+                ctx.results.append(response)
+                ctx.reply = True
                 print("Error: {}".format(e))
 
         if msg is not None:

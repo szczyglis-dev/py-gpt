@@ -57,7 +57,7 @@ class WebSearch:
             url += '&q=' + quote(q)
 
             self.plugin.window.log("Plugin: cmd_web_google:google_search: calling API: {}".format(url))  # log
-            data = urlopen(url).read()
+            data = urlopen(url, timeout=4).read()
             res = json.loads(data)
             self.plugin.window.log("Plugin: cmd_web_google:google_search: received response: {}".format(res))  # log
             if 'items' not in res:
@@ -103,6 +103,12 @@ class WebSearch:
             print("Error in query_wiki 2: " + str(ex))
 
     def get_urls(self, query):
+        """
+        Search the web and returns URLs
+
+        :param query: query string
+        :return: list of founded URLs
+        """
         num_pages = int(self.plugin.options["num_pages"]['value'])
         return self.google_search(query, num_pages)
 
@@ -124,13 +130,14 @@ class WebSearch:
                 context = ssl.create_default_context()
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
-                html = urlopen(req, context=context).read().decode("utf-8")
+                html = urlopen(req, context=context, timeout=4).read().decode("utf-8")
             else:
-                html = urlopen(req).read().decode("utf-8")
+                html = urlopen(req, timeout=4).read().decode("utf-8")
             soup = BeautifulSoup(html, "html.parser")
-            for paragraph in soup.find_all('p'):
-                text += paragraph.text
+            for element in soup.find_all('html'):
+                text += element.text
             text = text.replace("\n", " ").replace("\t", " ")
+            text = re.sub(r'\s+', ' ', text)
             self.plugin.window.log("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
             return text
         except Exception as e:
@@ -158,25 +165,30 @@ class WebSearch:
         :return: summarized text
         """
         summary = ""
+        sys_prompt = "Summarize the English text in a maximum of 3 paragraphs, trying to find the most important " \
+                     "content that can help answer the following question: " + query
+        if self.plugin.options['prompt_summarize']['value'] is not None and self.plugin.options['prompt_summarize']['value'] != "":
+            sys_prompt = str(self.plugin.options['prompt_summarize']['value']) + query
         max_tokens = int(self.plugin.options["summary_max_tokens"]['value'])
-        sys_prompt = str(self.plugin.options['prompt_summarize']['value']) + query + "\n"
         for chunk in chunks:
+            # print("Chunk: " + chunk)
             self.plugin.window.log("Plugin: cmd_web_google:get_summarized_text "
                                    "(chunk, max_tokens): {}, {}".
                                    format(chunk, max_tokens))  # log
-            response = self.plugin.window.gpt.quick_call(chunk, sys_prompt, False, max_tokens)
-            if response is not None and response != "" and "**FAILED**" not in response:
+            response = self.plugin.window.gpt.quick_call(chunk, sys_prompt, False, max_tokens, self.plugin.options["summary_model"]['value'])
+            if response is not None and response != "":
                 summary += response
 
         return summary
 
-    def make_query(self, query):
+    def make_query(self, query, page_no=1):
         """
         Get system prompt from web search results
 
         :param query: query to search
         :return: result
         """
+        print("Using web query: " + query)
         urls = self.get_urls(query)
 
         # get options
@@ -184,24 +196,37 @@ class WebSearch:
         chunk_size = int(self.plugin.options["chunk_size"]['value'])
         max_result_size = int(self.plugin.options["max_result_length"]['value'])
 
+        total_found = len(urls)
         result = ""
         i = 1
+        current = 1
+        url = ""
         for url in urls:
             if url is None or url == "":
                 continue
-            content = self.query_url(url)
-            if content is None or content == "":
-                continue
-            if 0 < max_per_page < len(content):
-                content = content[:max_per_page]
 
-            chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
+            # check if requested page number
+            if current != page_no:
+                current += 1
+                continue
+
             print("Web attempt: " + str(i) + " of " + str(len(urls)))
             print("Url: " + url)
+            content = self.query_url(url)
+            if content is None or content == "":
+                i += 1
+                continue
+            print("Content found (length: {})".format(len(content)))
+            if 0 < max_per_page < len(content):
+                content = content[:max_per_page]
+            chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
             self.plugin.window.log(
                 "Plugin: cmd_web_google: URL: {}".format(url))  # log
             result = self.get_summarized_text(chunks, str(query))
+
+            # if result then stop
             if result is not None and result != "":
+                print("Summary generated (length: {})".format(len(result)))
                 break
             i += 1
 
@@ -217,4 +242,4 @@ class WebSearch:
         self.plugin.window.log(
             "Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
 
-        return result
+        return result, total_found, current, url

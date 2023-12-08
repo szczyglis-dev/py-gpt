@@ -176,6 +176,18 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.8"):
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'cmd_web_google' not in data['plugins']:
+                    data['plugins']['cmd_web_google'] = {}
+                data['plugins']['cmd_web_google']['prompt_summarize'] = "Summarize the English text in a maximum of 3 " \
+                                                                        "paragraphs, trying to find the most " \
+                                                                        "important content that can help answer the " \
+                                                                        "following question: "
+                data['plugins']['cmd_web_google']['chunk_size'] = 100000
+                data['plugins']['cmd_web_google']['max_page_content_length'] = 0
+                updated = True
             if old < parse_version("2.0.6"):
                 if 'layout.density' not in data:
                     data['layout.density'] = -2
