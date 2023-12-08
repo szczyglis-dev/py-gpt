@@ -67,9 +67,9 @@ class Dialogs:
         editor = Editor(self.window)
         editor.setup()
 
-        # setup ctx rename dialog
-        ctx_rename = Rename(self.window)
-        ctx_rename.setup()
+        # setup rename dialog
+        rename = Rename(self.window)
+        rename.setup()
 
         # setup start dialog
         start = Start(self.window)
