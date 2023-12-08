@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 VERSION = '2.0.4'
-DESCRIPTION = 'GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, text completion and ' \
-              'image analyze and image generation'
-LONG_DESCRIPTION = 'A package containing a GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant, chatbot, ' \
-                   'text completion and image analyze and image generation app, using OpenAI API and your own API ' \
+DESCRIPTION = 'AI Desktop Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chat, assistant, text completion, ' \
+              'vision and image generation'
+LONG_DESCRIPTION = 'A package containing a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 AI desktop assistant, chatbot, ' \
+                   'text completion, vision and image generation app, using OpenAI API and your own API ' \
                    'Key. It includes context memory and history, editable presets, customizable UI and more. '
 
 setup(
@@ -21,7 +21,7 @@ setup(
     package_dir={'': 'src'},
     package_data={'': ['CHANGELOG.txt', 'data/*', 'data/locale/*', 'data/config/*', 'data/config/presets/*']},
     url='https://github.com/szczyglis-dev/py-gpt',
-    keywords='py_gpt, py-gpt, pygpt, desktop, app, gpt, gpt4, gpt4-v, gpt3, tts, whisper, vision, chatgpt, dall-e, '
+    keywords='py_gpt, py-gpt, pygpt, desktop, app, gpt, gpt4, gpt4-v, gpt3, gpt-4, gpt-3, tts, whisper, vision, chatgpt, dall-e, '
              'chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, context memory, '
              'history, presets, ui, qt, pyside',
     install_requires=[

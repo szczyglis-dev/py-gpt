@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pygpt-net"
 version = "2.0.4"
-description = "GPT4, GPT4-V, GPT3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, text completion and image analyze and image generation"
+description = "AI Desktop Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chat, assistant, text completion, vision and image generation"
 readme = "README.md"
 authors = [{ name = "Marcin Szczygliński", email = "info@pygpt.net" }]
 license = { file = "LICENSE" }
@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt4-v", "gpt3", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
+keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt4-v", "gpt3", "gpt-4", "gpt-4V", "gpt-3", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
     "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "context memory", "history",
     "presets", "ui", "qt", "pyside"]
 dependencies = [
