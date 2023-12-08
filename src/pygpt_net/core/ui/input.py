@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QSplitter, \
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, \
     QTabWidget, QWidget
 
 from .status import Status
 from .attachments import Attachments
-from .widgets import ChatInput, AttachmentSelectMenu
+from .widget.textarea import ChatInput
 from ..utils import trans
 
 
@@ -45,35 +45,25 @@ class Input:
 
         # send options
         self.window.data['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
-        self.window.data['input.send_enter'].setStyleSheet(
-            self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 1))
 
         self.window.data['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
-        self.window.data['input.send_shift_enter'].setStyleSheet(
-            self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_shift_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 2))
 
         self.window.data['input.send_none'] = QRadioButton(trans("input.radio.none"))
-        self.window.data['input.send_none'].setStyleSheet(
-            self.window.controller.theme.get_style('radio'))  # Windows fix
         self.window.data['input.send_none'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 0))
 
         self.window.data['input.send_clear'] = QCheckBox(trans('input.send_clear'))
-        self.window.data['input.send_clear'].setStyleSheet(
-            self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.data['input.send_clear'].stateChanged.connect(
             lambda: self.window.controller.input.toggle_send_clear(self.window.data['input.send_clear'].isChecked()))
 
         self.window.data['input.stream'] = QCheckBox(trans('input.stream'))
-        self.window.data['input.stream'].setStyleSheet(
-            self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.data['input.stream'].stateChanged.connect(
             lambda: self.window.controller.input.toggle_stream(self.window.data['input.stream'].isChecked()))
 

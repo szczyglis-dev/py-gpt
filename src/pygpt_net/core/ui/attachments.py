@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QHBoxLayout, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox
 
-from ..ui.widgets import ContextSelectMenu, AttachmentSelectMenu
+from .widget.select import AttachmentSelectMenu
 from ..utils import trans
 
 
@@ -66,8 +66,6 @@ class Attachments:
             lambda: self.window.controller.attachment.clear())
 
         self.window.data['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
-        self.window.data['attachments.send_clear'].setStyleSheet(
-            self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.data['attachments.send_clear'].stateChanged.connect(
             lambda: self.window.controller.attachment.toggle_send_clear(self.window.data['attachments.send_clear'].isChecked()))
 

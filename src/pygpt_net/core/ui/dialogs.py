@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 
 from .dialog.settings import Settings
@@ -22,7 +22,7 @@ from .dialog.image import Image
 from .dialog.plugins import Plugins
 from .dialog.logger import Logger
 from .dialog.assistant import Assistant
-from .widgets import AlertDialog, ConfirmDialog
+from .widget.dialog import AlertDialog, ConfirmDialog
 
 
 class Dialogs:

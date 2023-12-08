@@ -12,7 +12,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
 
-from ..widgets import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea, \
+from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea, \
     PluginSelectMenu
 from ...utils import trans
 

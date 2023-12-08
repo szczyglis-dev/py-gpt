@@ -11,7 +11,7 @@
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QVBoxLayout
 
-from ..widgets import LoggerDialog
+from ..widget.dialog import LoggerDialog
 from ...utils import trans
 
 

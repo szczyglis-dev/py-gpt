@@ -6,15 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 import os
 
 from PySide6.QtCore import QSize
-from PySide6.QtGui import QStandardItemModel, Qt, QPixmap, QIcon
+from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget, QCheckBox, QSizePolicy
 
-from .widgets import NameInput, SelectMenu, SettingsSlider, SettingsTextarea, PresetSelectMenu, AssistantSelectMenu
+from .widget.textarea import NameInput
+from .widget.settings import SettingsSlider, SettingsTextarea
+from .widget.select import SelectMenu, PresetSelectMenu, AssistantSelectMenu
 from ..utils import trans
 
 
@@ -134,8 +136,6 @@ class Toolbox:
         :return: QVBoxLayout
         """
         self.window.data['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))
-        self.window.data['cmd.enabled'].setStyleSheet(
-            self.window.controller.theme.get_style('checkbox'))  # Windows fix
         self.window.data['cmd.enabled'].stateChanged.connect(
             lambda: self.window.controller.input.toggle_cmd(self.window.data['cmd.enabled'].isChecked()))
 

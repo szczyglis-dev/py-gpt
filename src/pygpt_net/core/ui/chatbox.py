@@ -6,18 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 14:00:00                  #
+# Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter, QTabWidget
 
-from ..ui.widgets import ChatOutput, NotepadOutput, FileExplorerWidget
-from ..ui.input import Input
+from .widget.textarea import ChatOutput, NotepadOutput
+from .widget.filesystem import FileExplorerWidget
+from .input import Input
+from .highlighter import MarkdownHighlighter
 from ..utils import trans
-from ..ui.highlighter import MarkdownHighlighter
 
 
 class ChatBox:
@@ -107,8 +107,6 @@ class ChatBox:
         :return: QHBoxLayout        
         """
         self.window.data['output.timestamp'] = QCheckBox(trans('output.timestamp'))
-        self.window.data['output.timestamp'].setStyleSheet(
-            self.window.controller.theme.get_style('checkbox'))  # Windows style fix
         self.window.data['output.timestamp'].stateChanged.connect(
             lambda: self.window.controller.output.toggle_timestamp(self.window.data['output.timestamp'].isChecked()))
 

@@ -32,8 +32,6 @@ from PySide6.QtGui import QSyntaxHighlighter
 from PySide6.QtGui import QTextCharFormat
 from PySide6.QtGui import QTextCursor
 from PySide6.QtGui import QTextLayout
-from PySide6.QtWidgets import QTextEdit
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QPalette
 
 
