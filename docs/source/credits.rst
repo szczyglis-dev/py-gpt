@@ -15,6 +15,7 @@ Marcin Szczygliński (Poland, UE)
 
 **Contact:**
 info@pygpt.net
+szczyglis@protonmail.com
 
 **License:**
 MIT License

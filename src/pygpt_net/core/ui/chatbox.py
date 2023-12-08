@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 14:00:00                  #
 # ================================================== #
 import os
 
@@ -38,11 +38,7 @@ class ChatBox:
         """
         self.window.layout_input = self.input.setup()
 
-        monofont = QFont()
-        monofont.setFamily('monospace')
-
         self.window.data['output'] = ChatOutput(self.window)
-        self.window.data['output'].setFont(monofont)
 
         # notepads
         self.window.data['notepad1'] = NotepadOutput(self.window)
@@ -50,11 +46,6 @@ class ChatBox:
         self.window.data['notepad3'] = NotepadOutput(self.window)
         self.window.data['notepad4'] = NotepadOutput(self.window)
         self.window.data['notepad5'] = NotepadOutput(self.window)
-        self.window.data['notepad1'].setFont(monofont)
-        self.window.data['notepad2'].setFont(monofont)
-        self.window.data['notepad3'].setFont(monofont)
-        self.window.data['notepad4'].setFont(monofont)
-        self.window.data['notepad5'].setFont(monofont)
 
         path = os.path.join(self.window.config.path, 'output')
         self.window.data['output_files'] = FileExplorerWidget(self.window, path)

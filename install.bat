@@ -1,4 +1,4 @@
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python src\pygpt_net\app.py
+call python -m venv venv
+call venv\Scripts\activate
+call pip install -r requirements.txt
+call python src\pygpt_net\app.py

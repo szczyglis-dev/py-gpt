@@ -1,3 +1,9 @@
+2.0.5 (2023-12-08)
+
+- Added support for external CSS
+- Added custom fonts support
+- Improved material theme support
+
 2.0.4 (2023-12-08)
 
 - Added configuration options for plugins: Files I/O, Code Interpreter

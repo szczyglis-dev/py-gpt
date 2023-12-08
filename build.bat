@@ -1,2 +1,2 @@
-venv\Scripts\activate
-pyinstaller windows.spec
+call venv\Scripts\activate
+call pyinstaller windows.spec

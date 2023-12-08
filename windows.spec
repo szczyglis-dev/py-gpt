@@ -16,6 +16,8 @@ a = Analysis(
         ('src\\pygpt_net\\data\\config\\models.json', 'data\\config'),
         ('src\\pygpt_net\\data\\config\\settings.json', 'data\\config'),
         ('src\\pygpt_net\\data\\locale\\*', 'data\\locale'),
+        ('src\\pygpt_net\\data\\css\\*', 'data\\css'),
+        ('src\\pygpt_net\\data\\fonts\\Lato\\*', 'data\\fonts\\Lato'),
         ('src\\pygpt_net\\data\\logo.png', 'data'),
         ('src\\pygpt_net\\CHANGELOG.txt', '.'),
         ('README.md', '.'),

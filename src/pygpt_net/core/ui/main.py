@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 14:00:00                  #
 # ================================================== #
+import os
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QSplitter, QWidget
 
 from .chatbox import ChatBox
@@ -47,6 +49,9 @@ class UI:
 
     def setup(self):
         """Setups UI"""
+        # load font
+        self.setup_font()
+
         # chat and toolbox
         self.window.chat = self.chat.setup()
         self.window.toolbox = self.toolbox.setup()
@@ -73,3 +78,12 @@ class UI:
 
         # set central widget
         self.window.setCentralWidget(self.window.splitters['main'])
+
+    def setup_font(self):
+        """Setups UI font"""
+        path = os.path.join(self.window.config.get_root_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
+        font_id = QFontDatabase.addApplicationFont(path)
+        if font_id == -1:
+            print("Error loading font file {}".format(path))
+        else:
+            family = QFontDatabase.applicationFontFamilies(font_id)[0]

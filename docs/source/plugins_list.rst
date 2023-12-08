@@ -16,6 +16,36 @@ Plugin capabilities include:
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
+**Options:**
+
+- ``Enable: Read file`` *cmd_read_file*
+
+Allow `read_file` command. *Default:* `True`
+
+- ``Enable: Append to file`` *cmd_append_file*
+
+Allow `append_file` command. *Default:* `True`
+
+- ``Enable: Save file`` *cmd_save_file*
+
+Allow `save_file` command. *Default:* `True`
+
+- ``Enable: Delete file`` *cmd_delete_file*
+
+Allow `delete_file` command. *Default:* `True`
+
+- ``Enable: List files (ls)`` *cmd_list_files*
+
+Allow `list_files` command. *Default:* `True`
+
+- ``Enable: List directories (ls)`` *cmd_list_dirs*
+
+Allow `list_dirs` command. *Default:* `True`
+
+- ``Enable: Directory creation (mkdir)`` *cmd_mkdir*
+
+Allow `mkdir` command. *Default:* `True`
+
 
 Command: Code Interpreter
 -------------------------
@@ -30,11 +60,22 @@ Another feature is the ability to execute system commands and return their resul
 
 **Options:**
 
-``Python command template`` *python_cmd_tpl*
+- ``Python command template`` *python_cmd_tpl*
 
-*Default:* `python3 {filename}`
+Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
 
-Python command template.
+- ``Enable: Python Code Generate and Execute`` *cmd_code_execute*
+
+Allow Python code execution (generate and execute from file). *Default:* `True`
+
+- ``Enable: Python Code Execute (File)`` *cmd_code_execute_file*
+
+Allow Python code execution from existing file. *Default:* `True`
+ 
+- ``Enable: System Command Execute`` *cmd_sys_exec*
+
+Allow system commands execution. *Default:* `True`
+
 
 Command: Google Web Search
 --------------------------
@@ -91,23 +132,16 @@ Here, you should enter the API key, which can be obtained by registering for fre
 
 ``Azure Region`` *azure_region*
 
-*Default:* `eastus`
-
-You must also provide the appropriate region for Azure here.
-
+You must also provide the appropriate region for Azure here. *Default:* `eastus`
 
 ``Voice (EN)`` *voice_en*
 
-*Default:* `en-US-AriaNeural`
-
-Here you can specify the name of the voice used for speech synthesis for English.
+Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
 
 
 ``Voice (PL)`` *voice_pl*
 
-*Default:* `pl-PL-AgnieszkaNeural`
-
-Here you can specify the name of the voice used for speech synthesis for the Polish language.
+Here you can specify the name of the voice used for speech synthesis for the Polish language. *Default:* `pl-PL-AgnieszkaNeural`
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
 
@@ -121,16 +155,14 @@ The plugin enables voice synthesis using the TTS model developed by OpenAI. Usin
 
 ``Model`` *model*
 
-*Default:* `tts-1`
-
 Choose the model. Available options:
 
 * tts-1
 * tts-1-hd
 
-``Voice`` *voice*
+*Default:* `tts-1`
 
-*Default:* `alloy`
+``Voice`` *voice*
 
 Choose the voice. Available voices to choose from:
 
@@ -141,6 +173,8 @@ Choose the voice. Available voices to choose from:
 * nova
 * shimmer
 
+*Default:* `alloy`
+
 Audio Input (OpenAI Whisper)
 ----------------------------
 
@@ -150,39 +184,27 @@ Configuration options:
 
 ``Model`` *model*
 
-*Default:* `whisper-1`
-
-Choose the model.
+Choose the model. *Default:* `whisper-1`
 
 ``Timeout`` *timeout*
 
-*Default:* `2`
-
-The number of seconds the application waits for voice input from the microphone.
+The number of seconds the application waits for voice input from the microphone. *Default:* `2`
 
 ``Phrase max length`` *phrase_length*
 
-*Default:* `2`
-
-Maximum duration for a voice sample (in seconds).
+Maximum duration for a voice sample (in seconds).  *Default:* `2`
 
 ``Min energy`` *min_energy*
 
-*Default:* `4000`
-
-The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value.
+The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value. *Default:* `4000`
 
 ``Adjust for ambient noise`` *adjust_noise*
 
-*Default:* `True`
-
-Enables adjustment to ambient noise levels.
+Enables adjustment to ambient noise levels. *Default:* `True`
 
 ``Continuous listen`` *continuous_listen*
 
-*Default:* `True`
-
-Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the ``Speak`` option.
+Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `True`
 
 
 Self Loop
@@ -207,18 +229,15 @@ You can adjust the number of iterations for the self-conversation in the ``Plugi
 
 ``Clear context output`` *clear_output*
 
-*Default:* `True`
 
-The option clears the previous answer in the context, which is then used as input for the next iteration.
+The option clears the previous answer in the context, which is then used as input for the next iteration. *Default:* `True`
 
 
 ``Reverse roles between iterations`` *reverse_roles*
 
-*Default:* `True`
-
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
-response to generate an input for "Joker."
+response to generate an input for "Joker." *Default:* `True`
 
 
 Real Time
@@ -233,24 +252,16 @@ When enabled, it quietly enhances each system prompt with current time informati
 
 ``Append time`` *hour*
 
-*Default:* `True`
-
-If enabled, it appends the current time to the system prompt.
-
+If enabled, it appends the current time to the system prompt. *Default:* `True`
 
 ``Append date`` *date*
 
-*Default:* `True`
-
-If enabled, it appends the current date to the system prompt.
-
+If enabled, it appends the current date to the system prompt. *Default:* `True` 
 
 ``Template`` *tpl*
 
-*Default:* `Current time is {time}.`
-
 Template to append to the system prompt. The placeholder ``{time}`` will be replaced with the 
-current date and time in real-time.
+current date and time in real-time. *Default:* `Current time is {time}.`
 
 Creating Your Own Plugins
 --------------------------

@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.4** build: **2023.12.08** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.5** build: **2023.12.08** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -18,7 +18,7 @@ For audio interactions, **PYGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
 
-![v2_main](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/0c55c04c-130f-412d-8104-f5b4f7f19e7a)
+![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2933de69-5a65-43c7-a386-b222ae2090ca)
 
 You can download compiled version for Windows and Linux here: https://pygpt.net/#download
 
@@ -74,7 +74,7 @@ extract it, install it, and run the application.
 
 An alternative method is to download the source code from GitHub and execute the application using 
 the Python interpreter (version 3.9 or higher). The application can also be installed from PyPI 
-using the command `pip install` and we recommend this type of installation.
+using the command `pip install` and this type of installation is recommended.
 
 ### PyPi (pip)
 
@@ -171,8 +171,7 @@ Config -> Settings...
 
 and then paste the API key into the `OpenAI API KEY` field.
 
-![v2_settings](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/43e24223-2541-4a5a-8caa-aad9279e8b07)
-
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/3e512856-6a25-4151-a65b-36efb97831e2)
 
 The API key can be obtained by registering on the OpenAI website:
 
@@ -194,7 +193,7 @@ The main part of the interface is a chat window where conversations appear. Righ
 
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Files` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
 
-![v2_mode_chat](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/39ae90c4-085c-4777-82f3-f926a3278e5e)
+![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/84d84a41-9a86-4c95-8586-de1eb245e570)
 
 ## Completion
 
@@ -204,8 +203,7 @@ Similar to chat mode, on the right-hand side of the interface, there are conveni
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-![v2_mode_completion](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/745eda5f-32cd-4e44-b730-92946592f4f7)
-
+![v2_mode_completion](https://github.com/szczyglis-dev/py-gpt/assets/61396542/829718eb-2faf-4604-9ae3-9541e0f543f3)
 In this mode, models from the `davinci` family within `GPT-3` are available. 
 **Note:** The `davinci` models are tagged for deprecation in the near future.
 
@@ -217,8 +215,7 @@ This mode expands on the basic chat functionality by including additional extern
 
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PYGPT** is also a seamless process.
 
-![v2_mode_assistant](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/05a92913-1762-440f-9d5c-36ae9aa23775)
-
+![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5115144d-804a-406c-9fbc-9de370910179)
 Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
 uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
 can be sent to the OpenAI API.
@@ -231,12 +228,10 @@ images and those found online.
 
 **1) you can provide an image URL**
 
-![v2_mode_vision](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/6a78042c-0c83-4dd2-865f-48e028b16689)
-
+![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1e618d68-6c60-4826-82c5-87149523e989)
 **2) you can also upload your local images**
 
-![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/e9a3ecc2-a083-4d79-96c0-f7b6c522525a)
-
+![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ee796ef5-706d-4dd8-bb02-dd28b7042a12)
 ## Langchain
 
 This mode enables you to work with models that are supported by `Langchain`. The Langchain support is integrated 
@@ -255,8 +250,7 @@ Available LLMs providers supported by **PYGPT**:
 - Ollama
 ```
 
-![v2_mode_langchain](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/2c288bc9-41d7-4d92-ac54-68fc10974a0b)
-
+![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7565e4df-aa6f-4de5-97ac-61cb124e0340)
 You have the ability to add custom model wrappers for models that are not available by default in **PYGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
 # Files and attachments
@@ -265,7 +259,7 @@ You have the ability to add custom model wrappers for models that are not availa
 
 **PYGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
 
-![v2_file_input](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/af675e8a-6664-48ba-8241-84fe9cb378ec)
+![v2_file_input](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7e84368e-2ac2-4947-8723-528788d82ed7)
 
 The attachment feature is available in both the `Assistant` and `Vision` modes.
 
@@ -277,11 +271,11 @@ This `output` directory is also where the application stores files that are gene
 
 The `Command: Files I/O` plugin takes care of file operations in the `output` directory, while the `Command: Code Interpreter` plugin allows for the execution of code from these files.
 
-![v2_file_output](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/363ffa9f-f43e-4f87-89b9-289a3ecd7993)
+![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4ade40d4-b234-4cf5-bb98-fe1c55156a88)
 
 To allow the model to manage files or python code execution, the `Execute commands` option must be active, along with the above-mentioned plugins:
 
-![v2_code_execute](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/997d98fd-8d19-47f8-9992-38f328ff3421)
+![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7f1cf97b-7702-41c0-a21f-344d57a1b3e1)
 
 # Context and memory
 
@@ -293,7 +287,7 @@ To allow the model to manage files or python code execution, the `Execute comman
 
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PYGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
 
-![v2_context_list](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/9f0ab805-b887-401e-8c22-59447893d735)
+![v2_context_list](https://github.com/szczyglis-dev/py-gpt/assets/61396542/055c71bf-164c-45fa-842b-b0b9d1c31114)
 
 You can disable context support in the settings by using the following option:
 
@@ -324,8 +318,7 @@ Presets in **PYGPT** are essentially templates used to store and quickly apply d
 
 The system lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
-![v2_preset](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/1319ab14-9be2-481c-8294-c03900062883)
-
+![v2_preset](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7322683f-4efc-4089-b25b-79a266c82b01)
 
 ## Example usage
 
@@ -347,7 +340,7 @@ You can generate up to **4 different variants** for a given prompt in one sessio
 To select the desired number of variants to create, use the slider located in the right-hand corner at 
 the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
 
-![v2_dalle](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/d2d901f7-b997-4327-95b3-28cf3222129e)
+![v2_dalle](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ad3fb8f9-0e09-4ac3-aa1f-baad98c1320f)
 
 ## Image storage
 
@@ -536,6 +529,36 @@ Plugin capabilities include:
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
+**Options:**
+
+- `Enable: Read file` *cmd_read_file*
+
+Allow `read_file` command. *Default:* `True`
+
+- `Enable: Append to file` *cmd_append_file*
+
+Allow `append_file` command. *Default:* `True`
+
+- `Enable: Save file` *cmd_save_file*
+
+Allow `save_file` command. *Default:* `True`
+
+- `Enable: Delete file` *cmd_delete_file*
+
+Allow `delete_file` command. *Default:* `True`
+
+- `Enable: List files (ls)` *cmd_list_files*
+
+Allow `list_files` command. *Default:* `True`
+
+- `Enable: List directories (ls)` *cmd_list_dirs*
+
+Allow `list_dirs` command. *Default:* `True`
+
+- `Enable: Directory creation (mkdir)` *cmd_mkdir*
+
+Allow `mkdir` command. *Default:* `True`
+
 
 ## Command: Code Interpreter
 
@@ -551,9 +574,20 @@ Another feature is the ability to execute system commands and return their resul
 
 - `Python command template` *python_cmd_tpl*
 
-*Default:* `python3 {filename}`
+Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
 
-Python command template.
+- `Enable: Python Code Generate and Execute` *cmd_code_execute*
+
+Allow Python code execution (generate and execute from file). *Default:* `True`
+
+- `Enable: Python Code Execute (File)` *cmd_code_execute_file*
+
+Allow Python code execution from existing file. *Default:* `True`
+ 
+- `Enable: System Command Execute` *cmd_sys_exec*
+
+Allow system commands execution. *Default:* `True`
+
 
 ## Command: Google Web Search
 
@@ -578,8 +612,7 @@ Then, copy the following two items into PYGPT:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/0b6549e0-54f2-410f-a2c9-16c00d2b47c0)
-
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ed5e9326-8f4a-4ce2-bb9f-75cecf08aacb)
 
 
 ## Audio Output (Microsoft Azure)
@@ -597,7 +630,7 @@ Region in the settings.
 
 This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
 
-![v2_azure](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/d8aeb457-e611-42aa-81f9-618be7e192dc)
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1aa81001-3953-4a92-9d56-89a1d5443422)
 
 **Options:**
 
@@ -607,23 +640,15 @@ Here, you should enter the API key, which can be obtained by registering for fre
 
 - `Azure Region` *azure_region*
 
-*Default:* `eastus`
-
-You must also provide the appropriate region for Azure here.
-
+You must also provide the appropriate region for Azure here. *Default:* `eastus`
 
 - `Voice (EN)` *voice_en*
 
-*Default:* `en-US-AriaNeural`
-
-Here you can specify the name of the voice used for speech synthesis for English.
-
+Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
 
 - `Voice (PL)` *voice_pl*
 
-*Default:* `pl-PL-AgnieszkaNeural`
-
-Here you can specify the name of the voice used for speech synthesis for the Polish language.
+Here you can specify the name of the voice used for speech synthesis for the Polish language. *Default:* `pl-PL-AgnieszkaNeural`
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
 
@@ -635,18 +660,15 @@ The plugin enables voice synthesis using the TTS model developed by OpenAI. Usin
 
 - `Model` *model*
 
-*Default:* `tts-1`
-
 Choose the model. Available options:
 
 ```
   - tts-1
   - tts-1-hd
 ```
+*Default:* `tts-1`
 
 - `Voice` *voice*
-
-*Default:* `alloy`
 
 Choose the voice. Available voices to choose from:
 
@@ -659,6 +681,8 @@ Choose the voice. Available voices to choose from:
   - shimmer
 ```
 
+*Default:* `alloy`
+
 ## Audio Input (OpenAI Whisper)
 
 The plugin facilitates speech recognition using the `Whisper` model by OpenAI. It allows for voice commands to be relayed to the AI using your own voice. The plugin doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
@@ -667,39 +691,27 @@ Configuration options:
 
 - `Model` *model*
 
-*Default:* `whisper-1`
-
-Choose the model.
+Choose the model. *Default:* `whisper-1`
 
 - `Timeout` *timeout*
 
-*Default:* `2`
-
-The number of seconds the application waits for voice input from the microphone.
+The number of seconds the application waits for voice input from the microphone. *Default:* `2`
 
 - `Phrase max length` *phrase_length*
 
-*Default:* `2`
-
-Maximum duration for a voice sample (in seconds).
+Maximum duration for a voice sample (in seconds). *Default:* `2`
 
 - `Min energy` *min_energy*
 
-*Default:* `4000`
-
-The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value.
+The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value. *Default:* `4000`
 
 - `Adjust for ambient noise` *adjust_noise*
 
-*Default:* `True`
-
-Enables adjustment to ambient noise levels.
+Enables adjustment to ambient noise levels. *Default:* `True`
 
 - `Continuous listen` *continuous_listen*
 
-*Default:* `True`
-
-Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the `Speak` option.
+Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the `Speak` option. *Default:* `True`
 
 
 ## Self Loop
@@ -718,23 +730,17 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 *Default:* `3`
 
-
 **Additional options:**
 
 - `Clear context output` *clear_output*
 
-*Default:* `True`
-
-The option clears the previous answer in the context, which is then used as input for the next iteration.
-
+The option clears the previous answer in the context, which is then used as input for the next iteration. *Default:* `True`
 
 - `Reverse roles between iterations` *reverse_roles*
 
-*Default:* `True`
-
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
-response to generate an input for "Joker."
+response to generate an input for "Joker." *Default:* `True`
 
 
 ## Real Time
@@ -748,24 +754,16 @@ When enabled, it quietly enhances each system prompt with current time informati
 
 - `Append time` *hour*
 
-*Default:* `True`
-
-If enabled, it appends the current time to the system prompt.
-
+If enabled, it appends the current time to the system prompt. *Default:* `True`
 
 - `Append date` *date*
 
-*Default:* `True`
-
-If enabled, it appends the current date to the system prompt.
-
+If enabled, it appends the current date to the system prompt.  *Default:* `True`
 
 - `Template` *tpl*
 
-*Default:* `Current time is {time}.`
-
 Template to append to the system prompt. The placeholder `{time}` will be replaced with the 
-current date and time in real-time.
+current date and time in real-time. *Default:* `Current time is {time}.`
 
 # Creating Your Own Plugins
 
@@ -801,13 +799,13 @@ a particular query will consume and displays this estimate in real time. This gi
 control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
 the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
-![v2_tokens1](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/6498a81b-8684-42fa-8c04-6553d4e60a12)
+![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f25814a7-849a-405e-9e72-36e5985484f6)
 
 ## Total tokens
 
 After receiving a response from the model, the application displays the actual total number of tokens used for the query.
 
-![v2_tokens2](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/bef4b5c3-e0a2-4af8-ba08-5e5a86029222)
+![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7f870fa4-bf69-4769-b400-6ef112c173f8)
 
 # Configuration
 
@@ -819,7 +817,7 @@ The following basic options can be modified directly within the application:
 Config -> Settings...
 ```
 
-![v2_settings](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/43e24223-2541-4a5a-8caa-aad9279e8b07)
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/3e512856-6a25-4151-a65b-36efb97831e2)
 
 - `Temperature`: Sets the randomness of the conversation. A lower value makes the model's 
 responses more deterministic, while a higher value increases creativity and abstraction.
@@ -834,6 +832,8 @@ brought up in the conversation.
 
 - `Use Context`: Toggles the use of conversation context (memory of previous inputs). 
 When turned off, the context won't be saved or factored into conversation responses.
+
+- `Context Auto-summary`: Toggles context auto-summarization on contexts list. (GPT-3.5 is used for this)
 
 - `Store History`: Dictates whether the conversation history and context are saved. 
 When turned off, history won't be written to the disk upon closing the application.
@@ -850,11 +850,19 @@ This helps accommodate responses without exceeding the model's limit, such as 40
 including the conversation context. To prevent reaching the model capacity, this setting helps 
 manage the size of the context included in messages.
 
-- `Font Size`: Adjusts the font size in the chat window for better readability.
+- `Font Size (chat window)`: Adjusts the font size in the chat window for better readability.
+
+- `Font Size (input)`: Adjusts the font size in the input window for better readability.
+
+- `Font Size (ctx list)`: Adjusts the font size in contexts list.
 
 - `OpenAI API KEY`: The personal API key you'll need to enter into the application for it to function.
 
 - `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
+
+- `Auto-summary system prompt`: System prompt for context auto-summary (GPT-3.5 is used for this)
+
+- `Auto-summary instruction`: Summary prompt for context auto-summary (GPT-3.5 is used for this)
 
 ## JSON files
 
@@ -869,8 +877,7 @@ These configuration files are located in the user's work directory within the fo
 
 The application has a built-in notebook, divided into several tabs. This can be useful for storing informations in a convenient way, without the need to open an external text editor. The content of the notebook is automatically saved whenever the content changes.
 
-![v2_notepad](https://github.com/szczyglis-dev/extended-dump-bundle/assets/61396542/515daacc-e079-444f-bff0-b135339feb51)
-
+![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8fb3ae49-372e-4e80-a327-7117c8f9688a)
 
 # Advanced configuration
 
@@ -942,6 +949,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.5 (2023-12-08)
+
+- Added support for external CSS
+- Added custom fonts support
+- Improved material theme support
 
 ## 2.0.4 (2023-12-08)
 
@@ -1040,7 +1053,7 @@ New features in version 2.0.0:
 
 **Author:** Marcin Szczygliński (Poland, UE)
 
-**Contact:** <info@pygpt.net>
+**Contact:** <info@pygpt.net> <szczyglis@protonmail.com>
 
 **License:** MIT License
 

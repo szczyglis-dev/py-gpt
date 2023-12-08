@@ -156,6 +156,9 @@ class Plugins:
             data[plugin_id] = plugin
         self.update_list(id, data)
 
+        # set max width to list
+        self.window.data[id].setMaximumWidth(250)
+
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.window.data[id])
         main_layout.addWidget(self.window.tabs['plugin.settings'])

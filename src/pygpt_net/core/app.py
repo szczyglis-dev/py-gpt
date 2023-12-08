@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 14:00:00                  #
 # ================================================== #
-
+import os
 import sys
 
 from PySide6.QtGui import QScreen
@@ -102,26 +102,27 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.controller.debug.log(data)
 
-    def set_theme(self, theme='dark_teal.xml'):
+    def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """
-        Updates theme
+        Updates material theme and applies custom CSS
 
-        :param theme: theme name
+        :param theme: Material theme name
+        :param custom_css: custom CSS file
         """
-        label = "#ffffff"
         inverse = False
-        if theme.startswith('light_'):
-            label = "#000000"
-            inverse = True
         extra = {
             'density_scale': '-2',
             'pyside6': True,
-            'QLineEdit': {
-                'color': label,
-            },
         }
-        self.setStyleSheet(self.controller.theme.get_style('line_edit'))  # fix for line edit
         self.apply_stylesheet(self, theme, invert_secondary=inverse, extra=extra)
+
+        # append custom CSS
+        if custom_css is not None:
+            path = os.path.join(self.config.get_root_path(), 'data', 'css', custom_css)
+            stylesheet = self.styleSheet()
+            if os.path.exists(path):
+                with open(path) as file:
+                    self.setStyleSheet(stylesheet + file.read().format(**os.environ))
 
     def add_plugin(self, plugin):
         """
@@ -224,15 +225,14 @@ class Launcher:
 
     def run(self):
         """Runs app"""
+        margin = 50
         self.window.setup()
         available_geometry = self.window.screen().availableGeometry()
         pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-        self.window.resize(available_geometry.width() - 50, available_geometry.height() - 50)
-        # self.window.showMaximized()
+        self.window.resize(available_geometry.width() - margin, available_geometry.height() - margin)
         self.window.show()
         self.window.move(pos)
         self.window.post_setup()
-
         try:
             sys.exit(self.app.exec())
         except SystemExit:

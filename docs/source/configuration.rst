@@ -18,14 +18,19 @@ The following basic options can be modified directly within the application:
 * ``Frequency Penalty`` Decreases the likelihood of repetition in the model's responses.
 * ``Presence Penalty`` Discourages the model from mentioning topics that have already been brought up in the conversation.
 * ``Use Context`` Toggles the use of conversation context (memory of previous inputs). When turned off, the context won't be saved or factored into conversation responses.
+* ``Context Auto-summary`` Toggles context auto-summarization on contexts list. (GPT-3.5 is used for this)
 * ``Store History`` Dictates whether the conversation history and context are saved. When turned off, history won't be written to the disk upon closing the application.
 * ``Store Time in History`` Chooses whether timestamps are added to the .txt files. These files are stored in the *history* directory within the user's work directory.
 * ``Context Threshold`` Sets the number of tokens reserved for the model to respond to the next prompt. This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
 * ``Max Output Tokens`` Determines the maximum number of tokens the model can generate for a single response.
 * ``Max Total Tokens`` Defines the maximum token count that the application can send to the model, including the conversation context. To prevent reaching the model capacity, this setting helps manage the size of the context included in messages.
-* ``Font Size`` Adjusts the font size in the chat window for better readability.
+* ``Font Size (chat window)`` Adjusts the font size in the chat window for better readability.
+* ``Font Size (input)`` Adjusts the font size in the input window for better readability.
+* ``Font Size (ctx list)`` Adjusts the font size in contexts list.
 * ``OpenAI API KEY`` The personal API key you'll need to enter into the application for it to function.
 * ``OpenAI ORGANIZATION KEY`` The organization's API key, which is optional for use within the application.
+* ``Auto-summary system prompt`` System prompt for context auto-summary (GPT-3.5 is used for this)
+* ``Auto-summary instruction`` Summary prompt for context auto-summary (GPT-3.5 is used for this)
 
 
 JSON files

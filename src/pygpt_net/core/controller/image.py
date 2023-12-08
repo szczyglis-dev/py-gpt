@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.08 14:00:00                  #
 # ================================================== #
 
 import os
@@ -54,13 +54,13 @@ class Image:
         self.window.gpt.context.add(ctx)
         self.window.controller.output.append_input(ctx)
 
-        # call DALL-E 2 API and generate images
+        # call DALL-E API and generate images
         try:
             paths = self.window.images.generate(text, self.window.config.data['model'], num_of_images)
             string = ""
             i = 1
             for path in paths:
-                string += "{} - {}".format(i, path) + "\n"
+                string += "{}) `{}`".format(i, path) + "\n"
                 i += 1
             self.open_images(paths)
             ctx.set_output(string.strip())
