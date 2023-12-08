@@ -12,8 +12,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
 
-from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, PluginSettingsDialog, SettingsTextarea, \
-    PluginSelectMenu
+from ..widget.settings import SettingsInput, SettingsTextarea, SettingsSlider, SettingsCheckbox, SettingsDict, \
+    PluginSettingsDialog, PluginSelectMenu
 from ...utils import trans
 
 
@@ -109,6 +109,11 @@ class Plugins:
                 elif option['type'] == 'bool':
                     # checkbox
                     self.window.plugin_option[id][key] = SettingsCheckbox(self.window, option_name)
+                elif option['type'] == 'dict':
+                    # dictionary items
+                    self.window.plugin_option[id][key] = SettingsDict(self.window, option_name, True, 'plugin', id,
+                                                                      option['keys'],
+                                                                      option['value'])
 
                 if key not in self.window.plugin_option[id]:
                     continue
@@ -204,7 +209,7 @@ class Plugins:
         self.window.data[label_key].setStyleSheet("font-weight: bold;")
 
         # 2 cols layout
-        if type != 'textarea':
+        if type != 'textarea' and type != 'dict':
             cols = QHBoxLayout()
             cols.addWidget(self.window.data[label_key])
             cols.addWidget(widget)
@@ -222,7 +227,7 @@ class Plugins:
             layout.addWidget(cols_widget)
             layout.addWidget(desc_label)
         else:
-            # textarea
+            # textarea and dict
             layout = QVBoxLayout()
             layout.addWidget(self.window.data[label_key])
             layout.addWidget(widget)

@@ -28,7 +28,6 @@ class SelectMenu(QTreeView):
         super(SelectMenu, self).__init__(window)
         self.window = window
         self.id = id
-        self.setStyleSheet(self.window.controller.theme.get_style('tree_view'))
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setIndentation(0)
         self.setHeaderHidden(True)

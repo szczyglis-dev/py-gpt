@@ -70,6 +70,34 @@ class Plugin(BasePlugin):
             "multiplier": None,
             "step": None,
         }
+        self.options["tmp_list"] = {
+            "type": "dict",
+            "keys": {
+                "name": "text",
+                "desc": "text",
+                "cmd": "text",
+            },
+            "slider": False,
+            "label": "tmp_list",
+            "description": "tmp_list",
+            "tooltip": "tmp_list",
+            "value": [
+                {
+                    "name": "item1",
+                    "desc": "desc1",
+                    "cmd": "cmd1",
+                },
+                {
+                    "name": "item2",
+                    "desc": "desc2",
+                    "cmd": "cmd2",
+                },
+            ],
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
         self.window = None
         self.order = 100
         self.allowed_cmds = ["code_execute", "sys_exec"]
