@@ -55,6 +55,16 @@
         "multiplier": 1,
         "step": 1
     },
+    "layout.density": {
+        "type": "int",
+        "slider": true,
+        "label": "layout.density",
+        "value": -2,
+        "min": -5,
+        "max": 5,
+        "multiplier": 1,
+        "step": 1
+    },
     "max_output_tokens": {
         "type": "int",
         "slider": true,

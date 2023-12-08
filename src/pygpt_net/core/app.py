@@ -111,7 +111,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         inverse = False
         extra = {
-            'density_scale': '-2',
+            'density_scale': self.config.data['layout.density'],
             'pyside6': True,
         }
         self.apply_stylesheet(self, theme, invert_secondary=inverse, extra=extra)

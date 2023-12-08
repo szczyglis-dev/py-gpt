@@ -176,6 +176,10 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.6"):
+                if 'layout.density' not in data:
+                    data['layout.density'] = -2
+                updated = True
             if old < parse_version("2.0.1"):
                 if 'send_mode' not in data:
                     data['send_mode'] = 1

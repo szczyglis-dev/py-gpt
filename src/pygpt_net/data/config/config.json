@@ -39,6 +39,7 @@
   "img_resolution": "1024x1024",
   "img_variants": 1,
   "lang": "en",
+  "layout.density": -2,
   "max_context_history_items": 100,
   "max_output_tokens": 1024,
   "max_tokens_length": 32000,

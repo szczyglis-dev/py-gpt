@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.5** build: **2023.12.08** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.6** build: **2023.12.08** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -171,7 +171,7 @@ Config -> Settings...
 
 and then paste the API key into the `OpenAI API KEY` field.
 
-![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/3e512856-6a25-4151-a65b-36efb97831e2)
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/07bc916d-7049-4224-81db-08b6b05bec20)
 
 The API key can be obtained by registering on the OpenAI website:
 
@@ -799,13 +799,13 @@ a particular query will consume and displays this estimate in real time. This gi
 control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
 the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
-![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f25814a7-849a-405e-9e72-36e5985484f6)
+![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4cefdb35-016d-49a6-be05-50a980388323)
 
 ## Total tokens
 
 After receiving a response from the model, the application displays the actual total number of tokens used for the query.
 
-![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7f870fa4-bf69-4769-b400-6ef112c173f8)
+![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ddaf8d94-8d2a-471a-84b2-5a97f680853a)
 
 # Configuration
 
@@ -817,7 +817,39 @@ The following basic options can be modified directly within the application:
 Config -> Settings...
 ```
 
-![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/3e512856-6a25-4151-a65b-36efb97831e2)
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/07bc916d-7049-4224-81db-08b6b05bec20)
+
+- `OpenAI API KEY`: The personal API key you'll need to enter into the application for it to function.
+
+- `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
+
+- `Font Size (chat window)`: Adjusts the font size in the chat window for better readability.
+
+- `Font Size (input)`: Adjusts the font size in the input window for better readability.
+
+- `Font Size (ctx list)`: Adjusts the font size in contexts list.
+
+- `Layout density`: Adjusts layout elements density. Default: -2.
+
+- `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
+
+- `Max Total Tokens`: Defines the maximum token count that the application can send to the model, 
+including the conversation context. To prevent reaching the model capacity, this setting helps 
+manage the size of the context included in messages.
+
+- `Context Threshold`: Sets the number of tokens reserved for the model to respond to the next prompt. 
+This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
+
+- `Use Context`: Toggles the use of conversation context (memory of previous inputs). 
+When turned off, the context won't be saved or factored into conversation responses.
+
+- `Store History`: Dictates whether the conversation history and context are saved. 
+When turned off, history won't be written to the disk upon closing the application.
+
+- `Store Time in History`: Chooses whether timestamps are added to the .txt files. 
+These files are stored in the *history* directory within the user's work directory.
+
+- `Context Auto-summary`: Toggles context auto-summarization on contexts list. (GPT-3.5 is used for this)
 
 - `Temperature`: Sets the randomness of the conversation. A lower value makes the model's 
 responses more deterministic, while a higher value increases creativity and abstraction.
@@ -829,36 +861,6 @@ For more information, please check the OpenAI documentation.
 
 - `Presence Penalty`: Discourages the model from mentioning topics that have already been 
 brought up in the conversation.
-
-- `Use Context`: Toggles the use of conversation context (memory of previous inputs). 
-When turned off, the context won't be saved or factored into conversation responses.
-
-- `Context Auto-summary`: Toggles context auto-summarization on contexts list. (GPT-3.5 is used for this)
-
-- `Store History`: Dictates whether the conversation history and context are saved. 
-When turned off, history won't be written to the disk upon closing the application.
-
-- `Store Time in History`: Chooses whether timestamps are added to the .txt files. 
-These files are stored in the *history* directory within the user's work directory.
-
-- `Context Threshold`: Sets the number of tokens reserved for the model to respond to the next prompt. 
-This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
-
-- `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
-
-- `Max Total Tokens`: Defines the maximum token count that the application can send to the model, 
-including the conversation context. To prevent reaching the model capacity, this setting helps 
-manage the size of the context included in messages.
-
-- `Font Size (chat window)`: Adjusts the font size in the chat window for better readability.
-
-- `Font Size (input)`: Adjusts the font size in the input window for better readability.
-
-- `Font Size (ctx list)`: Adjusts the font size in contexts list.
-
-- `OpenAI API KEY`: The personal API key you'll need to enter into the application for it to function.
-
-- `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
 
 - `Auto-summary system prompt`: System prompt for context auto-summary (GPT-3.5 is used for this)
 
@@ -949,6 +951,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.6 (2023-12-08)
+
+- Added layout density configuration
 
 ## 2.0.5 (2023-12-08)
 
