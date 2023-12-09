@@ -42,7 +42,7 @@ class Menu:
         self.window.menu['app.exit'] = QAction(QIcon.fromTheme("application-exit"), trans("menu.file.exit"),
                                                self.window, shortcut="Ctrl+Q", triggered=self.window.close)
 
-        self.window.menu['app.clear_history'] = QAction(trans("menu.file_clear_history"),
+        self.window.menu['app.clear_history'] = QAction(QIcon.fromTheme("edit-delete"), trans("menu.file_clear_history"),
                                                         self.window)
 
         self.window.menu['app.clear_history'].triggered.connect(
@@ -54,7 +54,7 @@ class Menu:
 
     def setup_plugins(self):
         """Setups plugins menu"""
-        self.window.menu['plugins.settings'] = QAction(trans("menu.plugins.settings"),
+        self.window.menu['plugins.settings'] = QAction(QIcon.fromTheme("preferences-other"), trans("menu.plugins.settings"),
                                                        self.window)
 
         self.window.menu['plugins.settings'].triggered.connect(
@@ -88,13 +88,13 @@ class Menu:
 
     def setup_config(self):
         """Setups config menu"""
-        self.window.menu['config.settings'] = QAction(trans("menu.config.settings"),
+        self.window.menu['config.settings'] = QAction(QIcon.fromTheme("preferences-other"), trans("menu.config.settings"),
                                                       self.window)
-        self.window.menu['config.edit.config'] = QAction(trans("menu.config.edit.config"),
+        self.window.menu['config.edit.config'] = QAction(QIcon.fromTheme("document-edit"), trans("menu.config.edit.config"),
                                                          self.window)
-        self.window.menu['config.edit.models'] = QAction(trans("menu.config.edit.models"),
+        self.window.menu['config.edit.models'] = QAction(QIcon.fromTheme("document-edit"), trans("menu.config.edit.models"),
                                                          self.window)
-        self.window.menu['config.open_dir'] = QAction(trans("menu.config.open_dir"),
+        self.window.menu['config.open_dir'] = QAction(QIcon.fromTheme("folder-open"), trans("menu.config.open_dir"),
                                                       self.window)
         self.window.menu['config.save'] = QAction(QIcon.fromTheme("document-save"), trans("menu.config.save"),
                                                   self.window)
@@ -175,11 +175,11 @@ class Menu:
         """Setups about menu"""
         self.window.menu['info.about'] = QAction(QIcon.fromTheme("help-about"), trans("menu.info.about"),
                                                  self.window)
-        self.window.menu['info.changelog'] = QAction(trans("menu.info.changelog"),
+        self.window.menu['info.changelog'] = QAction(QIcon.fromTheme("history"), trans("menu.info.changelog"),
                                                      self.window)
-        self.window.menu['info.website'] = QAction(trans("menu.info.website"),
+        self.window.menu['info.website'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.website"),
                                                    self.window)
-        self.window.menu['info.github'] = QAction(trans("menu.info.github"),
+        self.window.menu['info.github'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.github"),
                                                   self.window)
 
         self.window.menu['info.about'].triggered.connect(
