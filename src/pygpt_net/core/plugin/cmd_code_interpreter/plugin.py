@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 18:00:00                  #
+# Updated Date: 2023.12.09 14:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -157,10 +157,17 @@ class Plugin(BasePlugin):
         """Event: On cmd syntax prepare"""
         syntax += '\n"code_execute": create and execute Python code, params: "filename", "code"'
         syntax += '\n"code_execute_file": execute Python code from existing file, params: "filename"'
-        syntax += '\n"sys_exec": execute system command, params: "command"'
+        syntax += '\n"sys_exec": execute ANY system command, script or application in user\'s environment, ' \
+                  'params: "command" '
         return syntax
 
     def cmd(self, ctx, cmds):
+        """
+        Execute command
+        :param ctx: Context
+        :param cmds: Commands list
+        :return: Context
+        """
         msg = None
         for item in cmds:
             try:

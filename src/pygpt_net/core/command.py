@@ -27,7 +27,7 @@ class Command:
         :return: prompt instruction
         """
         cmd = '''RUNNING COMMANDS:
-        You are allowed to run commands. To run command return JSON object with "cmd" key and command name
+        You are allowed to run commands in user's environment. To run command return JSON object with "cmd" key and command name
         as value. Put command parameters in "params" key. Example: {"cmd": "web", "params": {"query": "some query"}}.
         Use ONLY syntax like this. DO NOT use any other syntax. Append JSON object to response at the end of response
         and split it with ~###~ character. Example: response text ~###~ {"cmd": "web", "params": {"query": "some query"}}.
