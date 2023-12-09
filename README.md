@@ -527,9 +527,12 @@ Plugin capabilities include:
 - Reading files
 - Appending to files
 - Writing files
-- Deleting files
+- Deleting files and directories
 - Listing files and directories
 - Creating directories
+- Downloading files
+- Copying files and directories
+- Moving (renaming) files and directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -537,31 +540,51 @@ If a file being created (with the same name) already exists, a prefix including 
 
 - `Enable: Read file` *cmd_read_file*
 
-Allow `read_file` command. *Default:* `True`
+Allows `read_file` command. *Default:* `True`
 
 - `Enable: Append to file` *cmd_append_file*
 
-Allow `append_file` command. *Default:* `True`
+Allows `append_file` command. *Default:* `True`
 
 - `Enable: Save file` *cmd_save_file*
 
-Allow `save_file` command. *Default:* `True`
+Allows `save_file` command. *Default:* `True`
 
 - `Enable: Delete file` *cmd_delete_file*
 
-Allow `delete_file` command. *Default:* `True`
+Allows `delete_file` command. *Default:* `True`
 
 - `Enable: List files (ls)` *cmd_list_files*
 
-Allow `list_files` command. *Default:* `True`
+Allows `list_files` command. *Default:* `True`
 
 - `Enable: List directories (ls)` *cmd_list_dirs*
 
-Allow `list_dirs` command. *Default:* `True`
+Allows `list_dirs` command. *Default:* `True`
 
 - `Enable: Directory creation (mkdir)` *cmd_mkdir*
 
-Allow `mkdir` command. *Default:* `True`
+Allows `mkdir` command. *Default:* `True`
+
+- `Enable: Downloading files` *cmd_download_file*
+
+Allows `download_file` command. *Default:* `True`
+
+- `Enable: Removing directories` *cmd_rmdir*
+
+Allows `rmdir` command. *Default:* `True`
+
+- `Enable: Copying files` *cmd_copy_file*
+
+Allows `copy_file` command. *Default:* `True`
+
+- `Enable: Copying directories (recursive)` *cmd_copy_dir*
+
+Allows `copy_dir` command. *Default:* `True`
+
+- `Enable: Move files and directories (rename)` *cmd_move*
+
+Allows `move` command. *Default:* `True`
 
 
 ## Command: Code Interpreter
@@ -582,15 +605,15 @@ Python command template (use {filename} as path to file placeholder). *Default:*
 
 - `Enable: Python Code Generate and Execute` *cmd_code_execute*
 
-Allow Python code execution (generate and execute from file). *Default:* `True`
+Allows Python code execution (generate and execute from file). *Default:* `True`
 
 - `Enable: Python Code Execute (File)` *cmd_code_execute_file*
 
-Allow Python code execution from existing file. *Default:* `True`
+Allows Python code execution from existing file. *Default:* `True`
  
 - `Enable: System Command Execute` *cmd_sys_exec*
 
-Allow system commands execution. *Default:* `True`
+Allows system commands execution. *Default:* `True`
 
 
 ## Command: Custom Commands
@@ -1021,7 +1044,8 @@ may consume additional tokens that are not displayed in the main window.
 
 ## 2.0.9 (2023-12-09)
 
-- Added `Custom Commands` feature; it allows to easily create and execute custom commands
+- Added `Command: Custom Commands` feature; plugin allows to easily create and execute custom commands
+- Added new features to `Command: Files I/O`: downloading files, copying files and dirs, moving files and dirs
 
 ## 2.0.8 (2023-12-08)
 
@@ -1136,7 +1160,7 @@ New features in version 2.0.0:
 
 **PyPI:** <https://pypi.org/project/pygpt-net>
 
-**Author:** Marcin Szczygliński (Poland, UE)
+**Author:** Marcin Szczygliński (Poland, EU)
 
 **Contact:** <info@pygpt.net> <szczyglis@protonmail.com>
 

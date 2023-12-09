@@ -11,7 +11,7 @@ https://github.com/szczyglis-dev/py-gpt
 https://pypi.org/project/pygpt-net
 
 **Author:**
-Marcin Szczygliński (Poland, UE)
+Marcin Szczygliński (Poland, EU)
 
 **Contact:**
 info@pygpt.net

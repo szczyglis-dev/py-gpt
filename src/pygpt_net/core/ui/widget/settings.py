@@ -351,8 +351,7 @@ class SettingsDictModel(QAbstractItemModel):
         """
         Save data
         """
-        print("Dane zaktualizowane w modelu:")
-        print(self.items)
+        pass
 
     def updateData(self, data):
         """

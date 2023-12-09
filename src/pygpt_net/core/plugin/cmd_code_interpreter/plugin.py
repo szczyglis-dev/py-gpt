@@ -38,7 +38,7 @@ class Plugin(BasePlugin):
             "type": "bool",
             "slider": False,
             "label": "Enable: Python Code Generate and Execute",
-            "description": "Allow Python code execution (generate and execute from file)",
+            "description": "Allows Python code execution (generate and execute from file)",
             "tooltip": "",
             "value": True,
             "min": None,
@@ -50,7 +50,7 @@ class Plugin(BasePlugin):
             "type": "bool",
             "slider": False,
             "label": "Enable: Python Code Execute (File)",
-            "description": "Allow Python code execution from existing file",
+            "description": "Allows Python code execution from existing file",
             "tooltip": "",
             "value": True,
             "min": None,
@@ -62,37 +62,9 @@ class Plugin(BasePlugin):
             "type": "bool",
             "slider": False,
             "label": "Enable: System Command Execute",
-            "description": "Allow system commands execution",
+            "description": "Allows system commands execution",
             "tooltip": "",
             "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["tmp_list"] = {
-            "type": "dict",
-            "keys": {
-                "name": "text",
-                "desc": "text",
-                "cmd": "text",
-            },
-            "slider": False,
-            "label": "tmp_list",
-            "description": "tmp_list",
-            "tooltip": "tmp_list",
-            "value": [
-                {
-                    "name": "item1",
-                    "desc": "desc1",
-                    "cmd": "cmd1",
-                },
-                {
-                    "name": "item2",
-                    "desc": "desc2",
-                    "cmd": "cmd2",
-                },
-            ],
             "min": None,
             "max": None,
             "multiplier": None,
@@ -194,77 +166,92 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] in self.allowed_cmds:
                     if item["cmd"] == "code_execute_file" and self.is_cmd_allowed("code_execute_file"):
-                        msg = "Executing Python file: {}".format(item["params"]['filename'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+                        try:
+                            msg = "Executing Python file: {}".format(item["params"]['filename'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
 
-                        # check if file exists
-                        if not os.path.isfile(path):
-                            msg = "File not found: {}".format(item["params"]['filename'])
-                            ctx.results.append({"request": item, "result": "File not found"})
+                            # check if file exists
+                            if not os.path.isfile(path):
+                                msg = "File not found: {}".format(item["params"]['filename'])
+                                ctx.results.append({"request": item, "result": "File not found"})
+                                ctx.reply = True  # send result message
+                                continue
+
+                            # run code
+                            cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
+                            print("Running command: {}".format(cmd))
+                            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                                                       stderr=subprocess.PIPE)
+                            stdout, stderr = process.communicate()
+                            result = None
+                            if stdout:
+                                result = stdout.decode("utf-8")
+                            if stderr:
+                                result = stderr.decode("utf-8")
+                            if result is None:
+                                result = "No result (STDOUT/STDERR empty)"
+                            ctx.results.append({"request": item, "result": result})
+                            print("Result (STDOUT): {}".format(result))
                             ctx.reply = True  # send result message
-                            continue
-
-                        # run code
-                        cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
-                        print("Running command: {}".format(cmd))
-                        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE)
-                        stdout, stderr = process.communicate()
-                        result = None
-                        if stdout:
-                            result = stdout.decode("utf-8")
-                        if stderr:
-                            result = stderr.decode("utf-8")
-                        if result is None:
-                            result = "No result (STDOUT/STDERR empty)"
-                        ctx.results.append({"request": item, "result": result})
-                        print("Result (STDOUT): {}".format(result))
-                        ctx.reply = True  # send result message
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
 
                     elif item["cmd"] == "code_execute" and self.is_cmd_allowed("code_execute"):
-                        msg = "Saving Python file: {}".format(item["params"]['filename'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
-                        data = item["params"]['code']
-                        with open(path, 'w', encoding="utf-8") as file:
-                            file.write(data)
-                            file.close()
+                        try:
+                            msg = "Saving Python file: {}".format(item["params"]['filename'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+                            data = item["params"]['code']
+                            with open(path, 'w', encoding="utf-8") as file:
+                                file.write(data)
+                                file.close()
 
-                        # run code
-                        cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
-                        print("Running command: {}".format(cmd))
-                        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE)
-                        stdout, stderr = process.communicate()
-                        result = None
-                        if stdout:
-                            result = stdout.decode("utf-8")
-                        if stderr:
-                            result = stderr.decode("utf-8")
-                        if result is None:
-                            result = "No result (STDOUT/STDERR empty)"
-                        ctx.results.append({"request": item, "result": result})
-                        print("Result (STDOUT): {}".format(result))
-                        ctx.reply = True  # send result message
+                            # run code
+                            cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
+                            print("Running command: {}".format(cmd))
+                            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                                                       stderr=subprocess.PIPE)
+                            stdout, stderr = process.communicate()
+                            result = None
+                            if stdout:
+                                result = stdout.decode("utf-8")
+                            if stderr:
+                                result = stderr.decode("utf-8")
+                            if result is None:
+                                result = "No result (STDOUT/STDERR empty)"
+                            ctx.results.append({"request": item, "result": result})
+                            print("Result (STDOUT): {}".format(result))
+                            ctx.reply = True  # send result message
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
 
                     elif item["cmd"] == "sys_exec" and self.is_cmd_allowed("sys_exec"):
-                        msg = "Executing system command: {}".format(item["params"]['command'])
-                        print(msg)
-                        print("Running command: {}".format(item["params"]['command']))
-                        process = subprocess.Popen(item["params"]['command'], shell=True, stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE)
-                        stdout, stderr = process.communicate()
-                        result = None
-                        if stdout:
-                            result = stdout.decode("utf-8")
-                        if stderr:
-                            result = stderr.decode("utf-8")
-                        if result is None:
-                            result = "No result (STDOUT/STDERR empty)"
-                        ctx.results.append({"request": item, "result": result})
-                        print("Result (STDOUT): {}".format(result))
-                        ctx.reply = True  # send result message
+                        try:
+                            msg = "Executing system command: {}".format(item["params"]['command'])
+                            print(msg)
+                            print("Running command: {}".format(item["params"]['command']))
+                            process = subprocess.Popen(item["params"]['command'], shell=True, stdout=subprocess.PIPE,
+                                                       stderr=subprocess.PIPE)
+                            stdout, stderr = process.communicate()
+                            result = None
+                            if stdout:
+                                result = stdout.decode("utf-8")
+                            if stderr:
+                                result = stderr.decode("utf-8")
+                            if result is None:
+                                result = "No result (STDOUT/STDERR empty)"
+                            ctx.results.append({"request": item, "result": result})
+                            print("Result (STDOUT): {}".format(result))
+                            ctx.reply = True  # send result message
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error {}".format(e)})
                 ctx.reply = True

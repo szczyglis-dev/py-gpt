@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 18:00:00                  #
+# Updated Date: 2023.12.09 12:00:00                  #
 # ================================================== #
 import os.path
-from datetime import datetime
+import shutil
+import ssl
+from urllib.request import Request, urlopen
 
 from ..base_plugin import BasePlugin
 
@@ -105,9 +107,82 @@ class Plugin(BasePlugin):
             "multiplier": None,
             "step": None,
         }
+        self.options["cmd_download_file"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Downloading files",
+            "description": "Allows `download_file` command execution",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_rmdir"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Removing directories",
+            "description": "Allows `rmdir` command execution",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_copy_file"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Copying files",
+            "description": "Allows `copy` command execution",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_copy_dir"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Copying directories (recursive)",
+            "description": "Allows `copy_dir` command execution",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
+        self.options["cmd_move"] = {
+            "type": "bool",
+            "slider": False,
+            "label": "Enable: Move files and directories (rename)",
+            "description": "Allows `move` command execution",
+            "tooltip": "",
+            "value": True,
+            "min": None,
+            "max": None,
+            "multiplier": None,
+            "step": None,
+        }
         self.window = None
         self.order = 100
-        self.allowed_cmds = ["save_file", "read_file", "append_file", "delete_file", "list_files", "list_dirs", "mkdir"]
+        self.allowed_cmds = [
+            "save_file",
+            "read_file",
+            "append_file",
+            "delete_file",
+            "list_files",
+            "list_dirs",
+            "mkdir",
+            "download_file",
+            "rmdir",
+            "copy_file",
+            "copy_dir",
+            "move",
+        ]
 
     def setup(self):
         """
@@ -204,6 +279,16 @@ class Plugin(BasePlugin):
             syntax += '\n"list_dirs": list directories in directory, params: "path"'
         if self.is_cmd_allowed("mkdir"):
             syntax += '\n"mkdir": create directory, params: "path"'
+        if self.is_cmd_allowed("download_file"):
+            syntax += '\n"download_file": download file, params: "src", "dst"'
+        if self.is_cmd_allowed("rmdir"):
+            syntax += '\n"rmdir": remove directory, params: "path"'
+        if self.is_cmd_allowed("copy_file"):
+            syntax += '\n"copy_file": copy file, params: "src", "dst"'
+        if self.is_cmd_allowed("copy_dir"):
+            syntax += '\n"copy_dir": recursive copy directory, params: "src", "dst"'
+        if self.is_cmd_allowed("move"):
+            syntax += '\n"move": move file or directory, params: "src", "dst"'
         return syntax
 
     def cmd(self, ctx, cmds):
@@ -212,96 +297,226 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] in self.allowed_cmds and self.is_cmd_allowed(item["cmd"]):
                     if item["cmd"] == "save_file":
-                        msg = "Saving file: {}".format(item["params"]['filename'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
-                        data = item["params"]['data']
-                        with open(path, 'w', encoding="utf-8") as file:
-                            file.write(data)
-                            file.close()
-                            ctx.results.append({"request": item, "result": "OK"})
-                            ctx.reply = True
-                            print("File saved: {}".format(path))
-                    elif item["cmd"] == "append_file" and self.is_cmd_allowed("append_file"):
-                        msg = "Appending file: {}".format(item["params"]['filename'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
-                        data = item["params"]['data']
-                        with open(path, 'a', encoding="utf-8") as file:
-                            file.write(data)
-                            file.close()
-                            ctx.results.append({"request": item, "result": "OK"})
-                            ctx.reply = True
-                            print("File appended: {}".format(path))
-                    elif item["cmd"] == "read_file" and self.is_cmd_allowed("read_file"):
-                        msg = "Reading file: {}".format(item["params"]['filename'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
-                        if os.path.exists(path):
-                            with open(path, 'r', encoding="utf-8") as file:
-                                data = file.read()
-                                ctx.results.append({"request": item, "result": data})
-                                ctx.reply = True  # send result message
+                        try:
+                            msg = "Saving file: {}".format(item["params"]['filename'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+                            data = item["params"]['data']
+                            with open(path, 'w', encoding="utf-8") as file:
+                                file.write(data)
                                 file.close()
-                                print("File read: {}".format(path))
-                        else:
-                            ctx.results.append({"request": item, "result": "File not found"})
+                                ctx.results.append({"request": item, "result": "OK"})
+                                ctx.reply = True
+                                print("File saved: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
                             ctx.reply = True
-                            print("File not found: {}".format(path))
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "append_file" and self.is_cmd_allowed("append_file"):
+                        try:
+                            msg = "Appending file: {}".format(item["params"]['filename'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+                            data = item["params"]['data']
+                            with open(path, 'a', encoding="utf-8") as file:
+                                file.write(data)
+                                file.close()
+                                ctx.results.append({"request": item, "result": "OK"})
+                                ctx.reply = True
+                                print("File appended: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "read_file" and self.is_cmd_allowed("read_file"):
+                        try:
+                            msg = "Reading file: {}".format(item["params"]['filename'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+                            if os.path.exists(path):
+                                with open(path, 'r', encoding="utf-8") as file:
+                                    data = file.read()
+                                    ctx.results.append({"request": item, "result": data})
+                                    ctx.reply = True  # send result message
+                                    file.close()
+                                    print("File read: {}".format(path))
+                            else:
+                                ctx.results.append({"request": item, "result": "File not found"})
+                                ctx.reply = True
+                                print("File not found: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
                     elif item["cmd"] == "delete_file" and self.is_cmd_allowed("delete_file"):
-                        msg = "Deleting file: {}".format(item["params"]['filename'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
-                        if os.path.exists(path):
-                            os.remove(path)
-                            ctx.results.append({"request": item, "result": "OK"})
+                        try:
+                            msg = "Deleting file: {}".format(item["params"]['filename'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
+                            if os.path.exists(path):
+                                os.remove(path)
+                                ctx.results.append({"request": item, "result": "OK"})
+                                ctx.reply = True
+                                print("File deleted: {}".format(path))
+                            else:
+                                ctx.results.append({"request": item, "result": "File not found"})
+                                ctx.reply = True
+                                print("File not found: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
                             ctx.reply = True
-                            print("File deleted: {}".format(path))
-                        else:
-                            ctx.results.append({"request": item, "result": "File not found"})
-                            ctx.reply = True
-                            print("File not found: {}".format(path))
+                            print("Error: {}".format(e))
                     elif item["cmd"] == "list_files" and self.is_cmd_allowed("list_files"):
-                        msg = "Listing files: {}".format(item["params"]['path'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
-                        if os.path.exists(path):
-                            files = os.listdir(path)
-                            ctx.results.append({"request": item, "result": files})
+                        try:
+                            msg = "Listing files: {}".format(item["params"]['path'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
+                            if os.path.exists(path):
+                                files = os.listdir(path)
+                                ctx.results.append({"request": item, "result": files})
+                                ctx.reply = True
+                                print("Files listed: {}".format(path))
+                                print("Result: {}".format(files))
+                            else:
+                                ctx.results.append({"request": item, "result": "Directory not found"})
+                                ctx.reply = True
+                                print("Directory not found: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
                             ctx.reply = True
-                            print("Files listed: {}".format(path))
-                            print("Result: {}".format(files))
-                        else:
-                            ctx.results.append({"request": item, "result": "Directory not found"})
-                            ctx.reply = True
-                            print("Directory not found: {}".format(path))
+                            print("Error: {}".format(e))
                     elif item["cmd"] == "list_dirs" and self.is_cmd_allowed("list_dirs"):
-                        msg = "Listing directories: {}".format(item["params"]['path'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
-                        if os.path.exists(path):
-                            dirs = os.listdir(path)
-                            ctx.results.append({"request": item, "result": dirs})
+                        try:
+                            msg = "Listing directories: {}".format(item["params"]['path'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
+                            if os.path.exists(path):
+                                dirs = os.listdir(path)
+                                ctx.results.append({"request": item, "result": dirs})
+                                ctx.reply = True
+                                print("Directories listed: {}".format(path))
+                                print("Result: {}".format(dirs))
+                            else:
+                                ctx.results.append({"request": item, "result": "Directory not found"})
+                                ctx.reply = True
+                                print("Directory not found: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
                             ctx.reply = True
-                            print("Directories listed: {}".format(path))
-                            print("Result: {}".format(dirs))
-                        else:
-                            ctx.results.append({"request": item, "result": "Directory not found"})
-                            ctx.reply = True
-                            print("Directory not found: {}".format(path))
+                            print("Error: {}".format(e))
                     elif item["cmd"] == "mkdir" and self.is_cmd_allowed("mkdir"):
-                        msg = "Creating directory: {}".format(item["params"]['path'])
-                        print(msg)
-                        path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
-                        if not os.path.exists(path):
-                            os.makedirs(path)
+                        try:
+                            msg = "Creating directory: {}".format(item["params"]['path'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
+                            if not os.path.exists(path):
+                                os.makedirs(path)
+                                ctx.results.append({"request": item, "result": "OK"})
+                                ctx.reply = True
+                                print("Directory created: {}".format(path))
+                            else:
+                                ctx.results.append({"request": item, "result": "Directory already exists"})
+                                ctx.reply = True
+                                print("Directory already exists: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "rmdir" and self.is_cmd_allowed("rmdir"):
+                        try:
+                            msg = "Deleting directory: {}".format(item["params"]['path'])
+                            print(msg)
+                            path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
+                            if os.path.exists(path):
+                                shutil.rmtree(path)
+                                ctx.results.append({"request": item, "result": "OK"})
+                                ctx.reply = True
+                                print("Directory deleted: {}".format(path))
+                            else:
+                                ctx.results.append({"request": item, "result": "Directory not found"})
+                                ctx.reply = True
+                                print("Directory not found: {}".format(path))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "download_file" and self.is_cmd_allowed("download_file"):
+                        try:
+                            dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
+                            msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
+                            print(msg)
+
+                            # Check if src is URL
+                            if item["params"]['src'].startswith("http"):
+                                src = item["params"]['src']
+                                # Download file from URL
+                                req = Request(
+                                    url=src,
+                                    headers={'User-Agent': 'Mozilla/5.0'}
+                                )
+                                context = ssl.create_default_context()
+                                context.check_hostname = False
+                                context.verify_mode = ssl.CERT_NONE
+                                with urlopen(req, context=context, timeout=4) as response, open(dst, 'wb') as out_file:
+                                    shutil.copyfileobj(response, out_file)
+                            else:
+                                # Handle local file paths
+                                src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
+
+                                # Copy local file
+                                with open(src, 'rb') as in_file, open(dst, 'wb') as out_file:
+                                    shutil.copyfileobj(in_file, out_file)
+
+                            # handle result
                             ctx.results.append({"request": item, "result": "OK"})
                             ctx.reply = True
-                            print("Directory created: {}".format(path))
-                        else:
-                            ctx.results.append({"request": item, "result": "Directory already exists"})
+                            print("File downloaded: {} into {}".format(src, dst))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
                             ctx.reply = True
-                            print("Directory already exists: {}".format(path))
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "copy_file" and self.is_cmd_allowed("copy_file"):
+                        try:
+                            msg = "Copying file: {} into {}".format(item["params"]['src'], item["params"]['dst'])
+                            print(msg)
+                            dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
+                            src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
+                            shutil.copyfile(src, dst)
+                            ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("File copied: {} into {}".format(src, dst))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "copy_dir" and self.is_cmd_allowed("copy_dir"):
+                        try:
+                            msg = "Copying directory: {} into {}".format(item["params"]['src'], item["params"]['dst'])
+                            print(msg)
+                            dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
+                            src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
+                            shutil.copytree(src, dst)
+                            ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("Directory copied: {} into {}".format(src, dst))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
+                    elif item["cmd"] == "move" and self.is_cmd_allowed("move"):
+                        try:
+                            msg = "Moving: {} into {}".format(item["params"]['src'], item["params"]['dst'])
+                            print(msg)
+                            dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
+                            src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
+                            shutil.move(src, dst)
+                            ctx.results.append({"request": item, "result": "OK"})
+                            ctx.reply = True
+                            print("Moved: {} into {}".format(src, dst))
+                        except Exception as e:
+                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.reply = True
+                            print("Error: {}".format(e))
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error {}".format(e)})
                 ctx.reply = True
