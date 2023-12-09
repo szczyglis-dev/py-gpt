@@ -179,6 +179,8 @@ class Plugins:
                     value = self.window.plugin_option[id][key].toPlainText()
                 elif option['type'] == 'bool':
                     value = self.window.plugin_option[id][key].box.isChecked()
+                elif option['type'] == 'dict':
+                    value = self.window.plugin_option[id][key].model.items
                 self.handler.plugins[id].options[key]['value'] = value
                 self.window.config.data['plugins'][id][key] = value
 
@@ -343,21 +345,13 @@ class Plugins:
         """
         Toggles dict items
 
-        :param id: checkbox option id
-        :param value: checkbox option value
+        :param id: option id
+        :param value: dict values
         """
-        print("pre")
-        print(value)
-        print("post")
         key = id.replace('plugin.' + self.current_plugin + '.', '')
         values = list(value)
-        self.window.plugin_option[self.current_plugin][key].remove()
-        self.window.plugin_option[self.current_plugin][key].items = values  # update model data list
-        self.window.plugin_option[self.current_plugin][key].model.updateData(values)
-        self.window.plugin_option[self.current_plugin][key].list.reset()
-        self.window.plugin_option[self.current_plugin][key].update()  # reset view
-        # self.window.plugin_option[self.current_plugin][key].model.updateData(value)  # update model data list
-        # self.window.plugin_option[self.current_plugin][key].list.reset()  # reset view
+        self.window.plugin_option[self.current_plugin][key].items = values  # replace model data list
+        self.window.plugin_option[self.current_plugin][key].model.updateData(values)  # update model data
 
     def config_change(self, id, value):
         """

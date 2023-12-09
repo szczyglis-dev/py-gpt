@@ -10,11 +10,12 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
-from PySide6.QtGui import QStandardItemModel
+from PySide6.QtGui import QStandardItemModel, QAction, QIcon
 from PySide6.QtWidgets import QLineEdit, QDialog, QLabel, QCheckBox, QHBoxLayout, QWidget, QSlider, QTextEdit, \
     QVBoxLayout, QPushButton, QTreeView, QAbstractItemView, QMenu
 
 from .select import SelectMenu
+from ...utils import trans
 
 
 class SettingsSlider(QWidget):
@@ -252,81 +253,150 @@ class PluginSelectMenu(SelectMenu):
 
 
 class SettingsDictModel(QAbstractItemModel):
-    def __init__(self, data_list, headers, parent=None):
+    def __init__(self, items, headers, parent=None):
         super(SettingsDictModel, self).__init__(parent)
-        self.data_list = data_list
+        self.items = items
         self.headers = headers
 
     def headerData(self, section, orientation, role):
+        """
+        Header data
+        :param section: Section
+        :param orientation: Orientation
+        :param role: Role
+        :return: Header data
+        """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.headers[section]
         return None
 
     def rowCount(self, parent=QModelIndex()):
-        return len(self.data_list) if not parent.isValid() else 0
+        """
+        Row count
+        :param parent: Parent
+        :return: Row count
+        """
+        return len(self.items) if not parent.isValid() else 0
 
     def columnCount(self, parent=QModelIndex()):
+        """
+        Column count
+        :param parent: Parent
+        :return: Column count
+        """
         return len(self.headers) if not parent.isValid() else 0
 
     def data(self, index, role=Qt.DisplayRole):
+        """
+        Data
+        :param index: Index
+        :param role: Role
+        :return: Data
+        """
         if not index.isValid():
             return None
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            dict_entry = self.data_list[index.row()]
+            entry = self.items[index.row()]
             key = self.headers[index.column()]
-            return dict_entry.get(key, "")
+            return entry.get(key, "")
         return None
 
     def setData(self, index, value, role=Qt.EditRole):
+        """
+        Set data
+        :param index: Index
+        :param value: Value
+        :param role: Role
+        :return: Set data
+        """
         if index.isValid() and role == Qt.EditRole:
-            dict_entry = self.data_list[index.row()]
+            entry = self.items[index.row()]
             key = self.headers[index.column()]
-            dict_entry[key] = value
+            entry[key] = value
             self.dataChanged.emit(index, index, [Qt.EditRole])
             return True
         return False
 
     def flags(self, index):
+        """
+        Flags
+        :param index: Index
+        :return: Flags
+        """
         if not index.isValid():
             return Qt.NoItemFlags
         return super(SettingsDictModel, self).flags(index) | Qt.ItemIsEditable
 
     def parent(self, index):
+        """
+        Parent
+        :param index: Index
+        :return: Parent
+        """
         return QModelIndex()
 
     def index(self, row, column, parent=QModelIndex()):
-        if parent.isValid() or row >= len(self.data_list) or column >= len(self.headers):
+        """
+        Index
+        :param row: Row
+        :param column: Column
+        :param parent: Parent
+        :return: Index
+        """
+        if parent.isValid() or row >= len(self.items) or column >= len(self.headers):
             return QModelIndex()
         return self.createIndex(row, column)
 
     def saveData(self):
+        """
+        Save data
+        """
         print("Dane zaktualizowane w modelu:")
-        print(self.data_list)
+        print(self.items)
 
-    def updateData(self, new_data_list):
+    def updateData(self, data):
+        """
+        Update data
+        :param new_data_list: New data list
+        """
         self.beginResetModel()
-        self.data_list = new_data_list
+        self.items = data
         self.endResetModel()
 
 
-class SettingsDictItens(QTreeView):
+class SettingsDictItems(QTreeView):
     NAME = range(1)  # list of columns
 
-    def __init__(self, window=None, id=None):
+    def __init__(self, owner=None):
         """
         Select menu
 
         :param window: main window
         :param id: input id
         """
-        super(SettingsDictItens, self).__init__(window)
-        self.window = window
-        self.id = id
+        super(SettingsDictItems, self).__init__(owner)
+        self.parent = owner
         self.setIndentation(0)
         self.setHeaderHidden(False)
 
-    def click(self, val):
-        self.window.controller.model.select(self.id, val.row())
+    def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: context menu event
+        """
+        actions = {}
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'].triggered.connect(
+            lambda: self.parent.delete_item(event))
+        menu = QMenu(self)
+        menu.addAction(actions['delete'])
+
+        # get index of item
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            menu.exec_(event.globalPos())
 
 
 class SettingsDict(QWidget):
@@ -338,6 +408,9 @@ class SettingsDict(QWidget):
         :param option_id: option id
         :param autoupdate: auto update
         :param section: settings section
+        :param parent_id: parent id
+        :param keys: dict keys
+        :param values: dict values
         """
         super(SettingsDict, self).__init__(window)
         self.window = window
@@ -348,13 +421,13 @@ class SettingsDict(QWidget):
         self.keys = keys  # dict keys
         self.items = list(values)  # dict items
 
-        # setup model
+        # setup dict model
         headers = list(self.keys.keys())
-        self.list = SettingsDictItens(self)
+        self.list = SettingsDictItems(self)
         self.model = SettingsDictModel(self.items, headers)
         self.model.dataChanged.connect(self.model.saveData)
 
-        # append model
+        # append dict model
         self.list.setModel(self.model)
         self.list.selectionModel().selectionChanged.connect(
             lambda: self.window.controller.context.selection_change())
@@ -370,40 +443,50 @@ class SettingsDict(QWidget):
         self.layout.addWidget(self.list)
         self.setLayout(self.layout)
 
-        # context menu
-        self.list.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.list.customContextMenuRequested.connect(self.openContextMenu)
-
         # update model list
         self.update()
 
     def add(self):
-        empty_dict = {header: '' for header in self.model.headers}
-        row_count = self.model.rowCount()
-        self.model.data_list.append(empty_dict)
-        self.model.updateData(self.model.data_list)
-        new_index = self.model.index(row_count, 0)
+        """
+        Add new empty item to settings dict
+        """
+        # create empty dict
+        empty = {header: '' for header in self.model.headers}
+        count = self.model.rowCount()
+
+        # add new item
+        self.model.items.append(empty)
+        self.model.updateData(self.model.items)
+
+        # mark new item
+        new_index = self.model.index(count, 0)
         self.list.setCurrentIndex(new_index)
         self.list.scrollTo(new_index)
 
-    def openContextMenu(self, position):
-        menu = QMenu()
-        deleteAction = menu.addAction("Delete Row")
-        action = menu.exec_(self.list.viewport().mapToGlobal(position))
-        if action == deleteAction:
-            index = self.list.currentIndex()
-            if index.isValid():
-                idx = index.row()
-                print("remove row {}".format(idx))
-                if len(self.model.data_list) > idx:
-                    self.model.data_list.pop(idx)
-                self.model.removeRows(idx, 1)
-                self.update()
-                self.list.updateGeometries()
-                self.items = self.model.data_list
-                self.model.updateData(self.items)
+    def delete_item(self, event):
+        """
+        Delete item
+
+        :param event: Menu event
+        """
+        index = self.list.indexAt(event.pos())
+        if index.isValid():
+            # remove item
+            idx = index.row()
+            if len(self.model.items) > idx:
+                self.model.items.pop(idx)
+            self.model.removeRows(idx, 1)
+
+            # update model list
+            self.update()
+            self.list.updateGeometries()
+            self.items = self.model.items
+            self.model.updateData(self.items)
 
     def remove(self):
+        """
+        Remove all items
+        """
         self.model.removeRows(0, self.model.rowCount())
 
     def update(self):
@@ -412,11 +495,12 @@ class SettingsDict(QWidget):
         """
         self.model.removeRows(0, self.model.rowCount())
         i = 0
-        for item in list(self.items):  # self.items is list of dicts, n is dict, k is key
+        for item in list(self.items):
             self.model.insertRow(i)
             j = 0
             for k in self.keys:
                 if k in item:
+                    # add item to model list
                     self.model.setData(self.model.index(i, j), item[k])
                 j += 1
             i += 1
