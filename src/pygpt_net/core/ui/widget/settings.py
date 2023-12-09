@@ -433,7 +433,7 @@ class SettingsDict(QWidget):
             lambda: self.window.controller.context.selection_change())
 
         # add button
-        add_btn = QPushButton('ADD NEW', self)
+        add_btn = QPushButton('ADD', self)
         add_btn.clicked.connect(self.add)
 
         # layout

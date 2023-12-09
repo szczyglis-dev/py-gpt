@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.8** build: **2023.12.08** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.9** build: **2023.12.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -8,9 +8,9 @@ PyPi: https://pypi.org/project/pygpt-net
 
 ## Overview
 
-**PYGPT** is **all-in-one** desktop AI assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
+**PYGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
 
 For audio interactions, **PYGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
@@ -35,6 +35,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Image analysis via `GPT-4 Vision`.
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
+- Custom commands creation and execution
 - Manages files and attachments with options to upload, download, and organize.
 - Context history with the capability to revert to previous contexts (long-term memory).
 - Allows you to easily manage prompts with handy editable presets.
@@ -370,6 +371,8 @@ The plugin can also execute system commands, allowing GPT to integrate with your
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
 Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 
+- `Command: Custom Commands` - allows you to create and execute custom commands on your system.
+
 - `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
 
 - `Audio Output (OpenAI TTS)` - provides voice synthesis using the OpenAI Text To Speech API.
@@ -522,10 +525,11 @@ The plugin allows for file management within the local filesystem. It enables th
 Plugin capabilities include:
 
 - Reading files
+- Appending to files
 - Writing files
-- Executing code from files
-- Creating directories
+- Deleting files
 - Listing files and directories
+- Creating directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -587,6 +591,69 @@ Allow Python code execution from existing file. *Default:* `True`
 - `Enable: System Command Execute` *cmd_sys_exec*
 
 Allow system commands execution. *Default:* `True`
+
+
+## Command: Custom Commands
+
+With the `Custom Commands` plugin, you can integrate PYGPT with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and PYGPT includes a simple tutorial command for testing and learning how it works:
+
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f236a30e-3c17-49f4-94df-597cf41feed7)
+
+To add a new custom command, click the 'ADD' button and then:
+
+1. Provide a name for your command: this is a unique identifier for GPT.
+2. Provide an `instruction` explaining what this command does; GPT will know when to use the command based on this instruction.
+3. Define `params`, separated by commas - GPT will send data to your commands using these params. These params will be placed into placeholders you have defined in the `cmd` field. For example:
+
+If you want instruct GPT to execute your Python script named `smart_home_lights.py` with an argument, such as `1` to turn the light ON, and `0` to turn it OFF, define it as follows:
+
+- **name**: lights_cmd
+- **instruction**: turn lights on/off; use 1 as 'arg' to turn ON, or 0 as 'arg' to turn OFF
+- **params**: arg
+- **cmd**: `python /path/to/smart_home_lights.py {arg}`
+
+The setup defined above will work as follows:
+
+When you ask GPT to turn your lights ON, GPT will locate this command and prepare the command `python /path/to/smart_home_lights.py {arg}` with `{arg}` replaced with `1`. On your system, it will execute the command:
+
+```python /path/to/smart_home_lights.py 1```
+
+And that's all. GPT will take care of the rest when you ask to turn ON the lights.
+
+You can define as many placeholders and parameters as you desire.
+
+Here are some predefined system placeholders for use:
+
+- `{_time}` - current time in `Y-m-d` format
+- `{_date}` - current date in `H:M:S` format
+- `{_datetime}` - current date and time in `Y-m-d H:M:S` format
+- `{_file}` - path to the file from which the command is invoked
+- `{_home}` - path to PYGPT's home/workworking directory
+
+You can connect predefined placeholders with your own params.
+
+*Example:*
+
+- **name**: song_cmd
+- **instruction**: store the generated song on hard disk
+- **params**: song_text, title
+- **cmd**: `echo "{song_text}" > {_home}/{title}.txt`
+
+
+With the setup above, every time you ask GPT to generate a song for you and save it to the disk, it will:
+
+1. Generate a song.
+2. Locate your command.
+3. Execute the command by sending the song's title and text.
+4. The command will save the song text into a file named with the song's title in the PYGPT working directory.
+
+**Example tutorial command**
+
+PYGPT provides simple tutorial command to show how it work, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
+
+```> please execute tutorial test command```
+
+![v2_code_execute_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/acd16409-c66f-461b-ba6f-69ba682805f7)
 
 
 ## Command: Google Web Search
@@ -951,6 +1018,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.9 (2023-12-09)
+
+- Added `Custom Commands` feature; it allows to easily create and execute custom commands
 
 ## 2.0.8 (2023-12-08)
 

@@ -37,6 +37,7 @@ from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperPlug
 from .plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
 from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
 from .plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
+from .plugin.cmd_custom.plugin import Plugin as CmdCustomCommandPlugin
 
 from .llm.OpenAI import OpenAILLM
 from .llm.AzureOpenAI import AzureOpenAILLM
@@ -254,6 +255,7 @@ def run():
     launcher.add_plugin(CmdWebGooglePlugin())
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
+    launcher.add_plugin(CmdCustomCommandPlugin())
 
     # register langchain LLMs
     launcher.add_llm(OpenAILLM())

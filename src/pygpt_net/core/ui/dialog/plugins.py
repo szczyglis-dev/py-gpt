@@ -218,10 +218,11 @@ class Plugins:
             cols_widget.setLayout(cols)
             cols_widget.setMaximumHeight(90)
 
-            desc_label = QLabel('<i>' + option['description'] + '</i>')
+            desc_label = QLabel(option['description'])
             desc_label.setWordWrap(True)
             desc_label.setMaximumHeight(30)
             desc_label.setStyleSheet("font-size: 10px;")
+            desc_label.setToolTip(option['tooltip'])
 
             layout = QVBoxLayout()
             layout.addWidget(cols_widget)
@@ -232,10 +233,11 @@ class Plugins:
             layout.addWidget(self.window.data[label_key])
             layout.addWidget(widget)
 
-            desc_label = QLabel('<i>' + option['description'] + '</i>')
+            desc_label = QLabel(option['description'])
             desc_label.setWordWrap(True)
-            desc_label.setMaximumHeight(20)
+            desc_label.setMaximumHeight(30)
             desc_label.setStyleSheet("font-size: 10px;")
+            desc_label.setToolTip(option['tooltip'])
 
             layout.addWidget(desc_label)
 

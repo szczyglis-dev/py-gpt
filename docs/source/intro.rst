@@ -4,7 +4,7 @@ Introduction
 Overview
 ----------------
 
-**PYGPT** is **all-in-one** desktop AI assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
+**PYGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google Custom Search API``.
 
@@ -30,6 +30,7 @@ Features
 * Image analysis via ``GPT-4 Vision``.
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
 * Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
+* Custom commands creation and execution
 * Manages files and attachments with options to upload, download, and organize.
 * Context history with the capability to revert to previous contexts (long-term memory).
 * Allows you to easily manage prompts with handy editable presets.

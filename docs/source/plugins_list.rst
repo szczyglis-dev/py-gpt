@@ -9,10 +9,11 @@ The plugin allows for file management within the local filesystem. It enables th
 Plugin capabilities include:
 
 * Reading files
+* Appending to files
 * Writing files
-* Executing code from files
-* Creating directories
+* Deleting files
 * Listing files and directories
+* Creating directories
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -62,7 +63,7 @@ Another feature is the ability to execute system commands and return their resul
 
 - ``Python command template`` *python_cmd_tpl*
 
-Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
+Python command template (use {filename} as path to file placeholder). *Default:* ``python3 {filename}``
 
 - ``Enable: Python Code Generate and Execute`` *cmd_code_execute*
 
@@ -75,6 +76,76 @@ Allow Python code execution from existing file. *Default:* `True`
 - ``Enable: System Command Execute`` *cmd_sys_exec*
 
 Allow system commands execution. *Default:* `True`
+
+
+Command: Custom Commands
+------------------------
+
+With the ``Custom Commands`` plugin, you can integrate **PYGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PYGPT** includes a simple tutorial command for testing and learning how it works:
+
+.. image:: images/v2_custom_cmd.png
+   :width: 800
+
+To add a new custom command, click the **ADD** button and then:
+
+1. Provide a name for your command: this is a unique identifier for GPT.
+2. Provide an ``instruction`` explaining what this command does; GPT will know when to use the command based on this instruction.
+3. Define ``params``, separated by commas - GPT will send data to your commands using these params. These params will be placed into placeholders you have defined in the ``cmd`` field. For example:
+
+If you want instruct GPT to execute your Python script named ``smart_home_lights.py`` with an argument, such as ``1`` to turn the light ON, and ``0`` to turn it OFF, define it as follows:
+
+- **name**: lights_cmd
+- **instruction**: turn lights on/off; use 1 as 'arg' to turn ON, or 0 as 'arg' to turn OFF
+- **params**: arg
+- **cmd**: ``python /path/to/smart_home_lights.py {arg}``
+
+The setup defined above will work as follows:
+
+When you ask GPT to turn your lights ON, GPT will locate this command and prepare the command ``python /path/to/smart_home_lights.py {arg}`` with ``{arg}`` replaced with ``1``. On your system, it will execute the command:
+
+.. code-block:: console
+
+  python /path/to/smart_home_lights.py 1
+
+And that's all. GPT will take care of the rest when you ask to turn ON the lights.
+
+You can define as many placeholders and parameters as you desire.
+
+Here are some predefined system placeholders for use:
+
+- ``{_time}`` - current time in ``Y-m-d`` format
+- ``{_date}`` - current date in ``H:M:S`` format
+- ``{_datetime}`` - current date and time in ``Y-m-d H:M:S`` format
+- ``{_file}`` - path to the file from which the command is invoked
+- ``{_home}`` - path to PYGPT's home/working directory
+
+You can connect predefined placeholders with your own params.
+
+*Example:*
+
+- **name**: song_cmd
+- **instruction**: store the generated song on hard disk
+- **params**: song_text, title
+- **cmd**: ``echo "{song_text}" > {_home}/{title}.txt``
+
+
+With the setup above, every time you ask GPT to generate a song for you and save it to the disk, it will:
+
+1. Generate a song.
+2. Locate your command.
+3. Execute the command by sending the song's title and text.
+4. The command will save the song text into a file named with the song's title in the PYGPT working directory.
+
+**Example tutorial command**
+
+**PYGPT** provides simple tutorial command to show how it work, to run it just ask GPT for execute ``tutorial test command`` and it will show you how it works:
+
+.. code-block:: console
+
+  > please execute tutorial test command
+
+.. image:: images/v2_code_execute_example.png
+   :width: 800
 
 
 Command: Google Web Search
