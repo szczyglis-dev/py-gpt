@@ -136,8 +136,8 @@ You can define as many placeholders and parameters as you desire.
 
 Here are some predefined system placeholders for use:
 
-- ``{_time}`` - current time in ``Y-m-d`` format
-- ``{_date}`` - current date in ``H:M:S`` format
+- ``{_time}`` - current time in ``H:M:S`` format
+- ``{_date}`` - current date in ``Y-m-d`` format
 - ``{_datetime}`` - current date and time in ``Y-m-d H:M:S`` format
 - ``{_file}`` - path to the file from which the command is invoked
 - ``{_home}`` - path to PYGPT's home/working directory

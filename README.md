@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.9** build: **2023.12.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.10** build: **2023.12.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -618,11 +618,11 @@ Allows system commands execution. *Default:* `True`
 
 ## Command: Custom Commands
 
-With the `Custom Commands` plugin, you can integrate PYGPT with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and PYGPT includes a simple tutorial command for testing and learning how it works:
+With the `Custom Commands` plugin, you can integrate **PYGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PYGPT** includes a simple tutorial command for testing and learning how it works:
 
 ![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f236a30e-3c17-49f4-94df-597cf41feed7)
 
-To add a new custom command, click the 'ADD' button and then:
+To add a new custom command, click the **ADD** button and then:
 
 1. Provide a name for your command: this is a unique identifier for GPT.
 2. Provide an `instruction` explaining what this command does; GPT will know when to use the command based on this instruction.
@@ -647,11 +647,11 @@ You can define as many placeholders and parameters as you desire.
 
 Here are some predefined system placeholders for use:
 
-- `{_time}` - current time in `Y-m-d` format
-- `{_date}` - current date in `H:M:S` format
+- `{_time}` - current time in `H:M:S` format
+- `{_date}` - current date in `Y-m-d` format
 - `{_datetime}` - current date and time in `Y-m-d H:M:S` format
 - `{_file}` - path to the file from which the command is invoked
-- `{_home}` - path to PYGPT's home/workworking directory
+- `{_home}` - path to PYGPT's home/working directory
 
 You can connect predefined placeholders with your own params.
 
@@ -676,7 +676,7 @@ PYGPT provides simple tutorial command to show how it work, to run it just ask G
 
 ```> please execute tutorial test command```
 
-![v2_code_execute_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/acd16409-c66f-461b-ba6f-69ba682805f7)
+![v2_code_execute_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/df94b500-d6fe-462f-98d8-6c8a9e42f9f4)
 
 
 ## Command: Google Web Search
@@ -1041,6 +1041,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.10 (2023-12-09)
+
+- Updated locale
 
 ## 2.0.9 (2023-12-09)
 

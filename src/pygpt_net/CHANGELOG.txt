@@ -1,3 +1,7 @@
+2.0.10 (2023-12-09)
+
+- Updated locale
+
 2.0.9 (2023-12-09)
 
 - Added Command: Custom Commands feature; plugin allows to easily create and execute custom commands

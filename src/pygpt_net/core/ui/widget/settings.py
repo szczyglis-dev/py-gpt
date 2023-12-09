@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.09 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
@@ -432,7 +432,7 @@ class SettingsDict(QWidget):
             lambda: self.window.controller.context.selection_change())
 
         # add button
-        add_btn = QPushButton('ADD', self)
+        add_btn = QPushButton(trans('action.add'), self)
         add_btn.clicked.connect(self.add)
 
         # layout
