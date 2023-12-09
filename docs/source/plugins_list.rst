@@ -1,5 +1,5 @@
-Plugins list
-============
+Plugins usage
+=============
 
 Command: Files I/O
 -----------------
@@ -166,7 +166,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
   > please execute tutorial test command
 
-.. image:: images/v2_code_execute_example.png
+.. image:: images/v2_custom_cmd_example.png
    :width: 800
 
 

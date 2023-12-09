@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.10** build: **2023.12.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.11** build: **2023.12.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -354,37 +354,6 @@ This lets you quickly use them again for generating new images later on.
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
 
-# Plugins
-
-The application can be enhanced with plugins to add new features.
-
-The following plugins are currently available, and GPT can use them instantly:
-
-- `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
-
-- `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
-as well as list and create directories.
-
-- `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
-the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
-The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
-Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
-Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
-
-- `Command: Custom Commands` - allows you to create and execute custom commands on your system.
-
-- `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
-
-- `Audio Output (OpenAI TTS)` - provides voice synthesis using the OpenAI Text To Speech API.
-
-- `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
-
-- `Self Loop` - creates a self-loop mode, where GPT can generate a continuous conversation between 
-two AI instances, effectively talking to itself.
-
-- `Real Time` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
-
-
 # Managing models
 
 All models are specified in the configuration file `models.json`, which you can customize. 
@@ -515,8 +484,35 @@ def run():
 
 To integrate your own model or provider into **PYGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
-
 # Plugins
+
+The application can be enhanced with plugins to add new features.
+
+The following plugins are currently available, and GPT can use them instantly:
+
+- `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
+
+- `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
+as well as list and create directories.
+
+- `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
+the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
+The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
+Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
+Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
+
+- `Command: Custom Commands` - allows you to create and execute custom commands on your system.
+
+- `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
+
+- `Audio Output (OpenAI TTS)` - provides voice synthesis using the OpenAI Text To Speech API.
+
+- `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
+
+- `Self Loop` - creates a self-loop mode, where GPT can generate a continuous conversation between 
+two AI instances, effectively talking to itself.
+
+- `Real Time` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 
 ## Command: Files I/O
 
@@ -620,7 +616,7 @@ Allows system commands execution. *Default:* `True`
 
 With the `Custom Commands` plugin, you can integrate **PYGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PYGPT** includes a simple tutorial command for testing and learning how it works:
 
-![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f236a30e-3c17-49f4-94df-597cf41feed7)
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b0d01e9b-c6f8-4e85-be56-106abec88200)
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -676,7 +672,7 @@ PYGPT provides simple tutorial command to show how it work, to run it just ask G
 
 ```> please execute tutorial test command```
 
-![v2_code_execute_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/df94b500-d6fe-462f-98d8-6c8a9e42f9f4)
+![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8df560db-aef2-45c4-81a1-4fc56e5282f2)
 
 
 ## Command: Google Web Search
@@ -1041,6 +1037,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.11 (2023-12-09)
+
+- Small fixes
 
 ## 2.0.10 (2023-12-09)
 

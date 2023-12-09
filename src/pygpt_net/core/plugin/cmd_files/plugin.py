@@ -292,6 +292,12 @@ class Plugin(BasePlugin):
         return syntax
 
     def cmd(self, ctx, cmds):
+        """
+        Event: On cmd
+        :param ctx: Context
+        :param cmds: Commands
+        :return: Context
+        """
         msg = None
         for item in cmds:
             try:

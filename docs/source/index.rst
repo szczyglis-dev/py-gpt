@@ -6,11 +6,11 @@
 PYGPT v2 - pygpt.net
 ====================
 
-| **Last update:** 2023-12-09 11:00
+| **Last update:** 2023-12-09 12:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 2.0.10 (2023-12-08)
+| **Release:** 2.0.11 (2023-12-08)
 
 .. toctree::
    :maxdepth: 3
@@ -29,9 +29,8 @@ Contents
    context
    presets
    images
-   plugins
    models
-   plugins_list
+   plugins
    tokens
    configuration
    notebook
