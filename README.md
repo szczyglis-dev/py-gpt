@@ -230,6 +230,7 @@ images and those found online.
 **1) you can provide an image URL**
 
 ![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1e618d68-6c60-4826-82c5-87149523e989)
+
 **2) you can also upload your local images**
 
 ![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ee796ef5-706d-4dd8-bb02-dd28b7042a12)
@@ -252,6 +253,7 @@ Available LLMs providers supported by **PYGPT**:
 ```
 
 ![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7565e4df-aa6f-4de5-97ac-61cb124e0340)
+
 You have the ability to add custom model wrappers for models that are not available by default in **PYGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
 # Files and attachments
