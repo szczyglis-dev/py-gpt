@@ -27,12 +27,31 @@ class Command:
         :return: prompt instruction
         """
         cmd = '''RUNNING COMMANDS:
-        You are allowed to run commands in user's environment. To run command return JSON object with "cmd" key and command name
-        as value. Put command parameters in "params" key. Example: {"cmd": "web", "params": {"query": "some query"}}.
-        Use ONLY syntax like this. DO NOT use any other syntax. Append JSON object to response at the end of response
-        and split it with ~###~ character. Example: response text ~###~ {"cmd": "web", "params": {"query": "some query"}}.
-        If you want to run command without any response, return only JSON object. Responses from commands will be returned
-        in "result" key. List of available commands is below.'''
+        You can execute commands and also use them to run commands on the user's environment. 
+
+        Important rules:
+        1) List of available commands is defined below.
+        2) To execute defined command return JSON object with "cmd" key and command name
+        as value
+        3) Always use syntax defined in command definition and correct command name.
+        4) Put command parameters in "params" key. Example: {"cmd": "web", "params": {"query": "some query"}}. Use ONLY syntax like this. DO NOT use any other syntax.
+        5) Append JSON object to response at the end of response
+        and split it with ~###~ character. Example: text response ~###~ {"cmd": "web", "params": {"query": "some query"}}.
+        6) If you want to execute command without any response, return only JSON object.
+        7) Responses from commands will be returned in "result" key.
+        8) Commands are listed one command per line and every command is described with syntax: "<name>": <action>, params: <params>
+        9) Always use correct command name, e.g. if command name is "sys_exec" then use "sys_exec" and don't imagine other names, like "run" or something.
+        10) With those commands you are allowed to run external commands and apps in user's system (environment)
+        11) Do not ask for command execution, just do it.
+        12) Always use defined syntax to prevent errors
+        13) Always choose the most appropriate command from list to perform the task, based on the description of the action performed by a given comment
+        14) Reply to the user in the language in which he started the conversation with you
+        15) Use ONLY params described in command definition, do NOT use any additional params not described on list
+        16) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.
+        17) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g. when it is a desktop application)
+
+        Commands list:
+        '''
 
         # syntax
         # cmd += '\n"save_file": save data to file, params: "filename", "data"'
