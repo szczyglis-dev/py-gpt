@@ -24,8 +24,6 @@ class VideoContainer(QWidget):
         self.layout = QVBoxLayout()
         self.video = VideoLabel(window=self.window)
         self.video.setStyleSheet("background-color: #000000;")
-        #self.video.setScaledContents(True)
-        #self.video.setFixedSize(QSize(200, 200))
         self.layout.addWidget(self.video)
         self.layout.addWidget(self.label)
 

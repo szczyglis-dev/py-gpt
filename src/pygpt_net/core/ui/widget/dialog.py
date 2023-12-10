@@ -169,8 +169,7 @@ class UpdateDialog(QDialog):
 
         self.changelog = QPlainTextEdit()
         self.changelog.setReadOnly(True)
-        self.changelog.setMaximumWidth(400)
-        self.changelog.setMaximumHeight(200)
+        self.changelog.setMinimumHeight(200)
 
         logo_label = QLabel()
         path = os.path.abspath(
@@ -185,11 +184,13 @@ class UpdateDialog(QDialog):
         info.setAlignment(Qt.AlignCenter)
         info.setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         info.setStyleSheet("font-weight: bold; font-size: 12px; margin: 20px 0px 20px 0px;")
+        info.setMaximumHeight(50)
         self.layout.addWidget(logo_label)
         self.layout.addWidget(info)
         self.layout.addWidget(self.message)
-        self.layout.addWidget(self.changelog)
+        self.layout.addWidget(self.changelog, 1)
         self.layout.addWidget(download)
+        self.layout.addStretch()
         self.setLayout(self.layout)
 
 

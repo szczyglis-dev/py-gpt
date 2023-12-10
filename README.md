@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.15** build: **2023.12.10** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.16** build: **2023.12.10** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -352,11 +352,21 @@ and displaying the image onscreen.
 
 ## Multiple variants
 
-You can generate up to **4 different variants** for a given prompt in one session. 
+You can generate up to **4 different variants** (DALL-E 2) for a given prompt in one session. DALL-E 3 allows one image.
 To select the desired number of variants to create, use the slider located in the right-hand corner at 
 the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
 
 ![v2_dalle](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ad3fb8f9-0e09-4ac3-aa1f-baad98c1320f)
+
+
+## Raw mode
+
+There is an option for switching prompt generation mode.
+
+If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
+If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
+
+![v2_dalle2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/662c456c-1dc8-446f-9d23-577a64d60875)
 
 ## Image storage
 
@@ -1061,6 +1071,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.16 (2023-12-10)
+
+- Added multiple cameras config
+- Added DALL-E prompt generation RAW MODE ON/OFF switch
+- Improved camera handling
 
 ## 2.0.15 (2023-12-10)
 

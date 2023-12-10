@@ -62,6 +62,8 @@ class Model:
         self.window.controller.context.update_ctx()
         self.update()
 
+        self.window.set_status(trans('status.started'))
+
         # vision camera
         if mode == 'vision':
             self.window.controller.camera.setup()
@@ -258,8 +260,7 @@ class Model:
             self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(False)
 
-            self.window.data['img_variants.label'].setVisible(False)
-            self.window.config_option['img_variants'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
@@ -279,8 +280,7 @@ class Model:
             self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(False)
 
-            self.window.data['img_variants.label'].setVisible(True)
-            self.window.config_option['img_variants'].setVisible(True)
+            self.window.data['dalle.options'].setVisible(True)
 
             self.window.data['temperature.label'].setVisible(False)
             self.window.config_option['current_temperature'].setVisible(False)
@@ -300,8 +300,7 @@ class Model:
             self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(False)
 
-            self.window.data['img_variants.label'].setVisible(False)
-            self.window.config_option['img_variants'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
@@ -320,8 +319,7 @@ class Model:
             self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(False)
 
-            self.window.data['img_variants.label'].setVisible(False)
-            self.window.config_option['img_variants'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
 
             self.window.data['temperature.label'].setVisible(False)
             self.window.config_option['current_temperature'].setVisible(False)
@@ -340,8 +338,7 @@ class Model:
             self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(False)
 
-            self.window.data['img_variants.label'].setVisible(False)
-            self.window.config_option['img_variants'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
@@ -360,8 +357,7 @@ class Model:
             self.window.data['presets.widget'].setVisible(True)
             self.window.data['assistants.widget'].setVisible(True)
 
-            self.window.data['img_variants.label'].setVisible(False)
-            self.window.config_option['img_variants'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)

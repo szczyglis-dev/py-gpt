@@ -176,6 +176,14 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.16"):
+                if 'vision.capture.idx' not in data:
+                    data['vision.capture.idx'] = 0
+                if 'img_raw' not in data:
+                    data['img_raw'] = True
+                if 'img_prompt_model' not in data:
+                    data['img_prompt_model'] = "gpt-4-1106-preview"
+                updated = True
             if old < parse_version("2.0.14"):
                 if 'vision.capture.enabled' not in data:
                     data['vision.capture.enabled'] = True

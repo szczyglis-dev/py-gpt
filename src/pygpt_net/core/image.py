@@ -18,13 +18,14 @@ from openai import OpenAI
 class Image:
     DIRNAME = "img"
 
-    def __init__(self, config):
+    def __init__(self, config, window):
         """
         DALL-E Wrapper
 
         :param config: Config object
         """
         self.config = config
+        self.window = window
         if not self.config.initialized:
             self.config.init()
 
@@ -41,8 +42,29 @@ class Image:
         :param num: Number of variants
         :return: Images paths list
         """
-        if num is None:
-            num = int(input("How many variants generate? [1] ") or 1)
+        if not self.window.config.data['img_raw']:
+            img_prompt = '''
+            # Rules
+            1. Apply these rules if the request is related to image generation or image description; otherwise, relay the user's prompt as is.
+            2. Translate any non-English image prompts accurately into English, ensuring the essence of the original request is maintained for DALL-E's comprehension.
+            3. Transform the translated prompt into a precise and specific instruction that DALL-E can unambiguously understand, focusing solely on describing the desired image.
+            4. Preface your instruction with "A photograph of..." or "An image of..." to indicate a visual output request, refraining from using phrases like "Please generate..." or simply "Generate...".
+            5. Emphasize the critical keywords and pertinent details within the prompt to assist DALL-E in producing an optimal image response.
+            6. For prompts centered on intricate concepts or specialized topics, supply supplementary context to better inform DALL-E's interpretation and creativity.
+            7. Designate the desired level of abstraction, realistic depiction, or a particular art style as part of the query to guide the image generation process.
+            8. Set explicit parameters such as artistic style, composition, and any additional defining traits for the cognitive synthesis, tailored to enhance the final visual product.
+            9. Compile and incorporate an exhaustive inventory of elements and nuances to achieve the most detailed and sophisticated image outcome possible.
+            10. Return the enhanced, detail-rich description tailored for DALL-E, omitting any extraneous commentary or instruction.
+            11. Use as many details as possible to describe the image.
+            12. Use all possible different DESCENTS with EQUAL probability.
+            '''
+
+            # call GPT for generate best prompt
+            response = self.window.gpt.quick_call(prompt, img_prompt, False, 200,
+                                                  self.window.config.data['img_prompt_model'], 2.0)  # max creativity
+            if response is not None and response != "":
+                prompt = response
+
         print("Generating from: '{}'...".format(prompt))
 
         client = OpenAI(
@@ -70,7 +92,7 @@ class Image:
             open(path, "wb").write(res.content)
             paths.append(path)
 
-        return paths
+        return paths, prompt
 
     def make_safe_filename(self, name):
         """

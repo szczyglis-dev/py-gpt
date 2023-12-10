@@ -41,6 +41,7 @@ class Contexts:
             lambda: self.window.controller.context.selection_change())
 
         self.window.data['video.preview'] = VideoContainer(self.window)
+        self.window.data['video.preview'].setVisible(False)
 
         ctx_widget = QWidget()
         ctx_widget.setLayout(contexts)

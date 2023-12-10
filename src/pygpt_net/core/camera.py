@@ -13,6 +13,8 @@ import cv2
 
 from PySide6.QtCore import QObject, Signal
 
+from .utils import trans
+
 
 class Camera:
     def __init__(self, config=None):
@@ -46,7 +48,7 @@ class CameraThread(QObject):
         """Initialize camera.
         """
         try:
-            self.capture = cv2.VideoCapture(0)
+            self.capture = cv2.VideoCapture(self.window.config.data['vision.capture.idx'])
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.config.data['vision.capture.width'])
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.config.data['vision.capture.height'])
         except Exception as e:
@@ -68,17 +70,21 @@ class CameraThread(QObject):
                     # release camera
                     self.release()
                     self.stopped.emit()
+                    print("Stopping video capture thread....")
+                    self.window.statusChanged.emit(trans('vision.capture.error'))
                     break
                 _, frame = self.capture.read()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame = cv2.flip(frame, 1)
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
+            self.window.statusChanged.emit(trans('vision.capture.error'))
             print("Camera thread exception:", e)
 
         # release camera
         self.release()
         self.finished.emit()
+        print("Stopping video capture thread....")
 
     def release(self):
         """

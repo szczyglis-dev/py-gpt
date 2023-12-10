@@ -70,6 +70,7 @@ class Camera:
         """
         self.thread_started = False
         self.thread = None
+        self.hide_camera(False)
 
     def blank_screen(self):
         """
@@ -97,32 +98,39 @@ class Camera:
         Capture frame and save to attachments
         """
         # prepare name from date timestamp (using date)
-        name = 'cap-' + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
-        compression_params = [cv2.IMWRITE_JPEG_QUALITY, 80]
-        frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(path, frame, compression_params)
-        mode = self.window.config.data['mode']
-        self.window.controller.attachment.attachments.new(mode, 'Camera capture: ' + name, path, False)
-        self.window.controller.attachment.attachments.save()
-        self.window.controller.attachment.update()
+        try:
+            name = 'cap-' + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
+            compression_params = [cv2.IMWRITE_JPEG_QUALITY, 80]
+            frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+            cv2.imwrite(path, frame, compression_params)
+            mode = self.window.config.data['mode']
+            self.window.controller.attachment.attachments.new(mode, 'Camera capture: ' + name, path, False)
+            self.window.controller.attachment.attachments.save()
+            self.window.controller.attachment.update()
 
-        # switch to attachments tab
-        if switch:
-            self.window.tabs['input'].setCurrentIndex(1)  # switch to attachments tab
+            # switch to attachments tab
+            if switch:
+                self.window.tabs['input'].setCurrentIndex(1)  # switch to attachments tab
+        except Exception as e:
+            print(e)
+            self.window.statusChanged.emit(trans('vision.capture.error'))
 
     def show_camera(self):
         """
         Show camera
         """
-        self.window.data['video.preview'].setVisible(True)
+        if self.is_capture:
+            self.window.data['video.preview'].setVisible(True)
 
-    def hide_camera(self):
+    def hide_camera(self, stop=True):
         """
         Hide camera
         """
         self.window.data['video.preview'].setVisible(False)
-        self.stop_capture()
+
+        if stop:
+            self.stop_capture()
 
     def enable_capture(self):
         """
@@ -132,6 +140,7 @@ class Camera:
             return
         self.is_capture = True
         self.window.config.data['vision.capture.enabled'] = True
+        self.window.data['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
 
@@ -143,6 +152,7 @@ class Camera:
             return
         self.is_capture = False
         self.window.config.data['vision.capture.enabled'] = False
+        self.window.data['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
 

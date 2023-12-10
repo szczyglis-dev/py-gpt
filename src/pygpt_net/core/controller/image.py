@@ -30,6 +30,13 @@ class Image:
         """
         self.window = window
 
+    def setup(self):
+        """Setups images"""
+        if self.window.config.data['img_raw']:
+            self.window.config_option['img_raw'].setChecked(True)
+        else:
+            self.window.config_option['img_raw'].setChecked(False)
+
     def send_text(self, text):
         """
         Sends prompt to DALL-E and opens generated image in dialog
@@ -56,13 +63,18 @@ class Image:
 
         # call DALL-E API and generate images
         try:
-            paths = self.window.images.generate(text, self.window.config.data['model'], num_of_images)
+            paths, prompt = self.window.images.generate(text, self.window.config.data['model'], num_of_images)
             string = ""
             i = 1
             for path in paths:
                 string += "{}) `{}`".format(i, path) + "\n"
                 i += 1
             self.open_images(paths)
+
+            if not self.window.config.data['img_raw']:
+                string += "\nPrompt: "
+                string += prompt
+
             ctx.set_output(string.strip())
             ctx = self.window.controller.plugins.apply('ctx.after', ctx)  # apply plugins
             self.window.controller.output.append_output(ctx)
@@ -156,3 +168,26 @@ class Image:
                     self.window.data['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
             print(e)
+
+    def enable_raw(self):
+        """
+        Enables help for images
+        """
+        self.window.config.data['img_raw'] = True
+        self.window.config.save()
+
+    def disable_raw(self):
+        """
+        Disables help for images
+        """
+        self.window.config.data['img_raw'] = False
+        self.window.config.save()
+
+    def toggle_raw(self, state):
+        """
+        Toggles help for images
+        """
+        if not state:
+            self.disable_raw()
+        else:
+            self.enable_raw()

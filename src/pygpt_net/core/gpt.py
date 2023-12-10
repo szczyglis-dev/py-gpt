@@ -308,7 +308,7 @@ class Gpt:
         tokens += num_tokens_extra(model)  # extra tokens (required for output)
         return tokens
 
-    def quick_call(self, prompt, sys_prompt, append_context=False, max_tokens=500, model="gpt-3.5-turbo-1106"):
+    def quick_call(self, prompt, sys_prompt, append_context=False, max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):
         """
         Calls OpenAI API with custom prompt
 
@@ -332,7 +332,7 @@ class Gpt:
                 messages=messages,
                 model=model,
                 max_tokens=max_tokens,
-                temperature=0,
+                temperature=temp,
                 top_p=1.0,
                 frequency_penalty=0.0,
                 presence_penalty=0.0,

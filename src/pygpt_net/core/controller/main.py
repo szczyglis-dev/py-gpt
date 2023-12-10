@@ -83,6 +83,7 @@ class Controller:
         self.attachment.setup()
         self.notepad.setup()
         self.camera.setup_settings()
+        self.image.setup()
 
     def setup_plugins(self):
         """Setup plugins"""

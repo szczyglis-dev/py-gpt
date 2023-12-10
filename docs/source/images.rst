@@ -18,6 +18,15 @@ the bottom of the screen. This replaces the conversation temperature slider when
 .. image:: images/v2_dalle.png
    :width: 600
 
+## Raw mode
+
+There is an option for switching prompt generation mode.
+
+.. image:: images/v2_dalle2.png
+   :width: 400
+
+If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
+If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
 
 Images storage
 ---------------

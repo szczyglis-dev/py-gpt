@@ -185,6 +185,16 @@
         "multiplier": null,
         "step": null
     },
+    "img_prompt_model": {
+        "type": "text",
+        "slider": false,
+        "label": "img_prompt_model",
+        "value": "gpt-4-1106-preview",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
     "ctx.auto_summary.system": {
         "type": "text",
         "slider": false,
@@ -242,6 +252,16 @@
         "value": 800,
         "min": 320,
         "max": 4096,
+        "multiplier": 1,
+        "step": 1
+    },
+    "vision.capture.idx": {
+        "type": "int",
+        "slider": true,
+        "label": "vision.capture.idx",
+        "value": 0,
+        "min": 0,
+        "max": 3,
         "multiplier": 1,
         "step": 1
     }

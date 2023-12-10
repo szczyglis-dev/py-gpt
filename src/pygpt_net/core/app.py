@@ -84,7 +84,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup GPT, Langchain and DALL-E
         self.gpt = Gpt(self.config, self.context)
         self.chain = Chain(self.config, self.context)
-        self.images = Image(self.config)
+        self.images = Image(self.config, self)
 
         # setup UI
         self.ui = UI(self)
