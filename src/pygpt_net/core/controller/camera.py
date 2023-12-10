@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.10 17:00:00                  #
+# Updated Date: 2023.12.10 21:00:00                  #
 # ================================================== #
 import datetime
 import os
 import threading
 import cv2
+from PySide6.QtCore import Slot
 
 from PySide6.QtGui import QImage, QPixmap, Qt
 from ..camera import CameraThread
@@ -30,6 +31,7 @@ class Camera:
         self.frame = None
         self.thread_started = False
         self.is_capture = False
+        self.stop = False
         self.auto = False
 
     def setup(self):
@@ -45,10 +47,36 @@ class Camera:
         """
         if self.thread_started:
             return
+        self.stop = False
         thread = CameraThread(window=self.window)
+        thread.finished.connect(self.handle_stop)
+        thread.stopped.connect(self.handle_stop)
         self.thread = threading.Thread(target=thread.run)
         self.thread.start()
         self.thread_started = True
+
+    def stop_capture(self):
+        """
+        Stop camera thread
+        """
+        if not self.thread_started:
+            return
+        self.stop = True
+
+    @Slot()
+    def handle_stop(self):
+        """
+        On stopped
+        """
+        self.thread_started = False
+        self.thread = None
+
+    def blank_screen(self):
+        """
+        Blank screen
+        """
+        self.window.data['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
+        # self.window.data['video.preview'].setVisible(False)
 
     def update(self):
         """
@@ -94,6 +122,7 @@ class Camera:
         Hide camera
         """
         self.window.data['video.preview'].setVisible(False)
+        self.stop_capture()
 
     def enable_capture(self):
         """
@@ -114,6 +143,8 @@ class Camera:
             return
         self.is_capture = False
         self.window.config.data['vision.capture.enabled'] = False
+        self.stop_capture()
+        self.blank_screen()
 
     def toggle(self, state):
         """

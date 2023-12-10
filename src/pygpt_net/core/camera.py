@@ -27,7 +27,7 @@ class Camera:
 
 
 class CameraThread(QObject):
-    finished = Signal(object)
+    finished = Signal()
     destroyed = Signal()
     started = Signal()
     stopped = Signal()
@@ -57,11 +57,17 @@ class CameraThread(QObject):
         try:
             if not self.initialized:
                 self.setup_camera()
+                self.started.emit()
                 self.initialized = True
-
             print("Starting video capture thread....")
             while True:
-                if self.window.is_closing or self.capture is None:
+                if self.window.is_closing \
+                        or self.capture is None \
+                        or not self.capture.isOpened()\
+                        or self.window.controller.camera.stop:
+                    # release camera
+                    self.release()
+                    self.stopped.emit()
                     break
                 _, frame = self.capture.read()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -69,4 +75,17 @@ class CameraThread(QObject):
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
             print("Camera thread exception:", e)
-            self.finished.emit(e)
+
+        # release camera
+        self.release()
+        self.finished.emit()
+
+    def release(self):
+        """
+        Release camera
+        """
+        if self.capture is not None and self.capture.isOpened():
+            self.capture.release()
+        self.capture = None
+        self.frame = None
+        self.initialized = False

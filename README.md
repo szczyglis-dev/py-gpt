@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.14** build: **2023.12.10** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.15** build: **2023.12.10** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -1061,6 +1061,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.15 (2023-12-10)
+
+- Added camera release / disable on camera off
 
 ## 2.0.14 (2023-12-10)
 

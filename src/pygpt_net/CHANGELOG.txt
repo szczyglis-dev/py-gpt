@@ -1,3 +1,7 @@
+2.0.15 (2023-12-10)
+
+- Added camera release / disable on camera off
+
 2.0.14 (2023-12-10)
 
 - Added real-time video capture from camera in "Vision" mode
