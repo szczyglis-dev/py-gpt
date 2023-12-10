@@ -1,3 +1,10 @@
+2.0.13 (2023-12-10)
+
+- Fixed path resolving in "open in directory" option on Windows OS
+- Added real-time apply of "layout density" (after "save changes" in Settings)
+- Default "layout density" changed to 0
+- Updated locale
+
 2.0.12 (2023-12-09)
 
 - Improved system commands execution

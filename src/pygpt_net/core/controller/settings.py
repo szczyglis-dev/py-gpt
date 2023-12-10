@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 19:00:00                  #
+# Updated Date: 2023.12.10 13:00:00                  #
 # ================================================== #
 import json
 import os
@@ -40,6 +40,7 @@ class Settings:
         }
         self.width = 500
         self.height = 600
+        self.before_config = {}
         self.initialized = False
 
     def load(self):
@@ -51,6 +52,9 @@ class Settings:
             self.options = json.load(f)
             self.initialized = True
             f.close()
+
+        # store copy of loaded config data
+        self.before_config = dict(self.window.config.data)
 
     def save(self, id=None):
         """
@@ -75,6 +79,11 @@ class Settings:
         self.close_window(id)
         self.update_font_size()
         self.window.controller.ui.update()
+
+        # update layout if needed
+        if self.before_config['layout.density'] != self.window.config.data['layout.density']:
+            self.window.controller.theme.reload()
+            
 
     def save_all(self):
         """Saves all settings"""
@@ -239,6 +248,8 @@ class Settings:
         :param value: input option value
         :param section: settings section
         """
+        self.before_config = dict(self.window.config.data)
+
         # dialog: preset
         if id.startswith('preset.'):
             self.window.controller.presets.config_change(id, value, section)
@@ -287,6 +298,8 @@ class Settings:
         :param type: option type (slider, input, None)
         :param section: option section (settings, preset.editor, None)
         """
+        self.before_config = dict(self.window.config.data)
+
         # dialog: preset
         if id.startswith('preset.'):
             self.window.controller.presets.config_slider(id, value, type, section)

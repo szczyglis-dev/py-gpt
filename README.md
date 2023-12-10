@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.12** build: **2023.12.09** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.13** build: **2023.12.10** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -917,7 +917,7 @@ Config -> Settings...
 
 - `Font Size (ctx list)`: Adjusts the font size in contexts list.
 
-- `Layout density`: Adjusts layout elements density. Default: -2.
+- `Layout density`: Adjusts layout elements density. "Apply changes" required to take effect. Default: 0. 
 
 - `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
 
@@ -1039,6 +1039,13 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.13 (2023-12-10)
+
+- Fixed path resolving in "open in directory" option on Windows OS
+- Added real-time apply of "layout density" (after "save changes" in Settings)
+- Default "layout density" changed to 0
+- Updated locale
 
 ## 2.0.12 (2023-12-09)
 

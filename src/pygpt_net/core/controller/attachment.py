@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.10 13:00:00                  #
 # ================================================== #
 import os
 from datetime import datetime
 
 from PySide6.QtWidgets import QFileDialog
+from pathlib import PurePath
 from showinfm import show_in_file_manager
 
 from ..utils import trans
@@ -190,7 +191,10 @@ class Attachment:
         file_id = self.attachments.get_id_by_idx(mode, idx)
         data = self.attachments.get_by_id(mode, file_id)
         if data.path is not None and data.path != '' and os.path.exists(data.path):
-            show_in_file_manager(data.path)
+            path = data.path
+            parts = path_split = PurePath(path).parts
+            path_os = os.path.join(*parts)  # fix for windows \\ path separators
+            show_in_file_manager(path_os)
 
     def toggle_send_clear(self, value):
         """

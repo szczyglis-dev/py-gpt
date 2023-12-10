@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 10:00:00                  #
+# Updated Date: 2023.12.10 13:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -176,6 +176,13 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.13"):
+                if 'layout.density' not in data:
+                    data['layout.density'] = 0
+                else:
+                    if data['layout.density'] == -2:
+                        data['layout.density'] = 0
+                updated = True
             if old < parse_version("2.0.8"):
                 if 'plugins' not in data:
                     data['plugins'] = {}
