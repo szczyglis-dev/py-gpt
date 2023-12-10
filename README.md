@@ -228,7 +228,7 @@ This mode enables image analysis using the `GPT-4 Vision` model. Functioning muc
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
-Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-capture from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
+**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
 
 ![v2_capture_enable](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f2a29c21-caa7-4a77-a36e-951824415736)
 
@@ -239,13 +239,14 @@ Vision mode also includes real-time video capture from camera. To enable capture
 
 ![v2_capture_result](https://github.com/szczyglis-dev/py-gpt/assets/61396542/fff7e72d-3427-4dc2-b204-750d792d1782)
 
-**2) you can also provide an image URL:**
+**2) ...you can also provide an image URL:**
 
 ![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1e618d68-6c60-4826-82c5-87149523e989)
 
-**3) you can also upload your local images:**
+**3) ...or you can just upload your local images:**
 
 ![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ee796ef5-706d-4dd8-bb02-dd28b7042a12)
+
 ## Langchain
 
 This mode enables you to work with models that are supported by `Langchain`. The Langchain support is integrated 

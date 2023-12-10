@@ -48,7 +48,7 @@ This mode enables image analysis using the ``GPT-4 Vision`` model. Functioning m
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
-Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-capture from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
+**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
 
 .. image:: images/v2_capture_enable.png
    :width: 400
@@ -61,12 +61,12 @@ Vision mode also includes real-time video capture from camera. To enable capture
 .. image:: images/v2_capture_result.png
    :width: 800
 
-**2) you can also provide an image URL:**
+**2) ...you can also provide an image URL:**
 
 .. image:: images/v2_mode_vision.png
    :width: 800
 
-**3) you can also upload your local images:**
+**3) ...or you can just upload your local images:**
 
 .. image:: images/v2_mode_vision_upload.png
    :width: 800
