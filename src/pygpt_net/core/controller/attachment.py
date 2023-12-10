@@ -215,6 +215,14 @@ class Attachment:
             return
         self.attachments.from_files(mode, assistant.files)
 
+    def has_attachments(self, mode):
+        """
+        Returns True if has attachments
+
+        :return: True if has attachments
+        """
+        return self.attachments.has(mode)
+
     def download(self, file_id):
         """
         Downloads file

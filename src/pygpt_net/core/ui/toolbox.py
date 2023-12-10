@@ -94,11 +94,37 @@ class Toolbox:
                                                                    '', 1, 4,
                                                                    1, 1, False)
 
+        self.window.data['vision.capture.enable'] = QCheckBox(trans("vision.capture.enable"))
+        self.window.data['vision.capture.enable'].stateChanged.connect(
+            lambda: self.window.controller.camera.toggle(self.window.data['vision.capture.enable'].isChecked()))
+
+        self.window.data['vision.capture.auto'] = QCheckBox(trans("vision.capture.auto"))
+        self.window.data['vision.capture.auto'].stateChanged.connect(
+            lambda: self.window.controller.camera.toggle_auto(self.window.data['vision.capture.auto'].isChecked()))
+
+        cap_label = QLabel(trans('vision.capture.options.title'))
+
+        # cap layout
+        cap_layout = QHBoxLayout()
+        cap_layout.addWidget(self.window.data['vision.capture.enable'])
+        cap_layout.addWidget(self.window.data['vision.capture.auto'])
+
+        # cap
+        cap_vlayout = QVBoxLayout()
+        cap_vlayout.addWidget(cap_label)
+        cap_vlayout.addLayout(cap_layout)
+
+        # cap widget
+        self.window.data['vision.capture.options'] = QWidget()
+        self.window.data['vision.capture.options'].setLayout(cap_vlayout)
+        self.window.data['vision.capture.options'].setContentsMargins(0, 0, 0, 0)
+
         temp_layout = QVBoxLayout()
         temp_layout.addWidget(self.window.data['temperature.label'])
         temp_layout.addWidget(self.window.config_option['current_temperature'])
         temp_layout.addWidget(self.window.data['img_variants.label'])
         temp_layout.addWidget(self.window.config_option['img_variants'])
+        temp_layout.addWidget(self.window.data['vision.capture.options'])
 
         path = os.path.abspath(os.path.join(self.window.config.get_root_path(), 'data', 'logo.png'))
 

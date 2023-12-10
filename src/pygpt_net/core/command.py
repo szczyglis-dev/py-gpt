@@ -42,13 +42,12 @@ class Command:
         8) Commands are listed one command per line and every command is described with syntax: "<name>": <action>, params: <params>
         9) Always use correct command name, e.g. if command name is "sys_exec" then use "sys_exec" and don't imagine other names, like "run" or something.
         10) With those commands you are allowed to run external commands and apps in user's system (environment)
-        11) Do not ask for command execution, just do it.
-        12) Always use defined syntax to prevent errors
-        13) Always choose the most appropriate command from list to perform the task, based on the description of the action performed by a given comment
-        14) Reply to the user in the language in which he started the conversation with you
-        15) Use ONLY params described in command definition, do NOT use any additional params not described on list
-        16) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.
-        17) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g. when it is a desktop application)
+        11) Always use defined syntax to prevent errors
+        12) Always choose the most appropriate command from list to perform the task, based on the description of the action performed by a given comment
+        13) Reply to the user in the language in which he started the conversation with you
+        14) Use ONLY params described in command definition, do NOT use any additional params not described on list
+        15) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.
+        16) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g. when it is a desktop application)
 
         Commands list:
         '''

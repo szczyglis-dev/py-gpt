@@ -24,6 +24,7 @@ Features
 * 6 modes of operation: Assistant, Chat, Vision, Completion, Image generation, Langchain.
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and ``GPT-3``, including any model accessible through ``Langchain``.
 * Handles and stores the full context of conversations (short-term memory).
+* Real-time video camera capture in Vision mode
 * Internet access via ``Google Custom Search API``.
 * Speech synthesis via ``Microsoft Azure TTS`` and ``OpenAI TTS``.
 * Speech recognition through ``OpenAI Whisper``.

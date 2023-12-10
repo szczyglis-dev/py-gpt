@@ -441,15 +441,20 @@ class Input:
         if self.locked:
             return
 
-        if self.window.config.data['mode'] == 'assistant':
+        mode = self.window.config.data['mode']
+
+        if mode == 'assistant':
             if self.window.config.data['assistant'] is None or self.window.config.data['assistant'] == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 return
+        elif mode == 'vision':
+            if self.window.controller.camera.is_enabled():
+                if self.window.controller.camera.is_auto():
+                    self.window.controller.camera.capture_frame(False)
 
         # unlock run thread if locked
         self.window.controller.assistant.force_stop = False
         self.force_stop = False
-
         self.window.statusChanged.emit(trans('status.sending'))
 
         ctx = None
@@ -461,7 +466,7 @@ class Input:
 
         self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
-        if len(text.strip()) > 0:
+        if len(text.strip()) > 0 or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
             if self.window.config.data['send_clear']:
                 self.window.data['input'].clear()
 

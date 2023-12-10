@@ -169,6 +169,8 @@ class Context:
         :param ctx: context name (id)
         :param name: context name
         """
+        if ctx not in self.window.gpt.context.contexts:
+            return
         self.window.gpt.context.contexts[ctx]['name'] = name
         self.window.gpt.context.set_ctx_initialized()
         self.window.gpt.context.dump_context(ctx)

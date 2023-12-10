@@ -599,5 +599,10 @@ class Config:
             if not os.path.exists(files_dir):
                 os.mkdir(files_dir)
 
+            # create img capture directory
+            capture_dir = os.path.join(self.path, 'capture')
+            if not os.path.exists(capture_dir):
+                os.mkdir(capture_dir)
+
         except Exception as e:
             print(e)

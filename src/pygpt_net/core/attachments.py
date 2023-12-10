@@ -169,6 +169,18 @@ class Attachments:
         """
         self.items = {}
 
+    def has(self, mode):
+        """
+        Checks id mode has attachments
+
+        :param mode: mode
+        :return: True if exists
+        """
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        return len(self.items[mode]) > 0
+
     def new(self, mode, name=None, path=None, auto_save=True):
         """
         Creates new attachment

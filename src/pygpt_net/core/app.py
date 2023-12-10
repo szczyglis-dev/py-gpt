@@ -159,6 +159,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     def update(self):
         """Called on update"""
         self.debugger.update()
+        self.controller.update()
 
     def set_status(self, text):
         """

@@ -9,11 +9,12 @@
 # Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QStandardItemModel
+from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
 from .widget.select import ContextSelectMenu
+from .widget.camera import VideoContainer
 from ..utils import trans
 
 
@@ -39,13 +40,15 @@ class Contexts:
         self.window.data['ctx.contexts'].selectionModel().selectionChanged.connect(
             lambda: self.window.controller.context.selection_change())
 
+        self.window.data['video.preview'] = VideoContainer(self.window)
+
         ctx_widget = QWidget()
         ctx_widget.setLayout(contexts)
         ctx_widget.setContentsMargins(0, 0, 0, 0)
 
         layout = QVBoxLayout()
         layout.addWidget(ctx_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.window.data['video.preview'])
 
         return layout
 

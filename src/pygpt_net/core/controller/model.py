@@ -62,6 +62,13 @@ class Model:
         self.window.controller.context.update_ctx()
         self.update()
 
+        # vision camera
+        if mode == 'vision':
+            self.window.controller.camera.setup()
+            self.window.controller.camera.show_camera()
+        else:
+            self.window.controller.camera.hide_camera()
+
     def reset_preset_data(self):
         """Resets preset data"""
         self.window.data['preset.prompt'].setPlainText("")
@@ -256,6 +263,9 @@ class Model:
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
         elif mode == 'img':
             self.window.config_option['current_temperature'].slider.setDisabled(True)
             self.window.config_option['current_temperature'].input.setDisabled(True)
@@ -274,6 +284,9 @@ class Model:
 
             self.window.data['temperature.label'].setVisible(False)
             self.window.config_option['current_temperature'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
         elif mode == 'completion':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -292,6 +305,9 @@ class Model:
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
         elif mode == 'vision':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -307,8 +323,11 @@ class Model:
             self.window.data['img_variants.label'].setVisible(False)
             self.window.config_option['img_variants'].setVisible(False)
 
-            self.window.data['temperature.label'].setVisible(True)
-            self.window.config_option['current_temperature'].setVisible(True)
+            self.window.data['temperature.label'].setVisible(False)
+            self.window.config_option['current_temperature'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(True)
         elif mode == 'langchain':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -326,6 +345,9 @@ class Model:
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
         elif mode == 'assistant':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -343,6 +365,9 @@ class Model:
 
             self.window.data['temperature.label'].setVisible(True)
             self.window.config_option['current_temperature'].setVisible(True)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
 
     def update(self):
         """Updates all lists"""

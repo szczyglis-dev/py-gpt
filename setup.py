@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.13'
+VERSION = '2.0.14'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, ' \
               'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
 LONG_DESCRIPTION = 'Package containing a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, ' \
@@ -30,6 +30,7 @@ setup(
         'langchain>=0.0.345',
         'langchain-experimental>=0.0.44',
         'openai>=1.3.7',
+        'opencv-python>=4.8.1.78',
         'packaging>=23.0',
         'PyAudio>=0.2.14',
         'pydub>=0.25.1',

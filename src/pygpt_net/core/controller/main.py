@@ -30,6 +30,7 @@ from .notepad import Notepad
 from .files import Files
 from .assistant import Assistant
 from .layout import Layout
+from .camera import Camera
 
 
 class Controller:
@@ -61,6 +62,7 @@ class Controller:
         self.files = Files(window)
         self.assistant = Assistant(window)
         self.layout = Layout(window)
+        self.camera = Camera(window)
 
     def setup(self):
         """Setups controller"""
@@ -80,8 +82,13 @@ class Controller:
         self.audio.setup()
         self.attachment.setup()
         self.notepad.setup()
+        self.camera.setup_settings()
 
     def setup_plugins(self):
         """Setup plugins"""
         # setup plugins settings
         self.plugins.setup_settings()
+
+    def update(self):
+        """On update"""
+        self.camera.update()

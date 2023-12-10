@@ -204,5 +204,45 @@
         "max": null,
         "multiplier": null,
         "step": null
+    },
+    "vision.capture.enabled": {
+        "type": "bool",
+        "slider": false,
+        "label": "vision.capture.enabled",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    }, 
+    "vision.capture.auto": {
+        "type": "bool",
+        "slider": false,
+        "label": "vision.capture.auto",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "vision.capture.width": {
+        "type": "int",
+        "slider": true,
+        "label": "vision.capture.width",
+        "value": 800,
+        "min": 320,
+        "max": 4096,
+        "multiplier": 1,
+        "step": 1
+    },
+    "vision.capture.height": {
+        "type": "int",
+        "slider": true,
+        "label": "vision.capture.height",
+        "value": 800,
+        "min": 320,
+        "max": 4096,
+        "multiplier": 1,
+        "step": 1
     }
 }

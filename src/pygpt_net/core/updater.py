@@ -176,6 +176,16 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.14"):
+                if 'vision.capture.enabled' not in data:
+                    data['vision.capture.enabled'] = True
+                if 'vision.capture.auto' not in data:
+                    data['vision.capture.auto'] = True
+                if 'vision.capture.width' not in data:
+                    data['vision.capture.width'] = 800
+                if 'vision.capture.height' not in data:
+                    data['vision.capture.height'] = 600
+                updated = True
             if old < parse_version("2.0.13"):
                 if 'layout.density' not in data:
                     data['layout.density'] = 0

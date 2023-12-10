@@ -83,7 +83,6 @@ class Settings:
         # update layout if needed
         if self.before_config['layout.density'] != self.window.config.data['layout.density']:
             self.window.controller.theme.reload()
-            
 
     def save_all(self):
         """Saves all settings"""
@@ -236,6 +235,13 @@ class Settings:
             if 'type' in self.options[id]:
                 if self.options[id]['type'] == 'bool':
                     self.window.config.data[id] = value
+
+                if id == "vision.capture.enabled":
+                    self.window.data['vision.capture.enable'].setChecked(value)
+                    # self.window.controller.camera.toggle(value)
+                if id == "vision.capture.auto":
+                    self.window.data['vision.capture.auto'].setChecked(value)
+                    # self.window.controller.camera.toggle_auto(value)
 
         # update checkbox
         self.window.config_option[id].box.setChecked(value)
@@ -425,9 +431,11 @@ class Settings:
                     slider_value = min
                 elif slider_value > max:
                     slider_value = max
-            self.window.config_option[id].slider.setValue(slider_value)
+            if id in self.options and self.options[id]['slider']:
+                self.window.config_option[id].slider.setValue(slider_value)
         else:
-            self.window.config_option[id].slider.setValue(slider_value)
+            if id in self.options and self.options[id]['slider']:
+                self.window.config_option[id].slider.setValue(slider_value)
 
         # update from raw value
         if id.startswith('font_size'):
