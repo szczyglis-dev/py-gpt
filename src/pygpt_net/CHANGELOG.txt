@@ -1,3 +1,7 @@
+2.0.17 (2023-12-10)
+
+- Small fixes
+
 2.0.16 (2023-12-10)
 
 - Added multiple cameras config

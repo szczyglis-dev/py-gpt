@@ -71,14 +71,14 @@ class CameraThread(QObject):
                     self.release()
                     self.stopped.emit()
                     print("Stopping video capture thread....")
-                    self.window.statusChanged.emit(trans('vision.capture.error'))
+                    # self.window.statusChanged.emit(trans('vision.capture.error'))
                     break
                 _, frame = self.capture.read()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame = cv2.flip(frame, 1)
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
-            self.window.statusChanged.emit(trans('vision.capture.error'))
+            # self.window.statusChanged.emit(trans('vision.capture.error'))
             print("Camera thread exception:", e)
 
         # release camera
