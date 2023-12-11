@@ -36,6 +36,7 @@ class Attachment:
             self.window.data['attachments.send_clear'].setChecked(True)
         else:
             self.window.data['attachments.send_clear'].setChecked(False)
+
         self.attachments.load()
         self.update()
 
@@ -181,11 +182,9 @@ class Attachment:
         if dialog.exec():
             files = dialog.selectedFiles()
             for path in files:
-
                 # build attachment object
                 basename = os.path.basename(path)
                 attachment = self.attachments.new(mode, basename, path, False)
-
                 # append attachment to assistant if current mode = assistant
                 if mode == 'assistant':
                     assistant_id = self.window.config.data['assistant']
@@ -222,9 +221,6 @@ class Attachment:
         """
         if assistant is None:
             return
-        print(assistant.files)
-        print(assistant.attachments)
-
         # restore attachments from assistant
         self.attachments.from_attachments(mode, assistant.attachments)
 

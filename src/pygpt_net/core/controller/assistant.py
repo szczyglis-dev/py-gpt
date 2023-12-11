@@ -486,11 +486,13 @@ class Assistant:
         Deletes file
 
         :param idx: file idx
+        :param force: force delete without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm('attachments_uploaded.delete', idx, trans('attachments_uploaded.delete.confirm'))
             return
 
+        # get current assistant
         assistant_id = self.window.config.data['assistant']
         if assistant_id is None or assistant_id == "":
             return
