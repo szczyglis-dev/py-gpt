@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.1",
-    "app.version": "2.0.1",
-    "updated_at": "2023-12-07T12:00:00"
+    "version": "2.0.18",
+    "app.version": "2.0.18",
+    "updated_at": "2023-12-10T23:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -36,10 +36,13 @@
   "font_size.input": 12,
   "font_size.ctx": 11,
   "frequency_penalty": 0.0,
+  "img_prompt_model": "gpt-4-1106-preview",
+  "img_raw": false,
   "img_resolution": "1024x1024",
   "img_variants": 1,
   "lang": "en",
   "layout.density": 0,
+  "layout.splitters": {},
   "max_context_history_items": 100,
   "max_output_tokens": 1024,
   "max_tokens_length": 32000,
@@ -82,5 +85,10 @@
   "theme": "dark_teal",
   "top_p": 1.0,
   "use_context": true,
-  "user_name": ""
+  "user_name": "",
+  "vision.capture.auto": true,
+  "vision.capture.enabled": true,
+  "vision.capture.height": 600,
+  "vision.capture.idx": 0,
+  "vision.capture.width": 800
 }
