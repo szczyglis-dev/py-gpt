@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.11 23:00:00                  #
 # ================================================== #
 
 import json
@@ -268,7 +268,7 @@ class AssistantItem:
         self.tools = {
             "code_interpreter": False,
             "retrieval": False,
-            "function": False,
+            "function": [],
         }
 
     def reset(self):
@@ -286,8 +286,37 @@ class AssistantItem:
         self.tools = {
             "code_interpreter": False,
             "retrieval": False,
-            "function": False,
+            "function": [],
         }
+
+    def add_function(self, name, parameters, desc):
+        """
+        Adds function to assistant
+
+        :param function: function
+        """
+        function = {
+            'name': name,
+            'params': parameters,
+            'desc': desc,
+        }
+        self.tools['function'].append(function)
+
+    def has_functions(self):
+        """
+        Checks if assistant has functions
+
+        :return: bool
+        """
+        return len(self.tools['function']) > 0
+
+    def get_functions(self):
+        """
+        Returns assistant functions
+
+        :return: functions
+        """
+        return self.tools['function']
 
     def has_tool(self, tool):
         """
@@ -405,6 +434,11 @@ class AssistantItem:
             self.files = data['files']
         if 'tools' in data:
             self.tools = data['tools']
+
+        # fix for older versions
+        if 'function' in self.tools:
+            if isinstance(self.tools['function'], bool):
+                self.tools['function'] = []
 
         # deserialize attachments
         if 'attachments' in data:

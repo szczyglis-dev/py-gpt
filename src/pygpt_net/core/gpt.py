@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 21:00:00                  #
+# Updated Date: 2023.12.11 23:00:00                  #
 # ================================================== #
 import base64
+import json
 import os
 import re
 import uuid
@@ -617,11 +618,26 @@ class Gpt:
                 items[id].instructions = remote.instructions
                 items[id].model = remote.model
                 items[id].meta = remote.metadata
+
+                # check if assistant tool is bool
+                if isinstance(items[id].tools['function'], bool):
+                    items[id].tools['function'] = []
+
+                # append files
                 for file_id in remote.file_ids:
                     if not items[id].has_file(file_id):
                         items[id].add_file(file_id)
                 for tool in remote.tools:
-                    items[id].tools[tool.type] = True
+                    if tool.type == "function":
+                        # pack params to JSON string
+                        params = ''
+                        try:
+                            params = json.dumps(tool.function.parameters)
+                        except:
+                            pass
+                        items[id].add_function(tool.function.name, params, tool.function.description)
+                    else:
+                        items[id].tools[tool.type] = True
         return items
 
     def assistant_get_tools(self, assistant):
@@ -636,8 +652,12 @@ class Gpt:
             tools.append({"type": "code_interpreter"})
         if assistant.has_tool("retrieval"):
             tools.append({"type": "retrieval"})
-        # if assistant.has_tool("function"):  # TODO: implement functions adding feature
-            # tools.append({"type": "function"})
+        if assistant.has_functions():
+            functions = assistant.get_functions()
+            for function in functions:
+                # unpack JSON from string
+                params = json.loads(function['params'])
+                tools.append({"type": "function", "function": {"name": function['name'], "parameters": params, "description": function['desc']}})
         return tools
 
     def call(self, prompt, ctx=None, stream_mode=False):

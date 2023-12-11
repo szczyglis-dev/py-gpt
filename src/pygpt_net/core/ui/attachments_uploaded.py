@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.11 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel
 
 from .widget.select import AttachmentUploadedSelectMenu
 from ..utils import trans
@@ -34,10 +34,14 @@ class AttachmentsUploaded:
 
         self.setup_attachments()
 
+        label_sync = QLabel(trans('attachments_uploaded.sync.tip'))
+        label_sync.setAlignment(Qt.AlignCenter)
+
         # buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.data['attachments.btn.sync'])
         buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
+        buttons_layout.addWidget(label_sync)
 
         # layout
         layout = QVBoxLayout()

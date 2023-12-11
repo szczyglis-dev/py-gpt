@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.11 23:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -166,10 +166,14 @@ class Assistant:
         else:
             self.config_toggle('assistant.tool.retrieval', False, 'assistant.editor')
 
-        if assistant.has_tool('function'):
-            self.config_toggle('assistant.tool.function', True, 'assistant.editor')
-        else:
-            self.config_toggle('assistant.tool.function', False, 'assistant.editor')
+        # restore functions
+        if assistant.has_functions():
+            functions = assistant.get_functions()
+            values = []
+            for function in functions:
+                values.append({"name": function['name'], "params": function['params'], "desc": function['desc']})
+            self.window.config_option['assistant.tool.function'].items = values
+            self.window.config_option['assistant.tool.function'].model.updateData(values)
 
     def save(self):
         """
@@ -278,8 +282,12 @@ class Assistant:
         assistant.tools = {
             'code_interpreter': self.window.config_option['assistant.tool.code_interpreter'].box.isChecked(),
             'retrieval': self.window.config_option['assistant.tool.retrieval'].box.isChecked(),
-            'function': self.window.config_option['assistant.tool.function'].box.isChecked(),
+            'function': [],  # functions are assigned separately
         }
+        # assign functions
+        functions = self.window.config_option['assistant.tool.function'].items
+        if len(functions) > 0:
+            assistant.tools['function'] = functions
 
     def clear(self, force=False):
         """
@@ -407,7 +415,6 @@ class Assistant:
             assistant_id = self.window.config_option['assistant.id']  # editing assistant
             is_current = False
         self.update_field(id, value, assistant_id, is_current)
-        self.window.config_option[id].box.setChecked(value)
 
     def config_change(self, id, value, section=None):
         """

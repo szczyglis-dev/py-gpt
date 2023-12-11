@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.11 23:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy
 
-from ..widget.settings import SettingsTextarea, SettingsInput, SettingsCheckbox
+from ..widget.settings import SettingsTextarea, SettingsInput, SettingsCheckbox, SettingsDict
 from ..widget.dialog import EditorDialog
 from ...utils import trans
 
@@ -41,6 +41,13 @@ class Assistant:
 
         section = 'assistant.editor'  # prevent autoupdate current assistant
 
+        func_keys = {
+            'name': 'text',
+            'params': 'text',
+            'desc': 'text',
+        }
+        func_values = {}
+
         # fields
         self.window.path_label[id] = QLabel(str(path))
         self.window.config_option['assistant.id'] = SettingsInput(self.window, 'assistant.id', False, section)
@@ -55,17 +62,12 @@ class Assistant:
                                                                     False, section)
         self.window.config_option['assistant.tool.retrieval'] = SettingsCheckbox(self.window, 'assistant.tool.retrieval',
                                                                           trans('assistant.tool.retrieval'), False, section)
-        self.window.config_option['assistant.tool.function'] = SettingsCheckbox(self.window, 'assistant.tool.function',
-                                                                      trans('assistant.tool.function'), False, section)
 
-        self.window.config_option['assistant.tool.function'].setDisabled(True)
-
-        # set max width
-        max_width = 240
-        self.window.config_option['assistant.id'].setMaximumWidth(max_width)
-        self.window.config_option['assistant.name'].setMaximumWidth(max_width)
-        self.window.config_option['assistant.model'].setMaximumWidth(max_width)
-        self.window.config_option['assistant.description'].setMaximumWidth(max_width)
+        self.window.config_option['assistant.tool.function'] = SettingsDict(self.window, 'assistant.tool.function', True, section, id,
+                                                          func_keys,
+                                                          func_values)
+        self.window.config_option['assistant.tool.function'].setMinimumHeight(150)
+        # {"type": "object", "properties": {}}
 
         options = {}
         options['id'] = self.add_option('assistant.id', self.window.config_option['assistant.id'])
@@ -83,8 +85,11 @@ class Assistant:
         options['instructions'].addWidget(self.window.data['assistant.instructions.label'])
         options['instructions'].addWidget(self.window.config_option['assistant.instructions'])
 
-        label_info = QLabel("TIP: Leave empty ID if creating new agent.\nFunctions management will be available soon...")
+        label_info = QLabel("TIP: Leave empty ID if creating new agent.")
         label_info.setMinimumHeight(40)
+
+        label_func = QLabel("Functions")
+        label_func.setMinimumHeight(40)
 
         # align: center
         label_info.setAlignment(Qt.AlignCenter)
@@ -96,6 +101,7 @@ class Assistant:
         rows.addLayout(options['description'])
         rows.addLayout(options['tool.code_interpreter'])
         rows.addLayout(options['tool.retrieval'])
+        rows.addWidget(label_func)
         rows.addLayout(options['tool.function'])
         rows.addWidget(label_info)
         rows.addLayout(options['instructions'])
@@ -103,6 +109,7 @@ class Assistant:
         layout = QVBoxLayout()
         layout.addLayout(rows)
         layout.addLayout(bottom_layout)
+        layout.setStretch(1, 1)
 
         self.window.dialog['editor.' + id] = EditorDialog(self.window, id)
         self.window.dialog['editor.' + id].setLayout(layout)
@@ -116,13 +123,18 @@ class Assistant:
         :param option: Option
         :param bold: Bold title
         """
+        option.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)  # this not works becose
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
+        self.window.data[label_key].setMaximumWidth(120)
         if bold:
             self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.data[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+
         layout = QHBoxLayout()
         layout.addWidget(self.window.data[label_key])
         layout.addWidget(option)
+        layout.setStretch(0, 1)
 
         return layout
 

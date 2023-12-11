@@ -1,3 +1,13 @@
+2.0.20 (2023-12-11)
+
+- Improved Assistants API
+- Added assistant uploaded files storage
+- Added assistant uploaded files management
+- Added assistant remote functions management
+- Fixed "open in directory" option on Windows OS in DALL-E image
+- Improved attachments and file upload management
+- Improved UI and more
+
 2.0.19 (2023-12-10)
 
 - Optimized DALL-E prompt generator helper
