@@ -37,7 +37,7 @@
   "font_size.ctx": 11,
   "frequency_penalty": 0.0,
   "img_prompt_model": "gpt-4-1106-preview",
-  "img_raw": false,
+  "img_raw": true,
   "img_resolution": "1024x1024",
   "img_variants": 1,
   "lang": "en",

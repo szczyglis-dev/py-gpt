@@ -176,6 +176,12 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.19"):
+                if 'img_raw' not in data:
+                    data['img_raw'] = True
+                if not data['img_raw']:
+                    data['img_raw'] = True
+                updated = True
             if old < parse_version("2.0.16"):
                 if 'vision.capture.idx' not in data:
                     data['vision.capture.idx'] = 0

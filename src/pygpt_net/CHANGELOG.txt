@@ -1,4 +1,9 @@
+2.0.19 (2023-12-10)
+
+- Optimized DALL-E prompt generator helper
+
 2.0.18 (2023-12-10)
+
 - Config fix
 
 2.0.17 (2023-12-10)
