@@ -4,7 +4,7 @@
 - Added assistant uploaded files storage
 - Added assistant uploaded files management
 - Added assistant remote functions management
-- Fixed "open in directory" option on Windows OS in DALL-E image
+- Fixed "open in directory" option on Windows in DALL-E image generation
 - Improved attachments and file upload management
 - Improved UI and more
 

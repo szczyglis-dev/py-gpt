@@ -40,6 +40,10 @@ Setting up new assistants is simple - a single click is all it takes, and they i
 .. image:: images/v2_mode_assistant.png
    :width: 800
 
+In Assistant mode you are allowed to storage your files (per Assistant) and manage them easily from app:
+
+.. image:: images/v2_mode_assistant_upload.png
+   :width: 800
 
 Vision (GPT-4 Vision)
 ---------------------

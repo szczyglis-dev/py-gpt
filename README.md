@@ -218,6 +218,11 @@ This mode expands on the basic chat functionality by including additional extern
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PYGPT** is also a seamless process.
 
 ![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5115144d-804a-406c-9fbc-9de370910179)
+
+In Assistant mode you are allowed to storage your files (per Assistant) and manage them easily from app:
+
+![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1e1c7732-a4af-4800-a3ed-52ca12c3ad76)
+
 Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
 uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
 can be sent to the OpenAI API.
@@ -1055,7 +1060,7 @@ To update, just download the latest release and begin using it instead of the ol
 
 ## Coming soon
 
-- Enhanced integration with Langchain and the Assistants API (functions management, etc.)
+- Enhanced integration with Langchain
 - Vector databases support
 - Development of autonomous agents
 
@@ -1078,7 +1083,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added assistant uploaded files storage
 - Added assistant uploaded files management
 - Added assistant remote functions management
-- Fixed "open in directory" option on Windows in DALL-E image
+- Fixed "open in directory" option on Windows in DALL-E image generation
 - Improved attachments and file upload management
 - Improved UI and more
 
