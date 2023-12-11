@@ -142,13 +142,13 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
     if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
         # input message
         try:
-            num_tokens += num_tokens_from_string(item.input, model)
+            num_tokens += num_tokens_from_string(str(item.input), model)
         except Exception as e:
             print(e)
 
         # output message
         try:
-            num_tokens += num_tokens_from_string(item.output, model)
+            num_tokens += num_tokens_from_string(str(item.output), model)
         except Exception as e:
             print(e)
         # fixed tokens
