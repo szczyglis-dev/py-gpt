@@ -20,6 +20,7 @@ from .menu import Menu
 from .dialogs import Dialogs
 from .contexts import Contexts
 from .attachments import Attachments
+from .attachments_uploaded import AttachmentsUploaded
 
 
 class UI:
@@ -44,6 +45,7 @@ class UI:
         self.toolbox = Toolbox(window)
         self.contexts = Contexts(window)
         self.attachments = Attachments(window)
+        self.attachments_uploaded = AttachmentsUploaded(window)
         self.menu = Menu(window)
         self.dialogs = Dialogs(window)
 

@@ -12,6 +12,8 @@
 import json
 import os
 
+from .attachments import AttachmentItem
+
 
 class Assistants:
     def __init__(self, config=None):
@@ -22,6 +24,7 @@ class Assistants:
         """
         self.config = config
         self.config_file = 'assistants.json'
+        self.current_file = None
         self.items = {}
 
     def get_by_idx(self, idx):
@@ -93,19 +96,44 @@ class Assistants:
             self.items.pop(id)
         self.save()
 
-    def rename_file(self, assistant_id, file_id, name):
+    def rename_file(self, assistant, file_id, name):
         """
         Renames uploaded remote file name
 
-        :param assistant_id: assistant_id
+        :param assistant: assistant object
         :param file_id: file_id
         :param name: new name
         """
-        assistant = self.get_by_id(assistant_id)
         if assistant is None:
             return
+
+        need_save = False
+
+        # rename file in files
         if file_id in assistant.files:
-            assistant.files[file_id]['name'] = name
+            assistant.files[file_id]['name'] = name  # TODO: make object
+            need_save = True
+
+        # rename file in attachments
+        if file_id in assistant.attachments:
+            assistant.attachments[file_id].name = name
+            need_save = True
+
+        # save assistants
+        if need_save:
+            self.save()
+
+    def replace_attachment(self, assistant, attachment, old_id, new_id):
+        """
+        Replaces temporary attachment with uploaded one
+
+        :param assistant: assistant object
+        :param old_id: old id
+        :param new_id: new id
+        """
+        if old_id in assistant.attachments:
+            assistant.attachments[new_id] = attachment
+            del assistant.attachments[old_id]
             self.save()
 
     def get_default_assistant(self):
@@ -118,6 +146,64 @@ class Assistants:
         if len(assistants) == 0:
             return None
         return list(assistants.keys())[0]
+
+    def get_file_id_by_idx(self, assistant, idx):
+        """
+        Returns file ID by index
+
+        :param assistant: assistant object
+        :param idx: index
+        :return: file ID
+        """
+        files = assistant.files
+        return list(files.keys())[idx]
+
+    def get_file_by_id(self, assistant, id):
+        """
+        Returns file by ID
+
+        :param assistant: assistant object
+        :param id: file ID
+        :return: file
+        """
+        files = assistant.files
+        return files[id]
+
+    def import_files(self, assistant, data):
+        """
+        Imports files from remote API
+
+        :param assistant: assistant object
+        :param data: data from remote API
+        """
+        if assistant is None:
+            return
+
+        remote_ids = []
+        # add files from data (from remote)
+        for file in data:
+            id = file.id
+            remote_ids.append(id)
+
+            if id in assistant.files:
+                name = assistant.files[id]['name']
+                path = assistant.files[id]['path']
+            elif id in assistant.attachments:
+                name = assistant.attachments[id].name
+                path = assistant.attachments[id].path
+            else:
+                name = id
+                path = None
+            assistant.files[id] = {
+                'id': id,
+                'name': name,
+                'path': path,
+            }
+
+        # remove files that are not in data (from remote)
+        for id in list(assistant.files.keys()):
+            if id not in remote_ids:
+                del assistant.files[id]
 
     def load(self):
         """Loads assistants from file"""
@@ -177,7 +263,8 @@ class AssistantItem:
         self.instructions = None
         self.model = None
         self.meta = {}
-        self.files = {}
+        self.files = {}  # files IDs (uploaded to remote storage)
+        self.attachments = {}  # attachments (local)
         self.tools = {
             "code_interpreter": False,
             "retrieval": False,
@@ -195,6 +282,7 @@ class AssistantItem:
         self.model = None
         self.meta = {}
         self.files = {}
+        self.attachments = {}
         self.tools = {
             "code_interpreter": False,
             "retrieval": False,
@@ -236,12 +324,57 @@ class AssistantItem:
         if file_id in self.files:
             self.files.pop(file_id)
 
+    def clear_files(self):
+        """
+        Clears files
+        """
+        self.files = {}
+
+    def has_attachment(self, attachment_id):
+        """
+        Checks if assistant has attachment with ID
+
+        :param attachment_id: attachment ID
+        """
+        return attachment_id in self.attachments
+
+    def add_attachment(self, attachment):
+        """
+        Adds attachment to assistant
+
+        :param attachment: attachment
+        """
+        id = attachment.id
+        self.attachments[id] = attachment
+
+    def delete_attachment(self, attachment_id):
+        """
+        Deletes attachment from assistant
+
+        :param attachment_id: attachment ID
+        """
+        if attachment_id in self.attachments:
+            self.attachments.pop(attachment_id)
+
+    def clear_attachments(self):
+        """
+        Clears attachments
+        """
+        self.attachments = {}
+
     def serialize(self):
         """
         Serializes item to dict
 
         :return: serialized item
         """
+
+        # serialize attachments
+        attachments = {}
+        for id in self.attachments:
+            attachment = self.attachments[id]
+            attachments[id] = attachment.serialize()
+
         return {
             'id': self.id,
             'name': self.name,
@@ -249,6 +382,7 @@ class AssistantItem:
             'instructions': self.instructions,
             'model': self.model,
             'meta': self.meta,
+            'attachments': attachments,
             'files': self.files,
             'tools': self.tools,
         }
@@ -271,6 +405,15 @@ class AssistantItem:
             self.files = data['files']
         if 'tools' in data:
             self.tools = data['tools']
+
+        # deserialize attachments
+        if 'attachments' in data:
+            attachments = data['attachments']
+            for id in attachments:
+                attachment = attachments[id]
+                item = AttachmentItem()
+                item.deserialize(attachment)
+                self.attachments[id] = item
 
     def dump(self):
         """Dumps item to string"""

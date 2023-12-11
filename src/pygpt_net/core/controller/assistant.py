@@ -36,15 +36,45 @@ class Assistant:
         self.assistants.load()
         self.update()
 
+    def update(self):
+        """Updates assistants list"""
+        self.update_list()
+        self.update_uploaded()
+        self.select_assistant_by_current()
+
     def update_list(self):
         """Updates assistants list"""
         items = self.assistants.get_all()
         self.window.ui.toolbox.update_list_assistants('assistants', items)
 
-    def update(self):
-        """Updates assistants list"""
-        self.update_list()
-        self.select_assistant_by_current()
+    def update_uploaded(self):
+        """Updates uploaded files list"""
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            return
+        assistant = self.assistants.get_by_id(assistant_id)
+        items = assistant.files
+        self.window.ui.attachments_uploaded.update_list('attachments_uploaded', items)
+        self.update_tab_label()
+
+    def update_tab_label(self):
+        """
+        Updates tab label
+
+        :param mode: mode
+        """
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
+            return
+
+        assistant = self.assistants.get_by_id(assistant_id)
+        items = assistant.files
+        num_files = len(items)
+        suffix = ''
+        if num_files > 0:
+            suffix = f' ({num_files})'
+        self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
     def select(self, idx):
         """
@@ -200,14 +230,40 @@ class Assistant:
         Imports all remote assistants from API
         """
         try:
+            # import assistants
             items = self.assistants.get_all()
             self.window.gpt.assistant_import(items)
             self.assistants.items = items
             self.assistants.save()
+
+            # import uploaded files
+            for assistant_id in self.assistants.items:
+                assistant = self.assistants.get_by_id(assistant_id)
+                self.import_files(assistant)
+            # status
+            self.window.set_status("Imported assistants: " + str(len(items)))
         except Exception as e:
+            print("Error importing assistants")
             print(e)
             self.window.ui.dialogs.alert(str(e))
         self.update()
+
+    def import_files(self, assistant):
+        """
+        Imports assistant files
+
+        :param assistant: assistant
+        """
+        try:
+            files = self.window.gpt.assistant_file_list(assistant.id)
+            self.assistants.import_files(assistant, files)
+            self.assistants.save()
+            self.update()
+            self.window.set_status("Imported files: " + str(len(files)))
+        except Exception as e:
+            print("Error importing assistant files")
+            print(e)
+            self.window.ui.dialogs.alert(str(e))
 
     def assign_data(self, assistant):
         """
@@ -245,47 +301,66 @@ class Assistant:
         self.window.set_status(trans('status.assistant.cleared'))
         self.update()
 
-    def delete_file(self, assistant_id, file_id):
+    def select_file(self, idx):
         """
-        Deletes file
+        Selects file
 
-        :param assistant_id: assistant id
-        :param file_id: file id
+        :param idx: index
         """
-        # delete in API
-        try:
-            self.window.gpt.assistant_file_delete(assistant_id, file_id)
-        except Exception as e:
-            self.window.ui.dialogs.alert(str(e))
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
             return
+        assistant = self.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            return
+        self.assistants.current_file = self.assistants.get_file_id_by_idx(assistant, idx)
 
-        # delete locally
-        if assistant_id is not None and assistant_id != "":
-            if self.assistants.has(assistant_id):
-                assistant = self.assistants.get_by_id(assistant_id)
-                if assistant.has_file(file_id):
-                    assistant.delete_file(file_id)
-                    self.assistants.save()
-                    self.update()
+    def sync_files(self):
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            return
+        assistant = self.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            return
+        try:
+            self.import_files(assistant)
+        except Exception as e:
+            print(e)
+            self.window.ui.dialogs.alert(str(e))
 
-    def clear_files(self, assistant_id):
+    def clear_files(self, force=False):
         """
         Deletes all files
 
-        :param assistant_id: assistant id
+        :param force: force clear files
         """
+        if not force:
+            self.window.ui.dialogs.confirm('attachments_uploaded.clear', -1, trans('attachments_uploaded.clear.confirm'))
+            return
+
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            return
+
         # delete all files
-        if assistant_id is not None and assistant_id != "":
-            if self.assistants.has(assistant_id):
-                assistant = self.assistants.get_by_id(assistant_id)
-                for file_id in list(assistant.files):
-                    try:
-                        self.window.gpt.assistant_file_delete(assistant_id, file_id)
-                        assistant.delete_file(file_id)
-                    except Exception as e:
-                        self.window.ui.dialogs.alert(str(e))
-                self.assistants.save()
-                self.update()
+        if self.assistants.has(assistant_id):
+            assistant = self.assistants.get_by_id(assistant_id)
+            for file_id in list(assistant.files):
+                try:
+                    self.window.gpt.assistant_file_delete(assistant_id, file_id)
+                    assistant.delete_file(file_id)
+                except Exception as e:
+                    self.window.ui.dialogs.alert(str(e))
+
+                # delete file
+                if assistant.has_file(file_id):
+                    assistant.delete_file(file_id)
+                # delete attachment
+                if assistant.has_attachment(file_id):
+                    assistant.delete_attachment(file_id)
+
+            self.assistants.save()
+            self.update()
 
     def delete(self, idx=None, force=False):
         """
@@ -354,15 +429,188 @@ class Assistant:
         self.update_field(id, value, assistant_id, is_current)
         self.window.config_option[id].setText('{}'.format(value))
 
-    def rename_file(self, assistant_id, file_id, name):
+    def rename_file(self, idx):
+        """
+        Renames file
+
+        :param mode: mode
+        :param idx: selected attachment index
+        """
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            return
+        assistant = self.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            return
+
+        # get attachment ID by index
+        file_id = self.assistants.get_file_id_by_idx(assistant, idx)
+
+        # get attachment object by ID
+        data = self.assistants.get_file_by_id(assistant, file_id)
+        if data is None:
+            return
+
+        # set dialog and show
+        self.window.dialog['rename'].id = 'attachment_uploaded'
+        self.window.dialog['rename'].input.setText(data['name'])
+        self.window.dialog['rename'].current = file_id
+        self.window.dialog['rename'].show()
+        self.update()
+
+    def update_file_name(self, file_id, name):
         """
         Renames uploaded remote file name
 
-        :param assistant_id: assistant_id
         :param file_id: file_id
         :param name: new name
         """
-        self.assistants.rename_file(assistant_id, file_id, name)
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            self.close_rename_file()
+            return
+        assistant = self.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            self.close_rename_file()
+            return
+        self.assistants.rename_file(assistant, file_id, name)
+        self.close_rename_file()
+
+    def close_rename_file(self):
+        # close rename dialog and update attachments list
+        self.window.dialog['rename'].close()
+        self.update()
+
+    def delete_file(self, idx, force=False):
+        """
+        Deletes file
+
+        :param idx: file idx
+        """
+        if not force:
+            self.window.ui.dialogs.confirm('attachments_uploaded.delete', idx, trans('attachments_uploaded.delete.confirm'))
+            return
+
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None or assistant_id == "":
+            return
+        assistant = self.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            return
+
+        # get attachment ID by index
+        file_id = self.assistants.get_file_id_by_idx(assistant, idx)
+
+        # delete file in API
+        try:
+            self.window.gpt.assistant_file_delete(assistant_id, file_id)
+        except Exception as e:
+            self.window.ui.dialogs.alert(str(e))
+            return  # do not delete locally if not deleted in API
+
+        # delete locally
+        if self.assistants.has(assistant_id):
+            need_save = False
+            # delete file
+            if assistant.has_file(file_id):
+                assistant.delete_file(file_id)
+                need_save = True
+            # delete attachment
+            if assistant.has_attachment(file_id):
+                assistant.delete_attachment(file_id)
+                need_save = True
+            # save assistants and update assistants list
+            if need_save:
+                self.assistants.save()
+                self.update()
+
+    def clear_attachments(self, assistant):
+        """
+        Clears attachments
+
+        :param assistant: assistant object
+        """
+        assistant.clear_attachments()
+        self.assistants.save()
+        self.update()
+
+    def count_upload_attachments(self, attachments):
+        """
+        Counts uploaded attachments
+        """
+        num = 0
+        for id in list(attachments):
+            attachment = attachments[id]
+            if not attachment.send:
+                num += 1  # increment uploaded files counter
+        return num
+
+    def upload_attachments(self, mode, attachments):
+        """
+        Uploads attachments to assistant
+        """
+        # get current chosen assistant
+        assistant_id = self.window.config.data['assistant']
+        if assistant_id is None:
+            return 0
+        assistant = self.assistants.get_by_id(assistant_id)
+
+        num = 0
+        # loop on attachments
+        for id in list(attachments):
+            attachment = attachments[id]
+            old_id = attachment.id  # tmp id
+
+            # check if not already uploaded (ignore already uploaded files)
+            if not attachment.send:
+                print("Uploading file: {}".format(attachment.path))
+                # check if file exists
+                if not os.path.exists(attachment.path):
+                    continue
+
+                # upload local attachment file and get new ID (file_id)
+                new_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
+                if new_id is not None:
+                    # mark as already uploaded
+                    attachment.send = True
+                    attachment.id = new_id
+                    attachment.remote = new_id
+
+                    # replace old ID with new one
+                    self.window.controller.attachment.attachments.replace_id(mode, old_id, attachment)
+
+                    # update assistant remote files list
+                    assistant.files[new_id] = {
+                        'id': new_id,
+                        'name': attachment.name,
+                        'path': attachment.path,
+                    }
+
+                    # update assistant attachments list
+                    self.assistants.replace_attachment(assistant, attachment, old_id, new_id)
+                    num += 1  # increment uploaded files counter
+
+        # update assistants list
+        self.assistants.save()
+
+        # update attachments UI
+        self.window.controller.attachment.update()
+
+        # update uploaded list
+        if num > 0:
+            self.update_uploaded()  # update uploaded list UI
+
+        return num
+
+    def append_attachment(self, assistant, attachment):
+        """
+        Appends attachment to assistant
+
+        :param attachment: attachment
+        """
+        # get current chosen assistant
+        assistant.add_attachment(attachment)  # append attachment
+        self.assistants.save()  # save assistants
 
     def create_thread(self):
         """
@@ -446,6 +694,11 @@ class Assistant:
         if status == "completed":
             self.force_stop = False
             self.handle_run_messages(ctx)
+            self.window.statusChanged.emit(trans('assistant.run.completed'))
+        elif status == "failed":
+            self.force_stop = False
+            self.window.controller.input.unlock_input()
+            self.window.statusChanged.emit(trans('assistant.run.failed'))
 
     @Slot()
     def handle_destroy(self):
@@ -462,51 +715,6 @@ class Assistant:
         """
         print("Run: assistant is listening status...")
         self.window.statusChanged.emit(trans('assistant.run.listening'))
-
-    def upload_attachments(self, mode, attachments):
-        """
-        Uploads attachments to assistant
-        """
-        # get current chosen assistant
-        assistant_id = self.window.config.data['assistant']
-        if assistant_id is None:
-            return 0
-        assistant = self.assistants.get_by_id(assistant_id)
-
-        num = 0
-        # loop on attachments
-        for id in list(attachments):
-            attachment = attachments[id]
-            tmp_id = attachment.id  # tmp id
-
-            # check if not already uploaded (ignore already uploaded files)
-            if not attachment.send:
-                # check if file exists
-                if not os.path.exists(attachment.path):
-                    continue
-
-                # upload file and get new ID
-                file_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
-                if file_id is not None:
-                    # mark as already uploaded
-                    attachment.send = True
-                    attachment.id = file_id
-                    attachment.remote = file_id
-
-                    # replace old ID with new one
-                    self.window.controller.attachment.attachments.replace_id(mode, tmp_id, attachment)
-
-                    # update assistant files list
-                    assistant.files[file_id] = {
-                        'id': file_id,
-                        'name': attachment.name,
-                        'path': attachment.path,
-                    }
-                    num += 1
-        # update assistants
-        self.assistants.save()
-        self.window.controller.attachment.update()  # update attachments UI
-        return num
 
 
 class AssistantRunThread(QObject):

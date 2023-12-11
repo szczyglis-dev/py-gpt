@@ -267,6 +267,10 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, True)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
         elif mode == 'img':
             self.window.config_option['current_temperature'].slider.setDisabled(True)
             self.window.config_option['current_temperature'].input.setDisabled(True)
@@ -287,6 +291,10 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
         elif mode == 'completion':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -307,6 +315,10 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
         elif mode == 'vision':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -326,6 +338,10 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(True)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, True)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
         elif mode == 'langchain':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -345,6 +361,10 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
         elif mode == 'assistant':
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
@@ -364,6 +384,10 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, True)  # files
+            self.window.tabs['input'].setTabVisible(2, True)  # uploaded files
 
     def update(self):
         """Updates all lists"""

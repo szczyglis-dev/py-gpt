@@ -155,22 +155,28 @@ class Input:
 
         # upload new attachments if assistant mode
         if mode == 'assistant':
+            is_upload = False
+            num_uploaded = 0
             try:
                 # it uploads only new attachments (not uploaded before to remote)
                 attachments = self.window.controller.attachment.attachments.get_all(mode)
-                if len(attachments) > 0:
+                c = self.window.controller.assistant.count_upload_attachments(attachments)
+                if c > 0:
+                    is_upload = True
                     self.window.set_status(trans('status.uploading'))
-                self.window.controller.assistant.upload_attachments(mode, attachments)
-                self.window.gpt.file_ids = self.window.controller.attachment.attachments.get_ids(mode)
-
+                    num_uploaded = self.window.controller.assistant.upload_attachments(mode, attachments)
+                    self.window.gpt.file_ids = self.window.controller.attachment.attachments.get_ids(mode)
+                # show uploaded status
+                if is_upload and num_uploaded > 0:
+                    self.window.set_status(trans('status.uploaded'))
             except Exception as e:
                 print(e)
                 self.window.ui.dialogs.alert(str(e))
-            self.window.set_status(trans('status.uploaded'))
 
             # create or get current thread, it is required here
             if self.window.config.data['assistant_thread'] is None:
                 try:
+                    self.window.set_status(trans('status.starting'))
                     self.window.config.data['assistant_thread'] = self.window.controller.assistant.create_thread()
                 except Exception as e:
                     print(e)
@@ -253,7 +259,6 @@ class Input:
                     ctx = self.window.gpt.call(text, ctx, stream_mode)
 
                     if mode == 'assistant':
-
                         # get run ID and save it in ctx
                         self.window.gpt.context.append_run(ctx.run_id)
 

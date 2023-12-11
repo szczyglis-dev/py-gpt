@@ -510,6 +510,21 @@ class Gpt:
             if deleted_file is not None:
                 return deleted_file.id
 
+    def assistant_file_list(self, assistant_id):
+        """
+        Get files from assistant
+
+        :param assistant_id: Assistant ID
+        :return: Files list
+        """
+        client = self.get_client()
+        assistant_files = client.beta.assistants.files.list(
+            assistant_id=assistant_id,
+            limit=100
+        )
+        if assistant_files is not None:
+            return assistant_files.data
+
     def assistant_create(self, assistant):
         """
         Creates assistant

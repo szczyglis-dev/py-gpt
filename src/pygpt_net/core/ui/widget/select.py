@@ -286,8 +286,8 @@ class AttachmentSelectMenu(SelectMenu):
         super(AttachmentSelectMenu, self).__init__(window)
         self.window = window
         self.id = id
-
         self.doubleClicked.connect(self.dblclick)
+        self.setHeaderHidden(False)
 
     def click(self, val):
         """
@@ -372,3 +372,81 @@ class AttachmentSelectMenu(SelectMenu):
         idx = item.row()
         if idx >= 0:
             self.window.controller.attachment.delete(idx)
+
+
+class AttachmentUploadedSelectMenu(SelectMenu):
+    def __init__(self, window=None, id=None):
+        """
+        Attachments menu
+
+        :param window: main window
+        :param id: input id
+        """
+        super(AttachmentUploadedSelectMenu, self).__init__(window)
+        self.window = window
+        self.id = id
+        self.doubleClicked.connect(self.dblclick)
+        self.setHeaderHidden(False)
+
+    def click(self, val):
+        """
+        Click event
+
+        :param val: click event
+        """
+        self.window.controller.assistant.select_file(val.row())
+
+    def dblclick(self, val):
+        """
+        Double click event
+
+        :param val: double click event
+        """
+        self.window.controller.assistant.select_file(val.row())
+
+    def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: context menu event
+        """
+        actions = {}
+        actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
+        actions['rename'].triggered.connect(
+            lambda: self.action_rename(event))
+
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'].triggered.connect(
+            lambda: self.action_delete(event))
+
+        menu = QMenu(self)
+        menu.addAction(actions['rename'])
+        menu.addAction(actions['delete'])
+
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant.select_file(item.row())
+            menu.exec_(event.globalPos())
+
+    def action_rename(self, event):
+        """
+        Rename action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant.rename_file(idx)
+
+    def action_delete(self, event):
+        """
+        Delete action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant.delete_file(idx)

@@ -12,6 +12,7 @@
 import os
 import shutil
 import webbrowser
+from pathlib import PurePath
 from showinfm import show_in_file_manager
 
 from PySide6 import QtGui, QtCore
@@ -130,7 +131,9 @@ class Image:
         :param path: path to image
         """
         if os.path.exists(path):
-            show_in_file_manager(path)
+            parts = PurePath(path).parts
+            path_os = os.path.join(*parts)  # fix for windows \\ path separators
+            show_in_file_manager(path_os)
 
     def img_action_save(self, path):
         """

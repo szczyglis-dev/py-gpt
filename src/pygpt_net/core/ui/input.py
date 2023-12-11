@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRa
 
 from .status import Status
 from .attachments import Attachments
+from .attachments_uploaded import AttachmentsUploaded
 from .widget.textarea import ChatInput
 from ..utils import trans
 
@@ -29,6 +30,7 @@ class Input:
         self.window = window
         self.status = Status(window)
         self.attachments = Attachments(window)
+        self.attachments_uploaded = AttachmentsUploaded(window)
 
     def setup(self):
         """
@@ -111,6 +113,7 @@ class Input:
 
         # attachments tab
         attachments_layout = self.attachments.setup()
+        attachment_uploaded_layout = self.attachments_uploaded.setup()
 
         # files tab
         files_tab = QWidget()
@@ -118,12 +121,19 @@ class Input:
         files_layout.addLayout(attachments_layout)
         files_tab.setLayout(files_layout)
 
+        # files uploaded tab
+        files_uploaded_tab = QWidget()
+        files_uploaded_layout = QVBoxLayout()
+        files_uploaded_layout.addLayout(attachment_uploaded_layout)
+        files_uploaded_tab.setLayout(files_uploaded_layout)
+
         # tabs (input + attachments)
         self.window.tabs['input'] = QTabWidget()
 
         # add tabs
         self.window.tabs['input'].addTab(input_tab, trans('input.tab'))
         self.window.tabs['input'].addTab(files_tab, trans('attachments.tab'))
+        self.window.tabs['input'].addTab(files_uploaded_tab, trans('attachments_uploaded.tab'))
 
         # full input layout
         layout = QVBoxLayout()

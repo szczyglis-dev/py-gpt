@@ -12,14 +12,14 @@
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox
 
-from .widget.select import AttachmentSelectMenu
+from .widget.select import AttachmentUploadedSelectMenu
 from ..utils import trans
 
 
-class Attachments:
+class AttachmentsUploaded:
     def __init__(self, window=None):
         """
-        Attachments UI
+        Attachments Uplaoded UI
 
         :param window: main UI window object
         """
@@ -36,38 +36,33 @@ class Attachments:
 
         # buttons layout
         buttons_layout = QHBoxLayout()
-        buttons_layout.addWidget(self.window.data['attachments.btn.add'])
+        buttons_layout.addWidget(self.window.data['attachments.btn.sync'])
         buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
-        buttons_layout.addWidget(self.window.data['attachments.send_clear'])
 
         # layout
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['attachments'])
+        layout.addWidget(self.window.data['attachments_uploaded'])
         layout.addLayout(buttons_layout)
 
         return layout
 
     def setup_attachments(self):
         """
-        Setup attachments list
+        Setup attachments uploaded list
         """
-        id = 'attachments'
+        id = 'attachments_uploaded'
 
         # attachments
-        self.window.data[id] = AttachmentSelectMenu(self.window)
+        self.window.data[id] = AttachmentUploadedSelectMenu(self.window)
 
         # buttons
-        self.window.data['attachments.btn.add'] = QPushButton(trans('attachments.btn.add'))
+        self.window.data['attachments.btn.sync'] = QPushButton(trans('attachments.btn.sync'))
         self.window.data['attachments.btn.clear'] = QPushButton(trans('attachments.btn.clear'))
 
-        self.window.data['attachments.btn.add'].clicked.connect(
-            lambda: self.window.controller.attachment.open_add())
+        self.window.data['attachments.btn.sync'].clicked.connect(
+            lambda: self.window.controller.assistant.sync_files())
         self.window.data['attachments.btn.clear'].clicked.connect(
-            lambda: self.window.controller.attachment.clear())
-
-        self.window.data['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
-        self.window.data['attachments.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.attachment.toggle_send_clear(self.window.data['attachments.send_clear'].isChecked()))
+            lambda: self.window.controller.assistant.clear_files())
 
         self.window.models[id] = self.create_model(self.window)
         self.window.data[id].setModel(self.window.models[id])
@@ -95,6 +90,6 @@ class Attachments:
         i = 0
         for uuid in data:
             self.window.models[id].insertRow(i)
-            self.window.models[id].setData(self.window.models[id].index(i, 0), data[uuid].name)
-            self.window.models[id].setData(self.window.models[id].index(i, 1), data[uuid].path)
+            self.window.models[id].setData(self.window.models[id].index(i, 0), data[uuid]['name'])
+            self.window.models[id].setData(self.window.models[id].index(i, 1), data[uuid]['path'])
             i += 1

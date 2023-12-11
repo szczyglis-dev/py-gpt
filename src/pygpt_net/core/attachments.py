@@ -189,7 +189,7 @@ class Attachments:
         :param name: name
         :param path: path
         :param auto_save: auto_save
-        :return: created UUID
+        :return: created File ID
         """
         file_id = self.create_id()  # create unique id
         attachment = AttachmentItem()
@@ -206,7 +206,7 @@ class Attachments:
         if auto_save:
             self.save()
 
-        return file_id
+        return attachment
 
     def add(self, mode, item):
         """
@@ -272,6 +272,18 @@ class Attachments:
             item.remote = id
             item.send = True
             self.add(mode, item)
+
+    def from_attachments(self, mode, attachments):
+        """
+        Loads attachments from attachments
+
+        :param mode: mode
+        :param attachments: attachments
+        """
+        self.clear(mode)
+        for id in attachments:
+            attachment = attachments[id]
+            self.add(mode, attachment)
 
     def load(self):
         """Loads attachments from file"""
