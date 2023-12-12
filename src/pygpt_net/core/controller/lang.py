@@ -152,7 +152,12 @@ class Lang:
         self.window.data['vision.capture.enable'].setText(trans("vision.capture.enable"))
         self.window.data['vision.capture.auto'].setText(trans("vision.capture.auto"))
         self.window.data['vision.capture.label'].setText(trans('vision.capture.options.title'))
-        self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
+
+        # capture label
+        if not self.window.config.data['vision.capture.auto']:
+            self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
+        else:
+            self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
         # buttons
         self.window.data['preset.btn.current'].setText(trans("dialog.preset.btn.current"))

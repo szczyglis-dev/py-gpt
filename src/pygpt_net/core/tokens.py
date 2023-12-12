@@ -28,7 +28,7 @@ def num_tokens_from_string(string, model="gpt-4"):
     except KeyError:
         encoding = tiktoken.get_encoding("cl100k_base")
     try:
-        return len(encoding.encode(string))
+        return len(encoding.encode(str(string)))
     except Exception as e:
         print(e)
         return 0

@@ -1,3 +1,8 @@
+2.0.24 (2023-12-12)
+
+- Fixed empty string in tokens calculator
+- Added attachments reset before auto-capture from camera
+
 2.0.23 (2023-12-12)
 
 - Improved python code execution

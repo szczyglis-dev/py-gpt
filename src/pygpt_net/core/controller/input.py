@@ -455,6 +455,7 @@ class Input:
         elif mode == 'vision':
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
+                    self.window.controller.attachment.clear(True)  # clear attachments before capture
                     self.window.controller.camera.capture_frame(False)
 
         # unlock run thread if locked
