@@ -22,6 +22,7 @@ class OpenAILLM:
         args = {}
         if 'args' in options:
             args = options['args']
+        os.environ['OPENAI_API_KEY'] = config["api_key"]
         os.environ['OPENAI_API_TOKEN'] = config["api_key"]
         llm = OpenAI(**args)
         return llm
@@ -30,6 +31,7 @@ class OpenAILLM:
         args = {}
         if 'args' in options:
             args = options['args']
+        os.environ['OPENAI_API_KEY'] = config["api_key"]
         os.environ['OPENAI_API_TOKEN'] = config["api_key"]
         llm = ChatOpenAI(**args)
         return llm

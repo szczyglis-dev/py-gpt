@@ -21,6 +21,7 @@ class AzureOpenAILLM:
         args = {}
         if 'args' in options:
             args = options['args']
+        os.environ['OPENAI_API_KEY'] = config["api_key"]
         os.environ['OPENAI_API_TOKEN'] = config["api_key"]
         llm = AzureOpenAI(**args)
         return llm
@@ -29,6 +30,7 @@ class AzureOpenAILLM:
         args = {}
         if 'args' in options:
             args = options['args']
+        os.environ['OPENAI_API_KEY'] = config["api_key"]
         os.environ['OPENAI_API_TOKEN'] = config["api_key"]
         llm = AzureChatOpenAI(**args)
         return llm

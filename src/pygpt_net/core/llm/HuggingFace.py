@@ -22,6 +22,7 @@ class HuggingFaceLLM:
         if 'args' in options:
             args = options['args']
         os.environ['HUGGINGFACEHUB_API_TOKEN'] = options['api_key']
+        os.environ['HUGGINGFACEHUB_API_KEY'] = options['api_key']
         llm = HuggingFaceHub(**args)
         return llm
 
