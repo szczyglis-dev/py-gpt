@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.11 23:00:00                  #
+# Updated Date: 2023.12.12 01:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy
@@ -27,10 +27,8 @@ class Assistant:
 
     def setup(self):
         """Setups assistant editor dialog"""
-
         id = "assistants"
         path = self.window.config.path
-
         self.window.data['assistant.btn.current'] = QPushButton(trans("dialog.assistant.btn.current"))
         self.window.data['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.data['assistant.btn.save'].clicked.connect(
@@ -38,9 +36,7 @@ class Assistant:
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['assistant.btn.save'])
-
         section = 'assistant.editor'  # prevent autoupdate current assistant
-
         func_keys = {
             'name': 'text',
             'params': 'text',
@@ -52,58 +48,65 @@ class Assistant:
         self.window.path_label[id] = QLabel(str(path))
         self.window.config_option['assistant.id'] = SettingsInput(self.window, 'assistant.id', False, section)
         self.window.config_option['assistant.name'] = SettingsInput(self.window, 'assistant.name', False, section)
-        self.window.config_option['assistant.instructions'] = SettingsTextarea(self.window, 'assistant.instructions', False, section)
+        self.window.config_option['assistant.instructions'] = SettingsTextarea(self.window, 'assistant.instructions',
+                                                                               False, section)
+        self.window.config_option['assistant.instructions'].setMinimumHeight(150)
 
         self.window.config_option['assistant.model'] = SettingsInput(self.window, 'assistant.model', False, section)
-        self.window.config_option['assistant.description'] = SettingsInput(self.window, 'assistant.description', False, section)
+        self.window.config_option['assistant.description'] = SettingsInput(self.window, 'assistant.description', False,
+                                                                           section)
         self.window.config_option['assistant.tool.code_interpreter'] = SettingsCheckbox(self.window,
-                                                                    'assistant.tool.code_interpreter',
-                                                                    trans('assistant.tool.code_interpreter'),
-                                                                    False, section)
-        self.window.config_option['assistant.tool.retrieval'] = SettingsCheckbox(self.window, 'assistant.tool.retrieval',
-                                                                          trans('assistant.tool.retrieval'), False, section)
+                                                                                        'assistant.tool.code_interpreter',
+                                                                                        trans(
+                                                                                            'assistant.tool.code_interpreter'),
+                                                                                        False, section)
+        self.window.config_option['assistant.tool.code_interpreter'].box.setChecked(True)  # default True
+        self.window.config_option['assistant.tool.retrieval'] = SettingsCheckbox(self.window,
+                                                                                 'assistant.tool.retrieval',
+                                                                                 trans('assistant.tool.retrieval'),
+                                                                                 False, section)
+        self.window.config_option['assistant.tool.retrieval'].box.setChecked(True)  # default True
 
-        self.window.config_option['assistant.tool.function'] = SettingsDict(self.window, 'assistant.tool.function', True, section, id,
-                                                          func_keys,
-                                                          func_values)
+        self.window.config_option['assistant.tool.function'] = SettingsDict(self.window, 'assistant.tool.function',
+                                                                            True, section, id,
+                                                                            func_keys,
+                                                                            func_values)
         self.window.config_option['assistant.tool.function'].setMinimumHeight(150)
-        # {"type": "object", "properties": {}}
+        self.window.config_option['assistant.tool.function'].add_btn.setText(trans('assistant.func.add'))
+        # Empty params: {"type": "object", "properties": {}}
+
+        self.window.data['assistant.id_tip'] = QLabel(trans('assistant.new.id_tip'))
+        self.window.data['assistant.id_tip'].setMinimumHeight(40)
 
         options = {}
         options['id'] = self.add_option('assistant.id', self.window.config_option['assistant.id'])
         options['name'] = self.add_option('assistant.name', self.window.config_option['assistant.name'])
         options['model'] = self.add_option('assistant.model', self.window.config_option['assistant.model'])
-        options['description'] = self.add_option('assistant.description', self.window.config_option['assistant.description'])
-        options['tool.code_interpreter'] = self.add_raw_option(self.window.config_option['assistant.tool.code_interpreter'])
+        options['description'] = self.add_option('assistant.description',
+                                                 self.window.config_option['assistant.description'])
+        options['tool.code_interpreter'] = self.add_raw_option(
+            self.window.config_option['assistant.tool.code_interpreter'])
         options['tool.retrieval'] = self.add_raw_option(self.window.config_option['assistant.tool.retrieval'])
         options['tool.function'] = self.add_raw_option(self.window.config_option['assistant.tool.function'])
-
-        self.window.config_option['assistant.instructions'].setMinimumHeight(150)
 
         self.window.data['assistant.instructions.label'] = QLabel(trans('assistant.instructions'))
         options['instructions'] = QVBoxLayout()
         options['instructions'].addWidget(self.window.data['assistant.instructions.label'])
         options['instructions'].addWidget(self.window.config_option['assistant.instructions'])
 
-        label_info = QLabel("TIP: Leave empty ID if creating new agent.")
-        label_info.setMinimumHeight(40)
-
-        label_func = QLabel("Functions")
-        label_func.setMinimumHeight(40)
-
-        # align: center
-        label_info.setAlignment(Qt.AlignCenter)
+        self.window.data['assistant.functions.label'] = QLabel(trans('assistant.functions.label'))
+        self.window.data['assistant.functions.label'].setMinimumHeight(30)
 
         rows = QVBoxLayout()
         rows.addLayout(options['id'])
+        rows.addWidget(self.window.data['assistant.id_tip'])
         rows.addLayout(options['name'])
         rows.addLayout(options['model'])
         rows.addLayout(options['description'])
         rows.addLayout(options['tool.code_interpreter'])
         rows.addLayout(options['tool.retrieval'])
-        rows.addWidget(label_func)
+        rows.addWidget(self.window.data['assistant.functions.label'])
         rows.addLayout(options['tool.function'])
-        rows.addWidget(label_info)
         rows.addLayout(options['instructions'])
 
         layout = QVBoxLayout()
@@ -123,7 +126,7 @@ class Assistant:
         :param option: Option
         :param bold: Bold title
         """
-        option.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)  # this not works becose
+        option.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
         self.window.data[label_key].setMaximumWidth(120)
@@ -135,7 +138,6 @@ class Assistant:
         layout.addWidget(self.window.data[label_key])
         layout.addWidget(option)
         layout.setStretch(0, 1)
-
         return layout
 
     def add_raw_option(self, option):

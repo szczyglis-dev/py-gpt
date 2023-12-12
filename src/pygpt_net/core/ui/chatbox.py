@@ -57,7 +57,7 @@ class ChatBox:
         self.window.data['chat.model'].setAlignment(Qt.AlignRight)
         context_layout = self.setup_context()
 
-        self.window.data['chat.label'] = QLabel(trans("chatbox.label"))
+        self.window.data['chat.label'] = QLabel('')
         self.window.data['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         self.window.data['chat.plugins'] = QLabel("")

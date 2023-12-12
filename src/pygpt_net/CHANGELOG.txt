@@ -1,3 +1,10 @@
+2.0.21 (2023-12-12)
+
+- Simplified assistant configuration
+- Added assistant configuration validation
+- Improved UI
+- Improved language switcher
+
 2.0.20 (2023-12-11)
 
 - Improved Assistants API

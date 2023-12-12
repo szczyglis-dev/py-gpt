@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.20'
+VERSION = '2.0.21'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, ' \
               'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
 LONG_DESCRIPTION = 'Package containing a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 AI desktop assistant with chatbot, ' \
@@ -19,7 +19,7 @@ setup(
     maintainer_email='info@pygpt.net',
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    package_data={'': ['CHANGELOG.txt', 'data/*', 'data/locale/*', 'data/config/*', 'data/config/presets/*']},
+    package_data={'': ['CHANGELOG.txt', 'data/*', 'data/css/*', 'data/fonts/*', 'data/fonts/Lato/*', 'data/locale/*', 'data/config/*', 'data/config/presets/*']},
     url='https://github.com/szczyglis-dev/py-gpt',
     keywords='py_gpt, py-gpt, pygpt, desktop, app, gpt, gpt4, gpt4-v, gpt3, gpt-4, gpt-3, tts, whisper, vision, chatgpt, dall-e, '
              'chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, context memory, '

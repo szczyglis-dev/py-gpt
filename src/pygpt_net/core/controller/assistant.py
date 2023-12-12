@@ -137,9 +137,13 @@ class Assistant:
         assistant = self.assistants.create()
         assistant.model = "gpt-4-1106-preview"  # default model
 
+        # if editing existing assistant
         if id is not None and id != "":
             if self.assistants.has(id):
                 assistant = self.assistants.get_by_id(id)
+        else:
+            # default instructions
+            assistant.instructions = 'You are a helpful assistant.'
 
         if assistant.name is None:
             assistant.name = ""
@@ -284,8 +288,20 @@ class Assistant:
             'retrieval': self.window.config_option['assistant.tool.retrieval'].box.isChecked(),
             'function': [],  # functions are assigned separately
         }
+
         # assign functions
-        functions = self.window.config_option['assistant.tool.function'].items
+        functions = []
+        for function in self.window.config_option['assistant.tool.function'].items:
+            name = function['name']
+            params = function['params']
+            desc = function['desc']
+            if name is None or name == "":
+                continue
+            if params is None or params == "":
+                params = '{"type": "object", "properties": {}}'
+            if desc is None:
+                desc = ""
+            functions.append({"name": name, "params": params, "desc": desc})
         if len(functions) > 0:
             assistant.tools['function'] = functions
 

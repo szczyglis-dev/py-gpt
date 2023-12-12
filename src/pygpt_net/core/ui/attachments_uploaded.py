@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.11 23:00:00                  #
+# Updated Date: 2023.12.12 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
@@ -34,14 +34,14 @@ class AttachmentsUploaded:
 
         self.setup_attachments()
 
-        label_sync = QLabel(trans('attachments_uploaded.sync.tip'))
-        label_sync.setAlignment(Qt.AlignCenter)
+        self.window.data['attachments_uploaded.sync.tip'] = QLabel(trans('attachments_uploaded.sync.tip'))
+        self.window.data['attachments_uploaded.sync.tip'].setAlignment(Qt.AlignCenter)
 
         # buttons layout
         buttons_layout = QHBoxLayout()
-        buttons_layout.addWidget(self.window.data['attachments.btn.sync'])
-        buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
-        buttons_layout.addWidget(label_sync)
+        buttons_layout.addWidget(self.window.data['attachments_uploaded.btn.sync'])
+        buttons_layout.addWidget(self.window.data['attachments_uploaded.btn.clear'])
+        buttons_layout.addWidget(self.window.data['attachments_uploaded.sync.tip'])
 
         # layout
         layout = QVBoxLayout()
@@ -60,12 +60,12 @@ class AttachmentsUploaded:
         self.window.data[id] = AttachmentUploadedSelectMenu(self.window)
 
         # buttons
-        self.window.data['attachments.btn.sync'] = QPushButton(trans('attachments.btn.sync'))
-        self.window.data['attachments.btn.clear'] = QPushButton(trans('attachments.btn.clear'))
+        self.window.data['attachments_uploaded.btn.sync'] = QPushButton(trans('attachments_uploaded.btn.sync'))
+        self.window.data['attachments_uploaded.btn.clear'] = QPushButton(trans('attachments_uploaded.btn.clear'))
 
-        self.window.data['attachments.btn.sync'].clicked.connect(
+        self.window.data['attachments_uploaded.btn.sync'].clicked.connect(
             lambda: self.window.controller.assistant.sync_files())
-        self.window.data['attachments.btn.clear'].clicked.connect(
+        self.window.data['attachments_uploaded.btn.clear'].clicked.connect(
             lambda: self.window.controller.assistant.clear_files())
 
         self.window.models[id] = self.create_model(self.window)

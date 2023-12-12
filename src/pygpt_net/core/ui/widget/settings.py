@@ -432,13 +432,13 @@ class SettingsDict(QWidget):
             lambda: self.window.controller.context.selection_change())
 
         # add button
-        add_btn = QPushButton(trans('action.add'), self)
-        add_btn.clicked.connect(self.add)
+        self.add_btn = QPushButton(trans('action.add'), self)
+        self.add_btn.clicked.connect(self.add)
 
         # layout
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.addWidget(add_btn)
+        self.layout.addWidget(self.add_btn)
         self.layout.addWidget(self.list)
         self.setLayout(self.layout)
 

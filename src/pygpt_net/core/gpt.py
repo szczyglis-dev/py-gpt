@@ -655,8 +655,9 @@ class Gpt:
         if assistant.has_functions():
             functions = assistant.get_functions()
             for function in functions:
-                # unpack JSON from string
-                params = json.loads(function['params'])
+                if str(function['name']).strip() == '' or function['name'] is None:
+                    continue
+                params = json.loads(function['params'])  # unpack JSON from string
                 tools.append({"type": "function", "function": {"name": function['name'], "parameters": params, "description": function['desc']}})
         return tools
 

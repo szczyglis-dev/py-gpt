@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QIcon, QResizeEvent
 from PySide6.QtWidgets import QTreeView, QAbstractItemView, QMenu
 
 from ...utils import trans
@@ -289,6 +289,23 @@ class AttachmentSelectMenu(SelectMenu):
         self.doubleClicked.connect(self.dblclick)
         self.setHeaderHidden(False)
 
+        self.header = self.header()
+        self.header.setStretchLastSection(True)
+
+        self.column_proportion = 0.5
+        self.adjustColumnWidths()
+
+    def adjustColumnWidths(self):
+        total_width = self.width()
+        first_column_width = int(total_width * self.column_proportion)
+        self.setColumnWidth(0, first_column_width)
+        for column in range(1, 2):
+            self.setColumnWidth(column, (total_width - first_column_width) // (2 - 1))
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        self.adjustColumnWidths()
+
     def click(self, val):
         """
         Click event
@@ -387,6 +404,23 @@ class AttachmentUploadedSelectMenu(SelectMenu):
         self.id = id
         self.doubleClicked.connect(self.dblclick)
         self.setHeaderHidden(False)
+
+        self.header = self.header()
+        self.header.setStretchLastSection(True)
+
+        self.column_proportion = 0.5
+        self.adjustColumnWidths()
+
+    def adjustColumnWidths(self):
+        total_width = self.width()
+        first_column_width = int(total_width * self.column_proportion)
+        self.setColumnWidth(0, first_column_width)
+        for column in range(1, 2):
+            self.setColumnWidth(column, (total_width - first_column_width) // (2 - 1))
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        self.adjustColumnWidths()
 
     def click(self, val):
         """

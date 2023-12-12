@@ -121,7 +121,7 @@ class Toolbox:
         self.window.data['vision.capture.auto'].stateChanged.connect(
             lambda: self.window.controller.camera.toggle_auto(self.window.data['vision.capture.auto'].isChecked()))
 
-        cap_label = QLabel(trans('vision.capture.options.title'))
+        self.window.data['vision.capture.label'] = QLabel(trans('vision.capture.options.title'))
 
         # cap layout
         cap_layout = QHBoxLayout()
@@ -130,7 +130,7 @@ class Toolbox:
 
         # cap
         cap_vlayout = QVBoxLayout()
-        cap_vlayout.addWidget(cap_label)
+        cap_vlayout.addWidget(self.window.data['vision.capture.label'])
         cap_vlayout.addLayout(cap_layout)
 
         # cap widget

@@ -10,8 +10,8 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction, QIcon, QCursor
-from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel
+from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
+from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QHeaderView
 
 from ...utils import trans
 
@@ -28,16 +28,30 @@ class FileExplorerWidget(QWidget):
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(directory))
 
-        # self.treeView.setColumnHidden(1, True)
-        # self.treeView.setColumnHidden(2, True)
-        # self.treeView.setColumnHidden(3, True)
-
         layout = QVBoxLayout()
         layout.addWidget(self.treeView)
         self.setLayout(layout)
 
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeView.customContextMenuRequested.connect(self.openContextMenu)
+        self.treeView.setColumnWidth(0, self.width() / 2)
+
+        self.header = self.treeView.header()
+        self.header.setStretchLastSection(True)
+
+        self.column_proportion = 0.5
+        self.adjustColumnWidths()
+
+    def adjustColumnWidths(self):
+        total_width = self.treeView.width()
+        first_column_width = int(total_width * self.column_proportion)
+        self.treeView.setColumnWidth(0, first_column_width)
+        for column in range(1, self.model.columnCount()):
+            self.treeView.setColumnWidth(column, (total_width - first_column_width) // (self.model.columnCount() - 1))
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        self.adjustColumnWidths()
 
     def openContextMenu(self, position):
         indexes = self.treeView.selectedIndexes()
