@@ -1,3 +1,11 @@
+2.0.23 (2023-12-12)
+
+- Improved python code execution
+
+2.0.22 (2023-12-12)
+
+- Fix: env API KEY name for Langchain mode
+
 2.0.21 (2023-12-12)
 
 - Simplified assistant configuration

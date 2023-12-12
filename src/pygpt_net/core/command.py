@@ -48,7 +48,7 @@ class Command:
         14) Use ONLY params described in command definition, do NOT use any additional params not described on list
         15) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.
         16) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g. when it is a desktop application)
-
+        17) Every command param must be placed in one line, so when you generate code you must put all of code in one line
         Commands list:
         '''
 

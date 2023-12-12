@@ -74,6 +74,9 @@ class Config:
         :param log: log loading
         """
         if not self.initialized:
+            if all:
+                v = self.get_version()
+                print("Starting PYGPT v{}".format(v))
             self.install()
             self.load(all, log)
             self.initialized = True
