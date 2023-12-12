@@ -1,8 +1,8 @@
 {
   "name": "*",
-  "ai_name": "",
-  "user_name": "",
-  "prompt": "Question: {question}\n\nAnswer: ",
+  "ai_name": "Assistant",
+  "user_name": "Human",
+  "prompt": "Human: Hello\nAssistant: Hi!\nHuman: ",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
