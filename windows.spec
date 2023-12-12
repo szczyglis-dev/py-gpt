@@ -46,7 +46,7 @@ exe = EXE(
               ('msvcr100.dll', 'C:\\Windows\\System32\\msvcr100.dll', 'BINARY')]
     if sys.platform == 'win32' else a.binaries,
     exclude_binaries=True,
-    name='Py-GPT',
+    name='pygpt',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

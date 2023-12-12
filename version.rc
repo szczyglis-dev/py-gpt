@@ -17,9 +17,9 @@ StringFileInfo(
     [StringStruct(u'CompanyName', u'pygpt.net'),
     StringStruct(u'FileDescription', u'Desktop AI Assistant powered by GPT-4, GPT-3 and DALL-E 3: assistant, chatbot, text completion, image generation and analysis and more'),
     StringStruct(u'FileVersion', u'2.0.23'),
-    StringStruct(u'InternalName', u'Py-GPT'),
+    StringStruct(u'InternalName', u'pygpt'),
     StringStruct(u'LegalCopyright', u'(c) 2023 pygpt.net, Marcin Szczygliński'),
-    StringStruct(u'OriginalFilename', u'Py-GPT.exe'),
+    StringStruct(u'OriginalFilename', u'pygpt.exe'),
     StringStruct(u'ProductName', u'pygpt.net'),
     StringStruct(u'ProductVersion', u'2.0.23')])
   ]), 
