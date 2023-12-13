@@ -294,7 +294,7 @@ class Input:
             self.handle_commands(ctx)
             self.unlock_input()
 
-        # handle ctx name (generate name if not initialized)
+        # handle ctx name (generate title from summary if not initialized)
         if self.window.config.data['ctx.auto_summary']:
             self.handle_ctx_name(ctx)
 
@@ -322,7 +322,7 @@ class Input:
             cmds = self.window.command.extract_cmds(ctx.output)
             self.window.log("Executing commands...")
             self.window.set_status("Executing commands...")
-            ctx = self.window.controller.plugins.apply_cmds(ctx, cmds)
+            self.window.controller.plugins.apply_cmds(ctx, cmds)
             self.window.set_status("")
 
     def handle_response(self, ctx, mode, stream_mode=False):
@@ -442,23 +442,24 @@ class Input:
         Sends input text to API
         """
 
-        # check if input is locked
+        # check if input is not locked
         if self.locked:
             return
 
         mode = self.window.config.data['mode']
-
         if mode == 'assistant':
+            # check if assistant is selected
             if self.window.config.data['assistant'] is None or self.window.config.data['assistant'] == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 return
         elif mode == 'vision':
+            # handle auto-capture mode
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
                     self.window.controller.attachment.clear(True)  # clear attachments before capture
                     self.window.controller.camera.capture_frame(False)
 
-        # unlock run thread if locked
+        # unlock Assistant run thread if locked
         self.window.controller.assistant.force_stop = False
         self.force_stop = False
         self.window.statusChanged.emit(trans('status.sending'))
@@ -472,7 +473,11 @@ class Input:
 
         self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
-        if len(text.strip()) > 0 or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
+        # allow empty input only for vision mode
+        if len(text.strip()) > 0 \
+                or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
+
+            # clear input area if clear-on-send enabled
             if self.window.config.data['send_clear']:
                 self.window.data['input'].clear()
 
@@ -480,14 +485,14 @@ class Input:
             if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == '':
                 self.window.controller.launcher.show_api_monit()
                 self.window.controller.ui.update()
-                self.window.statusChanged.emit("")
+                self.window.statusChanged.emit("Missing API KEY!")
                 return
 
             # init api key if defined later
             self.window.gpt.init()
             self.window.images.init()
 
-            # prepare context, create new if no contexts (first run)
+            # prepare context, create new ctx if there is no contexts yet (first run)
             if len(self.window.gpt.context.contexts) == 0:
                 self.window.gpt.context.new()
                 self.window.controller.context.update()
@@ -496,12 +501,13 @@ class Input:
             # process events to update UI
             QApplication.processEvents()
 
-            # send to API
+            # send input to API
             if self.window.config.data['mode'] == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
                 ctx = self.window.controller.input.send_text(text)
         else:
+            # reset status if input is empty
             self.window.statusChanged.emit("")
 
         # clear attachments after send if enabled
