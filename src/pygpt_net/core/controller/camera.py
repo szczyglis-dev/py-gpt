@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.10 21:00:00                  #
+# Updated Date: 2023.12.13 12:00:00                  #
 # ================================================== #
 import datetime
 import os
@@ -51,6 +51,8 @@ class Camera:
         thread = CameraThread(window=self.window)
         thread.finished.connect(self.handle_stop)
         thread.stopped.connect(self.handle_stop)
+
+        # run thread
         self.thread = threading.Thread(target=thread.run)
         self.thread.start()
         self.thread_started = True
@@ -66,7 +68,7 @@ class Camera:
     @Slot()
     def handle_stop(self):
         """
-        On stopped
+        On stopped signal
         """
         self.thread_started = False
         self.thread = None
@@ -74,10 +76,9 @@ class Camera:
 
     def blank_screen(self):
         """
-        Blank screen
+        Make blank screen
         """
         self.window.data['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
-        # self.window.data['video.preview'].setVisible(False)
 
     def update(self):
         """
@@ -96,24 +97,30 @@ class Camera:
     def capture_frame(self, switch=True):
         """
         Capture frame and save to attachments
+
+        :param switch: True if switch to attachments tab
         """
-        # prepare name from date timestamp (using date)
         try:
+            # prepare filename
             name = 'cap-' + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
+
+            # capture frame
             compression_params = [cv2.IMWRITE_JPEG_QUALITY, 80]
             frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             cv2.imwrite(path, frame, compression_params)
             mode = self.window.config.data['mode']
+
+            # make attachment
             self.window.controller.attachment.attachments.new(mode, 'Camera capture: ' + name, path, False)
             self.window.controller.attachment.attachments.save()
             self.window.controller.attachment.update()
 
             # switch to attachments tab
             if switch:
-                self.window.tabs['input'].setCurrentIndex(1)  # switch to attachments tab
+                self.window.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
         except Exception as e:
-            print(e)
+            print("Frame capture exception", e)
             self.window.statusChanged.emit(trans('vision.capture.error'))
 
     def show_camera(self):
@@ -126,6 +133,8 @@ class Camera:
     def hide_camera(self, stop=True):
         """
         Hide camera
+
+        :param stop: True if stop capture thread
         """
         self.window.data['video.preview'].setVisible(False)
 
