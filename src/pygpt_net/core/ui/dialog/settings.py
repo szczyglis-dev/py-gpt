@@ -31,16 +31,20 @@ class Settings:
         path = self.window.config.path
 
         # buttons
-        self.window.data['settings.btn.defaults'] = QPushButton(trans("dialog.settings.btn.defaults"))
+        self.window.data['settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))
+        self.window.data['settings.btn.defaults.app'] = QPushButton(trans("dialog.settings.btn.defaults.app"))
         self.window.data['settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
-        self.window.data['settings.btn.defaults'].clicked.connect(
-            lambda: self.window.settings.load_default_settings())
+        self.window.data['settings.btn.defaults.user'].clicked.connect(
+            lambda: self.window.controller.settings.load_defaults_user())
+        self.window.data['settings.btn.defaults.app'].clicked.connect(
+            lambda: self.window.controller.settings.load_defaults_app())
         self.window.data['settings.btn.save'].clicked.connect(
             lambda: self.window.controller.settings.save(id))
 
         # bottom buttons layout
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['settings.btn.defaults'])
+        bottom_layout.addWidget(self.window.data['settings.btn.defaults.user'])
+        bottom_layout.addWidget(self.window.data['settings.btn.defaults.app'])
         bottom_layout.addWidget(self.window.data['settings.btn.save'])
 
         self.window.path_label[id] = QLabel(str(path))

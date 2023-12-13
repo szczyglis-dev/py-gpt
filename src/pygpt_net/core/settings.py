@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 14:00:00                  #
 # ================================================== #
 
 import os
+
+from .utils import trans
 
 
 class Settings:
@@ -29,11 +31,41 @@ class Settings:
         for id in self.ids:
             self.active[id] = False
 
-    def load_default_settings(self):
-        """Loads defaults"""
+    def load_user_settings(self):
+        """Loads user config (from user home dir)"""
+        # replace config with user base config
         self.window.config.load_config()
+
+        # re-init settings
         self.window.controller.settings.init('settings')
-        self.window.ui.dialogs.alert("Loaded defaults")
+        self.window.ui.dialogs.alert(trans('dialog.settings.defaults.user.result'))
+
+    def load_app_settings(self):
+        """Loads base app config (from app root dir)"""
+        # persist important values
+        persist_options = [
+            'api_key',
+            'organization_key',
+        ]
+        persist_values = {}
+        for option in persist_options:
+            if option in self.window.config.data:
+                persist_values[option] = self.window.config.data[option]
+
+        # save current config backup
+        self.window.config.save('config.backup.json')
+
+        # replace config with app base config
+        self.window.config.load_base_config()
+
+        # restore persisted values
+        for option in persist_options:
+            if option in persist_values:
+                self.window.config.data[option] = persist_values[option]
+
+        # re-init settings
+        self.window.controller.settings.init('settings')
+        self.window.ui.dialogs.alert(trans('dialog.settings.defaults.app.result'))
 
     def load_default_editor(self):
         """Loads defaults from file"""

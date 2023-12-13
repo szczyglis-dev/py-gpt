@@ -453,6 +453,32 @@ class Settings:
         else:
             self.window.set_status('Config directory not exists: {}'.format(self.window.config.path))
 
+    def load_defaults_user(self, force=False):
+        """
+        Loads default user config
+
+        :param force: force load
+        """
+        if not force:
+            self.window.ui.dialogs.confirm('settings.defaults.user', -1, trans('settings.defaults.user.confirm'))
+            return
+
+        # load default user config
+        self.window.settings.load_user_settings()
+
+    def load_defaults_app(self, force=False):
+        """
+        Loads default app config
+
+        :param force: force load
+        """
+        if not force:
+            self.window.ui.dialogs.confirm('settings.defaults.app', -1, trans('settings.defaults.app.confirm'))
+            return
+
+        # load default user config
+        self.window.settings.load_app_settings()
+
     def get_options(self):
         """Returns settings options dict"""
         return self.options

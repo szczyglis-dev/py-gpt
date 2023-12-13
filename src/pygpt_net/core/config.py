@@ -149,7 +149,7 @@ class Config:
 
     def load_config(self, log=False):
         """
-        Loads app config from JSON file
+        Loads user config from JSON file
 
         :param log: log loading
         """
@@ -163,7 +163,27 @@ class Config:
             self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             f.close()
             if log:
-                print("Loaded config: {}".format(path))
+                print("Loaded user config: {}".format(path))
+        except Exception as e:
+            print(e)
+
+    def load_base_config(self, log=False):
+        """
+        Loads app config from JSON file
+
+        :param log: log loading
+        """
+        path = os.path.join(self.get_root_path(), 'data', 'config', 'config.json')
+        if not os.path.exists(path):
+            print("FATAL ERROR: {} not found!".format(path))
+            return None
+        try:
+            f = open(path, "r", encoding="utf-8")
+            self.data = json.load(f)
+            self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+            f.close()
+            if log:
+                print("Loaded default app config: {}".format(path))
         except Exception as e:
             print(e)
 
@@ -468,11 +488,11 @@ class Config:
         self.sort_presets_by_name()
         return id
 
-    def save(self):
+    def save(self, filename='config.json'):
         """Saves config into file"""
         self.data['__meta__'] = self.append_meta()
         dump = json.dumps(self.data, indent=4)
-        path = os.path.join(self.path, 'config.json')
+        path = os.path.join(self.path, filename)
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
