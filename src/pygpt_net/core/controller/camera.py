@@ -107,7 +107,8 @@ class Camera:
         Capture frame via click on video output
         """
         if not self.is_auto():
-            self.capture_frame(True)
+            if not self.capture_frame(True):
+                self.window.statusChanged.emit(trans("vision.capture.manual.captured.error"))
         else:
             self.window.statusChanged.emit(trans('vision.capture.auto.click'))
 
@@ -115,11 +116,12 @@ class Camera:
         """
         Capture frame and save it as attachment
 
-        :param switch: True if switch to attachments tab
+        :param switch: True if switch to attachments tab (tmp: disabled)
         """
         try:
             # prepare filename
-            name = 'cap-' + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            dt = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            name = 'cap-' + dt
             path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
 
             # capture frame
@@ -129,18 +131,25 @@ class Camera:
             mode = self.window.config.data['mode']
 
             # make attachment
+            dt_info = dt.replace('_', ' ')
             title = trans('vision.capture.name.prefix') + ' ' + name
             title = title.replace('cap-', '').replace('_', ' ')
             self.window.controller.attachment.attachments.new(mode, title, path, False)
             self.window.controller.attachment.attachments.save()
             self.window.controller.attachment.update()
 
-            # switch to attachments tab if needed
+            # show last capture time in status
+            self.window.statusChanged.emit(trans("vision.capture.manual.captured.success") + ' ' + dt_info)
+
+            # switch to attachments tab if needed (tmp: disabled)
             if switch:
-                self.window.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
+                pass
+                # self.window.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
+            return True
         except Exception as e:
             print("Frame capture exception", e)
             self.window.statusChanged.emit(trans('vision.capture.error'))
+        return False
 
     def show_camera(self):
         """
@@ -197,6 +206,8 @@ class Camera:
         else:
             self.disable_capture()
 
+        self.window.statusChanged.emit('')
+
     def enable_auto(self):
         """
         Enable capture
@@ -229,6 +240,8 @@ class Camera:
             self.enable_auto()
         else:
             self.disable_auto()
+
+        self.window.statusChanged.emit('')
 
     def is_enabled(self):
         """
