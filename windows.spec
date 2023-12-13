@@ -25,7 +25,7 @@ a = Analysis(
     ],
     hiddenimports=[
     'tiktoken_ext', 
-    'tiktoken_ext.openai_public', 
+    'tiktoken_ext.openai_public',
     'wikipedia', 
     'pydub'],
     hookspath=[],

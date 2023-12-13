@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.24** build: **2023.12.12** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.25** build: **2023.12.13** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -1076,6 +1076,15 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.25 (2023-12-13)
+
+- Added advanced settings
+- Added clear on capture config option
+- Added capture quality config option
+- Added launcher shortcuts
+- Improved plugins
+- Fixed UI issues
 
 ## 2.0.24 (2023-12-12)
 
