@@ -39,6 +39,7 @@ class Attachments:
         buttons_layout.addWidget(self.window.data['attachments.btn.add'])
         buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
         buttons_layout.addWidget(self.window.data['attachments.send_clear'])
+        buttons_layout.addWidget(self.window.data['attachments.capture_clear'])
 
         # layout
         layout = QVBoxLayout()
@@ -68,6 +69,11 @@ class Attachments:
         self.window.data['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
         self.window.data['attachments.send_clear'].stateChanged.connect(
             lambda: self.window.controller.attachment.toggle_send_clear(self.window.data['attachments.send_clear'].isChecked()))
+
+        self.window.data['attachments.capture_clear'] = QCheckBox(trans('attachments.capture_clear'))
+        self.window.data['attachments.capture_clear'].stateChanged.connect(
+            lambda: self.window.controller.attachment.toggle_capture_clear(
+                self.window.data['attachments.capture_clear'].isChecked()))
 
         self.window.models[id] = self.create_model(self.window)
         self.window.data[id].setModel(self.window.models[id])

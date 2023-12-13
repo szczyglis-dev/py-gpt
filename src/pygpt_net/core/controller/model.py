@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 14:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -252,6 +252,7 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
+            # presets
             self.window.data['preset.ai_name'].setDisabled(False)
             self.window.data['preset.user_name'].setDisabled(False)
             self.window.data['preset.clear'].setVisible(True)
@@ -267,6 +268,7 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
 
             # files tabs
             self.window.tabs['input'].setTabVisible(1, False)  # files
@@ -278,6 +280,7 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(True)
             self.window.config_option['current_temperature'].input.setDisabled(True)
 
+            # presets
             self.window.data['preset.prompt'].setDisabled(False)
             self.window.data['preset.ai_name'].setDisabled(True)
             self.window.data['preset.user_name'].setDisabled(True)
@@ -294,6 +297,7 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
 
             # files tabs
             self.window.tabs['input'].setTabVisible(1, False)  # files
@@ -305,6 +309,7 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
+            # presets
             self.window.data['preset.prompt'].setDisabled(False)
             self.window.data['preset.ai_name'].setDisabled(False)
             self.window.data['preset.user_name'].setDisabled(False)
@@ -321,6 +326,7 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
 
             # files tabs
             self.window.tabs['input'].setTabVisible(1, False)  # files
@@ -332,6 +338,7 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
+            # presets
             self.window.data['preset.ai_name'].setDisabled(True)
             self.window.data['preset.user_name'].setDisabled(True)
             self.window.data['preset.clear'].setVisible(True)
@@ -347,6 +354,7 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(True)
+            self.window.data['attachments.capture_clear'].setVisible(True)
 
             # files tabs
             self.window.tabs['input'].setTabVisible(1, True)  # files
@@ -358,6 +366,7 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
+            # presets
             self.window.data['preset.ai_name'].setDisabled(False)
             self.window.data['preset.user_name'].setDisabled(False)
             self.window.data['preset.clear'].setVisible(True)
@@ -373,6 +382,7 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
 
             # files tabs
             self.window.tabs['input'].setTabVisible(1, False)  # files
@@ -384,6 +394,7 @@ class Model:
             self.window.config_option['current_temperature'].slider.setDisabled(False)
             self.window.config_option['current_temperature'].input.setDisabled(False)
 
+            # presets
             self.window.data['preset.ai_name'].setDisabled(True)
             self.window.data['preset.user_name'].setDisabled(True)
             self.window.data['preset.clear'].setVisible(True)
@@ -399,6 +410,7 @@ class Model:
 
             # vision capture
             self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
 
             # files tabs
             self.window.tabs['input'].setTabVisible(1, True)  # files

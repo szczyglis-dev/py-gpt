@@ -118,6 +118,12 @@ class Camera:
 
         :param switch: True if switch to attachments tab (tmp: disabled)
         """
+
+        # clear attachments before capture if needed
+        if self.window.controller.attachment.is_capture_clear():
+            self.window.controller.attachment.clear(True)
+
+        # capture frame
         try:
             # prepare filename
             dt = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

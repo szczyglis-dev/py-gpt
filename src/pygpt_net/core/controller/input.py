@@ -456,7 +456,6 @@ class Input:
             # handle auto-capture mode
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
-                    self.window.controller.attachment.clear(True)  # clear attachments before capture
                     self.window.controller.camera.capture_frame(False)
 
         # unlock Assistant run thread if locked

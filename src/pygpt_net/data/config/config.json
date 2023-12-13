@@ -9,6 +9,7 @@
   "assistant": "",
   "assistant_thread": "",
   "attachments_send_clear": true,
+  "attachments_capture_clear": true,
   "context_threshold": 200,
   "cmd": true,
   "ctx": "",

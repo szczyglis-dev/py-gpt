@@ -37,6 +37,12 @@ class Attachment:
         else:
             self.window.data['attachments.send_clear'].setChecked(False)
 
+        #  capture clear
+        if 'attachments_capture_clear' in self.window.config.data and self.window.config.data['attachments_capture_clear']:
+            self.window.data['attachments.capture_clear'].setChecked(True)
+        else:
+            self.window.data['attachments.capture_clear'].setChecked(False)
+
         self.attachments.load()
         self.update()
 
@@ -269,4 +275,32 @@ class Attachment:
         :param value: value of the checkbox
         """
         self.window.config.data['attachments_send_clear'] = value
+
+    def toggle_capture_clear(self, value):
+        """
+        Toggles capture clear
+
+        :param value: value of the checkbox
+        """
+        self.window.config.data['attachments_capture_clear'] = value
+
+    def is_capture_clear(self):
+        """
+        Returns True if capture clear is enabled
+
+        :return: True if capture clear is enabled
+        """
+        if 'attachments_capture_clear' not in self.window.config.data:
+            self.window.config.data['attachments_capture_clear'] = False
+        return self.window.config.data['attachments_capture_clear']
+
+    def is_send_clear(self):
+        """
+        Returns True if send clear is enabled
+
+        :return: True if send clear is enabled
+        """
+        if 'attachments_send_clear' not in self.window.config.data:
+            self.window.config.data['attachments_send_clear'] = False
+        return self.window.config.data['attachments_send_clear']
 
