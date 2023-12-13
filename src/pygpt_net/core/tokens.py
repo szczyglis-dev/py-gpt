@@ -20,6 +20,10 @@ def num_tokens_from_string(string, model="gpt-4"):
     :param model: model name
     :return: number of tokens
     """
+
+    if string is None or string == "":
+        return 0
+
     try:
         if model is not None:
             encoding = tiktoken.encoding_for_model(model)
@@ -30,7 +34,7 @@ def num_tokens_from_string(string, model="gpt-4"):
     try:
         return len(encoding.encode(str(string)))
     except Exception as e:
-        print(e)
+        print("Tokens calc exception", e)
         return 0
 
 
@@ -59,7 +63,7 @@ def num_tokens_prompt(text, input_name, model="gpt-4"):
     try:
         num_tokens += num_tokens_from_string(text, model)
     except Exception as e:
-        print(e)
+        print("Tokens calc exception", e)
 
     if input_name is not None and input_name != "":
         num_tokens += tokens_per_message + tokens_per_name
@@ -80,10 +84,13 @@ def num_tokens_completion(text, model="gpt-4"):
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
 
+    if text is None or text != "":
+        return 0
+
     try:
         num_tokens += num_tokens_from_string(text, model)
     except Exception as e:
-        print(e)
+        print("Tokens calc exception", e)
 
     return num_tokens
 
@@ -99,10 +106,13 @@ def num_tokens_only(text, model="gpt-4"):
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
 
+    if text is None or text != "":
+        return 0
+
     try:
         num_tokens += num_tokens_from_string(text, model)
     except Exception as e:
-        print(e)
+        print("Tokens calc exception", e)
 
     return num_tokens
 
@@ -144,20 +154,20 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
         try:
             num_tokens += num_tokens_from_string(str(item.input), model)
         except Exception as e:
-            print(e)
+            print("Tokens calc exception", e)
 
         # output message
         try:
             num_tokens += num_tokens_from_string(str(item.output), model)
         except Exception as e:
-            print(e)
+            print("Tokens calc exception", e)
         # fixed tokens
         num_tokens += tokens_per_message * 2  # input + output
         num_tokens += tokens_per_name * 2  # input + output
         try:
             num_tokens += num_tokens_from_string("system", model) * 2  # input + output
         except Exception as e:
-            print(e)
+            print("Tokens calc exception", e)
 
         # input name
         if item.input_name is not None and item.input_name != "":
@@ -167,7 +177,7 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
         try:
             num_tokens += num_tokens_from_string(tmp_name, model)
         except Exception as e:
-            print(e)
+            print("Tokens calc exception", e)
 
         # output name
         if item.output_name is not None and item.output_name != "":
@@ -177,7 +187,7 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
         try:
             num_tokens += num_tokens_from_string(tmp_name, model)
         except Exception as e:
-            print(e)
+            print("Tokens calc exception", e)
 
     # build tmp message if completion
     elif mode == "completion":
@@ -198,7 +208,7 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
         try:
             num_tokens += num_tokens_from_string(message, model)
         except Exception as e:
-            print(e)
+            print("Tokens calc exception", e)
 
     return num_tokens
 

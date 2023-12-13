@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.10 16:00:00                  #
+# Updated Date: 2023.12.13 11:00:00                  #
 # ================================================== #
 
 import cv2
@@ -52,7 +52,7 @@ class CameraThread(QObject):
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.config.data['vision.capture.width'])
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.config.data['vision.capture.height'])
         except Exception as e:
-            print("Camera thread exception:", e)
+            print("Camera thread setup exception", e)
             self.finished.emit(e)
 
     def run(self):
@@ -61,30 +61,25 @@ class CameraThread(QObject):
                 self.setup_camera()
                 self.started.emit()
                 self.initialized = True
-            print("Starting video capture thread....")
+
             while True:
                 if self.window.is_closing \
                         or self.capture is None \
                         or not self.capture.isOpened()\
                         or self.window.controller.camera.stop:
-                    # release camera
-                    self.release()
+                    self.release()  # release camera
                     self.stopped.emit()
-                    print("Stopping video capture thread....")
-                    # self.window.statusChanged.emit(trans('vision.capture.error'))
                     break
                 _, frame = self.capture.read()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame = cv2.flip(frame, 1)
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
-            # self.window.statusChanged.emit(trans('vision.capture.error'))
-            print("Camera thread exception:", e)
+            print("Camera thread capture exception", e)
 
         # release camera
         self.release()
         self.finished.emit()
-        print("Stopping video capture thread....")
 
     def release(self):
         """
