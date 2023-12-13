@@ -270,7 +270,7 @@
         "advanced": false
     },
     "ctx.auto_summary.system": {
-        "type": "text",
+        "type": "textarea",
         "slider": false,
         "label": "ctx.auto_summary.system",
         "value": "",
@@ -295,6 +295,17 @@
         "type": "textarea",
         "slider": false,
         "label": "cmd.prompt",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
+    },
+    "img_prompt": {
+        "type": "textarea",
+        "slider": false,
+        "label": "img_prompt",
         "value": "",
         "min": null,
         "max": null,

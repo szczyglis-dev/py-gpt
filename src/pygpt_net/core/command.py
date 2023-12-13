@@ -12,18 +12,19 @@ import json
 
 
 class Command:
-    def __init__(self, config=None):
+    def __init__(self, window=None):
         """
-        Command
+        Commands handler
 
-        :param config: config object
+        :param window: window object
         """
-        self.config = config
+        self.window = window
 
-    def get_prompt(self):
+    def get_prompt(self, allow_custom=True):
         """
         Returns cmd prompt instruction
 
+        :param allow_custom: allow custom prompt
         :return: prompt instruction
         """
         cmd = '''RUNNING COMMANDS:
@@ -51,11 +52,12 @@ class Command:
         '''
 
         # get custom prompt from config if exists
-        if 'cmd.prompt' in self.config.data:
-            if self.config.data['cmd.prompt'] is not None and self.config.data['cmd.prompt'] != '':
-                cmd = self.config.data['cmd.prompt']
+        if allow_custom:
+            if 'cmd.prompt' in self.window.config.data:
+                if self.window.config.data['cmd.prompt'] is not None and self.window.config.data['cmd.prompt'] != '':
+                    cmd = self.window.config.data['cmd.prompt']
 
-        # syntax for commands:
+        # Syntax for commands (example):
         # cmd += '\n"save_file": save data to file, params: "filename", "data"'
         # cmd += '\n"read_file": read data from file, params: "filename"'
         return cmd

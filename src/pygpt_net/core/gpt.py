@@ -48,6 +48,10 @@ class Gpt:
         pass
 
     def get_client(self):
+        """
+        Returns OpenAI client
+        :return: OpenAI client
+        """
         return OpenAI(
             api_key=self.config.data["api_key"],
             organization=self.config.data["organization_key"],

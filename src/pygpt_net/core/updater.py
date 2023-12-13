@@ -26,6 +26,8 @@ class Updater:
         :param window: main window
         """
         self.window = window
+        self.base_config = {}
+        self.base_config_loaded = False
 
     def check(self):
         """Checks for updates"""
@@ -74,6 +76,35 @@ class Updater:
         self.window.dialog['update'].changelog.setPlainText(changelog)
         self.window.dialog['update'].message.setText(txt)
         self.window.ui.dialogs.open('update')
+
+    def load_base_config(self):
+        """
+        Loads app config from JSON file
+        """
+        self.base_config = {}
+        path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'config.json')
+        if not os.path.exists(path):
+            print("FATAL ERROR: {} not found!".format(path))
+            return None
+        try:
+            f = open(path, "r", encoding="utf-8")
+            self.base_config = json.load(f)
+            self.base_config = dict(sorted(self.base_config.items(), key=lambda item: item[0]))  # sort by key
+            f.close()
+        except Exception as e:
+            print(e)
+
+    def get_base_config(self, option=None):
+        """
+        Returns base config option or whole config
+        """
+        if not self.base_config_loaded:
+            self.load_base_config()
+            self.base_config_loaded = True
+        if option is None:
+            return self.base_config
+        elif option in self.base_config:
+            return self.base_config[option]
 
     def patch(self):
         """Patch config files to current version"""
@@ -176,9 +207,11 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
-            if old < parse_version("2.0.26"):
+            if old < parse_version("2.0.25"):
                 if 'cmd.prompt' not in data:
-                    data['cmd.prompt'] = self.window.command.get_prompt()
+                    data['cmd.prompt'] = self.get_base_config('cmd.prompt')
+                if 'img_prompt' not in data:
+                    data['img_prompt'] = self.get_base_config('img_prompt')
                 if 'vision.capture.quality' not in data:
                     data['vision.capture.quality'] = 85
                 if 'attachments_capture_clear' not in data:
