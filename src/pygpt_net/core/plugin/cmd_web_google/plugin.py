@@ -70,7 +70,7 @@ class Plugin(BasePlugin):
                                                         "answer the following question: ",
                         "Summarize prompt",
                         "Prompt used for summarize web search results",
-                        tooltip="Prompt")
+                        tooltip="Prompt", advanced=True)
         self.add_option("max_result_length", "int", 1500,
                         "Max result length",
                         "Max length of summarized result (characters)",

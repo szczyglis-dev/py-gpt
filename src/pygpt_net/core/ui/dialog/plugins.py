@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 14:00:00                  #
+# Updated Date: 2023.12.13 20:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 
 from ..widget.settings import SettingsInput, SettingsTextarea, SettingsSlider, SettingsCheckbox, SettingsDict, \
     PluginSettingsDialog, PluginSelectMenu
+from ..widget.elements import CollapsedGroup
 from ...utils import trans
 
 
@@ -78,9 +79,14 @@ class Plugins:
 
             # get plugin options
             options = plugin.setup()
+            options_widgets = {}
+            advanced_options = []
             for key in options:
                 option = options[key]
                 option_name = 'plugin.' + id + '.' + key
+
+                if 'advanced' in options[key] and options[key]['advanced']:
+                    advanced_options.append(key)
 
                 # create widget by option type
                 if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
@@ -123,8 +129,42 @@ class Plugins:
                 if key not in self.window.plugin_option[id]:
                     continue
 
+                # add option to list
+                options_widgets[key] = option
+
+            for key in options_widgets:
+                # hide advanced options
+                if key in advanced_options:
+                    continue
+
                 # add option to scroll
-                scroll_content.addLayout(self.add_option(key, option, self.window.plugin_option[id][key], option['type']))
+                scroll_content.addLayout(self.add_option(key, options_widgets[key], self.window.plugin_option[id][key],
+                                                         options_widgets[key]['type']))
+
+            # append advanced options at the end
+            if len(advanced_options) > 0:
+                group_id = 'plugin.settings.advanced'
+                self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, True, None)
+                self.window.groups[group_id].box.setText(trans('settings.advanced.collapse'))
+                for key in options_widgets:
+                    # hide non-advanced options
+                    if key not in advanced_options:
+                        continue
+
+                    # build option
+                    option = self.add_option(key, options_widgets[key], self.window.plugin_option[id][key],
+                                             options_widgets[key]['type'])
+
+                    # add option to group
+                    self.window.groups[group_id].add_layout(option)
+
+                    # add line if not last option
+                    if key != advanced_options[-1]:
+                        line = self.add_line()
+                        self.window.groups[group_id].add_widget(line)
+
+                # add advanced options group to scroll
+                scroll_content.addWidget(self.window.groups[group_id])
 
             scroll_content.addStretch()
 

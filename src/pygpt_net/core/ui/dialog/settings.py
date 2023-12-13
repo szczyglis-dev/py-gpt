@@ -124,8 +124,11 @@ class Settings:
                 # add option to group
                 option = options[opt_key]
                 self.window.groups[group_id].add_layout(option)
-                line = self.add_line()
-                self.window.groups[group_id].add_widget(line)
+
+                # add line if not last option
+                if opt_key != advanced_options[-1]:
+                    line = self.add_line()
+                    self.window.groups[group_id].add_widget(line)
 
             scroll_content.addWidget(self.window.groups[group_id])
 
