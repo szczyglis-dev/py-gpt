@@ -175,26 +175,6 @@
         "multiplier": 100,
         "step": 1
     },
-    "img_resolution": {
-        "type": "text",
-        "slider": false,
-        "label": "img_resolution",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null
-    },
-    "img_prompt_model": {
-        "type": "text",
-        "slider": false,
-        "label": "img_prompt_model",
-        "value": "gpt-4-1106-preview",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null
-    },
     "ctx.auto_summary.system": {
         "type": "text",
         "slider": false,
@@ -210,6 +190,26 @@
         "slider": false,
         "label": "ctx.auto_summary.prompt",
         "value": null,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "img_resolution": {
+        "type": "text",
+        "slider": false,
+        "label": "img_resolution",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null
+    },
+    "img_prompt_model": {
+        "type": "text",
+        "slider": false,
+        "label": "img_prompt_model",
+        "value": "gpt-4-1106-preview",
         "min": null,
         "max": null,
         "multiplier": null,

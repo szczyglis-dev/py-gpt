@@ -441,7 +441,6 @@ class Input:
         """
         Sends input text to API
         """
-
         # check if input is not locked
         if self.locked:
             return

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 14:00:00                  #
 # ================================================== #
 
 from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
@@ -99,5 +99,5 @@ class UI:
         parsed_max_total = parsed_max_total.replace("000000", "M").replace("000", "k")
 
         string = "{} + {} + {} + {} = {} / {}".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,
-                                                            parsed_total, parsed_max_total)
+                                                      parsed_total, parsed_max_total)
         self.window.data['input.counter'].setText(string)
