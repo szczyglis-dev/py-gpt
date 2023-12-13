@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 13:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -238,6 +238,7 @@ class Plugin(BasePlugin):
         """
         if self.thread_started:
             return
+
         listener = AudioInputThread(plugin=self)
         listener.finished.connect(self.handle_input)
         listener.destroyed.connect(self.handle_destroy)
@@ -257,6 +258,7 @@ class Plugin(BasePlugin):
         """
         if text is None or text.strip() == '':
             return
+
         self.window.data['input'].setText(text)
         self.window.controller.input.send(text)
 

@@ -102,6 +102,15 @@ class Camera:
                                       Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.window.data['video.preview'].video.setPixmap(scaled_pixmap)
 
+    def manual_capture(self):
+        """
+        Capture frame via click on video output
+        """
+        if not self.is_auto():
+            self.capture_frame(True)
+        else:
+            self.window.statusChanged.emit(trans('vision.capture.auto.click'))
+
     def capture_frame(self, switch=True):
         """
         Capture frame and save it as attachment
@@ -120,7 +129,9 @@ class Camera:
             mode = self.window.config.data['mode']
 
             # make attachment
-            self.window.controller.attachment.attachments.new(mode, 'Camera capture: ' + name, path, False)
+            title = trans('vision.capture.name.prefix') + ' ' + name
+            title = title.replace('cap-', '').replace('_', ' ')
+            self.window.controller.attachment.attachments.new(mode, title, path, False)
             self.window.controller.attachment.attachments.save()
             self.window.controller.attachment.update()
 
@@ -252,3 +263,9 @@ class Camera:
         else:
             self.auto = False
             self.window.data['vision.capture.auto'].setChecked(False)
+
+        # update label
+        if not self.window.config.data['vision.capture.auto']:
+            self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
+        else:
+            self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))

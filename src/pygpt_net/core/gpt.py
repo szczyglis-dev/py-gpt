@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.11 23:00:00                  #
+# Updated Date: 2023.12.13 13:00:00                  #
 # ================================================== #
 import base64
 import json
@@ -302,7 +302,8 @@ class Gpt:
             tokens += num_tokens_only("system", model)
             tokens += num_tokens_prompt(input_text, "", model)  # current input
             tokens += num_tokens_only("user", model)
-        elif mode == "completion":
+        else:
+            # rest of modes
             tokens += num_tokens_only(self.system_prompt, model)  # init (system) prompt
             tokens += num_tokens_only(input_text, model)  # current input
         tokens += self.config.data['context_threshold']  # context threshold (reserved for next output)

@@ -2,7 +2,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QWidget, QVBoxLayout
 
 
-# video output container (with scroll
 from ...utils import trans
 
 
@@ -26,21 +25,9 @@ class VideoContainer(QWidget):
         self.video.setStyleSheet("background-color: #000000;")
         self.layout.addWidget(self.video)
         self.layout.addWidget(self.label)
-
         self.setLayout(self.layout)
 
-    # on resize
-    def resizeEvent(self, event):
-        """
-        On resize event
 
-        :param event: resize event
-        """
-        # self.update_pos()
-        super(VideoContainer, self).resizeEvent(event)
-
-
-# video output label
 class VideoLabel(QLabel):
     def __init__(self, text=None, window=None):
         """
@@ -59,8 +46,7 @@ class VideoLabel(QLabel):
         :param event: mouse event
         """
         if event.button() == Qt.LeftButton:
-            self.window.controller.camera.capture_frame()
-            print('captured frame')
+            self.window.controller.camera.manual_capture()
         elif event.button() == Qt.RightButton:
             pass
         elif event.button() == Qt.MiddleButton:
