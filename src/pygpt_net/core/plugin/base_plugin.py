@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 18:00:00                  #
 # ================================================== #
 
 class BasePlugin:
@@ -15,6 +15,7 @@ class BasePlugin:
         self.name = ""
         self.description = ""
         self.options = {}
+        self.initial_options = {}
         self.window = None
         self.enabled = False
         self.order = 0

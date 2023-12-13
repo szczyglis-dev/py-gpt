@@ -31,17 +31,22 @@ class Plugins:
 
         dialog_id = "plugin_settings"
 
-        self.window.data['settings.btn.defaults'] = QPushButton(trans("dialog.settings.btn.defaults"))
-        self.window.data['settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
-        self.window.data['settings.btn.defaults'].clicked.connect(
-            lambda: self.window.controller.plugins.load_defaults())
-        self.window.data['settings.btn.save'].clicked.connect(
+        self.window.data['plugin.settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))
+        self.window.data['plugin.settings.btn.defaults.app'] = QPushButton(trans("dialog.settings.btn.defaults.app"))
+        self.window.data['plugin.settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
+
+        self.window.data['plugin.settings.btn.defaults.user'].clicked.connect(
+            lambda: self.window.controller.plugins.load_defaults_user())
+        self.window.data['plugin.settings.btn.defaults.app'].clicked.connect(
+            lambda: self.window.controller.plugins.load_defaults_app())
+        self.window.data['plugin.settings.btn.save'].clicked.connect(
             lambda: self.window.controller.plugins.save_settings())
 
         # bottom buttons
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['settings.btn.defaults'])
-        bottom_layout.addWidget(self.window.data['settings.btn.save'])
+        bottom_layout.addWidget(self.window.data['plugin.settings.btn.defaults.user'])
+        bottom_layout.addWidget(self.window.data['plugin.settings.btn.defaults.app'])
+        bottom_layout.addWidget(self.window.data['plugin.settings.btn.save'])
 
         # plugins tabs
         self.window.tabs['plugin.settings'] = QTabWidget()

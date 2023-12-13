@@ -97,6 +97,9 @@ class Updater:
     def get_base_config(self, option=None):
         """
         Returns base config option or whole config
+
+        :param option: option name
+        :return: option value or whole config
         """
         if not self.base_config_loaded:
             self.load_base_config()

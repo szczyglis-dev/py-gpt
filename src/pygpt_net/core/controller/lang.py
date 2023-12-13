@@ -121,6 +121,11 @@ class Lang:
         self.window.data['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
         self.window.data['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
 
+        # plugin settings dialog
+        self.window.data['plugin.settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
+        self.window.data['plugin.settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
+        self.window.data['plugin.settings.btn.save'].setText(trans("dialog.settings.btn.save"))
+
         # preset dialog
         self.window.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
         self.window.data['preset.filename.label'].setText(trans("preset.filename"))

@@ -200,8 +200,25 @@ class Plugins:
             self.window.ui.dialogs.close('plugin_settings')
             self.config_dialog = False
 
-    def load_defaults(self):
-        """Loads plugins settings defaults"""
+    def load_defaults_user(self, force=False):
+        """Loads plugins settings user defaults"""
+        if not force:
+            self.window.ui.dialogs.confirm('plugin.settings.defaults.user', -1, trans('settings.plugin.defaults.user.confirm'))
+            return
+
+        # reload settings window
+        self.init_settings()
+
+    def load_defaults_app(self, force=False):
+        """Loads plugins settings app defaults"""
+        if not force:
+            self.window.ui.dialogs.confirm('plugin.settings.defaults.app', -1, trans('settings.plugin.defaults.app.confirm'))
+            return
+
+        # restore default options
+        self.handler.restore_options(self.current_plugin)
+
+        # reload settings window
         self.init_settings()
 
     def register(self, plugin):

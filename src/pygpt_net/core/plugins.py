@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 18:00:00                  #
 # ================================================== #
+
+import copy
+
 
 class Plugins:
     def __init__(self, config):
@@ -65,6 +68,7 @@ class Plugins:
 
         :param id: Plugin id
         :param ctx: Event data
+        :param cmds: Commands
         :return: Event data
         """
         if id in self.plugins:
@@ -93,6 +97,10 @@ class Plugins:
         id = plugin.id
         self.plugins[id] = plugin
 
+        # make copy of options
+        if hasattr(plugin, 'options'):
+            self.plugins[id].initial_options = copy.deepcopy(plugin.options)
+
         try:
             if id in self.config.data['plugins']:
                 for key in self.config.data['plugins'][id]:
@@ -101,3 +109,13 @@ class Plugins:
         except Exception as e:
             print('Error while loading plugin options: {}'.format(id))
             print(e)
+
+    def restore_options(self, id):
+        """
+        Restores options to initial values
+
+        :param id: Plugin id
+        """
+        if id in self.plugins:
+            if hasattr(self.plugins[id], 'initial_options'):
+                self.plugins[id].options = dict(self.plugins[id].initial_options)

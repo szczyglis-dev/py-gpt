@@ -53,7 +53,6 @@ class Image:
             if 'img_prompt' in self.config.data:
                 if self.config.data['img_prompt'] is not None and self.config.data['img_prompt'] != '':
                     cmd = self.config.data['img_prompt']
-                    print("user custom prompt")
         return cmd
 
     def generate(self, prompt, model="dall-e-3", num=None):

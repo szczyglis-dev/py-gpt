@@ -53,6 +53,10 @@ class Confirm:
             self.window.controller.settings.load_defaults_user(True)
         elif type == 'settings.defaults.app':
             self.window.controller.settings.load_defaults_app(True)
+        elif type == 'plugin.settings.defaults.user':
+            self.window.controller.plugins.load_defaults_user(True)
+        elif type == 'plugin.settings.defaults.app':
+            self.window.controller.plugins.load_defaults_app(True)
 
         self.window.dialog['confirm'].close()
 
