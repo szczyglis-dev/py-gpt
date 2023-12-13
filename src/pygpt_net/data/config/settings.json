@@ -264,5 +264,15 @@
         "max": 3,
         "multiplier": 1,
         "step": 1
+    },
+    "vision.capture.quality": {
+        "type": "int",
+        "slider": true,
+        "label": "vision.capture.quality",
+        "value": 85,
+        "min": 1,
+        "max": 100,
+        "multiplier": 1,
+        "step": 1
     }
 }

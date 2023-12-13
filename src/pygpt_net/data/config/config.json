@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.18",
-    "app.version": "2.0.18",
-    "updated_at": "2023-12-10T23:00:00"
+    "version": "2.0.25",
+    "app.version": "2.0.25",
+    "updated_at": "2023-12-13T14:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -17,19 +17,20 @@
   "ctx.auto_summary.prompt": "Summarize topic of this conversation in one sentence. Use best keywords to describe it. Summary must be in the same language as the conversation and it will be used for conversation title so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\nUser: {input}\nAI Assistant: {output}",
   "ctx.auto_summary.system": "You are an expert in conversation summarization",
   "current_model": {
-    "completion": "text-davinci-003",
+    "assistant": "gpt-3.5-turbo",
     "chat": "gpt-3.5-turbo",
-    "vision": "gpt-4-vision-preview",
+    "completion": "text-davinci-003",
+    "img": "dall-e-3",
     "langchain": "gpt-3.5-turbo",
-    "assistant": "gpt-3.5-turbo"
+    "vision": "gpt-4-vision-preview"
   },
   "current_preset": {
-    "completion": "",
+    "assistant": "",
     "chat": "",
+    "completion": "",
     "img": "",
-    "vision": "",
     "langchain": "",
-    "assistant": ""
+    "vision": ""
   },
   "debug": true,
   "default_prompt": "You are a helpful assistant.",
@@ -44,6 +45,8 @@
   "lang": "en",
   "layout.density": 0,
   "layout.splitters": {},
+  "layout.tabs": {},
+  "layout.window": {},
   "max_context_history_items": 100,
   "max_output_tokens": 1024,
   "max_tokens_length": 32000,
@@ -65,14 +68,15 @@
     }
   },
   "plugins_enabled": {
-    "real_time": false,
-    "self_loop": false,
     "audio_azure": false,
     "audio_openai_tts": false,
     "audio_openai_whisper": false,
     "cmd_code_interpreter": true,
+    "cmd_custom": true,
     "cmd_files": true,
-    "cmd_web_google": true
+    "cmd_web_google": true,
+    "real_time": false,
+    "self_loop": false
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",
@@ -89,7 +93,8 @@
   "user_name": "",
   "vision.capture.auto": true,
   "vision.capture.enabled": true,
-  "vision.capture.height": 600,
+  "vision.capture.height": 720,
   "vision.capture.idx": 0,
-  "vision.capture.width": 800
+  "vision.capture.quality": 85,
+  "vision.capture.width": 1280
 }

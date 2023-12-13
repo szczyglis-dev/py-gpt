@@ -204,6 +204,7 @@ class Settings:
                 if 'type' not in self.options[option]:
                     continue
                 type = self.options[option]['type']
+
                 # apply initial settings from current config
                 if type == 'int' or type == 'float':
                     self.apply(option, self.window.config.data[option])

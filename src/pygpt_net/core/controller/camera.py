@@ -131,7 +131,7 @@ class Camera:
             path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
 
             # capture frame
-            compression_params = [cv2.IMWRITE_JPEG_QUALITY, 80]
+            compression_params = [cv2.IMWRITE_JPEG_QUALITY, self.window.config.data['vision.capture.quality']]
             frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             cv2.imwrite(path, frame, compression_params)
             mode = self.window.config.data['mode']

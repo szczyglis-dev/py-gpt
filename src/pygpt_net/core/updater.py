@@ -176,7 +176,9 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
-            if old < parse_version("2.0.25"):
+            if old < parse_version("2.0.26"):
+                if 'vision.capture.quality' not in data:
+                    data['vision.capture.quality'] = 85
                 if 'attachments_capture_clear' not in data:
                     data['attachments_capture_clear'] = True
                 updated = True
