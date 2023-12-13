@@ -45,16 +45,20 @@ class Settings:
 
     def load(self):
         """Loads settings options from config file"""
+        self.load_config_options()
+
+        # store copy of loaded config data
+        self.before_config = dict(self.window.config.data)
+
+    def load_config_options(self, initialize=True):
         path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
         if not os.path.isfile(path):
             return {}
         with open(path) as f:
             self.options = json.load(f)
-            self.initialized = True
+            if initialize:
+                self.initialized = True
             f.close()
-
-        # store copy of loaded config data
-        self.before_config = dict(self.window.config.data)
 
     def save(self, id=None):
         """

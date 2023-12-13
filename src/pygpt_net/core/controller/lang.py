@@ -115,20 +115,11 @@ class Lang:
         self.window.config_option['assistant.tool.code_interpreter'].box.setText(trans('assistant.tool.code_interpreter'))
 
         # settings dialog
-        self.window.data['settings.temperature.label'].setText(trans("settings.temperature"))
-        self.window.data['settings.top_p.label'].setText(trans("settings.top_p"))
-        self.window.data['settings.frequency_penalty.label'].setText(trans("settings.frequency_penalty"))
-        self.window.data['settings.presence_penalty.label'].setText(trans("settings.presence_penalty"))
-        self.window.data['settings.context_threshold.label'].setText(trans("settings.context_threshold"))
-        self.window.data['settings.max_output_tokens.label'].setText(trans("settings.max_output_tokens"))
-        self.window.data['settings.max_total_tokens.label'].setText(trans("settings.max_total_tokens"))
-        self.window.data['settings.img_resolution.label'].setText(trans("settings.img_resolution"))
-        self.window.data['settings.api_key.label'].setText(trans("settings.api_key"))
-        self.window.data['settings.organization_key.label'].setText(trans("settings.organization_key"))
-        self.window.config_option['use_context'].box.setText(trans("settings.use_context"))
-        self.window.config_option['store_history'].box.setText(trans("settings.store_history"))
-        self.window.config_option['store_history_time'].box.setText(trans("settings.store_history_time"))
+        self.update_settings_dialogs()
         self.window.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
+        self.window.data['settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
+        self.window.data['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
+        self.window.data['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
 
         # buttons
         self.window.data['settings.btn.defaults'].setText(trans("dialog.settings.btn.defaults"))
@@ -250,14 +241,36 @@ class Lang:
         # plugins info
         self.window.controller.plugins.update_info()
 
+        # tabs
         mode = self.window.config.data['mode']
         self.window.controller.attachment.update_tab_label(mode)
         self.window.controller.assistant.update_tab_label()
         self.window.tabs['input'].setTabText(0, trans('input.tab'))
 
+        # theme menu
         for theme in self.window.menu['theme']:
             name = self.window.controller.theme.trans_theme(theme)
             self.window.menu['theme'][theme].setText(name)
 
         self.window.controller.model.update()
         self.window.set_status('')
+
+    def update_settings_dialogs(self):
+        """
+        Update settings dialogs
+        """
+        # load settings options if not loaded yet
+        if not self.window.controller.settings.initialized:
+            self.window.controller.settings.load_config_options(False)
+
+        # update settings options labels
+        for id in self.window.controller.settings.options:
+            option = self.window.controller.settings.options[id]
+            option_label = 'settings.{}.label'.format(id)
+            trans_key = 'settings.{}'.format(option['label'])
+            if option['type'] == 'bool':
+                if id in self.window.config_option:
+                    self.window.config_option[id].box.setText(trans(trans_key))
+            else:
+                if option_label in self.window.data:
+                    self.window.data[option_label].setText(trans(trans_key))
