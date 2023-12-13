@@ -196,6 +196,10 @@ class Plugin(BasePlugin):
         msg = None
         for item in cmds:
             for my_cmd in self.options["cmds"]["value"]:
+
+                # prepare request item for result
+                request_item = {"cmd": item["cmd"]}
+
                 if my_cmd["name"] == item["cmd"]:
                     try:
                         # prepare command
@@ -236,11 +240,11 @@ class Plugin(BasePlugin):
                             print("Result (STDERR): {}".format(result))
                         if result is None:
                             result = "No result (STDOUT/STDERR empty)"
-                        ctx.results.append({"request": item, "result": result})
+                        ctx.results.append({"request": request_item, "result": result})
                         ctx.reply = True  # send result message
                     except Exception as e:
                         msg = "Error: {}".format(e)
-                        ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                        ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                         ctx.reply = True
                         print(msg)
 

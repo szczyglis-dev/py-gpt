@@ -1084,6 +1084,8 @@ may consume additional tokens that are not displayed in the main window.
 - Added capture quality config option
 - Added launcher shortcuts
 - Improved plugins
+- Improved WebSearch
+- Optimized commands response
 - Fixed UI issues
 
 ## 2.0.24 (2023-12-12)

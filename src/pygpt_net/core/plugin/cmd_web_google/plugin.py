@@ -209,6 +209,10 @@ class Plugin(BasePlugin):
         for item in cmds:
             try:
                 if item["cmd"] in self.allowed_cmds:
+
+                    # prepare request item for result
+                    request_item = {"cmd": item["cmd"]}
+
                     if item["cmd"] == "web_search":
                         page = 1
                         if "page" in item["params"]:
@@ -221,7 +225,7 @@ class Plugin(BasePlugin):
                             'page': current,
                             'total_found': total_found,
                         }
-                        response = {"request": item, "result": data}
+                        response = {"request": request_item, "result": data}
                         ctx.results.append(response)
                         ctx.reply = True
             except Exception as e:

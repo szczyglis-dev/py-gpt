@@ -181,6 +181,10 @@ class Plugin(BasePlugin):
         for item in cmds:
             try:
                 if item["cmd"] in self.allowed_cmds:
+
+                    # prepare request item for result
+                    request_item = {"cmd": item["cmd"]}
+
                     if item["cmd"] == "code_execute_file" and self.is_cmd_allowed("code_execute_file"):
                         try:
                             msg = "Executing Python file: {}".format(item["params"]['filename'])
@@ -190,7 +194,7 @@ class Plugin(BasePlugin):
                             # check if file exists
                             if not os.path.isfile(path):
                                 msg = "File not found: {}".format(item["params"]['filename'])
-                                ctx.results.append({"request": item, "result": "File not found"})
+                                ctx.results.append({"request": request_item, "result": "File not found"})
                                 ctx.reply = True  # send result message
                                 continue
 
@@ -207,11 +211,11 @@ class Plugin(BasePlugin):
                                 result = stderr.decode("utf-8")
                             if result is None:
                                 result = "No result (STDOUT/STDERR empty)"
-                            ctx.results.append({"request": item, "result": result})
+                            ctx.results.append({"request": request_item, "result": result})
                             print("Result (STDOUT): {}".format(result))
                             ctx.reply = True  # send result message
                         except Exception as e:
-                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                             ctx.reply = True
                             print("Error: {}".format(e))
 
@@ -238,7 +242,7 @@ class Plugin(BasePlugin):
                                 result = stderr.decode("utf-8")
                             if result is None:
                                 result = "No result (STDOUT/STDERR empty)"
-                            ctx.results.append({"request": item, "result": result})
+                            ctx.results.append({"request": request_item, "result": result})
                             print("Result (STDOUT): {}".format(result))
                             ctx.reply = True  # send result message
                         except Exception as e:
@@ -261,11 +265,11 @@ class Plugin(BasePlugin):
                                 result = stderr.decode("utf-8")
                             if result is None:
                                 result = "No result (STDOUT/STDERR empty)"
-                            ctx.results.append({"request": item, "result": result})
+                            ctx.results.append({"request": request_item, "result": result})
                             print("Result (STDOUT): {}".format(result))
                             ctx.reply = True  # send result message
                         except Exception as e:
-                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
+                            ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                             ctx.reply = True
                             print("Error: {}".format(e))
             except Exception as e:
