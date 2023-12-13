@@ -114,7 +114,7 @@ class Settings:
         # append advanced options at the end
         if len(advanced_options) > 0:
             group_id = 'settings.advanced'
-            self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, True, None)
+            self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
             self.window.groups[group_id].box.setText(trans('settings.advanced.collapse'))
             for opt_key in options:
                 # hide non-advanced options

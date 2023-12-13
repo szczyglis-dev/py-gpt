@@ -144,7 +144,7 @@ class Plugins:
             # append advanced options at the end
             if len(advanced_options) > 0:
                 group_id = 'plugin.settings.advanced'
-                self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, True, None)
+                self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
                 self.window.groups[group_id].box.setText(trans('settings.advanced.collapse'))
                 for key in options_widgets:
                     # hide non-advanced options
