@@ -13,8 +13,6 @@ import cv2
 
 from PySide6.QtCore import QObject, Signal
 
-from .utils import trans
-
 
 class Camera:
     def __init__(self, config=None):
