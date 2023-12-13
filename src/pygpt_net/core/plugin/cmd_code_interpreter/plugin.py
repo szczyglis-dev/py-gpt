@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.09 14:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -21,58 +21,27 @@ class Plugin(BasePlugin):
         self.id = "cmd_code_interpreter"
         self.name = "Command: Code Interpreter"
         self.description = "Provides Python code execution"
-        self.options = {}
-        self.options["python_cmd_tpl"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Python command template",
-            "description": "Python command template to execute, use {filename} for filename placeholder",
-            "tooltip": "Python command template to execute, use {filename} for filename placeholder",
-            "value": 'python3 {filename}',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_code_execute"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Python Code Generate and Execute",
-            "description": "Allows Python code execution (generate and execute from file)",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_code_execute_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Python Code Execute (File)",
-            "description": "Allows Python code execution from existing file",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_sys_exec"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: System Command Execute",
-            "description": "Allows system commands execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.window = None
         self.order = 100
-        self.allowed_cmds = ["code_execute", "sys_exec"]
+        self.allowed_cmds = ["code_execute", "code_execute_file", "sys_exec"]
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("python_cmd_tpl", "text", 'python3 {filename}',
+                        "Python command template",
+                        "Python command template to execute, use {filename} for filename placeholder")
+        self.add_option("cmd_code_execute", "bool", True,
+                        "Enable: Python Code Generate and Execute",
+                        "Allows Python code execution (generate and execute from file)")
+        self.add_option("cmd_code_execute_file", "bool", True,
+                        "Enable: Python Code Execute (File)",
+                        "Allows Python code execution from existing file")
+        self.add_option("cmd_sys_exec", "bool", True,
+                        "Enable: System Command Execute",
+                        "Allows system commands execution")
 
     def setup(self):
         """
@@ -91,27 +60,57 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: Text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: Prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set username"""
+        """
+        Event: On set username
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_enable(self):
@@ -147,14 +146,24 @@ class Plugin(BasePlugin):
         return ctx
 
     def is_cmd_allowed(self, cmd):
-        """Checks if cmd is allowed"""
+        """
+        Checks if cmd is allowed
+
+        :param cmd: Command
+        :return: True if allowed
+        """
         key = "cmd_" + cmd
         if key in self.options and self.options[key]["value"] is True:
             return True
         return False
 
     def cmd_syntax(self, syntax):
-        """Event: On cmd syntax prepare"""
+        """
+        Event: On cmd syntax prepare
+
+        :param syntax: Syntax
+        :return: Syntax
+        """
         syntax += '\n"code_execute": create and execute Python code, params: "filename", "code"'
         syntax += '\n"code_execute_file": execute Python code from existing file, params: "filename"'
         syntax += '\n"sys_exec": execute ANY system command, script or application in user\'s environment, ' \

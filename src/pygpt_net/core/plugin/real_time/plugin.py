@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -19,46 +19,28 @@ class Plugin(BasePlugin):
         self.id = "real_time"
         self.name = "Real Time"
         self.description = "Appends real-time (hour and date) to every system prompt."
-        self.options = {}
-        self.options["hour"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Append time",
-            "description": "If enabled, current time will be appended to system prompt.",
-            "tooltip": "Hour will be appended to system prompt.",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["date"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Append date",
-            "description": "If enabled, current date will be appended to system prompt.",
-            "tooltip": "Date will be appended to system prompt.",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["tpl"] = {
-            "type": "textarea",
-            "slider": False,
-            "label": "Template",
-            "description": "Template to append to system prompt."
-                           "\nPlaceholder {time} will be replaced with current date and time in real-time.",
-            "tooltip": "Text to append to system prompt.",
-            "value": " Current time is {time}.",
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.window = None
         self.order = 2
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("hour", "bool", True,
+                        "Append time",
+                        "If enabled, current time will be appended to system prompt.",
+                        tooltip="Hour will be appended to system prompt.")
+        self.add_option("date", "bool", True,
+                        "Append date",
+                        "If enabled, current date will be appended to system prompt.",
+                        tooltip="Date will be appended to system prompt.")
+
+        desc = "Template to append to system prompt.\nPlaceholder {time} will be replaced with current date and time " \
+               "in real-time. "
+        tooltip = "Text to append to system prompt."
+        self.add_option("tpl", "textarea", " Current time is {time}.",
+                        "Template", desc, tooltip=tooltip)
 
     def setup(self):
         """
@@ -77,19 +59,39 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: Text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: Prompt
+        """
         self.window.log("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
         if self.options["hour"]["value"] or self.options["date"]["value"]:
             if self.options["hour"]["value"] and self.options["date"]["value"]:
@@ -102,11 +104,21 @@ class Plugin(BasePlugin):
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set username"""
+        """
+        Event: On set username
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_enable(self):

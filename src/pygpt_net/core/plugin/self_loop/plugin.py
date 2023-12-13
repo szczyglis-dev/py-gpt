@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -17,49 +17,28 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__()
         self.id = "self_loop"
         self.name = "Self Loop"
-        self.description = "Allows to execute self talk (AI to AI) loop and connects output to input."
-        self.options = {}
-        self.options["iterations"] = {
-            "type": "int",
-            "slider": True,
-            "label": "Iterations",
-            "description": "How many iterations to run? 0 = infinite.\n"
-                           "WARNING: setting this to 0 can cause a lot of requests and heavy tokens usage!",
-            "tooltip": "Some tooltip...",
-            "value": 3,
-            "min": 0,
-            "max": 100,
-            "multiplier": 1,
-            "step": 1,
-        }
-        self.options["clear_output"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Clear context output",
-            "description": "If enabled, previous context output will be cleared before sending new input.",
-            "tooltip": "Clear context output",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["reverse_roles"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Reverse roles between iterations",
-            "description": "If enabled, roles will be reversed between iterations.",
-            "tooltip": "Reverse roles between iterations",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
+        self.description = "Allows to execute self talk (AI to AI) loop and connect output to input."
         self.iteration = 0
         self.prev_output = None
         self.window = None
         self.order = 9998
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("iterations", "int", 3,
+                        "Iterations",
+                        "How many iterations to run? 0 = infinite.\nWARNING: setting this to 0 can cause a lot of "
+                        "requests and heavy tokens usage!",
+                        min=0, max=100, multiplier=1, step=1, slider=True)
+        self.add_option("clear_output", "bool", True,
+                        "Clear context output",
+                        "If enabled, previous context output will be cleared before sending new input.")
+        self.add_option("reverse_roles", "bool", True,
+                        "Reverse roles between iterations",
+                        "If enabled, roles will be reversed between iterations.")
 
     def setup(self):
         """
@@ -78,17 +57,32 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: Text
+        """
         self.iteration = 0
         self.prev_output = None
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: Context
+        """
         iterations = int(self.options["iterations"]["value"])
         if iterations == 0 or self.iteration < iterations:
             self.iteration += 1
@@ -99,15 +93,30 @@ class Plugin(BasePlugin):
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: Prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set user name"""
+        """
+        Event: On set user name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_enable(self):

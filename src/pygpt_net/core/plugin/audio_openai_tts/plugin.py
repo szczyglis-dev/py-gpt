@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -29,34 +29,21 @@ class Plugin(BasePlugin):
         self.description = "Enables audio/voice output (speech synthesis) using OpenAI TTS (Text-To-Speech) API"
         self.allowed_voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
         self.allowed_models = ['tts-1', 'tts-1-hd']
-        self.options = {}
-        self.options["model"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Model",
-            "description": "Specify model, available models: tts-1, tts-1-hd",
-            "tooltip": "Model",
-            "value": 'tts-1',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["voice"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Voice",
-            "description": "Specify voice, available voices: alloy, echo, fable, onyx, nova, shimmer",
-            "tooltip": "Voice",
-            "value": 'alloy',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.input_text = None
         self.window = None
         self.order = 1
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("model", "text", "tts-1",
+                        "Model",
+                        "Specify model, available models: tts-1, tts-1-hd")
+        self.add_option("voice", "text", "alloy",
+                        "Voice",
+                        "Specify voice, available voices: alloy, echo, fable, onyx, nova, shimmer")
 
     def setup(self):
         """
@@ -83,27 +70,57 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: ctx
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: ctx
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set user name"""
+        """
+        Event: On set user name
+
+        :param name: Name
+        :return: name
+        """
         return name
 
     def on_enable(self):

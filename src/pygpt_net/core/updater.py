@@ -219,6 +219,14 @@ class Updater:
                     data['vision.capture.quality'] = 85
                 if 'attachments_capture_clear' not in data:
                     data['attachments_capture_clear'] = True
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'cmd_web_google' not in data['plugins']:
+                    data['plugins']['cmd_web_google'] = {}
+                data['plugins']['cmd_web_google']['prompt_summarize'] = "Summarize the English text in a maximum of 3 " \
+                                                                        "paragraphs, trying to find the most " \
+                                                                        "important content that can help answer the " \
+                                                                        "following question: "
                 updated = True
             if old < parse_version("2.0.19"):
                 if 'img_raw' not in data:

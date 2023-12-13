@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 13:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -27,79 +27,6 @@ class Plugin(BasePlugin):
         self.name = "Audio Input (OpenAI Whisper)"
         self.description = "Enables speech recognition using OpenAI Whisper API"
         self.stop_words = ['stop', 'exit', 'quit', 'end', 'finish', 'close', 'terminate', 'kill', 'halt', 'abort']
-        self.options = {}
-        self.options["model"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Model",
-            "description": "Specify model, default: whisper-1",
-            "tooltip": "Model",
-            "value": 'whisper-1',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["timeout"] = {
-            "type": "int",
-            "slider": True,
-            "label": "Timeout",
-            "description": "Speech recognition timeout",
-            "tooltip": "Timeout, default: 2",
-            "value": 1,
-            "min": 1,
-            "max": 30,
-            "multiplier": 1,
-            "step": 1,
-        }
-        self.options["phrase_length"] = {
-            "type": "int",
-            "slider": True,
-            "label": "Phrase max length",
-            "description": "Speech recognition phrase length",
-            "tooltip": "Phrase max length, default: 3",
-            "value": 3,
-            "min": 1,
-            "max": 30,
-            "multiplier": 1,
-            "step": 1,
-        }
-        self.options["min_energy"] = {
-            "type": "int",
-            "slider": True,
-            "label": "Min. energy",
-            "description": "Minimum energy (loudness) to start recording, 0 = disabled",
-            "tooltip": "Min. energy, default: 4000, 0 = disabled, adjust for your microphone",
-            "value": 4000,
-            "min": 0,
-            "max": 20000,
-            "multiplier": 1,
-            "step": 1,
-        }
-        self.options["adjust_noise"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Adjust ambient noise",
-            "description": "Adjust for ambient noise",
-            "tooltip": "Adjust for ambient noise",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["continuous_listen"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Continuous listening",
-            "description": "Continuous listening (do not stop after single input)",
-            "tooltip": "Continuous listening",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.input_text = None
         self.window = None
         self.speech_enabled = False
@@ -108,6 +35,32 @@ class Plugin(BasePlugin):
         self.listening = False
         self.waiting = False
         self.order = 1
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("model", "text", "whisper-1",
+                        "Model",
+                        "Specify model, default: whisper-1")
+        self.add_option("timeout", "int", 2,
+                        "Timeout",
+                        "Speech recognition timeout", min=1, max=30, slider=True, tooltip="Timeout, default: 2")
+        self.add_option("phrase_length", "int", 3,
+                        "Phrase max length",
+                        "Speech recognition phrase length", min=1, max=30, slider=True, tooltip="Phrase max length, "
+                                                                                                "default: 3")
+        self.add_option("min_energy", "int", 4000,
+                        "Min. energy",
+                        "Minimum energy (loudness) to start recording, 0 = disabled", min=0, max=20000, slider=True,
+                        tooltip="Min. energy, default: 4000, 0 = disabled, adjust for your microphone")
+        self.add_option("adjust_noise", "bool", True,
+                        "Adjust ambient noise",
+                        "Adjust for ambient noise")
+        self.add_option("continuous_listen", "bool", True,
+                        "Continuous listening",
+                        "Continuous listening (do not stop after single input)")
 
     def setup(self):
         """

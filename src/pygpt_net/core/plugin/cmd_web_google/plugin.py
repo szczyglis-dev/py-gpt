@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 21:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -19,161 +19,69 @@ class Plugin(BasePlugin):
         self.id = "cmd_web_google"
         self.name = "Command: Google Web Search"
         self.description = "Allows to connect to the Web and search web pages for actual data."
-        self.options = {}
-        self.options["google_api_key"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Google Custom Search API KEY",
-            "description": "You can obtain your own API key at https://developers.google.com/custom-search/v1/overview",
-            "tooltip": "Google Custom Search API Key",
-            "value": '',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["google_api_cx"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Google Custom Search CX ID",
-            "description": "You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all"
-                           "\nRemember to enable \"Search on ALL internet pages\" option in project settings.",
-            "tooltip": "Google Custom Search CX ID",
-            "value": '',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["num_pages"] = {
-            "type": "int",
-            "slider": False,
-            "label": "Number of max pages to search per query",
-            "description": "",
-            "tooltip": "",
-            "value": 10,
-            "min": 1,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["max_page_content_length"] = {
-            "type": "int",
-            "slider": False,
-            "label": "Max characters of page content to get (0 = unlimited)",
-            "description": "",
-            "tooltip": "",
-            "value": 0,
-            "min": 0,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["chunk_size"] = {
-            "type": "int",
-            "slider": False,
-            "label": "Per-page content chunk size (max characters per chunk)",
-            "description": "",
-            "tooltip": "",
-            "value": 100000,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["use_google"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Use Google Custom Search",
-            "description": "Enable Google Custom Search API (API key required)",
-            "tooltip": "Google Custom Search",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        """
-        self.options["use_wikipedia"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Use Wikipedia",
-            "description": "Enable above option to use Wikipedia API (free, no API key required)",
-            "tooltip": "Wikipedia API",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        """
-        self.options["disable_ssl"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Disable SSL verify",
-            "description": "Disables SSL verification when crawling web pages",
-            "tooltip": "Disable SSL verify",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["prompt_summarize"] = {
-            "type": "textarea",
-            "slider": False,
-            "label": "Summarize prompt",
-            "description": "Prompt used for summarize web search results",
-            "tooltip": "Prompt",
-            "value": "Summarize in English text from website into 3 paragraphs trying to find the most important "
-                     "content which can help answer for question. "
-                     "If there is no info about it then return only **FAILED** without any additional info: ",
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["max_result_length"] = {
-            "type": "int",
-            "slider": False,
-            "label": "Max result length",
-            "description": "Max length of sumamrized result (characters)",
-            "tooltip": "Max result length",
-            "value": 1500,
-            "min": 0,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["summary_max_tokens"] = {
-            "type": "int",
-            "slider": False,
-            "label": "Max summary tokens",
-            "description": "Max tokens in output when generating summary",
-            "tooltip": "Max tokens",
-            "value": 1500,
-            "min": 0,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["summary_model"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Model used to summarize page",
-            "description": "Model used to summarize page, default: gpt-3.5-turbo-1106",
-            "tooltip": "Max tokens",
-            "value": "gpt-3.5-turbo-1106",
-            "min": 0,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.input_text = None
         self.window = None
-        self.websearch = WebSearch(self)
         self.allowed_cmds = ["web_search"]
         self.order = 100
+        self.init_options()
+        self.websearch = WebSearch(self)
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("google_api_key", "text", "",
+                        "Google Custom Search API KEY",
+                        "You can obtain your own API key at https://developers.google.com/custom-search/v1/overview",
+                        tooltip="Google Custom Search CX ID")
+        self.add_option("google_api_cx", "text", "",
+                        "Google Custom Search CX ID",
+                        "You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all"
+                        "\nRemember to enable \"Search on ALL internet pages\" option in project settings.",
+                        tooltip="Google Custom Search CX ID")
+        self.add_option("num_pages", "int", 10,
+                        "Number of pages to search",
+                        "Number of max pages to search per query",
+                        min=1, max=None)
+        self.add_option("max_page_content_length", "int", 0,
+                        "Max content characters",
+                        "Max characters of page content to get (0 = unlimited)",
+                        min=0, max=None)
+        self.add_option("chunk_size", "int", 100000,
+                        "Per-page content chunk size",
+                        "Per-page content chunk size (max characters per chunk)",
+                        min=1, max=None)
+        self.add_option("use_google", "bool", True,
+                        "Use Google Custom Search",
+                        "Enable Google Custom Search API (API key required)",
+                        tooltip="Google Custom Search")
+        """
+        self.add_option("use_wikipedia", "bool", True,
+                        "Use Wikipedia",
+                        "Enable above option to use Wikipedia API (free, no API key required)",
+                        tooltip="Wikipedia API")
+        """
+        self.add_option("disable_ssl", "bool", True,
+                        "Disable SSL verify",
+                        "Disables SSL verification when crawling web pages",
+                        tooltip="Disable SSL verify")
+        self.add_option("prompt_summarize", "textarea", "Summarize the English text in a maximum of 3 paragraphs, "
+                                                        "trying to find the most important content that can help "
+                                                        "answer the following question: ",
+                        "Summarize prompt",
+                        "Prompt used for summarize web search results",
+                        tooltip="Prompt")
+        self.add_option("max_result_length", "int", 1500,
+                        "Max result length",
+                        "Max length of summarized result (characters)",
+                        min=0, max=None)
+        self.add_option("summary_max_tokens", "int", 1500,
+                        "Max summary tokens",
+                        "Max tokens in output when generating summary",
+                        min=0, max=None)
+        self.add_option("summary_model", "text", "gpt-3.5-turbo-1106",
+                        "Model used to summarize page",
+                        "Model used to summarize page, default: gpt-3.5-turbo-1106")
 
     def setup(self):
         """
@@ -192,27 +100,57 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: Text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: Prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set username"""
+        """
+        Event: On set username
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_enable(self):
@@ -249,13 +187,24 @@ class Plugin(BasePlugin):
         return ctx
 
     def cmd_syntax(self, syntax):
-        """Event: On cmd syntax prepare"""
+        """
+        Event: On cmd syntax prepare
+
+        :param syntax: Syntax
+        """
         syntax += '\n"web_search": use it for search Web for more info, prepare query for search engine itself, ' \
                   'start from page 1, If you don\'t find anything or don\'t find enough information, try the next ' \
                   'page. Max pages limit: {}, params: "query", "page"'.format(self.options["num_pages"]["value"])
         return syntax
 
     def cmd(self, ctx, cmds):
+        """
+        Event: On cmd
+
+        :param ctx: Context
+        :param cmds: Commands
+        :return: Context
+        """
         msg = None
         for item in cmds:
             try:

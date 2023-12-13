@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.13 1900:00                  #
 # ================================================== #
 
 import threading
@@ -26,58 +26,32 @@ class Plugin(BasePlugin):
         self.id = "audio_azure"
         self.name = "Audio Output (MS Azure)"
         self.description = "Enables audio/voice output (speech synthesis) using Microsoft Azure API"
-        self.options = {}
-        self.options["azure_api_key"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Azure API Key",
-            "description": "You can obtain your own API key at: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
-            "tooltip": "Azure API Key",
-            "value": '',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["azure_region"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Azure Region",
-            "description": "Specify Azure region, e.g. eastus",
-            "tooltip": "Azure Region",
-            "value": 'eastus',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["voice_en"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Voice (EN)",
-            "description": "Specify voice for English language, e.g. en-US-AriaNeural",
-            "tooltip": "Voice (EN)",
-            "value": 'en-US-AriaNeural',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["voice_pl"] = {
-            "type": "text",
-            "slider": False,
-            "label": "Voice (PL)",
-            "description": "Specify voice for Polish language, e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
-            "tooltip": "Voice (PL)",
-            "value": 'pl-PL-AgnieszkaNeural',
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.input_text = None
         self.window = None
         self.order = 9999
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("azure_api_key", "text", "",
+                        "Azure API Key",
+                        "You can obtain your own API key at: "
+                        "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
+                        tooltip="Azure API Key")
+        self.add_option("azure_region", "text", "eastus",
+                        "Azure Region",
+                        "Specify Azure region, e.g. eastus",
+                        tooltip="Azure Region")
+        self.add_option("voice_en", "text", "en-US-AriaNeural",
+                        "Voice (EN)",
+                        "Specify voice for English language, e.g. en-US-AriaNeural",
+                        tooltip="Voice (EN)")
+        self.add_option("voice_pl", "text", "pl-PL-AgnieszkaNeural",
+                        "Voice (PL)",
+                        "Specify voice for Polish language, e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
+                        tooltip="Voice (PL)")
 
     def setup(self):
         """
@@ -96,27 +70,57 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: ctx
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: ctx
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set user name"""
+        """
+        Event: On set user name
+
+        :param name: Name
+        :return: name
+        """
         return name
 
     def on_enable(self):

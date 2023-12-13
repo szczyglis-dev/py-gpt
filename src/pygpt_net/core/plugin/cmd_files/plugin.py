@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.09 12:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 import os.path
 import shutil
@@ -22,151 +22,6 @@ class Plugin(BasePlugin):
         self.id = "cmd_files"
         self.name = "Command: Files I/O"
         self.description = "Provides commands to read and write files"
-        self.options = {}
-        self.options["cmd_read_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Read file",
-            "description": "Allows `read_file` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_append_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Append to file",
-            "description": "Allows `append_file` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_save_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Save file",
-            "description": "Allows `save_file` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_delete_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Delete file",
-            "description": "Allows `delete_file` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_list_files"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: List files (ls)",
-            "description": "Allows `list_files` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_list_dirs"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: List directories (ls)",
-            "description": "Allows `list_dirs` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_mkdir"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Directory creation (mkdir)",
-            "description": "Allows `mkdir` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_download_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Downloading files",
-            "description": "Allows `download_file` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_rmdir"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Removing directories",
-            "description": "Allows `rmdir` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_copy_file"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Copying files",
-            "description": "Allows `copy` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_copy_dir"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Copying directories (recursive)",
-            "description": "Allows `copy_dir` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
-        self.options["cmd_move"] = {
-            "type": "bool",
-            "slider": False,
-            "label": "Enable: Move files and directories (rename)",
-            "description": "Allows `move` command execution",
-            "tooltip": "",
-            "value": True,
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.window = None
         self.order = 100
         self.allowed_cmds = [
@@ -183,6 +38,36 @@ class Plugin(BasePlugin):
             "copy_dir",
             "move",
         ]
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        self.add_option("cmd_read_file", "bool", True,
+                        "Enable: Read file", "Allows `read_file` command execution")
+        self.add_option("cmd_append_file", "bool", True,
+                        "Enable: Append to file", "Allows `append_file` command execution")
+        self.add_option("cmd_save_file", "bool", True,
+                        "Enable: Save file", "Allows `save_file` command execution")
+        self.add_option("cmd_delete_file", "bool", True,
+                        "Enable: Delete file", "Allows `delete_file` command execution")
+        self.add_option("cmd_list_files", "bool", True,
+                        "Enable: List files (ls)", "Allows `list_files` command execution")
+        self.add_option("cmd_list_dirs", "bool", True,
+                        "Enable: List directories (ls)", "Allows `list_dirs` command execution")
+        self.add_option("cmd_mkdir", "bool", True,
+                        "Enable: Directory creation (mkdir)", "Allows `mkdir` command execution")
+        self.add_option("cmd_download_file", "bool", True,
+                        "Enable: Downloading files", "Allows `download_file` command execution")
+        self.add_option("cmd_rmdir", "bool", True,
+                        "Enable: Removing directories", "Allows `rmdir` command execution")
+        self.add_option("cmd_copy_file", "bool", True,
+                        "Enable: Copying files", "Allows `copy` command execution")
+        self.add_option("cmd_copy_dir", "bool", True,
+                        "Enable: Copying directories (recursive)", "Allows `copy_dir` command execution")
+        self.add_option("cmd_move", "bool", True,
+                        "Enable: Move files and directories (rename)", "Allows `move` command execution")
 
     def setup(self):
         """

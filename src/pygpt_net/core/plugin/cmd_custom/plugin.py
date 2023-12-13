@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.09 08:00:00                  #
+# Updated Date: 2023.12.13 19:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -21,35 +21,34 @@ class Plugin(BasePlugin):
         self.id = "cmd_custom"
         self.name = "Command: Custom Commands"
         self.description = "Provides availability to create and execute custom commands"
-        self.options = {}
-        self.options["cmds"] = {
-            "type": "dict",
-            "keys": {
-                "name": "text",
-                "instruction": "text",
-                "params": "text",
-                "cmd": "text",
-            },
-            "slider": False,
-            "label": "Your custom commands",
-            "description": "Add your custom commands here, use {placeholders} to receive params, you can also use predefined "
-                           "placeholders: {_time}, {_date}, {_datetime}, {_file}, {_home)",
-            "tooltip": "See the documentation for more details about examples, usage and list of predefined placeholders",
-            "value": [
-                {
-                    "name": "example_cmd",
-                    "instruction": "execute tutorial test command by replacing 'hello' and 'world' params with some funny words",
-                    "params": "hello, world",
-                    "cmd": 'echo "Response from {hello} and {world} at {_time}"',
-                },
-            ],
-            "min": None,
-            "max": None,
-            "multiplier": None,
-            "step": None,
-        }
         self.window = None
         self.order = 100
+        self.init_options()
+
+    def init_options(self):
+        """
+        Initializes options
+        """
+        keys = {
+            "name": "text",
+            "instruction": "text",
+            "params": "text",
+            "cmd": "text",
+        }
+        value = [
+            {
+                "name": "example_cmd",
+                "instruction": "execute tutorial test command by replacing 'hello' and 'world' params with some funny "
+                               "words",
+                "params": "hello, world",
+                "cmd": 'echo "Response from {hello} and {world} at {_time}"',
+            },
+        ]
+        desc = "Add your custom commands here, use {placeholders} to receive params, you can also use predefined " \
+               "placeholders: {_time}, {_date}, {_datetime}, {_file}, {_home) "
+        tooltip = "See the documentation for more details about examples, usage and list of predefined placeholders"
+        self.add_option("cmds", "dict", value,
+                        "Your custom commands", desc, tooltip, keys=keys)
 
     def setup(self):
         """
@@ -68,27 +67,57 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: Text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: Prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set username"""
+        """
+        Event: On set username
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_enable(self):
@@ -124,7 +153,12 @@ class Plugin(BasePlugin):
         return ctx
 
     def cmd_syntax(self, syntax):
-        """Event: On cmd syntax prepare"""
+        """
+        Event: On cmd syntax prepare
+
+        :param syntax: Syntax
+        :return: Syntax
+        """
         for item in self.options["cmds"]["value"]:
             syntax += '\n"{}": {}'.format(item["name"], item["instruction"])
             if item["params"] != "":
@@ -134,7 +168,12 @@ class Plugin(BasePlugin):
         return syntax
 
     def extract_params(self, text):
-        """Extracts params from params string"""
+        """
+        Extracts params from params string
+
+        :param text: Text
+        :return: Params list
+        """
         params = []
         if text is None or text == "":
             return params
@@ -152,6 +191,7 @@ class Plugin(BasePlugin):
 
         :param ctx: Context
         :param cmds: Commands requests
+        :return: Context
         """
         msg = None
         for item in cmds:
