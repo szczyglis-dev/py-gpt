@@ -12,6 +12,7 @@
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame
 
 from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog, SettingsTextarea
+from ..widget.elements import CollapsedGroup
 from ...utils import trans
 
 
@@ -50,8 +51,14 @@ class Settings:
         self.window.path_label[id] = QLabel(str(path))
         self.window.path_label[id].setStyleSheet("font-weight: bold;")
 
+        # advanced options keys
+        advanced_options = []
+
         # get settings options config
         settings_options = self.window.controller.settings.get_options()
+        for key in settings_options:
+            if 'advanced' in settings_options[key] and settings_options[key]['advanced']:
+                advanced_options.append(key)
 
         # build settings widgets
         settings_widgets = self.build_settings_widgets(settings_options)
@@ -88,14 +95,39 @@ class Settings:
         scroll_content.addWidget(line)
 
         # append widgets options layouts to scroll area
-        for option in options.values():
-            # prevent already added options from being added again
-            if option in [options['api_key'], options['organization_key']]:
+        for opt_key in options:
+            option = options[opt_key]
+
+            # hide advanced options
+            if opt_key in advanced_options:
                 continue
+
+            # prevent already added options from being added again
+            if opt_key in ['api_key', 'organization_key']:
+                continue
+
             # add option
             scroll_content.addLayout(option)
             line = self.add_line()
             scroll_content.addWidget(line)
+
+        # append advanced options at the end
+        if len(advanced_options) > 0:
+            group_id = 'settings.advanced'
+            self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, True, None)
+            self.window.groups[group_id].box.setText(trans('settings.advanced.collapse'))
+            for opt_key in options:
+                # hide non-advanced options
+                if opt_key not in advanced_options:
+                    continue
+
+                # add option to group
+                option = options[opt_key]
+                self.window.groups[group_id].add_layout(option)
+                line = self.add_line()
+                self.window.groups[group_id].add_widget(line)
+
+            scroll_content.addWidget(self.window.groups[group_id])
 
         scroll_widget = QWidget()
         scroll_widget.setLayout(scroll_content)
@@ -111,6 +143,11 @@ class Settings:
         self.window.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
 
     def build_settings_widgets(self, options):
+        """
+        Builds settings widgets
+
+        :param options: settings options
+        """
         widgets = {}
         for key in options:
             option = options[key]
@@ -180,8 +217,8 @@ class Settings:
 
         :param title: Title
         :param option: Option
-        :param bold: Bold title
         :param type: Option type
+        :param extra: Extra options
         """
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
@@ -201,8 +238,8 @@ class Settings:
 
         :param title: Title
         :param option: Option
-        :param bold: Bold title
         :param type: Option type
+        :param extra: Extra options
         """
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))

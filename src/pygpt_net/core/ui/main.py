@@ -37,6 +37,7 @@ class UI:
         self.window.splitters = {}
         self.window.tabs = {}
         self.window.models = {}
+        self.window.groups = {}
         self.window.path_label = {}
         self.window.config_option = {}
         self.window.plugin_option = {}

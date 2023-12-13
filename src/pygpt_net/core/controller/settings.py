@@ -451,6 +451,19 @@ class Settings:
         if id == "temperature":
             self.apply('current_temperature', input_value, 'input', section)
 
+    def toggle_collapsed(self, id, value, section):
+        """
+        Toggles collapsed state of section
+
+        :param id: section
+        :param value: value
+        :param section: section
+        """
+        if id not in self.window.groups:
+            return
+
+        self.window.groups[id].collapse(value)
+
     def open_config_dir(self):
         """Opens user config directory"""
         if os.path.exists(self.window.config.path):

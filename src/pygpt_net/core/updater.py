@@ -177,6 +177,8 @@ class Updater:
         current = parse_version(self.window.version)
         if old < current:
             if old < parse_version("2.0.26"):
+                if 'cmd.prompt' not in data:
+                    data['cmd.prompt'] = self.window.command.get_prompt()
                 if 'vision.capture.quality' not in data:
                     data['vision.capture.quality'] = 85
                 if 'attachments_capture_clear' not in data:

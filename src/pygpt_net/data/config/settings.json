@@ -10,7 +10,8 @@
         "step": null,
         "extra": {
             "bold": true
-        }
+        },
+        "advanced": false
     },
     "organization_key": {
         "type": "text",
@@ -23,7 +24,8 @@
         "step": null,
         "extra": {
             "bold": true
-        }
+        },
+        "advanced": false
     },
     "font_size": {
         "type": "int",
@@ -33,7 +35,8 @@
         "min": 8,
         "max": 20,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "font_size.input": {
         "type": "int",
@@ -43,7 +46,8 @@
         "min": 8,
         "max": 20,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "font_size.ctx": {
         "type": "int",
@@ -53,7 +57,8 @@
         "min": 8,
         "max": 20,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "layout.density": {
         "type": "int",
@@ -63,7 +68,8 @@
         "min": -5,
         "max": 5,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "max_output_tokens": {
         "type": "int",
@@ -73,7 +79,8 @@
         "min": 0,
         "max": 32000,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "max_total_tokens": {
         "type": "int",
@@ -83,7 +90,8 @@
         "min": 0,
         "max": 256000,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "context_threshold": {
         "type": "int",
@@ -93,7 +101,8 @@
         "min": 1,
         "max": 1000,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "use_context": {
         "type": "bool",
@@ -103,7 +112,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     },
     "store_history": {
         "type": "bool",
@@ -113,7 +123,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     },
     "store_history_time": {
         "type": "bool",
@@ -123,7 +134,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     },
     "ctx.auto_summary": {
         "type": "bool",
@@ -133,7 +145,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     }, 
     "temperature": {
         "type": "float",
@@ -143,7 +156,8 @@
         "min": 0.0,
         "max": 2.0,
         "multiplier": 100,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "top_p": {
         "type": "float",
@@ -153,7 +167,8 @@
         "min": 0.0,
         "max": 2.0,
         "multiplier": 100,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "frequency_penalty": {
         "type": "float",
@@ -163,7 +178,8 @@
         "min": 0.0,
         "max": 2.0,
         "multiplier": 100,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "presence_penalty": {
         "type": "float",
@@ -173,27 +189,8 @@
         "min": 0.0,
         "max": 2.0,
         "multiplier": 100,
-        "step": 1
-    },
-    "ctx.auto_summary.system": {
-        "type": "text",
-        "slider": false,
-        "label": "ctx.auto_summary.system",
-        "value": null,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null
-    },
-    "ctx.auto_summary.prompt": {
-        "type": "textarea",
-        "slider": false,
-        "label": "ctx.auto_summary.prompt",
-        "value": null,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null
+        "step": 1,
+        "advanced": false
     },
     "img_resolution": {
         "type": "text",
@@ -203,17 +200,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
-    },
-    "img_prompt_model": {
-        "type": "text",
-        "slider": false,
-        "label": "img_prompt_model",
-        "value": "gpt-4-1106-preview",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     },
     "vision.capture.enabled": {
         "type": "bool",
@@ -223,7 +211,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     }, 
     "vision.capture.auto": {
         "type": "bool",
@@ -233,7 +222,8 @@
         "min": null,
         "max": null,
         "multiplier": null,
-        "step": null
+        "step": null,
+        "advanced": false
     },
     "vision.capture.width": {
         "type": "int",
@@ -243,7 +233,8 @@
         "min": 320,
         "max": 4096,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "vision.capture.height": {
         "type": "int",
@@ -253,7 +244,8 @@
         "min": 320,
         "max": 4096,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "vision.capture.idx": {
         "type": "int",
@@ -263,7 +255,8 @@
         "min": 0,
         "max": 3,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
     },
     "vision.capture.quality": {
         "type": "int",
@@ -273,6 +266,51 @@
         "min": 1,
         "max": 100,
         "multiplier": 1,
-        "step": 1
+        "step": 1,
+        "advanced": false
+    },
+    "ctx.auto_summary.system": {
+        "type": "text",
+        "slider": false,
+        "label": "ctx.auto_summary.system",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
+    },
+    "ctx.auto_summary.prompt": {
+        "type": "textarea",
+        "slider": false,
+        "label": "ctx.auto_summary.prompt",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
+    },
+    "cmd.prompt": {
+        "type": "textarea",
+        "slider": false,
+        "label": "cmd.prompt",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
+    },
+    "img_prompt_model": {
+        "type": "text",
+        "slider": false,
+        "label": "img_prompt_model",
+        "value": "gpt-4-1106-preview",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
     }
 }

@@ -33,6 +33,7 @@ class Layout:
         self.state_restore()
         self.splitters_restore()
         self.tabs_restore()
+        self.groups_restore()
 
         # restore plugin settings state
         self.window.controller.plugins.set_plugin_by_tab(self.window.tabs['plugin.settings'].currentIndex())
@@ -42,6 +43,7 @@ class Layout:
         self.splitters_save()
         self.tabs_save()
         self.state_save()
+        self.groups_save()
 
     def tabs_save(self):
         """Save tabs state"""
@@ -49,6 +51,13 @@ class Layout:
         for tab in self.window.tabs:
             data[tab] = self.window.tabs[tab].currentIndex()
         self.window.config.data['layout.tabs'] = data
+
+    def groups_save(self):
+        """Save groups state"""
+        data = {}
+        for id in self.window.groups:
+            data[id] = self.window.groups[id].box.isChecked()
+        self.window.config.data['layout.groups'] = data
 
     def tabs_restore(self):
         """Restore tabs state"""
@@ -80,6 +89,18 @@ class Layout:
                     self.window.splitters[splitter].setSizes(data[splitter])
                 except Exception as e:
                     print("Error while restoring splitter state: " + str(e))
+
+    def groups_restore(self):
+        """Restore groups state"""
+        if 'layout.groups' not in self.window.config.data:
+            return
+        data = self.window.config.data['layout.groups']
+        for id in self.window.groups:
+            if id in data:
+                try:
+                    self.window.groups[id].collapse(data[id])
+                except Exception as e:
+                    print("Error while restoring group state: " + str(e))
 
     def state_restore(self):
         """Restore window state"""
