@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.10 13:00:00                  #
+# Updated Date: 2023.12.13 13:00:00                  #
 # ================================================== #
 import json
 import os
@@ -51,6 +51,11 @@ class Settings:
         self.before_config = dict(self.window.config.data)
 
     def load_config_options(self, initialize=True):
+        """
+        Loads settings options from config file
+
+        :param initialize: True if marks settings as initialized
+        """
         path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
         if not os.path.isfile(path):
             return {}
@@ -120,13 +125,10 @@ class Settings:
 
         :param id: settings id
         """
-        width = 500
-        height = 600
-
         if id in self.window.settings.active and self.window.settings.active[id]:
             self.close_window(id)
         else:
-            self.window.ui.dialogs.open('config.' + id, width=width, height=height)
+            self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
             self.init(id)
             self.window.settings.active[id] = True
 
@@ -241,12 +243,11 @@ class Settings:
                 if self.options[id]['type'] == 'bool':
                     self.window.config.data[id] = value
 
+                # update vision checkboxes
                 if id == "vision.capture.enabled":
                     self.window.data['vision.capture.enable'].setChecked(value)
-                    # self.window.controller.camera.toggle(value)
                 if id == "vision.capture.auto":
                     self.window.data['vision.capture.auto'].setChecked(value)
-                    # self.window.controller.camera.toggle_auto(value)
 
         # update checkbox
         self.window.config_option[id].box.setChecked(value)
@@ -484,5 +485,9 @@ class Settings:
         self.window.settings.load_app_settings()
 
     def get_options(self):
-        """Returns settings options dict"""
+        """
+        Returns settings options dict
+
+        :return: dict Options dict
+        """
         return self.options
