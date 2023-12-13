@@ -19,7 +19,7 @@ from .utils import trans
 class Camera:
     def __init__(self, config=None):
         """
-        Camera
+        Camera thread handler
 
         :param config: config object
         """
@@ -45,9 +45,11 @@ class CameraThread(QObject):
         self.frame = None
 
     def setup_camera(self):
-        """Initialize camera.
+        """
+        Initialize camera.
         """
         try:
+            # get params from global config
             self.capture = cv2.VideoCapture(self.window.config.data['vision.capture.idx'])
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.config.data['vision.capture.width'])
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.config.data['vision.capture.height'])
@@ -56,6 +58,9 @@ class CameraThread(QObject):
             self.finished.emit(e)
 
     def run(self):
+        """
+        Frame capture loop
+        """
         try:
             if not self.initialized:
                 self.setup_camera()
