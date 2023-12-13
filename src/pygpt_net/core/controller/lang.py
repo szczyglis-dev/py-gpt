@@ -121,10 +121,6 @@ class Lang:
         self.window.data['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
         self.window.data['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
 
-        # buttons
-        self.window.data['settings.btn.defaults'].setText(trans("dialog.settings.btn.defaults"))
-        self.window.data['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
-
         # preset dialog
         self.window.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
         self.window.data['preset.filename.label'].setText(trans("preset.filename"))
