@@ -30,8 +30,21 @@ The following basic options can be modified directly within the application:
 * ``Top-p`` A parameter that influences the model's response diversity, similar to temperature. For more information, please check the OpenAI documentation.
 * ``Frequency Penalty`` Decreases the likelihood of repetition in the model's responses.
 * ``Presence Penalty`` Discourages the model from mentioning topics that have already been brought up in the conversation.
-* ``Auto-summary system prompt`` System prompt for context auto-summary (GPT-3.5 is used for this)
-* ``Auto-summary instruction`` Summary prompt for context auto-summary (GPT-3.5 is used for this)
+* ``Vision: Camera`` Enables camera in Vision mode
+* ``Vision: Auto capture`` Enables auto-capture on message send in Vision mode
+* ``Vision: Camera capture width (px)`` Video capture resolution (width)
+* ``Vision: Camera capture height (px)`` Video capture resolution (heigth)
+* ``Vision: Camera IDX (number)`` Video capture camera index (number of camera)
+* ``Vision: Image capture quality`` Video capture image JPEG quality (%)
+
+**Advanced options**:
+
+* ``Model used for auto-summary`` Model used for context auto-summary (default: *gpt-3.5-turbo-1106*)
+* ``Prompt (sys): auto summary`` System prompt for context auto-summary
+* ``Prompt (user): auto summary`` User prompt for context auto-summary
+* ``Prompt (append): command execute instruction`` Prompt for appending command execution instructions
+* ``DALL-E: Prompt (sys): prompt generation`` Prompt for generating prompts for DALL-E (if disabled RAW mode)
+* ``DALL-E: prompt generation model`` Model used for generating prompts for DALL-E (if disabled RAW mode)
 
 
 JSON files

@@ -69,7 +69,7 @@ class Plugin(BasePlugin):
                                                         "trying to find the most important content that can help "
                                                         "answer the following question: ",
                         "Summarize prompt",
-                        "Prompt used for summarize web search results",
+                        "Prompt used for web search results summarize",
                         tooltip="Prompt", advanced=True)
         self.add_option("max_result_length", "int", 1500,
                         "Max result length",
@@ -80,8 +80,8 @@ class Plugin(BasePlugin):
                         "Max tokens in output when generating summary",
                         min=0, max=None)
         self.add_option("summary_model", "text", "gpt-3.5-turbo-1106",
-                        "Model used to summarize page",
-                        "Model used to summarize page, default: gpt-3.5-turbo-1106")
+                        "Model used for web page summarize",
+                        "Model used for web page summarize, default: gpt-3.5-turbo-1106")
 
     def setup(self):
         """

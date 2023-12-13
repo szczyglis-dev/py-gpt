@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 19:00:00                  #
+# Updated Date: 2023.12.13 22:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
-from datetime import datetime
 
 from ..base_plugin import BasePlugin
 
@@ -23,13 +22,18 @@ class Plugin(BasePlugin):
         self.description = "Provides Python code execution"
         self.window = None
         self.order = 100
-        self.allowed_cmds = ["code_execute", "code_execute_file", "sys_exec"]
+        self.allowed_cmds = [
+            "code_execute",
+            "code_execute_file",
+            "sys_exec"
+        ]
         self.init_options()
 
     def init_options(self):
         """
         Initializes options
         """
+        # cmd enable/disable
         self.add_option("python_cmd_tpl", "text", 'python3 {filename}',
                         "Python command template",
                         "Python command template to execute, use {filename} for filename placeholder")
@@ -42,6 +46,20 @@ class Plugin(BasePlugin):
         self.add_option("cmd_sys_exec", "bool", True,
                         "Enable: System Command Execute",
                         "Allows system commands execution")
+
+        # cmd syntax (prompt/instruction)
+        self.add_option("syntax_code_execute", "textarea", '"code_execute": create and execute Python code, params: '
+                                                           '"filename", "code"',
+                        "Syntax: code_execute",
+                        "Syntax for Python code execution (generate and execute from file)", advanced=True)
+        self.add_option("syntax_code_execute_file", "textarea", '"code_execute_file": execute Python code from '
+                                                                'existing file, params: "filename"',
+                        "Syntax: code_execute_file",
+                        "Syntax for Python code execution from existing file", advanced=True)
+        self.add_option("syntax_sys_exec", "textarea", '"sys_exec": execute ANY system command, script or application '
+                                                       'in user\'s environment, params: "command"',
+                        "Syntax: sys_exec",
+                        "Syntax for system commands execution", advanced=True)
 
     def setup(self):
         """
@@ -164,10 +182,11 @@ class Plugin(BasePlugin):
         :param syntax: Syntax
         :return: Syntax
         """
-        syntax += '\n"code_execute": create and execute Python code, params: "filename", "code"'
-        syntax += '\n"code_execute_file": execute Python code from existing file, params: "filename"'
-        syntax += '\n"sys_exec": execute ANY system command, script or application in user\'s environment, ' \
-                  'params: "command" '
+        for item in self.allowed_cmds:
+            if self.is_cmd_allowed(item):
+                key = "syntax_" + item
+                if key in self.options:
+                    syntax += "\n" + self.options[key]["value"]
         return syntax
 
     def cmd(self, ctx, cmds):
@@ -181,12 +200,15 @@ class Plugin(BasePlugin):
         for item in cmds:
             try:
                 if item["cmd"] in self.allowed_cmds:
-
                     # prepare request item for result
                     request_item = {"cmd": item["cmd"]}
+                    ctx.reply = True  # send result message
+                    result = None
 
+                    # code_execute (from existing file)
                     if item["cmd"] == "code_execute_file" and self.is_cmd_allowed("code_execute_file"):
                         try:
+                            # execute code from file
                             msg = "Executing Python file: {}".format(item["params"]['filename'])
                             print(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
@@ -195,7 +217,6 @@ class Plugin(BasePlugin):
                             if not os.path.isfile(path):
                                 msg = "File not found: {}".format(item["params"]['filename'])
                                 ctx.results.append({"request": request_item, "result": "File not found"})
-                                ctx.reply = True  # send result message
                                 continue
 
                             # run code
@@ -204,23 +225,24 @@ class Plugin(BasePlugin):
                             process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                                        stderr=subprocess.PIPE)
                             stdout, stderr = process.communicate()
-                            result = None
                             if stdout:
                                 result = stdout.decode("utf-8")
+                                print("STDOUT: {}".format(result))
                             if stderr:
                                 result = stderr.decode("utf-8")
+                                print("STDERR: {}".format(result))
                             if result is None:
                                 result = "No result (STDOUT/STDERR empty)"
+                                print(result)
                             ctx.results.append({"request": request_item, "result": result})
-                            print("Result (STDOUT): {}".format(result))
-                            ctx.reply = True  # send result message
                         except Exception as e:
-                            ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
-                            ctx.reply = True
+                            ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
+                    # code_execute (generate and execute)
                     elif item["cmd"] == "code_execute" and self.is_cmd_allowed("code_execute"):
                         try:
+                            # write code to file
                             msg = "Saving Python file: {}".format(item["params"]['filename'])
                             print(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
@@ -228,53 +250,52 @@ class Plugin(BasePlugin):
                             with open(path, 'w', encoding="utf-8") as file:
                                 file.write(data)
                                 file.close()
-
                             # run code
                             cmd = self.options['python_cmd_tpl']['value'].format(filename=path)
                             print("Running command: {}".format(cmd))
                             process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                                        stderr=subprocess.PIPE)
                             stdout, stderr = process.communicate()
-                            result = None
                             if stdout:
                                 result = stdout.decode("utf-8")
+                                print("STDOUT: {}".format(result))
                             if stderr:
                                 result = stderr.decode("utf-8")
+                                print("STDERR: {}".format(result))
                             if result is None:
                                 result = "No result (STDOUT/STDERR empty)"
+                                print(result)
                             ctx.results.append({"request": request_item, "result": result})
-                            print("Result (STDOUT): {}".format(result))
-                            ctx.reply = True  # send result message
                         except Exception as e:
-                            ctx.results.append({"request": item, "result": "Error {}".format(e)})
-                            ctx.reply = True
+                            ctx.results.append({"request": item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
+                    # sys_exec
                     elif item["cmd"] == "sys_exec" and self.is_cmd_allowed("sys_exec"):
                         try:
+                            # execute system command
                             msg = "Executing system command: {}".format(item["params"]['command'])
                             print(msg)
                             print("Running command: {}".format(item["params"]['command']))
                             process = subprocess.Popen(item["params"]['command'], shell=True, stdout=subprocess.PIPE,
                                                        stderr=subprocess.PIPE)
                             stdout, stderr = process.communicate()
-                            result = None
                             if stdout:
                                 result = stdout.decode("utf-8")
+                                print("STDOUT: {}".format(result))
                             if stderr:
                                 result = stderr.decode("utf-8")
+                                print("STDERR: {}".format(result))
                             if result is None:
                                 result = "No result (STDOUT/STDERR empty)"
+                                print(result)
                             ctx.results.append({"request": request_item, "result": result})
-                            print("Result (STDOUT): {}".format(result))
-                            ctx.reply = True  # send result message
                         except Exception as e:
-                            ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
-                            ctx.reply = True
+                            ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
             except Exception as e:
-                ctx.results.append({"request": item, "result": "Error {}".format(e)})
-                ctx.reply = True
+                ctx.results.append({"request": item, "result": "Error: {}".format(e)})
+                ctx.reply = True  # send result message
                 print("Error: {}".format(e))
 
         if msg is not None:

@@ -53,11 +53,7 @@ Allows `save_file` command. *Default:* `True`
 
 Allows `delete_file` command. *Default:* `True`
 
-- ``Enable: List files (ls)`` *cmd_list_files*
-
-Allows `list_files` command. *Default:* `True`
-
-- ``Enable: List directories (ls)`` *cmd_list_dirs*
+- ``Enable: List files in directory (ls)`` *cmd_list_dir*
 
 Allows `list_dirs` command. *Default:* `True`
 
@@ -84,6 +80,26 @@ Allows `copy_dir` command. *Default:* `True`
 - ``Enable: Move files and directories (rename)`` *cmd_move*
 
 Allows `move` command. *Default:* `True`
+
+- ``Enable: Check if path is directory`` *cmd_is_dir*
+
+Allows `is_dir` command. *Default:* `True`
+
+- ``Enable: Check if path is file`` *cmd_is_file*
+
+Allows `is_file` command. *Default:* `True`
+
+- ``Enable: Check if file or directory exists`` *cmd_file_exists*
+
+Allows `file_exists` command. *Default:* `True`
+
+- ``Enable: Get file size`` *cmd_file_size*
+
+Allows `file_size` command. *Default:* `True`
+
+- ``Enable: Get file info`` *cmd_file_info*
+
+Allows `file_info` command. *Default:* `True`
 
 
 Command: Code Interpreter

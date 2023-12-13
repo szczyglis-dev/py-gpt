@@ -750,6 +750,7 @@ class Gpt:
     def prepare_ctx_name(self, ctx):
         """Summarizes conversation begin"""
         # default values
+        model = 'gpt-3.5-turbo-1106'
         sys_prompt = "You are an expert in conversation summarization"
         text = "Summarize topic of this conversation in one sentence. Use best keywords to describe it. " \
                "Summary must be in the same language as the conversation and it will be used for conversation title " \
@@ -761,9 +762,11 @@ class Gpt:
             sys_prompt = self.config.data['ctx.auto_summary.system']
         if self.config.data['ctx.auto_summary.prompt'] is not None and self.config.data['ctx.auto_summary.prompt'] != "":
             text = self.config.data['ctx.auto_summary.prompt'].replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
+        if self.config.data['ctx.auto_summary.model'] is not None and self.config.data['ctx.auto_summary.model'] != "":
+            model = self.config.data['ctx.auto_summary.model']
 
         # call OpenAI API
-        response = self.quick_call(text, sys_prompt, False)
+        response = self.quick_call(text, sys_prompt, False, 500, model)
         if response is not None:
             return response
 

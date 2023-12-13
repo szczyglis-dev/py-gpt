@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.25** build: **2023.12.13** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.26** build: **2023.12.13** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -559,6 +559,7 @@ Plugin capabilities include:
 - Downloading files
 - Copying files and directories
 - Moving (renaming) files and directories
+- Reading file info
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -582,13 +583,9 @@ Allows `delete_file` command. *Default:* `True`
 
 - `Enable: List files (ls)` *cmd_list_files*
 
-Allows `list_files` command. *Default:* `True`
+Allows `list_dir` command. *Default:* `True`
 
-- `Enable: List directories (ls)` *cmd_list_dirs*
-
-Allows `list_dirs` command. *Default:* `True`
-
-- `Enable: Directory creation (mkdir)` *cmd_mkdir*
+- `Enable: List files in dirs in directory (ls)` *cmd_list_dir*
 
 Allows `mkdir` command. *Default:* `True`
 
@@ -611,6 +608,26 @@ Allows `copy_dir` command. *Default:* `True`
 - `Enable: Move files and directories (rename)` *cmd_move*
 
 Allows `move` command. *Default:* `True`
+
+- `Enable: Check if path is directory` *cmd_is_dir*
+
+Allows `is_dir` command. *Default:* `True`
+
+- `Enable: Check if path is file` *cmd_is_file*
+
+Allows `is_file` command. *Default:* `True`
+
+- `Enable: Check if file or directory exists` *cmd_file_exists*
+
+Allows `file_exists` command. *Default:* `True`
+
+- `Enable: Get file size` *cmd_file_size*
+
+Allows `file_size` command. *Default:* `True`
+
+- `Enable: Get file info` *cmd_file_info*
+
+Allows `file_info` command. *Default:* `True`
 
 
 ## Command: Code Interpreter
@@ -978,10 +995,6 @@ For more information, please check the OpenAI documentation.
 - `Presence Penalty`: Discourages the model from mentioning topics that have already been 
 brought up in the conversation.
 
-- `Auto-summary system prompt`: System prompt for context auto-summary (GPT-3.5 is used for this)
-
-- `Auto-summary instruction`: Summary prompt for context auto-summary (GPT-3.5 is used for this)
-
 - `Vision: Camera`: Enables camera in Vision mode
 
 - `Vision: Auto capture`: Enables auto-capture on message send in Vision mode
@@ -989,6 +1002,25 @@ brought up in the conversation.
 - `Vision: Camera capture width (px)`: Video capture resolution (width)
 
 - `Vision: Camera capture height (px)`: Video capture resolution (heigth)
+
+- `Vision: Camera IDX (number)`: Video capture camera index (number of camera)
+
+- `Vision: Image capture quality`: Video capture image JPEG quality (%)
+
+**Advanced options**:
+
+- `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*)
+
+- `Prompt (sys): auto summary`: System prompt for context auto-summary
+
+- `Prompt (user): auto summary`: User prompt for context auto-summary
+
+- `Prompt (append): command execute instruction`: Prompt for appending command execution instructions
+
+- `DALL-E: Prompt (sys): prompt generation`: Prompt for generating prompts for DALL-E (if disabled RAW mode)
+
+- `DALL-E: prompt generation model`: Model used for generating prompts for DALL-E (if disabled RAW mode)
+
 
 ## JSON files
 
@@ -1076,6 +1108,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.26 (2023-12-13)
+
+- Added advanced config options for plugins
+- Added additional file operations to Files I/O plugin
 
 ## 2.0.25 (2023-12-13)
 

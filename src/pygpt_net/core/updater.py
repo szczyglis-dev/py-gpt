@@ -210,6 +210,10 @@ class Updater:
         old = parse_version(version)
         current = parse_version(self.window.version)
         if old < current:
+            if old < parse_version("2.0.26"):
+                if 'ctx.auto_summary.model' not in data:
+                    data['ctx.auto_summary.model'] = 'gpt-3.5-turbo-1106'
+                updated = True
             if old < parse_version("2.0.25"):
                 if 'cmd.prompt' not in data:
                     data['cmd.prompt'] = self.get_base_config('cmd.prompt')
