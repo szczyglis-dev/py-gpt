@@ -47,6 +47,8 @@ class Camera:
         """
         if self.thread_started:
             return
+
+        # prepare thread
         self.stop = False
         thread = CameraThread(window=self.window)
         thread.finished.connect(self.handle_stop)
@@ -59,16 +61,17 @@ class Camera:
 
     def stop_capture(self):
         """
-        Stop camera thread
+        Stop camera capture thread
         """
         if not self.thread_started:
             return
+
         self.stop = True
 
     @Slot()
     def handle_stop(self):
         """
-        On stopped signal
+        On capture stopped signal
         """
         self.thread_started = False
         self.thread = None
@@ -76,7 +79,7 @@ class Camera:
 
     def blank_screen(self):
         """
-        Make blank screen
+        Make and set blank screen
         """
         self.window.data['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
 
@@ -84,19 +87,24 @@ class Camera:
         """
         Update camera frame
         """
-        if self.thread is None or not self.thread_started or self.frame is None or not self.is_capture:
+        if self.thread is None \
+                or not self.thread_started \
+                or self.frame is None \
+                or not self.is_capture:
             return
-        label_width = self.window.data['video.preview'].video.width()
+
+        # scale and update frame
+        width = self.window.data['video.preview'].video.width()
         image = QImage(self.frame, self.frame.shape[1], self.frame.shape[0],
                        self.frame.strides[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(image)
-        scaled_pixmap = pixmap.scaled(label_width, pixmap.height(),
+        scaled_pixmap = pixmap.scaled(width, pixmap.height(),
                                       Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.window.data['video.preview'].video.setPixmap(scaled_pixmap)
 
     def capture_frame(self, switch=True):
         """
-        Capture frame and save to attachments
+        Capture frame and save it as attachment
 
         :param switch: True if switch to attachments tab
         """
@@ -116,7 +124,7 @@ class Camera:
             self.window.controller.attachment.attachments.save()
             self.window.controller.attachment.update()
 
-            # switch to attachments tab
+            # switch to attachments tab if needed
             if switch:
                 self.window.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
         except Exception as e:
@@ -147,6 +155,7 @@ class Camera:
         """
         if self.window.config.data['mode'] != 'vision':
             return
+
         self.is_capture = True
         self.window.config.data['vision.capture.enabled'] = True
         self.window.data['video.preview'].setVisible(True)
@@ -159,6 +168,7 @@ class Camera:
         """
         if self.window.config.data['mode'] != 'vision':
             return
+
         self.is_capture = False
         self.window.config.data['vision.capture.enabled'] = False
         self.window.data['video.preview'].setVisible(False)
@@ -182,6 +192,7 @@ class Camera:
         """
         if self.window.config.data['mode'] != 'vision':
             return
+
         self.auto = True
         self.window.config.data['vision.capture.auto'] = True
         self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
@@ -192,6 +203,7 @@ class Camera:
         """
         if self.window.config.data['mode'] != 'vision':
             return
+
         self.auto = False
         self.window.config.data['vision.capture.auto'] = False
         self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
@@ -200,7 +212,7 @@ class Camera:
         """
         Toggle camera
 
-        :param state: state
+        :param state: state (True/False)
         """
         if state:
             self.enable_auto()
