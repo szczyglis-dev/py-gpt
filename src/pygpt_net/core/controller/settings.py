@@ -243,7 +243,7 @@ class Settings:
                 if self.options[id]['type'] == 'bool':
                     self.window.config.data[id] = value
 
-                # update vision checkboxes
+                # call vision checkboxes events
                 if id == "vision.capture.enabled":
                     self.window.data['vision.capture.enable'].setChecked(value)
                 if id == "vision.capture.auto":
