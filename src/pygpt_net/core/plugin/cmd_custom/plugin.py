@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 19:00:00                  #
+# Updated Date: 2023.12.14 11:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -133,6 +133,7 @@ class Plugin(BasePlugin):
         Event: Before input
 
         :param text: Text
+        :return: Text
         """
         return text
 
@@ -141,6 +142,7 @@ class Plugin(BasePlugin):
         Event: Before ctx
 
         :param ctx: Text
+        :return: Text
         """
         return ctx
 
@@ -149,8 +151,17 @@ class Plugin(BasePlugin):
         Event: After ctx
 
         :param ctx: ctx
+        :return: ctx
         """
         return ctx
+
+    def log(self, msg):
+        """
+        Logs message to console
+
+        :param msg: Message to log
+        """
+        self.window.log('[CMD] ' + str(msg))
 
     def cmd_syntax(self, syntax):
         """
@@ -227,26 +238,27 @@ class Plugin(BasePlugin):
 
                         # execute custom command
                         msg = "Running custom command: {}".format(command)
-                        print(msg)
+                        self.log(msg)
                         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
                         result = None
                         if stdout:
                             result = stdout.decode("utf-8")
-                            print("Result (STDOUT): {}".format(result))
+                            self.log("Result (STDOUT): {}".format(result))
                         if stderr:
                             result = stderr.decode("utf-8")
-                            print("Result (STDERR): {}".format(result))
+                            self.log("Result (STDERR): {}".format(result))
                         if result is None:
                             result = "No result (STDOUT/STDERR empty)"
+                            self.log(result)
                         ctx.results.append({"request": request_item, "result": result})
                         ctx.reply = True  # send result message
                     except Exception as e:
                         msg = "Error: {}".format(e)
                         ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                         ctx.reply = True
-                        print(msg)
+                        self.log(msg)
 
         # update status
         if msg is not None:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 19:00:00                  #
+# Updated Date: 2023.12.14 11:00:00                  #
 # ================================================== #
 import mimetypes
 import os.path
@@ -152,27 +152,57 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: Text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: Context
+        """
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: Prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set username"""
+        """
+        Event: On set username
+
+        :param name: Name
+        :return: Name
+        """
         return name
 
     def on_enable(self):
@@ -188,6 +218,7 @@ class Plugin(BasePlugin):
         Event: Before input
 
         :param text: Text
+        :return: Text
         """
         return text
 
@@ -196,6 +227,7 @@ class Plugin(BasePlugin):
         Event: Before ctx
 
         :param ctx: Text
+        :return: Text
         """
         return ctx
 
@@ -204,6 +236,7 @@ class Plugin(BasePlugin):
         Event: After ctx
 
         :param ctx: ctx
+        :return: ctx
         """
         return ctx
 
@@ -218,6 +251,14 @@ class Plugin(BasePlugin):
         if key in self.options and self.options[key]["value"] is True:
             return True
         return False
+
+    def log(self, msg):
+        """
+        Logs message to console
+
+        :param msg: Message to log
+        """
+        self.window.log('[CMD] ' + str(msg))
 
     def cmd_syntax(self, syntax):
         """
@@ -253,128 +294,128 @@ class Plugin(BasePlugin):
                     if item["cmd"] == "save_file":
                         try:
                             msg = "Saving file: {}".format(item["params"]['filename'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                             data = item["params"]['data']
                             with open(path, 'w', encoding="utf-8") as file:
                                 file.write(data)
                                 file.close()
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("File saved: {}".format(path))
+                                self.log("File saved: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # append to file
                     elif item["cmd"] == "append_file" and self.is_cmd_allowed("append_file"):
                         try:
                             msg = "Appending file: {}".format(item["params"]['filename'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                             data = item["params"]['data']
                             with open(path, 'a', encoding="utf-8") as file:
                                 file.write(data)
                                 file.close()
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("File appended: {}".format(path))
+                                self.log("File appended: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # read file
                     elif item["cmd"] == "read_file" and self.is_cmd_allowed("read_file"):
                         try:
                             msg = "Reading file: {}".format(item["params"]['filename'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                             if os.path.exists(path):
                                 with open(path, 'r', encoding="utf-8") as file:
                                     data = file.read()
                                     ctx.results.append({"request": request_item, "result": data})
                                     file.close()
-                                    print("File read: {}".format(path))
+                                    self.log("File read: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File not found"})
-                                print("File not found: {}".format(path))
+                                self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # delete file
                     elif item["cmd"] == "delete_file" and self.is_cmd_allowed("delete_file"):
                         try:
                             msg = "Deleting file: {}".format(item["params"]['filename'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['filename'])
                             if os.path.exists(path):
                                 os.remove(path)
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("File deleted: {}".format(path))
+                                self.log("File deleted: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File not found"})
-                                print("File not found: {}".format(path))
+                                self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # list files
                     elif item["cmd"] == "list_dir" and self.is_cmd_allowed("list_dir"):
                         try:
                             msg = "Listing directory: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 files = os.listdir(path)
                                 ctx.results.append({"request": request_item, "result": files})
-                                print("Files listed: {}".format(path))
-                                print("Result: {}".format(files))
+                                self.log("Files listed: {}".format(path))
+                                self.log("Result: {}".format(files))
                             else:
                                 ctx.results.append({"request": request_item, "result": "Directory not found"})
-                                print("Directory not found: {}".format(path))
+                                self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # mkdir
                     elif item["cmd"] == "mkdir" and self.is_cmd_allowed("mkdir"):
                         try:
                             msg = "Creating directory: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if not os.path.exists(path):
                                 os.makedirs(path)
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("Directory created: {}".format(path))
+                                self.log("Directory created: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "Directory already exists"})
-                                print("Directory already exists: {}".format(path))
+                                self.log("Directory already exists: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # rmdir
                     elif item["cmd"] == "rmdir" and self.is_cmd_allowed("rmdir"):
                         try:
                             msg = "Deleting directory: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 shutil.rmtree(path)
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("Directory deleted: {}".format(path))
+                                self.log("Directory deleted: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "Directory not found"})
-                                print("Directory not found: {}".format(path))
+                                self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # download
                     elif item["cmd"] == "download_file" and self.is_cmd_allowed("download_file"):
                         try:
                             dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
                             msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
-                            print(msg)
+                            self.log(msg)
 
                             # Check if src is URL
                             if item["params"]['src'].startswith("http"):
@@ -399,122 +440,122 @@ class Plugin(BasePlugin):
 
                             # handle result
                             ctx.results.append({"request": request_item, "result": "OK"})
-                            print("File downloaded: {} into {}".format(src, dst))
+                            self.log("File downloaded: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # copy file
                     elif item["cmd"] == "copy_file" and self.is_cmd_allowed("copy_file"):
                         try:
                             msg = "Copying file: {} into {}".format(item["params"]['src'], item["params"]['dst'])
-                            print(msg)
+                            self.log(msg)
                             dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
                             src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
                             shutil.copyfile(src, dst)
                             ctx.results.append({"request": request_item, "result": "OK"})
-                            print("File copied: {} into {}".format(src, dst))
+                            self.log("File copied: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # copy dir
                     elif item["cmd"] == "copy_dir" and self.is_cmd_allowed("copy_dir"):
                         try:
                             msg = "Copying directory: {} into {}".format(item["params"]['src'], item["params"]['dst'])
-                            print(msg)
+                            self.log( msg)
                             dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
                             src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
                             shutil.copytree(src, dst)
                             ctx.results.append({"request": request_item, "result": "OK"})
-                            print("Directory copied: {} into {}".format(src, dst))
+                            self.log("Directory copied: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # move
                     elif item["cmd"] == "move" and self.is_cmd_allowed("move"):
                         try:
                             msg = "Moving: {} into {}".format(item["params"]['src'], item["params"]['dst'])
-                            print(msg)
+                            self.log(msg)
                             dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
                             src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
                             shutil.move(src, dst)
                             ctx.results.append({"request": request_item, "result": "OK"})
-                            print("Moved: {} into {}".format(src, dst))
+                            self.log("Moved: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # is dir
                     elif item["cmd"] == "is_dir" and self.is_cmd_allowed("is_dir"):
                         try:
                             msg = "Checking if directory exists: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.isdir(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("Directory exists: {}".format(path))
+                                self.log("Directory exists: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "Directory not found"})
-                                print("Directory not found: {}".format(path))
+                                self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # is file
                     elif item["cmd"] == "is_file" and self.is_cmd_allowed("is_file"):
                         try:
                             msg = "Checking if file exists: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.isfile(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("File exists: {}".format(path))
+                                self.log("File exists: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File not found"})
-                                print("File not found: {}".format(path))
+                                self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # file exists
                     elif item["cmd"] == "file_exists" and self.is_cmd_allowed("file_exists"):
                         try:
                             msg = "Checking if file exists: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                print("File exists: {}".format(path))
+                                self.log("File exists: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File or directory not found"})
-                                print("File not found: {}".format(path))
+                                self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # file size
                     elif item["cmd"] == "file_size" and self.is_cmd_allowed("file_size"):
                         try:
                             msg = "Checking file size: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 ctx.results.append({"request": request_item, "result": os.path.getsize(path)})
-                                print("File size: {}".format(os.path.getsize(path)))
+                                self.log("File size: {}".format(os.path.getsize(path)))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File not found"})
-                                print("File not found: {}".format(path))
+                                self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
 
                     # file info
                     elif item["cmd"] == "file_info" and self.is_cmd_allowed("file_info"):
                         try:
                             msg = "Checking file info: {}".format(item["params"]['path'])
-                            print(msg)
+                            self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 data = {
@@ -530,17 +571,17 @@ class Plugin(BasePlugin):
                                     'stat': os.stat(path),
                                 }
                                 ctx.results.append({"request": request_item, "result": data})
-                                print("File info: {}".format(data))
+                                self.log("File info: {}".format(data))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File not found"})
-                                print("File not found: {}".format(path))
+                                self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            print("Error: {}".format(e))
+                            self.log("Error: {}".format(e))
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error: {}".format(e)})
                 ctx.reply = True
-                print("Error: {}".format(e))
+                self.log("Error: {}".format(e))
 
         if msg is not None:
             self.window.statusChanged.emit(msg)

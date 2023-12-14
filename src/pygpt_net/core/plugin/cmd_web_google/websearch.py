@@ -42,7 +42,7 @@ class WebSearch:
 
         if key is None or cx is None or key == "" or cx == "":
             err = "Google API key or CX is not set. Please set them in plugin settings."
-            print(err)
+            self.plugin.log(err)
             self.plugin.window.ui.dialogs.alert(err)
             return []
 
@@ -69,7 +69,7 @@ class WebSearch:
         except Exception as e:
             self.plugin.window.log("Plugin: cmd_web_google:google_search: error: {}".format(e))  # log
             self.plugin.window.ui.dialogs.alert("Google Search Error: " + str(e))
-            print("Error in google_search: " + str(e))
+            self.plugin.log("Error in Google Search: " + str(e))
         return []
 
     def query_wiki(self, string):
@@ -100,7 +100,7 @@ class WebSearch:
                 print("Error in query_wiki 1: " + str(e))
 
             self.plugin.window.log("Plugin: cmd_web_google:query_wiki [error]: {}".format(ex))  # log
-            print("Error in query_wiki 2: " + str(ex))
+            self.plugin.log("Error in query_wiki 2: " + str(ex))
 
     def get_urls(self, query):
         """
@@ -142,7 +142,7 @@ class WebSearch:
             return text
         except Exception as e:
             self.plugin.window.log("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
-            print("Error in query_web: " + str(e))
+            self.plugin.log("Error in query_web: " + str(e))
 
     def to_chunks(self, text, chunk_size):
         """
@@ -167,15 +167,21 @@ class WebSearch:
         summary = ""
         sys_prompt = "Summarize the English text in a maximum of 3 paragraphs, trying to find the most important " \
                      "content that can help answer the following question: " + query
-        if self.plugin.options['prompt_summarize']['value'] is not None and self.plugin.options['prompt_summarize']['value'] != "":
+
+        # get custom prompt if set
+        if self.plugin.options['prompt_summarize']['value'] is not None \
+                and self.plugin.options['prompt_summarize']['value'] != "":
             sys_prompt = str(self.plugin.options['prompt_summarize']['value']) + query
         max_tokens = int(self.plugin.options["summary_max_tokens"]['value'])
+
+        # summarize per chunk
         for chunk in chunks:
             # print("Chunk: " + chunk)
             self.plugin.window.log("Plugin: cmd_web_google:get_summarized_text "
                                    "(chunk, max_tokens): {}, {}".
                                    format(chunk, max_tokens))  # log
-            response = self.plugin.window.gpt.quick_call(chunk, sys_prompt, False, max_tokens, self.plugin.options["summary_model"]['value'])
+            response = self.plugin.window.gpt.quick_call(chunk, sys_prompt, False, max_tokens,
+                                                         self.plugin.options["summary_model"]['value'])
             if response is not None and response != "":
                 summary += response
 
@@ -188,7 +194,7 @@ class WebSearch:
         :param query: query to search
         :return: result
         """
-        print("Using web query: " + query)
+        self.plugin.log("Using web query: " + query)
         urls = self.get_urls(query)
 
         # get options
@@ -210,13 +216,13 @@ class WebSearch:
                 current += 1
                 continue
 
-            print("Web attempt: " + str(i) + " of " + str(len(urls)))
-            print("Url: " + url)
+            self.plugin.log("Web attempt: " + str(i) + " of " + str(len(urls)))
+            self.plugin.log("Url: " + url)
             content = self.query_url(url)
             if content is None or content == "":
                 i += 1
                 continue
-            print("Content found (length: {})".format(len(content)))
+            self.plugin.log("Content found (length: {})".format(len(content)))
             if 0 < max_per_page < len(content):
                 content = content[:max_per_page]
             chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
@@ -226,7 +232,7 @@ class WebSearch:
 
             # if result then stop
             if result is not None and result != "":
-                print("Summary generated (length: {})".format(len(result)))
+                self.plugin.log("Summary generated (length: {})".format(len(result)))
                 break
             i += 1
 

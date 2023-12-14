@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 19:00:00                  #
+# Updated Date: 2023.12.14 11:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -186,6 +186,14 @@ class Plugin(BasePlugin):
         """
         return ctx
 
+    def log(self, msg):
+        """
+        Logs message to console
+
+        :param msg: Message to log
+        """
+        self.window.log('[CMD] ' + str(msg))
+
     def cmd_syntax(self, syntax):
         """
         Event: On cmd syntax prepare
@@ -232,9 +240,9 @@ class Plugin(BasePlugin):
                 response = {"request": item, "result": "Error: {}".format(e)}
                 ctx.results.append(response)
                 ctx.reply = True
-                print("Error: {}".format(e))
+                self.log("Error: {}".format(e))
 
         if msg is not None:
-            print(msg)
+            self.log(msg)
             self.window.statusChanged.emit(msg)
         return ctx
