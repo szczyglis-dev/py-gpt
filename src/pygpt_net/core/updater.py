@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 14:00:00                  #
+# Updated Date: 2023.12.14 11:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -57,7 +57,7 @@ class Updater:
             if parsed_newest_version > parsed_current_version:
                 self.show_version_dialog(newest_version, newest_build, changelog)
             else:
-                print("No updates available")
+                print("No updates available.")
         except Exception as e:
             print("Failed to check for updates")
             print(e)
@@ -158,18 +158,30 @@ class Updater:
         data = self.window.config.models
         version = "0.0.0"
         updated = False
+
+        # get version of models file
         if '__meta__' in data and 'version' in data['__meta__']:
             version = data['__meta__']['version']
         old = parse_version(version)
+
+        # get current version of app
         current = parse_version(self.window.version)
+
+        # check if models file is older than current app version
         if old < current:
-            if old < parse_version("2.0.1"):
-                self.patch_file('models.json', True)
-                self.window.config.load_models()
-                data = self.window.config.models
-                updated = True
+
+            # < 0.9.1
             if old < parse_version("0.9.1"):
                 # apply meta only (not attached in 0.9.0)
+                print("Migrating models from < 0.9.1...")
+                updated = True
+
+            # < 2.0.1
+            if old < parse_version("2.0.1"):
+                print("Migrating models from < 2.0.1...")
+                self.patch_file('models.json', True)  # force replace file
+                self.window.config.load_models()
+                data = self.window.config.models
                 updated = True
 
         # update file
@@ -177,7 +189,7 @@ class Updater:
             data = dict(sorted(data.items()))
             self.window.config.models = data
             self.window.config.save_models()
-            print("Migrated models.json.")
+            print("Migrated models.json. [OK]")
 
     def patch_presets(self):
         """Migrates presets to current version"""
@@ -185,101 +197,115 @@ class Updater:
             data = self.window.config.presets[k]
             version = "0.0.0"
             updated = False
+
+            # get version of presets file
             if '__meta__' in data and 'version' in data['__meta__']:
                 version = data['__meta__']['version']
             old = parse_version(version)
+
+            # get current version of app
             current = parse_version(self.window.version)
+
+            # check if presets file is older than current app version
             if old < current:
+
+                # < 2.0.0
                 if old < parse_version("2.0.0"):
-                    self.patch_file('presets', True)
+                    print("Migrating presets dir from < 2.0.0...")
+                    self.patch_file('presets', True)  # force replace file
 
             # update file
             if updated:
                 data = dict(sorted(data.items()))
                 self.window.config.presets[k] = data
                 self.window.config.save_preset(k)
-                print("Migrated presets.")
+                print("Migrated presets. [OK]")
 
     def patch_config(self):
         """Migrates config to current version"""
         data = self.window.config.data
         version = "0.0.0"
         updated = False
+        is_old = False
+
+        # get version of config file
         if '__meta__' in data and 'version' in data['__meta__']:
             version = data['__meta__']['version']
         old = parse_version(version)
+
+        # get current version of app
         current = parse_version(self.window.version)
+
+        # check if config file is older than current app version
         if old < current:
-            if old < parse_version("2.0.26"):
-                if 'ctx.auto_summary.model' not in data:
-                    data['ctx.auto_summary.model'] = 'gpt-3.5-turbo-1106'
+
+            # mark as older version
+            is_old = True
+
+            # < 0.9.1
+            if old < parse_version("0.9.1"):
+                print("Migrating config from < 0.9.1...")
+                keys_to_remove = ['user_id', 'custom']  # not needed anymore
+                for key in keys_to_remove:
+                    if key in data:
+                        del data[key]
+                keys_to_add = ['organization_key']
+                for key in keys_to_add:
+                    if key not in data:
+                        data[key] = ""
                 updated = True
-            if old < parse_version("2.0.25"):
-                if 'cmd.prompt' not in data:
-                    data['cmd.prompt'] = self.get_base_config('cmd.prompt')
-                if 'img_prompt' not in data:
-                    data['img_prompt'] = self.get_base_config('img_prompt')
-                if 'vision.capture.quality' not in data:
-                    data['vision.capture.quality'] = 85
-                if 'attachments_capture_clear' not in data:
-                    data['attachments_capture_clear'] = True
+
+            # < 0.9.2
+            if old < parse_version("0.9.2"):
+                print("Migrating config from < 0.9.2...")
+                keys_to_remove = ['ui.ctx.min_width',
+                                  'ui.ctx.max_width',
+                                  'ui.toolbox.min_width',
+                                  'ui.toolbox.max_width',
+                                  'ui.dialog.settings.width',
+                                  'ui.dialog.settings.height',
+                                  'ui.chatbox.font.color']
+                for key in keys_to_remove:
+                    if key in data:
+                        del data[key]
+                if 'theme' not in data:
+                    data['theme'] = "dark_teal"
+                updated = True
+
+            # < 0.9.4
+            if old < parse_version("0.9.4"):
+                print("Migrating config from < 0.9.4...")
                 if 'plugins' not in data:
                     data['plugins'] = {}
-                if 'cmd_web_google' not in data['plugins']:
-                    data['plugins']['cmd_web_google'] = {}
-                data['plugins']['cmd_web_google']['prompt_summarize'] = "Summarize the English text in a maximum of 3 " \
-                                                                        "paragraphs, trying to find the most " \
-                                                                        "important content that can help answer the " \
-                                                                        "following question: "
+                if 'plugins_enabled' not in data:
+                    data['plugins_enabled'] = {}
                 updated = True
-            if old < parse_version("2.0.19"):
-                if 'img_raw' not in data:
-                    data['img_raw'] = True
-                if not data['img_raw']:
-                    data['img_raw'] = True
+
+            # < 0.9.6
+            if old < parse_version("0.9.6"):
+                print("Migrating config from < 0.9.6...")
+                data['debug'] = True  # enable debug by default
                 updated = True
-            if old < parse_version("2.0.16"):
-                if 'vision.capture.idx' not in data:
-                    data['vision.capture.idx'] = 0
-                if 'img_raw' not in data:
-                    data['img_raw'] = True
-                if 'img_prompt_model' not in data:
-                    data['img_prompt_model'] = "gpt-4-1106-preview"
+
+            # < 2.0.0
+            if old < parse_version("2.0.0"):
+                print("Migrating config from < 2.0.0...")
+                data['theme'] = 'dark_teal'  # force, because removed light themes!
+                if 'cmd' not in data:
+                    data['cmd'] = True
+                if 'stream' not in data:
+                    data['stream'] = True
+                if 'attachments_send_clear' not in data:
+                    data['attachments_send_clear'] = True
+                if 'assistant' not in data:
+                    data['assistant'] = None
+                if 'assistant_thread' not in data:
+                    data['assistant_thread'] = None
                 updated = True
-            if old < parse_version("2.0.14"):
-                if 'vision.capture.enabled' not in data:
-                    data['vision.capture.enabled'] = True
-                if 'vision.capture.auto' not in data:
-                    data['vision.capture.auto'] = True
-                if 'vision.capture.width' not in data:
-                    data['vision.capture.width'] = 800
-                if 'vision.capture.height' not in data:
-                    data['vision.capture.height'] = 600
-                updated = True
-            if old < parse_version("2.0.13"):
-                if 'layout.density' not in data:
-                    data['layout.density'] = 0
-                else:
-                    if data['layout.density'] == -2:
-                        data['layout.density'] = 0
-                updated = True
-            if old < parse_version("2.0.8"):
-                if 'plugins' not in data:
-                    data['plugins'] = {}
-                if 'cmd_web_google' not in data['plugins']:
-                    data['plugins']['cmd_web_google'] = {}
-                data['plugins']['cmd_web_google']['prompt_summarize'] = "Summarize the English text in a maximum of 3 " \
-                                                                        "paragraphs, trying to find the most " \
-                                                                        "important content that can help answer the " \
-                                                                        "following question: "
-                data['plugins']['cmd_web_google']['chunk_size'] = 100000
-                data['plugins']['cmd_web_google']['max_page_content_length'] = 0
-                updated = True
-            if old < parse_version("2.0.6"):
-                if 'layout.density' not in data:
-                    data['layout.density'] = -2
-                updated = True
+
+            # < 2.0.1
             if old < parse_version("2.0.1"):
+                print("Migrating config from < 2.0.1...")
                 if 'send_mode' not in data:
                     data['send_mode'] = 1
                 if 'send_shift_enter' in data:
@@ -299,56 +325,131 @@ class Updater:
                                                       "so it must be EXTREMELY SHORT and concise - use maximum 5 " \
                                                       "words: \n\nUser: {input}\nAI Assistant: {output}"
                 updated = True
-            if old < parse_version("2.0.0"):
-                data['theme'] = 'dark_teal'  # force, because removed light themes!
-                if 'cmd' not in data:
-                    data['cmd'] = True
-                if 'stream' not in data:
-                    data['stream'] = True
-                if 'attachments_send_clear' not in data:
-                    data['attachments_send_clear'] = True
-                if 'assistant' not in data:
-                    data['assistant'] = None
-                if 'assistant_thread' not in data:
-                    data['assistant_thread'] = None
-                updated = True
-            if old < parse_version("0.9.6"):
-                print("Migrating config from < 0.9.6...")
-                data['debug'] = True  # enable debug by default
-                updated = True
-            if old < parse_version("0.9.4"):
-                print("Migrating config from < 0.9.4...")
-                if 'plugins' not in data:
-                    data['plugins'] = {}
-                if 'plugins_enabled' not in data:
-                    data['plugins_enabled'] = {}
-                updated = True
-            if old < parse_version("0.9.2"):
-                print("Migrating config from < 0.9.2...")
-                keys_to_remove = ['ui.ctx.min_width',
-                                  'ui.ctx.max_width',
-                                  'ui.toolbox.min_width',
-                                  'ui.toolbox.max_width',
-                                  'ui.dialog.settings.width',
-                                  'ui.dialog.settings.height',
-                                  'ui.chatbox.font.color']
-                for key in keys_to_remove:
-                    if key in data:
-                        del data[key]
-                if 'theme' not in data:
-                    data['theme'] = "dark_teal"
+
+            # < 2.0.6
+            if old < parse_version("2.0.6"):
+                print("Migrating config from < 2.0.6...")
+                if 'layout.density' not in data:
+                    data['layout.density'] = -2
                 updated = True
 
-            if old < parse_version("0.9.1"):
-                print("Migrating config from < 0.9.1...")
-                keys_to_remove = ['user_id', 'custom']  # not needed anymore
-                for key in keys_to_remove:
-                    if key in data:
-                        del data[key]
-                keys_to_add = ['organization_key']
-                for key in keys_to_add:
-                    if key not in data:
-                        data[key] = ""
+            # < 2.0.8
+            if old < parse_version("2.0.8"):
+                print("Migrating config from < 2.0.8...")
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'cmd_web_google' not in data['plugins']:
+                    data['plugins']['cmd_web_google'] = {}
+                data['plugins']['cmd_web_google'][
+                    'prompt_summarize'] = "Summarize the English text in a maximum of 3 " \
+                                          "paragraphs, trying to find the most " \
+                                          "important content that can help answer the " \
+                                          "following question: "
+                data['plugins']['cmd_web_google']['chunk_size'] = 100000
+                data['plugins']['cmd_web_google']['max_page_content_length'] = 0
+                updated = True
+
+            # < 2.0.13
+            if old < parse_version("2.0.13"):
+                print("Migrating config from < 2.0.13...")
+                if 'layout.density' not in data:
+                    data['layout.density'] = 0
+                else:
+                    if data['layout.density'] == -2:
+                        data['layout.density'] = 0
+                updated = True
+
+            # < 2.0.14
+            if old < parse_version("2.0.14"):
+                print("Migrating config from < 2.0.14...")
+                if 'vision.capture.enabled' not in data:
+                    data['vision.capture.enabled'] = True
+                if 'vision.capture.auto' not in data:
+                    data['vision.capture.auto'] = True
+                if 'vision.capture.width' not in data:
+                    data['vision.capture.width'] = 800
+                if 'vision.capture.height' not in data:
+                    data['vision.capture.height'] = 600
+                updated = True
+
+            # < 2.0.16
+            if old < parse_version("2.0.16"):
+                print("Migrating config from < 2.0.16...")
+                if 'vision.capture.idx' not in data:
+                    data['vision.capture.idx'] = 0
+                if 'img_raw' not in data:
+                    data['img_raw'] = True
+                if 'img_prompt_model' not in data:
+                    data['img_prompt_model'] = "gpt-4-1106-preview"
+                updated = True
+
+            # < 2.0.19
+            if old < parse_version("2.0.19"):
+                print("Migrating config from < 2.0.19...")
+                if 'img_raw' not in data:
+                    data['img_raw'] = True
+                if not data['img_raw']:
+                    data['img_raw'] = True
+                updated = True
+
+            # < 2.0.25
+            if old < parse_version("2.0.25"):
+                print("Migrating config from < 2.0.25...")
+                if 'cmd.prompt' not in data:
+                    data['cmd.prompt'] = self.get_base_config('cmd.prompt')
+                if 'img_prompt' not in data:
+                    data['img_prompt'] = self.get_base_config('img_prompt')
+                if 'vision.capture.quality' not in data:
+                    data['vision.capture.quality'] = 85
+                if 'attachments_capture_clear' not in data:
+                    data['attachments_capture_clear'] = True
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'cmd_web_google' not in data['plugins']:
+                    data['plugins']['cmd_web_google'] = {}
+                data['plugins']['cmd_web_google']['prompt_summarize'] = "Summarize the English text in a maximum of 3 " \
+                                                                        "paragraphs, trying to find the most " \
+                                                                        "important content that can help answer the " \
+                                                                        "following question: "
+                updated = True
+
+            # < 2.0.26
+            if old < parse_version("2.0.26"):
+                print("Migrating config from < 2.0.26...")
+                if 'ctx.auto_summary.model' not in data:
+                    data['ctx.auto_summary.model'] = 'gpt-3.5-turbo-1106'
+                updated = True
+
+        # update file
+        migrated = False
+        if updated:
+            data = dict(sorted(data.items()))
+            self.window.config.data = data
+            self.window.config.save()
+            migrated = True
+
+        # check for any missing config keys if versions mismatch
+        if is_old:
+            if self.post_check_config():
+                migrated = True
+
+        if migrated:
+            print("Migrated config.json. [OK]")
+
+    def post_check_config(self):
+        """
+        Check for any missing config keys and add them.
+
+        :return: True if updated
+        """
+        base = self.get_base_config()
+        data = self.window.config.data
+        updated = False
+
+        # check for any missing keys
+        for key in base:
+            if key not in data:
+                data[key] = base[key]
                 updated = True
 
         # update file
@@ -356,4 +457,5 @@ class Updater:
             data = dict(sorted(data.items()))
             self.window.config.data = data
             self.window.config.save()
-            print("Migrated config.json.")
+
+        return updated

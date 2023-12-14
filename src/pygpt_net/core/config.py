@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 11:00:00                  #
 # ================================================== #
 
 import datetime
@@ -163,7 +163,7 @@ class Config:
             self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             f.close()
             if log:
-                print("Loaded user config: {}".format(path))
+                print("Loaded config: {}".format(path))
         except Exception as e:
             print(e)
 
