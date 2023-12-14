@@ -1,6 +1,6 @@
 # PYGPT v2
 
-Release: **2.0.26** build: **2023.12.13** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.27** build: **2023.12.14** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -18,6 +18,9 @@ For audio interactions, **PYGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
 
+https://github.com/szczyglis-dev/py-gpt/assets/61396542/6619f5e2-df68-4f5d-a2bd-45b955e269a5
+
+Screenshot:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2933de69-5a65-43c7-a386-b222ae2090ca)
 
 You can download compiled version for Windows and Linux here: https://pygpt.net/#download
@@ -1108,6 +1111,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.27 (2023-12-14)
+
+- Added specified "url open" command to Web Search plugin
+- Added additional advanced options to above plugins
+- Improved Web Search and Commands Execution
+- Improved updater and config patcher
+- Improved command execution logging
 
 ## 2.0.26 (2023-12-13)
 

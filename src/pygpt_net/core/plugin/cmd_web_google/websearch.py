@@ -156,23 +156,31 @@ class WebSearch:
             return []
         return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
-    def get_summarized_text(self, chunks, query):
+    def get_summarized_text(self, chunks, query, summarize_prompt=None):
         """
         Get summarized text from chunks
 
         :param chunks: chunks of text
         :param query: query string
+        :param summarize_prompt: custom sumarize prompt
         :return: summarized text
         """
         summary = ""
-        sys_prompt = "Summarize the English text in a maximum of 3 paragraphs, trying to find the most important " \
-                     "content that can help answer the following question: " + query
+        sys_prompt = "Summarize text in English in a maximum of 3 paragraphs, trying to find the most important " \
+                     "content that can help answer the following question: {query}".format(query=query)
 
         # get custom prompt if set
         if self.plugin.options['prompt_summarize']['value'] is not None \
                 and self.plugin.options['prompt_summarize']['value'] != "":
-            sys_prompt = str(self.plugin.options['prompt_summarize']['value']) + query
+            sys_prompt = str(self.plugin.options['prompt_summarize']['value']).format(query=query)
         max_tokens = int(self.plugin.options["summary_max_tokens"]['value'])
+
+        # custom summarize prompt
+        if summarize_prompt is not None and summarize_prompt != "":
+            sys_prompt = summarize_prompt
+        else:
+            if query is None or query == "":
+                sys_prompt = str(self.plugin.options['prompt_summarize_url']['value']).format(query=query)
 
         # summarize per chunk
         for chunk in chunks:
@@ -187,11 +195,13 @@ class WebSearch:
 
         return summary
 
-    def make_query(self, query, page_no=1):
+    def make_query(self, query, page_no=1, summarize_prompt=""):
         """
         Get system prompt from web search results
 
         :param query: query to search
+        :param page_no: page number
+        :param summarize_prompt: custom prompt
         :return: result
         """
         self.plugin.log("Using web query: " + query)
@@ -217,22 +227,22 @@ class WebSearch:
                 continue
 
             self.plugin.log("Web attempt: " + str(i) + " of " + str(len(urls)))
-            self.plugin.log("Url: " + url)
+            self.plugin.log("URL: " + url)
             content = self.query_url(url)
             if content is None or content == "":
                 i += 1
                 continue
-            self.plugin.log("Content found (length: {})".format(len(content)))
+            self.plugin.log("Content found (chars: {})".format(len(content)))
             if 0 < max_per_page < len(content):
                 content = content[:max_per_page]
             chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
             self.plugin.window.log(
                 "Plugin: cmd_web_google: URL: {}".format(url))  # log
-            result = self.get_summarized_text(chunks, str(query))
+            result = self.get_summarized_text(chunks, str(query), summarize_prompt)
 
             # if result then stop
             if result is not None and result != "":
-                self.plugin.log("Summary generated (length: {})".format(len(result)))
+                self.plugin.log("Summary generated (chars: {})".format(len(result)))
                 break
             i += 1
 
@@ -249,3 +259,47 @@ class WebSearch:
             "Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
 
         return result, total_found, current, url
+
+    def open_url(self, url, summarize_prompt=""):
+        """
+        Get system prompt from web search results
+
+        :param query: query to search
+        :param page_no: page number
+        :param summarize_prompt: custom prompt
+        :return: result
+        """
+        self.plugin.log("Using URL: " + url)
+
+        # get options
+        max_per_page = int(self.plugin.options["max_page_content_length"]['value'])
+        chunk_size = int(self.plugin.options["chunk_size"]['value'])
+        max_result_size = int(self.plugin.options["max_result_length"]['value'])
+
+        self.plugin.log("URL: " + url)
+        content = self.query_url(url)
+        self.plugin.log("Content found (chars: {})".format(len(content)))
+        if 0 < max_per_page < len(content):
+            content = content[:max_per_page]
+        chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
+        self.plugin.window.log(
+            "Plugin: cmd_web_google: URL: {}".format(url))  # log
+        result = self.get_summarized_text(chunks, "", summarize_prompt)
+
+        # if result then stop
+        if result is not None and result != "":
+            self.plugin.log("Summary generated (chars: {})".format(len(result)))
+
+        self.plugin.window.log(
+            "Plugin: cmd_web_google: summary: {}".format(result))  # log
+        if result is not None:
+            self.plugin.window.log(
+                "Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
+
+        if len(result) > max_result_size:
+            result = result[:max_result_size]
+
+        self.plugin.window.log(
+            "Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
+
+        return result, url

@@ -420,6 +420,21 @@ class Updater:
                     data['ctx.auto_summary.model'] = 'gpt-3.5-turbo-1106'
                 updated = True
 
+            # < 2.0.27
+            if old < parse_version("2.0.27"):
+                print("Migrating config from < 2.0.27...")
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'cmd_web_google' not in data['plugins']:
+                    data['plugins']['cmd_web_google'] = {}
+                data['plugins']['cmd_web_google'][
+                    'prompt_summarize'] = "Summarize text in English in a maximum of 3 " \
+                                          "paragraphs, trying to find the most " \
+                                          "important content that can help answer the " \
+                                          "following question: {query}"
+                data['cmd.prompt'] = self.get_base_config('cmd.prompt')  # fix
+                updated = True
+
         # update file
         migrated = False
         if updated:

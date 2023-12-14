@@ -90,7 +90,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui = UI(self)
         self.ui.setup()
 
-        self.setWindowTitle('PYGPT.net v{} | build {}'.format(self.version, self.build))
+        self.setWindowTitle('PYGPT.net AI Assistant, v{} | build {}'.format(self.version, self.build))
 
         # setup signals
         self.statusChanged.connect(self.update_status)

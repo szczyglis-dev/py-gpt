@@ -1,3 +1,11 @@
+2.0.27 (2023-12-14)
+
+- Added specified "url open" command to Web Search plugin
+- Added additional advanced options to above plugins
+- Improved Web Search and Commands Execution
+- Improved updater and config patcher
+- Improved command execution logging
+
 2.0.26 (2023-12-13)
 
 - Added advanced config options for plugins

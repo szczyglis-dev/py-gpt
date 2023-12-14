@@ -21,7 +21,7 @@ class Plugin(BasePlugin):
         self.description = "Allows to connect to the Web and search web pages for actual data."
         self.input_text = None
         self.window = None
-        self.allowed_cmds = ["web_search"]
+        self.allowed_cmds = ["web_search", "web_url_open"]
         self.order = 100
         self.init_options()
         self.websearch = WebSearch(self)
@@ -65,12 +65,6 @@ class Plugin(BasePlugin):
                         "Disable SSL verify",
                         "Disables SSL verification when crawling web pages",
                         tooltip="Disable SSL verify")
-        self.add_option("prompt_summarize", "textarea", "Summarize the English text in a maximum of 3 paragraphs, "
-                                                        "trying to find the most important content that can help "
-                                                        "answer the following question: ",
-                        "Summarize prompt",
-                        "Prompt used for web search results summarize",
-                        tooltip="Prompt", advanced=True)
         self.add_option("max_result_length", "int", 1500,
                         "Max result length",
                         "Max length of summarized result (characters)",
@@ -82,6 +76,33 @@ class Plugin(BasePlugin):
         self.add_option("summary_model", "text", "gpt-3.5-turbo-1106",
                         "Model used for web page summarize",
                         "Model used for web page summarize, default: gpt-3.5-turbo-1106")
+        self.add_option("prompt_summarize", "textarea", "Summarize text in English in a maximum of 3 paragraphs, "
+                                                        "trying to find the most important content that can help "
+                                                        "answer the following question: {query}",
+                        "Summarize prompt",
+                        "Prompt used for web search results summarize, use {query} to as a placeholder for search query",
+                        tooltip="Prompt", advanced=True)
+        self.add_option("prompt_summarize_url", "textarea", "Summarize text in English in a maximum of 3 paragraphs, "
+                                                            "trying to find the most important content.",
+                        "Summarize prompt (URL open)",
+                        "Prompt used for specified URL page summarize",
+                        tooltip="Prompt", advanced=True)
+
+        self.add_option("syntax_web_search", "textarea", '"web_search": use it to search the Web for more info, '
+                                                         'prepare a query for the search engine itself, start from '
+                                                         'page 1. If you don\'t find anything or don\'t find enough '
+                                                         'information, try the next page. Use a custom summary prompt '
+                                                         'if necessary, otherwise, a default summary will be used. '
+                                                         'Max pages limit: {max_pages}, params: "query", "page", '
+                                                         '"summarize_prompt"',
+                        "Syntax: web_search",
+                        "Syntax for web search command", advanced=True)
+        self.add_option("syntax_web_url_open", "textarea", '"web_url_open": use it to get contents from a specific '
+                                                           'Web page. Use a custom summary prompt if necessary, '
+                                                           'otherwise a default summary will be used. Params: "url", '
+                                                           '"summarize_prompt"',
+                        "Syntax: web_url_open",
+                        "Syntax for web URL open command", advanced=True)
 
     def setup(self):
         """
@@ -200,10 +221,12 @@ class Plugin(BasePlugin):
         Event: On cmd syntax prepare
 
         :param syntax: Syntax
+        :return: Syntax
         """
-        syntax += '\n"web_search": use it for search Web for more info, prepare query for search engine itself, ' \
-                  'start from page 1, If you don\'t find anything or don\'t find enough information, try the next ' \
-                  'page. Max pages limit: {}, params: "query", "page"'.format(self.options["num_pages"]["value"])
+        for option in self.allowed_cmds:
+            key = "syntax_" + option
+            if key in self.options:
+                syntax += "\n" + self.options[key]["value"]
         return syntax
 
     def cmd(self, ctx, cmds):
@@ -219,6 +242,8 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] in self.allowed_cmds:
 
+                    ctx.reply = True
+
                     # prepare request item for result
                     request_item = {"cmd": item["cmd"]}
 
@@ -226,8 +251,11 @@ class Plugin(BasePlugin):
                         page = 1
                         if "page" in item["params"]:
                             page = int(item["params"]["page"])
+                        custom_summarize_prompt = None
+                        if "summarize_prompt" in item["params"]:
+                            custom_summarize_prompt = item["params"]["summarize_prompt"]
                         msg = "Web search finished: '{}'".format(item["params"]["query"])
-                        result, total_found, current, url = self.websearch.make_query(item["params"]["query"], page)
+                        result, total_found, current, url = self.websearch.make_query(item["params"]["query"], page, custom_summarize_prompt)
                         data = {
                             'content': result,
                             'url': url,
@@ -236,7 +264,20 @@ class Plugin(BasePlugin):
                         }
                         response = {"request": request_item, "result": data}
                         ctx.results.append(response)
-                        ctx.reply = True
+
+                    elif item["cmd"] == "web_url_open":
+                        custom_summarize_prompt = None
+                        if "summarize_prompt" in item["params"]:
+                            custom_summarize_prompt = item["params"]["summarize_prompt"]
+                        url = item["params"]["url"]
+                        msg = "Opening Web URL: '{}'".format(item["params"]["url"])
+                        result, url = self.websearch.open_url(url, custom_summarize_prompt)
+                        data = {
+                            'content': result,
+                            'url': url,
+                        }
+                        response = {"request": request_item, "result": data}
+                        ctx.results.append(response)
             except Exception as e:
                 response = {"request": item, "result": "Error: {}".format(e)}
                 ctx.results.append(response)
