@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 15:00:00                  #
+# Updated Date: 2023.12.14 21:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -229,8 +229,8 @@ class Plugin(BasePlugin):
         """
         for option in self.allowed_cmds:
             key = "syntax_" + option
-            if key in self.options:
-                syntax += "\n" + self.options[key]["value"]
+            if self.has_option(key):
+                syntax += "\n" + self.get_option_value(key)
         return syntax
 
     def cmd(self, ctx, cmds):
@@ -259,7 +259,8 @@ class Plugin(BasePlugin):
                         if "summarize_prompt" in item["params"]:
                             custom_summarize_prompt = item["params"]["summarize_prompt"]
                         msg = "Web search finished: '{}'".format(item["params"]["query"])
-                        result, total_found, current, url = self.websearch.make_query(item["params"]["query"], page, custom_summarize_prompt)
+                        result, total_found, current, url = self.websearch.make_query(item["params"]["query"],
+                                                                                      page, custom_summarize_prompt)
                         data = {
                             'content': result,
                             'url': url,

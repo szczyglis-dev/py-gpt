@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 21:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -171,7 +171,7 @@ class Plugin(BasePlugin):
         :param syntax: Syntax
         :return: Syntax
         """
-        for item in self.options["cmds"]["value"]:
+        for item in self.get_option_value("cmds"):
             syntax += '\n"{}": {}'.format(item["name"], item["instruction"])
             if item["params"] != "":
                 params = self.extract_params(item["params"])
@@ -207,7 +207,7 @@ class Plugin(BasePlugin):
         """
         msg = None
         for item in cmds:
-            for my_cmd in self.options["cmds"]["value"]:
+            for my_cmd in self.get_option_value("cmds"):
 
                 # prepare request item for result
                 request_item = {"cmd": item["cmd"]}

@@ -134,7 +134,7 @@ class Plugin(BasePlugin):
         Event: Before input
 
         :param text: Text
-        :return: text
+        :return: Text
         """
         self.input_text = text
         return text
@@ -152,7 +152,7 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx:Context
+        :param ctx: Context
         :return: Context
         """
         text = ctx.output
@@ -162,13 +162,15 @@ class Plugin(BasePlugin):
                     api_key=self.window.config.get('api_key'),
                     organization=self.window.config.get('organization_key'),
                 )
-                voice = self.options['voice']['value']
+                voice = self.get_option_value('voice')
+                model = self.get_option_value('model')
                 path = os.path.join(self.window.config.path, 'output.mp3')
-                model = self.options['model']['value']
+
                 if model not in self.allowed_models:
                     model = 'tts-1'
                 if voice not in self.allowed_voices:
                     voice = 'alloy'
+
                 tts = TTS(client, model, path, voice, text)
                 t = threading.Thread(target=tts.run)
                 t.start()

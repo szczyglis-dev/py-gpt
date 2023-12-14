@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 19:00:00                  #
+# Updated Date: 2023.12.14 21:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -83,12 +83,12 @@ class Plugin(BasePlugin):
         :param ctx: Context
         :return: Context
         """
-        iterations = int(self.options["iterations"]["value"])
+        iterations = int(self.get_option_value("iterations"))
         if iterations == 0 or self.iteration < iterations:
             self.iteration += 1
             if self.prev_output is not None and self.prev_output != "":
                 self.window.log(
-                    "Plugin: self_loop:on_ctx_end [sending prev_output...]: {}".format(self.prev_output))  # log
+                    "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
                 self.window.controller.input.send(self.prev_output)
         return ctx
 
@@ -143,7 +143,7 @@ class Plugin(BasePlugin):
         :param ctx: Context
         :return: Context
         """
-        if self.iteration > 0 and self.iteration % 2 != 0 and self.options["reverse_roles"]["value"]:
+        if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
             self.window.log("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
             tmp_input_name = ctx.input_name
             tmp_output_name = ctx.output_name
@@ -160,7 +160,7 @@ class Plugin(BasePlugin):
         :return: ctx
         """
         self.prev_output = ctx.output
-        if self.options["clear_output"]["value"]:
+        if self.get_option_value("clear_output"):
             self.window.log("Plugin: self_loop:on_ctx_after [before]: {}".format(ctx.dump()))  # log
             ctx.output = ""
             self.window.log("Plugin: self_loop:on_ctx_after [after]: {}".format(ctx.dump()))  # log

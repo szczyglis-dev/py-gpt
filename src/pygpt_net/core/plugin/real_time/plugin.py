@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 21:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -18,7 +18,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__()
         self.id = "real_time"
         self.name = "Real Time"
-        self.description = "Appends real-time (hour and date) to every system prompt."
+        self.description = "Appends current time and date to every system prompt."
         self.window = None
         self.order = 2
         self.init_options()
@@ -93,13 +93,13 @@ class Plugin(BasePlugin):
         :return: Prompt
         """
         self.window.log("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
-        if self.options["hour"]["value"] or self.options["date"]["value"]:
-            if self.options["hour"]["value"] and self.options["date"]["value"]:
-                prompt += self.options["tpl"]["value"].format(time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            elif self.options["hour"]["value"]:
-                prompt += self.options["tpl"]["value"].format(time=datetime.now().strftime('%H:%M:%S'))
-            elif self.options["date"]["value"]:
-                prompt += self.options["tpl"]["value"].format(time=datetime.now().strftime('%Y-%m-%d'))
+        if self.get_option_value("hour") or self.get_option_value("date"):
+            if self.get_option_value("hour") and self.get_option_value("date"):
+                prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            elif self.get_option_value("hour"):
+                prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%H:%M:%S'))
+            elif self.get_option_value("date"):
+                prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d'))
         self.window.log("Plugin: real_time:on_system_prompt [after]: {}".format(prompt))  # log
         return prompt
 

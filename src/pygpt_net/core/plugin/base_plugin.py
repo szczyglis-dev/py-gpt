@@ -90,6 +90,16 @@ class BasePlugin:
         if self.has_option(name):
             return self.options[name]
 
+    def get_option_value(self, name):
+        """
+        Returns option value
+
+        :param name: Option name
+        :return: Option value
+        """
+        if self.has_option(name):
+            return self.options[name]["value"]
+
     def attach(self, window):
         """
         Attaches window

@@ -295,17 +295,17 @@ class AudioInputThread(QObject):
                 self.started.emit()
                 try:
                     with sr.Microphone() as source:
-                        if self.plugin.options["adjust_noise"]['value']:
+                        if self.plugin.get_option_value('adjust_noise'):
                             recognizer.adjust_for_ambient_noise(source)
-                        timeout = self.plugin.options["timeout"]['value']
-                        phrase_length = self.plugin.options["phrase_length"]['value']
+                        timeout = self.plugin.get_option_value('timeout')
+                        phrase_length = self.plugin.get_option_value('phrase_length')
                         audio_data = recognizer.listen(source, timeout, phrase_length)
 
                         # check if audio data is not too silent
                         if audio_data.get_wav_data():
                             energy = recognizer.energy_threshold
-                            if self.plugin.options["min_energy"]['value'] > 0 \
-                                    and energy < self.plugin.options["min_energy"]['value']:
+                            min_energy = self.plugin.get_option_value('min_energy')
+                            if min_energy > 0 and energy < min_energy:
                                 continue
                     try:
                         if not self.plugin.waiting and audio_data.get_wav_data():
@@ -317,7 +317,7 @@ class AudioInputThread(QObject):
                             if os.path.exists(path):
                                 audio_file = open(path, "rb")
                                 transcript = client.audio.transcriptions.create(
-                                    model=self.plugin.options["model"]['value'],
+                                    model=self.plugin.get_option_value('model'),
                                     file=audio_file,
                                     response_format="text"
                                 )
@@ -329,7 +329,7 @@ class AudioInputThread(QObject):
                                     self.finished.emit(transcript)
 
                                     # stop listening if not continuous
-                                    if not self.plugin.options["continuous_listen"]['value'] \
+                                    if not self.plugin.get_option_value('continuous_listen') \
                                             or transcript.replace('.', '').strip().lower() in self.plugin.stop_words:
                                         self.plugin.listening = False
                                         self.stopped.emit()

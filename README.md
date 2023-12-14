@@ -1115,6 +1115,12 @@ may consume additional tokens that are not displayed in the main window.
 
 # CHANGELOG
 
+## 2.0.29 (2023-12-14)
+
+- Added config and plugin options getters/setters
+- Changed logo
+- Small UI fixes
+
 ## 2.0.28 (2023-12-14)
 
 - Added new hidden Credentials/API Key field type (asterisks against plain-text)

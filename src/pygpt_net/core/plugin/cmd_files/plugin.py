@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 21:00:00                  #
 # ================================================== #
 import mimetypes
 import os.path
@@ -248,7 +248,7 @@ class Plugin(BasePlugin):
         :return: True if allowed
         """
         key = "cmd_" + cmd
-        if key in self.options and self.options[key]["value"] is True:
+        if self.has_option(key) and self.get_option_value(key) is True:
             return True
         return False
 
@@ -271,8 +271,8 @@ class Plugin(BasePlugin):
         for option in self.allowed_cmds:
             if self.is_cmd_allowed(option):
                 key = "syntax_" + option
-                if key in self.options:
-                    syntax += "\n" + self.options[key]["value"]
+                if self.has_option(key):
+                    syntax += "\n" + str(self.get_option_value(key))
         return syntax
 
     def cmd(self, ctx, cmds):
