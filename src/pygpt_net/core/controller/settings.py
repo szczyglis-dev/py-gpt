@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 13:00:00                  #
+# Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
 import json
 import os
@@ -56,14 +56,9 @@ class Settings:
 
         :param initialize: True if marks settings as initialized
         """
-        path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
-        if not os.path.isfile(path):
-            return {}
-        with open(path) as f:
-            self.options = json.load(f)
-            if initialize:
-                self.initialized = True
-            f.close()
+        self.options = self.window.settings.get_options()
+        if initialize:
+            self.initialized = True
 
     def save(self, id=None):
         """
@@ -484,6 +479,10 @@ class Settings:
         # load default user config
         self.window.settings.load_user_settings()
 
+        # re-init settings
+        self.window.controller.settings.init('settings')
+        self.window.ui.dialogs.alert(trans('dialog.settings.defaults.user.result'))
+
     def load_defaults_app(self, force=False):
         """
         Loads default app config
@@ -496,6 +495,10 @@ class Settings:
 
         # load default user config
         self.window.settings.load_app_settings()
+
+        # re-init settings
+        self.window.controller.settings.init('settings')
+        self.window.ui.dialogs.alert(trans('dialog.settings.defaults.app.result'))
 
     def get_options(self):
         """

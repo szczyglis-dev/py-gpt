@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 18:00:00                  #
+# Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
 
 class BasePlugin:
@@ -29,7 +29,8 @@ class BasePlugin:
         return self.options
 
     def add_option(self, name, type, value=None, label="", description="",
-                   tooltip=None, min=None, max=None, multiplier=1, step=1, slider=False, keys=None, advanced=False, secret=False):
+                   tooltip=None, min=None, max=None, multiplier=1, step=1, slider=False,
+                   keys=None, advanced=False, secret=False, persist=False):
         """
         Adds option
 
@@ -47,6 +48,7 @@ class BasePlugin:
         :param keys: Option keys (for dict type)
         :param advanced: Option advanced (True/False)
         :param secret: Option secret (True/False)
+        :param persist: Option persist (True/False)
         """
         if tooltip is None:
             tooltip = description
@@ -64,7 +66,8 @@ class BasePlugin:
             "slider": slider,
             "keys": keys,
             "advanced": advanced,
-            "secret": secret
+            "secret": secret,
+            "persist": persist,
         }
         self.options[name] = option
 

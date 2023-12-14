@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
 
 import threading
@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
                         "Azure API Key",
                         "You can obtain your own API key at: "
                         "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
-                        tooltip="Azure API Key", secret=True)
+                        tooltip="Azure API Key", secret=True, persist=True)
         self.add_option("azure_region", "text", "eastus",
                         "Azure Region",
                         "Specify Azure region, e.g. eastus",

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 14:00:00                  #
+# Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -208,6 +208,7 @@ class Plugins:
 
         # reload settings window
         self.init_settings()
+        self.window.ui.dialogs.alert(trans('dialog.settings.plugin.defaults.user.result'))
 
     def load_defaults_app(self, force=False):
         """Loads plugins settings app defaults"""
@@ -220,6 +221,7 @@ class Plugins:
 
         # reload settings window
         self.init_settings()
+        self.window.ui.dialogs.alert(trans('dialog.settings.plugin.defaults.app.result'))
 
     def register(self, plugin):
         """

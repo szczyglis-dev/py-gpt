@@ -12,6 +12,7 @@
             "bold": true
         },
         "secret": true,
+        "persist": true,
         "advanced": false
     },
     "organization_key": {
@@ -27,6 +28,7 @@
             "bold": true
         },
         "secret": true,
+        "persist": true,
         "advanced": false
     },
     "font_size": {

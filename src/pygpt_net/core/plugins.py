@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 18:00:00                  #
+# Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -116,6 +116,21 @@ class Plugins:
 
         :param id: Plugin id
         """
+        persisted_options = []
+        persisted_values = {}
+        for key in self.plugins[id].options:
+            if 'persist' in self.plugins[id].options[key] and self.plugins[id].options[key]['persist']:
+                persisted_options.append(key)
+
+        # store persisted values
+        for key in persisted_options:
+            persisted_values[key] = self.plugins[id].options[key]['value']
+
+        # restore initial values
         if id in self.plugins:
             if hasattr(self.plugins[id], 'initial_options'):
                 self.plugins[id].options = dict(self.plugins[id].initial_options)
+
+        # restore persisted values
+        for key in persisted_options:
+            self.plugins[id].options[key]['value'] = persisted_values[key]

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -33,12 +33,12 @@ class Plugin(BasePlugin):
         self.add_option("google_api_key", "text", "",
                         "Google Custom Search API KEY",
                         "You can obtain your own API key at https://developers.google.com/custom-search/v1/overview",
-                        tooltip="Google Custom Search CX ID", secret=True)
+                        tooltip="Google Custom Search CX ID", secret=True, persist=True)
         self.add_option("google_api_cx", "text", "",
                         "Google Custom Search CX ID",
                         "You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all"
                         "\nRemember to enable \"Search on ALL internet pages\" option in project settings.",
-                        tooltip="Google Custom Search CX ID", secret=True)
+                        tooltip="Google Custom Search CX ID", secret=True, persist=True)
         self.add_option("num_pages", "int", 10,
                         "Number of pages to search",
                         "Number of max pages to search per query",
@@ -75,12 +75,12 @@ class Plugin(BasePlugin):
                         min=0, max=None)
         self.add_option("summary_model", "text", "gpt-3.5-turbo-1106",
                         "Model used for web page summarize",
-                        "Model used for web page summarize, default: gpt-3.5-turbo-1106")
+                        "Model used for web page summarize, default: gpt-3.5-turbo-1106", advanced=True)
         self.add_option("prompt_summarize", "textarea", "Summarize text in English in a maximum of 3 paragraphs, "
                                                         "trying to find the most important content that can help "
                                                         "answer the following question: {query}",
                         "Summarize prompt",
-                        "Prompt used for web search results summarize, use {query} to as a placeholder for search query",
+                        "Prompt used for web search results summarize, use {query} as a placeholder for search query",
                         tooltip="Prompt", advanced=True)
         self.add_option("prompt_summarize_url", "textarea", "Summarize text in English in a maximum of 3 paragraphs, "
                                                             "trying to find the most important content.",
@@ -96,7 +96,7 @@ class Plugin(BasePlugin):
                                                          'Max pages limit: {max_pages}, params: "query", "page", '
                                                          '"summarize_prompt"',
                         "Syntax: web_search",
-                        "Syntax for web search command", advanced=True)
+                        "Syntax for web search command, use {max_pages} as a placeholder for `num_pages` value", advanced=True)
         self.add_option("syntax_web_url_open", "textarea", '"web_url_open": use it to get contents from a specific '
                                                            'Web page. Use a custom summary prompt if necessary, '
                                                            'otherwise a default summary will be used. Params: "url", '
