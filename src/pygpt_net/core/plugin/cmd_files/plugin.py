@@ -208,14 +208,24 @@ class Plugin(BasePlugin):
         return ctx
 
     def is_cmd_allowed(self, cmd):
-        """Checks if cmd is allowed"""
+        """
+        Checks if cmd is allowed
+
+        :param cmd: Command
+        :return: True if allowed
+        """
         key = "cmd_" + cmd
         if key in self.options and self.options[key]["value"] is True:
             return True
         return False
 
     def cmd_syntax(self, syntax):
-        """Event: On cmd syntax prepare"""
+        """
+        Event: On cmd syntax prepare
+
+        :param syntax: Syntax
+        :return: Syntax
+        """
         for option in self.allowed_cmds:
             if self.is_cmd_allowed(option):
                 key = "syntax_" + option
@@ -436,7 +446,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
-                    # is_dir
+                    # is dir
                     elif item["cmd"] == "is_dir" and self.is_cmd_allowed("is_dir"):
                         try:
                             msg = "Checking if directory exists: {}".format(item["params"]['path'])
@@ -452,7 +462,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
-                    # is_file
+                    # is file
                     elif item["cmd"] == "is_file" and self.is_cmd_allowed("is_file"):
                         try:
                             msg = "Checking if file exists: {}".format(item["params"]['path'])
@@ -468,7 +478,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
-                    # file_exists
+                    # file exists
                     elif item["cmd"] == "file_exists" and self.is_cmd_allowed("file_exists"):
                         try:
                             msg = "Checking if file exists: {}".format(item["params"]['path'])
@@ -484,7 +494,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
-                    # file_size
+                    # file size
                     elif item["cmd"] == "file_size" and self.is_cmd_allowed("file_size"):
                         try:
                             msg = "Checking file size: {}".format(item["params"]['path'])
@@ -500,7 +510,7 @@ class Plugin(BasePlugin):
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             print("Error: {}".format(e))
 
-                    # file_info
+                    # file info
                     elif item["cmd"] == "file_info" and self.is_cmd_allowed("file_info"):
                         try:
                             msg = "Checking file info: {}".format(item["params"]['path'])
