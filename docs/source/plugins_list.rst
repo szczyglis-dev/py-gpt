@@ -104,7 +104,7 @@ Allows system commands execution. *Default:* `True`
 Command: Custom Commands
 ------------------------
 
-With the ``Custom Commands`` plugin, you can integrate **PYGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PYGPT** includes a simple tutorial command for testing and learning how it works:
+With the ``Custom Commands`` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 .. image:: images/v2_custom_cmd.png
    :width: 800
@@ -140,7 +140,7 @@ Here are some predefined system placeholders for use:
 - ``{_date}`` - current date in ``Y-m-d`` format
 - ``{_datetime}`` - current date and time in ``Y-m-d H:M:S`` format
 - ``{_file}`` - path to the file from which the command is invoked
-- ``{_home}`` - path to PYGPT's home/working directory
+- ``{_home}`` - path to PyGPT's home/working directory
 
 You can connect predefined placeholders with your own params.
 
@@ -156,11 +156,11 @@ With the setup above, every time you ask GPT to generate a song for you and save
 1. Generate a song.
 2. Locate your command.
 3. Execute the command by sending the song's title and text.
-4. The command will save the song text into a file named with the song's title in the PYGPT working directory.
+4. The command will save the song text into a file named with the song's title in the PyGPT working directory.
 
 **Example tutorial command**
 
-**PYGPT** provides simple tutorial command to show how it work, to run it just ask GPT for execute ``tutorial test command`` and it will show you how it works:
+**PyGPT** provides simple tutorial command to show how it work, to run it just ask GPT for execute ``tutorial test command`` and it will show you how it works:
 
 .. code-block:: console
 
@@ -173,7 +173,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 Command: Google Web Search
 --------------------------
 
-**PYGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
+**PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
 To activate this feature, turn on the ``Command: Google Web Search`` plugin found in the ``Plugins`` menu.
 
@@ -187,7 +187,7 @@ After registering an account, create a new project and select it from the list o
 https://programmablesearchengine.google.com/controlpanel/all
 
 After selecting your project, you need to enable the ``Whole Internet Search`` option in its settings. 
-Then, copy the following two items into PYGPT:
+Then, copy the following two items into PyGPT:
 
 * Api Key
 * CX ID
@@ -201,7 +201,7 @@ These data must be configured in the appropriate fields in the ``Plugins / Setti
 Audio Output (Microsoft Azure)
 --------------------------
 
-**PYGPT** implements voice synthesis using the ``Microsoft Azure Text-To-Speech`` API.
+**PyGPT** implements voice synthesis using the ``Microsoft Azure Text-To-Speech`` API.
 This feature requires to have an ``Microsoft Azure`` API Key. 
 You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
@@ -359,7 +359,7 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 Creating Your Own Plugins
 --------------------------
 
-You can create your own plugin for **PYGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins. Then, you can create your own and register it in the system using:
+You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins. Then, you can create your own and register it in the system using:
 
 .. code-block:: python
 

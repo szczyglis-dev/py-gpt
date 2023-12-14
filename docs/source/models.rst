@@ -8,7 +8,7 @@ and those supported by ``Langchain`` to this file. Configuration for Langchain w
 Adding custom LLMs via Langchain
 --------------------------------
 
-To add a new model using the Langchain wrapper in **PYGPT**, insert the model's configuration details into the ``models.json`` file. This should include the model's name, its supported modes (either ``chat``, ``completion``, or both), the LLM provider (which can be either e.g. ``OpenAI`` or ``HuggingFace``), and, if you are using a ``HuggingFace`` model, an optional ``API KEY``.
+To add a new model using the Langchain wrapper in **PyGPT**, insert the model's configuration details into the ``models.json`` file. This should include the model's name, its supported modes (either ``chat``, ``completion``, or both), the LLM provider (which can be either e.g. ``OpenAI`` or ``HuggingFace``), and, if you are using a ``HuggingFace`` model, an optional ``API KEY``.
 
 Example of models configuration - ``models.json``:
 
@@ -130,4 +130,4 @@ To add support for any provider not included by default, simply create your own 
         launcher.run()
 
 
-To integrate your own model or provider into **PYGPT**, you can reference the sample classes located in the ``llm`` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
+To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the ``llm`` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.

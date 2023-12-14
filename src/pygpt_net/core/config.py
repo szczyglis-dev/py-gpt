@@ -77,7 +77,7 @@ class Config:
             if all:
                 v = self.get_version()
                 print("PyGPT v{}".format(v))
-                print("Author: Marcin Szczygliński")
+                print("Author: Marcin Szczyglinski")
                 print("Project website: https://pygpt.net")
                 print("GitHub: https://github.com/szczyglis-dev/py-gpt")
                 print("Email: info@pygpt.net")

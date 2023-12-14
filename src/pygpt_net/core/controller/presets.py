@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.05 22:00:00                  #
 # ================================================== #
-
+import datetime
 import os
 import re
 
@@ -139,6 +139,20 @@ class Presets:
         if 'assistant' in data:
             self.config_toggle('preset.assistant', data['assistant'], 'preset.editor')
 
+        # set focus to name field
+        self.window.config_option['preset.name'].setFocus()
+
+    def make_preset_filename(self, name):
+        """
+        Makes preset filename from name
+
+        :param name: preset name
+        :return: preset filename
+        """
+        filename = name.lower()
+        filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
+        return filename
+
     def save(self, force=False):
         """
         Saves preset
@@ -146,10 +160,24 @@ class Presets:
         :param force: force overwrite file
         """
         preset = self.window.config_option['preset.filename'].text()
-        if preset is None or preset == "" or preset.startswith('current.'):
-            self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
-            self.window.set_status(trans('status.preset.empty_id'))
+
+        # disallow editing current preset cache
+        if preset.startswith('current.'):
             return
+
+        if preset is None or preset == "":
+            name = self.window.config_option['preset.name'].text()
+            if name is None or name == "":
+                self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
+                self.window.set_status(trans('status.preset.empty_id'))
+                return
+            # generate new filename
+            preset = self.make_preset_filename(name)
+            # check if not exists
+            path = os.path.join(self.window.config.path, 'presets', preset + '.json')
+            if os.path.exists(path) and not force:
+                # add datetime suffix to filename
+                preset = preset + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
         # validate filename
         preset = self.validate_filename(preset)

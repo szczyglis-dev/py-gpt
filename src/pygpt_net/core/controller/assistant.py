@@ -179,6 +179,12 @@ class Assistant:
                 values.append({"name": function['name'], "params": function['params'], "desc": function['desc']})
             self.window.config_option['assistant.tool.function'].items = values
             self.window.config_option['assistant.tool.function'].model.updateData(values)
+        else:
+            self.window.config_option['assistant.tool.function'].items = []
+            self.window.config_option['assistant.tool.function'].model.updateData([])
+
+        # set focus to name field
+        self.window.config_option['assistant.name'].setFocus()
 
     def save(self):
         """

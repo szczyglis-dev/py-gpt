@@ -1,6 +1,6 @@
-# PYGPT v2
+# PyGPT v2
 
-Release: **2.0.27** build: **2023.12.14** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.28** build: **2023.12.14** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -8,16 +8,17 @@ PyPi: https://pypi.org/project/pygpt-net
 
 ## Overview
 
-**PYGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
 
-For audio interactions, **PYGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
+For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
+**PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
 
+Video (mp4):
 https://github.com/szczyglis-dev/py-gpt/assets/61396542/6619f5e2-df68-4f5d-a2bd-45b955e269a5
 
 Screenshot:
@@ -60,7 +61,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 The application is free, open-source, and runs on PCs with `Windows 10`, `Windows 11`, and `Linux`. 
 The full Python source code is available on `GitHub`.
 
-**PYGPT uses the user's API key  -  to use the application, 
+**PyGPT uses the user's API key  -  to use the application, 
 you must have a registered OpenAI account and your own API key.**
 
 You can also use buil-it Langchain support to connect to other Large Language Models (LLMs), 
@@ -71,7 +72,7 @@ such as those on HuggingFace. Additional API keys may be required.
 
 ## Supported Systems (Compiled Version)
 
-PYGPT is compatible with PCs running `Windows 10`, `Windows 11`, or `Linux`. 
+PyGPT is compatible with PCs running `Windows 10`, `Windows 11`, or `Linux`. 
 Simply download the installer or the archive for the appropriate version from the download page, 
 extract it, install it, and run the application.
 
@@ -192,7 +193,7 @@ Your API keys will be available here:
 
 ## Chatbot
 
-This mode in **PYGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo`, `GPT-3.5`, and `GPT-3`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
+This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo`, `GPT-3.5`, and `GPT-3`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
 
 The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
@@ -216,9 +217,9 @@ In this mode, models from the `davinci` family within `GPT-3` are available.
 
 This mode uses the new OpenAI's **Assistants API**.
 
-This mode expands on the basic chat functionality by including additional external tools like a `Code Interpreter` for executing code, `Retrieval Files` for accessing files, and custom `Functions` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PYGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
+This mode expands on the basic chat functionality by including additional external tools like a `Code Interpreter` for executing code, `Retrieval Files` for accessing files, and custom `Functions` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PyGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
 
-Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PYGPT** is also a seamless process.
+Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
 ![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5115144d-804a-406c-9fbc-9de370910179)
 
@@ -262,7 +263,7 @@ into the application, allowing you to interact with any LLM by simply supplying 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named `models.json`.
 
-Available LLMs providers supported by **PYGPT**:
+Available LLMs providers supported by **PyGPT**:
 
 ```
 - OpenAI
@@ -275,13 +276,13 @@ Available LLMs providers supported by **PYGPT**:
 
 ![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7565e4df-aa6f-4de5-97ac-61cb124e0340)
 
-You have the ability to add custom model wrappers for models that are not available by default in **PYGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
+You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
 # Files and attachments
 
 ## Input (upload)
 
-**PYGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
+**PyGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7e84368e-2ac2-4947-8723-528788d82ed7)
 
@@ -289,7 +290,7 @@ The attachment feature is available in both the `Assistant` and `Vision` modes.
 
 ## Output (download, generation)
 
-**PYGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `output` folder located within the user's working directory. To view or manage these files, users can navigate to the `Output` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
+**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `output` folder located within the user's working directory. To view or manage these files, users can navigate to the `Output` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
 
 This `output` directory is also where the application stores files that are generated locally by the AI, such as code files or any other outputs requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands.
 
@@ -305,11 +306,11 @@ To allow the model to manage files or python code execution, the `Execute comman
 
 ## Short and long-term memory
 
-**PYGPT** features a continuous chat mode that maintains a long context of the ongoing dialogue. It preserves the entire conversation history and automatically appends it to each new message (prompt) you send to the AI. Additionally, you have the flexibility to revisit past conversations whenever you choose. The application keeps a record of your chat history, allowing you to resume discussions from the exact point you stopped.
+**PyGPT** features a continuous chat mode that maintains a long context of the ongoing dialogue. It preserves the entire conversation history and automatically appends it to each new message (prompt) you send to the AI. Additionally, you have the flexibility to revisit past conversations whenever you choose. The application keeps a record of your chat history, allowing you to resume discussions from the exact point you stopped.
 
 ## Handling multiple contexts
 
-On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PYGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
+On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
 
 ![v2_context_list](https://github.com/szczyglis-dev/py-gpt/assets/61396542/055c71bf-164c-45fa-842b-b0b9d1c31114)
 
@@ -338,7 +339,7 @@ Once a conversation begins, a title for the chat is generated and displayed on t
 
 ## What is preset?
 
-Presets in **PYGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system message, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `Langchain`.
+Presets in **PyGPT** are essentially templates used to store and quickly apply different configurations. Each preset includes settings for the mode you want to use (such as chat, completion, or image generation), an initial system message, an assigned name for the AI, a username for the session, and the desired "temperature" for the conversation. A warmer "temperature" setting allows the AI to provide more creative responses, while a cooler setting encourages more predictable replies. These presets can be used across various modes and with models accessed via the `OpenAI API` or `Langchain`.
 
 The system lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
@@ -353,7 +354,7 @@ The application includes several sample presets that help you become acquainted 
 
 ## DALL-E 3
 
-PYGPT enables quick and straightforward image creation with `DALL-E 3`. 
+PyGPT enables quick and straightforward image creation with `DALL-E 3`. 
 The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  
 a user's prompt triggers the generation, followed by downloading, saving to the computer, 
 and displaying the image onscreen.
@@ -395,7 +396,7 @@ and those supported by `Langchain` to this file. Configuration for Langchain wra
 
 ## Adding custom LLMs via Langchain
 
-To add a new model using the Langchain wrapper in **PYGPT**, insert the model's configuration details into the `models.json` file. This should include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (which can be either e.g. `OpenAI` or `HuggingFace`), and, if you are using a `HuggingFace` model, an optional `API KEY`.
+To add a new model using the Langchain wrapper in **PyGPT**, insert the model's configuration details into the `models.json` file. This should include the model's name, its supported modes (either `chat`, `completion`, or both), the LLM provider (which can be either e.g. `OpenAI` or `HuggingFace`), and, if you are using a `HuggingFace` model, an optional `API KEY`.
 
 Example of models configuration - `models.json`:
 
@@ -515,7 +516,7 @@ def run():
     launcher.run()
 ```
 
-To integrate your own model or provider into **PYGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
 # Plugins
 
@@ -664,7 +665,7 @@ Allows system commands execution. *Default:* `True`
 
 ## Command: Custom Commands
 
-With the `Custom Commands` plugin, you can integrate **PYGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PYGPT** includes a simple tutorial command for testing and learning how it works:
+With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
 ![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b0d01e9b-c6f8-4e85-be56-106abec88200)
 
@@ -697,7 +698,7 @@ Here are some predefined system placeholders for use:
 - `{_date}` - current date in `Y-m-d` format
 - `{_datetime}` - current date and time in `Y-m-d H:M:S` format
 - `{_file}` - path to the file from which the command is invoked
-- `{_home}` - path to PYGPT's home/working directory
+- `{_home}` - path to PyGPT's home/working directory
 
 You can connect predefined placeholders with your own params.
 
@@ -714,11 +715,11 @@ With the setup above, every time you ask GPT to generate a song for you and save
 1. Generate a song.
 2. Locate your command.
 3. Execute the command by sending the song's title and text.
-4. The command will save the song text into a file named with the song's title in the PYGPT working directory.
+4. The command will save the song text into a file named with the song's title in the PyGPT working directory.
 
 **Example tutorial command**
 
-PYGPT provides simple tutorial command to show how it work, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
+PyGPT provides simple tutorial command to show how it work, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
 
 ```> please execute tutorial test command```
 
@@ -727,7 +728,7 @@ PYGPT provides simple tutorial command to show how it work, to run it just ask G
 
 ## Command: Google Web Search
 
-**PYGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
+**PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
 To activate this feature, turn on the `Command: Google Web Search` plugin found in the `Plugins` menu.
 
@@ -741,7 +742,7 @@ After registering an account, create a new project and select it from the list o
 https://programmablesearchengine.google.com/controlpanel/all
 
 After selecting your project, you need to enable the `Whole Internet Search` option in its settings. 
-Then, copy the following two items into PYGPT:
+Then, copy the following two items into PyGPT:
 
 - `Api Key`
 - `CX ID`
@@ -753,7 +754,7 @@ These data must be configured in the appropriate fields in the `Plugins / Settin
 
 ## Audio Output (Microsoft Azure)
 
-**PYGPT** implements voice synthesis using the `Microsoft Azure Text-To-Speech` API.
+**PyGPT** implements voice synthesis using the `Microsoft Azure Text-To-Speech` API.
 This feature requires to have an `Microsoft Azure` API Key. 
 You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
@@ -903,7 +904,7 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 
 # Creating Your Own Plugins
 
-You can create your own plugin for **PYGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins. Then, you can create your own and register it in the system using:
+You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins. Then, you can create your own and register it in the system using:
 
 ```python
 # custom_launcher.py
@@ -1086,9 +1087,9 @@ This will add Spanish as a selectable language in the application's language men
 
 ## Updates
 
-### Updating PYGPT
+### Updating PyGPT
 
-**PYGPT** comes with an integrated update notification system. When a new version with additional features is released, you'll receive an alert within the app. 
+**PyGPT** comes with an integrated update notification system. When a new version with additional features is released, you'll receive an alert within the app. 
 
 To update, just download the latest release and begin using it instead of the old version. Rest assured, all your personalized settings such as saved contexts and conversation history will be retained and instantly available in the new version.
 
@@ -1111,6 +1112,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.28 (2023-12-14)
+
+- Added new hidden Credentials/API Key field type (asterisks against plain-text)
+- Simplified presets editing
+- Fixed Assistants function management
+- Improved UI
+- Improved settings editing
 
 ## 2.0.27 (2023-12-14)
 

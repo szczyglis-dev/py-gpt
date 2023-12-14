@@ -3,7 +3,7 @@ Chat, completion, assistants and vision
 
 Chat
 ----
-This mode in **PYGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
+This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
 
 The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
@@ -33,9 +33,9 @@ Assistants
 ----------
 This mode uses the new OpenAI's **Assistants API**.
 
-This mode expands on the basic chat functionality by including additional external tools like a ``Code Interpreter`` for executing code, ``Retrieval Files`` for accessing files, and custom ``Functions`` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PYGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
+This mode expands on the basic chat functionality by including additional external tools like a ``Code Interpreter`` for executing code, ``Retrieval Files`` for accessing files, and custom ``Functions`` for enhanced interaction and integration with other APIs or services. In this mode, you can easily upload and download files. **PyGPT** streamlines file management, enabling you to quickly upload documents and manage files created by the model.
 
-Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the ``OpenAI API``. Importing assistants you've previously created with OpenAI into **PYGPT** is also a seamless process.
+Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the ``OpenAI API``. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
 .. image:: images/v2_mode_assistant.png
    :width: 800
@@ -84,7 +84,7 @@ into the application, allowing you to interact with any LLM by simply supplying 
 file for the specific model. You can add as many models as you like; just list them in the configuration 
 file named ``models.json``.
 
-Available LLMs providers supported by **PYGPT**:
+Available LLMs providers supported by **PyGPT**:
 
 * OpenAI
 * Azure OpenAI
@@ -96,4 +96,4 @@ Available LLMs providers supported by **PYGPT**:
 .. image:: images/v2_mode_langchain.png
    :width: 800
 
-You have the ability to add custom model wrappers for models that are not available by default in **PYGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.
+You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.

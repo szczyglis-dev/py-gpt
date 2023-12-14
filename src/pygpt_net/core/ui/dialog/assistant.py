@@ -81,7 +81,8 @@ class Assistant:
         self.window.data['assistant.api.tip'] = QPushButton(trans('assistant.api.tip'))
         # make button look like a label:
         self.window.data['assistant.api.tip'].setFlat(True)
-        self.window.data['assistant.api.tip'].setStyleSheet("text-align: left; color: #fff; text-decoration: underline; text-transform: none;")
+        self.window.data['assistant.api.tip'].setStyleSheet("text-align: left; color: #fff; text-decoration: "
+                                                            "underline; text-transform: none;")
         # disable CSS text capitalize, only small letters:
         self.window.data['assistant.api.tip'].setStyleSheet("text-transform: none;")
         self.window.data['assistant.api.tip'].setCursor(Qt.PointingHandCursor)

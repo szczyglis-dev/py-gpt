@@ -4,15 +4,15 @@ Introduction
 Overview
 ----------------
 
-**PYGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
+**PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for analysis. **PYGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google Custom Search API``.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google Custom Search API``.
 
-For audio interactions, **PYGPT** includes speech synthesis using the ``Microsoft Azure Text-to-Speech API`` and ``OpenAI's TTS API``. Additionally, it features speech recognition capabilities provided by ``OpenAI Whisper``, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
+For audio interactions, **PyGPT** includes speech synthesis using the ``Microsoft Azure Text-to-Speech API`` and ``OpenAI's TTS API``. Additionally, it features speech recognition capabilities provided by ``OpenAI Whisper``, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
-**PYGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
+**PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, commands execution and image generation, making **PYGPT** a comprehensive tool for many AI-driven tasks.
+Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
 
 .. image:: images/v2_main.png
    :width: 800
@@ -54,7 +54,7 @@ The application is free, open-source, and runs on PCs with ``Windows 10``, ``Win
 The full Python source code is available on ``GitHub``.
 
 
-**PYGPT uses the user's API key  -  to use the application, 
+**PyGPT uses the user's API key  -  to use the application, 
 you must have a registered OpenAI account and your own API key.**
 
 .. note::

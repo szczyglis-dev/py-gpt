@@ -1,3 +1,12 @@
+2.0.28 (2023-12-14)
+
+- Added new hidden Credentials/API Key field type (asterisks against plain-text)
+- Simplified presets editing
+- Fixed Assistants function management
+- Improved UI
+- Improved settings editing
+
+
 2.0.27 (2023-12-14)
 
 - Added specified "url open" command to Web Search plugin

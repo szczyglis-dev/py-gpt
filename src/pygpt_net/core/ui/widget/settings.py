@@ -422,6 +422,7 @@ class SettingsDict(QWidget):
 
         # setup dict model
         headers = list(self.keys.keys())
+
         self.list = SettingsDictItems(self)
         self.model = SettingsDictModel(self.items, headers)
         self.model.dataChanged.connect(self.model.saveData)
