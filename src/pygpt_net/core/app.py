@@ -171,6 +171,11 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     @Slot(str)
     def update_status(self, text):
+        """
+        Updates status text
+
+        :param text: status text
+        """
         self.set_status(text)
 
     def closeEvent(self, event):

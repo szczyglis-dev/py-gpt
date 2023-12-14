@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget
 
 from .widget.select import AttachmentSelectMenu
 from ..utils import trans
@@ -34,12 +34,28 @@ class Attachments:
 
         self.setup_attachments()
 
+        centered_layout = {}
+        centered_widget = {}
+        centered_layout['attachments.send_clear'] = QHBoxLayout()
+        centered_layout['attachments.send_clear'].setContentsMargins(0, 0, 0, 0)
+        centered_layout['attachments.send_clear'].setAlignment(Qt.AlignCenter)
+        centered_layout['attachments.send_clear'].addWidget(self.window.data['attachments.send_clear'])
+        centered_widget['attachments.send_clear'] = QWidget()
+        centered_widget['attachments.send_clear'].setLayout(centered_layout['attachments.send_clear'])
+
+        centered_layout['attachments.capture_clear'] = QHBoxLayout()
+        centered_layout['attachments.capture_clear'].setContentsMargins(0, 0, 0, 0)
+        centered_layout['attachments.capture_clear'].setAlignment(Qt.AlignCenter)
+        centered_layout['attachments.capture_clear'].addWidget(self.window.data['attachments.capture_clear'])
+        centered_widget['attachments.capture_clear'] = QWidget()
+        centered_widget['attachments.capture_clear'].setLayout(centered_layout['attachments.capture_clear'])
+
         # buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.data['attachments.btn.add'])
         buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
-        buttons_layout.addWidget(self.window.data['attachments.send_clear'])
-        buttons_layout.addWidget(self.window.data['attachments.capture_clear'])
+        buttons_layout.addWidget(centered_widget['attachments.send_clear'])
+        buttons_layout.addWidget(centered_widget['attachments.capture_clear'])
 
         # layout
         layout = QVBoxLayout()

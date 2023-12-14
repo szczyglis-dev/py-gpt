@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -76,7 +76,13 @@ class Config:
         if not self.initialized:
             if all:
                 v = self.get_version()
-                print("Starting PYGPT v{}".format(v))
+                print("PyGPT v{}".format(v))
+                print("Author: Marcin Szczygliński")
+                print("Project website: https://pygpt.net")
+                print("GitHub: https://github.com/szczyglis-dev/py-gpt")
+                print("Email: info@pygpt.net")
+                print("")
+                print("Initializing...")
             self.install()
             self.load(all, log)
             self.initialized = True

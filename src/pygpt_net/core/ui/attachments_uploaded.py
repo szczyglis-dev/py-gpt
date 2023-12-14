@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
 
 from .widget.select import AttachmentUploadedSelectMenu
 from ..utils import trans
@@ -36,11 +36,13 @@ class AttachmentsUploaded:
 
         self.window.data['attachments_uploaded.sync.tip'] = QLabel(trans('attachments_uploaded.sync.tip'))
         self.window.data['attachments_uploaded.sync.tip'].setAlignment(Qt.AlignCenter)
+        empty_widget = QWidget()
 
         # buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.data['attachments_uploaded.btn.sync'])
         buttons_layout.addWidget(self.window.data['attachments_uploaded.btn.clear'])
+        buttons_layout.addWidget(empty_widget)
         buttons_layout.addWidget(self.window.data['attachments_uploaded.sync.tip'])
 
         # layout
