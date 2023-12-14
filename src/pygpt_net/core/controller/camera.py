@@ -126,7 +126,8 @@ class Camera:
         # capture frame
         try:
             # prepare filename
-            dt = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            now = datetime.datetime.now()
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
             path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
 
@@ -137,7 +138,7 @@ class Camera:
             mode = self.window.config.data['mode']
 
             # make attachment
-            dt_info = dt.replace('_', ' ')
+            dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
             title = trans('vision.capture.name.prefix') + ' ' + name
             title = title.replace('cap-', '').replace('_', ' ')
             self.window.controller.attachment.attachments.new(mode, title, path, False)
