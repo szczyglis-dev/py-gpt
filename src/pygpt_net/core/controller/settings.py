@@ -8,7 +8,6 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.14 15:00:00                  #
 # ================================================== #
-import json
 import os
 
 from showinfm import show_in_file_manager
