@@ -3,7 +3,7 @@ Images generation (DALL-E 3)
 
 DALL-E 3
 ---------
-PyGPT enables quick and straightforward image creation with ``DALL-E 3``. 
+**PyGPT** enables quick and straightforward image creation with ``DALL-E 3``. 
 The older model version, ``DALL-E 2``, is also accessible. Generating images is akin to a chat conversation  -  
 a user's prompt triggers the generation, followed by downloading, saving to the computer, 
 and displaying the image onscreen.

@@ -3,7 +3,7 @@ Requirements and installation
 
 Compiled binary version
 -----------------
-PyGPT requires a PC with Windows 10, 11 or Linux. Just download the installer or
+**PyGPT** requires a PC with Windows 10, 11 or Linux. Just download the installer or
 archive with the appropriate version from the download page and then extract it
 or install it and run the application.
 

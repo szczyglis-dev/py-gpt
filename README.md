@@ -19,9 +19,11 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
 
 Video (mp4):
+
 https://github.com/szczyglis-dev/py-gpt/assets/61396542/6619f5e2-df68-4f5d-a2bd-45b955e269a5
 
 Screenshot:
+
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2933de69-5a65-43c7-a386-b222ae2090ca)
 
 You can download compiled version for Windows and Linux here: https://pygpt.net/#download
@@ -72,14 +74,14 @@ such as those on HuggingFace. Additional API keys may be required.
 
 ## Supported Systems (Compiled Version)
 
-PyGPT is compatible with PCs running `Windows 10`, `Windows 11`, or `Linux`. 
+**PyGPT** is compatible with PCs running `Windows 10`, `Windows 11`, or `Linux`. 
 Simply download the installer or the archive for the appropriate version from the download page, 
 extract it, install it, and run the application.
 
 ## Python Version (Source Code)
 
-An alternative method is to download the source code from GitHub and execute the application using 
-the Python interpreter (version 3.9 or higher). The application can also be installed from PyPI 
+An alternative method is to download the source code from `GitHub` and execute the application using 
+the Python interpreter (version `3.9` or higher). The application can also be installed from `PyPI` 
 using the command `pip install` and this type of installation is recommended.
 
 ### PyPi (pip)
@@ -354,7 +356,7 @@ The application includes several sample presets that help you become acquainted 
 
 ## DALL-E 3
 
-PyGPT enables quick and straightforward image creation with `DALL-E 3`. 
+**PyGPT** enables quick and straightforward image creation with `DALL-E 3`. 
 The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  
 a user's prompt triggers the generation, followed by downloading, saving to the computer, 
 and displaying the image onscreen.
@@ -698,7 +700,7 @@ Here are some predefined system placeholders for use:
 - `{_date}` - current date in `Y-m-d` format
 - `{_datetime}` - current date and time in `Y-m-d H:M:S` format
 - `{_file}` - path to the file from which the command is invoked
-- `{_home}` - path to PyGPT's home/working directory
+- `{_home}` - path to **PyGPT**'s home/working directory
 
 You can connect predefined placeholders with your own params.
 
@@ -719,7 +721,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 **Example tutorial command**
 
-PyGPT provides simple tutorial command to show how it work, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
+**PyGPT** provides simple tutorial command to show how it work, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
 
 ```> please execute tutorial test command```
 
@@ -742,7 +744,7 @@ After registering an account, create a new project and select it from the list o
 https://programmablesearchengine.google.com/controlpanel/all
 
 After selecting your project, you need to enable the `Whole Internet Search` option in its settings. 
-Then, copy the following two items into PyGPT:
+Then, copy the following two items into **PyGPT**:
 
 - `Api Key`
 - `CX ID`

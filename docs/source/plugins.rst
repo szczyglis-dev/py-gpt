@@ -187,7 +187,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 1. Generate a song.
 2. Locate your command.
 3. Execute the command by sending the song's title and text.
-4. The command will save the song text into a file named with the song's title in the PyGPT working directory.
+4. The command will save the song text into a file named with the song's title in the **PyGPT** working directory.
 
 **Example tutorial command**
 
@@ -218,7 +218,7 @@ After registering an account, create a new project and select it from the list o
 https://programmablesearchengine.google.com/controlpanel/all
 
 After selecting your project, you need to enable the ``Whole Internet Search`` option in its settings. 
-Then, copy the following two items into PyGPT:
+Then, copy the following two items into **PyGPT**:
 
 * Api Key
 * CX ID

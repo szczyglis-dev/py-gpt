@@ -64,7 +64,7 @@ class About:
 
         self.window.data['dialog.about.content'] = QLabel(string)
 
-        title = QLabel("PYGPT")
+        title = QLabel("PyGPT")
         title.setContentsMargins(0, 0, 0, 0)
         title.setStyleSheet(
             "font-size: 16px; font-weight: bold; margin-bottom: 10px; margin-left: 0; margin-top: 10px; padding: 0;")
