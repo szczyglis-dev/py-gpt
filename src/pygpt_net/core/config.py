@@ -214,6 +214,38 @@ class Config:
         except Exception as e:
             print(e)
 
+    def get(self, key):
+        """
+        Returns config value
+
+        :param key: key
+        :return: value
+        """
+        if key in self.data:
+            return self.data[key]
+        return None
+
+    def has(self, key):
+        """
+        Checks if key exists in config
+
+        :param key: key
+        :return: True if exists
+        """
+        if key in self.data:
+            return True
+        return False
+
+    def set(self, key, value):
+        """
+        Sets config value
+
+        :param key:
+        :param value:
+        :return:
+        """
+        self.data[key] = value
+
     def build_empty_preset(self):
         """
         Builds empty preset
