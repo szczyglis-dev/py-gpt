@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -93,7 +93,7 @@ class Context:
 
         :return: None
         """
-        self.current_mode = self.config.data['mode']
+        self.current_mode = self.config.get('mode')
         if self.current_ctx is None:
             return
         self.contexts[self.current_ctx]['mode'] = self.current_mode
@@ -120,7 +120,7 @@ class Context:
             'id': name,
             "name": "{}".format(trans('ctx.new.prefix')),
             "date": datetime.datetime.now().strftime("%Y-%m-%d"),
-            'mode': self.config.data['mode'],
+            'mode': self.config.get('mode'),
             'thread': None,
             'run': None,
             'status': None,
@@ -128,7 +128,7 @@ class Context:
         }
         self.current_ctx = name
         self.current_thread = None
-        self.current_mode = self.config.data['mode']
+        self.current_mode = self.config.get('mode')
         self.items = []
         self.dump_context(name)
 
@@ -202,7 +202,7 @@ class Context:
 
         :param name: context name (id)
         """
-        if not self.config.data['store_history']:
+        if not self.config.get('store_history'):
             return
 
         try:

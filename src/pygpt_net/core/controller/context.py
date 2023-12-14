@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -27,7 +27,7 @@ class Context:
         if len(self.window.gpt.context.contexts) == 0:
             self.new()
         else:
-            ctx = self.window.config.data['ctx']
+            ctx = self.window.config.get('ctx')
             if ctx is not None and ctx in self.window.gpt.context.contexts:
                 self.window.gpt.context.current_ctx = ctx
             else:
@@ -38,7 +38,7 @@ class Context:
     def new(self):
         """Creates new context"""
         self.window.gpt.context.new()
-        self.window.config.data['assistant_thread'] = None  # reset thread
+        self.window.config.set('assistant_thread', None)  # reset thread
         self.update()
         self.window.controller.output.clear()
         self.window.controller.input.unlock_input()  # force unlock input
@@ -55,8 +55,8 @@ class Context:
         ctx = self.window.gpt.context.current_ctx
         thread = self.window.gpt.context.current_thread
         if ctx is not None:
-            self.window.config.data['ctx'] = ctx
-            self.window.config.data['assistant_thread'] = thread
+            self.window.config.set('ctx', ctx)
+            self.window.config.set('assistant_thread', thread)
             self.window.config.save()
 
     def update_ctx(self):
@@ -74,7 +74,7 @@ class Context:
         # set current thread
         thread = self.window.gpt.context.current_thread
         mode = self.window.gpt.context.current_mode
-        self.window.config.data['assistant_thread'] = thread
+        self.window.config.set('assistant_thread', thread)
 
         # update output and context list
         self.window.controller.output.clear()

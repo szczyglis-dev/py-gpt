@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 14:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import os
@@ -33,7 +33,7 @@ class Image:
 
     def setup(self):
         """Setups images"""
-        if self.window.config.data['img_raw']:
+        if self.window.config.get('img_raw'):
             self.window.config_option['img_raw'].setChecked(True)
         else:
             self.window.config_option['img_raw'].setChecked(False)
@@ -57,14 +57,14 @@ class Image:
 
         # create ctx item
         ctx = ContextItem()
-        ctx.set_input(text, self.window.config.data['user_name'])
+        ctx.set_input(text, self.window.config.get('user_name'))
         ctx = self.window.controller.plugins.apply('ctx.before', ctx)  # apply plugins
         self.window.gpt.context.add(ctx)
         self.window.controller.output.append_input(ctx)
 
         # call DALL-E API and generate images
         try:
-            paths, prompt = self.window.images.generate(text, self.window.config.data['model'], num_of_images)
+            paths, prompt = self.window.images.generate(text, self.window.config.get('model'), num_of_images)
             string = ""
             i = 1
             for path in paths:
@@ -72,7 +72,7 @@ class Image:
                 i += 1
             self.open_images(paths)
 
-            if not self.window.config.data['img_raw']:
+            if not self.window.config.get('img_raw'):
                 string += "\nPrompt: "
                 string += prompt
 
@@ -176,14 +176,14 @@ class Image:
         """
         Enables help for images
         """
-        self.window.config.data['img_raw'] = True
+        self.window.config.set('img_raw', True)
         self.window.config.save()
 
     def disable_raw(self):
         """
         Disables help for images
         """
-        self.window.config.data['img_raw'] = False
+        self.window.config.set('img_raw', False)
         self.window.config.save()
 
     def toggle_raw(self, state):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.07 10:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 
@@ -50,20 +50,20 @@ class Layout:
         data = {}
         for tab in self.window.tabs:
             data[tab] = self.window.tabs[tab].currentIndex()
-        self.window.config.data['layout.tabs'] = data
+        self.window.config.set('layout.tabs', data)
 
     def groups_save(self):
         """Save groups state"""
         data = {}
         for id in self.window.groups:
             data[id] = self.window.groups[id].box.isChecked()
-        self.window.config.data['layout.groups'] = data
+        self.window.config.set('layout.groups', data)
 
     def tabs_restore(self):
         """Restore tabs state"""
-        if 'layout.tabs' not in self.window.config.data:
+        if not self.window.config.has('layout.tabs'):
             return
-        data = self.window.config.data['layout.tabs']
+        data = self.window.config.get('layout.tabs')
         for tab in self.window.tabs:
             if tab in data:
                 try:
@@ -76,13 +76,13 @@ class Layout:
         data = {}
         for splitter in self.splitters:
             data[splitter] = self.window.splitters[splitter].sizes()
-        self.window.config.data['layout.splitters'] = data
+        self.window.config.set('layout.splitters', data)
 
     def splitters_restore(self):
         """Restore splitters state"""
-        if 'layout.splitters' not in self.window.config.data:
+        if not self.window.config.has('layout.splitters'):
             return
-        data = self.window.config.data['layout.splitters']
+        data = self.window.config.get('layout.splitters')
         for splitter in self.splitters:
             if splitter in data:
                 try:
@@ -92,9 +92,9 @@ class Layout:
 
     def groups_restore(self):
         """Restore groups state"""
-        if 'layout.groups' not in self.window.config.data:
+        if not self.window.config.has('layout.groups'):
             return
-        data = self.window.config.data['layout.groups']
+        data = self.window.config.get('layout.groups')
         for id in self.window.groups:
             if id in data:
                 try:
@@ -104,9 +104,9 @@ class Layout:
 
     def state_restore(self):
         """Restore window state"""
-        if 'layout.window' not in self.window.config.data:
+        if not self.window.config.has('layout.window'):
             return
-        data = self.window.config.data['layout.window']
+        data = self.window.config.get('layout.window')
         try:
             if 'geometry' in data:
                 geometry_data = data['geometry']
@@ -128,4 +128,4 @@ class Layout:
         geometry_data['height'] = geometry.height()
         data['geometry'] = geometry_data
         data['maximized'] = self.window.isMaximized()
-        self.window.config.data['layout.window'] = data
+        self.window.config.set('layout.window', data)

@@ -10,8 +10,8 @@
 # ================================================== #
 import os
 
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QPlainTextEdit
+from PySide6.QtGui import QPixmap, Qt
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QPlainTextEdit, QSizePolicy
 
 from ..widget.dialog import InfoDialog
 from ...utils import trans
@@ -31,15 +31,17 @@ class About:
         id = 'about'
 
         logo_label = QLabel()
-        path = os.path.abspath(os.path.join(self.window.config.get_root_path(), 'data', 'logo.png'))
+        path = os.path.abspath(os.path.join(self.window.config.get_root_path(), 'data', 'logo_small.png'))
         pixmap = QPixmap(path)
         logo_label.setPixmap(pixmap)
 
         btn_www = QPushButton('WWW')
         btn_www.clicked.connect(lambda: self.window.controller.info.goto_website())
+        btn_www.setCursor(Qt.PointingHandCursor)
 
         btn_github = QPushButton('GitHub')
         btn_github.clicked.connect(lambda: self.window.controller.info.goto_github())
+        btn_github.setCursor(Qt.PointingHandCursor)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(btn_www)

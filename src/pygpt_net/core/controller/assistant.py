@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.11 23:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -22,7 +22,7 @@ from ..assistants import Assistants
 class Assistant:
     def __init__(self, window=None):
         """
-        Presets controller
+        Assistants controller
 
         :param window: main window object
         """
@@ -50,7 +50,7 @@ class Assistant:
 
     def update_uploaded(self):
         """Updates uploaded files list"""
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.assistants.get_by_id(assistant_id)
@@ -64,7 +64,7 @@ class Assistant:
 
         :param mode: mode
         """
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
             return
@@ -85,10 +85,10 @@ class Assistant:
         """
         # mark assistant as selected
         id = self.assistants.get_by_idx(idx)
-        self.window.config.data['assistant'] = id
+        self.window.config.set('assistant', id)
 
         # update attachments list with list of attachments from assistant
-        mode = self.window.config.data['mode']
+        mode = self.window.config.get('mode')
         assistant = self.assistants.get_by_id(id)
         self.window.controller.attachment.import_from_assistant(mode, assistant)
         self.window.controller.attachment.update()
@@ -243,6 +243,8 @@ class Assistant:
     def import_assistants(self, force=False):
         """
         Imports all remote assistants from API
+
+        :param force: if True, imports without confirmation
         """
         if not force:
             self.window.ui.dialogs.confirm('assistant_import', '', trans('confirm.assistant.import'))
@@ -315,6 +317,8 @@ class Assistant:
             functions.append({"name": name, "params": params, "desc": desc})
         if len(functions) > 0:
             assistant.tools['function'] = functions
+        else:
+            assistant.tools['function'] = []
 
     def clear(self, force=False):
         """
@@ -322,7 +326,7 @@ class Assistant:
 
         :param force: force clear data
         """
-        id = self.window.config.data['assistant']
+        id = self.window.config.get('assistant')
 
         if not force:
             self.window.ui.dialogs.confirm('assistant_clear', '', trans('confirm.assistant.clear'))
@@ -342,7 +346,7 @@ class Assistant:
 
         :param idx: index of file
         """
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.assistants.get_by_id(assistant_id)
@@ -360,7 +364,7 @@ class Assistant:
             self.window.ui.dialogs.confirm('assistant_import_files', '', trans('confirm.assistant.import_files'))
             return
 
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.assistants.get_by_id(assistant_id)
@@ -382,7 +386,7 @@ class Assistant:
             self.window.ui.dialogs.confirm('attachments_uploaded.clear', -1, trans('attachments_uploaded.clear.confirm'))
             return
 
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
 
@@ -423,9 +427,9 @@ class Assistant:
                         return
 
                     # clear if this is current assistant
-                    if id == self.window.config.data['assistant']:
-                        self.window.config.data['assistant'] = None
-                        self.window.config.data['assistant_thread'] = None
+                    if id == self.window.config.get('assistant'):
+                        self.window.config.set('assistant', None)
+                        self.window.config.set('assistant_thread', None)
 
                     # delete in API
                     try:
@@ -445,7 +449,7 @@ class Assistant:
         :param value: checkbox option value
         :param section: settings section
         """
-        assistant_id = self.window.config.data['assistant']  # current assistant
+        assistant_id = self.window.config.get('assistant')  # current assistant
         is_current = True
         if section == 'assistant.editor':
             assistant_id = self.window.config_option['assistant.id']  # editing assistant
@@ -464,7 +468,7 @@ class Assistant:
         if id == 'assistant.id':
             self.window.config_option[id].setText(value)
 
-        assistant_id = self.window.config.data['assistant']  # current assistant
+        assistant_id = self.window.config.get('assistant')  # current assistant
         is_current = True
         if section == 'assistant.editor':
             assistant_id = self.window.config_option['assistant.id']  # editing assistant
@@ -476,10 +480,9 @@ class Assistant:
         """
         Renames file
 
-        :param mode: mode
         :param idx: selected attachment index
         """
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.assistants.get_by_id(assistant_id)
@@ -508,7 +511,7 @@ class Assistant:
         :param file_id: file_id
         :param name: new name
         """
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             self.close_rename_file()
             return
@@ -536,7 +539,7 @@ class Assistant:
             return
 
         # get current assistant
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.assistants.get_by_id(assistant_id)
@@ -582,6 +585,9 @@ class Assistant:
     def count_upload_attachments(self, attachments):
         """
         Counts uploaded attachments
+
+        :param attachments: attachments list
+        :return: number of uploaded files
         """
         num = 0
         for id in list(attachments):
@@ -593,9 +599,13 @@ class Assistant:
     def upload_attachments(self, mode, attachments):
         """
         Uploads attachments to assistant
+
+        :param mode: mode
+        :param attachments: attachments list
+        :return: number of uploaded files
         """
         # get current chosen assistant
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         if assistant_id is None:
             return 0
         assistant = self.assistants.get_by_id(assistant_id)
@@ -652,6 +662,7 @@ class Assistant:
         Appends attachment to assistant
 
         :param attachment: attachment
+        :param assistant: assistant object
         """
         # get current chosen assistant
         assistant.add_attachment(attachment)  # append attachment
@@ -664,15 +675,17 @@ class Assistant:
     def create_thread(self):
         """
         Creates assistant thread
+
+        :return: thread_id
         """
         thread_id = self.window.gpt.assistant_thread_create()
-        self.window.config.data['assistant_thread'] = thread_id
+        self.window.config.set('assistant_thread', thread_id)
         self.window.gpt.context.append_thread(thread_id)
         return thread_id
 
     def select_assistant_by_current(self):
         """Selects assistant by current"""
-        assistant_id = self.window.config.data['assistant']
+        assistant_id = self.window.config.get('assistant')
         items = self.window.controller.assistant.assistants.get_all()
         if assistant_id in items:
             idx = list(items.keys()).index(assistant_id)
@@ -684,7 +697,6 @@ class Assistant:
         Handles (download) message files
 
         :param msg: message
-        :return:
         """
         num_downloaded = 0
         paths = []
@@ -703,7 +715,6 @@ class Assistant:
         Handles run messages
 
         :param ctx: context
-        :return:
         """
         data = self.window.gpt.assistant_msg_list(ctx.thread)
         for msg in data:
@@ -719,7 +730,6 @@ class Assistant:
         Handles assistant's run
 
         :param ctx: context
-        :return:
         """
         listener = AssistantRunThread(window=self.window, ctx=ctx)
         listener.updated.connect(self.handle_status)
@@ -736,6 +746,7 @@ class Assistant:
         Insert text to input and send
 
         :param status: status
+        :param ctx: context
         """
         print("Run status: {}".format(status))
         if status != "queued" and status != "in_progress":
@@ -774,6 +785,9 @@ class AssistantRunThread(QObject):
     def __init__(self, window=None, ctx=None):
         """
         Run assistant run status check thread
+
+        :param window: window
+        :param ctx: context
         """
         super().__init__()
         self.window = window
@@ -782,6 +796,7 @@ class AssistantRunThread(QObject):
         self.stop_reasons = ["cancelling", "cancelled", "failed", "completed", "expired", "requires_action"]
 
     def run(self):
+        """Run thread"""
         try:
             self.started.emit()
             while self.check \

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 17:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -50,9 +50,10 @@ class Image:
         '''
         # get custom prompt from config if exists
         if allow_custom:
-            if 'img_prompt' in self.config.data:
-                if self.config.data['img_prompt'] is not None and self.config.data['img_prompt'] != '':
-                    cmd = self.config.data['img_prompt']
+            if self.window.config.has('img_prompt'):
+                prompt = self.window.config.get('img_prompt')
+                if prompt is not None and prompt != '':
+                    cmd = prompt
         return cmd
 
     def generate(self, prompt, model="dall-e-3", num=None):
@@ -64,14 +65,14 @@ class Image:
         :param num: Number of variants
         :return: Images paths list
         """
-        if not self.window.config.data['img_raw']:
+        if not self.window.config.get('img_raw'):
             system_cmd = self.get_prompt()
             max_tokens = 200
             temperature = 1.0
             try:
                 # call GPT for generate best image generate prompt
                 response = self.window.gpt.quick_call(prompt, system_cmd, False, max_tokens,
-                                                      self.window.config.data['img_prompt_model'], temperature)
+                                                      self.window.config.get('img_prompt_model'), temperature)
                 if response is not None and response != "":
                     prompt = response
             except Exception as e:
@@ -80,14 +81,14 @@ class Image:
         print("Generating image from: '{}'".format(prompt))
 
         client = OpenAI(
-            api_key=self.config.data["api_key"],
-            organization=self.config.data["organization_key"],
+            api_key=self.config.get('api_key'),
+            organization=self.config.get('organization_key'),
         )
         response = client.images.generate(
             model=model,
             prompt=prompt,
             n=num,
-            size=self.config.data["img_resolution"],
+            size=self.config.get('img_resolution'),
         )
 
         # generate and download images

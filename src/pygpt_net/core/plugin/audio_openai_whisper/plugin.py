@@ -110,32 +110,62 @@ class Plugin(BasePlugin):
         self.window = window
 
     def on_user_send(self, text):
-        """Event: On user send text"""
+        """
+        Event: On user send text
+
+        :param text: Text
+        :return: text
+        """
         return text
 
     def on_ctx_begin(self, ctx):
-        """Event: On new context begin"""
+        """
+        Event: On new context begin
+
+        :param ctx: Context
+        :return: ctx
+        """
         self.waiting = True
         self.window.statusChanged.emit("")
         return ctx
 
     def on_ctx_end(self, ctx):
-        """Event: On context end"""
+        """
+        Event: On context end
+
+        :param ctx: Context
+        :return: ctx
+        """
         if self.listening:
             self.window.statusChanged.emit(trans('speech.listening'))
         self.waiting = False
         return ctx
 
     def on_system_prompt(self, prompt):
-        """Event: On prepare system prompt"""
+        """
+        Event: On prepare system prompt
+
+        :param prompt: Prompt
+        :return: prompt
+        """
         return prompt
 
     def on_ai_name(self, name):
-        """Event: On set AI name"""
+        """
+        Event: On set AI name
+
+        :param name: Name
+        :return: name
+        """
         return name
 
     def on_user_name(self, name):
-        """Event: On set user name"""
+        """
+        Event: On set user name
+
+        :param name: Name
+        :return: name
+        """
         return name
 
     def on_enable(self):
@@ -163,8 +193,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -172,8 +202,8 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 

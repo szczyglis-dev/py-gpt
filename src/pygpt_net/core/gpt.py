@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 13:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import base64
 import json
@@ -53,8 +53,8 @@ class Gpt:
         :return: OpenAI client
         """
         return OpenAI(
-            api_key=self.config.data["api_key"],
-            organization=self.config.data["organization_key"],
+            api_key=self.config.get('api_key'),
+            organization=self.config.get('organization_key'),
         )
 
     def completion(self, prompt, max_tokens, stream_mode=False):
@@ -77,12 +77,12 @@ class Gpt:
         client = self.get_client()
         response = client.completions.create(
             prompt=message,
-            model=self.config.data['model'],
+            model=self.config.get('model'),
             max_tokens=int(max_tokens),
-            temperature=self.config.data['temperature'],
-            top_p=self.config.data['top_p'],
-            frequency_penalty=self.config.data['frequency_penalty'],
-            presence_penalty=self.config.data['presence_penalty'],
+            temperature=self.config.get('temperature'),
+            top_p=self.config.get('top_p'),
+            frequency_penalty=self.config.get('frequency_penalty'),
+            presence_penalty=self.config.get('presence_penalty'),
             stop=stop,
             stream=stream_mode,
         )
@@ -103,12 +103,12 @@ class Gpt:
         messages = self.build_chat_messages(prompt)
         response = client.chat.completions.create(
             messages=messages,
-            model=self.config.data['model'],
+            model=self.config.get('model'),
             max_tokens=int(max_tokens),
-            temperature=self.config.data['temperature'],
-            top_p=self.config.data['top_p'],
-            frequency_penalty=self.config.data['frequency_penalty'],
-            presence_penalty=self.config.data['presence_penalty'],
+            temperature=self.config.get('temperature'),
+            top_p=self.config.get('top_p'),
+            frequency_penalty=self.config.get('frequency_penalty'),
+            presence_penalty=self.config.get('presence_penalty'),
             stop=None,
             stream=stream_mode,
         )
@@ -129,7 +129,7 @@ class Gpt:
         messages = self.build_chat_messages(prompt)
         response = client.chat.completions.create(
             messages=messages,
-            model=self.config.data['model'],
+            model=self.config.get('model'),
             max_tokens=int(max_tokens),
             stream=stream_mode,
         )
@@ -150,10 +150,10 @@ class Gpt:
         messages = []
 
         # tokens config
-        model = self.config.data['model']
-        mode = self.config.data['mode']
+        model = self.config.get('model')
+        mode = self.config.get('mode')
         used_tokens = self.count_used_tokens(prompt)
-        max_tokens = self.config.data['max_total_tokens']
+        max_tokens = self.config.get('max_total_tokens')
         model_ctx = self.config.get_model_ctx(model)
         if max_tokens > model_ctx:
             max_tokens = model_ctx
@@ -177,7 +177,7 @@ class Gpt:
                 messages.append({"role": "system", "content": self.system_prompt})
 
         # append messages from context (memory)
-        if self.config.data['use_context']:
+        if self.config.get('use_context'):
             items = self.context.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 # input
@@ -246,9 +246,9 @@ class Gpt:
         message = ""
 
         # tokens config
-        model = self.config.data['model']
+        model = self.config.get('model')
         used_tokens = self.count_used_tokens(prompt)
-        max_tokens = self.config.data['max_total_tokens']
+        max_tokens = self.config.get('max_total_tokens')
         model_ctx = self.config.get_model_ctx(model)
         if max_tokens > model_ctx:
             max_tokens = model_ctx
@@ -259,7 +259,7 @@ class Gpt:
         if self.system_prompt is not None and self.system_prompt != "":
             message += self.system_prompt
 
-        if self.config.data['use_context']:
+        if self.config.get('use_context'):
             items = self.context.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 if item.input_name is not None \
@@ -298,8 +298,8 @@ class Gpt:
         :param input_text: Input text
         :return: Used tokens
         """
-        model = self.config.data['model']
-        mode = self.config.data['mode']
+        model = self.config.get('model')
+        mode = self.config.get('mode')
         tokens = 0
         if mode == "chat" or mode == "vision":
             tokens += num_tokens_prompt(self.system_prompt, "", model)  # init (system) prompt
@@ -310,7 +310,7 @@ class Gpt:
             # rest of modes
             tokens += num_tokens_only(self.system_prompt, model)  # init (system) prompt
             tokens += num_tokens_only(input_text, model)  # current input
-        tokens += self.config.data['context_threshold']  # context threshold (reserved for next output)
+        tokens += self.config.get('context_threshold')  # context threshold (reserved for next output)
         tokens += num_tokens_extra(model)  # extra tokens (required for output)
         return tokens
 
@@ -442,8 +442,8 @@ class Gpt:
         additional_args = {}
         if instructions is not None and instructions != "":
             additional_args['instructions'] = instructions
-        if self.config.data['model'] is not None:
-            additional_args['model'] = self.config.data['model']
+        if self.config.get('model') is not None:
+            additional_args['model'] = self.config.get('model')
 
         run = client.beta.threads.runs.create(
             thread_id=thread_id,
@@ -676,9 +676,9 @@ class Gpt:
         :return: Context item (memory)
         """
         # prepare max tokens
-        mode = self.config.data['mode']
-        model_tokens = self.config.get_model_tokens(self.config.data['model'])
-        max_tokens = self.config.data['max_output_tokens']
+        mode = self.config.get('mode')
+        model_tokens = self.config.get_model_tokens(self.config.get('model'))
+        max_tokens = self.config.get('max_output_tokens')
         if max_tokens > model_tokens:
             max_tokens = model_tokens
 
@@ -708,7 +708,7 @@ class Gpt:
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = ContextItem(self.config.data['mode'])
+                ctx = ContextItem(self.config.get('mode'))
                 ctx.set_input(prompt, self.user_name)
 
             ctx.stream = response
@@ -734,7 +734,7 @@ class Gpt:
 
         # store context (memory)
         if ctx is None:
-            ctx = ContextItem(self.config.data['mode'])
+            ctx = ContextItem(self.config.get('mode'))
             ctx.set_input(prompt, self.user_name)
 
         ctx.set_output(output, self.ai_name)
@@ -758,12 +758,12 @@ class Gpt:
         text += "User: " + str(ctx.input) + "\nAI Assistant: " + str(ctx.output)
 
         # custom values
-        if self.config.data['ctx.auto_summary.system'] is not None and self.config.data['ctx.auto_summary.system'] != "":
-            sys_prompt = self.config.data['ctx.auto_summary.system']
-        if self.config.data['ctx.auto_summary.prompt'] is not None and self.config.data['ctx.auto_summary.prompt'] != "":
-            text = self.config.data['ctx.auto_summary.prompt'].replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
-        if self.config.data['ctx.auto_summary.model'] is not None and self.config.data['ctx.auto_summary.model'] != "":
-            model = self.config.data['ctx.auto_summary.model']
+        if self.config.get('ctx.auto_summary.system') is not None and self.config.get('ctx.auto_summary.system') != "":
+            sys_prompt = self.config.get('ctx.auto_summary.system')
+        if self.config.get('ctx.auto_summary.prompt') is not None and self.config.get('ctx.auto_summary.prompt') != "":
+            text = self.config.get('ctx.auto_summary.prompt').replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
+        if self.config.get('ctx.auto_summary.model') is not None and self.config.get('ctx.auto_summary.model') != "":
+            model = self.config.get('ctx.auto_summary.model')
 
         # call OpenAI API
         response = self.quick_call(text, sys_prompt, False, 500, model)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 15:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -102,10 +102,11 @@ class Plugins:
             self.plugins[id].initial_options = copy.deepcopy(plugin.options)
 
         try:
-            if id in self.config.data['plugins']:
-                for key in self.config.data['plugins'][id]:
+            plugins = self.config.get('plugins')
+            if id in plugins:
+                for key in plugins[id]:
                     if key in self.plugins[id].options:
-                        self.plugins[id].options[key]['value'] = self.config.data['plugins'][id][key]
+                        self.plugins[id].options[key]['value'] = plugins[id][key]
         except Exception as e:
             print('Error while loading plugin options: {}'.format(id))
             print(e)

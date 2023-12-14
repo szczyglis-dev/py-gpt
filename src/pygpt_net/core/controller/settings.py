@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 15:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import os
 
@@ -47,7 +47,7 @@ class Settings:
         self.load_config_options()
 
         # store copy of loaded config data
-        self.before_config = dict(self.window.config.data)
+        self.before_config = dict(self.window.config.all())
 
     def load_config_options(self, initialize=True):
         """
@@ -72,9 +72,9 @@ class Settings:
                     continue
                 type = self.options[option]['type']
                 if type == 'text':
-                    self.window.config.data[option] = self.window.config_option[option].text()
+                    self.window.config.set(option, self.window.config_option[option].text())
                 elif type == 'textarea':
-                    self.window.config.data[option] = self.window.config_option[option].toPlainText()
+                    self.window.config.set(option, self.window.config_option[option].toPlainText())
 
         info = trans('info.settings.saved')
         self.window.config.save()
@@ -84,7 +84,7 @@ class Settings:
         self.window.controller.ui.update()
 
         # update layout if needed
-        if self.before_config['layout.density'] != self.window.config.data['layout.density']:
+        if self.before_config['layout.density'] != self.window.config.get('layout.density'):
             self.window.controller.theme.reload()
 
     def save_all(self):
@@ -127,7 +127,7 @@ class Settings:
             self.window.settings.active[id] = True
 
             # if no API key, focus on API key input
-            if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == '':
+            if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
                 self.window.config_option['api_key'].setFocus()
 
         # update menu
@@ -207,11 +207,11 @@ class Settings:
 
                 # apply initial settings from current config
                 if type == 'int' or type == 'float':
-                    self.apply(option, self.window.config.data[option])
+                    self.apply(option, self.window.config.get(option))
                 elif type == 'bool':
-                    self.toggle(option, self.window.config.data[option])
+                    self.toggle(option, self.window.config.get(option))
                 elif type == 'text' or type == 'textarea':
-                    self.change(option, self.window.config.data[option])
+                    self.change(option, self.window.config.get(option))
 
     def toggle(self, id, value, section=None):
         """
@@ -235,7 +235,7 @@ class Settings:
         if id in self.options:
             if 'type' in self.options[id]:
                 if self.options[id]['type'] == 'bool':
-                    self.window.config.data[id] = value
+                    self.window.config.set(id, value)
 
                 # call vision checkboxes events
                 if id == "vision.capture.enabled":
@@ -254,7 +254,7 @@ class Settings:
         :param value: input option value
         :param section: settings section
         """
-        self.before_config = dict(self.window.config.data)
+        self.before_config = dict(self.window.config.all())
 
         # dialog: preset
         if id.startswith('preset.'):
@@ -276,17 +276,17 @@ class Settings:
                         value = option['min']
                     elif value > option['max']:
                         value = option['max']
-                    self.window.config.data[id] = value
+                    self.window.config.set(id, value)
                 # integers
                 elif option['type'] == 'int':
                     if value < option['min']:
                         value = option['min']
                     elif value > option['max']:
                         value = option['max']
-                    self.window.config.data[id] = round(int(value), 0)
+                    self.window.config.set(id, round(int(value), 0))
                 # text
                 else:
-                    self.window.config.data[id] = value
+                    self.window.config.set(id, value)
 
         # update font size in real time
         if id.startswith('font_size'):
@@ -304,7 +304,7 @@ class Settings:
         :param type: option type (slider, input, None)
         :param section: option section (settings, preset.editor, None)
         """
-        self.before_config = dict(self.window.config.data)
+        self.before_config = dict(self.window.config.all())
 
         # dialog: preset
         if id.startswith('preset.'):
@@ -391,7 +391,7 @@ class Settings:
 
         # update current preset temperature if changed global temperature
         if id == 'current_temperature':
-            preset = self.window.config.data['preset']  # current preset
+            preset = self.window.config.get('preset')  # current preset
             is_current = True
             if section == 'preset.editor':
                 preset = self.window.config_option['preset.filename'].text()  # editing preset
@@ -401,10 +401,10 @@ class Settings:
         else:
             if option_type != 'int' and id not in self.integer_values:
                 # any float
-                self.window.config.data[id] = float(input_value)
+                self.window.config.set(id, float(input_value))
             else:
                 # any integer
-                self.window.config.data[id] = round(int(input_value), 0)
+                self.window.config.set(id, round(int(input_value), 0))
 
         # update from slider
         if type == 'slider':

@@ -152,7 +152,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
+        :param ctx: Context
+        :return: Context
 
         """
         return ctx
@@ -161,8 +162,8 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -279,7 +280,7 @@ class Plugin(BasePlugin):
                                 self.log(result)
                             ctx.results.append({"request": request_item, "result": result})
                         except Exception as e:
-                            ctx.results.append({"request": item, "result": "Error: {}".format(e)})
+                            ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
 
                     # sys_exec

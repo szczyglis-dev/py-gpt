@@ -96,7 +96,8 @@ class Plugin(BasePlugin):
                                                          'Max pages limit: {max_pages}, params: "query", "page", '
                                                          '"summarize_prompt"',
                         "Syntax: web_search",
-                        "Syntax for web search command, use {max_pages} as a placeholder for `num_pages` value", advanced=True)
+                        "Syntax for web search command, use {max_pages} as a placeholder for `num_pages` value",
+                        advanced=True)
         self.add_option("syntax_web_url_open", "textarea", '"web_url_open": use it to get contents from a specific '
                                                            'Web page. Use a custom summary prompt if necessary, '
                                                            'otherwise a default summary will be used. Params: "url", '
@@ -187,6 +188,7 @@ class Plugin(BasePlugin):
         Event: Before input
 
         :param text: Text
+        :return: Text
         """
         self.input_text = text
         return text
@@ -195,7 +197,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -203,7 +206,8 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 

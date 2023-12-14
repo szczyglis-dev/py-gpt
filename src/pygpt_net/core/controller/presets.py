@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import datetime
 import os
@@ -47,13 +47,13 @@ class Presets:
         # update current data
         if current:
             if id == 'preset.ai_name':
-                self.window.config.data['ai_name'] = value
+                self.window.config.set('ai_name', value)
             elif id == 'preset.user_name':
-                self.window.config.data['user_name'] = value
+                self.window.config.set('user_name', value)
             elif id == 'preset.prompt':
-                self.window.config.data['prompt'] = value
+                self.window.config.set('prompt', value)
             elif id == 'preset.temperature' or id == 'current_temperature':
-                self.window.config.data['temperature'] = float(value)
+                self.window.config.set('temperature', float(value))
 
         self.window.controller.ui.update()
 
@@ -65,7 +65,7 @@ class Presets:
         """
         preset = None
         if idx is not None:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             preset = self.window.config.get_preset_by_idx(idx, mode)
 
         self.init_editor(preset)
@@ -108,7 +108,7 @@ class Presets:
             data['filename'] = ""
 
         if preset is None:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             if mode == 'chat':
                 data['chat'] = True
             elif mode == 'completion':
@@ -245,12 +245,12 @@ class Presets:
         :param idx: preset index (row index)
         """
         if idx is not None:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             preset = self.window.config.get_preset_by_idx(idx, mode)
             if preset is not None and preset != "":
                 if preset in self.window.config.presets:
                     new_id = self.window.config.duplicate_preset(preset)
-                    self.window.config.data['preset'] = new_id
+                    self.window.config.set('preset', new_id)
                     self.window.controller.model.update()
                     idx = self.window.config.get_preset_idx(mode, new_id)
                     self.edit(idx)
@@ -262,16 +262,16 @@ class Presets:
 
         :param force: force clear data
         """
-        preset = self.window.config.data['preset']
+        preset = self.window.config.get('preset')
 
         if not force:
             self.window.ui.dialogs.confirm('preset_clear', '', trans('confirm.preset.clear'))
             return
 
-        self.window.config.data['prompt'] = ""
-        self.window.config.data['ai_name'] = ""
-        self.window.config.data['user_name'] = ""
-        self.window.config.data['temperature'] = 1.0
+        self.window.config.set('prompt', "")
+        self.window.config.set('ai_name', "")
+        self.window.config.set('user_name', "")
+        self.window.config.set('temperature', 1.0)
 
         if preset is not None and preset != "":
             if preset in self.window.config.presets:
@@ -291,7 +291,7 @@ class Presets:
         :param force: force delete without confirmation
         """
         if idx is not None:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             preset = self.window.config.get_preset_by_idx(idx, mode)
             if preset is not None and preset != "":
                 if preset in self.window.config.presets:
@@ -300,19 +300,19 @@ class Presets:
                         self.window.ui.dialogs.confirm('preset_delete', idx, trans('confirm.preset.delete'))
                         return
 
-                    if preset == self.window.config.data['preset']:
-                        self.window.config.data['preset'] = None
+                    if preset == self.window.config.get('preset'):
+                        self.window.config.set('preset', None)
                     self.window.config.delete_preset(preset, True)
                     self.window.controller.model.update()
                     self.window.set_status(trans('status.preset.deleted'))
 
     def from_current(self):
         """Loads from current prompt"""
-        self.config_change('preset.ai_name', self.window.config.data['ai_name'], 'preset.editor')
-        self.config_change('preset.user_name', self.window.config.data['user_name'],
+        self.config_change('preset.ai_name', self.window.config.get('ai_name'), 'preset.editor')
+        self.config_change('preset.user_name', self.window.config.get('user_name'),
                            'preset.editor')
-        self.config_change('preset.prompt', self.window.config.data['prompt'], 'preset.editor')
-        self.config_slider('preset.temperature', self.window.config.data['temperature'], '',
+        self.config_change('preset.prompt', self.window.config.get('prompt'), 'preset.editor')
+        self.config_slider('preset.temperature', self.window.config.get('temperature'), '',
                            'preset.editor')
 
     def use(self):
@@ -337,7 +337,7 @@ class Presets:
         :param value: checkbox option value
         :param section: settings section
         """
-        preset = self.window.config.data['preset']  # current preset
+        preset = self.window.config.get('preset')  # current preset
         is_current = True
         if section == 'preset.editor':
             preset = self.window.config_option['preset.filename'].text()  # editing preset
@@ -358,7 +358,7 @@ class Presets:
             value = self.validate_filename(value)
             self.window.config_option[id].setText(value)
 
-        preset = self.window.config.data['preset']  # current preset
+        preset = self.window.config.get('preset')  # current preset
         is_current = True
         if section == 'preset.editor':
             preset = self.window.config_option['preset.filename'].text()  # editing preset
@@ -394,7 +394,7 @@ class Presets:
         if type == 'slider':
             input_value = value / multiplier
 
-        preset = self.window.config.data['preset']  # current preset
+        preset = self.window.config.get('preset')  # current preset
         is_current = True
         if section == 'preset.editor':
             preset = self.window.config_option['preset.filename'].text()  # editing preset

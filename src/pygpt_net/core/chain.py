@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -58,7 +58,7 @@ class Chain:
                 messages.append(SystemMessage(content=self.system_prompt))
 
         # append messages from context (memory)
-        if self.config.data['use_context']:
+        if self.config.get('use_context'):
             items = self.context.get_all_items()
             for item in items:
                 # input
@@ -84,7 +84,7 @@ class Chain:
         if self.system_prompt is not None and self.system_prompt != "":
             message += self.system_prompt
 
-        if self.config.data['use_context']:
+        if self.config.get('use_context'):
             items = self.context.get_all_items()
             for item in items:
                 if item.input_name is not None \
@@ -122,13 +122,13 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        cfg = self.config.get_model_cfg(self.config.data['model'])
+        cfg = self.config.get_model_cfg(self.config.get('model'))
         if 'langchain' in cfg:
             if 'provider' in cfg['langchain']:
                 provider = cfg['langchain']['provider']
                 if provider in self.llms:
                     try:
-                        llm = self.llms[provider].chat(self.config.data, cfg['langchain'], stream_mode)
+                        llm = self.llms[provider].chat(self.config.all(), cfg['langchain'], stream_mode)
                     except Exception as e:
                         print(e)
 
@@ -151,13 +151,13 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        cfg = self.config.get_model_cfg(self.config.data['model'])
+        cfg = self.config.get_model_cfg(self.config.get('model'))
         if 'langchain' in cfg:
             if 'provider' in cfg['langchain']:
                 provider = cfg['langchain']['provider']
                 if provider in self.llms:
                     try:
-                        llm = self.llms[provider].completion(self.config.data, cfg['langchain'], stream_mode)
+                        llm = self.llms[provider].completion(self.config.all(), cfg['langchain'], stream_mode)
                     except Exception as e:
                         print(e)
         if llm is None:
@@ -178,7 +178,7 @@ class Chain:
         :param stream_mode: Stream mode
         :return: LLM response
         """
-        cfg = self.config.get_model_cfg(self.config.data['model'])
+        cfg = self.config.get_model_cfg(self.config.get('model'))
         response = None
         mode = 'chat'
 
@@ -202,7 +202,7 @@ class Chain:
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = ContextItem(self.config.data['mode'])
+                ctx = ContextItem(self.config.get('mode'))
                 ctx.set_input(text, self.user_name)
 
             ctx.stream = response
@@ -222,7 +222,7 @@ class Chain:
 
         # store context (memory)
         if ctx is None:
-            ctx = ContextItem(self.config.data['mode'])
+            ctx = ContextItem(self.config.get('mode'))
             ctx.set_input(text, self.user_name)
 
         ctx.set_output(output, self.ai_name)

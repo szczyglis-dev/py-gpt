@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 11:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -223,7 +223,7 @@ class Updater:
 
     def patch_config(self):
         """Migrates config to current version"""
-        data = self.window.config.data
+        data = self.window.config.all()
         version = "0.0.0"
         updated = False
         is_old = False
@@ -458,7 +458,7 @@ class Updater:
         :return: True if updated
         """
         base = self.get_base_config()
-        data = self.window.config.data
+        data = self.window.config.all()
         updated = False
 
         # check for any missing keys

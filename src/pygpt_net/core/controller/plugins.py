@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 15:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -150,7 +150,7 @@ class Plugins:
             options = plugin.setup()  # get plugin options
 
             # add plugin to config if not exists
-            if id not in self.window.config.data['plugins']:
+            if id not in self.window.config.get('plugins'):
                 self.window.config.data['plugins'][id] = {}
 
             self.current_plugin = id
@@ -346,7 +346,7 @@ class Plugins:
         """
         Loads plugins config
         """
-        for id in self.window.config.data['plugins_enabled']:
+        for id in self.window.config.get('plugins_enabled'):
             if self.window.config.data['plugins_enabled'][id]:
                 self.enable(id)
 

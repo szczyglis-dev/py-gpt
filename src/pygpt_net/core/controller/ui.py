@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 14:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
@@ -32,11 +32,11 @@ class UI:
 
     def update_counters(self):
         """Updates tokens counters"""
-        model = self.window.config.data['model']
-        mode = self.window.config.data['mode']
-        user_name = self.window.config.data['user_name']
-        ai_name = self.window.config.data['ai_name']
-        max_total_tokens = self.window.config.data['max_total_tokens']
+        model = self.window.config.get('model')
+        mode = self.window.config.get('mode')
+        user_name = self.window.config.get('user_name')
+        ai_name = self.window.config.get('ai_name')
+        max_total_tokens = self.window.config.get('max_total_tokens')
         extra_tokens = num_tokens_extra(model)
 
         prompt_tokens = 0
@@ -44,7 +44,7 @@ class UI:
 
         if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
             # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.config.data['prompt']).strip()
+            system_prompt = str(self.window.config.get('prompt')).strip()
             prompt_tokens = num_tokens_prompt(system_prompt, "", model)
             prompt_tokens += num_tokens_only("system", model)
 
@@ -54,7 +54,7 @@ class UI:
             input_tokens += num_tokens_only("user", model)
         elif mode == "completion":
             # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.config.data['prompt']).strip()
+            system_prompt = str(self.window.config.get('prompt')).strip()
             prompt_tokens = num_tokens_only(system_prompt, model)
 
             # input tokens
@@ -79,7 +79,7 @@ class UI:
         ctx_len, ctx_tokens = self.window.gpt.context.count_prompt_items(model, mode, used_tokens, max_total_tokens)
 
         # zero if context not used
-        if not self.window.config.data['use_context']:
+        if not self.window.config.get('use_context'):
             ctx_tokens = 0
             ctx_len = 0
 
@@ -90,7 +90,7 @@ class UI:
         string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
         self.window.data['prompt.context'].setText(string)
 
-        # threshold = str(int(self.window.config.data['context_threshold']))
+        # threshold = str(int(self.window.config.get('context_threshold')))
 
         parsed_total = str(int(total_tokens))
         parsed_total = parsed_total.replace("000000", "M").replace("000", "k")

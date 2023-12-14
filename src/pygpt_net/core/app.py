@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 14:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import os
 import sys
@@ -112,7 +112,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         inverse = False
         extra = {
-            'density_scale': self.config.data['layout.density'],
+            'density_scale': self.config.get('layout.density'),
             'pyside6': True,
         }
         self.apply_stylesheet(self, theme, invert_secondary=inverse, extra=extra)

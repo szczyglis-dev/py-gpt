@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 14:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import json
 import os
@@ -85,8 +85,8 @@ class Settings:
         persist_options = self.get_persist_options()
         persist_values = {}
         for option in persist_options:
-            if option in self.window.config.data:
-                persist_values[option] = self.window.config.data[option]
+            if self.window.config.has(option):
+                persist_values[option] = self.window.config.get(option)
 
         # save current config backup
         self.window.config.save('config.backup.json')
@@ -97,7 +97,7 @@ class Settings:
         # restore persisted values
         for option in persist_options:
             if option in persist_values:
-                self.window.config.data[option] = persist_values[option]
+                self.window.config.set(option, persist_values[option])
 
     def load_default_editor(self):
         """Loads defaults from file"""

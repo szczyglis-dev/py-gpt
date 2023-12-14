@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 15:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -40,8 +40,9 @@ class Lang:
         for lang in self.window.menu['lang']:
             self.window.menu['lang'][lang].setChecked(False)
 
-        if self.window.config.data['lang'] in self.window.menu['lang']:
-            self.window.menu['lang'][self.window.config.data['lang']].setChecked(True)
+        lang = self.window.config.get('lang')
+        if lang in self.window.menu['lang']:
+            self.window.menu['lang'][lang].setChecked(True)
 
     def toggle(self, id):
         """
@@ -49,7 +50,7 @@ class Lang:
 
         :param id: language to toggle
         """
-        self.window.config.data['lang'] = id
+        self.window.config.set('lang', id)
         self.window.config.save()
         trans('', True)
 
@@ -147,7 +148,7 @@ class Lang:
         self.window.data['vision.capture.label'].setText(trans('vision.capture.options.title'))
 
         # capture label
-        if not self.window.config.data['vision.capture.auto']:
+        if not self.window.config.get('vision.capture.auto'):
             self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
         else:
             self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
@@ -244,7 +245,7 @@ class Lang:
         self.window.controller.plugins.update_info()
 
         # tabs
-        mode = self.window.config.data['mode']
+        mode = self.window.config.get('mode')
         self.window.controller.attachment.update_tab_label(mode)
         self.window.controller.assistant.update_tab_label()
         self.window.tabs['input'].setTabText(0, trans('input.tab'))

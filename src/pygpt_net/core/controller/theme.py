@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.10 13:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import json
 import os
@@ -54,7 +54,7 @@ class Theme:
 
         :param name: theme name
         """
-        self.window.config.data['theme'] = name
+        self.window.config.set('theme', name)
         self.window.config.save()
         self.apply()
         self.window.set_theme(name + '.xml', 'style.css')  # style.css = additional custom stylesheet
@@ -74,7 +74,7 @@ class Theme:
         self.window.data['notepad5'].setStyleSheet(self.get_style('chat_output'))
 
         # apply to syntax highlighter
-        self.apply_syntax_highlighter(self.window.config.data['theme'])
+        self.apply_syntax_highlighter(self.window.config.get('theme'))
 
     def get_style(self, element):
         """
@@ -85,11 +85,11 @@ class Theme:
         """
         # get theme element style
         if  element == "chat_output":
-            return 'font-size: {}px;'.format(self.window.config.data['font_size'])
+            return 'font-size: {}px;'.format(self.window.config.get('font_size'))
         elif element == "chat_input":
-            return 'font-size: {}px;'.format(self.window.config.data['font_size.input'])
+            return 'font-size: {}px;'.format(self.window.config.get('font_size.input'))
         elif element == "ctx.contexts":
-            return 'font-size: {}px;'.format(self.window.config.data['font_size.ctx'])
+            return 'font-size: {}px;'.format(self.window.config.get('font_size.ctx'))
         elif element == "text_bold":
             return "font-weight: bold;"
         elif element == "text_small":
@@ -103,7 +103,7 @@ class Theme:
         """Updates theme menu"""
         for theme in self.window.menu['theme']:
             self.window.menu['theme'][theme].setChecked(False)
-        current = self.window.config.data['theme']
+        current = self.window.config.get('theme')
         if current in self.window.menu['theme']:
             self.window.menu['theme'][current].setChecked(True)
 
@@ -159,10 +159,10 @@ class Theme:
             self.window.menu['menu.theme'].addAction(self.window.menu['theme'][theme])
 
         # apply theme
-        theme = self.window.config.data['theme']
+        theme = self.window.config.get('theme')
         self.toggle(theme)
 
     def reload(self):
         """Reloads theme"""
-        theme = self.window.config.data['theme']
+        theme = self.window.config.get('theme')
         self.toggle(theme)

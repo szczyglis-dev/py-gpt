@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.12 19:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import json
 
@@ -34,33 +34,34 @@ class Input:
         """Sets up input"""
 
         # stream
-        if self.window.config.data['stream']:
+        if self.window.config.get('stream'):
             self.window.data['input.stream'].setChecked(True)
         else:
             self.window.data['input.stream'].setChecked(False)
 
         # send clear
-        if self.window.config.data['send_clear']:
+        if self.window.config.get('send_clear'):
             self.window.data['input.send_clear'].setChecked(True)
         else:
             self.window.data['input.send_clear'].setChecked(False)
 
         # send with enter/shift/disabled
-        if self.window.config.data['send_mode'] == 2:
+        mode = self.window.config.get('send_mode')
+        if mode == 2:
             self.window.data['input.send_shift_enter'].setChecked(True)
             self.window.data['input.send_enter'].setChecked(False)
             self.window.data['input.send_none'].setChecked(False)
-        elif self.window.config.data['send_mode'] == 1:
+        elif mode == 1:
             self.window.data['input.send_enter'].setChecked(True)
             self.window.data['input.send_shift_enter'].setChecked(False)
             self.window.data['input.send_none'].setChecked(False)
-        elif self.window.config.data['send_mode'] == 0:
+        elif mode == 0:
             self.window.data['input.send_enter'].setChecked(False)
             self.window.data['input.send_shift_enter'].setChecked(False)
             self.window.data['input.send_none'].setChecked(True)
 
         # cmd enabled
-        if self.window.config.data['cmd']:
+        if self.window.config.get('cmd'):
             self.window.data['cmd.enabled'].setChecked(True)
         else:
             self.window.data['cmd.enabled'].setChecked(False)
@@ -74,7 +75,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.data['stream'] = value
+        self.window.config.set('stream', value)
 
     def toggle_cmd(self, value):
         """
@@ -82,7 +83,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.data['cmd'] = value
+        self.window.config.set('cmd', value)
 
     def toggle_send_clear(self, value):
         """
@@ -90,7 +91,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.data['send_clear'] = value
+        self.window.config.set('send_clear', value)
 
     def toggle_send_shift(self, value):
         """
@@ -98,7 +99,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.data['send_mode'] = value
+        self.window.config.set('send_mode', value)
 
     def lock_input(self):
         """
@@ -134,21 +135,21 @@ class Input:
         self.window.statusChanged.emit(trans('status.sending'))
 
         # prepare names
-        self.window.log("User name: {}".format(self.window.config.data['user_name']))  # log
-        self.window.log("AI name: {}".format(self.window.config.data['ai_name']))  # log
+        self.window.log("User name: {}".format(self.window.config.get('user_name')))  # log
+        self.window.log("AI name: {}".format(self.window.config.get('ai_name')))  # log
 
-        user_name = self.window.controller.plugins.apply('user.name', self.window.config.data['user_name'])
-        ai_name = self.window.controller.plugins.apply('ai.name', self.window.config.data['ai_name'])
+        user_name = self.window.controller.plugins.apply('user.name', self.window.config.get('user_name'))
+        ai_name = self.window.controller.plugins.apply('ai.name', self.window.config.get('ai_name'))
 
-        self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.data['user_name']))  # log
-        self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.data['ai_name']))  # log
+        self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.get('user_name')))  # log
+        self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.get('ai_name')))  # log
 
         # store history (input)
-        if self.window.config.data['store_history'] and text is not None and text.strip() != "":
+        if self.window.config.get('store_history') and text is not None and text.strip() != "":
             self.history.save(text)
 
         # get mode
-        mode = self.window.config.data['mode']
+        mode = self.window.config.get('mode')
 
         # clear
         self.window.gpt.file_ids = []  # file ids
@@ -174,10 +175,10 @@ class Input:
                 self.window.ui.dialogs.alert(str(e))
 
             # create or get current thread, it is required here
-            if self.window.config.data['assistant_thread'] is None:
+            if self.window.config.get('assistant_thread') is None:
                 try:
                     self.window.set_status(trans('status.starting'))
-                    self.window.config.data['assistant_thread'] = self.window.controller.assistant.create_thread()
+                    self.window.config.set('assistant_thread', self.window.controller.assistant.create_thread())
                 except Exception as e:
                     print(e)
                     self.window.ui.dialogs.alert(str(e))
@@ -190,8 +191,8 @@ class Input:
 
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
-            ctx.thread = self.window.config.data['assistant_thread']
-            self.window.gpt.assistant_id = self.window.config.data['assistant']
+            ctx.thread = self.window.config.get('assistant_thread')
+            self.window.gpt.assistant_id = self.window.config.get('assistant')
             self.window.gpt.thread_id = ctx.thread
 
         # log
@@ -211,11 +212,11 @@ class Input:
         self.window.chain.ai_name = ctx.output_name
 
         # prepare system prompt
-        sys_prompt = self.window.config.data['prompt']
+        sys_prompt = self.window.config.get('prompt')
         sys_prompt = self.window.controller.plugins.apply('system.prompt', sys_prompt)
 
         # if commands enabled: append commands prompt
-        if self.window.config.data['cmd']:
+        if self.window.config.get('cmd'):
             sys_prompt += " " + self.window.command.get_prompt()
             sys_prompt = self.window.gpt.system_prompt = self.window.controller.plugins.apply('cmd.syntax', sys_prompt)
 
@@ -235,7 +236,7 @@ class Input:
         self.window.controller.ui.update()  # update UI
 
         # async or sync mode
-        stream_mode = self.window.config.data['stream']
+        stream_mode = self.window.config.get('stream')
 
         # disable stream mode for vision mode (tmp)
         if mode == "vision":
@@ -295,7 +296,7 @@ class Input:
             self.unlock_input()
 
         # handle ctx name (generate title from summary if not initialized)
-        if self.window.config.data['ctx.auto_summary']:
+        if self.window.config.get('ctx.auto_summary'):
             self.handle_ctx_name(ctx)
 
         return ctx
@@ -318,7 +319,7 @@ class Input:
 
         :param ctx: ContextItem
         """
-        if ctx is not None and self.window.config.data['cmd']:
+        if ctx is not None and self.window.config.get('cmd'):
             cmds = self.window.command.extract_cmds(ctx.output)
             self.window.log("Executing commands...")
             self.window.set_status("Executing commands...")
@@ -342,7 +343,7 @@ class Input:
 
             # get submode for langchain
             if mode == "langchain":
-                cfg = self.window.config.get_model_cfg(self.window.config.data['model'])
+                cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
                 submode = 'chat'
                 # get available modes for langchain
                 if 'langchain' in cfg:
@@ -429,7 +430,7 @@ class Input:
             trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
         # store history (output)
-        if self.window.config.data['store_history'] and ctx.output is not None and ctx.output.strip() != "":
+        if self.window.config.get('store_history') and ctx.output is not None and ctx.output.strip() != "":
             self.history.save(ctx.output)
 
     def user_send(self, text=None):
@@ -445,10 +446,10 @@ class Input:
         if self.locked:
             return
 
-        mode = self.window.config.data['mode']
+        mode = self.window.config.get('mode')
         if mode == 'assistant':
             # check if assistant is selected
-            if self.window.config.data['assistant'] is None or self.window.config.data['assistant'] == "":
+            if self.window.config.get('assistant') is None or self.window.config.get('assistant') == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 return
         elif mode == 'vision':
@@ -476,11 +477,11 @@ class Input:
                 or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
 
             # clear input area if clear-on-send enabled
-            if self.window.config.data['send_clear']:
+            if self.window.config.get('send_clear'):
                 self.window.data['input'].clear()
 
             # check API key
-            if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == '':
+            if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
                 self.window.controller.launcher.show_api_monit()
                 self.window.controller.ui.update()
                 self.window.statusChanged.emit("Missing API KEY!")
@@ -500,7 +501,7 @@ class Input:
             QApplication.processEvents()
 
             # send input to API
-            if self.window.config.data['mode'] == 'img':
+            if self.window.config.get('mode') == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
                 ctx = self.window.controller.input.send_text(text)
@@ -509,7 +510,7 @@ class Input:
             self.window.statusChanged.emit("")
 
         # clear attachments after send if enabled
-        if self.window.config.data['attachments_send_clear']:
+        if self.window.config.get('attachments_send_clear'):
             self.window.controller.attachment.clear(True)
             self.window.controller.attachment.update()
 

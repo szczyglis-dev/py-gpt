@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 15:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import threading
@@ -83,7 +83,7 @@ class Plugin(BasePlugin):
         Event: On new context begin
 
         :param ctx: Context
-        :return: ctx
+        :return: Context
         """
         return ctx
 
@@ -92,7 +92,7 @@ class Plugin(BasePlugin):
         Event: On context end
 
         :param ctx: Context
-        :return: ctx
+        :return: Context
         """
         return ctx
 
@@ -145,8 +145,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -154,8 +154,8 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         # Check if api key is set
         if self.options['azure_api_key']['value'] is None or self.options['azure_api_key']['value'] == "":
@@ -168,7 +168,7 @@ class Plugin(BasePlugin):
         text = ctx.output
         try:
             if text is not None and len(text) > 0:
-                lang = self.window.config.data['lang']
+                lang = self.window.config.get('lang')
                 voice = None
                 if lang == "pl":
                     voice = self.options['voice_pl']['value']

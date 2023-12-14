@@ -132,6 +132,7 @@ class Plugin(BasePlugin):
         Event: Before input
 
         :param text: Text
+        :return: Text
         """
         return text
 
@@ -139,7 +140,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
+        :param ctx: Context
+        :return: Context
         """
         if self.iteration > 0 and self.iteration % 2 != 0 and self.options["reverse_roles"]["value"]:
             self.window.log("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
@@ -155,6 +157,7 @@ class Plugin(BasePlugin):
         Event: After ctx
 
         :param ctx: ctx
+        :return: ctx
         """
         self.prev_output = ctx.output
         if self.options["clear_output"]["value"]:

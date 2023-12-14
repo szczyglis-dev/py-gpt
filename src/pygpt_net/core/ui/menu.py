@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -34,7 +34,7 @@ class Menu:
         self.setup_about()
 
         # debug menu
-        if self.window.config.data['debug']:
+        if self.window.config.get('debug'):
             self.setup_debug()
 
     def setup_file(self):

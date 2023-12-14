@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import json
@@ -23,8 +23,8 @@ class Locale:
         self.config = Config()
         self.config.init(False)
         self.lang = 'en'
-        if 'lang' in self.config.data:
-            self.lang = self.config.data['lang']
+        if self.config.has('lang'):
+            self.lang = self.config.get('lang')
         self.data = {}
         self.load(self.lang)
 
@@ -33,8 +33,8 @@ class Locale:
         Reload translations
         """
         self.config.load_config()
-        if 'lang' in self.config.data:
-            self.lang = self.config.data['lang']
+        if self.config.has('lang'):
+            self.lang = self.config.get('lang')
         self.load(self.lang)
 
     def load(self, lang):

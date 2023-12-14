@@ -214,6 +214,14 @@ class Config:
         except Exception as e:
             print(e)
 
+    def all(self):
+        """
+        Returns all config values
+
+        :return: dict with all config values
+        """
+        return self.data
+
     def get(self, key):
         """
         Returns config value

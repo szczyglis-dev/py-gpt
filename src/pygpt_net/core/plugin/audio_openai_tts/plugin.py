@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 19:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -56,8 +56,6 @@ class Plugin(BasePlugin):
     def setup_ui(self):
         """
         Setup UI
-
-        :param ui: UI
         """
         pass
 
@@ -145,8 +143,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -154,15 +152,15 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx:Context
+        :return: Context
         """
         text = ctx.output
         try:
             if text is not None and len(text) > 0:
                 client = OpenAI(
-                    api_key=self.window.config.data["api_key"],
-                    organization=self.window.config.data["organization_key"],
+                    api_key=self.window.config.get('api_key'),
+                    organization=self.window.config.get('organization_key'),
                 )
                 voice = self.options['voice']['value']
                 path = os.path.join(self.window.config.path, 'output.mp3')

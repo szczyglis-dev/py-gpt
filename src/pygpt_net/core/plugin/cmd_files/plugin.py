@@ -226,8 +226,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
-        :return: Text
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -235,8 +235,8 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 

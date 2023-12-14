@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 12:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 import datetime
 import os
@@ -132,10 +132,10 @@ class Camera:
             path = os.path.join(self.window.config.path, 'capture', name + '.jpg')
 
             # capture frame
-            compression_params = [cv2.IMWRITE_JPEG_QUALITY, self.window.config.data['vision.capture.quality']]
+            compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.config.get('vision.capture.quality'))]
             frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             cv2.imwrite(path, frame, compression_params)
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
 
             # make attachment
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -180,11 +180,11 @@ class Camera:
         """
         Enable capture
         """
-        if self.window.config.data['mode'] != 'vision':
+        if self.window.config.get('mode') != 'vision':
             return
 
         self.is_capture = True
-        self.window.config.data['vision.capture.enabled'] = True
+        self.window.config.set('vision.capture.enabled', True)
         self.window.data['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
@@ -193,11 +193,11 @@ class Camera:
         """
         Disable capture
         """
-        if self.window.config.data['mode'] != 'vision':
+        if self.window.config.get('mode') != 'vision':
             return
 
         self.is_capture = False
-        self.window.config.data['vision.capture.enabled'] = False
+        self.window.config.set('vision.capture.enabled', False)
         self.window.data['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
@@ -223,18 +223,18 @@ class Camera:
             return
 
         self.auto = True
-        self.window.config.data['vision.capture.auto'] = True
+        self.window.config.set('vision.capture.auto', True)
         self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
     def disable_auto(self):
         """
         Disable capture
         """
-        if self.window.config.data['mode'] != 'vision':
+        if self.window.config.get('mode') != 'vision':
             return
 
         self.auto = False
-        self.window.config.data['vision.capture.auto'] = False
+        self.window.config.set('vision.capture.auto', False)
         self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
 
     def toggle_auto(self, state):
@@ -270,14 +270,14 @@ class Camera:
         """
         Update layout checkboxes
         """
-        if self.window.config.data['vision.capture.enabled']:
+        if self.window.config.get('vision.capture.enabled'):
             self.is_capture = True
             self.window.data['vision.capture.enable'].setChecked(True)
         else:
             self.is_capture = False
             self.window.data['vision.capture.enable'].setChecked(False)
 
-        if self.window.config.data['vision.capture.auto']:
+        if self.window.config.get('vision.capture.auto'):
             self.auto = True
             self.window.data['vision.capture.auto'].setChecked(True)
         else:
@@ -285,7 +285,7 @@ class Camera:
             self.window.data['vision.capture.auto'].setChecked(False)
 
         # update label
-        if not self.window.config.data['vision.capture.auto']:
+        if not self.window.config.get('vision.capture.auto'):
             self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
         else:
             self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))

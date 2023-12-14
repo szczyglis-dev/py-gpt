@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.28** build: **2023.12.14** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.29** build: **2023.12.14** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -20,7 +20,7 @@ Multiple operation modes are included, such as chat, text completion, assistant,
 
 Video (mp4):
 
-https://github.com/szczyglis-dev/py-gpt/assets/61396542/6619f5e2-df68-4f5d-a2bd-45b955e269a5
+https://github.com/szczyglis-dev/py-gpt/assets/61396542/2cbb7770-64fc-4b3d-8c81-6a997cabc861
 
 Screenshot:
 
@@ -157,7 +157,7 @@ python app.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
-the application for your system (version < 6.x, e.g. 5.13.2).
+the application for your system (version < `6.x`, e.g. `5.13.2`).
 
 ## Other requirements
 

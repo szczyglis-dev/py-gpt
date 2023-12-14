@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from ..updater import Updater
@@ -35,7 +35,7 @@ class Launcher:
         self.updater.check()
 
         # show welcome API KEY dialog
-        if self.window.config.data['api_key'] is None or self.window.config.data['api_key'] == '':
+        if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
             self.show_api_monit()
 
         self.window.gpt.init()

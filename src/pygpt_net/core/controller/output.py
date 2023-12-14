@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -24,7 +24,7 @@ class Output:
 
     def setup(self):
         """Setups output"""
-        self.window.data['output.timestamp'].setChecked(self.window.config.data['output_timestamp'])
+        self.window.data['output.timestamp'].setChecked(self.window.config.get('output_timestamp'))
 
     def clear(self):
         """
@@ -56,7 +56,7 @@ class Output:
         """
         if item.input is None or item.input == "":
             return
-        if self.window.config.data['output_timestamp'] and item.input_timestamp is not None:
+        if self.window.config.get('output_timestamp') and item.input_timestamp is not None:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
@@ -74,7 +74,7 @@ class Output:
         """
         if item.output is None or item.output == "":
             return
-        if self.window.config.data['output_timestamp'] and item.output_timestamp is not None:
+        if self.window.config.get('output_timestamp') and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -95,7 +95,7 @@ class Output:
         """
         if text_chunk is None or text_chunk == "":
             return
-        if begin and self.window.config.data['output_timestamp'] and item.output_timestamp is not None:
+        if begin and self.window.config.get('output_timestamp') and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -128,6 +128,6 @@ class Output:
 
         :param value: value of the checkbox
         """
-        self.window.config.data['output_timestamp'] = value
+        self.window.config.set('output_timestamp', value)
         self.window.config.save()
         self.window.controller.context.refresh()

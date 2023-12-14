@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -34,7 +34,7 @@ class NameInput(QLineEdit):
         """
         super(NameInput, self).keyPressEvent(event)
         self.window.controller.ui.update()
-        self.window.controller.presets.update_field(self.id, self.text(), self.window.config.data['preset'], True)
+        self.window.controller.presets.update_field(self.id, self.text(), self.window.config.get('preset'), True)
 
 
 class ChatInput(QTextEdit):
@@ -57,8 +57,9 @@ class ChatInput(QTextEdit):
         super(ChatInput, self).keyPressEvent(event)
         self.window.controller.ui.update()
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            if self.window.config.data['send_mode'] > 0:
-                if self.window.config.data['send_mode'] == 2:
+            mode = self.window.config.get('send_mode')
+            if mode > 0:
+                if mode == 2:
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == QtCore.Qt.ShiftModifier:
                         self.window.controller.input.user_send()

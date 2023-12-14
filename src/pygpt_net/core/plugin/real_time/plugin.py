@@ -134,6 +134,7 @@ class Plugin(BasePlugin):
         Event: Before input
 
         :param text: Text
+        :return: Text
         """
         return text
 
@@ -141,7 +142,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -150,5 +152,6 @@ class Plugin(BasePlugin):
         Event: After ctx
 
         :param ctx: ctx
+        :return: ctx
         """
         return ctx

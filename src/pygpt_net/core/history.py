@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -46,7 +46,7 @@ class History:
             try:
                 with open(f, 'a', encoding="utf-8") as file:
                     prefix = ""
-                    if self.config.data['store_history_time']:
+                    if self.config.get('store_history_time'):
                         prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
                     file.write(prefix + text + "\n")
                     file.close()

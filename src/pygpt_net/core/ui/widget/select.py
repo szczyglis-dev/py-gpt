@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.14 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
@@ -312,7 +312,7 @@ class AttachmentSelectMenu(SelectMenu):
 
         :param val: click event
         """
-        mode = self.window.config.data['mode']
+        mode = self.window.config.get('mode')
         self.window.controller.attachment.select(mode, val.row())
 
     def dblclick(self, val):
@@ -321,7 +321,7 @@ class AttachmentSelectMenu(SelectMenu):
 
         :param val: double click event
         """
-        mode = self.window.config.data['mode']
+        mode = self.window.config.get('mode')
         self.window.controller.attachment.select(mode, val.row())
 
     def contextMenuEvent(self, event):
@@ -351,7 +351,7 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             self.window.controller.attachment.select(mode, item.row())
             menu.exec_(event.globalPos())
 
@@ -364,7 +364,7 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             self.window.controller.attachment.open_dir(mode, idx)
 
     def action_rename(self, event):
@@ -376,7 +376,7 @@ class AttachmentSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.config.data['mode']
+            mode = self.window.config.get('mode')
             self.window.controller.attachment.rename(mode, idx)
 
     def action_delete(self, event):

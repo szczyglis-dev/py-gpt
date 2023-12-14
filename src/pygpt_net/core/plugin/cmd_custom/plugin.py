@@ -141,8 +141,8 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: Text
-        :return: Text
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -150,8 +150,8 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx: Context
+        :return: Context
         """
         return ctx
 
@@ -246,10 +246,10 @@ class Plugin(BasePlugin):
                         result = None
                         if stdout:
                             result = stdout.decode("utf-8")
-                            self.log("Result (STDOUT): {}".format(result))
+                            self.log("STDOUT: {}".format(result))
                         if stderr:
                             result = stderr.decode("utf-8")
-                            self.log("Result (STDERR): {}".format(result))
+                            self.log("STDERR: {}".format(result))
                         if result is None:
                             result = "No result (STDOUT/STDERR empty)"
                             self.log(result)
