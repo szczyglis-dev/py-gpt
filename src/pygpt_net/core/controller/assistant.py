@@ -11,6 +11,7 @@
 import os
 import threading
 import time
+import webbrowser
 
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -233,10 +234,14 @@ class Assistant:
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
-    def import_from_api(self):
+    def import_assistants(self, force=False):
         """
         Imports all remote assistants from API
         """
+        if not force:
+            self.window.ui.dialogs.confirm('assistant_import', '', trans('confirm.assistant.import'))
+            return
+
         try:
             # import assistants
             items = self.assistants.get_all()
@@ -329,7 +334,7 @@ class Assistant:
         """
         Selects file
 
-        :param idx: index
+        :param idx: index of file
         """
         assistant_id = self.window.config.data['assistant']
         if assistant_id is None or assistant_id == "":
@@ -339,7 +344,16 @@ class Assistant:
             return
         self.assistants.current_file = self.assistants.get_file_id_by_idx(assistant, idx)
 
-    def sync_files(self):
+    def sync_files(self, force=False):
+        """
+        Syncs files with API
+
+        :param force: force sync files
+        """
+        if not force:
+            self.window.ui.dialogs.confirm('assistant_import_files', '', trans('confirm.assistant.import_files'))
+            return
+
         assistant_id = self.window.config.data['assistant']
         if assistant_id is None or assistant_id == "":
             return
@@ -636,6 +650,10 @@ class Assistant:
         # get current chosen assistant
         assistant.add_attachment(attachment)  # append attachment
         self.assistants.save()  # save assistants
+
+    def goto_online(self):
+        """Opens Assistants page"""
+        webbrowser.open('https://platform.openai.com/assistants')
 
     def create_thread(self):
         """

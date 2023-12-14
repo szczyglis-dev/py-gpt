@@ -78,6 +78,16 @@ class Assistant:
         self.window.data['assistant.id_tip'] = QLabel(trans('assistant.new.id_tip'))
         self.window.data['assistant.id_tip'].setMinimumHeight(40)
 
+        self.window.data['assistant.api.tip'] = QPushButton(trans('assistant.api.tip'))
+        # make button look like a label:
+        self.window.data['assistant.api.tip'].setFlat(True)
+        self.window.data['assistant.api.tip'].setStyleSheet("text-align: left; color: #fff; text-decoration: underline; text-transform: none;")
+        # disable CSS text capitalize, only small letters:
+        self.window.data['assistant.api.tip'].setStyleSheet("text-transform: none;")
+        self.window.data['assistant.api.tip'].setCursor(Qt.PointingHandCursor)
+        self.window.data['assistant.api.tip'].clicked.connect(
+            lambda: self.window.controller.assistant.goto_online())
+
         options = {}
         options['id'] = self.add_option('assistant.id', self.window.config_option['assistant.id'])
         options['name'] = self.add_option('assistant.name', self.window.config_option['assistant.name'])
@@ -108,6 +118,7 @@ class Assistant:
         rows.addWidget(self.window.data['assistant.functions.label'])
         rows.addLayout(options['tool.function'])
         rows.addLayout(options['instructions'])
+        rows.addWidget(self.window.data['assistant.api.tip'])
 
         layout = QVBoxLayout()
         layout.addLayout(rows)

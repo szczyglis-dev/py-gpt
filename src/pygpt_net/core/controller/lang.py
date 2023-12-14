@@ -111,6 +111,7 @@ class Lang:
         self.window.data['assistant.description.label'].setText(trans("assistant.description"))
         self.window.data['assistant.functions.label'].setText(trans('assistant.functions.label'))
         self.window.data['assistant.id_tip'].setText(trans("assistant.new.id_tip"))
+        self.window.data['assistant.api.tip'].setText(trans('assistant.api.tip'))
         self.window.config_option['assistant.tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
         self.window.config_option['assistant.tool.code_interpreter'].box.setText(trans('assistant.tool.code_interpreter'))
 

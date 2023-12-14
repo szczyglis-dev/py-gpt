@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.08 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame, QLineEdit
 
 from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog, SettingsTextarea
 from ..widget.elements import CollapsedGroup
@@ -195,6 +195,10 @@ class Settings:
                 else:
                     # text input
                     widgets[key] = SettingsInput(self.window, label)
+                    if 'secret' in option and option['secret']:
+                        # password
+                        widgets[key].setEchoMode(QLineEdit.Password)
+
             elif option['type'] == 'textarea':
                 # textarea
                 widgets[key] = SettingsTextarea(self.window, label)

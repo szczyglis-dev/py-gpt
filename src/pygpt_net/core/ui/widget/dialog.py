@@ -164,6 +164,7 @@ class UpdateDialog(QDialog):
         self.setWindowTitle(trans('update.title'))
 
         download = QPushButton(trans('update.download'))
+        download.setCursor(Qt.PointingHandCursor)
         download.clicked.connect(
             lambda: self.window.controller.info.goto_update())
 

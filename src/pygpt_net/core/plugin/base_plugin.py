@@ -29,7 +29,7 @@ class BasePlugin:
         return self.options
 
     def add_option(self, name, type, value=None, label="", description="",
-                   tooltip=None, min=None, max=None, multiplier=1, step=1, slider=False, keys=None, advanced=False):
+                   tooltip=None, min=None, max=None, multiplier=1, step=1, slider=False, keys=None, advanced=False, secret=False):
         """
         Adds option
 
@@ -46,6 +46,7 @@ class BasePlugin:
         :param slider: Option slider (True/False)
         :param keys: Option keys (for dict type)
         :param advanced: Option advanced (True/False)
+        :param secret: Option secret (True/False)
         """
         if tooltip is None:
             tooltip = description
@@ -63,6 +64,7 @@ class BasePlugin:
             "slider": slider,
             "keys": keys,
             "advanced": advanced,
+            "secret": secret
         }
         self.options[name] = option
 

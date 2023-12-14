@@ -433,6 +433,7 @@ class SettingsDict(QWidget):
 
         # add button
         self.add_btn = QPushButton(trans('action.add'), self)
+        self.add_btn.setCursor(Qt.PointingHandCursor)
         self.add_btn.clicked.connect(self.add)
 
         # layout

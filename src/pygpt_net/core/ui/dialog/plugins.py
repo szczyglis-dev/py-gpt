@@ -10,7 +10,8 @@
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
+    QLineEdit
 
 from ..widget.settings import SettingsInput, SettingsTextarea, SettingsSlider, SettingsCheckbox, SettingsDict, \
     PluginSettingsDialog, PluginSelectMenu
@@ -114,6 +115,9 @@ class Plugins:
                     else:
                         # text input
                         self.window.plugin_option[id][key] = SettingsInput(self.window, option_name)
+                        if 'secret' in option and option['secret']:
+                            # password
+                            self.window.plugin_option[id][key].setEchoMode(QLineEdit.Password)
                 elif option['type'] == 'textarea':
                     # textarea
                     self.window.plugin_option[id][key] = SettingsTextarea(self.window, option_name)

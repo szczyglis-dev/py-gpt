@@ -33,12 +33,12 @@ class Plugin(BasePlugin):
         self.add_option("google_api_key", "text", "",
                         "Google Custom Search API KEY",
                         "You can obtain your own API key at https://developers.google.com/custom-search/v1/overview",
-                        tooltip="Google Custom Search CX ID")
+                        tooltip="Google Custom Search CX ID", secret=True)
         self.add_option("google_api_cx", "text", "",
                         "Google Custom Search CX ID",
                         "You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all"
                         "\nRemember to enable \"Search on ALL internet pages\" option in project settings.",
-                        tooltip="Google Custom Search CX ID")
+                        tooltip="Google Custom Search CX ID", secret=True)
         self.add_option("num_pages", "int", 10,
                         "Number of pages to search",
                         "Number of max pages to search per query",

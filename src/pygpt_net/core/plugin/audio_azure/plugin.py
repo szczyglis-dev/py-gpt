@@ -39,7 +39,7 @@ class Plugin(BasePlugin):
                         "Azure API Key",
                         "You can obtain your own API key at: "
                         "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
-                        tooltip="Azure API Key")
+                        tooltip="Azure API Key", secret=True)
         self.add_option("azure_region", "text", "eastus",
                         "Azure Region",
                         "Specify Azure region, e.g. eastus",

@@ -49,6 +49,10 @@ class Confirm:
             self.window.controller.files.delete(id, True)
         elif type == 'assistant_delete':
             self.window.controller.assistant.delete(id, True)
+        elif type == 'assistant_import':
+            self.window.controller.assistant.import_assistants(True)
+        elif type == 'assistant_import_files':
+            self.window.controller.assistant.sync_files(True)
         elif type == 'settings.defaults.user':
             self.window.controller.settings.load_defaults_user(True)
         elif type == 'settings.defaults.app':
