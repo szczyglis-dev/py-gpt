@@ -259,6 +259,7 @@ class Plugin(BasePlugin):
         :param msg: Message to log
         """
         self.window.log('[CMD] ' + str(msg))
+        print('[CMD] ' + str(msg))
 
     def cmd_syntax(self, syntax):
         """
@@ -522,15 +523,15 @@ class Plugin(BasePlugin):
                     # file exists
                     elif item["cmd"] == "file_exists" and self.is_cmd_allowed("file_exists"):
                         try:
-                            msg = "Checking if file exists: {}".format(item["params"]['path'])
+                            msg = "Checking if path exists: {}".format(item["params"]['path'])
                             self.log(msg)
                             path = os.path.join(self.window.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
-                                self.log("File exists: {}".format(path))
+                                self.log("Path exists: {}".format(path))
                             else:
                                 ctx.results.append({"request": request_item, "result": "File or directory not found"})
-                                self.log("File not found: {}".format(path))
+                                self.log("Path not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
