@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.15 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -48,6 +48,8 @@ class Plugins:
                 plugin.setup_ui()  # setup UI
             except AttributeError:
                 pass
+        # show/hide UI elements
+        self.handle_enabled_types()
 
     def setup_settings(self):
         """Sets up plugins settings"""
@@ -80,6 +82,8 @@ class Plugins:
         for id in self.enabled:
             if self.enabled[id]:
                 self.window.menu['plugins'][id].setChecked(True)
+
+        self.handle_enabled_types()
 
     def destroy(self):
         """
@@ -306,6 +310,8 @@ class Plugins:
             else:
                 self.enable(id)
 
+        self.handle_enabled_types()
+
     def set_plugin_by_tab(self, idx):
         """
         Sets current plugin by tab index
@@ -467,6 +473,35 @@ class Plugins:
         """
         return self.handler.plugins[id].options[key]
 
+    def is_type_enabled(self, type):
+        """
+        Checks if plugin type is enabled
+
+        :return: True if enabled
+        """
+        enabled = False
+        for id in self.handler.plugins:
+            if type in self.handler.plugins[id].type and self.is_enabled(id):
+                enabled = True
+                break
+        return enabled
+
+    def handle_enabled_types(self):
+        """
+        Handles plugin type
+        """
+        for type in self.handler.allowed_types:
+            if type == 'audio.input':
+                if self.is_type_enabled(type):
+                    self.window.plugin_addon['audio.input'].setVisible(True)
+                else:
+                    self.window.plugin_addon['audio.input'].setVisible(False)
+            elif type == 'audio.output':
+                if self.is_type_enabled(type):
+                    self.window.plugin_addon['audio.output'].setVisible(True)
+                else:
+                    self.window.plugin_addon['audio.output'].setVisible(False)
+
     def apply(self, event, data):
         """
         Applies plugins
@@ -497,3 +532,17 @@ class Plugins:
                 ctx = self.handler.apply_cmd(id, ctx, commands)
 
         return ctx
+
+    def dispatch(self, event, data, all=False):
+        """
+        Applies plugins
+
+        :param event: event
+        :param data: event data
+        :param all: dispatch to all plugins
+        """
+        for id in self.handler.plugins:
+            if self.is_enabled(id) or all:
+                data = self.handler.dispatch(id, event, data)
+
+        return data

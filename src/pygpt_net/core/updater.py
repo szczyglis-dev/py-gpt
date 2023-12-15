@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.15 19:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -433,6 +433,18 @@ class Updater:
                                           "important content that can help answer the " \
                                           "following question: {query}"
                 data['cmd.prompt'] = self.get_base_config('cmd.prompt')  # fix
+                updated = True
+
+            # < 2.0.30
+            if old < parse_version("2.0.30"):
+                print("Migrating config from < 2.0.30...")
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'audio_openai_whisper' not in data['plugins']:
+                    data['plugins']['audio_openai_whisper'] = {}
+                data['plugins']['audio_openai_whisper']['timeout'] = 1
+                data['plugins']['audio_openai_whisper']['phrase_length'] = 5
+                data['plugins']['audio_openai_whisper']['min_energy'] = 2000
                 updated = True
 
         # update file

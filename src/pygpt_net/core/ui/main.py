@@ -32,7 +32,6 @@ class UI:
         """
         self.window = window
         self.window.data = {}
-        self.window.plugin_data = {}
         self.window.menus = {}
         self.window.splitters = {}
         self.window.tabs = {}
@@ -40,7 +39,9 @@ class UI:
         self.window.groups = {}
         self.window.path_label = {}
         self.window.config_option = {}
+        self.window.plugin_data = {}
         self.window.plugin_option = {}
+        self.window.plugin_addon = {}
 
         self.chat = ChatBox(window)
         self.toolbox = Toolbox(window)

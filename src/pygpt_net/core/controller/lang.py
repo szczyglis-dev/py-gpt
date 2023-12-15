@@ -99,6 +99,9 @@ class Lang:
         self.window.models['attachments_uploaded'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
         self.window.models['attachments_uploaded'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
 
+        # audio
+        self.window.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))
+
         # assistants
         self.window.data['assistants.label'].setText(trans("toolbox.assistants.label"))
         self.window.data['assistants.new'].setText(trans('assistant.new'))

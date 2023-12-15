@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.15 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -20,7 +20,24 @@ class Plugins:
         :param config: Config
         """
         self.config = config
+        self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output']
         self.plugins = {}
+
+    def dispatch(self, id, event, data):
+        """
+        Dispatch custom plugin event
+
+        :param id: Plugin id
+        :param event: Event name
+        :param data: Event data
+        :return: Event data
+        """
+        if id in self.plugins:
+            try:
+                return self.plugins[id].on_dispatch(event, data)
+            except AttributeError:
+                pass
+        return data
 
     def apply(self, id, event, data):
         """

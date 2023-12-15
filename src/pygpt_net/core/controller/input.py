@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.15 19:00:00                  #
 # ================================================== #
 import json
 
@@ -29,6 +29,7 @@ class Input:
         self.history = History(self.window.config)
         self.locked = False
         self.force_stop = False
+        self.generating = False
 
     def setup(self):
         """Sets up input"""
@@ -125,6 +126,7 @@ class Input:
         self.force_stop = True
         self.window.gpt.stop()
         self.unlock_input()
+        self.generating = False
 
     def send_text(self, text):
         """
@@ -446,11 +448,14 @@ class Input:
         if self.locked:
             return
 
+        self.generating = True
+
         mode = self.window.config.get('mode')
         if mode == 'assistant':
             # check if assistant is selected
             if self.window.config.get('assistant') is None or self.window.config.get('assistant') == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
+                self.generating = False
                 return
         elif mode == 'vision':
             # handle auto-capture mode
@@ -485,6 +490,7 @@ class Input:
                 self.window.controller.launcher.show_api_monit()
                 self.window.controller.ui.update()
                 self.window.statusChanged.emit("Missing API KEY!")
+                self.generating = False
                 return
 
             # init api key if defined later
@@ -501,6 +507,7 @@ class Input:
             QApplication.processEvents()
 
             # send input to API
+            self.generating = True  # mark as generating
             if self.window.config.get('mode') == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
@@ -524,9 +531,12 @@ class Input:
             if ctx.reply:
                 self.window.controller.input.send(json.dumps(ctx.results))
                 self.window.controller.ui.update()
+
+            self.generating = False
             return
 
         self.window.controller.ui.update()  # update UI
+        self.generating = False  # unlock as not generating
 
     def append(self, text):
         """

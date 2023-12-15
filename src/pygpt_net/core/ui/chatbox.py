@@ -13,6 +13,7 @@ import os
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter, QTabWidget
 
+from .widget.audio import AudioOutput
 from .widget.textarea import ChatOutput, NotepadOutput
 from .widget.filesystem import FileExplorerWidget
 from .input import Input
@@ -113,8 +114,12 @@ class ChatBox:
         self.window.data['prompt.context'] = QLabel("")
         self.window.data['prompt.context'].setAlignment(Qt.AlignRight)
 
+        # plugin audio output addon
+        self.window.plugin_addon['audio.output'] = AudioOutput(self.window)
+
         layout = QHBoxLayout()
         layout.addWidget(self.window.data['output.timestamp'])
+        layout.addWidget(self.window.plugin_addon['audio.output'])
         layout.addWidget(self.window.data['prompt.context'])
 
         return layout

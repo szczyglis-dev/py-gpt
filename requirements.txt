@@ -73,6 +73,7 @@ rich==13.3.4
 SecretStorage==3.3.3
 shiboken6==6.4.2
 show-in-file-manager==1.1.4
+simpleaudio==1.0.4
 six==1.16.0
 sniffio==1.3.0
 soupsieve==2.4

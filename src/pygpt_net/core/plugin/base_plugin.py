@@ -13,6 +13,7 @@ class BasePlugin:
     def __init__(self):
         self.id = ""
         self.name = ""
+        self.type = []  # audio.input, audio.output
         self.description = ""
         self.options = {}
         self.initial_options = {}

@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRa
 from .status import Status
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
+from .widget.audio import AudioInput
 from .widget.textarea import ChatInput
 from ..utils import trans
 
@@ -101,8 +102,12 @@ class Input:
         self.window.data['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data['input.counter'] = QLabel("")
 
+        # plugin audio input addon
+        self.window.plugin_addon['audio.input'] = AudioInput(self.window)
+
         header = QHBoxLayout()
         header.addWidget(self.window.data['input.label'])
+        header.addWidget(self.window.plugin_addon['audio.input'])
         header.addWidget(self.window.data['input.counter'], alignment=Qt.AlignRight)
 
         # input tab

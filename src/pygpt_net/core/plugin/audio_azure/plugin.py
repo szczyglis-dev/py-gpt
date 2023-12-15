@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.15 19:00:00                  #
 # ================================================== #
 
 import threading
@@ -14,7 +14,7 @@ import threading
 import requests
 from PySide6.QtCore import QObject, Signal
 from pydub import AudioSegment
-from pydub.playback import play
+from pydub.playback import _play_with_simpleaudio
 import io
 
 from ..base_plugin import BasePlugin
@@ -25,9 +25,14 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__()
         self.id = "audio_azure"
         self.name = "Audio Output (MS Azure)"
+        self.type = ['audio.output']
         self.description = "Enables audio/voice output (speech synthesis) using Microsoft Azure API"
         self.input_text = None
         self.window = None
+        self.thread = None
+        self.tts = None
+        self.playback = None
+        self.audio = None
         self.order = 9999
         self.init_options()
 
@@ -177,19 +182,65 @@ class Plugin(BasePlugin):
                     voice = self.get_option_value("voice_pl")
                 elif lang == "en":
                     voice = self.get_option_value("voice_en")
-                tts = TTS(api_key, region, voice, text)
-                t = threading.Thread(target=tts.run)
-                t.start()
+                tts = TTS(self, api_key, region, voice, text)
+                self.thread = threading.Thread(target=tts.run)
+                self.thread.start()
         except Exception as e:
             print(e)
 
         return ctx
 
+    def set_status(self, status):
+        """
+        Set status
+
+        :param status: Status
+        """
+        self.window.plugin_addon['audio.output'].set_status(status)
+
+    def show_stop_button(self):
+        """
+        Show stop button
+        """
+        self.window.plugin_addon['audio.output'].stop.setVisible(True)
+
+    def hide_stop_button(self):
+        """
+        Hide stop button
+        """
+        self.window.plugin_addon['audio.output'].stop.setVisible(False)
+
+    def stop_speak(self):
+        """
+        Stop speaking
+        """
+        self.window.plugin_addon['audio.output'].stop.setVisible(False)
+        self.window.plugin_addon['audio.output'].set_status('Stopped')
+        self.window.plugin_addon['audio.output'].stop_audio()
+
+    def stop_audio(self):
+        """
+        Stop TTS thread and stop playing the audio
+        """
+        if self.thread is not None:
+            self.thread.stop()
+        if self.tts is not None:
+            self.tts.stop()
+
+    def on_signal(self, signal):
+        """
+        Event: On signal
+
+        :param signal: Signal
+        """
+        if signal == 'audio.output.stop':
+            self.stop_audio()
+
 
 class TTS(QObject):
     finished = Signal(object)
 
-    def __init__(self, subscription_key, region, voice, text):
+    def __init__(self, plugin, subscription_key, region, voice, text):
         """
         Text to speech
 
@@ -199,6 +250,7 @@ class TTS(QObject):
         :param text: Text to speech
         """
         super().__init__()
+        self.plugin = plugin
         self.subscription_key = subscription_key
         self.region = region
         self.text = text
@@ -206,6 +258,9 @@ class TTS(QObject):
 
     def run(self):
         """Run TTS thread"""
+        self.stop()
+        # self.plugin.set_status('...')
+        # self.plugin.hide_stop_button()
         url = f"https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v1"
         headers = {
             "Ocp-Apim-Subscription-Key": self.subscription_key,
@@ -215,11 +270,26 @@ class TTS(QObject):
         body = f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
         response = requests.post(url, headers=headers, data=body.encode('utf-8'))
         if response.status_code == 200:
+            # self.plugin.set_status('Saying...')
+            # self.plugin.show_stop_button()
             audio_file = response.content
-            voice = AudioSegment.from_file(io.BytesIO(audio_file), format="mp3")
-            play(voice)
+            self.plugin.audio = AudioSegment.from_file(io.BytesIO(audio_file), format="mp3")
+            self.plugin.playback = _play_with_simpleaudio(self.plugin.audio)
+            self.plugin.set_status('')
+            # self.plugin.hide_stop_button()
             self.finished.emit(audio_file)
         else:
+            self.plugin.set_status('')
+            # self.plugin.hide_stop_button()
             error_msg = f"Error: {response.status_code} - {response.text}"
             print(error_msg)
             self.finished.emit(error_msg)
+
+    def stop(self):
+        """Stop TTS thread"""
+        self.plugin.set_status('')
+        # self.plugin.hide_stop_button()
+        if self.plugin.playback is not None:
+            self.plugin.playback.stop()
+            self.plugin.playback = None
+            self.plugin.audio = None

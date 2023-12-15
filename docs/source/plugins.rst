@@ -330,6 +330,38 @@ Enables adjustment to ambient noise levels. *Default:* `True`
 
 Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `True`
 
+- ``Auto send`` *auto_send*
+
+Auto send recognized speech after recognize. *Default:* `True`
+
+- ``Wait for response`` *wait_response*
+
+Wait for response before next input listening. *Default:* `True`
+
+- ``Magic word`` *magic_word*
+
+Magic word mode - when enabled then it will be required magic word to start listening. *Default:* `False`
+
+- ``Reset Magic word`` *magic_word_reset*
+
+Enables clear magic word received status after every input. *Default:* `True`
+
+- ``Magic words`` *magic_words*
+
+List of magic words to activate listening. *Default:* `OK, Okay, Hey GPT, OK GPT`
+
+- ``Magic word timeout`` *magic_word_timeout*
+
+The number of seconds the application waits for magic word. *Default:* `1`
+
+- ``Magic word phrase max length`` *magic_word_phrase_length*
+
+The minimum phrase duration for magic word. *Default:* `2`
+
+- ``Stop words`` *stop_words*
+
+List of words that stops listening. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
+
 
 Self Loop
 ----------

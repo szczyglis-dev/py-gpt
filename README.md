@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.29** build: **2023.12.14** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
+Release: **2.0.30** build: **2023.12.15** | Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io
 
 PyPi: https://pypi.org/project/pygpt-net
 
@@ -842,7 +842,7 @@ Maximum duration for a voice sample (in seconds). *Default:* `2`
 
 - `Min energy` *min_energy*
 
-The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value. *Default:* `4000`
+The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value. *Default:* `2000`
 
 - `Adjust for ambient noise` *adjust_noise*
 
@@ -851,6 +851,39 @@ Enables adjustment to ambient noise levels. *Default:* `True`
 - `Continuous listen` *continuous_listen*
 
 Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the `Speak` option. *Default:* `True`
+
+- `Auto send` *auto_send*
+
+Auto send recognized speech after recognize. *Default:* `True`
+
+- `Wait for response` *wait_response*
+
+Wait for response before next input listening. *Default:* `True`
+
+- `Magic word` *magic_word*
+
+Magic word mode - when enabled then it will be required magic word to start listening. *Default:* `False`
+
+- `Reset Magic word` *magic_word_reset*
+
+Enables clear magic word received status after every input. *Default:* `True`
+
+- `Magic words` *magic_words*
+
+List of magic words to activate listening. *Default:* `OK, Okay, Hey GPT, OK GPT`
+
+- `Magic word timeout` *magic_word_timeout*
+
+The number of seconds the application waits for magic word. *Default:* `1`
+
+- `Magic word phrase max length` *magic_word_phrase_length*
+
+The minimum phrase duration for magic word. *Default:* `2`
+
+- `Stop words` *stop_words*
+
+List of words that stops listening. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
+
 
 
 ## Self Loop
@@ -1114,6 +1147,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.30 (2023-12-15)
+
+- Speech recognition and synthesis fixes and improvements
+- Fixed and improved speech recognition via Whisper
+- Fixed and improved voice synthesis via OpenAI TTS and MS Azure
+- Added new options to speech recognition: magic words, stop words, auto-send and wait for response
+- Added new more intuitive voice input/output control panel in UI
 
 ## 2.0.29 (2023-12-14)
 

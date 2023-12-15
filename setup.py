@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.29'
+VERSION = '2.0.30'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, ' \
               'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
 LONG_DESCRIPTION = 'Package contains a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 Desktop AI Assistant with chatbot, ' \
@@ -39,6 +39,7 @@ setup(
         'PySide6-Addons>=6.4.2',
         'PySide6-Essentials>=6.4.2',
         'qt-material>=2.14',
+        'simpleaudio>=1.0.4',
         'SpeechRecognition>=3.10.0',
         'show-in-file-manager>=1.1.4',
         'tiktoken>=0.3.3',
