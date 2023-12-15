@@ -312,7 +312,7 @@ Choose the model. *Default:* `whisper-1`
 
 ``Timeout`` *timeout*
 
-The number of seconds the application waits for voice input from the microphone. *Default:* `2`
+The duration in seconds that the application waits for voice input from the microphone. *Default:* `2`
 
 ``Phrase max length`` *phrase_length*
 
@@ -320,7 +320,7 @@ Maximum duration for a voice sample (in seconds).  *Default:* `2`
 
 ``Min energy`` *min_energy*
 
-The minimum volume level for the microphone to trigger voice detection. If the microphone is too sensitive, increase this value. *Default:* `4000`
+Minimum threshold multiplier above the noise level to begin recording. *Default:* `1.3`
 
 ``Adjust for ambient noise`` *adjust_noise*
 
@@ -328,31 +328,33 @@ Enables adjustment to ambient noise levels. *Default:* `True`
 
 ``Continuous listen`` *continuous_listen*
 
-Enables continuous microphone listening. If the option is enabled, the microphone will be listening at all times. If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `True`
+EXPERIMENTAL: continuous listening - do not stop listening after a single input. 
+Warning: This feature may lead to unexpected results and requires fine-tuning with 
+the rest of the options! If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `False`
 
 - ``Auto send`` *auto_send*
 
-Auto send recognized speech after recognize. *Default:* `True`
+Automatically send recognized speech as input text after recognition.. *Default:* `True`
 
 - ``Wait for response`` *wait_response*
 
-Wait for response before next input listening. *Default:* `True`
+Wait for a response before initiating listening for the next input. *Default:* `True`
 
 - ``Magic word`` *magic_word*
 
-Magic word mode - if enabled, you will be required to say the magic word first to start listening. *Default:* `False`
+Activate listening only after the magic word is provided. *Default:* `False`
 
 - ``Reset Magic word`` *magic_word_reset*
 
-Enables clearing "magic word received" status after every input. *Default:* `True`
+Reset the magic word status after it is received (the magic word will need to be provided again). *Default:* `True`
 
 - ``Magic words`` *magic_words*
 
-List of magic words to activate listening (Magic word mode is required to be enabled). *Default:* `OK, Okay, Hey GPT, OK GPT`
+List of magic words to initiate listening (Magic word mode must be enabled). *Default:* `OK, Okay, Hey GPT, OK GPT`
 
 - ``Magic word timeout`` *magic_word_timeout*
 
-The number of seconds the application waits for magic word. *Default:* `1`
+he number of seconds the application waits for magic word. *Default:* `1`
 
 - ``Magic word phrase max length`` *magic_word_phrase_length*
 
@@ -360,11 +362,11 @@ The minimum phrase duration for magic word. *Default:* `2`
 
 - ``Prefix words`` *prefix_words*
 
-List of words that are required at start of every phrase to be sent. E.g. you can define words like "OK", or "GPT" - if defined then any phrases not prefixed with those words will be ignored. You can put multiple words or phrases separated by coma. Leave empty to disable.  *Default:* `empty`
+List of words that must initiate each phrase to be processed. For example, you can define words like "OK" or "GPT"—if set, any phrases not starting with those words will be ignored. Insert multiple words or phrases separated by commas. Leave empty to deactivate.  *Default:* `empty`
 
 - ``Stop words`` *stop_words*
 
-List of words that stops listening. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
+List of words that will stop the listening process. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
 
 
 Self Loop

@@ -123,6 +123,7 @@ class Input:
         Stops input
         """
         self.window.controller.assistant.force_stop = True
+        self.window.controller.plugins.dispatch('audio.input.toggle', False)  # stop audio input
         self.force_stop = True
         self.window.gpt.stop()
         self.unlock_input()

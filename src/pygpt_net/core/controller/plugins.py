@@ -165,7 +165,7 @@ class Plugins:
                 if option['type'] == 'int' or option['type'] == 'float':
                     if 'slider' in option and option['slider'] \
                             and (option['type'] == 'int' or option['type'] == 'float'):
-                        value = self.window.plugin_option[id][key].slider.value()
+                        value = self.window.plugin_option[id][key].slider.value() / option['multiplier']
                     else:
                         if option['type'] == 'int':
                             try:
@@ -498,7 +498,8 @@ class Plugins:
                     self.window.plugin_addon['audio.input'].setVisible(False)
             elif type == 'audio.output':
                 if self.is_type_enabled(type):
-                    self.window.plugin_addon['audio.output'].setVisible(True)
+                    pass
+                    # self.window.plugin_addon['audio.output'].setVisible(True)
                 else:
                     self.window.plugin_addon['audio.output'].setVisible(False)
 

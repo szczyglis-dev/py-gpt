@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.15 19:00:00                  #
+# Updated Date: 2023.12.16 01:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -48,35 +48,38 @@ class Plugin(BasePlugin):
         self.add_option("model", "text", "whisper-1",
                         "Model",
                         "Specify model, default: whisper-1")
-        self.add_option("timeout", "int", 1,
+        self.add_option("timeout", "int", 2,
                         "Timeout",
-                        "Speech recognition timeout", min=0, max=30, slider=True, tooltip="Timeout, default: 1")
-        self.add_option("phrase_length", "int", 5,
+                        "Speech recognition timeout", min=0, max=30, slider=True, tooltip="Timeout, default: 2")
+        self.add_option("phrase_length", "int", 4,
                         "Phrase max length",
                         "Speech recognition phrase length", min=0, max=30, slider=True, tooltip="Phrase max length, "
-                                                                                                "default: 5")
-        self.add_option("min_energy", "int", 2000,
+                                                                                                "default: 4")
+        self.add_option("min_energy", "float", 1.3,
                         "Min. energy",
-                        "Minimum energy (loudness) to start recording, 0 = disabled", min=0, max=30000, slider=True,
-                        tooltip="Min. energy, default: 4000, 0 = disabled, adjust for your microphone")
+                        "Minimum threshold multiplier above the noise level to begin recording; 1 = disabled", min=1, max=50, slider=True,
+                        tooltip="Min. energy, default: 1.3, 1 = disabled, adjust for your microphone", multiplier=10)
         self.add_option("adjust_noise", "bool", True,
                         "Adjust ambient noise",
                         "Adjust for ambient noise")
-        self.add_option("continuous_listen", "bool", True,
+        self.add_option("continuous_listen", "bool", False,
                         "Continuous listening",
-                        "Continuous listening (do not stop after single input)")
+                        "EXPERIMENTAL: continuous listening - do not stop listening after a single input.\n"
+                        "Warning: This feature may lead to unexpected results and requires fine-tuning with the rest "
+                        "of the options!")
         self.add_option("auto_send", "bool", True,
                         "Auto send",
-                        "Automatically send input when received voice")
+                        "Automatically send input when voice is detected")
         self.add_option("wait_response", "bool", True,
                         "Wait for response",
-                        "Wait for response before listening next input")
+                        "Wait for a response before listening for the next input")
         self.add_option("magic_word", "bool", False,
                         "Magic word",
-                        "Enable listening only after magic word, like 'Hey GPT' or 'OK GPT'")
+                        "Activate listening only after the magic word is provided, like 'Hey GPT' or 'OK GPT'")
         self.add_option("magic_word_reset", "bool", True,
                         "Reset Magic word",
-                        "Reset Magic word after received (must be provided next time)")
+                        "Reset the magic word status after it is received "
+                        "(the magic word will need to be provided again)")
         self.add_option("magic_words", "text", "OK, Okay, Hey GPT, OK GPT",
                         "Magic words",
                         "Specify magic words for 'Magic word' option: if received this word then start listening, "
@@ -90,12 +93,14 @@ class Plugin(BasePlugin):
                         "Magic word phrase length", min=0, max=30, slider=True, tooltip="Phrase length, default: 2")
         self.add_option("prefix_words", "text", "",
                         "Prefix words",
-                        "Specify prefix words: if defined then only phrases starting with this words will be sent "
-                        "and rest will be ignored, put separated words by coma, eg. 'OK, Okay, GPT'. Leave empty to disable")
+                        "Specify prefix words: if defined, only phrases starting with these words will be transmitted, "
+                        "and the remainder will be ignored. Separate the words with a comma., eg. 'OK, Okay, GPT'. "
+                        "Leave empty to disable")
         self.add_option("stop_words", "text", "stop, exit, quit, end, finish, close, terminate, kill, halt, abort",
                         "Stop words",
-                        "Specify stop words: if received this word then stop listening, put words separated by coma, "
-                        "leave empty to disable, default: stop, exit, quit, end, finish, close, terminate, kill, "
+                        "Specify stop words: if any of these words are received, then stop listening. "
+                        "Separate the words with a comma, or leave it empty to disable the feature, "
+                        "default: stop, exit, quit, end, finish, close, terminate, kill, "
                         "halt, abort")
 
     def setup(self):
@@ -342,6 +347,9 @@ class Plugin(BasePlugin):
         if text is None or text.strip() == '':
             return
 
+        if not self.can_listen():
+            return
+
         # check prefix words
         prefix_words = self.get_prefix_words()
         if len(prefix_words) > 0:
@@ -395,6 +403,7 @@ class Plugin(BasePlugin):
             self.set_status('...')
             self.window.statusChanged.emit(trans('audio.speak.sending'))
             self.window.controller.input.send(text)
+            self.set_status('')
 
     @Slot()
     def handle_destroy(self):
@@ -445,20 +454,20 @@ class AudioInputThread(QObject):
             path = os.path.join(self.plugin.window.config.path, 'input.wav')
 
             self.started.emit()
-            recognizer = sr.Recognizer()
+            self.plugin.set_status('')
+
             with sr.Microphone() as source:
                 while self.plugin.listening and not self.plugin.window.is_closing:
                     self.plugin.set_status('')
-                    try:
-                        # abort if disallowed
-                        if not self.plugin.can_listen():
-                            time.sleep(0.25)
-                            continue
+                    if not self.plugin.can_listen():
+                        time.sleep(0.5)
+                        continue
 
+                    try:
+                        recognizer = sr.Recognizer()
                         # adjust for ambient noise
-                        if self.plugin.get_option_value('adjust_noise') and self.plugin.is_first_adjust:
-                            time.sleep(1)
-                            recognizer.adjust_for_ambient_noise(source, duration=1)
+                        if self.plugin.get_option_value('adjust_noise'):
+                            recognizer.adjust_for_ambient_noise(source)
                             self.plugin.is_first_adjust = False
 
                         timeout = self.plugin.get_option_value('timeout')
@@ -471,31 +480,39 @@ class AudioInputThread(QObject):
                                 phrase_length = self.plugin.get_option_value('magic_word_phrase_length')
 
                         # set begin status
-                        if self.plugin.get_option_value('magic_word'):
-                            if self.plugin.magic_word_detected:
-                                self.plugin.set_status(trans('audio.speak.now'))
+                        if self.plugin.can_listen():
+                            if self.plugin.get_option_value('magic_word'):
+                                if self.plugin.magic_word_detected:
+                                    self.plugin.set_status(trans('audio.speak.now'))
+                                else:
+                                    self.plugin.set_status(trans('audio.magic_word.please'))
                             else:
-                                self.plugin.set_status(trans('audio.magic_word.please'))
-                        else:
-                            self.plugin.set_status(trans('audio.speak.now'))
+                                self.plugin.set_status(trans('audio.speak.now'))
 
+                        min_energy = self.plugin.get_option_value('min_energy')
+                        ambient_noise_energy = min_energy * recognizer.energy_threshold
                         audio_data = recognizer.listen(source, timeout, phrase_length)
-                        self.plugin.set_status('')
+
+                        if not self.plugin.can_listen():
+                            continue
 
                         # transcript audio
-                        if audio_data.get_wav_data():
+                        raw_data = audio_data.get_wav_data()
+
+                        if raw_data:
                             # check RMS / energy
-                            rms = audioop.rms(audio_data.get_wav_data(), 2)
-                            min_energy = self.plugin.get_option_value('min_energy')
+                            rms = audioop.rms(raw_data, 2)
                             if min_energy > 0:
-                                self.plugin.window.statusChanged.emit("{}: {} / {}".format(trans('audio.speak.energy'),
-                                                                                           rms, min_energy))
-                            if min_energy > 0 and rms < min_energy:
+                                self.plugin.window.statusChanged.emit("{}: {} / {} (x{})".format(trans('audio.speak.energy'),
+                                                                                           rms, int(ambient_noise_energy), min_energy))
+                            if rms < ambient_noise_energy:
                                 continue
 
                             # save audio file
                             with open(path, "wb") as audio_file:
-                                audio_file.write(audio_data.get_wav_data())
+                                audio_file.write(raw_data)
+
+                            is_stop_word = False
 
                             # transcribe
                             with open(path, "rb") as audio_file:
@@ -505,8 +522,6 @@ class AudioInputThread(QObject):
                                     file=audio_file,
                                     response_format="text"
                                 )
-                                self.plugin.set_status('')
-
                                 # handle transcript
                                 if transcript is not None and transcript.strip() != '':
                                     # fix if empty phrase
@@ -518,30 +533,25 @@ class AudioInputThread(QObject):
                                             is_empty_phrase = True
                                             break
 
-                                    if is_empty_phrase:
+                                    if is_empty_phrase or transcript.strip() == '':
                                         continue
 
-                                    self.finished.emit(transcript)
-                                    time.sleep(1)
+                                    if self.plugin.can_listen():
+                                        self.finished.emit(transcript)
 
                                     # stop listening if not continuous mode or stop word detected
                                     stop_words = self.plugin.get_stop_words()
-                                    is_stop_word = False
+
                                     if len(stop_words) > 0:
                                         is_stop_word = transcript.replace('.', '').strip().lower() in stop_words
-                                    if not self.plugin.get_option_value('continuous_listen') \
-                                            or is_stop_word:
-                                        self.plugin.listening = False
-                                        self.stopped.emit()
-                                        self.plugin.set_status('')  # clear status
-                                        break
 
-                    except sr.UnknownValueError:
-                        print("Audio error\n")
-                    except sr.RequestError as e:
-                        print(f"Could not request results; {e}\n")
+                        if not self.plugin.get_option_value('continuous_listen') or is_stop_word:
+                            self.plugin.listening = False
+                            self.stopped.emit()
+                            self.plugin.set_status('')  # clear status
+                            break
                     except Exception as e:
-                        print(f"An error occurred: {str(e)}\n")
+                        print(f"An error occurred: {str(e)}\n")  # timeout
 
             self.destroyed.emit()
 

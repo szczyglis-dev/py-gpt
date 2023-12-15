@@ -447,6 +447,21 @@ class Updater:
                 data['plugins']['audio_openai_whisper']['min_energy'] = 2000
                 updated = True
 
+            # < 2.0.31
+            if old < parse_version("2.0.31"):
+                print("Migrating config from < 2.0.31...")
+                if 'plugins' not in data:
+                    data['plugins'] = {}
+                if 'audio_openai_whisper' not in data['plugins']:
+                    data['plugins']['audio_openai_whisper'] = {}
+                data['plugins']['audio_openai_whisper']['continuous_listen'] = False
+                data['plugins']['audio_openai_whisper']['timeout'] = 2
+                data['plugins']['audio_openai_whisper']['phrase_length'] = 5
+                data['plugins']['audio_openai_whisper']['magic_word_timeout'] = 1
+                data['plugins']['audio_openai_whisper']['magic_word_phrase_length'] = 2
+                data['plugins']['audio_openai_whisper']['min_energy'] = 1.3
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -1,3 +1,7 @@
+2.0.31 (2023-12-16)
+
+- Speech recognition (Whisper) small fixes, optimization and improvements
+
 2.0.30 (2023-12-15)
 
 - Speech recognition and synthesis fixes and improvements
