@@ -340,15 +340,15 @@ Wait for response before next input listening. *Default:* `True`
 
 - ``Magic word`` *magic_word*
 
-Magic word mode - when enabled then it will be required magic word to start listening. *Default:* `False`
+Magic word mode - if enabled, you will be required to say the magic word first to start listening. *Default:* `False`
 
 - ``Reset Magic word`` *magic_word_reset*
 
-Enables clear magic word received status after every input. *Default:* `True`
+Enables clearing "magic word received" status after every input. *Default:* `True`
 
 - ``Magic words`` *magic_words*
 
-List of magic words to activate listening. *Default:* `OK, Okay, Hey GPT, OK GPT`
+List of magic words to activate listening (Magic word mode is required to be enabled). *Default:* `OK, Okay, Hey GPT, OK GPT`
 
 - ``Magic word timeout`` *magic_word_timeout*
 
@@ -357,6 +357,10 @@ The number of seconds the application waits for magic word. *Default:* `1`
 - ``Magic word phrase max length`` *magic_word_phrase_length*
 
 The minimum phrase duration for magic word. *Default:* `2`
+
+- ``Prefix words`` *prefix_words*
+
+List of words that are required at start of every phrase to be sent. E.g. you can define words like "OK", or "GPT" - if defined then any phrases not prefixed with those words will be ignored. You can put multiple words or phrases separated by coma. Leave empty to disable.  *Default:* `empty`
 
 - ``Stop words`` *stop_words*
 

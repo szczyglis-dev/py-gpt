@@ -76,7 +76,7 @@ class Plugin(BasePlugin):
                         "Enable listening only after magic word, like 'Hey GPT' or 'OK GPT'")
         self.add_option("magic_word_reset", "bool", True,
                         "Reset Magic word",
-                        "Reset Magic word after received (must be provided next time)'")
+                        "Reset Magic word after received (must be provided next time)")
         self.add_option("magic_words", "text", "OK, Okay, Hey GPT, OK GPT",
                         "Magic words",
                         "Specify magic words for 'Magic word' option: if received this word then start listening, "
@@ -88,6 +88,10 @@ class Plugin(BasePlugin):
         self.add_option("magic_word_phrase_length", "int", 2,
                         "Magic word phrase max length",
                         "Magic word phrase length", min=0, max=30, slider=True, tooltip="Phrase length, default: 2")
+        self.add_option("prefix_words", "text", "",
+                        "Prefix words",
+                        "Specify prefix words: if defined then only phrases starting with this words will be sent "
+                        "and rest will be ignored, put separated words by coma, eg. 'OK, Okay, GPT'. Leave empty to disable")
         self.add_option("stop_words", "text", "stop, exit, quit, end, finish, close, terminate, kill, halt, abort",
                         "Stop words",
                         "Specify stop words: if received this word then stop listening, put words separated by coma, "
@@ -138,11 +142,25 @@ class Plugin(BasePlugin):
 
     def get_magic_words(self):
         """
-        Returns stop words
+        Returns magic words
 
         :return: stop words
         """
         words_str = self.get_option_value('magic_words')
+        words = []
+        if words_str is not None and len(words_str) > 0 and words_str.strip() != ' ':
+            words = words_str.split(',')
+            # remove white-spaces
+            words = [x.strip() for x in words]
+        return words
+
+    def get_prefix_words(self):
+        """
+        Returns prefix words
+
+        :return: prefix words
+        """
+        words_str = self.get_option_value('prefix_words')
         words = []
         if words_str is not None and len(words_str) > 0 and words_str.strip() != ' ':
             words = words_str.split(',')
@@ -323,6 +341,18 @@ class Plugin(BasePlugin):
         """
         if text is None or text.strip() == '':
             return
+
+        # check prefix words
+        prefix_words = self.get_prefix_words()
+        if len(prefix_words) > 0:
+            for word in prefix_words:
+                check_text = text.lower().strip()
+                check_word = word.lower().strip()
+                if not check_text.startswith(check_word):
+                    # self.window.data['input'].setText(text)
+                    self.window.statusChanged.emit(trans('audio.speak.ignoring'))
+                    self.set_status(trans('audio.speak.ignoring'))
+                    return
 
         # previous magic word detected state
         magic_prev_detected = self.magic_word_detected  # save magic word detected state before checking for magic word

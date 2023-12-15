@@ -3,7 +3,7 @@
 - Speech recognition and synthesis fixes and improvements
 - Fixed and improved speech recognition via Whisper
 - Fixed and improved voice synthesis via OpenAI TTS and MS Azure
-- Added new options to speech recognition: magic words, stop words, auto-send and wait for response
+- Added new options to speech recognition: magic words, stop words, prefix words, auto-send and wait for response
 - Added new more intuitive voice input/output control panel in UI
 
 2.0.29 (2023-12-14)
