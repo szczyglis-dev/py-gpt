@@ -287,7 +287,10 @@ class AudioInputThread(QObject):
 
     def run(self):
         try:
-            client = OpenAI()
+            client = OpenAI(
+                api_key=self.plugin.window.config.get('api_key'),
+                organization=self.plugin.window.config.get('organization_key'),
+            )
             print("Starting audio listener....")
             path = os.path.join(self.plugin.window.config.path, 'input.wav')
             while self.plugin.listening:
@@ -322,9 +325,6 @@ class AudioInputThread(QObject):
                                     response_format="text"
                                 )
                                 audio_file.close()
-
-                                # remove file
-                                os.remove(path)
                                 if transcript is not None and transcript.strip() != '':
                                     self.finished.emit(transcript)
 
