@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.09 12:00:00                  #
+# Updated Date: 2023.12.16 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
@@ -24,6 +24,7 @@ class NoScrollSlider(QSlider):
 
     def wheelEvent(self, event):
         event.ignore()  # disable mouse wheel
+
 
 class SettingsSlider(QWidget):
     def __init__(self, window=None, id=None, title=None, min=None, max=None, step=None, value=None, max_width=True,
