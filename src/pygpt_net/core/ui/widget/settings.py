@@ -10,13 +10,20 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
-from PySide6.QtGui import QStandardItemModel, QAction, QIcon
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QLineEdit, QDialog, QLabel, QCheckBox, QHBoxLayout, QWidget, QSlider, QTextEdit, \
-    QVBoxLayout, QPushButton, QTreeView, QAbstractItemView, QMenu
+    QVBoxLayout, QPushButton, QTreeView, QMenu
 
 from .select import SelectMenu
 from ...utils import trans
 
+
+class NoScrollSlider(QSlider):
+    def __init__(self, orientation, parent=None):
+        super(NoScrollSlider, self).__init__(orientation, parent)
+
+    def wheelEvent(self, event):
+        event.ignore()  # disable mouse wheel
 
 class SettingsSlider(QWidget):
     def __init__(self, window=None, id=None, title=None, min=None, max=None, step=None, value=None, max_width=True,
@@ -45,7 +52,7 @@ class SettingsSlider(QWidget):
         self.section = section
 
         self.label = QLabel(title)
-        self.slider = QSlider(Qt.Horizontal)
+        self.slider = NoScrollSlider(Qt.Horizontal)
         self.slider.setMinimum(min)
         self.slider.setMaximum(max)
         self.slider.setSingleStep(step)

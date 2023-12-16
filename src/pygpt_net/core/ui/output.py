@@ -21,7 +21,7 @@ from .highlighter import MarkdownHighlighter
 from ..utils import trans
 
 
-class ChatBox:
+class Output:
     def __init__(self, window=None):
         """
         Chatbox UI

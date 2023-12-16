@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.16 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -38,9 +38,19 @@ class FileExplorerWidget(QWidget):
 
         self.header = self.treeView.header()
         self.header.setStretchLastSection(True)
+        self.header.setContentsMargins(0, 0, 0, 0)
+        self.header.setMaximumHeight(40)
 
         self.column_proportion = 0.5
         self.adjustColumnWidths()
+
+        self.header.setStyleSheet("""
+           QHeaderView::section {
+               padding-top: 0.8em;
+               text-align: center;
+               vertical-align: middle;
+           }
+       """)
 
     def adjustColumnWidths(self):
         total_width = self.treeView.width()
@@ -83,7 +93,7 @@ class FileExplorerWidget(QWidget):
         """
         Open dir action handler
 
-        :param event: mouse event
+        :param path: path to open
         """
         self.window.controller.files.open_dir(path)
 
@@ -91,7 +101,7 @@ class FileExplorerWidget(QWidget):
         """
         Rename action handler
 
-        :param event: mouse event
+        :param path: path to open
         """
         self.window.controller.files.rename(path)
 
@@ -99,6 +109,6 @@ class FileExplorerWidget(QWidget):
         """
         Delete action handler
 
-        :param event: mouse event
+        :param path: path to open
         """
         self.window.controller.files.delete(path)

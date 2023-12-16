@@ -14,7 +14,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QSplitter, QWidget
 
-from .chatbox import ChatBox
+from .output import Output
 from .toolbox import Toolbox
 from .menu import Menu
 from .dialogs import Dialogs
@@ -43,7 +43,7 @@ class UI:
         self.window.plugin_option = {}
         self.window.plugin_addon = {}
 
-        self.chat = ChatBox(window)
+        self.chat = Output(window)
         self.toolbox = Toolbox(window)
         self.contexts = Contexts(window)
         self.attachments = Attachments(window)
