@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.16 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -217,6 +217,7 @@ class Lang:
         self.window.menu['menu.lang'].setTitle(trans("menu.lang"))
         self.window.menu['menu.theme'].setTitle(trans("menu.theme"))
 
+        # debug menu
         if 'menu.debug' in self.window.menu:
             self.window.menu['menu.debug'].setTitle(trans("menu.debug"))
             self.window.menu['debug.config'].setText(trans("menu.debug.config"))
@@ -227,6 +228,7 @@ class Lang:
         self.window.menu['menu.about'].setTitle(trans("menu.info"))
         self.window.menu['info.about'].setText(trans("menu.info.about"))
         self.window.menu['info.changelog'].setText(trans("menu.info.changelog"))
+        self.window.menu['info.docs'].setText(trans("menu.info.docs"))
         self.window.menu['info.website'].setText(trans("menu.info.website"))
         self.window.menu['info.github'].setText(trans("menu.info.github"))
 
