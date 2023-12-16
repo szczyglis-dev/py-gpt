@@ -37,7 +37,7 @@
         "label": "font_size",
         "value": 12,
         "min": 8,
-        "max": 20,
+        "max": 42,
         "multiplier": 1,
         "step": 1,
         "advanced": false
@@ -48,7 +48,7 @@
         "label": "font_size.input",
         "value": 12,
         "min": 8,
-        "max": 20,
+        "max": 42,
         "multiplier": 1,
         "step": 1,
         "advanced": false

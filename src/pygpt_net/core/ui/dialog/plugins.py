@@ -162,11 +162,6 @@ class Plugins:
                     # add option to group
                     self.window.groups[group_id].add_layout(option)
 
-                    # add line if not last option
-                    if key != advanced_options[-1]:
-                        line = self.add_line()
-                        self.window.groups[group_id].add_widget(line)
-
                 # add advanced options group to scroll
                 scroll_content.addWidget(self.window.groups[group_id])
 

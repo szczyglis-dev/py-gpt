@@ -50,18 +50,19 @@ class Plugin(BasePlugin):
                         "Specify model, default: whisper-1")
         self.add_option("timeout", "int", 2,
                         "Timeout",
-                        "Speech recognition timeout", min=0, max=30, slider=True, tooltip="Timeout, default: 2")
+                        "Speech recognition timeout. Default: 2", min=0, max=30, slider=True, tooltip="Timeout, default: 2")
         self.add_option("phrase_length", "int", 4,
                         "Phrase max length",
-                        "Speech recognition phrase length", min=0, max=30, slider=True, tooltip="Phrase max length, "
+                        "Speech recognition phrase length. Default: 4", min=0, max=30, slider=True, tooltip="Phrase max length, "
                                                                                                 "default: 4")
         self.add_option("min_energy", "float", 1.3,
                         "Min. energy",
-                        "Minimum threshold multiplier above the noise level to begin recording; 1 = disabled", min=1, max=50, slider=True,
+                        "Minimum threshold multiplier above the noise level to begin recording; 1 = disabled. Default: 1.3",
+                        min=1, max=50, slider=True,
                         tooltip="Min. energy, default: 1.3, 1 = disabled, adjust for your microphone", multiplier=10)
         self.add_option("adjust_noise", "bool", True,
                         "Adjust ambient noise",
-                        "Adjust for ambient noise")
+                        "Adjust for ambient noise. Default: True")
         self.add_option("continuous_listen", "bool", False,
                         "Continuous listening",
                         "EXPERIMENTAL: continuous listening - do not stop listening after a single input.\n"
@@ -69,28 +70,29 @@ class Plugin(BasePlugin):
                         "of the options!")
         self.add_option("auto_send", "bool", True,
                         "Auto send",
-                        "Automatically send input when voice is detected")
+                        "Automatically send input when voice is detected. Default: True")
         self.add_option("wait_response", "bool", True,
                         "Wait for response",
-                        "Wait for a response before listening for the next input")
+                        "Wait for a response before listening for the next input. Default: True")
         self.add_option("magic_word", "bool", False,
                         "Magic word",
-                        "Activate listening only after the magic word is provided, like 'Hey GPT' or 'OK GPT'")
+                        "Activate listening only after the magic word is provided, like 'Hey GPT' or 'OK GPT'. "
+                        "Default: False")
         self.add_option("magic_word_reset", "bool", True,
                         "Reset Magic word",
                         "Reset the magic word status after it is received "
-                        "(the magic word will need to be provided again)")
+                        "(the magic word will need to be provided again). Default: True")
         self.add_option("magic_words", "text", "OK, Okay, Hey GPT, OK GPT",
                         "Magic words",
                         "Specify magic words for 'Magic word' option: if received this word then start listening, "
                         "put words separated by coma, "
-                        "Magic word option must be enabled, examples: Hey GPT, OK GPT")
+                        "Magic word option must be enabled, examples: \"Hey GPT, OK GPT\"")
         self.add_option("magic_word_timeout", "int", 1,
                         "Magic word timeout",
-                        "Magic word recognition timeout", min=0, max=30, slider=True, tooltip="Timeout, default: 1")
+                        "Magic word recognition timeout. Default: 1", min=0, max=30, slider=True, tooltip="Timeout, default: 1")
         self.add_option("magic_word_phrase_length", "int", 2,
                         "Magic word phrase max length",
-                        "Magic word phrase length", min=0, max=30, slider=True, tooltip="Phrase length, default: 2")
+                        "Magic word phrase length. Default: 2", min=0, max=30, slider=True, tooltip="Phrase length, default: 2")
         self.add_option("prefix_words", "text", "",
                         "Prefix words",
                         "Specify prefix words: if defined, only phrases starting with these words will be transmitted, "
@@ -109,7 +111,7 @@ class Plugin(BasePlugin):
                         "Represents the energy level threshold for sounds. Default: 300", min=0, max=10000, slider=True, advanced=True)
         self.add_option("recognition_dynamic_energy_threshold", "bool", True,
                         "dynamic_energy_threshold",
-                        "Represents whether the energy level threshold (see recognizer_instance.energy_threshold) "
+                        "Represents whether the energy level threshold "
                         "for sounds should be automatically adjusted based on the currently "
                         "ambient noise level while listening. Default: True",  advanced=True)
         self.add_option("recognition_dynamic_energy_adjustment_damping", "float", 0.15,
@@ -125,7 +127,7 @@ class Plugin(BasePlugin):
         self.add_option("recognition_adjust_for_ambient_noise_duration", "float", 1,
                         "adjust_for_ambient_noise: duration",
                         "The duration parameter is the maximum number of seconds that it will "
-                        "dynamically adjust the threshold for before returning. Default: 1", min=0, max=100,
+                        "dynamically adjust the threshold for before returning.\nDefault: 1", min=0, max=100,
                         slider=True, multiplier=10, advanced=True)
 
     def setup(self):
@@ -484,6 +486,7 @@ class AudioInputThread(QObject):
             with sr.Microphone() as source:
                 while self.plugin.listening and not self.plugin.window.is_closing:
                     self.plugin.set_status('')
+
                     if not self.plugin.can_listen():
                         time.sleep(0.5)
                         continue
@@ -541,6 +544,7 @@ class AudioInputThread(QObject):
 
                         # transcript audio
                         raw_data = audio_data.get_wav_data()
+                        is_stop_word = False
 
                         if raw_data:
                             # check RMS / energy
@@ -554,8 +558,6 @@ class AudioInputThread(QObject):
                             # save audio file
                             with open(path, "wb") as audio_file:
                                 audio_file.write(raw_data)
-
-                            is_stop_word = False
 
                             # transcribe
                             with open(path, "rb") as audio_file:

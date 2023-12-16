@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6 import QtCore
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLineEdit, QTextEdit, QApplication, QTextBrowser
 
 
@@ -46,7 +47,11 @@ class ChatInput(QTextEdit):
         """
         super(ChatInput, self).__init__(window)
         self.window = window
+        self.setAcceptRichText(False)
         self.setFocus()
+        self.value = self.window.config.data['font_size.input']
+        self.max_font_size = 42
+        self.min_font_size = 8
 
     def keyPressEvent(self, event):
         """
@@ -67,6 +72,26 @@ class ChatInput(QTextEdit):
                     self.window.controller.input.user_send()
                 self.setFocus()
 
+    def wheelEvent(self, event):
+        """
+        Wheel event: set font size
+        :param event: Event
+        """
+        if event.modifiers() & Qt.ControlModifier:
+            if event.angleDelta().y() > 0:
+                if self.value < self.max_font_size:
+                    self.value += 1
+            else:
+                if self.value > self.min_font_size:
+                    self.value -= 1
+
+            self.window.config.data['font_size.input'] = self.value
+            self.window.config.save()
+            self.window.controller.settings.update_font_size()
+            event.accept()
+        else:
+            super(ChatInput, self).wheelEvent(event)
+
 
 class ChatOutput(QTextBrowser):
     def __init__(self, window=None):
@@ -79,6 +104,29 @@ class ChatOutput(QTextBrowser):
         self.window = window
         self.setReadOnly(True)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.value = self.window.config.data['font_size']
+        self.max_font_size = 42
+        self.min_font_size = 8
+
+    def wheelEvent(self, event):
+        """
+        Wheel event: set font size
+        :param event: Event
+        """
+        if event.modifiers() & Qt.ControlModifier:
+            if event.angleDelta().y() > 0:
+                if self.value < self.max_font_size:
+                    self.value += 1
+            else:
+                if self.value > self.min_font_size:
+                    self.value -= 1
+
+            self.window.config.data['font_size'] = self.value
+            self.window.config.save()
+            self.window.controller.settings.update_font_size()
+            event.accept()
+        else:
+            super(ChatOutput, self).wheelEvent(event)
 
 
 class NotepadOutput(QTextEdit):
@@ -91,6 +139,9 @@ class NotepadOutput(QTextEdit):
         super(NotepadOutput, self).__init__(window)
         self.window = window
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.value = self.window.config.data['font_size']
+        self.max_font_size = 42
+        self.min_font_size = 8
 
     def keyPressEvent(self, event):
         """
@@ -100,6 +151,26 @@ class NotepadOutput(QTextEdit):
         """
         super(NotepadOutput, self).keyPressEvent(event)
         self.window.controller.notepad.save()
+
+    def wheelEvent(self, event):
+        """
+        Wheel event: set font size
+        :param event: Event
+        """
+        if event.modifiers() & Qt.ControlModifier:
+            if event.angleDelta().y() > 0:
+                if self.value < self.max_font_size:
+                    self.value += 1
+            else:
+                if self.value > self.min_font_size:
+                    self.value -= 1
+
+            self.window.config.data['font_size'] = self.value
+            self.window.config.save()
+            self.window.controller.settings.update_font_size()
+            event.accept()
+        else:
+            super(NotepadOutput, self).wheelEvent(event)
 
 
 class RenameInput(QLineEdit):
