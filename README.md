@@ -1186,6 +1186,7 @@ may consume additional tokens that are not displayed in the main window.
 ## 2.0.31 (2023-12-16)
 
 - Speech recognition (Whisper) small fixes, optimization and improvements
+- Added advanced internal options to speech recognition config
 
 ## 2.0.30 (2023-12-15)
 
