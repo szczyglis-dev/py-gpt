@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.30",
-    "app.version": "2.0.30",
-    "updated_at": "2023-12-15T21:00:00"
+    "version": "2.0.31",
+    "app.version": "2.0.31",
+    "updated_at": "2023-12-16T21:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -86,7 +86,7 @@
   "preset": "current.chat",
   "prompt": "",
   "send_clear": true,
-  "send_mode": 1,
+  "send_mode": 2,
   "store_history": true,
   "store_history_time": true,
   "stream": true,

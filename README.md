@@ -891,6 +891,34 @@ List of words that must initiate each phrase to be processed. For example, you c
 
 List of words that will stop the listening process. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
 
+**Advanced options**
+
+Options related to Speech Recognition internals:
+
+- `energy_threshold` *recognition_energy_threshold*
+
+Represents the energy level threshold for sounds. *Default:* `300`
+
+- `dynamic_energy_threshold` *recognition_dynamic_energy_threshold*
+
+Represents whether the energy level threshold (see recognizer_instance.energy_threshold) for sounds 
+should be automatically adjusted based on the currently ambient noise level while listening. *Default:* `True`
+
+- `dynamic_energy_adjustment_damping` *recognition_dynamic_energy_adjustment_damping*
+
+Represents approximately the fraction of the current energy threshold that is retained after one second 
+of dynamic threshold adjustment. *Default:* `0.15`
+
+- `pause_threshold` *recognition_pause_threshold*
+
+Represents the minimum length of silence (in seconds) that will register as the end of a phrase. *Default:* `0.8`
+
+- `adjust_for_ambient_noise: duration` *recognition_adjust_for_ambient_noise_duration*
+
+The duration parameter is the maximum number of seconds that it will dynamically adjust the threshold 
+for before returning. *Default:* `1`
+
+Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 
 ## Self Loop

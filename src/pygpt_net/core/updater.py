@@ -456,7 +456,7 @@ class Updater:
                     data['plugins']['audio_openai_whisper'] = {}
                 data['plugins']['audio_openai_whisper']['continuous_listen'] = False
                 data['plugins']['audio_openai_whisper']['timeout'] = 2
-                data['plugins']['audio_openai_whisper']['phrase_length'] = 5
+                data['plugins']['audio_openai_whisper']['phrase_length'] = 4
                 data['plugins']['audio_openai_whisper']['magic_word_timeout'] = 1
                 data['plugins']['audio_openai_whisper']['magic_word_phrase_length'] = 2
                 data['plugins']['audio_openai_whisper']['min_energy'] = 1.3

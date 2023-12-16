@@ -103,6 +103,31 @@ class Plugin(BasePlugin):
                         "default: stop, exit, quit, end, finish, close, terminate, kill, "
                         "halt, abort")
 
+        # advanced options
+        self.add_option("recognition_energy_threshold", "int", 300,
+                        "energy_threshold",
+                        "Represents the energy level threshold for sounds. Default: 300", min=0, max=10000, slider=True, advanced=True)
+        self.add_option("recognition_dynamic_energy_threshold", "bool", True,
+                        "dynamic_energy_threshold",
+                        "Represents whether the energy level threshold (see recognizer_instance.energy_threshold) "
+                        "for sounds should be automatically adjusted based on the currently "
+                        "ambient noise level while listening. Default: True",  advanced=True)
+        self.add_option("recognition_dynamic_energy_adjustment_damping", "float", 0.15,
+                        "dynamic_energy_adjustment_damping",
+                        "Represents approximately the fraction of the current energy threshold that "
+                        "is retained after one second of dynamic threshold adjustment. Default: 0.15", min=0, max=100,
+                        slider=True, multiplier=100, advanced=True)
+        self.add_option("recognition_pause_threshold", "float", 0.8,
+                        "pause_threshold",
+                        "Represents the minimum length of silence (in seconds) that will "
+                        "register as the end of a phrase. \nDefault: 0.8",
+                        min=0, max=100, slider=True, multiplier=10, advanced=True)
+        self.add_option("recognition_adjust_for_ambient_noise_duration", "float", 1,
+                        "adjust_for_ambient_noise: duration",
+                        "The duration parameter is the maximum number of seconds that it will "
+                        "dynamically adjust the threshold for before returning. Default: 1", min=0, max=100,
+                        slider=True, multiplier=10, advanced=True)
+
     def setup(self):
         """
         Returns available config options
@@ -465,9 +490,21 @@ class AudioInputThread(QObject):
 
                     try:
                         recognizer = sr.Recognizer()
+
+                        # set recognizer options
+                        recognizer.energy_threshold = self.plugin.get_option_value('recognition_energy_threshold')
+                        recognizer.dynamic_energy_threshold = \
+                            self.plugin.get_option_value('recognition_dynamic_energy_threshold')
+                        recognizer.dynamic_energy_adjustment_damping = \
+                            self.plugin.get_option_value('recognition_dynamic_energy_adjustment_damping')
+                        recognizer.dynamic_energy_adjustment_ratio = \
+                            self.plugin.get_option_value('recognition_dynamic_energy_adjustment_ratio')
+                        recognizer.pause_threshold = self.plugin.get_option_value('recognition_pause_threshold')
+                        adjust_duration = self.plugin.get_option_value('recognition_adjust_for_ambient_noise_duration')
+
                         # adjust for ambient noise
                         if self.plugin.get_option_value('adjust_noise'):
-                            recognizer.adjust_for_ambient_noise(source)
+                            recognizer.adjust_for_ambient_noise(source, duration=adjust_duration)
                             self.plugin.is_first_adjust = False
 
                         timeout = self.plugin.get_option_value('timeout')
@@ -491,7 +528,13 @@ class AudioInputThread(QObject):
 
                         min_energy = self.plugin.get_option_value('min_energy')
                         ambient_noise_energy = min_energy * recognizer.energy_threshold
-                        audio_data = recognizer.listen(source, timeout, phrase_length)
+
+                        if timeout > 0 and phrase_length > 0:
+                            audio_data = recognizer.listen(source, timeout, phrase_length)
+                        elif timeout > 0:
+                            audio_data = recognizer.listen(source, timeout)
+                        else:
+                            audio_data = recognizer.listen(source)
 
                         if not self.plugin.can_listen():
                             continue
