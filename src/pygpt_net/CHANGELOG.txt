@@ -1,7 +1,8 @@
 2.0.32 (2023-12-16)
 
-- Added real-time font-size change with CTRL + mouse scroll in input and output windows
-- Fixed double line display in advanced settings
+- Added real-time font-size change with CTRL + mouse scroll in input, output and notepad windows
+- Increased allowed font-size to 42
+- Fixed line display in plugin settings
 
 2.0.31 (2023-12-16)
 
