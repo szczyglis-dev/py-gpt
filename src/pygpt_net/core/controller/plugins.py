@@ -145,6 +145,7 @@ class Plugins:
                     self.config_dict_update(option_id, option['value'])  # update model items
 
         self.current_plugin = selected_plugin  # restore selected plugin
+        self.window.controller.layout.restore_plugin_settings()  # restore plugin settings layout
 
     def save_settings(self):
         """Saves plugins settings"""
@@ -207,17 +208,17 @@ class Plugins:
     def load_defaults_user(self, force=False):
         """Loads plugins settings user defaults"""
         if not force:
-            self.window.ui.dialogs.confirm('plugin.settings.defaults.user', -1, trans('settings.plugin.defaults.user.confirm'))
+            self.window.ui.dialogs.confirm('plugin.settings.defaults.user', -1, trans('dialog.plugin.settings.defaults.user.confirm'))
             return
 
         # reload settings window
         self.init_settings()
-        self.window.ui.dialogs.alert(trans('dialog.settings.plugin.defaults.user.result'))
+        self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
 
     def load_defaults_app(self, force=False):
         """Loads plugins settings app defaults"""
         if not force:
-            self.window.ui.dialogs.confirm('plugin.settings.defaults.app', -1, trans('settings.plugin.defaults.app.confirm'))
+            self.window.ui.dialogs.confirm('plugin.settings.defaults.app', -1, trans('dialog.plugin.settings.defaults.app.confirm'))
             return
 
         # restore default options
@@ -225,7 +226,7 @@ class Plugins:
 
         # reload settings window
         self.init_settings()
-        self.window.ui.dialogs.alert(trans('dialog.settings.plugin.defaults.app.result'))
+        self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.app.result'))
 
     def register(self, plugin):
         """

@@ -129,3 +129,15 @@ class Layout:
         data['geometry'] = geometry_data
         data['maximized'] = self.window.isMaximized()
         self.window.config.set('layout.window', data)
+
+    def restore_plugin_settings(self):
+        """Restore groups state"""
+        if not self.window.config.has('layout.groups'):
+            return
+        data = self.window.config.get('layout.groups')
+        for id in self.window.groups:
+            if id in data and id.startswith('plugin.settings.'):
+                try:
+                    self.window.groups[id].collapse(data[id])
+                except Exception as e:
+                    print("Error while restoring group state: " + str(e))

@@ -33,9 +33,9 @@ class Plugins:
 
         dialog_id = "plugin_settings"
 
-        self.window.data['plugin.settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))
-        self.window.data['plugin.settings.btn.defaults.app'] = QPushButton(trans("dialog.settings.btn.defaults.app"))
-        self.window.data['plugin.settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
+        self.window.data['plugin.settings.btn.defaults.user'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.user"))
+        self.window.data['plugin.settings.btn.defaults.app'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.app"))
+        self.window.data['plugin.settings.btn.save'] = QPushButton(trans("dialog.plugin.settings.btn.save"))
 
         self.window.data['plugin.settings.btn.defaults.user'].clicked.connect(
             lambda: self.window.controller.plugins.load_defaults_user())
