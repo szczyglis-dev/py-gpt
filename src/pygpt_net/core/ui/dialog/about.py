@@ -50,6 +50,7 @@ class About:
         string = "{}: {}\n" \
                  "{}: {}\n" \
                  "{}: {}\n" \
+                 "{}: {}\n" \
                  "{}: {}\n\n" \
                  "(c) 2023 {}\n" \
                  "{}\n".format(trans("dialog.about.version"),
@@ -61,6 +62,8 @@ class About:
                                self.window.website,
                                trans("dialog.about.github"),
                                self.window.github,
+                               trans("dialog.about.docs"),
+                               self.window.docs,
                                self.window.author,
                                self.window.email)
 
