@@ -57,6 +57,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.is_closing = False
         self.github = get_init_value("__github__")
         self.website = get_init_value("__website__")
+        self.docs = get_init_value("__documentation__")
         self.version = get_init_value("__version__")
         self.build = get_init_value("__build__")
         self.author = get_init_value("__author__")

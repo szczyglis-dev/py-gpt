@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.16 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -179,6 +179,8 @@ class Menu:
                                                      self.window)
         self.window.menu['info.website'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.website"),
                                                    self.window)
+        self.window.menu['info.docs'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.docs"),
+                                                   self.window)
         self.window.menu['info.github'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.github"),
                                                   self.window)
 
@@ -188,11 +190,14 @@ class Menu:
             lambda: self.window.controller.info.toggle('changelog'))
         self.window.menu['info.website'].triggered.connect(
             lambda: self.window.controller.info.goto_website())
+        self.window.menu['info.docs'].triggered.connect(
+            lambda: self.window.controller.info.goto_docs())
         self.window.menu['info.github'].triggered.connect(
             lambda: self.window.controller.info.goto_github())
 
         self.window.menu['menu.about'] = self.window.menuBar().addMenu(trans("menu.info"))
         self.window.menu['menu.about'].addAction(self.window.menu['info.about'])
         self.window.menu['menu.about'].addAction(self.window.menu['info.changelog'])
+        self.window.menu['menu.about'].addAction(self.window.menu['info.docs'])
         self.window.menu['menu.about'].addAction(self.window.menu['info.website'])
         self.window.menu['menu.about'].addAction(self.window.menu['info.github'])

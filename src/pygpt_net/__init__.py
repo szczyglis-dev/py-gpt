@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 01:00:00                  #
+# Updated Date: 2023.12.16 19:00:00                  #
 # ================================================== #
 
 __author__ = "Marcin Szczygliński"
@@ -18,4 +18,5 @@ __build__ = "2023.12.16"
 __maintainer__ = "Marcin Szczygliński"
 __github__ = "https://github.com/szczyglis-dev/py-gpt"
 __website__ = "https://pygpt.net"
+__documentation__ = "https://pygpt.readthedocs.io/"
 __email__ = "info@pygpt.net"
