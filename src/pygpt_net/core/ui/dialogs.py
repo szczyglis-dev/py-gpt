@@ -91,17 +91,19 @@ class Dialogs:
         self.window.dialog['alert'] = AlertDialog(self.window)
         self.window.dialog['confirm'] = ConfirmDialog(self.window)
 
-    def confirm(self, type, id, msg):
+    def confirm(self, type, id, msg, parent_object=None):
         """
         Shows confirm dialog
 
         :param type: confirm type
         :param id: confirm object id
         :param msg: message to show
+        :param parent_object: parent object
         """
         self.window.dialog['confirm'].type = type
         self.window.dialog['confirm'].id = id
         self.window.dialog['confirm'].message.setText(msg)
+        self.window.dialog['confirm'].parent_object = parent_object
         self.window.dialog['confirm'].show()
 
     def alert(self, msg):

@@ -196,7 +196,7 @@ class UpdateDialog(QDialog):
 
 
 class ConfirmDialog(QDialog):
-    def __init__(self, window=None, type=None, id=None):
+    def __init__(self, window=None, type=None, id=None, parent_object=None):
         """
         Confirm dialog
 
@@ -208,11 +208,12 @@ class ConfirmDialog(QDialog):
         self.window = window
         self.type = type
         self.id = id
+        self.parent_object = parent_object
         self.setWindowTitle(trans('dialog.confirm.title'))
 
         btn_yes = QPushButton(trans('dialog.confirm.yes'))
         btn_yes.clicked.connect(
-            lambda: self.window.controller.confirm.accept(self.type, self.id))
+            lambda: self.window.controller.confirm.accept(self.type, self.id, self.parent_object))
 
         btn_no = QPushButton(trans('dialog.confirm.no'))
         btn_no.clicked.connect(

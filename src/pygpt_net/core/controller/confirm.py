@@ -18,12 +18,13 @@ class Confirm:
         """
         self.window = window
 
-    def accept(self, type, id):
+    def accept(self, type, id=None, parent_object=None):
         """
         Confirm dialog accept
 
         :param type: dialog type
         :param id: dialog object id
+        :param parent_object: dialog parent object
         """
         if type == 'preset_exists':
             self.window.controller.presets.save(True)
@@ -57,6 +58,8 @@ class Confirm:
             self.window.controller.settings.load_defaults_user(True)
         elif type == 'settings.defaults.app':
             self.window.controller.settings.load_defaults_app(True)
+        elif type == 'settings.dict.delete':
+            self.window.controller.settings.delete_item(parent_object, id, True)
         elif type == 'plugin.settings.defaults.user':
             self.window.controller.plugins.load_defaults_user(True)
         elif type == 'plugin.settings.defaults.app':

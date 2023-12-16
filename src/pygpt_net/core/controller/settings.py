@@ -499,6 +499,23 @@ class Settings:
         self.window.controller.settings.init('settings')
         self.window.ui.dialogs.alert(trans('dialog.settings.defaults.app.result'))
 
+    def delete_item(self, parent_object, id, force=False):
+        """
+        Loads delete item (from dict list) confirmation dialog or executes delete
+
+        :param parent_object: parent object
+        :param id: item id
+        :param force: force delete
+        """
+        if not force:
+            self.window.ui.dialogs.confirm('settings.dict.delete', id, trans('settings.dict.delete.confirm'),
+                                           parent_object)
+            return
+
+        # delete item
+        if parent_object is not None:
+            parent_object.delete_item_execute(id)
+
     def get_options(self):
         """
         Returns settings options dict

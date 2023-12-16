@@ -466,7 +466,7 @@ class SettingsDict(QWidget):
 
     def delete_item(self, event):
         """
-        Delete item
+        Delete item (show confirm)
 
         :param event: Menu event
         """
@@ -474,15 +474,23 @@ class SettingsDict(QWidget):
         if index.isValid():
             # remove item
             idx = index.row()
-            if len(self.model.items) > idx:
-                self.model.items.pop(idx)
-            self.model.removeRows(idx, 1)
+            self.window.controller.settings.delete_item(self, idx)
 
-            # update model list
-            self.update()
-            self.list.updateGeometries()
-            self.items = self.model.items
-            self.model.updateData(self.items)
+    def delete_item_execute(self, idx):
+        """
+        Delete item (execute)
+
+        :param idx: Index of item
+        """
+        if len(self.model.items) > idx:
+            self.model.items.pop(idx)
+        self.model.removeRows(idx, 1)
+
+        # update model list
+        self.update()
+        self.list.updateGeometries()
+        self.items = self.model.items
+        self.model.updateData(self.items)
 
     def remove(self):
         """
