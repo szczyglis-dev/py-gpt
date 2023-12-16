@@ -29,10 +29,10 @@ class Assistant:
         """Setups assistant editor dialog"""
         id = "assistants"
         path = self.window.config.path
-        self.window.data['assistant.btn.current'] = QPushButton(trans("dialog.assistant.btn.current"))
         self.window.data['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.data['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.save())
+        self.window.data['assistant.btn.save'].setAutoDefault(True)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['assistant.btn.save'])
@@ -79,6 +79,8 @@ class Assistant:
         self.window.data['assistant.id_tip'].setMinimumHeight(40)
 
         self.window.data['assistant.api.tip'] = QPushButton(trans('assistant.api.tip'))
+        self.window.data['assistant.api.tip'].setAutoDefault(False)
+
         # make button look like a label:
         self.window.data['assistant.api.tip'].setFlat(True)
         self.window.data['assistant.api.tip'].setStyleSheet("text-align: left; color: #fff; text-decoration: "

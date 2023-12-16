@@ -38,6 +38,9 @@ class Preset:
         self.window.data['preset.btn.save'].clicked.connect(
             lambda: self.window.controller.presets.save())
 
+        self.window.data['preset.btn.current'].setAutoDefault(False)
+        self.window.data['preset.btn.save'].setAutoDefault(True)
+
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['preset.btn.current'])
         bottom_layout.addWidget(self.window.data['preset.btn.save'])

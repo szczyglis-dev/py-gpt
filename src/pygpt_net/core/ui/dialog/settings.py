@@ -42,6 +42,11 @@ class Settings:
         self.window.data['settings.btn.save'].clicked.connect(
             lambda: self.window.controller.settings.save(id))
 
+        # set enter key to save button
+        self.window.data['settings.btn.defaults.user'].setAutoDefault(False)
+        self.window.data['settings.btn.defaults.app'].setAutoDefault(False)
+        self.window.data['settings.btn.save'].setAutoDefault(True)
+
         # bottom buttons layout
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['settings.btn.defaults.user'])

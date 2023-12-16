@@ -92,6 +92,7 @@ class Assistant:
         assistant = self.assistants.get_by_id(id)
         self.window.controller.attachment.import_from_assistant(mode, assistant)
         self.window.controller.attachment.update()
+        self.update()
 
     def update_field(self, id, value, assistant_id=None, current=False):
         """
@@ -192,6 +193,14 @@ class Assistant:
         """
         created = False
         id = self.window.config_option['assistant.id'].text()
+        name = self.window.config_option['assistant.name'].text()
+        model = self.window.config_option['assistant.model'].text()
+
+        # check name
+        if name is None or name == "" or model is None or model == "":
+            self.window.ui.dialogs.alert(trans('assistant.form.empty.fields'))
+            return
+
         if id is None or id == "" or not self.assistants.has(id):
             assistant = self.create()  # id created in API
             if assistant is None:

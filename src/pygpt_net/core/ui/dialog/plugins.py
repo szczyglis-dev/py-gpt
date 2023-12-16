@@ -44,6 +44,11 @@ class Plugins:
         self.window.data['plugin.settings.btn.save'].clicked.connect(
             lambda: self.window.controller.plugins.save_settings())
 
+        # set enter key to save button
+        self.window.data['plugin.settings.btn.defaults.user'].setAutoDefault(False)
+        self.window.data['plugin.settings.btn.defaults.app'].setAutoDefault(False)
+        self.window.data['plugin.settings.btn.save'].setAutoDefault(True)
+
         # bottom buttons
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['plugin.settings.btn.defaults.user'])

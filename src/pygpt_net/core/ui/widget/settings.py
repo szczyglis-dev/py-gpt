@@ -444,6 +444,7 @@ class SettingsDict(QWidget):
         self.add_btn = QPushButton(trans('action.add'), self)
         self.add_btn.setCursor(Qt.PointingHandCursor)
         self.add_btn.clicked.connect(self.add)
+        self.add_btn.setAutoDefault(False)
 
         # layout
         self.layout = QVBoxLayout()
