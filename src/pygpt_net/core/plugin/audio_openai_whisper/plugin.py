@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 01:00:00                  #
+# Updated Date: 2023.12.16 18:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -127,7 +127,7 @@ class Plugin(BasePlugin):
         self.add_option("recognition_adjust_for_ambient_noise_duration", "float", 1,
                         "adjust_for_ambient_noise: duration",
                         "The duration parameter is the maximum number of seconds that it will "
-                        "dynamically adjust the threshold for before returning.\nDefault: 1", min=0, max=100,
+                        "dynamically adjust the threshold for before returning. Default: 1", min=0, max=100,
                         slider=True, multiplier=10, advanced=True)
 
     def setup(self):
