@@ -1,6 +1,7 @@
 # PyGPT v2
 
 Release: **2.0.33** build: **2023.12.17** | Python: 3.9+
+
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
 ### **Compiled versions for Linux and Windows (64-bit)**: https://pygpt.net/#download
