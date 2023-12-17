@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 import json
 import os
@@ -94,6 +94,8 @@ class Theme:
             return "font-weight: bold;"
         elif element == "text_small":
             return "font-size: 9px;"
+        elif element == "text_faded":
+            return "font-size: 9px; color: #999;"
 
     def apply_syntax_highlighter(self, theme):
         """Applies syntax highlight"""

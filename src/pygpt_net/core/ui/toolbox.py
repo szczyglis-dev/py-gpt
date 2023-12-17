@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 import os
 
@@ -218,12 +218,21 @@ class Toolbox:
         self.window.data[label_key] = QLabel(title)
         self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.data[id] = SelectMenu(self.window, id)
+
+        if id == 'prompt.mode':
+            self.window.data[id].selection_locked = self.window.controller.model.mode_change_locked
+        elif id == 'prompt.model':
+            self.window.data[id].selection_locked = self.window.controller.model.model_change_locked
+
         layout = QVBoxLayout()
         layout.addWidget(self.window.data[label_key])
         layout.addWidget(self.window.data[id])
 
         self.window.models[id] = self.create_model(self.window)
         self.window.data[id].setModel(self.window.models[id])
+
+        # prevent focus out selection leave
+        self.window.data[id].selectionModel().selectionChanged.connect(self.window.data[id].lockSelection)
         return layout
 
     def setup_presets(self, id, title):
@@ -249,6 +258,7 @@ class Toolbox:
         header_widget.setLayout(header)
 
         self.window.data[id] = PresetSelectMenu(self.window, id)
+        self.window.data[id].selection_locked = self.window.controller.model.preset_change_locked
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.data[id])
@@ -286,6 +296,7 @@ class Toolbox:
         header_widget.setLayout(header)
 
         self.window.data[id] = AssistantSelectMenu(self.window, id)
+        self.window.data[id].selection_locked = self.window.controller.assistant.assistant_change_locked
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.data[id])
@@ -326,6 +337,9 @@ class Toolbox:
         :param id: ID of the list
         :param data: Data to update
         """
+        # store previous selection
+        self.window.data[id].backup_selection()
+
         self.window.models[id].removeRows(0, self.window.models[id].rowCount())
         i = 0
         for n in data:
@@ -339,6 +353,8 @@ class Toolbox:
                     name = trans(name)
                 self.window.models[id].setData(self.window.models[id].index(i, 0), name)
                 i += 1
+        # restore previous selection
+        self.window.data[id].restore_selection()
 
     def update_list_assistants(self, id, data):
         """
@@ -347,6 +363,9 @@ class Toolbox:
         :param id: ID of the list
         :param data: Data to update
         """
+        # store previous selection
+        self.window.data[id].backup_selection()
+
         self.window.models[id].removeRows(0, self.window.models[id].rowCount())
         i = 0
         for n in data:
@@ -354,3 +373,6 @@ class Toolbox:
             name = data[n].name
             self.window.models[id].setData(self.window.models[id].index(i, 0), name)
             i += 1
+
+        # restore previous selection
+        self.window.data[id].restore_selection()

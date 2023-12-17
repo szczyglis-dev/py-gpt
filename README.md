@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.32** build: **2023.12.16** | Python: 3.9+
+Release: **2.0.33** build: **2023.12.17** | Python: 3.9+
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
 ### **Compiled versions for Linux and Windows (64-bit)**: https://pygpt.net/#download
@@ -1181,6 +1181,20 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.33 (2023-12-17)
+
+- Fixed dialog's save/update button handlers
+- Fixed uploaded files reload in assistants
+- Fixed focus loss on assistants list
+- Fixed Output Files header
+- Fixed UI
+- Added delete confirmation to dictionary options
+- Added context change lock before response generation
+- Added allowed types for contexts
+- Added a link to the documentation in the menu
+- Added saving state of opened advanced options in plugins
+- Disabled mouse scroll on sliders
 
 ## 2.0.32 (2023-12-16)
 

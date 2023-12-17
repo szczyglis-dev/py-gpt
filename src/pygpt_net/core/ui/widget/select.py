@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
-
+from PySide6.QtCore import QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
 from PySide6.QtWidgets import QTreeView, QAbstractItemView, QMenu
 
@@ -30,12 +30,44 @@ class SelectMenu(QTreeView):
         self.id = id
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setIndentation(0)
-        self.setHeaderHidden(True)
-
+        self.selection_locked = None
+        self.selection = None
         self.clicked.connect(self.click)
+        self.header().hide()
 
     def click(self, val):
         self.window.controller.model.select(self.id, val.row())
+        self.selection = self.selectionModel().selection()
+
+    def lockSelection(self, selected, deselected):
+        if self.selection is not None:
+            self.selectionModel().select(self.selection, QItemSelectionModel.Select)
+
+    def backup_selection(self):
+        self.selection = self.selectionModel().selection()
+
+    def restore_selection(self):
+        if self.selection is not None:
+            self.selectionModel().select(self.selection, QItemSelectionModel.Select)
+
+    def mousePressEvent(self, event):
+        index = self.indexAt(event.pos())
+        if not index.isValid():
+            return
+        super(SelectMenu, self).mousePressEvent(event)
+
+    def focusOutEvent(self, event):
+        pass
+
+    def selectionCommand(self, index, event=None):
+        """
+        Selection command
+        :param index: Index
+        :param event: Event
+        """
+        if self.selection_locked is not None and self.selection_locked():
+            return QItemSelectionModel.NoUpdate
+        return super().selectionCommand(index, event)
 
 
 class PresetSelectMenu(SelectMenu):

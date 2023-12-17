@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 import os
 
@@ -56,10 +56,12 @@ class Output:
 
         self.window.data['chat.model'] = QLabel("")
         self.window.data['chat.model'].setAlignment(Qt.AlignRight)
+        self.window.data['chat.model'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+
         context_layout = self.setup_context()
 
         self.window.data['chat.label'] = QLabel('')
-        self.window.data['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.data['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
 
         self.window.data['chat.plugins'] = QLabel("")
         self.window.data['chat.plugins'].setAlignment(Qt.AlignCenter)

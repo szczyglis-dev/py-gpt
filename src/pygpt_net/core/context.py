@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -29,10 +29,12 @@ class Context:
         self.contexts = {}
         self.items = []
         self.current_ctx = None
+        self.current_assistant = None
         self.current_thread = None
         self.current_run = None
         self.current_status = None
         self.current_mode = None
+        self.last_mode = None
 
     def load_list(self):
         """Loads contexts list from file"""
@@ -90,13 +92,27 @@ class Context:
     def update(self):
         """
         Updates current context mode
-
-        :return: None
         """
         self.current_mode = self.config.get('mode')
+
         if self.current_ctx is None:
             return
         self.contexts[self.current_ctx]['mode'] = self.current_mode
+        self.dump_context(self.current_ctx)
+
+    def post_update(self, mode):
+        """
+        Updates current (last) context mode and assistant
+
+        :param mode: mode name
+        """
+        if self.current_ctx is None:
+            return
+
+        self.current_assistant = self.config.get('assistant')
+        self.contexts[self.current_ctx]['last_mode'] = mode
+        if mode == 'assistant':
+            self.contexts[self.current_ctx]['assistant'] = self.current_assistant
         self.dump_context(self.current_ctx)
 
     def create_id(self):
@@ -105,7 +121,7 @@ class Context:
 
         Format: YYYYMMDDHHMMSS.MICROSECONDS.json
 
-        :return: context id
+        :return: string
         """
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
 
@@ -121,7 +137,9 @@ class Context:
             "name": "{}".format(trans('ctx.new.prefix')),
             "date": datetime.datetime.now().strftime("%Y-%m-%d"),
             'mode': self.config.get('mode'),
+            'last_mode': self.config.get('mode'),
             'thread': None,
+            'assistant': None,
             'run': None,
             'status': None,
             'initialized': False,
@@ -402,6 +420,8 @@ class Context:
                 self.current_thread = ctx['thread']
             if 'mode' in ctx:
                 self.current_mode = ctx['mode']
+            if 'assistant' in ctx:
+                self.current_assistant = ctx['assistant']
 
             self.items = self.load(name)
 
@@ -570,7 +590,7 @@ class ContextItem:
         """
         Serializes item to dict
 
-        :return: serialized item
+        :return: dict
         """
         return {
             'input': self.input,
@@ -589,7 +609,11 @@ class ContextItem:
         }
 
     def deserialize(self, data):
-        """Deserializes item from dict"""
+        """
+        Deserializes item from dict
+
+        :param data: dict
+        """
         if 'input' in data:
             self.input = data['input']
         if 'output' in data:
@@ -618,5 +642,9 @@ class ContextItem:
             self.output_timestamp = data['output_timestamp']
 
     def dump(self):
-        """Dumps item to string"""
+        """
+        Dumps item to string
+
+        :return: dict
+        """
         return json.dumps(self.serialize())

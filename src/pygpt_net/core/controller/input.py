@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.15 19:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 import json
 
@@ -426,8 +426,14 @@ class Input:
             self.handle_complete(ctx)
 
     def handle_complete(self, ctx):
-        """Handles completed context"""
+        """
+        Handles completed context
+
+        :param ctx: ContextItem
+        """
         # save context
+        mode = self.window.config.get('mode')
+        self.window.gpt.context.post_update(mode)  # post update context, store last mode, etc.
         self.window.gpt.context.store()
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
@@ -437,13 +443,19 @@ class Input:
             self.history.save(ctx.output)
 
     def user_send(self, text=None):
-        """Sends real user input"""
+        """
+        Sends real user input
+
+        :param text: Input text
+        """
         text = self.window.controller.plugins.apply('user.send', text)
         self.send(text)
 
     def send(self, text=None):
         """
         Sends input text to API
+
+        :param text: Input text
         """
         # check if input is not locked
         if self.locked:
@@ -503,6 +515,9 @@ class Input:
                 self.window.gpt.context.new()
                 self.window.controller.context.update()
                 self.window.log("New context created...")  # log
+            else:
+                # check if current context is allowed for this mode, if now then create new
+                self.window.controller.context.handle_allowed(mode)
 
             # process events to update UI
             QApplication.processEvents()

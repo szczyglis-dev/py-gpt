@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -33,15 +33,26 @@ class Model:
         :param value: value of the list (row index)
         """
         if id == 'prompt.mode':
+            # check if mode change is not locked
+            if self.mode_change_locked():
+                return
             mode = self.window.config.get_mode_by_idx(value)
             self.set_mode(mode)
             return
         elif id == 'prompt.model':
+            # check if model change is not locked
+            if self.model_change_locked():
+                return
+
             mode = self.window.config.get('mode')
             model = self.window.config.get_model_by_idx(value, mode)
             self.window.config.set('model', model)
             self.window.config.data['current_model'][mode] = model
         elif id == 'preset.presets':
+            # check if preset change is not locked
+            if self.preset_change_locked():
+                return
+
             mode = self.window.config.get('mode')
             preset = self.window.config.get_preset_by_idx(value, mode)
             self.window.config.data['preset'] = preset
@@ -49,12 +60,49 @@ class Model:
 
         self.update()
 
+    def mode_change_locked(self):
+        """
+        Checks if mode change is locked
+
+        :return: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False
+
+    def model_change_locked(self):
+        """
+        Checks if model change is locked
+
+        :return: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False
+
+    def preset_change_locked(self):
+        """
+        Checks if preset change is locked
+
+        :return: bool
+        """
+        # if self.window.controller.input.generating:
+            # return True
+        return False
+
     def set_mode(self, mode):
         """
         Sets mode
 
         :param mode: mode name
         """
+
+        # if ctx loaded with assistant then switch to this assistant
+        if mode == "assistant":
+            if self.window.gpt.context.current_ctx is not None \
+                    and self.window.gpt.context.current_assistant is not None:
+                self.window.controller.assistant.select_by_id(self.window.gpt.context.current_assistant)
+
         self.window.config.set('mode', mode)
         self.window.config.set('model', "")
         self.window.config.set('preset', "")

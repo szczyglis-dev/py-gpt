@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 03:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -37,9 +37,14 @@ class Assistant:
         self.assistants.load()
         self.update()
 
-    def update(self):
-        """Updates assistants list"""
-        self.update_list()
+    def update(self, update_list=True):
+        """
+        Updates assistants list
+
+        :param update_list: update list
+        """
+        if update_list:
+            self.update_list()
         self.update_uploaded()
         self.select_assistant_by_current()
 
@@ -77,14 +82,39 @@ class Assistant:
             suffix = f' ({num_files})'
         self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
+    def assistant_change_locked(self):
+        """
+        Checks if assistant change is locked
+
+        :return: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False
+
     def select(self, idx):
         """
         Selects assistant on the list
 
         :param idx: IDx on the list
         """
+        # check if change is not locked
+        if self.assistant_change_locked():
+            return
+
         # mark assistant as selected
         id = self.assistants.get_by_idx(idx)
+        self.select_by_id(id)
+
+        # update ctx label
+        self.window.controller.context.update_ctx_label_by_current()
+
+    def select_by_id(self, id):
+        """
+        Selects assistant on the list
+
+        :param id: assistant ID
+        """
         self.window.config.set('assistant', id)
 
         # update attachments list with list of attachments from assistant
@@ -92,7 +122,16 @@ class Assistant:
         assistant = self.assistants.get_by_id(id)
         self.window.controller.attachment.import_from_assistant(mode, assistant)
         self.window.controller.attachment.update()
-        self.update()
+        self.update(False)
+
+        # update model if exists
+        if assistant is not None:
+            model = assistant.model
+            if model is not None and model != "":
+                if model in self.window.config.models:
+                    self.window.config.set('model', model)
+                    self.window.config.data['current_model'][mode] = model
+                    self.window.controller.model.update()
 
     def update_field(self, id, value, assistant_id=None, current=False):
         """
@@ -288,7 +327,7 @@ class Assistant:
             files = self.window.gpt.assistant_file_list(assistant.id)
             self.assistants.import_files(assistant, files)
             self.assistants.save()
-            self.update()
+            self.update(False)
             self.window.set_status("Imported files: " + str(len(files)))
         except Exception as e:
             print("Error importing assistant files")
@@ -417,7 +456,7 @@ class Assistant:
                     assistant.delete_attachment(file_id)
 
             self.assistants.save()
-            self.update()
+            self.update(False)
 
     def delete(self, idx=None, force=False):
         """
@@ -511,7 +550,7 @@ class Assistant:
         self.window.dialog['rename'].input.setText(data['name'])
         self.window.dialog['rename'].current = file_id
         self.window.dialog['rename'].show()
-        self.update()
+        self.update(False)
 
     def update_file_name(self, file_id, name):
         """
@@ -589,7 +628,7 @@ class Assistant:
         """
         assistant.clear_attachments()
         self.assistants.save()
-        self.update()
+        self.update(False)
 
     def count_upload_attachments(self, attachments):
         """
