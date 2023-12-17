@@ -99,6 +99,7 @@ class Context:
         :return: bool
         """
         ctx = self.window.config.get('ctx')
+
         if ctx is None or ctx == '':
             return True
         ctx_data = self.window.gpt.context.get_context_by_name(ctx)
