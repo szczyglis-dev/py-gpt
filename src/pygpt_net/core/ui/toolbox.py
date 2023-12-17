@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -25,15 +25,16 @@ class Toolbox:
         """
         Toolbox UI
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
         """
-        Setups toolbox
+        Setup toolbox
 
         :return: QSplitter
+        :rtype: QSplitter
         """
         # modes and models
         mode_widget = QWidget()
@@ -177,9 +178,10 @@ class Toolbox:
 
     def setup_prompt(self):
         """
-        Setups preset prompt
+        Setup preset prompt
 
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         self.window.data['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))
         self.window.data['cmd.enabled'].stateChanged.connect(
@@ -210,11 +212,12 @@ class Toolbox:
 
     def setup_list(self, id, title):
         """
-        Setups list
+        Setup list
 
         :param id: ID of the list
         :param title: Title of the list
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         label_key = id + '.label'
         self.window.data[label_key] = QLabel(title)
@@ -239,11 +242,12 @@ class Toolbox:
 
     def setup_presets(self, id, title):
         """
-        Setups list
+        Setup list
 
         :param id: ID of the list
         :param title: Title of the list
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         self.window.data['preset.presets.new'] = QPushButton(trans('preset.new'))
         self.window.data['preset.presets.new'].clicked.connect(
@@ -271,11 +275,12 @@ class Toolbox:
 
     def setup_assistants(self, id, title):
         """
-        Setups list
+        Setup list of assistants
 
         :param id: ID of the list
         :param title: Title of the list
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         self.window.data['assistants.new'] = QPushButton(trans('assistant.new'))
         self.window.data['assistants.new'].clicked.connect(
@@ -309,11 +314,12 @@ class Toolbox:
 
     def setup_name_input(self, id, title):
         """
-        Setups name input
+        Setup name input
 
         :param id: ID of the input
         :param title: Title of the input
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         label_key = 'toolbox.' + id + '.label'
         self.window.data[label_key] = QLabel(title)
@@ -325,16 +331,17 @@ class Toolbox:
 
     def create_model(self, parent):
         """
-        Creates list model
+        Create list model
         :param parent: parent widget
         :return: QStandardItemModel
+        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 1, parent)
         return model
 
     def update_list(self, id, data):
         """
-        Updates list
+        Update list
 
         :param id: ID of the list
         :param data: Data to update
@@ -360,7 +367,7 @@ class Toolbox:
 
     def update_list_assistants(self, id, data):
         """
-        Updates list
+        Update list of assistants
 
         :param id: ID of the list
         :param data: Data to update

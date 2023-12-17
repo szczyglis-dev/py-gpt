@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from ..notepad import Notepad as NotepadCore
@@ -15,12 +15,17 @@ from ..notepad import Notepad as NotepadCore
 class Notepad:
     def __init__(self, window=None):
         """
-        Load contents
+        Notepad controller
+
+        :param window: Window instance
         """
         self.window = window
         self.notepad = NotepadCore(self.window.config)
 
     def load(self):
+        """
+        Load notepad contents
+        """
         data = self.notepad.load()
         if data is None:
             data = {}
@@ -52,7 +57,7 @@ class Notepad:
 
     def save(self):
         """
-        Save contents
+        Save notepad contents
         """
         data = {}
         data['1'] = self.window.data['notepad1'].toPlainText()

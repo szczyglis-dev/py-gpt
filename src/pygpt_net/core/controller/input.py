@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import json
 
@@ -23,7 +23,7 @@ class Input:
         """
         Input controller
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
         self.history = History(self.window.config)
@@ -32,8 +32,7 @@ class Input:
         self.generating = False
 
     def setup(self):
-        """Sets up input"""
-
+        """Set up input"""
         # stream
         if self.window.config.get('stream'):
             self.window.data['input.stream'].setChecked(True)
@@ -72,7 +71,7 @@ class Input:
 
     def toggle_stream(self, value):
         """
-        Toggles stream
+        Toggle stream
 
         :param value: value of the checkbox
         """
@@ -80,7 +79,7 @@ class Input:
 
     def toggle_cmd(self, value):
         """
-        Toggles cmd enabled
+        Toggle cmd enabled
 
         :param value: value of the checkbox
         """
@@ -88,7 +87,7 @@ class Input:
 
     def toggle_send_clear(self, value):
         """
-        Toggles send clear
+        Toggle send clear
 
         :param value: value of the checkbox
         """
@@ -96,7 +95,7 @@ class Input:
 
     def toggle_send_shift(self, value):
         """
-        Toggles send with shift
+        Toggle send with shift
 
         :param value: value of the checkbox
         """
@@ -104,7 +103,7 @@ class Input:
 
     def lock_input(self):
         """
-        Locks input
+        Lock input
         """
         self.locked = True
         self.window.data['input.send_btn'].setEnabled(False)
@@ -112,7 +111,7 @@ class Input:
 
     def unlock_input(self):
         """
-        Unlocks input
+        Unlock input
         """
         self.locked = False
         self.window.data['input.send_btn'].setEnabled(True)
@@ -120,7 +119,7 @@ class Input:
 
     def stop(self):
         """
-        Stops input
+        Stop input
         """
         self.window.controller.assistant.force_stop = True
         self.window.controller.plugins.dispatch('audio.input.toggle', False)  # stop audio input
@@ -131,7 +130,7 @@ class Input:
 
     def send_text(self, text):
         """
-        Sends text to GPT
+        Send text to GPT
 
         :param text: text to send
         """
@@ -307,6 +306,7 @@ class Input:
     def handle_ctx_name(self, ctx):
         """
         Handle context name (summarize input and output)
+
         :param ctx: ContextItem
         """
         if ctx is not None:
@@ -334,8 +334,8 @@ class Input:
         Handle response from LLM
 
         :param ctx: ContextItem
-        :param mode: Mode
-        :param stream_mode: Async stream mode
+        :param mode: mode
+        :param stream_mode: async stream mode
         """
         # if async stream mode
         if stream_mode and mode != 'assistant':
@@ -427,7 +427,7 @@ class Input:
 
     def handle_complete(self, ctx):
         """
-        Handles completed context
+        Handle completed context
 
         :param ctx: ContextItem
         """
@@ -446,18 +446,18 @@ class Input:
 
     def user_send(self, text=None):
         """
-        Sends real user input
+        Send real user input
 
-        :param text: Input text
+        :param text: input text
         """
         text = self.window.controller.plugins.apply('user.send', text)
         self.send(text)
 
     def send(self, text=None):
         """
-        Sends input text to API
+        Send input text to API
 
-        :param text: Input text
+        :param text: input text
         """
         # check if input is not locked
         if self.locked:
@@ -557,7 +557,7 @@ class Input:
 
     def append(self, text):
         """
-        Appends text to input
+        Append text to input
 
         :param text: text to append
         """

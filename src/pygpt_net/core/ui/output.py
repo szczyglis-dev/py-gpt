@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -26,16 +26,17 @@ class Output:
         """
         Chatbox UI
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.input = Input(window)
 
     def setup(self):
         """
-        Setups chatbox
+        Setup output
 
         :return: QSplitter
+        :rtype: QSplitter
         """
         self.window.layout_input = self.input.setup()
 
@@ -105,9 +106,10 @@ class Output:
 
     def setup_context(self):
         """
-        Setups context
+        Setup context
 
-        :return: QHBoxLayout        
+        :return: QHBoxLayout
+        :rtype: QHBoxLayout
         """
         self.window.data['output.timestamp'] = QCheckBox(trans('output.timestamp'))
         self.window.data['output.timestamp'].stateChanged.connect(

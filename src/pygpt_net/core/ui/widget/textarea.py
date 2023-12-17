@@ -19,7 +19,7 @@ class NameInput(QLineEdit):
         """
         AI or user name input
 
-        :param window: main window
+        :param window: Window instance
         :param id: input id
         """
         super(NameInput, self).__init__(window)

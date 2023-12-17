@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import json
@@ -19,7 +19,7 @@ class Attachments:
         """
         Attachments
 
-        :param config: config object
+        :param config: Config instance
         """
         self.config = config
         self.config_file = 'attachments.json'
@@ -28,7 +28,7 @@ class Attachments:
 
     def create_id(self):
         """
-        Creates unique uuid
+        Create unique uuid
 
         :return: uuid
         """
@@ -49,10 +49,11 @@ class Attachments:
 
     def count(self, mode):
         """
-        Counts attachments
+        Count attachments
 
         :param mode: mode
         :return: attachments count
+        :rtype: int
         """
         if mode not in self.items:
             self.items[mode] = {}
@@ -61,10 +62,11 @@ class Attachments:
 
     def get_ids(self, mode):
         """
-        Gets items IDs
+        Get items IDs
 
         :param mode: mode
         :return: items UUIDs
+        :rtype: list
         """
         if mode not in self.items:
             self.items[mode] = {}
@@ -73,11 +75,12 @@ class Attachments:
 
     def get_id_by_idx(self, mode, idx):
         """
-        Gets ID by index
+        Get ID by index
 
         :param mode: mode
         :param idx: index
         :return: uuid
+        :rtype: str or None
         """
         i = 0
         for file_id in self.get_ids(mode):
@@ -87,11 +90,12 @@ class Attachments:
 
     def get_by_id(self, mode, file_id):
         """
-        Returns attachment by ID
+        Return attachment by ID
 
         :param mode: mode
         :param file_id: file_id
         :return: dict
+        :rtype: dict
         """
         if mode not in self.items:
             self.items[mode] = {}
@@ -101,11 +105,12 @@ class Attachments:
 
     def get_by_idx(self, mode, index):
         """
-        Returns item by index
+        Return item by index
 
         :param mode: mode
         :param index: item index
         :return: context item
+        :rtype: dict
         """
         file_id = self.get_id_by_idx(mode, index)
         if file_id is not None:
@@ -113,9 +118,11 @@ class Attachments:
 
     def get_all(self, mode):
         """
-        Returns all items in mode
+        Return all items in mode
 
+        :param mode: mode
         :return: attachments items
+        :rtype: dict
         """
         if mode not in self.items:
             self.items[mode] = {}
@@ -124,7 +131,7 @@ class Attachments:
 
     def delete(self, mode, file_id):
         """
-        Deletes attachment by file_id
+        Delete attachment by file_id
 
         :param mode: mode
         :param file_id: file_id
@@ -138,7 +145,7 @@ class Attachments:
 
     def delete_all(self, mode):
         """
-        Deletes all attachments
+        Delete all attachments
 
         :param mode: mode
         """
@@ -171,10 +178,11 @@ class Attachments:
 
     def has(self, mode):
         """
-        Checks id mode has attachments
+        Check id mode has attachments
 
         :param mode: mode
-        :return: True if exists
+        :return: true if exists
+        :rtype: bool
         """
         if mode not in self.items:
             self.items[mode] = {}
@@ -183,13 +191,14 @@ class Attachments:
 
     def new(self, mode, name=None, path=None, auto_save=True):
         """
-        Creates new attachment
+        Create new attachment
 
         :param mode: mode
         :param name: name
         :param path: path
         :param auto_save: auto_save
-        :return: created File ID
+        :return: created file ID
+        :rtype: str
         """
         file_id = self.create_id()  # create unique id
         attachment = AttachmentItem()
@@ -210,7 +219,7 @@ class Attachments:
 
     def add(self, mode, item):
         """
-        Adds item to attachments
+        Add item to attachments
 
         :param mode: mode
         :param item: item to add
@@ -226,7 +235,7 @@ class Attachments:
 
     def replace_id(self, mode, tmp_id, attachment):
         """
-        Replaces temporary id with real one
+        Replace temporary id with real one
 
         :param mode: mode
         :param tmp_id: temporary id
@@ -242,7 +251,7 @@ class Attachments:
 
     def rename_file(self, mode, file_id, name):
         """
-        Updates name
+        Update name
 
         :param mode: mode
         :param file_id: file_id
@@ -254,7 +263,7 @@ class Attachments:
 
     def from_files(self, mode, files):
         """
-        Loads attachments from assistant files
+        Load attachments from assistant files
 
         :param mode: mode
         :param files: files
@@ -275,7 +284,7 @@ class Attachments:
 
     def from_attachments(self, mode, attachments):
         """
-        Loads attachments from attachments
+        Load attachments from attachments
 
         :param mode: mode
         :param attachments: attachments
@@ -286,7 +295,7 @@ class Attachments:
             self.add(mode, attachment)
 
     def load(self):
-        """Loads attachments from file"""
+        """Load attachments from file"""
         path = os.path.join(self.config.path, self.config_file)
         try:
             if os.path.exists(path):
@@ -310,7 +319,7 @@ class Attachments:
 
     def save(self):
         """
-        Saves attachments to file
+        Save attachments to file
         """
         try:
             # update attachments
@@ -349,9 +358,10 @@ class AttachmentItem:
 
     def serialize(self):
         """
-        Serializes item to dict
+        Serialize item to dict
 
         :return: serialized item
+        :rtype: dict
         """
         return {
             'id': self.id,
@@ -362,7 +372,11 @@ class AttachmentItem:
         }
 
     def deserialize(self, data):
-        """Deserializes item from dict"""
+        """
+        Deserialize item from dict
+
+        :param data: serialized item
+        """
         if 'id' in data:
             self.id = data['id']
         if 'name' in data:
@@ -375,5 +389,10 @@ class AttachmentItem:
             self.send = data['send']
 
     def dump(self):
-        """Dumps item to string"""
+        """
+        Dump item to string
+
+        :return: serialized item
+        :rtype: str
+        """
         return json.dumps(self.serialize())

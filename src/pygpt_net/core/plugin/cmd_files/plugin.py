@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 21:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import mimetypes
 import os.path
@@ -47,7 +47,7 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """
-        Initializes options
+        Initialize options
         """
         # cmd enable/disable
         self.add_option("cmd_read_file", "bool", True,
@@ -137,7 +137,7 @@ class Plugin(BasePlugin):
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
         """
@@ -145,7 +145,7 @@ class Plugin(BasePlugin):
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
         :param window: Window
         """
@@ -242,7 +242,7 @@ class Plugin(BasePlugin):
 
     def is_cmd_allowed(self, cmd):
         """
-        Checks if cmd is allowed
+        Check if cmd is allowed
 
         :param cmd: Command
         :return: True if allowed
@@ -254,7 +254,7 @@ class Plugin(BasePlugin):
 
     def log(self, msg):
         """
-        Logs message to console
+        Log message to console
 
         :param msg: Message to log
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -23,7 +23,7 @@ class DebugDialog(QDialog):
         """
         Debug window dialog
 
-        :param window: main window
+        :param window: Window instance
         :param id: debug window id
         """
         super(DebugDialog, self).__init__(window)
@@ -116,7 +116,7 @@ class EditorDialog(QDialog):
 
     def closeEvent(self, event):
         """
-        Closes event
+        Close event
 
         :param event: close event
         """

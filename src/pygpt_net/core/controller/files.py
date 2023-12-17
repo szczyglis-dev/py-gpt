@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.10 13:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -19,32 +19,33 @@ from ..utils import trans
 class Files:
     def __init__(self, window=None):
         """
-        Attachment controller
+        Files controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
     def selection_change(self):
         """
-        Selects on list change
+        Select on list change
         """
         # TODO: implement this
         pass
 
     def select(self, idx):
         """
-        Selects attachment
+        Select attachment
 
         :param idx: index
         """
+        # TODO: check this
         self.attachments.current = self.attachments.get_uuid_by_idx(idx)
 
     def delete(self, path, force=False):
         """
-        Deletes attachment
+        Delete attachment
 
-        :param idx: index
+        :param path: path to file
         :param force: force delete
         """
         if not force:
@@ -55,9 +56,9 @@ class Files:
 
     def rename(self, path):
         """
-        Renames attachment
+        Rename attachment
 
-        :param idx: selected attachment index
+        :param path: path to file
         """
         self.window.dialog['rename'].id = 'output_file'
         self.window.dialog['rename'].input.setText(os.path.basename(path))
@@ -66,9 +67,9 @@ class Files:
 
     def update_name(self, path, name):
         """
-        Updates name
+        Update name
 
-        :param uuid: uuid
+        :param path: path
         :param name: name
         """
         os.rename(path, os.path.join(os.path.dirname(path), name))
@@ -76,7 +77,9 @@ class Files:
 
     def open_dir(self, path):
         """
-        Opens in directory
+        Open in directory
+
+        :param path: path to file
         """
         parts = path_split = PurePath(path).parts
         path_os = os.path.join(*parts)  # fix for windows \\ path separators

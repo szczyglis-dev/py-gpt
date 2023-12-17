@@ -15,13 +15,13 @@ class PluginsDebug:
         """
         Plugins debug
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.id = 'plugins'
 
     def update(self):
-        """Updates debug window."""
+        """Update debug window."""
         self.window.debugger.begin(self.id)
 
         # presets

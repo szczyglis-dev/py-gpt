@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from ..widget.dialog import RenameDialog
@@ -18,12 +18,12 @@ class Rename:
         """
         Context rename dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups rename dialog"""
+        """Setup rename dialog"""
         id = 'rename'
         self.window.dialog[id] = RenameDialog(self.window, id)
         self.window.dialog[id].setWindowTitle(trans("dialog.rename.title"))

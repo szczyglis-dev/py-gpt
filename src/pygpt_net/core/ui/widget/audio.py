@@ -20,7 +20,7 @@ class AudioInput(QWidget):
         """
         Settings audio input options
 
-        :param window: main window
+        :param window: Window instance
         """
         super(AudioInput, self).__init__(window)
         self.window = window
@@ -76,7 +76,16 @@ class AudioOutput(QWidget):
         self.setMaximumHeight(40)
 
     def add_widget(self, widget):
+        """
+        Add widget to layout
+
+        :param widget: QWidget
+        """
         self.layout.addWidget(widget)
 
     def set_status(self, text):
+        """
+        Set status text
+        :param text: Text to set
+        """
         self.status.setText(text)

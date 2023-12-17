@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -28,7 +28,7 @@ class UI:
         """
         UI (main)
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
         self.window.data = {}
@@ -52,7 +52,7 @@ class UI:
         self.dialogs = Dialogs(window)
 
     def setup(self):
-        """Setups UI"""
+        """Setup UI"""
         # load font
         self.setup_font()
 
@@ -84,7 +84,7 @@ class UI:
         self.window.setCentralWidget(self.window.splitters['main'])
 
     def setup_font(self):
-        """Setups UI font"""
+        """Setup UI font"""
         path = os.path.join(self.window.config.get_root_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:

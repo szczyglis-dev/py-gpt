@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -23,12 +23,12 @@ class Start:
         """
         Start dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups start dialog"""
+        """Setup start dialog"""
         id = 'start'
 
         self.window.data['start.btn'] = QPushButton(trans('dialog.start.btn'))

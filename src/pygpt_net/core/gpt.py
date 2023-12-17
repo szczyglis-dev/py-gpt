@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import base64
 import json
@@ -27,7 +27,8 @@ class Gpt:
         """
         GPT Wrapper
 
-        :param config: Config object
+        :param config: Config instance
+        :param context: Context instance
         """
         self.config = config
         self.context = context
@@ -49,8 +50,10 @@ class Gpt:
 
     def get_client(self):
         """
-        Returns OpenAI client
+        Return OpenAI client
+
         :return: OpenAI client
+        :rtype: OpenAI
         """
         return OpenAI(
             api_key=self.config.get('api_key'),
@@ -59,12 +62,12 @@ class Gpt:
 
     def completion(self, prompt, max_tokens, stream_mode=False):
         """
-        Calls OpenAI API for completion
+        Call OpenAI API for completion
 
-        :param prompt: Prompt (user message)
-        :param max_tokens: Max output tokens
-        :param stream_mode: Stream mode
-        :return: Response dict or stream chunks
+        :param prompt: prompt (user message)
+        :param max_tokens: max output tokens
+        :param stream_mode: stream mode
+        :return: response or stream chunks
         """
         # build prompt message
         message = self.build_completion(prompt)
@@ -92,10 +95,10 @@ class Gpt:
         """
         Call OpenAI API for chat
 
-        :param prompt: Prompt (user message)
-        :param max_tokens: Max output tokens
-        :param stream_mode: Stream mode
-        :return: Response dict or stream chunks
+        :param prompt: prompt (user message)
+        :param max_tokens: max output tokens
+        :param stream_mode: stream mode
+        :return: response or stream chunks
         """
         client = self.get_client()
 
@@ -118,10 +121,10 @@ class Gpt:
         """
         Call OpenAI API for chat with vision
 
-        :param prompt: Prompt (user message)
-        :param max_tokens: Max output tokens
-        :param stream_mode: Stream mode
-        :return: Response dict or stream chunks
+        :param prompt: prompt (user message)
+        :param max_tokens: max output tokens
+        :param stream_mode: stream mode
+        :return: response or stream chunks
         """
         client = self.get_client()
 
@@ -136,16 +139,16 @@ class Gpt:
         return response
 
     def reset_tokens(self):
-        """Resets input tokens counter"""
+        """Reset input tokens counter"""
         self.input_tokens = 0
 
     def build_chat_messages(self, prompt, system_prompt=None):
         """
-        Builds chat messages dict
+        Build chat messages dict
 
-        :param prompt: Prompt
-        :param system_prompt: System prompt (optional)
-        :return: Messages dict
+        :param prompt: prompt
+        :param system_prompt: system prompt (optional)
+        :return: messages dictionary
         """
         messages = []
 
@@ -210,11 +213,12 @@ class Gpt:
 
     def build_vision_content(self, text, append_attachments=False):
         """
-        Builds vision content
+        Build vision content
 
-        :param text: Text
-        :param append_attachments: Append attachments
-        :return: Content dict
+        :param text: text prompt
+        :param append_attachments: append attachments
+        :return: Dictionary with content
+        :rtype: dict
         """
         content = [{"type": "text", "text": str(text)}]
 
@@ -238,10 +242,11 @@ class Gpt:
 
     def build_completion(self, prompt):
         """
-        Builds completion string
+        Build completion string
 
-        :param prompt: Prompt (current)
-        :return: Message string (parsed with context)
+        :param prompt: prompt (current)
+        :return: message string (parsed with context)
+        :rtype: str
         """
         message = ""
 
@@ -293,10 +298,11 @@ class Gpt:
 
     def count_used_tokens(self, input_text):
         """
-        Counts used tokens
+        Count used tokens
 
-        :param input_text: Input text
-        :return: Used tokens
+        :param input_text: input text
+        :return: used tokens
+        :rtype: int
         """
         model = self.config.get('model')
         mode = self.config.get('mode')
@@ -316,14 +322,16 @@ class Gpt:
 
     def quick_call(self, prompt, sys_prompt, append_context=False, max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):
         """
-        Calls OpenAI API with custom prompt
+        Call OpenAI API with custom prompt
 
-        :param prompt: User input (prompt)
-        :param sys_prompt: System input (prompt)
-        :param append_context: Append context (memory)
-        :param max_tokens: Max output tokens
-        :param model: GPT model
-        :return: Response text
+        :param prompt: user input (prompt)
+        :param sys_prompt: system input (prompt)
+        :param append_context: append context (memory)
+        :param max_tokens: max output tokens
+        :param model: model name
+        :param temp: temperature
+        :return: response text
+        :rtype: str
         """
         client = self.get_client()
 
@@ -350,8 +358,10 @@ class Gpt:
 
     def assistant_thread_create(self):
         """
-        Creates thread
-        :return: Thread ID
+        Create thread
+
+        :return: thread ID
+        :rtype: str
         """
         client = self.get_client()
         thread = client.beta.threads.create()
@@ -360,10 +370,11 @@ class Gpt:
 
     def assistant_thread_delete(self, id):
         """
-        Deletes thread
+        Delete thread
 
-        :param id: Thread ID
-        :return: Thread ID
+        :param id: thread ID
+        :return: thread ID
+        :rtype: str
         """
         client = self.get_client()
         response = client.beta.threads.delete(id)
@@ -372,11 +383,11 @@ class Gpt:
 
     def assistant_msg_send(self, id, text):
         """
-        Sends message to thread
+        Send message to thread
 
-        :param id: Thread ID
-        :param text: Message text
-        :return: Message
+        :param id: thread ID
+        :param text: message text
+        :return: message
         """
         client = self.get_client()
         additional_args = {}
@@ -397,10 +408,11 @@ class Gpt:
 
     def assistant_msg_list(self, thread_id):
         """
-        Gets messages from thread
+        Get messages from thread
 
-        :param thread_id: Thread ID
-        :return: Messages
+        :param thread_id: thread ID
+        :return: messages
+        :rtype: list
         """
         client = self.get_client()
         thread_messages = client.beta.threads.messages.list(thread_id)
@@ -408,20 +420,20 @@ class Gpt:
 
     def assistant_file_info(self, file_id):
         """
-        Gets file info
+        Get file info
 
-        :param file_id: File ID
-        :return: File info
+        :param file_id: file ID
+        :return: file info
         """
         client = self.get_client()
         return client.files.retrieve(file_id)
 
     def assistant_file_download(self, file_id, path):
         """
-        Downloads file
+        Download file
 
-        :param file_id: File ID
-        :param path: Path
+        :param file_id: file ID
+        :param path: path to save file
         """
         client = self.get_client()
         content = client.files.retrieve_content(file_id)
@@ -431,11 +443,11 @@ class Gpt:
 
     def assistant_run_create(self, thread_id, assistant_id, instructions=None):
         """
-        Creates assistant run
+        Create assistant run
 
-        :param thread_id: Thread ID
-        :param assistant_id: Assistant ID
-        :param instructions: Instructions
+        :param thread_id: tread ID
+        :param assistant_id: assistant ID
+        :param instructions: instructions
         :return: Run
         """
         client = self.get_client()
@@ -455,9 +467,9 @@ class Gpt:
 
     def assistant_run_status(self, thread_id, run_id):
         """
-        Gets assistant run status
+        Get assistant run status
 
-        :param thread_id: Thread ID
+        :param thread_id: thread ID
         :param run_id: Run ID
         :return: Run status
         """
@@ -471,12 +483,13 @@ class Gpt:
 
     def assistant_file_upload(self, id, path, purpose="assistants"):
         """
-        Uploads file to assistant
+        Upload file to assistant
 
-        :param id: Assistant ID
-        :param path: File path
-        :param purpose: File purpose
-        :return: File ID
+        :param id: assistant ID
+        :param path: file path
+        :param purpose: file purpose
+        :return: file ID
+        :rtype: str
         """
         client = self.get_client()
 
@@ -501,11 +514,12 @@ class Gpt:
 
     def assistant_file_delete(self, assistant_id, file_id):
         """
-        Deletes file from assistant
+        Delete file from assistant
 
-        :param assistant_id: Assistant ID
-        :param file_id: File ID
-        :return: File ID
+        :param assistant_id: assistant ID
+        :param file_id: file ID
+        :return: file ID
+        :rtype: str
         """
         client = self.get_client()
         deleted_file = client.beta.assistants.files.delete(
@@ -520,8 +534,9 @@ class Gpt:
         """
         Get files from assistant
 
-        :param assistant_id: Assistant ID
-        :return: Files list
+        :param assistant_id: assistant ID
+        :return: files list
+        :rtype: list
         """
         client = self.get_client()
         assistant_files = client.beta.assistants.files.list(
@@ -533,10 +548,11 @@ class Gpt:
 
     def assistant_create(self, assistant):
         """
-        Creates assistant
+        Create assistant
 
-        :param assistant: Assistant object
-        :return: Assistant object
+        :param assistant: assistant object
+        :return: assistant object
+        :rtype: Assistant
         """
         client = self.get_client()
         tools = self.assistant_get_tools(assistant)
@@ -553,10 +569,11 @@ class Gpt:
 
     def assistant_update(self, assistant):
         """
-        Updates assistant
+        Update assistant
 
-        :param assistant: Assistant object
-        :return: Assistant object
+        :param assistant: assistant object
+        :return: assistant object
+        :rtype: Assistant
         """
         client = self.get_client()
         tools = self.assistant_get_tools(assistant)
@@ -574,10 +591,11 @@ class Gpt:
 
     def assistant_delete(self, id):
         """
-        Deletes assistant
+        Delete assistant
 
-        :param id: Assistant ID
-        :return: Assistant ID
+        :param id: assistant ID
+        :return: assistant ID
+        :rtype: str
         """
         client = self.get_client()
         response = client.beta.assistants.delete(id)
@@ -586,11 +604,12 @@ class Gpt:
 
     def assistant_get_files(self, id, limit=100):
         """
-        Gets assistant files
+        Get assistant files
 
-        :param id: Assistant ID
-        :param limit: Limit
-        :return: Files list
+        :param id: assistant ID
+        :param limit: limit
+        :return: files list
+        :rtype: list
         """
         client = self.get_client()
         return client.beta.assistants.files.list(
@@ -600,12 +619,13 @@ class Gpt:
 
     def assistant_import(self, items, order="asc", limit=100):
         """
-        Imports assistants from API
+        Import assistants from API
 
-        :param items: Items
-        :param order: Order
-        :param limit: Limit
-        :return: Items
+        :param items: items
+        :param order: order
+        :param limit: limit
+        :return: items dict
+        :rtype: dict
         """
         client = self.get_client()
         assistants = client.beta.assistants.list(
@@ -647,10 +667,11 @@ class Gpt:
 
     def assistant_get_tools(self, assistant):
         """
-        Gets assistant tools
+        Get assistant tools
 
-        :param assistant: Assistant
-        :return: Tools list
+        :param assistant: assistant
+        :return: tools list
+        :rtype: list
         """
         tools = []
         if assistant.has_tool("code_interpreter"):
@@ -668,12 +689,13 @@ class Gpt:
 
     def call(self, prompt, ctx=None, stream_mode=False):
         """
-        Calls OpenAI API
+        Call OpenAI API
 
-        :param prompt: User input (prompt)
-        :param ctx: Context item (memory)
-        :param stream_mode: Stream mode (default: False)
-        :return: Context item (memory)
+        :param prompt: user input (prompt)
+        :param ctx: context item (memory)
+        :param stream_mode: stream mode (default: False)
+        :return: context item (memory)
+        :rtype: ContextItem
         """
         # prepare max tokens
         mode = self.config.get('mode')
@@ -744,11 +766,17 @@ class Gpt:
         return ctx
 
     def stop(self):
-        """Stops OpenAI API"""
+        """Stop OpenAI API"""
         pass
 
     def prepare_ctx_name(self, ctx):
-        """Summarizes conversation begin"""
+        """
+        Summarize conversation begin
+
+        :param ctx: context item (memory)
+        :return: response text
+        :rtype: str
+        """
         # default values
         model = 'gpt-3.5-turbo-1106'
         sys_prompt = "You are an expert in conversation summarization"
@@ -771,22 +799,35 @@ class Gpt:
             return response
 
     def clear(self):
-        """Clears context (memory)"""
+        """Clear context (memory)"""
         self.context.clear()
 
     def extract_urls(self, text):
-        """Extracts urls from text"""
+        """
+        Extract urls from text
+
+        :param text: text
+        :return: list of urls
+        :rtype: list
+        """
         return re.findall(r'(https?://\S+)', text)
 
     def is_image(self, path):
-        """Checks if url is image"""
+        """
+        Check if url is image
+
+        :param path: url
+        :return: true if image
+        :rtype: bool
+        """
         return path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.webp'))
 
     def encode_image(self, image_path):
         """
-        Encodes image to base64
-        :param image_path:
+        Encode image to base64
+        :param image_path: path to image
         :return: base64 encoded image
+        :rtype: str
         """
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.12 01:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
@@ -21,15 +21,16 @@ class AttachmentsUploaded:
         """
         Attachments Uplaoded UI
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
         """
-        Setups list
+        Setup list
 
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
 
         self.setup_attachments()
@@ -75,10 +76,11 @@ class AttachmentsUploaded:
 
     def create_model(self, parent):
         """
-        Creates list model
+        Create list model
 
         :param parent: parent widget
         :return: QStandardItemModel
+        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 2, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
@@ -87,7 +89,7 @@ class AttachmentsUploaded:
 
     def update_list(self, id, data):
         """
-        Updates list
+        Update list
 
         :param id: ID of the list
         :param data: Data to update

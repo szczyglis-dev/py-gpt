@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -18,6 +18,12 @@ from ...utils import trans
 
 class FileExplorerWidget(QWidget):
     def __init__(self, window, directory):
+        """
+        File explorer widget
+
+        :param window: Window instance
+        :param directory: directory to explore
+        """
         super().__init__()
 
         self.window = window
@@ -53,6 +59,9 @@ class FileExplorerWidget(QWidget):
        """)
 
     def adjustColumnWidths(self):
+        """
+        Adjust column widths
+        """
         total_width = self.treeView.width()
         first_column_width = int(total_width * self.column_proportion)
         self.treeView.setColumnWidth(0, first_column_width)
@@ -60,10 +69,18 @@ class FileExplorerWidget(QWidget):
             self.treeView.setColumnWidth(column, (total_width - first_column_width) // (self.model.columnCount() - 1))
 
     def resizeEvent(self, event: QResizeEvent):
+        """
+        Resize event
+        :param event: Event object
+        """
         super().resizeEvent(event)
         self.adjustColumnWidths()
 
     def openContextMenu(self, position):
+        """
+        Open context menu
+        :param position: position
+        """
         indexes = self.treeView.selectedIndexes()
         if indexes:
             index = indexes[0]

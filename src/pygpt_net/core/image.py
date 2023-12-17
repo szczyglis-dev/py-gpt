@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -22,8 +22,8 @@ class Image:
         """
         DALL-E Wrapper
 
-        :param config: Config object
-        :param window: Main window object
+        :param config: Config instance
+        :param window: Window instance
         """
         self.config = config
         self.window = window
@@ -36,10 +36,10 @@ class Image:
 
     def get_prompt(self, allow_custom=True):
         """
-        Returns image generate prompt command
+        Return image generate prompt command
 
-        :param allow_custom: Allow custom prompt
-        :return: System command for generate image prompt
+        :param allow_custom: allow custom prompt
+        :return: system command for generate image prompt
         """
         cmd = '''
         1. Apply these rules if the request is related to image generation or image description; otherwise, return the user's prompt as is.
@@ -58,12 +58,13 @@ class Image:
 
     def generate(self, prompt, model="dall-e-3", num=None):
         """
-        Calls DALL-E API
+        Call DALL-E API
 
-        :param prompt: Prompt
-        :param model: Model name
-        :param num: Number of variants
-        :return: Images paths list
+        :param prompt: prompt
+        :param model: model name
+        :param num: number of variants
+        :return: images paths list
+        :rtype: list
         """
         if not self.window.config.get('img_raw'):
             system_cmd = self.get_prompt()
@@ -109,10 +110,11 @@ class Image:
 
     def make_safe_filename(self, name):
         """
-        Makes safe filename
+        Make safe filename
 
-        :param name: Filename to make safe
-        :return: Safe filename
+        :param name: filename to make safe
+        :return: safe filename
+        :rtype: str
         """
 
         def safe_char(c):

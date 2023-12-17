@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 21:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -25,7 +25,7 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """
-        Initializes options
+        Initialize options
         """
         self.add_option("hour", "bool", True,
                         "Append time",
@@ -44,7 +44,7 @@ class Plugin(BasePlugin):
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
         """
@@ -52,7 +52,7 @@ class Plugin(BasePlugin):
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
         :param window: Window
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 18:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -43,7 +43,7 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """
-        Initializes options
+        Initialize options
         """
         self.add_option("model", "text", "whisper-1",
                         "Model",
@@ -132,7 +132,7 @@ class Plugin(BasePlugin):
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
         """
@@ -150,7 +150,7 @@ class Plugin(BasePlugin):
 
     def on_dispatch(self, event, data=None):
         """
-        Receives events from dispatcher
+        Receive events from dispatcher
 
         :param event: Event name
         :param data: Event data
@@ -160,7 +160,7 @@ class Plugin(BasePlugin):
 
     def get_stop_words(self):
         """
-        Returns stop words
+        Return stop words
 
         :return: stop words
         """
@@ -174,7 +174,7 @@ class Plugin(BasePlugin):
 
     def get_magic_words(self):
         """
-        Returns magic words
+        Return magic words
 
         :return: stop words
         """
@@ -188,7 +188,7 @@ class Plugin(BasePlugin):
 
     def get_prefix_words(self):
         """
-        Returns prefix words
+        Return prefix words
 
         :return: prefix words
         """
@@ -219,7 +219,7 @@ class Plugin(BasePlugin):
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
         :param window: Window
         """

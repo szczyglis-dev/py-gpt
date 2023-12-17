@@ -18,12 +18,12 @@ class Notepad:
         """
         Notepad
 
-        :param config: config object
+        :param config: Config instance
         """
         self.config = config
 
     def load(self):
-        """Loads content from file"""
+        """Load content from file"""
         path = os.path.join(self.config.path, 'notepad.json')
         try:
             if os.path.exists(path):
@@ -38,7 +38,9 @@ class Notepad:
 
     def save(self, content):
         """
-        Saves notepad content to file
+        Save notepad content to file
+
+        :param content: notepad content to save
         """
         try:
             # update contexts index

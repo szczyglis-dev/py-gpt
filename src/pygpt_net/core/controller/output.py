@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -18,30 +18,30 @@ class Output:
         """
         Output controller
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups output"""
+        """Setup output"""
         self.window.data['output.timestamp'].setChecked(self.window.config.get('output_timestamp'))
 
     def clear(self):
         """
-        Clears output
+        Clear output
         """
         self.window.data['output'].clear()
 
     def append_context(self):
         """
-        Appends context to output
+        Append context to output
         """
         for item in self.window.gpt.context.items:
             self.append_context_item(item)
 
     def append_context_item(self, item):
         """
-        Appends context item to output
+        Append context item to output
 
         :param item: context item
         """
@@ -50,7 +50,7 @@ class Output:
 
     def append_input(self, item):
         """
-        Appends input to output
+        Append input to output
 
         :param item: context item
         """
@@ -68,7 +68,7 @@ class Output:
 
     def append_output(self, item):
         """
-        Appends output to output
+        Append output to output
 
         :param item: context item
         """
@@ -86,12 +86,11 @@ class Output:
 
     def append_chunk(self, item, text_chunk, begin=False):
         """
-        Appends output to output
+        Append output to output
 
         :param item: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
-
         """
         if text_chunk is None or text_chunk == "":
             return
@@ -107,10 +106,10 @@ class Output:
 
     def append(self, text, end="\n"):
         """
-        Appends text to output
+        Append text to output
 
         :param text: text to append
-        :param end: end of the line
+        :param end: end of the line character
         """
         cur = self.window.data['output'].textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
@@ -124,7 +123,7 @@ class Output:
 
     def toggle_timestamp(self, value):
         """
-        Toggles timestamp
+        Toggle timestamp
 
         :param value: value of the checkbox
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from .dialog.settings import Settings
@@ -30,12 +30,12 @@ class Dialogs:
         """
         Dialogs setup
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups dialogs"""
+        """Setup dialogs"""
         self.window.dialog = {}
         self.window.debug = {}
         self.window.editor = {}
@@ -93,7 +93,7 @@ class Dialogs:
 
     def confirm(self, type, id, msg, parent_object=None):
         """
-        Shows confirm dialog
+        Show confirm dialog
 
         :param type: confirm type
         :param id: confirm object id
@@ -108,7 +108,7 @@ class Dialogs:
 
     def alert(self, msg):
         """
-        Shows alert dialog
+        Show alert dialog
 
         :param msg: message to show
         """
@@ -117,7 +117,7 @@ class Dialogs:
 
     def open_editor(self, id, data_id, width=400, height=400):
         """
-        Opens editor dialog
+        Open editor dialog
 
         :param id: debug dialog id
         :param data_id: data id
@@ -132,7 +132,7 @@ class Dialogs:
 
     def open(self, id, width=400, height=400):
         """
-        Opens debug/config dialog
+        Open debug/config dialog
 
         :param id: debug dialog id
         :param width: dialog width
@@ -149,7 +149,7 @@ class Dialogs:
 
     def close(self, id):
         """
-        Closes debug/config dialog
+        Close debug/config dialog
 
         :param id: debug dialog id
         """

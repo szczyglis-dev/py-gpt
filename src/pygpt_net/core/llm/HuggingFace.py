@@ -18,6 +18,14 @@ class HuggingFaceLLM:
         self.id = "huggingface"
 
     def completion(self, config, options, stream=False):
+        """
+        Return LLM model for completion
+
+        :param config: Config instance
+        :param options: options dict
+        :param stream: stream mode
+        :return: LLM model
+        """
         args = {}
         if 'args' in options:
             args = options['args']
@@ -27,4 +35,12 @@ class HuggingFaceLLM:
         return llm
 
     def chat(self, config, options, stream=False):
+        """
+        Return LLM model for chat
+
+        :param config: Config instance
+        :param options: options dict
+        :param stream: stream mode
+        :return: LLM model
+        """
         return None

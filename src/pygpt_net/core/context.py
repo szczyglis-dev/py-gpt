@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -21,9 +21,9 @@ from .utils import trans
 class Context:
     def __init__(self, config=None):
         """
-        Context
+        Context handler
 
-        :param config: config object
+        :param config: Config instance
         """
         self.config = config
         self.contexts = {}
@@ -55,10 +55,11 @@ class Context:
 
     def load(self, name):
         """
-        Loads context from file
+        Load context from file
 
         :param name: context name (id)
         :return: context items
+        :rtype: list
         """
         path = os.path.join(self.config.path, 'context', name + '.json')
         if os.path.exists(path):
@@ -78,10 +79,11 @@ class Context:
 
     def parse(self, data):
         """
-        Parses context data
+        Parse context data
 
         :param data: context items data
         :return: context items (deserialized) as objects list
+        :rtype: list
         """
         items = []
         for item in data:
@@ -92,7 +94,7 @@ class Context:
 
     def update(self):
         """
-        Updates current context parent (when context item load from the list or setting mode)
+        Update current context parent (when context item load from the list or setting mode)
         """
         self.current_mode = self.config.get('mode')
 
@@ -103,7 +105,7 @@ class Context:
 
     def post_update(self, mode):
         """
-        Updates current (last) context data
+        Update current (last) context data
 
         :param mode: mode name
         """
@@ -127,19 +129,21 @@ class Context:
 
     def create_id(self):
         """
-        Creates context ID
+        Create context ID
 
         Format: YYYYMMDDHHMMSS.MICROSECONDS.json
 
-        :return: string
+        :return: Generated ID
+        :rtype: str
         """
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
 
     def new(self):
         """
-        Creates new context
+        Create new context
 
         :return: created context name (id)
+        :rtype: str
         """
         name = self.create_id()  # create unique id
         self.contexts[name] = {
@@ -167,9 +171,10 @@ class Context:
 
     def is_ctx_initialized(self):
         """
-        Checks if context is initialized (name assigned)
+        Check if context is initialized (name assigned)
 
-        :return: True if initialized, False otherwise
+        :return: true if initialized, False otherwise
+        :rtype: bool
         """
         if self.current_ctx is None:
             return
@@ -180,7 +185,7 @@ class Context:
 
     def set_ctx_initialized(self):
         """
-        Sets context as initialized (name assigned)
+        Set context as initialized (name assigned)
         """
         if self.current_ctx is None:
             return
@@ -190,7 +195,7 @@ class Context:
 
     def append_thread(self, thread):
         """
-        Appends thread to context
+        Append thread to context
 
         :param thread: thread ID
         """
@@ -203,7 +208,7 @@ class Context:
 
     def append_run(self, run):
         """
-        Appends run ID to context
+        Append run ID to context
 
         :param run: run ID
         """
@@ -216,7 +221,7 @@ class Context:
 
     def append_status(self, status):
         """
-        Appends status to context
+        Append status to context
 
         :param status: status
         """
@@ -229,7 +234,7 @@ class Context:
 
     def dump_context(self, name):
         """
-        Dumps context to file
+        Dump context to file
 
         :param name: context name (id)
         """
@@ -263,7 +268,7 @@ class Context:
 
     def get_list(self):
         """
-        Gets context items sorted descending by date
+        Get context items sorted descending by date
 
         :return: contexts dict
         """
@@ -271,10 +276,11 @@ class Context:
 
     def get_name_by_idx(self, idx):
         """
-        Gets context name (id) by index
+        Get context name (id) by index
 
         :param idx: index
         :return: context name (id)
+        :rtype: str or None
         """
         i = 0
         for name in self.get_list():
@@ -284,10 +290,11 @@ class Context:
 
     def get_idx_by_name(self, ctx):
         """
-        Gets context index by name (id)
+        Get context index by name (id)
 
-        :param ctx: name
+        :param ctx: name (id)
         :return: idx
+        :rtype: int or None
         """
         items = self.get_list()
         if ctx in items:
@@ -295,26 +302,28 @@ class Context:
 
     def get_first_ctx(self):
         """
-        Returns first context from list
+        Return first context from list
 
         :return: context name (id)
+        :rtype: str or None
         """
         for name in self.get_list():
             return name
 
     def get_context_by_name(self, name):
         """
-        Returns context by name
+        Return context by name
 
         :param name: context name (id)
         :return: context dict
+        :rtype: dict or None
         """
         if name in self.contexts:
             return self.contexts[name]
 
     def delete_ctx(self, name):
         """
-        Deletes context by name
+        Delete context by name
 
         :param name: context name (id)
         """
@@ -328,13 +337,13 @@ class Context:
                     print(e)
 
     def prepare(self):
-        """Prepares context for prompt"""
+        """Prepare context for prompt"""
         # if no contexts, create new one
         if len(self.contexts) == 0:
             self.new()
 
     def delete_all_ctx(self):
-        """Deletes all contexts"""
+        """Delete all contexts"""
         # delete all context files
         for name in self.contexts:
             path = os.path.join(self.config.path, 'context', name + '.json')
@@ -369,13 +378,14 @@ class Context:
 
     def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
         """
-        Counts context items to add to prompt
+        Count context items to add to prompt
 
         :param model: model
         :param mode: mode
         :param used_tokens: used tokens
         :param max_tokens: max tokens
         :return: context items count, context tokens count
+        :rtype: (int, int)
         """
         i = 0
         # loop on items from end to start
@@ -393,12 +403,13 @@ class Context:
 
     def get_prompt_items(self, model, used_tokens=100, max_tokens=1000):
         """
-        Returns context items to add to prompt
+        Return context items to add to prompt
 
         :param model: model
         :param used_tokens: used tokens
         :param max_tokens: max tokens
         :return: context items list
+        :rtype: list
         """
         items = []
         # loop on items from end to start
@@ -415,8 +426,10 @@ class Context:
 
     def get_all_items(self):
         """
-        Returns all context items
+        Return all context items
+
         :return: context items list
+        :rtype: list
         """
         items = []
         for item in reversed(self.items):
@@ -432,7 +445,7 @@ class Context:
 
     def select(self, name):
         """
-        Selects context
+        Select context
 
         :param name: context name (id)
         """
@@ -459,7 +472,7 @@ class Context:
 
     def add(self, item):
         """
-        Adds item to contexts and saves context
+        Add item to contexts and saves context
 
         :param item: item to add
         """
@@ -469,15 +482,16 @@ class Context:
         self.store()
 
     def store(self):
-        """Stores current context to file"""
+        """Store current context to file"""
         if self.current_ctx is not None and self.current_ctx in self.contexts:
             self.dump_context(self.current_ctx)
 
     def get_total_tokens(self):
         """
-        Returns current prompt tokens
+        Return current prompt tokens
 
         :return: total tokens
+        :rtype: int
         """
         last = self.get_last()
         if last is not None:
@@ -486,35 +500,39 @@ class Context:
 
     def count(self):
         """
-        Counts context items
+        Count context items
 
         :return: context items count
+        :rtype: int
         """
         return len(self.items)
 
     def all(self):
         """
-        Returns context items
+        Return context items
 
         :return: context items
+        :rtype: list
         """
         return self.items
 
     def get(self, index):
         """
-        Returns context item by index
+        Return context item by index
 
         :param index: item index
         :return: context item
+        :rtype: ContextItem or None
         """
         if index < len(self.items):
             return self.items[index]
 
     def get_last(self):
         """
-        Returns last item from context
+        Return last item from context
 
         :return: last context item
+        :rtype: ContextItem or None
         """
         if len(self.items) > 0:
             return self.items[-1]
@@ -522,16 +540,17 @@ class Context:
 
     def get_tokens_left(self, max):
         """
-        Returns remaining tokens in context
+        Return remaining tokens in context
 
         :param max: max tokens
         :return: remaining tokens in context
+        :rtype: int
         """
         return max - self.get_total_tokens()
 
     def check(self, threshold, max_total):
         """
-        Checks context and clear if limit exceeded
+        Check context and clear if limit exceeded
 
         :param threshold: threshold
         :param max_total: max total tokens
@@ -540,20 +559,21 @@ class Context:
             self.remove_first()
 
     def remove_last(self):
-        """Removes last item"""
+        """Remove last item"""
         if len(self.items) > 0:
             self.items.pop()
 
     def remove_first(self):
-        """Removes first item"""
+        """Remove first item"""
         if len(self.items) > 0:
             self.items.pop(0)
 
     def get_last_tokens(self):
         """
-        Returns last tokens count
+        Return last tokens count
 
         :return: last tokens
+        :rtype: int
         """
         last = self.get_last()
         if last is not None:
@@ -566,7 +586,7 @@ class ContextItem:
         """
         Context item
 
-        :param mode: Mode (completion, chat, langchain, assistant)
+        :param mode: Mode (completion, chat, img, vision, langchain, assistant)
         """
         self.stream = None
         self.results = []
@@ -587,10 +607,10 @@ class ContextItem:
 
     def set_input(self, input, name=None):
         """
-        Sets input
+        Set input
 
-        :param input: Input text (prompt)
-        :param name: Input person name
+        :param input: input text (prompt)
+        :param name: input person name
         """
         self.input = input
         self.input_name = name
@@ -598,10 +618,10 @@ class ContextItem:
 
     def set_output(self, output, name=None):
         """
-        Sets output
+        Set output
 
-        :param output: Output text
-        :param name: Output person name
+        :param output: output text
+        :param name: output person name
         """
         self.output = output
         self.output_name = name
@@ -609,7 +629,7 @@ class ContextItem:
 
     def set_tokens(self, input_tokens, output_tokens):
         """
-        Sets tokens usage
+        Set tokens usage
 
         :param input_tokens: prompt tokens
         :param output_tokens: output tokens
@@ -620,9 +640,10 @@ class ContextItem:
 
     def serialize(self):
         """
-        Serializes item to dict
+        Serialize item to dict
 
-        :return: dict
+        :return: serialized item
+        :rtype: dict
         """
         return {
             'input': self.input,
@@ -642,9 +663,9 @@ class ContextItem:
 
     def deserialize(self, data):
         """
-        Deserializes item from dict
+        Deserialize item from dict
 
-        :param data: dict
+        :param data: data dict
         """
         if 'input' in data:
             self.input = data['input']
@@ -675,8 +696,9 @@ class ContextItem:
 
     def dump(self):
         """
-        Dumps item to string
+        Dump item to string
 
-        :return: dict
+        :return: dumped item
+        :rtype: str
         """
         return json.dumps(self.serialize())

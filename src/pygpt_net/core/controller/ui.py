@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
@@ -18,16 +18,16 @@ class UI:
         """
         UI update controller
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups UI"""
+        """Setup UI"""
         self.update()
 
     def update(self):
-        """Updates all elements"""
+        """Update all elements"""
         # update mode, models and presets lists
         self.update_toolbox()
 
@@ -41,14 +41,14 @@ class UI:
         self.update_tokens()
 
     def update_toolbox(self):
-        """Updates toolbox"""
+        """Update toolbox"""
         self.window.controller.model.update_mode()
         self.window.controller.model.update_models()
         self.window.controller.model.update_presets()
         self.window.controller.assistant.update_assistants()
 
     def update_tokens(self):
-        """Updates tokens counters"""
+        """Update tokens counters"""
         model = self.window.config.get('model')
         mode = self.window.config.get('mode')
         user_name = self.window.config.get('user_name')
@@ -120,7 +120,7 @@ class UI:
         self.window.data['input.counter'].setText(string)
 
     def update_active(self):
-        """Updates mode, model, preset and rest of the toolbox"""
+        """Update mode, model, preset and rest of the toolbox"""
         mode = self.window.config.data['mode']
         if mode == 'chat':
             # temperature
@@ -293,7 +293,7 @@ class UI:
             self.window.data['input.stream'].setVisible(False)
 
     def update_chat_label(self):
-        """Updates chat label"""
+        """Update chat label"""
         mode = self.window.config.get('mode')
         model = self.window.config.get('model')
         if model is None or model == "":
@@ -304,7 +304,7 @@ class UI:
 
     def update_ctx_label(self, label):
         """
-        Updates context label
+        Update ctx label
 
         :param label: label
         """

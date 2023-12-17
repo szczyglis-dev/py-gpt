@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -17,19 +17,19 @@ class Model:
         """
         Model and preset select controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups"""
+        """Setup"""
         pass
 
     def select(self, id, value):
         """
-        Selects mode, model or preset
+        Select mode, model or preset
 
-        :param id: ID of the list
+        :param id: id of the list
         :param value: value of the list (row index)
         """
         if id == 'prompt.mode':
@@ -57,7 +57,7 @@ class Model:
 
     def set_mode(self, mode):
         """
-        Sets mode
+        Set mode
 
         :param mode: mode name
         """
@@ -92,7 +92,7 @@ class Model:
 
     def set_model_by_idx(self, mode, idx):
         """
-        Sets model by index
+        Set model by index
 
         :param mode: mode name
         :param idx: model index
@@ -103,7 +103,7 @@ class Model:
 
     def set_model(self, mode, model):
         """
-        Sets model
+        Set model
 
         :param mode: mode name
         :param model: model name
@@ -113,7 +113,7 @@ class Model:
 
     def set_preset_by_idx(self, mode, idx):
         """
-        Sets preset by index
+        Set preset by index
 
         :param mode: mode name
         :param idx: preset index
@@ -124,7 +124,7 @@ class Model:
 
     def set_preset(self, mode, preset):
         """
-        Sets preset
+        Set preset
 
         :param mode: mode name
         :param preset: preset name
@@ -135,7 +135,7 @@ class Model:
         self.window.config.data['current_preset'][mode] = preset
 
     def select_mode_by_current(self):
-        """Selects mode by current"""
+        """Select mode by current"""
         mode = self.window.config.get('mode')
         items = self.window.config.get_modes()
         idx = list(items.keys()).index(mode)
@@ -143,7 +143,7 @@ class Model:
         self.window.data['prompt.mode'].setCurrentIndex(current)
 
     def select_model_by_current(self):
-        """Selects model by current"""
+        """Select model by current"""
         mode = self.window.config.get('mode')
         model = self.window.config.get('model')
         items = self.window.config.get_models(mode)
@@ -153,7 +153,7 @@ class Model:
             self.window.data['prompt.model'].setCurrentIndex(current)
 
     def select_preset_by_current(self):
-        """Selects preset by current"""
+        """Select preset by current"""
         mode = self.window.config.get('mode')
         preset = self.window.config.get('preset')
         items = self.window.config.get_presets(mode)
@@ -163,20 +163,20 @@ class Model:
             self.window.data['preset.presets'].setCurrentIndex(current)
 
     def select_default(self):
-        """Sets default mode, model and preset"""
+        """Set default mode, model and preset"""
         self.select_default_mode()
         self.select_default_model()
         self.select_default_preset()
         self.window.controller.assistant.select_default_assistant()
 
     def select_default_mode(self):
-        """Sets default mode"""
+        """Set default mode"""
         mode = self.window.config.get('mode')
         if mode is None or mode == "":
             self.window.config.set('mode', self.window.config.get_default_mode())
 
     def select_default_model(self):
-        """Sets default model"""
+        """Set default model"""
         model = self.window.config.get('model')
         if model is None or model == "":
             mode = self.window.config.get('mode')
@@ -193,7 +193,7 @@ class Model:
                 self.window.config.set('model', self.window.config.get_default_model(mode))
 
     def select_default_preset(self):
-        """Sets default preset"""
+        """Set default preset"""
         preset = self.window.config.get('preset')
         if preset is None or preset == "":
             mode = self.window.config.get('mode')
@@ -210,7 +210,7 @@ class Model:
                 self.window.config.set('preset', self.window.config.get_default_preset(mode))
 
     def update_preset_data(self):
-        """Updates preset data"""
+        """Update preset data"""
         preset = self.window.config.get('preset')
         if preset is None or preset == "":
             self.reset_preset_data()  # clear preset fields
@@ -235,25 +235,25 @@ class Model:
         self.window.config.set('user_name', preset_data['user_name'])
 
     def update_list_modes(self):
-        """Updates modes list"""
+        """Update modes list"""
         items = self.window.config.get_modes()
         self.window.ui.toolbox.update_list('prompt.mode', items)
 
     def update_list_models(self):
-        """Updates models list"""
+        """Update models list"""
         mode = self.window.config.get('mode')
         items = self.window.config.get_models(mode)
         self.window.ui.toolbox.update_list('prompt.model', items)
 
     def update_list_presets(self):
-        """Updates presets list"""
+        """Update presets list"""
         mode = self.window.config.get('mode')
         items = self.window.config.get_presets(mode)
         self.window.ui.toolbox.update_list('preset.presets', items)
 
     def update_current_temperature(self, temperature=None):
         """
-        Updates current temperature
+        Update current temperature
 
         :param temperature: temperature (float)
         """
@@ -267,7 +267,7 @@ class Model:
         self.window.controller.settings.apply("current_temperature", temperature)
 
     def update_current_preset(self):
-        """Updates current mode, model and preset"""
+        """Update current mode, model and preset"""
         mode = self.window.config.get('mode')
         preset_id = self.window.config.get('preset')
         if preset_id is not None and preset_id != "":
@@ -290,19 +290,19 @@ class Model:
             self.window.config.set('prompt', None)
 
     def update_mode(self):
-        """Updates mode"""
+        """Update mode"""
         self.select_default_mode()
         self.update_list_modes()
         self.select_mode_by_current()
 
     def update_models(self):
-        """Updates models"""
+        """Update models"""
         self.select_default_model()
         self.update_list_models()
         self.select_model_by_current()
 
     def update_presets(self):
-        """Updates presets"""
+        """Update presets"""
         self.select_default_preset()
         self.update_current_preset()
         self.update_preset_data()
@@ -311,22 +311,23 @@ class Model:
         self.select_preset_by_current()
 
     def reset_preset_data(self):
-        """Resets preset data"""
+        """Reset preset data"""
         self.window.data['preset.prompt'].setPlainText("")
         self.window.data['preset.ai_name'].setText("")
         self.window.data['preset.user_name'].setText("")
 
     def reset_current_data(self):
-        """Resets current data"""
+        """Reset current data"""
         self.window.config.set('prompt', None)
         self.window.config.set('ai_name', None)
         self.window.config.set('user_name', None)
 
     def mode_change_locked(self):
         """
-        Checks if mode change is locked
+        Check if mode change is locked
 
-        :return: bool
+        :return: true if locked
+        :rtype: bool
         """
         if self.window.controller.input.generating:
             return True
@@ -334,9 +335,10 @@ class Model:
 
     def model_change_locked(self):
         """
-        Checks if model change is locked
+        Check if model change is locked
 
-        :return: bool
+        :return: true if locked
+        :rtype: bool
         """
         if self.window.controller.input.generating:
             return True
@@ -344,9 +346,10 @@ class Model:
 
     def preset_change_locked(self):
         """
-        Checks if preset change is locked
+        Check if preset change is locked
 
-        :return: bool
+        :return: true if locked
+        :rtype: bool
         """
         # if self.window.controller.input.generating:
         # return True

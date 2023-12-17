@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import datetime
 import os
@@ -24,7 +24,7 @@ class Camera:
         """
         Camera controller
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
         self.thread = None
@@ -116,7 +116,7 @@ class Camera:
         """
         Capture frame and save it as attachment
 
-        :param switch: True if switch to attachments tab (tmp: disabled)
+        :param switch: true if switch to attachments tab (tmp: disabled)
         """
 
         # clear attachments before capture if needed
@@ -169,7 +169,7 @@ class Camera:
         """
         Hide camera
 
-        :param stop: True if stop capture thread
+        :param stop: true if stop capture thread
         """
         self.window.data['video.preview'].setVisible(False)
 
@@ -254,7 +254,8 @@ class Camera:
         """
         Check if camera is enabled
 
-        :return: True if enabled, False otherwise
+        :return: true if enabled, false otherwise
+        :rtype: bool
         """
         return self.is_capture
 
@@ -262,7 +263,8 @@ class Camera:
         """
         Check if camera is enabled
 
-        :return: True if enabled, False otherwise
+        :return: true if enabled, false otherwise
+        :rtype: bool
         """
         return self.auto
 

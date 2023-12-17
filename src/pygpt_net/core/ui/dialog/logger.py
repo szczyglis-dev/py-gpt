@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QVBoxLayout
@@ -20,12 +20,12 @@ class Logger:
         """
         Logger dialog
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups logger dialog"""
+        """Setup logger dialog"""
         self.window.logger = QPlainTextEdit()
         self.window.logger.setReadOnly(False)
 

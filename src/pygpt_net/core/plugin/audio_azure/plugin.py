@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.15 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import threading
@@ -38,7 +38,7 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """
-        Initializes options
+        Initialize options
         """
         self.add_option("azure_api_key", "text", "",
                         "Azure API Key",
@@ -60,15 +60,16 @@ class Plugin(BasePlugin):
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
+        :rtype: dict
         """
         return self.options
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
         :param window: Window
         """
@@ -80,6 +81,7 @@ class Plugin(BasePlugin):
 
         :param text: Text
         :return: text
+        :rtype: str
         """
         return text
 
@@ -88,7 +90,8 @@ class Plugin(BasePlugin):
         Event: On new context begin
 
         :param ctx: Context
-        :return: Context
+        :return: Context (modified)
+        :rtype: ContextItem
         """
         return ctx
 
@@ -97,7 +100,8 @@ class Plugin(BasePlugin):
         Event: On context end
 
         :param ctx: Context
-        :return: Context
+        :return: Context (modified)
+        :rtype: ContextItem
         """
         return ctx
 
@@ -107,6 +111,7 @@ class Plugin(BasePlugin):
 
         :param prompt: Prompt
         :return: prompt
+        :rtype: str
         """
         return prompt
 
@@ -116,6 +121,7 @@ class Plugin(BasePlugin):
 
         :param name: Name
         :return: name
+        :rtype: str
         """
         return name
 
@@ -125,6 +131,7 @@ class Plugin(BasePlugin):
 
         :param name: Name
         :return: name
+        :rtype: str
         """
         return name
 
@@ -142,6 +149,7 @@ class Plugin(BasePlugin):
 
         :param text: Text
         :return: text
+        :rtype: str
         """
         self.input_text = text
         return text
@@ -151,7 +159,8 @@ class Plugin(BasePlugin):
         Event: Before ctx
 
         :param ctx: Context
-        :return: Context
+        :return: Context (modified)
+        :rtype: ContextItem
         """
         return ctx
 
@@ -160,7 +169,8 @@ class Plugin(BasePlugin):
         Event: After ctx
 
         :param ctx: Context
-        :return: Context
+        :return: Context (modified)
+        :rtype: ContextItem
         """
         # Check if api key is set
         api_key = self.get_option_value("azure_api_key")

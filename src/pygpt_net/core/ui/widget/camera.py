@@ -10,7 +10,7 @@ class VideoContainer(QWidget):
         """
         Video container with scroll
 
-        :param window: main window
+        :param window: Window instance
         """
         super(VideoContainer, self).__init__()
         self.window = window

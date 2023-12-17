@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
@@ -23,15 +23,16 @@ class Contexts:
         """
         Contexts UI
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
         """
-        Setups contexts list
+        Setup contexts list
 
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         # contexts
         contexts = self.setup_contexts()
@@ -55,9 +56,10 @@ class Contexts:
 
     def setup_contexts(self):
         """
-        Setups contexts list
+        Setup contexts list
 
         :return: QVBoxLayout
+        :rtype: QVBoxLayout
         """
         id = 'ctx.contexts'
         self.window.data['contexts.new'] = QPushButton(trans('context.new'))
@@ -84,17 +86,18 @@ class Contexts:
 
     def create_model(self, parent):
         """
-        Creates list model
+        Create list model
 
         :param parent: parent widget
         :return: QStandardItemModel
+        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 1, parent)
         return model
 
     def update_list(self, id, data):
         """
-        Updates list
+        Update list
 
         :param id: ID of the list
         :param data: Data to update
@@ -114,10 +117,11 @@ class Contexts:
 
     def convert_date(self, date_str):
         """
-        Converts date to human readable format
+        Convert date to human readable format
 
         :param date_str: date string in format YYYY-MM-DD
         :return: string
+        :rtype: str
         """
         today = datetime.today().date()
         yesterday = today - timedelta(days=1)

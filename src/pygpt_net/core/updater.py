@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 05:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -21,16 +21,16 @@ from .utils import trans
 class Updater:
     def __init__(self, window=None):
         """
-        Updater (patcher)
+        Updater (config files patcher)
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
         self.base_config = {}
         self.base_config_loaded = False
 
     def check(self):
-        """Checks for updates"""
+        """Check for updates"""
         print("Checking for updates...")
         url = self.window.website + "/api/version?v=" + str(self.window.version)
         try:
@@ -64,7 +64,7 @@ class Updater:
 
     def show_version_dialog(self, version, build, changelog):
         """
-        Displays new version dialog
+        Display new version dialog
 
         :param version: version number
         :param build: build date
@@ -79,7 +79,7 @@ class Updater:
 
     def load_base_config(self):
         """
-        Loads app config from JSON file
+        Load app config from JSON file
         """
         self.base_config = {}
         path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'config.json')
@@ -96,7 +96,7 @@ class Updater:
 
     def get_base_config(self, option=None):
         """
-        Returns base config option or whole config
+        Return base config option or whole config
 
         :param option: option name
         :return: option value or whole config
@@ -122,9 +122,10 @@ class Updater:
 
     def patch_dir(self, dirname="", force=False):
         """
-        Patches directory
-        :param dirname: Directory name
-        :param force: Force update
+        Patch directory
+
+        :param dirname: directory name
+        :param force: force update
         """
         try:
             # dir
@@ -140,9 +141,10 @@ class Updater:
 
     def patch_file(self, filename="", force=False):
         """
-        Patches file
-        :param filename: File name
-        :param force: Force update
+        Patch file
+
+        :param filename: file name
+        :param force: force update
         """
         try:
             # file
@@ -154,7 +156,7 @@ class Updater:
             print(e)
 
     def patch_models(self):
-        """Migrates models to current version"""
+        """Migrate models to current version"""
         data = self.window.config.models
         version = "0.0.0"
         updated = False
@@ -192,7 +194,7 @@ class Updater:
             print("Migrated models.json. [OK]")
 
     def patch_presets(self):
-        """Migrates presets to current version"""
+        """Migrate presets to current version"""
         for k in self.window.config.presets:
             data = self.window.config.presets[k]
             version = "0.0.0"
@@ -222,7 +224,7 @@ class Updater:
                 print("Migrated presets. [OK]")
 
     def patch_config(self):
-        """Migrates config to current version"""
+        """Migrate config to current version"""
         data = self.window.config.all()
         version = "0.0.0"
         updated = False
@@ -487,9 +489,10 @@ class Updater:
 
     def post_check_config(self):
         """
-        Check for any missing config keys and add them.
+        Check for missing config keys and add them.
 
-        :return: True if updated
+        :return: true if updated
+        :rtype: bool
         """
         base = self.get_base_config()
         data = self.window.config.all()

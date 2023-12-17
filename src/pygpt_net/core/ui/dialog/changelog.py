@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import os
@@ -22,12 +22,12 @@ class Changelog:
         """
         Changelog dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups change log dialog"""
+        """Setup change log dialog"""
         id = 'changelog'
 
         txt = ''

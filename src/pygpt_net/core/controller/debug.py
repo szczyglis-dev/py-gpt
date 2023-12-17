@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -16,16 +16,16 @@ class Debug:
         """
         Debug controller
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
         self.is_logger = False
 
     def log(self, data):
         """
-        Logs text
+        Log text
 
-        :param text: text to log
+        :param data: text to log
         """
         if not self.is_logger:
             return
@@ -34,31 +34,31 @@ class Debug:
         self.window.logger.appendPlainText(txt)
 
     def logger_close(self):
-        """Closes logger"""
+        """Close logger"""
         self.window.ui.dialogs.close('logger')
         self.is_logger = False
         self.update()
 
     def logger_open(self):
-        """Opens logger"""
+        """Open logger"""
         self.window.ui.dialogs.open('logger')
         self.is_logger = True
         self.update()
 
     def logger_toggle(self):
-        """Toggles logger"""
+        """Toggle logger"""
         if self.is_logger:
             self.logger_close()
         else:
             self.logger_open()
 
     def logger_clear(self):
-        """Clears logger"""
+        """Clear logger"""
         self.window.logger.clear()
 
     def toggle(self, id):
         """
-        Toggles debug window
+        Toggle debug window
 
         :param id: window to toggle
         """
@@ -76,7 +76,7 @@ class Debug:
         self.update()
 
     def update_menu(self):
-        """Updates debug menu"""
+        """Update debug menu"""
         for id in self.window.debugger.ids:
             if id in self.window.debugger.active and self.window.debugger.active[id]:
                 self.window.menu['debug.' + id].setChecked(True)
@@ -89,5 +89,5 @@ class Debug:
             self.window.menu['debug.logger'].setChecked(False)
 
     def update(self):
-        """Updates debug"""
+        """Update debug"""
         self.update_menu()

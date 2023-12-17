@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 import sys
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     statusChanged = Signal(str)
 
     def __init__(self):
-        """App main window"""
+        """Application main window"""
         super().__init__()
         self.timer = None
         self.is_closing = False
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def log(self, data):
         """
-        Logs data to console
+        Log data to console
 
         :param data: data to log
         """
@@ -107,7 +107,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """
-        Updates material theme and applies custom CSS
+        Update material theme and applies custom CSS
 
         :param theme: Material theme name
         :param custom_css: custom CSS file
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_plugin(self, plugin):
         """
-        Adds plugin
+        Add plugin to app
 
         :param plugin: plugin instance
         """
@@ -138,15 +138,15 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def add_llm(self, llm):
         """
-        Adds Langchain LLM wrapper
+        Add Langchain LLM wrapper to app
 
-        :param llm: llm instance
+        :param llm: LLM wrapper instance
         """
         id = llm.id
         self.chain.register(id, llm)
 
     def setup(self):
-        """Setups app"""
+        """Setup app"""
         self.controller.setup()
         self.controller.plugins.setup()
         self.controller.setup_plugins()
@@ -159,13 +159,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.layout.post_setup()
 
     def update(self):
-        """Called on update"""
+        """Called on every update"""
         self.debugger.update()
         self.controller.update()
 
     def set_status(self, text):
         """
-        Updates status text
+        Update status text
 
         :param text: status text
         """
@@ -174,7 +174,7 @@ class MainWindow(QMainWindow, QtStyleTools):
     @Slot(str)
     def update_status(self, text):
         """
-        Updates status text
+        Update status text
 
         :param text: status text
         """
@@ -182,7 +182,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def closeEvent(self, event):
         """
-        Handles close event
+        Handle close event
 
         :param event: close event
         """
@@ -211,14 +211,14 @@ class Launcher:
         self.window = None
 
     def init(self):
-        """Initializes app"""
+        """Initialize app"""
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
         self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin=None):
         """
-        Registers plugin
+        Register plugin
 
         :param plugin: plugin instance
         """
@@ -226,14 +226,14 @@ class Launcher:
 
     def add_llm(self, llm=None):
         """
-        Registers LLMs
+        Register LLMs
 
-        :param llm: llm instance
+        :param llm: LLM wrapper instance
         """
         self.window.add_llm(llm)
 
     def run(self):
-        """Runs app"""
+        """Run app"""
         margin = 50
         self.window.setup()
         available_geometry = self.window.screen().availableGeometry()
@@ -249,7 +249,8 @@ class Launcher:
 
 
 def run():
-    """Runs app"""
+    """Run app"""
+    
     # initialize app
     launcher = Launcher()
     launcher.init()

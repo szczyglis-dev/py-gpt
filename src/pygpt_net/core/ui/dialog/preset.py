@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
@@ -21,12 +21,12 @@ class Preset:
         """
         Preset editor dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups preset editor dialog"""
+        """Setup preset editor dialog"""
 
         id = "preset.presets"
         path = self.window.config.path
@@ -121,7 +121,7 @@ class Preset:
 
     def add_option(self, title, option, bold=False):
         """
-        Adds option
+        Add option
 
         :param title: Title
         :param option: Option
@@ -139,7 +139,7 @@ class Preset:
 
     def add_raw_option(self, option):
         """
-        Adds raw option row
+        Add raw option row
 
         :param option: Option
         """

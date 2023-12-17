@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import os
@@ -27,7 +27,7 @@ class Image:
         """
         Images controller
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
 
@@ -40,9 +40,9 @@ class Image:
 
     def send_text(self, text):
         """
-        Sends prompt to DALL-E and opens generated image in dialog
+        Send prompt to DALL-E and opens generated image in dialog
 
-        :param text: text to send
+        :param text: prompt to send
         """
         try:
             num_of_images = int(self.window.config_option['img_variants'].input.text())
@@ -88,9 +88,9 @@ class Image:
 
     def open_images(self, paths):
         """
-        Opens image in dialog
+        Open image in dialog
 
-        :param path: path to image
+        :param paths: paths to images
         """
         num_images = len(paths)
         resize_to = 512
@@ -118,7 +118,7 @@ class Image:
 
     def img_action_open(self, path):
         """
-        Opens image in default image viewer
+        Open image in default image viewer
 
         :param path: path to image
         """
@@ -126,7 +126,7 @@ class Image:
 
     def img_action_open_dir(self, path):
         """
-        Opens image in default image viewer
+        Open image in default image viewer
 
         :param path: path to image
         """
@@ -137,7 +137,7 @@ class Image:
 
     def img_action_save(self, path):
         """
-        Saves image
+        Save image
 
         :param path: path to image
         """
@@ -154,7 +154,7 @@ class Image:
 
     def img_action_delete(self, path, force=False):
         """
-        Deletes image
+        Delete image
 
         :param path: path to image
         :param force: force delete without confirmation
@@ -174,21 +174,21 @@ class Image:
 
     def enable_raw(self):
         """
-        Enables help for images
+        Enable help for images
         """
         self.window.config.set('img_raw', True)
         self.window.config.save()
 
     def disable_raw(self):
         """
-        Disables help for images
+        Disable help for images
         """
         self.window.config.set('img_raw', False)
         self.window.config.save()
 
     def toggle_raw(self, state):
         """
-        Toggles help for images
+        Toggle help for images
         """
         if not state:
             self.disable_raw()

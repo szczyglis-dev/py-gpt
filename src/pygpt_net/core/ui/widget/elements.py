@@ -17,7 +17,7 @@ class CollapsedGroup(QWidget):
         """
         Collapsed settings group
 
-        :param window: main window
+        :param window: Window instance
         :param id: option id
         :param title: option title
         :param value: current value
@@ -55,9 +55,9 @@ class CollapsedGroup(QWidget):
 
     def collapse(self, value):
         """
-        Collapse group
+        Expand or collapse group
 
-        :param value: collapse value
+        :param value: collapsed state (True/False)
         """
         self.box.setChecked(value)
         self.options.parentWidget().setVisible(value)

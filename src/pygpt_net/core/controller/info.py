@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 18:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -17,7 +17,7 @@ class Info:
         """
         Info controller
 
-        :param window main window
+        :param window Window instance
         """
         self.window = window
 
@@ -26,7 +26,7 @@ class Info:
 
     def toggle(self, id):
         """
-        Toggles info window
+        Toggle info window
 
         :param id: window to toggle
         """
@@ -41,27 +41,27 @@ class Info:
         self.update_menu()
 
     def goto_website(self):
-        """Opens project website"""
+        """Open project website"""
         webbrowser.open(self.window.website)
 
     def goto_docs(self):
-        """Opens docs"""
+        """Open docs"""
         webbrowser.open(self.window.docs)
 
     def goto_pypi(self):
-        """Opens PyPi"""
+        """Open PyPi"""
         webbrowser.open(self.window.pypi)
 
     def goto_github(self):
-        """Opens GitHub page"""
+        """Open GitHub page"""
         webbrowser.open(self.window.github)
 
     def goto_update(self):
-        """Opens update URL"""
+        """Open update URL"""
         webbrowser.open(self.window.website)
 
     def update_menu(self):
-        """Updates info menu"""
+        """Update info menu"""
         for id in self.window.info.ids:
             if id in self.window.info.active and self.window.info.active[id]:
                 self.window.menu['info.' + id].setChecked(True)

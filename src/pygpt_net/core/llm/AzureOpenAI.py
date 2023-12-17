@@ -18,6 +18,14 @@ class AzureOpenAILLM:
         self.id = "azure_openai"
 
     def completion(self, config, options, stream=False):
+        """
+        Return LLM model for completion
+
+        :param config: Config instance
+        :param options: options dict
+        :param stream: stream mode
+        :return: LLM model
+        """
         args = {}
         if 'args' in options:
             args = options['args']
@@ -27,6 +35,14 @@ class AzureOpenAILLM:
         return llm
 
     def chat(self, config, options, stream=False):
+        """
+        Return LLM model for chat
+
+        :param config: Config instance
+        :param options: options dict
+        :param stream: stream mode
+        :return: LLM model
+        """
         args = {}
         if 'args' in options:
             args = options['args']

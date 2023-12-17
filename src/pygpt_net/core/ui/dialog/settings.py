@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame, QLineEdit
@@ -21,12 +21,12 @@ class Settings:
         """
         Settings dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups settings dialog"""
+        """Setup settings dialog"""
 
         id = "settings"
         path = self.window.config.path
@@ -152,7 +152,7 @@ class Settings:
 
     def build_settings_widgets(self, options):
         """
-        Builds settings widgets
+        Build settings widgets
 
         :param options: settings options
         """
@@ -216,7 +216,7 @@ class Settings:
 
     def add_line(self):
         """
-        Makes line
+        Make line
         """
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -225,7 +225,7 @@ class Settings:
 
     def add_option(self, title, option, type, extra=None):
         """
-        Adds option
+        Add option
 
         :param title: Title
         :param option: Option
@@ -246,7 +246,7 @@ class Settings:
 
     def add_row_option(self, title, option, type, extra=None):
         """
-        Adds option
+        Add option
 
         :param title: Title
         :param option: Option
@@ -267,7 +267,7 @@ class Settings:
 
     def add_raw_option(self, option, type):
         """
-        Adds raw option row
+        Add raw option row
 
         :param option: Option
         :param type: Option type

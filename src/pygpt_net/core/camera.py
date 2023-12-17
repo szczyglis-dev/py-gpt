@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import cv2
@@ -19,7 +19,7 @@ class Camera:
         """
         Camera thread handler
 
-        :param config: config object
+        :param config: Config instance
         """
         self.config = config
         self.capture = None
@@ -35,6 +35,8 @@ class CameraThread(QObject):
     def __init__(self, window=None):
         """
         Camera capture thread
+
+        :param window: Window instance
         """
         super().__init__()
         self.window = window
@@ -44,7 +46,7 @@ class CameraThread(QObject):
 
     def setup_camera(self):
         """
-        Initialize camera.
+        Initialize camera
         """
         try:
             # get params from global config

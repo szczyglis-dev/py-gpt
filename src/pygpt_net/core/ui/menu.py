@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 18:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -18,7 +18,7 @@ class Menu:
         """
         Menu setup
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
@@ -38,7 +38,7 @@ class Menu:
             self.setup_debug()
 
     def setup_file(self):
-        """Setups file menu"""
+        """Setup file menu"""
         self.window.menu['app.exit'] = QAction(QIcon.fromTheme("application-exit"), trans("menu.file.exit"),
                                                self.window, shortcut="Ctrl+Q", triggered=self.window.close)
 
@@ -53,7 +53,7 @@ class Menu:
         self.window.menu['menu.app'].addAction(self.window.menu['app.exit'])
 
     def setup_plugins(self):
-        """Setups plugins menu"""
+        """Setup plugins menu"""
         self.window.menu['plugins.settings'] = QAction(QIcon.fromTheme("preferences-other"), trans("menu.plugins.settings"),
                                                        self.window)
 
@@ -66,7 +66,7 @@ class Menu:
         self.window.menu['menu.plugins'].addAction(self.window.menu['plugins.settings'])
 
     def setup_audio(self):
-        """Setups audio menu"""
+        """Setup audio menu"""
         self.window.menu['audio.output.azure'] = QAction(trans("menu.audio.output.azure"),
                                                    self.window, checkable=True)
         self.window.menu['audio.output.tts'] = QAction(trans("menu.audio.output.tts"),
@@ -87,7 +87,7 @@ class Menu:
         self.window.menu['menu.audio'].addAction(self.window.menu['audio.input.whisper'])
 
     def setup_config(self):
-        """Setups config menu"""
+        """Setup config menu"""
         self.window.menu['config.settings'] = QAction(QIcon.fromTheme("preferences-other"), trans("menu.config.settings"),
                                                       self.window)
         self.window.menu['config.edit.config'] = QAction(QIcon.fromTheme("document-edit"), trans("menu.config.edit.config"),
@@ -122,7 +122,7 @@ class Menu:
         self.window.menu['menu.config'].addAction(self.window.menu['config.save'])
 
     def setup_debug(self):
-        """Setups debug menu"""
+        """Setup debug menu"""
         self.window.menu['debug.config'] = QAction(trans("menu.debug.config"), self.window, checkable=True)
         self.window.menu['debug.context'] = QAction(trans("menu.debug.context"), self.window, checkable=True)
         self.window.menu['debug.presets'] = QAction(trans("menu.debug.presets"), self.window, checkable=True)
@@ -160,19 +160,19 @@ class Menu:
         self.window.menu['menu.debug'].addAction(self.window.menu['debug.logger'])
 
     def setup_lang(self):
-        """Setups lang menu"""
+        """Setup lang menu"""
         self.window.menu['lang'] = {}
         self.window.menu['menu.lang'] = self.window.menuBar().addMenu(trans("menu.lang"))
         self.window.menu['menu.lang'].setStyleSheet(self.window.controller.theme.get_style('menu'))  # Windows fix
 
     def setup_theme(self):
-        """Setups theme menu"""
+        """Setus theme menu"""
         self.window.menu['theme'] = {}
         self.window.menu['menu.theme'] = self.window.menuBar().addMenu(trans("menu.theme"))
         self.window.menu['menu.theme'].setStyleSheet(self.window.controller.theme.get_style('menu'))  # Windows fix
 
     def setup_about(self):
-        """Setups about menu"""
+        """Setup about menu"""
         self.window.menu['info.about'] = QAction(QIcon.fromTheme("help-about"), trans("menu.info.about"),
                                                  self.window)
         self.window.menu['info.changelog'] = QAction(QIcon.fromTheme("history"), trans("menu.info.changelog"),

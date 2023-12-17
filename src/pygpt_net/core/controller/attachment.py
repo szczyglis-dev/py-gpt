@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 from datetime import datetime
@@ -24,7 +24,7 @@ class Attachment:
         """
         Attachment controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.attachments = Attachments(self.window.config)
@@ -55,7 +55,7 @@ class Attachment:
 
     def update_tab_label(self, mode):
         """
-        Updates tab label
+        Update tab label
 
         :param mode: mode
         """
@@ -67,7 +67,7 @@ class Attachment:
 
     def select(self, mode, idx):
         """
-        Selects attachment
+        Select attachment
 
         :param mode: mode
         :param idx: index
@@ -76,17 +76,16 @@ class Attachment:
 
     def selection_change(self):
         """
-        Selects on list change
+        Select on list change
         """
         # TODO: implement this
         pass
 
     def delete(self, idx, force=False):
         """
-        Deletes attachment
+        Delete attachment
 
-        :param mode: mode
-        :param idx: index
+        :param idx: index of attachment
         :param force: force delete
         """
         mode = self.window.config.get('mode')
@@ -105,7 +104,7 @@ class Attachment:
 
     def rename(self, mode, idx):
         """
-        Renames attachment
+        Rename attachment
 
         :param mode: mode
         :param idx: selected attachment index
@@ -128,7 +127,7 @@ class Attachment:
 
     def update_name(self, file_id, name):
         """
-        Updates name
+        Update name
 
         :param file_id: file_id
         :param name: name
@@ -149,7 +148,7 @@ class Attachment:
 
     def add(self, mode, attachment):
         """
-        Adds attachment item to list
+        Add attachment item to list
 
         :param mode: mode
         :param attachment: attachment object
@@ -159,7 +158,7 @@ class Attachment:
 
     def clear(self, force=False):
         """
-        Clears attachments list
+        Clear attachments list
 
         :param force: force clear
         """
@@ -181,7 +180,7 @@ class Attachment:
         self.update()
 
     def open_add(self):
-        """Opens add attachment file dialog"""
+        """Open add attachment file dialog"""
         mode = self.window.config.get('mode')
         dialog = QFileDialog(self.window)
         dialog.setFileMode(QFileDialog.ExistingFiles)
@@ -205,11 +204,12 @@ class Attachment:
 
     def open_dir(self, mode, idx):
         """
-        Opens in directory
+        Open in directory
 
         :param mode: mode
         :param idx: index
         """
+        # TODO: check dict/obj
         file_id = self.attachments.get_id_by_idx(mode, idx)
         data = self.attachments.get_by_id(mode, file_id)
         if data.path is not None and data.path != '' and os.path.exists(data.path):
@@ -220,7 +220,7 @@ class Attachment:
 
     def import_from_assistant(self, mode, assistant):
         """
-        Loads attachments from assistant
+        Load attachments from assistant
 
         :param mode: mode
         :param assistant: assistant object
@@ -232,18 +232,21 @@ class Attachment:
 
     def has_attachments(self, mode):
         """
-        Returns True if current mode has attachments
+        Return True if current mode has attachments
 
-        :return: True if has attachments
+        :param mode: mode to check
+        :return: true if has attachments
+        :rtype: bool
         """
         return self.attachments.has(mode)
 
     def download(self, file_id):
         """
-        Downloads file
+        Download file
 
-        :param file_id: file id to download (ID in OpenAI API)
+        :param file_id: file id to download (id in OpenAI API)
         :return: path to downloaded file
+        :rtype: str
         """
         try:
             # get file info from assistant API
@@ -270,7 +273,7 @@ class Attachment:
 
     def toggle_send_clear(self, value):
         """
-        Toggles send clear
+        Toggle send clear
 
         :param value: value of the checkbox
         """
@@ -278,7 +281,7 @@ class Attachment:
 
     def toggle_capture_clear(self, value):
         """
-        Toggles capture clear
+        Toggle capture clear
 
         :param value: value of the checkbox
         """
@@ -286,9 +289,10 @@ class Attachment:
 
     def is_capture_clear(self):
         """
-        Returns True if capture clear is enabled
+        Return True if capture clear is enabled
 
-        :return: True if capture clear is enabled
+        :return: true if capture clear is enabled
+        :rtype: bool
         """
         if not self.window.config.has('attachments_capture_clear'):
             self.window.config.set('attachments_capture_clear', False)
@@ -296,9 +300,10 @@ class Attachment:
 
     def is_send_clear(self):
         """
-        Returns True if send clear is enabled
+        Return True if send clear is enabled
 
-        :return: True if send clear is enabled
+        :return: true if send clear is enabled
+        :rtype: bool
         """
         if not self.window.config.has('attachments_send_clear'):
             self.window.config.set('attachments_send_clear', False)

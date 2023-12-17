@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
@@ -21,13 +21,13 @@ class Image:
         """
         Image dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
         self.path = None
 
     def setup(self):
-        """Setups image dialog"""
+        """Setup image dialog"""
         id = 'image'
         self.window.data['dialog.image.pixmap'] = {}
 

@@ -22,7 +22,7 @@ class SelectMenu(QTreeView):
         """
         Select menu
 
-        :param window: main window
+        :param window: Window instance
         :param id: input id
         """
         super(SelectMenu, self).__init__(window)

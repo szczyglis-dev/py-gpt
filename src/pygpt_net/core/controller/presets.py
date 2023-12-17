@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import datetime
 import os
@@ -20,18 +20,18 @@ class Presets:
         """
         Presets controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
     def update_field(self, id, value, preset=None, current=False):
         """
-        Updates preset field from editor
+        Update preset field from editor
 
         :param id: field id
         :param value: field value
         :param preset: preset name (ID / filename)
-        :param current: if True, updates current preset
+        :param current: if true, updates current preset
         """
         if preset is not None and preset != "":
             if preset in self.window.config.presets:
@@ -59,7 +59,7 @@ class Presets:
 
     def edit(self, idx=None):
         """
-        Opens preset editor
+        Open preset editor
 
         :param idx: preset index (row index)
         """
@@ -73,9 +73,9 @@ class Presets:
 
     def init_editor(self, preset=None):
         """
-        Initializes preset editor
+        Initialize preset editor
 
-        :param preset: preset name (ID / filename)
+        :param preset: preset name (id / filename)
         """
         data = {}
         data['ai_name'] = ""
@@ -145,10 +145,11 @@ class Presets:
 
     def make_preset_filename(self, name):
         """
-        Makes preset filename from name
+        Make preset filename from name
 
         :param name: preset name
         :return: preset filename
+        :rtype: str
         """
         filename = name.lower()
         filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
@@ -156,7 +157,7 @@ class Presets:
 
     def save(self, force=False):
         """
-        Saves preset
+        Save preset
 
         :param force: force overwrite file
         """
@@ -230,9 +231,9 @@ class Presets:
 
     def assign_data(self, preset):
         """
-        Assigns data from fields to preset
+        Assign data from fields to preset
 
-        :param preset: preset name (ID / filename)
+        :param preset: preset name (id / filename)
         """
         name = self.window.config_option['preset.name'].text()
         if name is None or name == "":
@@ -253,7 +254,7 @@ class Presets:
 
     def duplicate(self, idx=None):
         """
-        Duplicates preset
+        Duplicate preset
 
         :param idx: preset index (row index)
         """
@@ -271,7 +272,7 @@ class Presets:
 
     def clear(self, force=False):
         """
-        Clears preset data
+        Clear preset data
 
         :param force: force clear data
         """
@@ -298,7 +299,7 @@ class Presets:
 
     def delete(self, idx=None, force=False):
         """
-        Deletes preset
+        Delete preset
 
         :param idx: preset index (row index)
         :param force: force delete without confirmation
@@ -320,7 +321,7 @@ class Presets:
                     self.window.set_status(trans('status.preset.deleted'))
 
     def from_current(self):
-        """Loads from current prompt"""
+        """Load from current prompt"""
         self.config_change('preset.ai_name', self.window.config.get('ai_name'), 'preset.editor')
         self.config_change('preset.user_name', self.window.config.get('user_name'),
                            'preset.editor')
@@ -329,22 +330,23 @@ class Presets:
                            'preset.editor')
 
     def use(self):
-        """Copies preset prompt to input"""
+        """Copy preset prompt to input"""
         self.window.controller.input.append(self.window.data['preset.prompt'].toPlainText())
 
     def validate_filename(self, value):
         """
-        Validates filename
+        Validate filename
 
         :param value: filename
         :return: sanitized filename
+        :rtype: str
         """
         # strip not allowed characters
         return re.sub(r'[^\w\s-]', '', value)
 
     def config_toggle(self, id, value, section=None):
         """
-        Toggles checkbox
+        Toggle checkbox
 
         :param id: checkbox option id
         :param value: checkbox option value
@@ -360,7 +362,7 @@ class Presets:
 
     def config_change(self, id, value, section=None):
         """
-        Changes input value
+        Change input value
 
         :param id: input option id
         :param value: input option value
@@ -381,7 +383,7 @@ class Presets:
 
     def config_slider(self, id, value, type=None, section=None):
         """
-        Applies slider + input value
+        Apply slider + input value
 
         :param id: option id
         :param value: option value

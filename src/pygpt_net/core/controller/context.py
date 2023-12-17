@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 21:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -17,7 +17,7 @@ class Context:
         """
         Context controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
@@ -32,7 +32,7 @@ class Context:
         }
 
     def setup(self):
-        """Setups ctx"""
+        """Setup ctx"""
         # load ctx list
         self.window.gpt.context.load_list()
 
@@ -53,7 +53,7 @@ class Context:
 
     def update(self, reload=True):
         """
-        Updates ctx list
+        Update ctx list
 
         :param reload: reload ctx list items
         """
@@ -75,7 +75,7 @@ class Context:
 
     def select(self, ctx):
         """
-        Selects ctx
+        Select ctx
 
         :param ctx: context id
         """
@@ -84,7 +84,7 @@ class Context:
 
     def select_by_idx(self, idx):
         """
-        Selects ctx by index
+        Select ctx by index
 
         :param idx: context index
         """
@@ -96,7 +96,7 @@ class Context:
         self.select(ctx)
 
     def select_ctx_by_current(self):
-        """Selects ctx by current"""
+        """Select ctx by current"""
         ctx = self.window.gpt.context.current_ctx
         items = self.window.gpt.context.get_list()
         if ctx in items:
@@ -108,7 +108,7 @@ class Context:
 
     def new(self, force=False):
         """
-        Creates new ctx
+        Create new ctx
 
         :param force: force context creation
         """
@@ -132,17 +132,17 @@ class Context:
         self.update_ctx_label(mode, assistant_id)
 
     def reload(self):
-        """Reloads current ctx list"""
+        """Reload current ctx list"""
         items = self.window.gpt.context.get_list()
         self.window.ui.contexts.update_list('ctx.contexts', items)
 
     def refresh(self):
-        """Refreshes context"""
+        """Refresh context"""
         self.load(self.window.gpt.context.current_ctx)
 
     def load(self, ctx):
         """
-        Loads ctx data
+        Load ctx data
 
         :param ctx: context name (id)
         """
@@ -187,7 +187,7 @@ class Context:
         self.update_ctx_label(mode, assistant_id)
 
     def update_ctx(self):
-        """Updates current ctx mode if allowed"""
+        """Update current ctx mode if allowed"""
         mode = self.window.config.get('mode')
 
         # update ctx mode only if current ctx is allowed for this mode
@@ -209,7 +209,7 @@ class Context:
 
     def update_ctx_label_by_current(self):
         """
-        Updates ctx label from current ctx
+        Update ctx label from current ctx
         """
         mode = self.window.gpt.context.current_mode
 
@@ -238,7 +238,7 @@ class Context:
 
     def update_ctx_label(self, mode, assistant_id=None):
         """
-        Updates ctx label
+        Update ctx label
 
         :param mode: Mode
         :param assistant_id: Assistant id
@@ -256,7 +256,7 @@ class Context:
 
     def delete(self, idx, force=False):
         """
-        Deletes ctx
+        Delete ctx
 
         :param idx: context index
         :param force: force delete
@@ -276,7 +276,7 @@ class Context:
 
     def delete_history(self, force=False):
         """
-        Deletes ctx history item
+        Delete ctx history item
 
         :param force: force delete
         """
@@ -304,7 +304,7 @@ class Context:
 
     def update_name(self, ctx, name):
         """
-        Updates ctx name
+        Update ctx name
 
         :param ctx: context name (id)
         :param name: context name
@@ -318,12 +318,12 @@ class Context:
         self.update()
 
     def dismiss_rename(self):
-        """Dismisses rename dialog"""
+        """Dismiss rename dialog"""
         self.window.dialog['rename'].close()
 
     def add(self, ctx):
         """
-        Adds ctx
+        Add ctx
 
         :param ctx: context name (id)
         """
@@ -332,10 +332,11 @@ class Context:
 
     def handle_allowed(self, mode):
         """
-        Checks if ctx is allowed for this mode, if not then switch to new context
+        Check if ctx is allowed for this mode, if not then switch to new context
 
         :param mode: mode name
-        :return: bool
+        :return: True if allowed
+        :rtype: bool
         """
         if not self.is_allowed_for_mode(mode):
             self.new(True)  # force new context
@@ -344,11 +345,12 @@ class Context:
 
     def is_allowed_for_mode(self, mode, check_assistant=True):
         """
-        Checks if ctx is allowed for this mode
+        Check if ctx is allowed for this mode
 
         :param mode: mode name
         :param check_assistant: True if check also current assistant
-        :return: bool
+        :return: True if allowed for mode
+        :rtype: bool
         """
         # always allow if lock_modes is disabled
         if not self.window.config.get('lock_modes'):
@@ -391,7 +393,7 @@ class Context:
 
     def selection_change(self):
         """
-        Selects ctx on list change
+        Select ctx on list change
         """
         # TODO: implement this
         # idx = self.window.data['ctx.contexts'].currentIndex().row()
@@ -400,9 +402,10 @@ class Context:
 
     def context_change_locked(self):
         """
-        Checks if ctx change is locked
+        Check if ctx change is locked
 
-        :return: bool
+        :return: True if locked
+        :rtype: bool
         """
         if self.window.controller.input.generating:
             return True

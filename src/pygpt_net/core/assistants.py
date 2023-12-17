@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.11 23:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import json
@@ -20,7 +20,7 @@ class Assistants:
         """
         Assistants
 
-        :param config: config object
+        :param config: Config instance
         """
         self.config = config
         self.config_file = 'assistants.json'
@@ -29,21 +29,22 @@ class Assistants:
 
     def get_by_idx(self, idx):
         """
-        Returns assistant by index
+        Return assistant by index
 
         :param idx: index
-        :param mode: mode
         :return: assistant ID
+        :rtype: str
         """
         assistants = self.get_all()
         return list(assistants.keys())[idx]
 
     def get_by_id(self, id):
         """
-        Returns assistant by ID
+        Return assistant by ID
 
         :param id: ID
         :return: assistant
+        :rtype: AssistantItem
         """
         assistants = self.get_all()
         if id not in assistants:
@@ -52,33 +53,36 @@ class Assistants:
 
     def get_all(self):
         """
-        Returns assistants
+        Return assistants
 
         :return: assistants dict
+        :rtype: dict
         """
         return self.items
 
     def has(self, id):
         """
-        Checks if assistant exists
+        Check if assistant exists
 
         :param id: assistant ID
         :return: bool
+        :rtype: bool
         """
         return id in self.items
 
     def create(self):
         """
-        Creates new assistant
+        Create new assistant item
 
         :return: assistant ID
+        :rtype: AssistantItem
         """
         assistant = AssistantItem()
         return assistant
 
     def add(self, assistant):
         """
-        Adds iassistant
+        Add assistant
 
         :param assistant: item to add
         """
@@ -90,7 +94,7 @@ class Assistants:
 
     def delete(self, id):
         """
-        Deletes assistant
+        Delete assistant
 
         :param id: id of assistant
         """
@@ -100,7 +104,7 @@ class Assistants:
 
     def rename_file(self, assistant, file_id, name):
         """
-        Renames uploaded remote file name
+        Rename uploaded remote file name
 
         :param assistant: assistant object
         :param file_id: file_id
@@ -127,7 +131,7 @@ class Assistants:
 
     def replace_attachment(self, assistant, attachment, old_id, new_id):
         """
-        Replaces temporary attachment with uploaded one
+        Replace temporary attachment with uploaded one
 
         :param assistant: assistant object
         :param old_id: old id
@@ -140,9 +144,10 @@ class Assistants:
 
     def get_default_assistant(self):
         """
-        Returns default assistant
+        Return default assistant
 
         :return: default assistant
+        :rtype: AssistantItem or None
         """
         assistants = self.get_all()
         if len(assistants) == 0:
@@ -151,29 +156,31 @@ class Assistants:
 
     def get_file_id_by_idx(self, assistant, idx):
         """
-        Returns file ID by index
+        Return file ID by index
 
         :param assistant: assistant object
         :param idx: index
         :return: file ID
+        :rtype: str
         """
         files = assistant.files
         return list(files.keys())[idx]
 
     def get_file_by_id(self, assistant, id):
         """
-        Returns file by ID
+        Return file by ID
 
         :param assistant: assistant object
         :param id: file ID
-        :return: file
+        :return: Dict with file data
+        :rtype: dict or None
         """
         files = assistant.files
         return files[id]
 
     def import_files(self, assistant, data):
         """
-        Imports files from remote API
+        Import files from remote API
 
         :param assistant: assistant object
         :param data: data from remote API
@@ -213,7 +220,7 @@ class Assistants:
                 del assistant.files[id]
 
     def load(self):
-        """Loads assistants from file"""
+        """Load assistants from file"""
         path = os.path.join(self.config.path, self.config_file)
         try:
             if os.path.exists(path):
@@ -235,7 +242,7 @@ class Assistants:
 
     def save(self):
         """
-        Saves assistants to file
+        Save assistants to file
         """
         try:
             # update assistants
@@ -280,7 +287,7 @@ class AssistantItem:
 
     def reset(self):
         """
-        Resets assistant
+        Reset assistant
         """
         self.id = None
         self.name = None
@@ -298,9 +305,11 @@ class AssistantItem:
 
     def add_function(self, name, parameters, desc):
         """
-        Adds function to assistant
+        Add function to assistant
 
-        :param function: function
+        :param name: function name
+        :param parameters: function parameters (JSON encoded)
+        :param desc: function description
         """
         function = {
             'name': name,
@@ -311,40 +320,44 @@ class AssistantItem:
 
     def has_functions(self):
         """
-        Checks if assistant has functions
+        Check if assistant has functions
 
         :return: bool
+        :rtype: bool
         """
         return len(self.tools['function']) > 0
 
     def get_functions(self):
         """
-        Returns assistant functions
+        Return assistant functions
 
         :return: functions
+        :rtype: list
         """
         return self.tools['function']
 
     def has_tool(self, tool):
         """
-        Checks if assistant has tool
+        Check if assistant has tool
 
         :param tool: tool name
         :return: bool
+        :rtype: bool
         """
         return tool in self.tools and self.tools[tool] is True
 
     def has_file(self, file_id):
         """
-        Checks if assistant has file with ID
+        Check if assistant has file with ID
 
         :param file_id: file ID
+        :return: bool
         """
         return file_id in self.files
 
     def add_file(self, file_id):
         """
-        Adds empty file to assistant
+        Add empty file to assistant
 
         :param file_id: file ID
         """
@@ -353,7 +366,7 @@ class AssistantItem:
 
     def delete_file(self, file_id):
         """
-        Deletes file from assistant
+        Delete file from assistant
 
         :param file_id: file ID
         """
@@ -362,21 +375,23 @@ class AssistantItem:
 
     def clear_files(self):
         """
-        Clears files
+        Clear files
         """
         self.files = {}
 
     def has_attachment(self, attachment_id):
         """
-        Checks if assistant has attachment with ID
+        Check if assistant has attachment with ID
 
         :param attachment_id: attachment ID
+        :return: bool
+        :rtype: bool
         """
         return attachment_id in self.attachments
 
     def add_attachment(self, attachment):
         """
-        Adds attachment to assistant
+        Add attachment to assistant
 
         :param attachment: attachment
         """
@@ -385,7 +400,7 @@ class AssistantItem:
 
     def delete_attachment(self, attachment_id):
         """
-        Deletes attachment from assistant
+        Delete attachment from assistant
 
         :param attachment_id: attachment ID
         """
@@ -394,17 +409,17 @@ class AssistantItem:
 
     def clear_attachments(self):
         """
-        Clears attachments
+        Clear attachments
         """
         self.attachments = {}
 
     def serialize(self):
         """
-        Serializes item to dict
+        Serialize item to dict
 
         :return: serialized item
+        :rtype: dict
         """
-
         # serialize attachments
         attachments = {}
         for id in self.attachments:
@@ -424,7 +439,11 @@ class AssistantItem:
         }
 
     def deserialize(self, data):
-        """Deserializes item from dict"""
+        """
+        Deserialize item from dict
+
+        :param data: serialized item
+        """
         if 'id' in data:
             self.id = data['id']
         if 'name' in data:
@@ -457,5 +476,10 @@ class AssistantItem:
                 self.attachments[id] = item
 
     def dump(self):
-        """Dumps item to string"""
+        """
+        Dump item to string
+
+        :return: serialized item
+        :rtype: str
+        """
         return json.dumps(self.serialize())

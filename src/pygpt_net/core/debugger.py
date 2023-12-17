@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -26,9 +26,9 @@ class Debug:
 
     def __init__(self, window=None):
         """
-        Debug handler
+        Debugger handler
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
@@ -59,7 +59,7 @@ class Debug:
 
     def update(self, all=False):
         """
-        Updates debug windows
+        Update debug windows
 
         :param all: update all debug windows
         """
@@ -71,7 +71,7 @@ class Debug:
 
     def begin(self, id):
         """
-        Begins debug data
+        Begin debug data
 
         :param id: debug id
         """
@@ -83,7 +83,7 @@ class Debug:
 
     def end(self, id):
         """
-        Ends debug data
+        End debug data
 
         :param id: debug id
         """
@@ -92,7 +92,7 @@ class Debug:
 
     def add(self, id, k, v):
         """
-        Appends debug entry
+        Append debug entry
 
         :param id: debug id
         :param k: key
@@ -113,10 +113,11 @@ class Debug:
 
     def create_model(self, parent):
         """
-        Creates list model
+        Create list model
 
         :param parent: parent widget
         :return: model instance
+        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 2, parent)
         model.setHeaderData(self.DBG_KEY, Qt.Horizontal, "Key")

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 
@@ -19,7 +19,7 @@ class Settings:
         """
         Settings controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.options = {}
@@ -43,7 +43,7 @@ class Settings:
         self.initialized = False
 
     def load(self):
-        """Loads settings options from config file"""
+        """Load settings options from config file"""
         self.load_config_options()
 
         # store copy of loaded config data
@@ -51,7 +51,7 @@ class Settings:
 
     def load_config_options(self, initialize=True):
         """
-        Loads settings options from config file
+        Load settings options from config file
 
         :param initialize: True if marks settings as initialized
         """
@@ -61,7 +61,7 @@ class Settings:
 
     def save(self, id=None):
         """
-        Saves settings
+        Save settings
 
         :param id: settings id
         """
@@ -88,7 +88,7 @@ class Settings:
             self.window.controller.theme.reload()
 
     def save_all(self):
-        """Saves all settings"""
+        """Save all settings"""
         info = trans('info.settings.all.saved')
         self.window.config.save()
         self.window.config.save_presets()
@@ -98,12 +98,12 @@ class Settings:
         self.window.controller.ui.update()
 
     def start_settings(self):
-        """Opens settings at first launch (no API key)"""
+        """Open settings at first launch (no API key)"""
         self.toggle_settings('settings')
         self.window.ui.dialogs.close('info.start')
 
     def update_font_size(self):
-        """Updates font size"""
+        """Update font size"""
         self.window.data['output'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
         self.window.data['input'].setStyleSheet(self.window.controller.theme.get_style('chat_input'))
         self.window.data['ctx.contexts'].setStyleSheet(self.window.controller.theme.get_style('ctx.contexts'))
@@ -115,7 +115,7 @@ class Settings:
 
     def toggle_settings(self, id):
         """
-        Toggles settings
+        Toggle settings
 
         :param id: settings id
         """
@@ -135,7 +135,7 @@ class Settings:
 
     def toggle_editor(self, file=None):
         """
-        Toggles editor
+        Toggle editor
 
         :param file: JSON file to load
         """
@@ -158,7 +158,7 @@ class Settings:
 
     def close_window(self, id):
         """
-        Closes window
+        Close window
 
         :param id: settings window id
         """
@@ -168,7 +168,7 @@ class Settings:
 
     def close(self, id):
         """
-        Closes menus
+        Close menu
 
         :param id: settings window id
         """
@@ -180,11 +180,11 @@ class Settings:
             self.window.menu[id].setChecked(False)
 
     def update(self):
-        """Updates settings"""
+        """Update settings"""
         self.update_menu()
 
     def update_menu(self):
-        """Updates menu"""
+        """Update menu"""
         for id in self.window.settings.ids:
             key = 'config.' + id
             if key in self.window.menu:
@@ -195,7 +195,7 @@ class Settings:
 
     def init(self, id):
         """
-        Initializes settings
+        Initialize settings
 
         :param id: settings window id
         """
@@ -215,7 +215,7 @@ class Settings:
 
     def toggle(self, id, value, section=None):
         """
-        Toggles checkbox
+        Toggle checkbox
 
         :param id: checkbox option id
         :param value: checkbox option value
@@ -249,7 +249,7 @@ class Settings:
 
     def change(self, id, value, section=None):
         """
-        Changes input value
+        Change input value
 
         :param id: input option id
         :param value: input option value
@@ -298,7 +298,7 @@ class Settings:
 
     def apply(self, id, value, type=None, section=None):
         """
-        Applies slider + input value
+        Apply slider + input value
 
         :param id: option id
         :param value: option value
@@ -448,7 +448,7 @@ class Settings:
 
     def toggle_collapsed(self, id, value, section):
         """
-        Toggles collapsed state of section
+        Toggle collapsed state of section
 
         :param id: section
         :param value: value
@@ -460,7 +460,7 @@ class Settings:
         self.window.groups[id].collapse(value)
 
     def open_config_dir(self):
-        """Opens user config directory"""
+        """Open user config directory"""
         if os.path.exists(self.window.config.path):
             show_in_file_manager(self.window.config.path)
         else:
@@ -468,7 +468,7 @@ class Settings:
 
     def load_defaults_user(self, force=False):
         """
-        Loads default user config
+        Load default user config
 
         :param force: force load
         """
@@ -485,7 +485,7 @@ class Settings:
 
     def load_defaults_app(self, force=False):
         """
-        Loads default app config
+        Load default app config
 
         :param force: force load
         """
@@ -502,7 +502,7 @@ class Settings:
 
     def delete_item(self, parent_object, id, force=False):
         """
-        Loads delete item (from dict list) confirmation dialog or executes delete
+        Load delete item (from dict list) confirmation dialog or executes delete
 
         :param parent_object: parent object
         :param id: item id
@@ -519,8 +519,9 @@ class Settings:
 
     def get_options(self):
         """
-        Returns settings options dict
+        Return settings options dict
 
         :return: dict Options dict
+        :rtype: dict
         """
         return self.options

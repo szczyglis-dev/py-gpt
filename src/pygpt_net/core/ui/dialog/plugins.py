@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.13 20:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
@@ -24,12 +24,12 @@ class Plugins:
         """
         Plugins settings dialog
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self, idx=None):
-        """Setups plugin settings dialog"""
+        """Setup plugin settings dialog"""
 
         dialog_id = "plugin_settings"
 
@@ -235,7 +235,7 @@ class Plugins:
 
     def add_line(self):
         """
-        Makes line
+        Make line
         """
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -244,7 +244,7 @@ class Plugins:
 
     def add_option(self, key, option, widget, type):
         """
-        Appends option row
+        Append option row
 
         :param key: option key
         :param option: option
@@ -297,7 +297,7 @@ class Plugins:
 
     def add_raw_option(self, option):
         """
-        Adds raw option row
+        Add raw option row
 
         :param option: Option
         """
@@ -307,7 +307,7 @@ class Plugins:
 
     def create_model(self, parent):
         """
-        Creates list model
+        Create list model
         :param parent: parent widget
         :return: QStandardItemModel
         """
@@ -316,7 +316,7 @@ class Plugins:
 
     def update_list(self, id, data):
         """
-        Updates list
+        Update list
 
         :param id: ID of the list
         :param data: Data to update

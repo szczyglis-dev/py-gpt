@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 
@@ -18,7 +18,7 @@ class Layout:
         """
         Layout controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
@@ -26,11 +26,11 @@ class Layout:
         self.scrolls = ["notepad1", "notepad2", "notepad3", "notepad4", "notepad5"]
 
     def setup(self):
-        """Setups layout"""
+        """Setup layout"""
         self.window.controller.theme.setup()
 
     def post_setup(self):
-        """Post setups layout (after window initialization)"""
+        """Post setup layout (after window initialization)"""
         self.state_restore()
         self.splitters_restore()
         self.tabs_restore()

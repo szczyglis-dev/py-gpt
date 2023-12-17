@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -14,7 +14,7 @@ class Confirm:
         """
         Confirm dialog controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
@@ -78,7 +78,7 @@ class Confirm:
 
     def accept_rename(self, type, id, name):
         """
-        Updates name of object
+        Update name of object
         """
         if type == 'ctx':
             self.window.controller.context. update_name(id, name)
@@ -90,5 +90,5 @@ class Confirm:
             self.window.controller.files.update_name(id, name)
 
     def dismiss_rename(self):
-        """Dismisses rename dialog"""
+        """Dismiss rename dialog"""
         self.window.dialog['rename'].close()

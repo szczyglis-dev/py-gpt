@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -19,12 +19,12 @@ class Lang:
         """
         Language change controller
 
-        :param window: main UI window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups language handler"""
+        """Setup language handler"""
         # get files from lang folder
         langs = self.window.config.get_available_langs()
         for lang in langs:
@@ -36,7 +36,7 @@ class Lang:
         self.update()
 
     def update(self):
-        """Updates language menu"""
+        """Update language menu"""
         for lang in self.window.menu['lang']:
             self.window.menu['lang'][lang].setChecked(False)
 
@@ -46,7 +46,7 @@ class Lang:
 
     def toggle(self, id):
         """
-        Toggles language
+        Toggle language
 
         :param id: language to toggle
         """

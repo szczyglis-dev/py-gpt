@@ -16,13 +16,13 @@ class AssistantsDebug:
         """
         Assistants debug
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.id = 'assistants'
 
     def update(self):
-        """Updates debug window."""
+        """Update debug window."""
         self.window.debugger.begin(self.id)
 
         path = os.path.join(self.window.config.path, '', self.window.controller.assistant.assistants.config_file)

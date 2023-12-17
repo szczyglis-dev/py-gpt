@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.15 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,7 +17,7 @@ class Plugins:
         """
         Plugins handler
 
-        :param config: Config
+        :param config: Config instance
         """
         self.config = config
         self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output']
@@ -27,10 +27,10 @@ class Plugins:
         """
         Dispatch custom plugin event
 
-        :param id: Plugin id
-        :param event: Event name
-        :param data: Event data
-        :return: Event data
+        :param id: plugin id
+        :param event: event name
+        :param data: event data
+        :return: event data
         """
         if id in self.plugins:
             try:
@@ -41,12 +41,12 @@ class Plugins:
 
     def apply(self, id, event, data):
         """
-        Applies plugin event
+        Apply plugin event
 
-        :param id: Plugin id
-        :param event: Event name
-        :param data: Event data
-        :return: Event data
+        :param id: plugin id
+        :param event: event name
+        :param data: event data
+        :return: event data
         """
         if id in self.plugins:
             try:
@@ -81,12 +81,12 @@ class Plugins:
 
     def apply_cmd(self, id, ctx, cmds):
         """
-        Applies commands
+        Apply commands
 
-        :param id: Plugin id
-        :param ctx: Event data
-        :param cmds: Commands
-        :return: Event data
+        :param id: plugin id
+        :param ctx: event data
+        :param cmds: commands
+        :return: event data
         """
         if id in self.plugins:
             try:
@@ -98,18 +98,19 @@ class Plugins:
 
     def is_registered(self, id):
         """
-        Checks if plugin is registered
+        Check if plugin is registered
 
-        :param id: Plugin id
-        :return: True if registered
+        :param id: plugin id
+        :return: true if registered
+        :rtype: bool
         """
         return id in self.plugins
 
     def register(self, plugin):
         """
-        Registers plugin
+        Register plugin
 
-        :param plugin: Plugin
+        :param plugin: plugin instance
         """
         id = plugin.id
         self.plugins[id] = plugin
@@ -130,9 +131,9 @@ class Plugins:
 
     def restore_options(self, id):
         """
-        Restores options to initial values
+        Restore options to initial values
 
-        :param id: Plugin id
+        :param id: plugin id
         """
         persisted_options = []
         persisted_values = {}

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 21:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -26,7 +26,7 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """
-        Initializes options
+        Initialize options
         """
         self.add_option("iterations", "int", 3,
                         "Iterations",
@@ -42,7 +42,7 @@ class Plugin(BasePlugin):
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
         """
@@ -50,9 +50,9 @@ class Plugin(BasePlugin):
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
-        :param window: Window
+        :param window: Window instance
         """
         self.window = window
 
@@ -60,8 +60,8 @@ class Plugin(BasePlugin):
         """
         Event: On user send text
 
-        :param text: Text
-        :return: Text
+        :param text: text
+        :return: text
         """
         self.iteration = 0
         self.prev_output = None

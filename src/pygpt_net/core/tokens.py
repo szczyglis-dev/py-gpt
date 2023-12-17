@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.12 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import tiktoken
@@ -19,8 +19,8 @@ def num_tokens_from_string(string, model="gpt-4"):
     :param string: string
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
-
     if string is None or string == "":
         return 0
 
@@ -40,22 +40,24 @@ def num_tokens_from_string(string, model="gpt-4"):
 
 def num_tokens_extra(model="gpt-4"):
     """
-    Returns number of extra tokens
+    Return number of extra tokens
 
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
     return 3
 
 
 def num_tokens_prompt(text, input_name, model="gpt-4"):
     """
-    Returns number of tokens from prompt
+    Return number of tokens from prompt
 
     :param text: prompt text
     :param input_name: input name
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
@@ -75,11 +77,12 @@ def num_tokens_prompt(text, input_name, model="gpt-4"):
 
 def num_tokens_completion(text, model="gpt-4"):
     """
-    Returns number of tokens from prompt
+    Return number of tokens from prompt
 
     :param text: prompt text
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
@@ -97,11 +100,12 @@ def num_tokens_completion(text, model="gpt-4"):
 
 def num_tokens_only(text, model="gpt-4"):
     """
-    Returns number of tokens from prompt
+    Return number of tokens from prompt
 
     :param text: prompt text
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
@@ -119,11 +123,12 @@ def num_tokens_only(text, model="gpt-4"):
 
 def num_tokens_from_messages(messages, model="gpt-4"):
     """
-    Returns number of tokens from prompt
+    Return number of tokens from prompt
 
     :param messages: messages
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
@@ -139,12 +144,13 @@ def num_tokens_from_messages(messages, model="gpt-4"):
 
 def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
     """
-    Returns number of tokens from context item
+    Return number of tokens from context item
 
     :param item: context item
     :param mode: mode
     :param model: model name
     :return: number of tokens
+    :rtype: int
     """
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
@@ -215,10 +221,11 @@ def num_tokens_from_context_item(item, mode="chat", model="gpt-4"):
 
 def get_tokens_values(model):
     """
-    Returns tokens values
+    Return tokens values
 
-    :param model:
+    :param model: model name
     :return: model, tokens_per_message, tokens_per_name
+    :rtype: (str, int, int)
     """
     tokens_per_message = 4  # message follows <|start|>{role/name}\n{content}<|end|>\n
     tokens_per_name = -1

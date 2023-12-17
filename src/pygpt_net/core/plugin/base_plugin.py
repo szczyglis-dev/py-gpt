@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 15:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 class BasePlugin:
@@ -23,7 +23,7 @@ class BasePlugin:
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
         """
@@ -33,7 +33,7 @@ class BasePlugin:
                    tooltip=None, min=None, max=None, multiplier=1, step=1, slider=False,
                    keys=None, advanced=False, secret=False, persist=False):
         """
-        Adds option
+        Add option
 
         :param name: Option name (ID, key)
         :param type: Option type (text, textarea, bool, int, float, dict)
@@ -74,38 +74,38 @@ class BasePlugin:
 
     def has_option(self, name):
         """
-        Checks if option exists
+        Check if option exists
 
-        :param name: Option name
-        :return: True if exists
+        :param name: option name
+        :return: true if exists
         """
         return name in self.options
 
     def get_option(self, name):
         """
-        Returns option
+        Return option
 
-        :param name: Option name
-        :return: Option
+        :param name: option name
+        :return: option
         """
         if self.has_option(name):
             return self.options[name]
 
     def get_option_value(self, name):
         """
-        Returns option value
+        Return option value
 
-        :param name: Option name
-        :return: Option value
+        :param name: option name
+        :return: option value
         """
         if self.has_option(name):
             return self.options[name]["value"]
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
-        :param window: Window
+        :param window: Window instance
         """
         self.window = window
 
@@ -113,8 +113,8 @@ class BasePlugin:
         """
         Event: On user send text
 
-        :param text: Text
-        :return: Text
+        :param text: text
+        :return: text
         """
         return text
 
@@ -122,8 +122,8 @@ class BasePlugin:
         """
         Event: On new context begin
 
-        :param ctx: Context
-        :return: Context
+        :param ctx: context
+        :return: context
         """
         return ctx
 
@@ -131,8 +131,8 @@ class BasePlugin:
         """
         Event: On context end
 
-        :param ctx: Context
-        :return: Context
+        :param ctx: context
+        :return: context
         """
         return ctx
 
@@ -140,8 +140,8 @@ class BasePlugin:
         """
         Event: On prepare system prompt
 
-        :param prompt: Prompt
-        :return: Prompt
+        :param prompt: prompt
+        :return: prompt
         """
         return prompt
 
@@ -149,8 +149,8 @@ class BasePlugin:
         """
         Event: On set AI name
 
-        :param name: Name
-        :return: Name
+        :param name: name
+        :return: name
         """
         return name
 
@@ -158,8 +158,8 @@ class BasePlugin:
         """
         Event: On set user name
 
-        :param name: Name
-        :return: Name
+        :param name: name
+        :return: name
         """
         return name
 
@@ -175,7 +175,7 @@ class BasePlugin:
         """
         Event: Before input
 
-        :param text: Text
+        :param text: text
         """
         return text
 
@@ -183,7 +183,7 @@ class BasePlugin:
         """
         Event: Before ctx
 
-        :param ctx: Text
+        :param ctx: text
         """
         return ctx
 

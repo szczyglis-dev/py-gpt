@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import json
 
@@ -16,16 +16,17 @@ class Command:
         """
         Commands handler
 
-        :param window: window object
+        :param window: Window instance
         """
         self.window = window
 
     def get_prompt(self, allow_custom=True):
         """
-        Returns cmd prompt instruction
+        Return cmd prompt instruction
 
         :param allow_custom: allow custom prompt
         :return: prompt instruction
+        :rtype: str
         """
         cmd = '''RUNNING COMMANDS:
         You can execute commands and also use them to run commands on the user's environment. 
@@ -65,10 +66,11 @@ class Command:
 
     def extract_cmds(self, response):
         """
-        Extracts commands from response
+        Extract commands from response
 
         :param response: response
         :return: commands list
+        :rtype: list
         """
         cmds = []
         try:

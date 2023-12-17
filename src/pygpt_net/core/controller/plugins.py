@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.16 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -20,7 +20,7 @@ class Plugins:
         """
         Plugins controller
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
         self.handler = Handler(self.window.config)
@@ -31,7 +31,7 @@ class Plugins:
 
     def setup(self):
         """
-        Sets up plugins
+        Set up plugins
         """
         self.setup_menu()
         self.setup_ui()
@@ -40,7 +40,7 @@ class Plugins:
 
     def setup_ui(self):
         """
-        Sets up plugins ui
+        Set up plugins ui
         """
         for id in self.handler.plugins:
             plugin = self.handler.plugins[id]
@@ -52,7 +52,7 @@ class Plugins:
         self.handle_enabled_types()
 
     def setup_settings(self):
-        """Sets up plugins settings"""
+        """Set up plugins settings"""
         idx = None
         # restore previous selected or restored tab on dialog create
         if 'plugin.settings' in self.window.tabs:
@@ -60,7 +60,7 @@ class Plugins:
         self.window.plugin_settings.setup(idx)  # widget dialog Plugins
 
     def setup_menu(self):
-        """Sets up plugins menu"""
+        """Set up plugins menu"""
         for id in self.handler.plugins:
             if id in self.window.menu['plugins']:
                 continue
@@ -75,7 +75,7 @@ class Plugins:
             self.window.menu['menu.plugins'].addAction(self.window.menu['plugins'][id])
 
     def update(self):
-        """Updates plugins menu"""
+        """Update plugins menu"""
         for id in self.window.menu['plugins']:
             self.window.menu['plugins'][id].setChecked(False)
 
@@ -97,14 +97,14 @@ class Plugins:
                 pass
 
     def toggle_settings(self):
-        """Toggles plugins settings dialog"""
+        """Toggle plugins settings dialog"""
         if self.config_dialog:
             self.close_settings()
         else:
             self.open_settings()
 
     def open_settings(self):
-        """Opens plugins settings dialog"""
+        """Open plugins settings dialog"""
         if not self.config_initialized:
             self.setup_settings()
             self.config_initialized = True
@@ -114,7 +114,7 @@ class Plugins:
             self.config_dialog = True
 
     def init_settings(self):
-        """Initializes plugins settings options"""
+        """Initialize plugins settings options"""
         selected_plugin = self.current_plugin
 
         # select first plugin on list if no plugin selected yet
@@ -148,7 +148,7 @@ class Plugins:
         self.window.controller.layout.restore_plugin_settings()  # restore plugin settings layout
 
     def save_settings(self):
-        """Saves plugins settings"""
+        """Save plugins settings"""
         selected_plugin = self.current_plugin
         for id in self.handler.plugins:
             plugin = self.handler.plugins[id]
@@ -200,15 +200,20 @@ class Plugins:
         self.current_plugin = selected_plugin
 
     def close_settings(self):
-        """Closes plugins settings dialog"""
+        """Close plugins settings dialog"""
         if self.config_dialog:
             self.window.ui.dialogs.close('plugin_settings')
             self.config_dialog = False
 
     def load_defaults_user(self, force=False):
-        """Loads plugins settings user defaults"""
+        """
+        Load plugins settings user defaults
+
+        :param force: force load defaults
+        """
         if not force:
-            self.window.ui.dialogs.confirm('plugin.settings.defaults.user', -1, trans('dialog.plugin.settings.defaults.user.confirm'))
+            self.window.ui.dialogs.confirm('plugin.settings.defaults.user', -1,
+                                           trans('dialog.plugin.settings.defaults.user.confirm'))
             return
 
         # reload settings window
@@ -216,9 +221,14 @@ class Plugins:
         self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
 
     def load_defaults_app(self, force=False):
-        """Loads plugins settings app defaults"""
+        """
+        Load plugins settings app defaults
+
+        :param force: force load defaults
+        """
         if not force:
-            self.window.ui.dialogs.confirm('plugin.settings.defaults.app', -1, trans('dialog.plugin.settings.defaults.app.confirm'))
+            self.window.ui.dialogs.confirm('plugin.settings.defaults.app', -1,
+                                           trans('dialog.plugin.settings.defaults.app.confirm'))
             return
 
         # restore default options
@@ -230,7 +240,7 @@ class Plugins:
 
     def register(self, plugin):
         """
-        Registers plugin
+        Register plugin
 
         :param plugin: Plugin
         """
@@ -238,7 +248,7 @@ class Plugins:
 
     def unregister(self, id):
         """
-        Unregisters plugin
+        Unregister plugin
 
         :param id: Plugin id
         """
@@ -249,9 +259,9 @@ class Plugins:
 
     def enable(self, id):
         """
-        Enables plugin
+        Enable plugin
 
-        :param id: Plugin id
+        :param id: plugin id
         """
         if self.handler.is_registered(id):
             self.enabled[id] = True
@@ -269,9 +279,9 @@ class Plugins:
 
     def disable(self, id):
         """
-        Disables plugin
+        Disable plugin
 
-        :param id: Plugin id
+        :param id: plugin id
         """
         if self.handler.is_registered(id):
             self.enabled[id] = False
@@ -289,10 +299,11 @@ class Plugins:
 
     def is_enabled(self, id):
         """
-        Checks if plugin is enabled
+        Check if plugin is enabled
 
-        :param id: Plugin id
-        :return: True if enabled
+        :param id: plugin id
+        :return: true if enabled
+        :rtype: bool
         """
         if self.handler.is_registered(id):
             if id in self.enabled:
@@ -301,9 +312,9 @@ class Plugins:
 
     def toggle(self, id):
         """
-        Toggles plugin
+        Toggle plugin
 
-        :param id: Plugin id
+        :param id: plugin id
         """
         if self.handler.is_registered(id):
             if self.is_enabled(id):
@@ -315,7 +326,7 @@ class Plugins:
 
     def set_plugin_by_tab(self, idx):
         """
-        Sets current plugin by tab index
+        Set current plugin by tab index
 
         :param idx: tab index
         """
@@ -351,7 +362,7 @@ class Plugins:
 
     def load_config(self):
         """
-        Loads plugins config
+        Load plugins config
         """
         for id in self.window.config.get('plugins_enabled'):
             if self.window.config.data['plugins_enabled'][id]:
@@ -359,7 +370,7 @@ class Plugins:
 
     def config_toggle(self, id, value):
         """
-        Toggles checkbox
+        Toggle checkbox
 
         :param id: checkbox option id
         :param value: checkbox option value
@@ -369,7 +380,7 @@ class Plugins:
 
     def config_dict_update(self, id, value):
         """
-        Toggles dict items
+        Toggle dict items
 
         :param id: option id
         :param value: dict values
@@ -381,7 +392,7 @@ class Plugins:
 
     def config_change(self, id, value):
         """
-        Changes input value
+        Change input value
 
         :param id: input option id
         :param value: input option value
@@ -404,7 +415,7 @@ class Plugins:
 
     def config_slider(self, id, value, type=None):
         """
-        Applies slider + input value
+        Apply slider + input value
 
         :param id: option id
         :param value: option value
@@ -467,7 +478,7 @@ class Plugins:
 
     def get_option(self, id, key):
         """
-        Gets plugin option
+        Get plugin option
 
         :param id: option id
         :return: option value
@@ -476,9 +487,10 @@ class Plugins:
 
     def is_type_enabled(self, type):
         """
-        Checks if plugin type is enabled
+        Check if plugin type is enabled
 
-        :return: True if enabled
+        :return: true if enabled
+        :rtype: bool
         """
         enabled = False
         for id in self.handler.plugins:
@@ -489,7 +501,7 @@ class Plugins:
 
     def handle_enabled_types(self):
         """
-        Handles plugin type
+        Handle plugin type
         """
         for type in self.handler.allowed_types:
             if type == 'audio.input':
@@ -506,7 +518,7 @@ class Plugins:
 
     def apply(self, event, data):
         """
-        Applies plugins
+        Apply plugins
 
         :param event: event
         :param data: event data
@@ -519,7 +531,10 @@ class Plugins:
 
     def apply_cmds(self, ctx, cmds):
         """
-        Applies commands
+        Apply commands
+
+        :param ctx: context
+        :param cmds: commands
         """
         commands = []
         for cmd in cmds:
@@ -537,7 +552,7 @@ class Plugins:
 
     def dispatch(self, event, data, all=False):
         """
-        Applies plugins
+        Apply plugins
 
         :param event: event
         :param data: event data

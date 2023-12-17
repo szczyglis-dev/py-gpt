@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -17,7 +17,8 @@ class Chain:
         """
         Langchain Wrapper
 
-        :param config: Config object
+        :param config: Config instance
+        :param context: Context instance
         """
         self.config = config
         self.context = context
@@ -34,19 +35,21 @@ class Chain:
 
     def register(self, id, llm):
         """
-        Registers LLM
+        Register LLM
 
-        :param id: LLM ID
+        :param id: LLM id
+        :param llm: LLM object
         """
         self.llms[id] = llm
 
     def build_chat_messages(self, prompt, system_prompt=None):
         """
-        Builds chat messages dict
+        Build chat messages dict
 
-        :param prompt: Prompt
-        :param system_prompt: System prompt (optional)
-        :return: Messages dict
+        :param prompt: prompt
+        :param system_prompt: system prompt (optional)
+        :return: dict of messages
+        :rtype: dict
         """
         messages = []
 
@@ -74,10 +77,11 @@ class Chain:
 
     def build_completion(self, prompt):
         """
-        Builds completion string
+        Build completion string
 
-        :param prompt: Prompt (current)
-        :return: Message string (parsed with context)
+        :param prompt: prompt (current)
+        :return: message string (parsed with context)
+        :rtype: str
         """
         message = ""
 
@@ -117,8 +121,8 @@ class Chain:
         """
         Chat with LLM
 
-        :param text:
-        :param stream_mode:
+        :param text: prompt
+        :param stream_mode: stream mode
         :return: LLM response
         """
         llm = None
@@ -146,8 +150,8 @@ class Chain:
         """
         Chat with LLM
 
-        :param text:
-        :param stream_mode:
+        :param text: prompt
+        :param stream_mode: stream mode
         :return: LLM response
         """
         llm = None
@@ -171,12 +175,13 @@ class Chain:
 
     def call(self, text, ctx, stream_mode=False):
         """
-        Call LLM
+        Call LLM with Langchain
 
-        :param text: Input text
-        :param ctx: Context (memory)
-        :param stream_mode: Stream mode
-        :return: LLM response
+        :param text: input text
+        :param ctx: context (memory)
+        :param stream_mode: stream mode
+        :return: context (memory)
+        :rtype: ContextItem
         """
         cfg = self.config.get_model_cfg(self.config.get('model'))
         response = None

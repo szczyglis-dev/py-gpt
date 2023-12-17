@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 import json
@@ -39,7 +39,7 @@ class Locale:
 
     def load(self, lang):
         """
-        Loads translation ini file
+        Load translation ini file
 
         :param lang: language code
         """
@@ -59,10 +59,11 @@ class Locale:
 
     def get(self, key):
         """
-        Returns translation for key
+        Return translation for key
 
         :param key: translation key
         :return: translated string
+        :rtype: str
         """
         if key in self.data:
             return self.data[key].replace('\\n', "\n")

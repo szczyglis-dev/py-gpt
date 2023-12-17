@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import json
 import os
@@ -21,13 +21,13 @@ class Theme:
         """
         Theme controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.css = {}
 
     def load_css(self):
-        """Loads CSS"""
+        """Load CSS"""
         path = os.path.join(self.window.config.get_root_path(), 'data', 'css', 'highlighter.json')
         if os.path.exists(path):
             try:
@@ -39,10 +39,11 @@ class Theme:
 
     def get_css(self, name):
         """
-        Returns CSS
+        Return CSS rules
 
-        :param name: CSS name
-        :return: CSS
+        :param name: css name
+        :return: css rules
+        :rtype: dict
         """
         if name in self.css:
             return self.css[name]
@@ -50,7 +51,7 @@ class Theme:
 
     def toggle(self, name):
         """
-        Toggles theme
+        Toggle theme
 
         :param name: theme name
         """
@@ -61,7 +62,7 @@ class Theme:
         self.update()
 
     def apply(self):
-        """Applies theme"""
+        """Apply theme"""
         # windows
         self.window.data['output'].setStyleSheet(self.get_style('chat_output'))
         self.window.data['input'].setStyleSheet(self.get_style('chat_input'))
@@ -78,10 +79,11 @@ class Theme:
 
     def get_style(self, element):
         """
-        Returns style for element
+        Return style for element
 
         :param element: element name
-        :return: style
+        :return: style for element
+        :rtype: str
         """
         # get theme element style
         if  element == "chat_output":
@@ -98,11 +100,11 @@ class Theme:
             return "font-size: 9px; color: #999;"
 
     def apply_syntax_highlighter(self, theme):
-        """Applies syntax highlight"""
+        """Apply syntax highlight"""
         self.window.data['output_highlighter'].setTheme(self.get_css('highlighter'))
 
     def update(self):
-        """Updates theme menu"""
+        """Update theme menu"""
         for theme in self.window.menu['theme']:
             self.window.menu['theme'][theme].setChecked(False)
         current = self.window.config.get('theme')
@@ -111,9 +113,10 @@ class Theme:
 
     def get_themes_list(self):
         """
-        Returns list of themes
+        Return list of themes
 
         :return: list of themes
+        :rtype: list
         """
         return ['dark_amber',
                 'dark_blue',
@@ -138,16 +141,17 @@ class Theme:
 
     def trans_theme(self, theme):
         """
-        Translates theme name
+        Translate theme name
 
         :param theme: theme name
         :return: translated theme name
+        :rtype: str
         """
         return theme.replace('_', ' ').title().replace('Dark ', trans('theme.dark') + ': ').replace('Light ', trans(
             'theme.light') + ': ')
 
     def setup(self):
-        """Setups theme"""
+        """Setup theme"""
         # load css files
         self.load_css()
 
@@ -165,6 +169,6 @@ class Theme:
         self.toggle(theme)
 
     def reload(self):
-        """Reloads theme"""
+        """Reload theme"""
         theme = self.window.config.get('theme')
         self.toggle(theme)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 21:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -27,7 +27,7 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """
-        Initializes options
+        Initialize options
         """
         keys = {
             "name": "text",
@@ -52,7 +52,7 @@ class Plugin(BasePlugin):
 
     def setup(self):
         """
-        Returns available config options
+        Return available config options
 
         :return: config options
         """
@@ -60,7 +60,7 @@ class Plugin(BasePlugin):
 
     def attach(self, window):
         """
-        Attaches window
+        Attach window
 
         :param window: Window
         """
@@ -157,7 +157,7 @@ class Plugin(BasePlugin):
 
     def log(self, msg):
         """
-        Logs message to console
+        Log message to console
 
         :param msg: Message to log
         """
@@ -181,7 +181,7 @@ class Plugin(BasePlugin):
 
     def extract_params(self, text):
         """
-        Extracts params from params string
+        Extract params from params string
 
         :param text: Text
         :return: Params list

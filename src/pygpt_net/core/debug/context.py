@@ -14,13 +14,13 @@ class ContextDebug:
         """
         Context debug
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.id = 'context'
 
     def update(self):
-        """Updates debug window."""
+        """Update debug window"""
         self.window.debugger.begin(self.id)
         self.window.debugger.add(self.id, 'current_assistant', str(self.window.gpt.context.current_assistant))
         self.window.debugger.add(self.id, 'current_ctx', str(self.window.gpt.context.current_ctx))

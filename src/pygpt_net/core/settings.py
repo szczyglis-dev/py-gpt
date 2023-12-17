@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import json
 import os
@@ -20,7 +20,7 @@ class Settings:
         """
         Settings handler
 
-        :param window: main window
+        :param window: Window instance
         """
         self.window = window
 
@@ -36,7 +36,7 @@ class Settings:
 
     def load(self):
         """
-        Loads settings options from config file
+        Load settings options from config file
         """
         path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'settings.json')
         if not os.path.isfile(path):
@@ -48,10 +48,11 @@ class Settings:
 
     def get_options(self, id=None):
         """
-        Returns options for given id
+        Return options for given id
 
         :param id: settings id
-        :return: dict
+        :return: dictionary of options
+        :rtype: dict
         """
         if not self.initialized:
             self.load()
@@ -62,9 +63,10 @@ class Settings:
 
     def get_persist_options(self):
         """
-        Returns persist options keys
+        Return persist options keys
 
         :return: list of keys
+        :rtype: list
         """
         if not self.initialized:
             self.load()
@@ -75,12 +77,12 @@ class Settings:
         return persist_options
 
     def load_user_settings(self):
-        """Loads user config (from user home dir)"""
+        """Load user config (from user home dir)"""
         # replace config with user base config
         self.window.config.load_config()
 
     def load_app_settings(self):
-        """Loads base app config (from app root dir)"""
+        """Load base app config (from app root dir)"""
         # persist important values
         persist_options = self.get_persist_options()
         persist_values = {}
@@ -100,13 +102,13 @@ class Settings:
                 self.window.config.set(option, persist_values[option])
 
     def load_default_editor(self):
-        """Loads defaults from file"""
+        """Load defaults from file"""
         file = self.window.dialog['config.editor'].file
         self.load_editor(file)
         self.window.set_status("Loaded defaults from file: {}".format(file))
 
     def save_editor(self):
-        """Saves file to disk"""
+        """Save file to disk"""
         # check if this is a valid JSON:
         data = self.window.editor['config'].toPlainText()
         try:
@@ -139,7 +141,7 @@ class Settings:
 
     def load_editor(self, file=None):
         """
-        Loads file to editor
+        Load file to editor
 
         :param file: file name
         """

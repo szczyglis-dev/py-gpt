@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -20,7 +20,7 @@ class GeneratedImageLabel(QLabel):
         """
         Presets select menu
 
-        :param window: main window
+        :param window: Window instance
         :param path: image path
         """
         super(GeneratedImageLabel, self).__init__(window)

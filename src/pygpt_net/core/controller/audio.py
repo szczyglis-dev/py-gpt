@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
 class Audio:
@@ -14,23 +14,23 @@ class Audio:
         """
         Audio/voice controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setups controller"""
+        """Setup controller"""
         self.update()
 
     def toggle_output(self):
-        """Toggles audio/voice"""
+        """Toggle audio/voice"""
         if self.window.controller.plugins.is_enabled('audio_azure'):
             self.disable_output()
         else:
             self.enable_output()
 
     def enable_output(self):
-        """Enables audio/voice"""
+        """Enable audio/voice"""
         self.window.controller.plugins.enable('audio_azure')
         if self.window.controller.plugins.is_enabled('audio_azure') \
                 and (self.window.controller.plugins.handler.plugins['audio_azure'].options['azure_api_key'] is None
@@ -41,17 +41,17 @@ class Audio:
         self.update()
 
     def disable_output(self):
-        """Disables audio/voice"""
+        """Disable audio/voice"""
         self.window.controller.plugins.disable('audio_azure')
         self.window.config.save()
         self.update()
 
     def update(self):
-        """Updates UI"""
+        """Update UI"""
         self.update_menu()
 
     def update_menu(self):
-        """Updates menu"""
+        """Update menu"""
         if self.window.controller.plugins.is_enabled('audio_azure'):
             self.window.menu['audio.output.azure'].setChecked(True)
         else:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 19:00:00                  #
+# Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -24,7 +24,7 @@ class Assistant:
         """
         Assistants controller
 
-        :param window: main window object
+        :param window: Window instance
         """
         self.window = window
         self.assistants = Assistants(self.window.config)
@@ -39,7 +39,7 @@ class Assistant:
 
     def update(self, update_list=True):
         """
-        Updates assistants list
+        Update assistants list
 
         :param update_list: update list
         """
@@ -49,12 +49,12 @@ class Assistant:
         self.select_assistant_by_current()
 
     def update_list(self):
-        """Updates assistants list"""
+        """Update assistants list"""
         items = self.assistants.get_all()
         self.window.ui.toolbox.update_list_assistants('assistants', items)
 
     def update_uploaded(self):
-        """Updates uploaded files list"""
+        """Update uploaded files list"""
         assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
@@ -65,7 +65,7 @@ class Assistant:
 
     def update_tab_label(self):
         """
-        Updates tab label (attachments uploaded)
+        Update tab label (attachments uploaded)
         """
         assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
@@ -84,9 +84,10 @@ class Assistant:
 
     def assistant_change_locked(self):
         """
-        Checks if assistant change is locked
+        Check if assistant change is locked
 
-        :return: bool
+        :return: true if locked
+        :rtype: bool
         """
         if self.window.controller.input.generating:
             return True
@@ -94,9 +95,9 @@ class Assistant:
 
     def select(self, idx):
         """
-        Selects assistant on the list
+        Select assistant on the list
 
-        :param idx: IDx on the list
+        :param idx: idx on the list
         """
         # check if change is not locked
         if self.assistant_change_locked():
@@ -108,7 +109,7 @@ class Assistant:
 
     def select_by_id(self, id):
         """
-        Selects assistant on the list
+        Select assistant on the list
 
         :param id: assistant ID
         """
@@ -132,12 +133,12 @@ class Assistant:
 
     def update_field(self, id, value, assistant_id=None, current=False):
         """
-        Updates assistant field from editor
+        Update assistant field from editor
 
         :param id: field id
         :param value: field value
         :param assistant_id: assistant ID
-        :param current: if True, updates current assistant
+        :param current: if true, updates current assistant
         """
         if assistant_id is not None and assistant_id != "":
             if self.assistants.has(assistant_id):
@@ -153,7 +154,7 @@ class Assistant:
 
     def edit(self, idx=None):
         """
-        Opens assistant editor
+        Open assistant editor
 
         :param idx: assistant index (row index)
         """
@@ -166,7 +167,7 @@ class Assistant:
 
     def init_editor(self, id=None):
         """
-        Initializes assistant editor
+        Initialize assistant editor
 
         :param id: assistant ID
         """
@@ -223,7 +224,7 @@ class Assistant:
 
     def save(self):
         """
-        Saves assistant
+        Save assistant
         """
         created = False
         id = self.window.config_option['assistant.id'].text()
@@ -264,7 +265,7 @@ class Assistant:
 
     def create(self):
         """
-        Creates assistant
+        Create assistant
         """
         assistant = self.assistants.create()
         self.assign_data(assistant)
@@ -285,12 +286,13 @@ class Assistant:
 
     def import_assistants(self, force=False):
         """
-        Imports all remote assistants from API
+        Import all remote assistants from API
 
-        :param force: if True, imports without confirmation
+        :param force: if true, imports without confirmation
         """
         if not force:
-            self.window.ui.dialogs.confirm('assistant_import', '', trans('confirm.assistant.import'))
+            self.window.ui.dialogs.confirm('assistant_import', '',
+                                           trans('confirm.assistant.import'))
             return
 
         try:
@@ -314,7 +316,7 @@ class Assistant:
 
     def import_files(self, assistant):
         """
-        Imports assistant files
+        Import assistant files
 
         :param assistant: assistant
         """
@@ -331,7 +333,7 @@ class Assistant:
 
     def assign_data(self, assistant):
         """
-        Assigns data from fields to assistant
+        Assign data from fields to assistant
 
         :param assistant: assistant
         """
@@ -365,14 +367,15 @@ class Assistant:
 
     def clear(self, force=False):
         """
-        Clears assistant data
+        Clear assistant data
 
         :param force: force clear data
         """
         id = self.window.config.get('assistant')
 
         if not force:
-            self.window.ui.dialogs.confirm('assistant_clear', '', trans('confirm.assistant.clear'))
+            self.window.ui.dialogs.confirm('assistant_clear', '',
+                                           trans('confirm.assistant.clear'))
             return
 
         if id is not None and id != "":
@@ -385,7 +388,7 @@ class Assistant:
 
     def select_file(self, idx):
         """
-        Selects file
+        Select file
 
         :param idx: index of file
         """
@@ -399,12 +402,13 @@ class Assistant:
 
     def sync_files(self, force=False):
         """
-        Syncs files with API
+        Sync files with API
 
         :param force: force sync files
         """
         if not force:
-            self.window.ui.dialogs.confirm('assistant_import_files', '', trans('confirm.assistant.import_files'))
+            self.window.ui.dialogs.confirm('assistant_import_files', '',
+                                           trans('confirm.assistant.import_files'))
             return
 
         id = self.window.config.get('assistant')
@@ -421,12 +425,13 @@ class Assistant:
 
     def clear_files(self, force=False):
         """
-        Deletes all files
+        Delete all files
 
         :param force: force clear files
         """
         if not force:
-            self.window.ui.dialogs.confirm('attachments_uploaded.clear', -1, trans('attachments_uploaded.clear.confirm'))
+            self.window.ui.dialogs.confirm('attachments_uploaded.clear', -1,
+                                           trans('attachments_uploaded.clear.confirm'))
             return
 
         id = self.window.config.get('assistant')
@@ -455,7 +460,7 @@ class Assistant:
 
     def delete(self, idx=None, force=False):
         """
-        Deletes assistant
+        Delete assistant
 
         :param idx: assistant index (row index)
         :param force: force delete without confirmation
@@ -466,7 +471,8 @@ class Assistant:
                 if self.assistants.has(id):
                     # if exists then show confirmation dialog
                     if not force:
-                        self.window.ui.dialogs.confirm('assistant_delete', idx, trans('confirm.assistant.delete'))
+                        self.window.ui.dialogs.confirm('assistant_delete', idx,
+                                                       trans('confirm.assistant.delete'))
                         return
 
                     # clear if this is current assistant
@@ -486,7 +492,7 @@ class Assistant:
 
     def config_toggle(self, id, value, section=None):
         """
-        Toggles checkbox
+        Toggle checkbox
 
         :param id: checkbox option id
         :param value: checkbox option value
@@ -501,7 +507,7 @@ class Assistant:
 
     def config_change(self, id, value, section=None):
         """
-        Changes input value
+        Change input value
 
         :param id: input option id
         :param value: input option value
@@ -521,7 +527,7 @@ class Assistant:
 
     def rename_file(self, idx):
         """
-        Renames file
+        Rename file
 
         :param idx: selected attachment index
         """
@@ -549,7 +555,7 @@ class Assistant:
 
     def update_file_name(self, file_id, name):
         """
-        Renames uploaded remote file name
+        Rename uploaded remote file name
 
         :param file_id: file_id
         :param name: new name
@@ -566,19 +572,23 @@ class Assistant:
         self.close_rename_file()
 
     def close_rename_file(self):
+        """
+        Close rename dialog
+        """
         # close rename dialog and update attachments list
         self.window.dialog['rename'].close()
         self.update()
 
     def delete_file(self, idx, force=False):
         """
-        Deletes file
+        Delete file
 
         :param idx: file idx
         :param force: force delete without confirmation
         """
         if not force:
-            self.window.ui.dialogs.confirm('attachments_uploaded.delete', idx, trans('attachments_uploaded.delete.confirm'))
+            self.window.ui.dialogs.confirm('attachments_uploaded.delete', idx,
+                                           trans('attachments_uploaded.delete.confirm'))
             return
 
         # get current assistant
@@ -617,7 +627,7 @@ class Assistant:
 
     def clear_attachments(self, assistant):
         """
-        Clears attachments
+        Clear attachments
 
         :param assistant: assistant object
         """
@@ -627,10 +637,11 @@ class Assistant:
 
     def count_upload_attachments(self, attachments):
         """
-        Counts uploaded attachments
+        Count uploaded attachments
 
         :param attachments: attachments list
         :return: number of uploaded files
+        :rtype: int
         """
         num = 0
         for id in list(attachments):
@@ -641,11 +652,12 @@ class Assistant:
 
     def upload_attachments(self, mode, attachments):
         """
-        Uploads attachments to assistant
+        Upload attachments to assistant
 
         :param mode: mode
         :param attachments: attachments list
         :return: number of uploaded files
+        :rtype: int
         """
         # get current chosen assistant
         assistant_id = self.window.config.get('assistant')
@@ -702,7 +714,7 @@ class Assistant:
 
     def append_attachment(self, assistant, attachment):
         """
-        Appends attachment to assistant
+        Append attachment to assistant
 
         :param attachment: attachment
         :param assistant: assistant object
@@ -717,9 +729,10 @@ class Assistant:
 
     def create_thread(self):
         """
-        Creates assistant thread
+        Create assistant thread
 
         :return: thread_id
+        :rtype: str
         """
         thread_id = self.window.gpt.assistant_thread_create()
         self.window.config.set('assistant_thread', thread_id)
@@ -727,7 +740,7 @@ class Assistant:
         return thread_id
 
     def select_assistant_by_current(self):
-        """Selects assistant by current"""
+        """Select assistant by current"""
         assistant_id = self.window.config.get('assistant')
         items = self.window.controller.assistant.assistants.get_all()
         if assistant_id in items:
@@ -736,7 +749,7 @@ class Assistant:
             self.window.data['assistants'].setCurrentIndex(current)
 
     def select_default_assistant(self):
-        """Sets default assistant"""
+        """Set default assistant"""
         assistant = self.window.config.get('assistant')
         if assistant is None or assistant == "":
             mode = self.window.config.get('mode')
@@ -745,12 +758,12 @@ class Assistant:
                 self.update()
 
     def update_assistants(self):
-        """Updates assistants"""
+        """Update assistants"""
         self.select_default_assistant()
 
     def handle_message_files(self, msg):
         """
-        Handles (download) message files
+        Handle (download) message files
 
         :param msg: message
         """
@@ -768,9 +781,9 @@ class Assistant:
 
     def handle_run_messages(self, ctx):
         """
-        Handles run messages
+        Handle run messages
 
-        :param ctx: context
+        :param ctx: ContextItem
         """
         data = self.window.gpt.assistant_msg_list(ctx.thread)
         for msg in data:
@@ -783,9 +796,9 @@ class Assistant:
 
     def handle_run(self, ctx):
         """
-        Handles assistant's run
+        Handle assistant's run
 
-        :param ctx: context
+        :param ctx: ContextItem
         """
         listener = AssistantRunThread(window=self.window, ctx=ctx)
         listener.updated.connect(self.handle_status)
@@ -802,7 +815,7 @@ class Assistant:
         Insert text to input and send
 
         :param status: status
-        :param ctx: context
+        :param ctx: ContextItem
         """
         print("Run status: {}".format(status))
         if status != "queued" and status != "in_progress":
@@ -842,14 +855,21 @@ class AssistantRunThread(QObject):
         """
         Run assistant run status check thread
 
-        :param window: window
-        :param ctx: context
+        :param window: Window instance
+        :param ctx: ContextItem
         """
         super().__init__()
         self.window = window
         self.ctx = ctx
         self.check = True
-        self.stop_reasons = ["cancelling", "cancelled", "failed", "completed", "expired", "requires_action"]
+        self.stop_reasons = [
+            "cancelling",
+            "cancelled",
+            "failed",
+            "completed",
+            "expired",
+            "requires_action",
+        ]
 
     def run(self):
         """Run thread"""
