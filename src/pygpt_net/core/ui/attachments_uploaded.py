@@ -95,6 +95,8 @@ class AttachmentsUploaded:
         self.window.models[id].removeRows(0, self.window.models[id].rowCount())
         i = 0
         for uuid in data:
+            if 'name' not in data[uuid]:
+                continue
             self.window.models[id].insertRow(i)
             self.window.models[id].setData(self.window.models[id].index(i, 0), data[uuid]['name'])
             self.window.models[id].setData(self.window.models[id].index(i, 1), data[uuid]['path'])

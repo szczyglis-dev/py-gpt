@@ -184,10 +184,15 @@ class Assistants:
         for file in data:
             id = file.id
             remote_ids.append(id)
-
+            name = ""
+            path = ""
             if id in assistant.files:
-                name = assistant.files[id]['name']
-                path = assistant.files[id]['path']
+                if 'name' in assistant.files[id] and assistant.files[id]['name'] != '':
+                    name = assistant.files[id]['name']
+                else:
+                    name = id
+                if 'path' in assistant.files[id]:
+                    path = assistant.files[id]['path']
             elif id in assistant.attachments:
                 name = assistant.attachments[id].name
                 path = assistant.attachments[id].path
