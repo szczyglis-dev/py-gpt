@@ -23,6 +23,7 @@ class Layout:
         self.window = window
         # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
         self.splitters = ["main", "main.output", "toolbox", "toolbox.mode"]  # prevent assistants column disappearing
+        self.scrolls = ["notepad1", "notepad2", "notepad3", "notepad4", "notepad5"]
 
     def setup(self):
         """Setups layout"""
@@ -34,6 +35,7 @@ class Layout:
         self.splitters_restore()
         self.tabs_restore()
         self.groups_restore()
+        self.scroll_restore()
 
         # restore plugin settings state
         self.window.controller.plugins.set_plugin_by_tab(self.window.tabs['plugin.settings'].currentIndex())
@@ -42,8 +44,9 @@ class Layout:
         """Save layout state"""
         self.splitters_save()
         self.tabs_save()
-        self.state_save()
         self.groups_save()
+        self.scroll_save()
+        self.state_save()
 
     def tabs_save(self):
         """Save tabs state"""
@@ -101,6 +104,25 @@ class Layout:
                     self.window.groups[id].collapse(data[id])
                 except Exception as e:
                     print("Error while restoring group state: " + str(e))
+
+    def scroll_save(self):
+        """Save scroll state"""
+        data = {}
+        for scroll in self.scrolls:
+            data[scroll] = self.window.data[scroll].verticalScrollBar().value()
+        self.window.config.set('layout.scroll', data)
+
+    def scroll_restore(self):
+        """Restore scroll state"""
+        if not self.window.config.has('layout.scroll'):
+            return
+        data = self.window.config.get('layout.scroll')
+        for scroll in self.scrolls:
+            if scroll in data:
+                try:
+                    self.window.data[scroll].verticalScrollBar().setValue(data[scroll])
+                except Exception as e:
+                    print("Error while restoring scroll state: " + str(e))
 
     def state_restore(self):
         """Restore window state"""

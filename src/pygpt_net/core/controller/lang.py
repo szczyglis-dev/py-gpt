@@ -147,7 +147,9 @@ class Lang:
 
         # vision
         self.window.data['vision.capture.enable'].setText(trans("vision.capture.enable"))
+        self.window.data['vision.capture.enable'].setToolTip(trans("vision.capture.enable.tooltip"))
         self.window.data['vision.capture.auto'].setText(trans("vision.capture.auto"))
+        self.window.data['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
         self.window.data['vision.capture.label'].setText(trans('vision.capture.options.title'))
 
         # capture label

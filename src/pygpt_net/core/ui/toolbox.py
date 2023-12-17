@@ -75,7 +75,7 @@ class Toolbox:
 
         self.window.splitters['toolbox'] = QSplitter(Qt.Vertical)
         self.window.splitters['toolbox'].addWidget(self.window.splitters['toolbox.mode'])  # mode and model list
-        self.window.splitters['toolbox'].addWidget(self.window.splitters['toolbox.presets'])  # presets and assistants list
+        self.window.splitters['toolbox'].addWidget(self.window.splitters['toolbox.presets'])  # presets/assistants list
         self.window.splitters['toolbox'].addWidget(prompt_widget)  # prompt text (editable)
 
         # AI and users names
@@ -100,7 +100,7 @@ class Toolbox:
 
         dalle_label = QLabel(trans("toolbox.img_variants.label"))
 
-        # dalle layout
+        # DALL-E layout
         dalle_opts_layout = QHBoxLayout()
         dalle_opts_layout.addWidget(self.window.config_option['img_raw'])
         dalle_opts_layout.addWidget(self.window.config_option['img_variants'])
@@ -116,10 +116,12 @@ class Toolbox:
         self.window.data['vision.capture.enable'] = QCheckBox(trans("vision.capture.enable"))
         self.window.data['vision.capture.enable'].stateChanged.connect(
             lambda: self.window.controller.camera.toggle(self.window.data['vision.capture.enable'].isChecked()))
+        self.window.data['vision.capture.enable'].setToolTip(trans('vision.capture.enable.tooltip'))
 
         self.window.data['vision.capture.auto'] = QCheckBox(trans("vision.capture.auto"))
         self.window.data['vision.capture.auto'].stateChanged.connect(
             lambda: self.window.controller.camera.toggle_auto(self.window.data['vision.capture.auto'].isChecked()))
+        self.window.data['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
 
         self.window.data['vision.capture.label'] = QLabel(trans('vision.capture.options.title'))
 
