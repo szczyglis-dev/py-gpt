@@ -25,7 +25,7 @@ class Context:
             'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'img': ['img'],
             'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'vision': ['vision'],
+            'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'assistant': ['assistant'],
         }
 
