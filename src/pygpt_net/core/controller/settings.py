@@ -81,7 +81,7 @@ class Settings:
         self.window.set_status(info)
         self.close_window(id)
         self.update_font_size()
-        self.window.controller.ui.update_all()
+        self.window.controller.ui.update()
 
         # update layout if needed
         if self.before_config['layout.density'] != self.window.config.get('layout.density'):
@@ -95,7 +95,7 @@ class Settings:
         self.window.controller.notepad.save()
         self.window.ui.dialogs.alert(info)
         self.window.set_status(info)
-        self.window.controller.ui.update_all()
+        self.window.controller.ui.update()
 
     def start_settings(self):
         """Opens settings at first launch (no API key)"""

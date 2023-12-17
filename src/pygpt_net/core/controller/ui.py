@@ -27,19 +27,25 @@ class UI:
         self.update()
 
     def update(self):
-        """Updates UI"""
-        self.update_tokens()
+        """Updates all elements"""
+        # update mode, models and presets lists
+        self.update_toolbox()
 
-    def update_all(self):
-        """Updates all UI elements"""
         # update chat label
-        self.window.controller.ui.update_chat_label()
+        self.update_chat_label()
 
         # show / hide widgets
-        self.window.controller.ui.update_active()
+        self.update_active()
 
         # update token counters
-        self.window.controller.ui.update_tokens()
+        self.update_tokens()
+
+    def update_toolbox(self):
+        """Updates toolbox"""
+        self.window.controller.model.update_mode()
+        self.window.controller.model.update_models()
+        self.window.controller.model.update_presets()
+        self.window.controller.assistant.update_assistants()
 
     def update_tokens(self):
         """Updates tokens counters"""

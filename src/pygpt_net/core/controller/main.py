@@ -6,31 +6,31 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.17 21:00:00                  #
 # ================================================== #
 
-from .model import Model
-from .presets import Presets
-from .plugins import Plugins
+from .assistant import Assistant
+from .attachment import Attachment
+from .audio import Audio
+from .camera import Camera
+from .confirm import Confirm
+from .context import Context
 from .debug import Debug
-from .settings import Settings
+from .files import Files
+from .image import Image
 from .info import Info
 from .input import Input
-from .output import Output
-from .context import Context
-from .confirm import Confirm
-from .ui import UI
-from .launcher import Launcher
 from .lang import Lang
-from .image import Image
-from .theme import Theme
-from .audio import Audio
-from .attachment import Attachment
-from .notepad import Notepad
-from .files import Files
-from .assistant import Assistant
+from .launcher import Launcher
 from .layout import Layout
-from .camera import Camera
+from .model import Model
+from .notepad import Notepad
+from .output import Output
+from .plugins import Plugins
+from .presets import Presets
+from .settings import Settings
+from .theme import Theme
+from .ui import UI
 
 
 class Controller:
@@ -41,44 +41,47 @@ class Controller:
         :param window: main window object
         """
         self.window = window
-        self.model = Model(window)
-        self.presets = Presets(window)
-        self.plugins = Plugins(window)
+        self.assistant = Assistant(window)
+        self.attachment = Attachment(window)
+        self.audio = Audio(window)
+        self.camera = Camera(window)
+        self.confirm = Confirm(window)
+        self.context = Context(window)
         self.debug = Debug(window)
-        self.settings = Settings(window)
+        self.files = Files(window)
+        self.image = Image(window)
         self.info = Info(window)
         self.input = Input(window)
-        self.output = Output(window)
-        self.context = Context(window)
-        self.confirm = Confirm(window)
-        self.ui = UI(window)
-        self.launcher = Launcher(window)
         self.lang = Lang(window)
-        self.image = Image(window)
-        self.theme = Theme(window)
-        self.audio = Audio(window)
-        self.attachment = Attachment(window)
-        self.notepad = Notepad(window)
-        self.files = Files(window)
-        self.assistant = Assistant(window)
+        self.launcher = Launcher(window)
         self.layout = Layout(window)
-        self.camera = Camera(window)
+        self.model = Model(window)
+        self.notepad = Notepad(window)
+        self.output = Output(window)
+        self.plugins = Plugins(window)
+        self.presets = Presets(window)
+        self.settings = Settings(window)
+        self.theme = Theme(window)
+        self.ui = UI(window)
 
     def setup(self):
         """Setups controller"""
-        # init material theme
-        self.layout.setup()
+        # init
+        self.launcher.setup()
 
-        # setup all controllers
+        # setup layout
+        self.layout.setup()
+        self.ui.setup()
+
+        # setup controllers
         self.lang.setup()
         self.model.setup()
         self.assistant.setup()
         self.input.setup()
         self.output.setup()
         self.context.setup()
-        self.ui.setup()
+        self.ui.update_tokens()
         self.info.setup()
-        self.launcher.setup()
         self.audio.setup()
         self.attachment.setup()
         self.notepad.setup()
@@ -91,5 +94,5 @@ class Controller:
         self.plugins.setup_settings()
 
     def update(self):
-        """On update"""
+        """On app main loop update"""
         self.camera.update()

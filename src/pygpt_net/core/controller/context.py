@@ -147,7 +147,7 @@ class Context:
             self.reload()
             self.select_ctx_by_current()
 
-        self.window.controller.ui.update_all()
+        self.window.controller.ui.update()
         self.window.debugger.update(True)
 
         ctx = self.window.gpt.context.current_ctx

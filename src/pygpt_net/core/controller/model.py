@@ -22,16 +22,8 @@ class Model:
         self.window = window
 
     def setup(self):
-        """Setups all select lists"""
-        self.update()
-
-    def update(self):
-        """Updates all lists"""
-        # update mode, models and presets lists
-        self.update_toolbox()
-
-        # update chat label, show/hide widgets, update token counters
-        self.window.controller.ui.update_all()
+        """Setups"""
+        pass
 
     def select(self, id, value):
         """
@@ -60,7 +52,8 @@ class Model:
             mode = self.window.config.get('mode')
             self.set_preset_by_idx(mode, value)
 
-        self.update()
+        # update all layout
+        self.window.controller.ui.update()
 
     def set_mode(self, mode):
         """
@@ -79,7 +72,9 @@ class Model:
         self.window.config.set('preset', "")
         self.window.controller.attachment.update()
         self.window.controller.context.update_ctx()
-        self.update()
+
+        # update all layout
+        self.window.controller.ui.update()
 
         self.window.set_status(trans('status.started'))
 
@@ -314,13 +309,6 @@ class Model:
         self.update_current_temperature()
         self.update_list_presets()
         self.select_preset_by_current()
-
-    def update_toolbox(self):
-        """Updates toolbox"""
-        self.update_mode()
-        self.update_models()
-        self.update_presets()
-        self.window.controller.assistant.update_assistants()
 
     def reset_preset_data(self):
         """Resets preset data"""
