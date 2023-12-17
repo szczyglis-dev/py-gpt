@@ -483,7 +483,7 @@ class Updater:
                 migrated = True
 
         if migrated:
-            print("Migrated config.json [OK]")
+            print("Migrated config.json. [OK]")
 
     def post_check_config(self):
         """
