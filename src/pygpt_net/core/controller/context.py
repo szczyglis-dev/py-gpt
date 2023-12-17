@@ -98,8 +98,11 @@ class Context:
         :param check_assistant: True if check also current assistant
         :return: bool
         """
-        ctx = self.window.config.get('ctx')
+        # always allow if lock_modes is disabled
+        if not self.window.config.get('lock_modes'):
+            return True
 
+        ctx = self.window.config.get('ctx')
         if ctx is None or ctx == '':
             return True
         ctx_data = self.window.gpt.context.get_context_by_name(ctx)
@@ -114,7 +117,6 @@ class Context:
                         return True
                 else:
                     return True  # if no assistant in context then allow
-
             # in other modes, then always return False
             return False
 
@@ -158,7 +160,7 @@ class Context:
                     assistant_id = ctx_assistant_id
                 else:
                     assistant_id = self.window.config.get('assistant')
-            self.update_ctx_label(mode, assistant_id)
+            self.update_ctx_label(mode, assistant_id)  # OK
 
     def load(self, ctx):
         """
@@ -187,6 +189,9 @@ class Context:
             if mode == 'assistant':
                 if assistant_id is not None:
                     self.window.controller.assistant.select_by_id(assistant_id)
+                else:
+                    # empty ctx assistant
+                    assistant_id = self.window.config.get('assistant')
 
         # set current context label
         self.update_ctx_label(mode, assistant_id)
@@ -201,11 +206,20 @@ class Context:
         """
         mode = self.window.gpt.context.current_mode
         assistant_id = self.window.gpt.context.current_assistant
+
+        if mode is None:
+            mode = self.window.config.get('mode')
+
         mode_str = trans('mode.' + mode)
-        if mode == 'assistant' and assistant_id is not None:
+        if mode == 'assistant':
             assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
             if assistant is not None:
                 mode_str += ' (' + assistant.name + ')'
+            else:
+                assistant_id = self.window.config.get('assistant')
+                assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+                if assistant is not None:
+                    mode_str += ' (' + assistant.name + ')'
         # update context label
         self.set_ctx_label(mode_str)
 

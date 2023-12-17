@@ -109,7 +109,7 @@ class Context:
         if self.current_ctx is None:
             return
 
-        self.current_assistant = self.config.get('assistant')
+        self.current_assistant = self.config.get('assistant')  # update assistant
         self.contexts[self.current_ctx]['last_mode'] = mode
         if mode == 'assistant':
             self.contexts[self.current_ctx]['assistant'] = self.current_assistant
@@ -146,6 +146,7 @@ class Context:
         }
         self.current_ctx = name
         self.current_thread = None
+        self.current_assistant = None
         self.current_mode = self.config.get('mode')
         self.items = []
         self.dump_context(name)

@@ -46,6 +46,8 @@ class Assistants:
         :return: assistant
         """
         assistants = self.get_all()
+        if id not in assistants:
+            return None
         return assistants[id]
 
     def get_all(self):

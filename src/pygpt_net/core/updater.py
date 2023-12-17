@@ -462,6 +462,13 @@ class Updater:
                 data['plugins']['audio_openai_whisper']['min_energy'] = 1.3
                 updated = True
 
+            # < 2.0.34
+            if old < parse_version("2.0.34"):
+                print("Migrating config from < 2.0.34...")
+                if 'lock_modes' not in data:
+                    data['lock_modes'] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:

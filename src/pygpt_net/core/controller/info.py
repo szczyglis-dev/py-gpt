@@ -48,6 +48,10 @@ class Info:
         """Opens docs"""
         webbrowser.open(self.window.docs)
 
+    def goto_pypi(self):
+        """Opens PyPi"""
+        webbrowser.open(self.window.pypi)
+
     def goto_github(self):
         """Opens GitHub page"""
         webbrowser.open(self.window.github)

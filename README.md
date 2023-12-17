@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.33** build: **2023.12.17** | Python: 3.9+
+Release: **2.0.34** build: **2023.12.17** | Python: 3.9+
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1182,6 +1182,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.34 (2023-12-17)
+
+- Added option "Lock incompatible modes" to prevent mixing of incompatible contexts.
+- Added PyPI link to the About menu. 
 
 ## 2.0.33 (2023-12-17)
 

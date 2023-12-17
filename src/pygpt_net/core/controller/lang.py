@@ -229,6 +229,7 @@ class Lang:
         self.window.menu['info.about'].setText(trans("menu.info.about"))
         self.window.menu['info.changelog'].setText(trans("menu.info.changelog"))
         self.window.menu['info.docs'].setText(trans("menu.info.docs"))
+        self.window.menu['info.pypi'].setText(trans("menu.info.pypi"))
         self.window.menu['info.website'].setText(trans("menu.info.website"))
         self.window.menu['info.github'].setText(trans("menu.info.github"))
 

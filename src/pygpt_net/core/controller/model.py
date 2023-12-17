@@ -119,6 +119,10 @@ class Model:
         else:
             self.window.controller.camera.hide_camera()
 
+        if mode == "assistant":
+            # update ctx label
+            self.window.controller.context.update_ctx_label_by_current()
+
     def reset_preset_data(self):
         """Resets preset data"""
         self.window.data['preset.prompt'].setPlainText("")

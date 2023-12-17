@@ -244,7 +244,8 @@ class Settings:
                     self.window.data['vision.capture.auto'].setChecked(value)
 
         # update checkbox
-        self.window.config_option[id].box.setChecked(value)
+        if id in self.window.config_option and value is not None:
+            self.window.config_option[id].box.setChecked(value)
 
     def change(self, id, value, section=None):
         """

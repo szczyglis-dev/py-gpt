@@ -58,6 +58,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.github = get_init_value("__github__")
         self.website = get_init_value("__website__")
         self.docs = get_init_value("__documentation__")
+        self.pypi = get_init_value("__pypi__")
         self.version = get_init_value("__version__")
         self.build = get_init_value("__build__")
         self.author = get_init_value("__author__")
@@ -91,7 +92,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui = UI(self)
         self.ui.setup()
 
-        self.setWindowTitle('PyGPT.net - Desktop AI Assistant v{} | build {}'.format(self.version, self.build))
+        self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.format(self.version, self.build))
 
         # setup signals
         self.statusChanged.connect(self.update_status)
@@ -100,7 +101,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         Logs data to console
 
-        :param text: text to log
+        :param data: data to log
         """
         self.controller.debug.log(data)
 

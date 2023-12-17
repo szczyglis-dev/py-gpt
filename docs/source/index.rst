@@ -6,11 +6,11 @@
 PyGPT v2 - pygpt.net
 ====================
 
-| **Last update:** 2023-12-17 03:00
+| **Last update:** 2023-12-17 05:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 2.0.33 (2023-12-17)
+| **Release:** 2.0.34 (2023-12-17)
 
 .. toctree::
    :maxdepth: 3

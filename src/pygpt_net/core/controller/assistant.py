@@ -65,9 +65,7 @@ class Assistant:
 
     def update_tab_label(self):
         """
-        Updates tab label
-
-        :param mode: mode
+        Updates tab label (attachments uploaded)
         """
         assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
@@ -78,6 +76,8 @@ class Assistant:
         items = assistant.files
         num_files = len(items)
         suffix = ''
+
+        # append num of files
         if num_files > 0:
             suffix = f' ({num_files})'
         self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
@@ -106,9 +106,6 @@ class Assistant:
         id = self.assistants.get_by_idx(idx)
         self.select_by_id(id)
 
-        # update ctx label
-        self.window.controller.context.update_ctx_label_by_current()
-
     def select_by_id(self, id):
         """
         Selects assistant on the list
@@ -124,7 +121,7 @@ class Assistant:
         self.window.controller.attachment.update()
         self.update(False)
 
-        # update model if exists
+        # update model if exists in assistant
         if assistant is not None:
             model = assistant.model
             if model is not None and model != "":
