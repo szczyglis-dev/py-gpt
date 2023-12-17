@@ -163,11 +163,11 @@ class Input:
             try:
                 # it uploads only new attachments (not uploaded before to remote)
                 attachments = self.window.controller.attachment.attachments.get_all(mode)
-                c = self.window.controller.assistant.count_upload_attachments(attachments)
+                c = self.window.controller.assistant_files.count_upload_attachments(attachments)
                 if c > 0:
                     is_upload = True
                     self.window.set_status(trans('status.uploading'))
-                    num_uploaded = self.window.controller.assistant.upload_attachments(mode, attachments)
+                    num_uploaded = self.window.controller.assistant_files.upload_attachments(mode, attachments)
                     self.window.gpt.file_ids = self.window.controller.attachment.attachments.get_ids(mode)
                 # show uploaded status
                 if is_upload and num_uploaded > 0:
@@ -235,7 +235,6 @@ class Input:
         # append input to chat window
         self.window.controller.output.append_input(ctx)
         QApplication.processEvents()  # process events to update UI
-        self.window.controller.ui.update_tokens()  # update UI
 
         # async or sync mode
         stream_mode = self.window.config.get('stream')
@@ -288,7 +287,7 @@ class Input:
 
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
-            print("Error in send text: " + str(e))
+            print("Error sending text: " + str(e))
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -481,7 +480,7 @@ class Input:
         # unlock Assistant run thread if locked
         self.window.controller.assistant.force_stop = False
         self.force_stop = False
-        self.window.statusChanged.emit(trans('status.sending'))
+        self.window.set_status(trans('status.sending'))
 
         ctx = None
         if text is None:
@@ -503,7 +502,7 @@ class Input:
             # check API key
             if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
                 self.window.controller.launcher.show_api_monit()
-                self.window.statusChanged.emit("Missing API KEY!")
+                self.window.set_status("Missing API KEY!")
                 self.generating = False
                 return
 
@@ -524,7 +523,7 @@ class Input:
             QApplication.processEvents()
 
             # send input to API
-            self.generating = True  # mark as generating
+            self.generating = True  # mark as generating (lock)
             if self.window.config.get('mode') == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
@@ -547,13 +546,13 @@ class Input:
             # if reply from commands then send reply (as response JSON)
             if ctx.reply:
                 self.window.controller.input.send(json.dumps(ctx.results))
-                self.window.controller.ui.update_tokens()
 
             self.generating = False
+            self.window.controller.ui.update()  # update UI
             return
 
-        self.window.controller.ui.update_tokens()  # update tokens counters
         self.generating = False  # unlock as not generating
+        self.window.controller.ui.update()  # update UI
 
     def append(self, text):
         """

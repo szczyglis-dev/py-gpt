@@ -10,6 +10,7 @@
 # ================================================== #
 
 from .assistant import Assistant
+from .assistant_files import AssistantFiles
 from .attachment import Attachment
 from .audio import Audio
 from .camera import Camera
@@ -42,6 +43,7 @@ class Controller:
         """
         self.window = window
         self.assistant = Assistant(window)
+        self.assistant_files = AssistantFiles(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
         self.camera = Camera(window)

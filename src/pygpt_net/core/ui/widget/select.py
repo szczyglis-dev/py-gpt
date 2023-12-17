@@ -465,7 +465,7 @@ class AttachmentUploadedSelectMenu(SelectMenu):
 
         :param val: click event
         """
-        self.window.controller.assistant.select_file(val.row())
+        self.window.controller.assistant_files.select_file(val.row())
 
     def dblclick(self, val):
         """
@@ -473,7 +473,7 @@ class AttachmentUploadedSelectMenu(SelectMenu):
 
         :param val: double click event
         """
-        self.window.controller.assistant.select_file(val.row())
+        self.window.controller.assistant_files.select_file(val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -497,7 +497,7 @@ class AttachmentUploadedSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant.select_file(item.row())
+            self.window.controller.assistant_files.select_file(item.row())
             menu.exec_(event.globalPos())
 
     def action_rename(self, event):
@@ -509,7 +509,7 @@ class AttachmentUploadedSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant.rename_file(idx)
+            self.window.controller.assistant_files.rename_file(idx)
 
     def action_delete(self, event):
         """
@@ -520,4 +520,4 @@ class AttachmentUploadedSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant.delete_file(idx)
+            self.window.controller.assistant_files.delete_file(idx)

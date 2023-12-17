@@ -41,11 +41,11 @@ class Confirm:
         elif type == 'attachments.delete':
             self.window.controller.attachment.delete(id, True)
         elif type == 'attachments_uploaded.delete':
-            self.window.controller.assistant.delete_file(id, True)
+            self.window.controller.assistant_files.delete_file(id, True)
         elif type == 'attachments.clear':
             self.window.controller.attachment.clear(True)
         elif type == 'attachments_uploaded.clear':
-            self.window.controller.assistant.clear_files(True)
+            self.window.controller.assistant_files.clear_files(True)
         elif type == 'files.delete':
             self.window.controller.files.delete(id, True)
         elif type == 'assistant_delete':
@@ -53,7 +53,7 @@ class Confirm:
         elif type == 'assistant_import':
             self.window.controller.assistant.import_assistants(True)
         elif type == 'assistant_import_files':
-            self.window.controller.assistant.sync_files(True)
+            self.window.controller.assistant_files.sync_files(True)
         elif type == 'settings.defaults.user':
             self.window.controller.settings.load_defaults_user(True)
         elif type == 'settings.defaults.app':
@@ -85,7 +85,7 @@ class Confirm:
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':
-            self.window.controller.assistant.update_file_name(id, name)
+            self.window.controller.assistant_files.update_file_name(id, name)
         elif type == 'output_file':
             self.window.controller.files.update_name(id, name)
 

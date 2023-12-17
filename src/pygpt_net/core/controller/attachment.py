@@ -140,7 +140,7 @@ class Attachment:
         if self.window.config.get('mode') == 'assistant':
             assistant_id = self.window.config.get('assistant')
             if assistant_id is not None:
-                self.window.controller.assistant.update_file_name(file_id, name)
+                self.window.controller.assistant_files.update_file_name(file_id, name)
 
         # close rename dialog and update attachments list
         self.window.dialog['rename'].close()
@@ -176,7 +176,7 @@ class Attachment:
             if assistant_id is not None:
                 assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
                 if assistant is not None:
-                    self.window.controller.assistant.clear_attachments(assistant)
+                    self.window.controller.assistant_files.clear_attachments(assistant)
         self.update()
 
     def open_add(self):
@@ -196,7 +196,7 @@ class Attachment:
                     if assistant_id is not None:
                         assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
                         if assistant is not None:
-                            self.window.controller.assistant.append_attachment(assistant, attachment)
+                            self.window.controller.assistant_files.append_attachment(assistant, attachment)
 
             # save attachments and update attachments list
             self.attachments.save()
