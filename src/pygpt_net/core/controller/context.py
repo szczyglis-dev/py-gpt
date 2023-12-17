@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 16:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -20,6 +20,8 @@ class Context:
         :param window: main window object
         """
         self.window = window
+
+        # modes allowed for switch from (key: from, data: to)
         self.allowed_modes = {
             'chat': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
@@ -140,6 +142,7 @@ class Context:
 
         ctx = self.window.gpt.context.current_ctx
         thread = self.window.gpt.context.current_thread
+
         if ctx is not None:
             self.window.config.set('ctx', ctx)
             self.window.config.set('assistant_thread', thread)
@@ -170,28 +173,37 @@ class Context:
         """
         self.window.gpt.context.select(ctx)
 
-        # set current thread
+        # get current settings stored in context
         thread = self.window.gpt.context.current_thread
         mode = self.window.gpt.context.current_mode
         assistant_id = self.window.gpt.context.current_assistant
+        preset = self.window.gpt.context.current_preset
 
+        # restore current thread
         self.window.config.set('assistant_thread', thread)
 
         # update output and context list
         self.window.controller.output.clear()
         self.window.controller.output.append_context()
-        self.update()
 
-        # change to saved mode
+        # switch to saved mode
         if mode is not None:
-            self.window.controller.model.set_mode(mode)
-            # if assistant then select stored assistant
+            self.window.controller.model.set_mode(mode)  # preset reset here
+
+            # switch to saved preset
+            if preset is not None:
+                self.window.controller.model.set_preset(mode, preset)
+                self.window.controller.model.update()
+
+            # if assistant then switch to stored assistant
             if mode == 'assistant':
                 if assistant_id is not None:
                     self.window.controller.assistant.select_by_id(assistant_id)
                 else:
                     # empty ctx assistant
                     assistant_id = self.window.config.get('assistant')
+
+        self.update()
 
         # set current context label
         self.update_ctx_label(mode, assistant_id)

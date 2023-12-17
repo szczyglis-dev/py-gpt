@@ -439,7 +439,9 @@ class Input:
             trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
         # store history (output)
-        if self.window.config.get('store_history') and ctx.output is not None and ctx.output.strip() != "":
+        if self.window.config.get('store_history') \
+                and ctx.output is not None \
+                and ctx.output.strip() != "":
             self.history.save(ctx.output)
 
     def user_send(self, text=None):

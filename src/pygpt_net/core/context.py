@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -33,6 +33,7 @@ class Context:
         self.current_thread = None
         self.current_run = None
         self.current_status = None
+        self.current_preset = None
         self.current_mode = None
         self.last_mode = None
 
@@ -91,7 +92,7 @@ class Context:
 
     def update(self):
         """
-        Updates current context mode
+        Updates current context parent (when context item load from the list or setting mode)
         """
         self.current_mode = self.config.get('mode')
 
@@ -102,17 +103,26 @@ class Context:
 
     def post_update(self, mode):
         """
-        Updates current (last) context mode and assistant
+        Updates current (last) context data
 
         :param mode: mode name
         """
         if self.current_ctx is None:
             return
 
+        # update current
         self.current_assistant = self.config.get('assistant')  # update assistant
+        self.current_preset = self.config.get('preset')  # update preset
+
+        # update current context data
         self.contexts[self.current_ctx]['last_mode'] = mode
+        self.contexts[self.current_ctx]['preset'] = self.current_preset
+
+        # if assistant then update assistant
         if mode == 'assistant':
             self.contexts[self.current_ctx]['assistant'] = self.current_assistant
+
+        # save context
         self.dump_context(self.current_ctx)
 
     def create_id(self):
@@ -140,6 +150,7 @@ class Context:
             'last_mode': self.config.get('mode'),
             'thread': None,
             'assistant': None,
+            'preset': None,
             'run': None,
             'status': None,
             'initialized': False,
@@ -148,6 +159,7 @@ class Context:
         self.current_thread = None
         self.current_assistant = None
         self.current_mode = self.config.get('mode')
+        self.current_preset = self.config.get('preset')
         self.items = []
         self.dump_context(name)
 
@@ -416,13 +428,21 @@ class Context:
         if name in self.contexts:
             ctx = self.contexts[name]
             self.current_ctx = name
+
+            # reset
             self.current_thread = None
+            self.current_mode = None
+            self.current_assistant = None
+
+            # restore
             if 'thread' in ctx:
                 self.current_thread = ctx['thread']
             if 'mode' in ctx:
                 self.current_mode = ctx['mode']
             if 'assistant' in ctx:
                 self.current_assistant = ctx['assistant']
+            if 'preset' in ctx:
+                self.current_preset = ctx['preset']
 
             self.items = self.load(name)
 

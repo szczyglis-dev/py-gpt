@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 16:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -43,20 +43,14 @@ class Model:
             # check if model change is not locked
             if self.model_change_locked():
                 return
-
             mode = self.window.config.get('mode')
-            model = self.window.config.get_model_by_idx(value, mode)
-            self.window.config.set('model', model)
-            self.window.config.data['current_model'][mode] = model
+            self.set_model_by_idx(mode, value)
         elif id == 'preset.presets':
             # check if preset change is not locked
             if self.preset_change_locked():
                 return
-
             mode = self.window.config.get('mode')
-            preset = self.window.config.get_preset_by_idx(value, mode)
-            self.window.config.data['preset'] = preset
-            self.window.config.data['current_preset'][mode] = preset
+            self.set_preset_by_idx(mode, value)
 
         self.update()
 
@@ -119,9 +113,52 @@ class Model:
         else:
             self.window.controller.camera.hide_camera()
 
+        # assistant
         if mode == "assistant":
             # update ctx label
             self.window.controller.context.update_ctx_label_by_current()
+
+    def set_preset_by_idx(self, mode, idx):
+        """
+        Sets preset by index
+
+        :param mode: mode name
+        :param idx: preset index
+        """
+        preset = self.window.config.get_preset_by_idx(idx, mode)
+        self.window.config.data['preset'] = preset
+        self.window.config.data['current_preset'][mode] = preset
+
+    def set_preset(self, mode, preset):
+        """
+        Sets preset
+
+        :param mode: mode name
+        :param preset: preset name
+        """
+        self.window.config.data['preset'] = preset
+        self.window.config.data['current_preset'][mode] = preset
+
+    def set_model_by_idx(self, mode, idx):
+        """
+        Sets model by index
+
+        :param mode: mode name
+        :param idx: model index
+        """
+        model = self.window.config.get_model_by_idx(idx, mode)
+        self.window.config.set('model', model)
+        self.window.config.data['current_model'][mode] = model
+
+    def set_model(self, mode, model):
+        """
+        Sets model
+
+        :param mode: mode name
+        :param model: model name
+        """
+        self.window.config.set('model', model)
+        self.window.config.data['current_model'][mode] = model
 
     def reset_preset_data(self):
         """Resets preset data"""
