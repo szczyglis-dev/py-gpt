@@ -825,6 +825,7 @@ class Gpt:
     def encode_image(self, image_path):
         """
         Encode image to base64
+        
         :param image_path: path to image
         :return: base64 encoded image
         :rtype: str
