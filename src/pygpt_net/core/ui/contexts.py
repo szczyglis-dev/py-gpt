@@ -77,6 +77,9 @@ class Contexts:
 
         self.window.models[id] = self.create_model(self.window)
         self.window.data[id].setModel(self.window.models[id])
+
+        # prevent focus out selection leave
+        self.window.data[id].selectionModel().selectionChanged.connect(self.window.data[id].lockSelection)
         return layout
 
     def create_model(self, parent):
@@ -96,6 +99,7 @@ class Contexts:
         :param id: ID of the list
         :param data: Data to update
         """
+        self.window.data[id].backup_selection()
         self.window.models[id].removeRows(0, self.window.models[id].rowCount())
         i = 0
         for n in data:
@@ -105,6 +109,8 @@ class Contexts:
                 name = data[n]['name'] + ' (' + dt + ')'
                 self.window.models[id].setData(self.window.models[id].index(i, 0), name)
                 i += 1
+
+        self.window.data[id].restore_selection()
 
     def convert_date(self, date_str):
         """

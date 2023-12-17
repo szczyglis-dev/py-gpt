@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 16:00:00                  #
+# Updated Date: 2023.12.17 19:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -24,6 +24,14 @@ class Model:
     def setup(self):
         """Setups all select lists"""
         self.update()
+
+    def update(self):
+        """Updates all lists"""
+        # update mode, models and presets lists
+        self.update_toolbox()
+
+        # update chat label, show/hide widgets, update token counters
+        self.window.controller.ui.update_all()
 
     def select(self, id, value):
         """
@@ -54,43 +62,12 @@ class Model:
 
         self.update()
 
-    def mode_change_locked(self):
-        """
-        Checks if mode change is locked
-
-        :return: bool
-        """
-        if self.window.controller.input.generating:
-            return True
-        return False
-
-    def model_change_locked(self):
-        """
-        Checks if model change is locked
-
-        :return: bool
-        """
-        if self.window.controller.input.generating:
-            return True
-        return False
-
-    def preset_change_locked(self):
-        """
-        Checks if preset change is locked
-
-        :return: bool
-        """
-        # if self.window.controller.input.generating:
-            # return True
-        return False
-
     def set_mode(self, mode):
         """
         Sets mode
 
         :param mode: mode name
         """
-
         # if ctx loaded with assistant then switch to this assistant
         if mode == "assistant":
             if self.window.gpt.context.current_ctx is not None \
@@ -118,27 +95,6 @@ class Model:
             # update ctx label
             self.window.controller.context.update_ctx_label_by_current()
 
-    def set_preset_by_idx(self, mode, idx):
-        """
-        Sets preset by index
-
-        :param mode: mode name
-        :param idx: preset index
-        """
-        preset = self.window.config.get_preset_by_idx(idx, mode)
-        self.window.config.data['preset'] = preset
-        self.window.config.data['current_preset'][mode] = preset
-
-    def set_preset(self, mode, preset):
-        """
-        Sets preset
-
-        :param mode: mode name
-        :param preset: preset name
-        """
-        self.window.config.data['preset'] = preset
-        self.window.config.data['current_preset'][mode] = preset
-
     def set_model_by_idx(self, mode, idx):
         """
         Sets model by index
@@ -160,42 +116,28 @@ class Model:
         self.window.config.set('model', model)
         self.window.config.data['current_model'][mode] = model
 
-    def reset_preset_data(self):
-        """Resets preset data"""
-        self.window.data['preset.prompt'].setPlainText("")
-        self.window.data['preset.ai_name'].setText("")
-        self.window.data['preset.user_name'].setText("")
+    def set_preset_by_idx(self, mode, idx):
+        """
+        Sets preset by index
 
-    def reset_current_data(self):
-        """Resets current data"""
-        self.window.config.set('prompt', None)
-        self.window.config.set('ai_name', None)
-        self.window.config.set('user_name', None)
+        :param mode: mode name
+        :param idx: preset index
+        """
+        preset = self.window.config.get_preset_by_idx(idx, mode)
+        self.window.config.data['preset'] = preset
+        self.window.config.data['current_preset'][mode] = preset
 
-    def update_preset_data(self):
-        """Updates preset data"""
-        preset = self.window.config.get('preset')
-        if preset is None or preset == "":
-            self.reset_preset_data()  # clear preset fields
-            self.reset_current_data()
-            return
+    def set_preset(self, mode, preset):
+        """
+        Sets preset
 
-        if preset not in self.window.config.presets:
-            self.window.config.set('preset', "")  # clear preset if not found
-            self.reset_preset_data()  # clear preset fields
-            self.reset_current_data()
-            return
-
-        # update preset fields
-        preset_data = self.window.config.presets[preset]
-        self.window.data['preset.prompt'].setPlainText(preset_data['prompt'])
-        self.window.data['preset.ai_name'].setText(preset_data['ai_name'])
-        self.window.data['preset.user_name'].setText(preset_data['user_name'])
-
-        # update current data
-        self.window.config.set('prompt', preset_data['prompt'])
-        self.window.config.set('ai_name', preset_data['ai_name'])
-        self.window.config.set('user_name', preset_data['user_name'])
+        :param mode: mode name
+        :param preset: preset name
+        """
+        if not self.window.config.has_preset(mode, preset):
+            return False
+        self.window.config.data['preset'] = preset
+        self.window.config.data['current_preset'][mode] = preset
 
     def select_mode_by_current(self):
         """Selects mode by current"""
@@ -225,44 +167,21 @@ class Model:
             current = self.window.models['preset.presets'].index(idx, 0)
             self.window.data['preset.presets'].setCurrentIndex(current)
 
-    def update_list_modes(self):
-        """Updates modes list"""
-        # update modes
-        items = self.window.config.get_modes()
-        self.window.ui.toolbox.update_list('prompt.mode', items)
-
-    def update_list_models(self):
-        """Updates models list"""
-        # update modes
-        mode = self.window.config.get('mode')
-        items = self.window.config.get_models(mode)
-        self.window.ui.toolbox.update_list('prompt.model', items)
-
-    def update_list_presets(self):
-        """Updates presets list"""
-        # update model
-        mode = self.window.config.get('mode')
-        items = self.window.config.get_presets(mode)
-        self.window.ui.toolbox.update_list('preset.presets', items)
-
-    def update_chat_label(self):
-        """Updates chat label"""
-        mode = self.window.config.get('mode')
-        model = self.window.config.get('model')
-        if model is None or model == "":
-            model_str = "{}".format(trans("mode." + mode))
-        else:
-            model_str = "{} ({})".format(trans("mode." + mode), model)
-        self.window.data['chat.model'].setText(model_str)
-
     def select_default(self):
         """Sets default mode, model and preset"""
-        # mode
+        self.select_default_mode()
+        self.select_default_model()
+        self.select_default_preset()
+        self.window.controller.assistant.select_default_assistant()
+
+    def select_default_mode(self):
+        """Sets default mode"""
         mode = self.window.config.get('mode')
         if mode is None or mode == "":
             self.window.config.set('mode', self.window.config.get_default_mode())
 
-        # model
+    def select_default_model(self):
+        """Sets default model"""
         model = self.window.config.get('model')
         if model is None or model == "":
             mode = self.window.config.get('mode')
@@ -278,7 +197,8 @@ class Model:
                 # or set default model
                 self.window.config.set('model', self.window.config.get_default_model(mode))
 
-        # preset
+    def select_default_preset(self):
+        """Sets default preset"""
         preset = self.window.config.get('preset')
         if preset is None or preset == "":
             mode = self.window.config.get('mode')
@@ -294,13 +214,47 @@ class Model:
                 # or set default preset
                 self.window.config.set('preset', self.window.config.get_default_preset(mode))
 
-        # assistant
-        assistant = self.window.config.get('assistant')
-        if assistant is None or assistant == "":
-            mode = self.window.config.get('mode')
-            if mode == 'assistant':
-                self.window.config.set('assistant', self.window.controller.assistant.assistants.get_default_assistant())
-                self.window.controller.assistant.update()
+    def update_preset_data(self):
+        """Updates preset data"""
+        preset = self.window.config.get('preset')
+        if preset is None or preset == "":
+            self.reset_preset_data()  # clear preset fields
+            self.reset_current_data()
+            return
+
+        if preset not in self.window.config.presets:
+            self.window.config.set('preset', "")  # clear preset if not found
+            self.reset_preset_data()  # clear preset fields
+            self.reset_current_data()
+            return
+
+        # update preset fields
+        preset_data = self.window.config.presets[preset]
+        self.window.data['preset.prompt'].setPlainText(preset_data['prompt'])
+        self.window.data['preset.ai_name'].setText(preset_data['ai_name'])
+        self.window.data['preset.user_name'].setText(preset_data['user_name'])
+
+        # update current data
+        self.window.config.set('prompt', preset_data['prompt'])
+        self.window.config.set('ai_name', preset_data['ai_name'])
+        self.window.config.set('user_name', preset_data['user_name'])
+
+    def update_list_modes(self):
+        """Updates modes list"""
+        items = self.window.config.get_modes()
+        self.window.ui.toolbox.update_list('prompt.mode', items)
+
+    def update_list_models(self):
+        """Updates models list"""
+        mode = self.window.config.get('mode')
+        items = self.window.config.get_models(mode)
+        self.window.ui.toolbox.update_list('prompt.model', items)
+
+    def update_list_presets(self):
+        """Updates presets list"""
+        mode = self.window.config.get('mode')
+        items = self.window.config.get_presets(mode)
+        self.window.ui.toolbox.update_list('preset.presets', items)
 
     def update_current_temperature(self, temperature=None):
         """
@@ -317,7 +271,7 @@ class Model:
                     temperature = float(self.window.config.presets[preset]['temperature'])
         self.window.controller.settings.apply("current_temperature", temperature)
 
-    def update_current(self):
+    def update_current_preset(self):
         """Updates current mode, model and preset"""
         mode = self.window.config.get('mode')
         preset_id = self.window.config.get('preset')
@@ -340,204 +294,72 @@ class Model:
         else:
             self.window.config.set('prompt', None)
 
-    def update_active(self):
-        """Updates active mode, model and preset"""
-        mode = self.window.config.data['mode']
-        if mode == 'chat':
-            self.window.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.config_option['current_temperature'].input.setDisabled(False)
+    def update_mode(self):
+        """Updates mode"""
+        self.select_default_mode()
+        self.update_list_modes()
+        self.select_mode_by_current()
 
-            # presets
-            self.window.data['preset.ai_name'].setDisabled(False)
-            self.window.data['preset.user_name'].setDisabled(False)
-            self.window.data['preset.clear'].setVisible(True)
-            self.window.data['preset.use'].setVisible(False)
+    def update_models(self):
+        """Updates models"""
+        self.select_default_model()
+        self.update_list_models()
+        self.select_model_by_current()
 
-            self.window.data['presets.widget'].setVisible(True)
-            self.window.data['assistants.widget'].setVisible(False)
-
-            self.window.data['dalle.options'].setVisible(False)
-
-            self.window.data['temperature.label'].setVisible(True)
-            self.window.config_option['current_temperature'].setVisible(True)
-
-            # vision capture
-            self.window.data['vision.capture.options'].setVisible(False)
-            self.window.data['attachments.capture_clear'].setVisible(False)
-
-            # files tabs
-            self.window.tabs['input'].setTabVisible(1, False)  # files
-            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
-
-            # stream checkbox
-            self.window.data['input.stream'].setVisible(True)
-        elif mode == 'img':
-            self.window.config_option['current_temperature'].slider.setDisabled(True)
-            self.window.config_option['current_temperature'].input.setDisabled(True)
-
-            # presets
-            self.window.data['preset.prompt'].setDisabled(False)
-            self.window.data['preset.ai_name'].setDisabled(True)
-            self.window.data['preset.user_name'].setDisabled(True)
-            self.window.data['preset.clear'].setVisible(False)
-            self.window.data['preset.use'].setVisible(True)
-
-            self.window.data['presets.widget'].setVisible(True)
-            self.window.data['assistants.widget'].setVisible(False)
-
-            self.window.data['dalle.options'].setVisible(True)
-
-            self.window.data['temperature.label'].setVisible(False)
-            self.window.config_option['current_temperature'].setVisible(False)
-
-            # vision capture
-            self.window.data['vision.capture.options'].setVisible(False)
-            self.window.data['attachments.capture_clear'].setVisible(False)
-
-            # files tabs
-            self.window.tabs['input'].setTabVisible(1, False)  # files
-            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
-
-            # stream checkbox
-            self.window.data['input.stream'].setVisible(False)
-        elif mode == 'completion':
-            self.window.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.config_option['current_temperature'].input.setDisabled(False)
-
-            # presets
-            self.window.data['preset.prompt'].setDisabled(False)
-            self.window.data['preset.ai_name'].setDisabled(False)
-            self.window.data['preset.user_name'].setDisabled(False)
-            self.window.data['preset.clear'].setVisible(True)
-            self.window.data['preset.use'].setVisible(False)
-
-            self.window.data['presets.widget'].setVisible(True)
-            self.window.data['assistants.widget'].setVisible(False)
-
-            self.window.data['dalle.options'].setVisible(False)
-
-            self.window.data['temperature.label'].setVisible(True)
-            self.window.config_option['current_temperature'].setVisible(True)
-
-            # vision capture
-            self.window.data['vision.capture.options'].setVisible(False)
-            self.window.data['attachments.capture_clear'].setVisible(False)
-
-            # files tabs
-            self.window.tabs['input'].setTabVisible(1, False)  # files
-            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
-
-            # stream checkbox
-            self.window.data['input.stream'].setVisible(True)
-        elif mode == 'vision':
-            self.window.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.config_option['current_temperature'].input.setDisabled(False)
-
-            # presets
-            self.window.data['preset.ai_name'].setDisabled(True)
-            self.window.data['preset.user_name'].setDisabled(True)
-            self.window.data['preset.clear'].setVisible(True)
-            self.window.data['preset.use'].setVisible(False)
-
-            self.window.data['presets.widget'].setVisible(True)
-            self.window.data['assistants.widget'].setVisible(False)
-
-            self.window.data['dalle.options'].setVisible(False)
-
-            self.window.data['temperature.label'].setVisible(False)
-            self.window.config_option['current_temperature'].setVisible(False)
-
-            # vision capture
-            self.window.data['vision.capture.options'].setVisible(True)
-            self.window.data['attachments.capture_clear'].setVisible(True)
-
-            # files tabs
-            self.window.tabs['input'].setTabVisible(1, True)  # files
-            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
-
-            # stream checkbox
-            self.window.data['input.stream'].setVisible(True)
-        elif mode == 'langchain':
-            self.window.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.config_option['current_temperature'].input.setDisabled(False)
-
-            # presets
-            self.window.data['preset.ai_name'].setDisabled(False)
-            self.window.data['preset.user_name'].setDisabled(False)
-            self.window.data['preset.clear'].setVisible(True)
-            self.window.data['preset.use'].setVisible(False)
-
-            self.window.data['presets.widget'].setVisible(True)
-            self.window.data['assistants.widget'].setVisible(False)
-
-            self.window.data['dalle.options'].setVisible(False)
-
-            self.window.data['temperature.label'].setVisible(True)
-            self.window.config_option['current_temperature'].setVisible(True)
-
-            # vision capture
-            self.window.data['vision.capture.options'].setVisible(False)
-            self.window.data['attachments.capture_clear'].setVisible(False)
-
-            # files tabs
-            self.window.tabs['input'].setTabVisible(1, False)  # files
-            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
-
-            # stream checkbox
-            self.window.data['input.stream'].setVisible(True)
-        elif mode == 'assistant':
-            self.window.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.config_option['current_temperature'].input.setDisabled(False)
-
-            # presets
-            self.window.data['preset.ai_name'].setDisabled(True)
-            self.window.data['preset.user_name'].setDisabled(True)
-            self.window.data['preset.clear'].setVisible(True)
-            self.window.data['preset.use'].setVisible(False)
-
-            self.window.data['presets.widget'].setVisible(True)
-            self.window.data['assistants.widget'].setVisible(True)
-
-            self.window.data['dalle.options'].setVisible(False)
-
-            self.window.data['temperature.label'].setVisible(True)
-            self.window.config_option['current_temperature'].setVisible(True)
-
-            # vision capture
-            self.window.data['vision.capture.options'].setVisible(False)
-            self.window.data['attachments.capture_clear'].setVisible(False)
-
-            # files tabs
-            self.window.tabs['input'].setTabVisible(1, True)  # files
-            self.window.tabs['input'].setTabVisible(2, True)  # uploaded files
-
-            # stream checkbox
-            self.window.data['input.stream'].setVisible(False)
-
-    def update(self):
-        """Updates all lists"""
-        self.select_default()  # set default mode, model and preset if not set
-        self.update_current()  # update current mode, model and preset
-
-        # update preset data and current temperature
+    def update_presets(self):
+        """Updates presets"""
+        self.select_default_preset()
+        self.update_current_preset()
         self.update_preset_data()
         self.update_current_temperature()
-
-        # update lists
-        self.update_list_modes()
-        self.update_list_models()
         self.update_list_presets()
-
-        # select current mode, model and preset
-        self.select_mode_by_current()
-        self.select_model_by_current()
         self.select_preset_by_current()
 
-        # update chat label
-        self.update_chat_label()
+    def update_toolbox(self):
+        """Updates toolbox"""
+        self.update_mode()
+        self.update_models()
+        self.update_presets()
+        self.window.controller.assistant.update_assistants()
 
-        # disable / enable widgets
-        self.update_active()
+    def reset_preset_data(self):
+        """Resets preset data"""
+        self.window.data['preset.prompt'].setPlainText("")
+        self.window.data['preset.ai_name'].setText("")
+        self.window.data['preset.user_name'].setText("")
 
-        # update tokens counters, etc.
-        self.window.controller.ui.update()
+    def reset_current_data(self):
+        """Resets current data"""
+        self.window.config.set('prompt', None)
+        self.window.config.set('ai_name', None)
+        self.window.config.set('user_name', None)
+
+    def mode_change_locked(self):
+        """
+        Checks if mode change is locked
+
+        :return: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False
+
+    def model_change_locked(self):
+        """
+        Checks if model change is locked
+
+        :return: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False
+
+    def preset_change_locked(self):
+        """
+        Checks if preset change is locked
+
+        :return: bool
+        """
+        # if self.window.controller.input.generating:
+        # return True
+        return False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -400,6 +400,19 @@ class Config:
             'name': 'mode.langchain'
         }
         return modes
+
+    def has_preset(self, mode, name):
+        """
+        Check if preset for mode exists
+
+        :param mode: mode name
+        :param name: preset name (id)
+        :return: bool
+        """
+        presets = self.get_presets(mode)
+        if name in presets:
+            return True
+        return False
 
     def get_presets(self, mode):
         """

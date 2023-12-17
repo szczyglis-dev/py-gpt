@@ -55,7 +55,7 @@ class Presets:
             elif id == 'preset.temperature' or id == 'current_temperature':
                 self.window.config.set('temperature', float(value))
 
-        self.window.controller.ui.update()
+        self.window.controller.ui.update_tokens()
 
     def edit(self, idx=None):
         """
@@ -130,6 +130,7 @@ class Presets:
         self.config_slider('preset.temperature', data['temperature'], '', 'preset.editor')
         self.config_toggle('preset.img', data['img'], 'preset.editor')
         self.config_toggle('preset.chat', data['chat'], 'preset.editor')
+
         if 'completion' in data:
             self.config_toggle('preset.completion', data['completion'], 'preset.editor')
         if 'vision' in data:
@@ -160,6 +161,8 @@ class Presets:
         :param force: force overwrite file
         """
         preset = self.window.config_option['preset.filename'].text()
+        mode = self.window.config.get('mode')
+        is_created = False
 
         # disallow editing current preset cache
         if preset.startswith('current.'):
@@ -178,6 +181,7 @@ class Presets:
             if os.path.exists(path) and not force:
                 # add datetime suffix to filename
                 preset = preset + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            is_created = True
 
         # validate filename
         preset = self.validate_filename(preset)
@@ -200,8 +204,13 @@ class Presets:
         is_langchain = self.window.config_option['preset.langchain'].box.isChecked()
         is_assistant = self.window.config_option['preset.assistant'].box.isChecked()
 
-        # if not chat or completion then show warning
-        if not is_chat and not is_completion and not is_img and not is_vision and not is_langchain and not is_assistant:
+        # if any mode selected
+        if not is_chat \
+                and not is_completion \
+                and not is_img \
+                and not is_vision \
+                and not is_langchain \
+                and not is_assistant:
             self.window.ui.dialogs.alert(trans('alert.preset.no_chat_completion'))
             return
 
@@ -210,10 +219,14 @@ class Presets:
 
         # save file
         self.window.config.save_preset(preset)
-        self.window.controller.model.update()
+        self.window.controller.model.update_presets()
 
         self.window.ui.dialogs.close('editor.preset.presets')
         self.window.set_status(trans('status.preset.saved'))
+
+        # switch to editing preset
+        self.window.controller.model.set_preset(mode, preset)
+        self.window.controller.model.update_presets()
 
     def assign_data(self, preset):
         """
@@ -251,7 +264,7 @@ class Presets:
                 if preset in self.window.config.presets:
                     new_id = self.window.config.duplicate_preset(preset)
                     self.window.config.set('preset', new_id)
-                    self.window.controller.model.update()
+                    self.window.controller.model.update_presets()
                     idx = self.window.config.get_preset_idx(mode, new_id)
                     self.edit(idx)
                     self.window.set_status(trans('status.preset.duplicated'))
@@ -279,7 +292,7 @@ class Presets:
                 self.window.config.presets[preset]['user_name'] = ""
                 self.window.config.presets[preset]['prompt'] = ""
                 self.window.config.presets[preset]['temperature'] = 1.0
-                self.window.controller.model.update()
+                self.window.controller.model.update_presets()
 
         self.window.set_status(trans('status.preset.cleared'))
 
@@ -303,7 +316,7 @@ class Presets:
                     if preset == self.window.config.get('preset'):
                         self.window.config.set('preset', None)
                     self.window.config.delete_preset(preset, True)
-                    self.window.controller.model.update()
+                    self.window.controller.model.update_presets()
                     self.window.set_status(trans('status.preset.deleted'))
 
     def from_current(self):

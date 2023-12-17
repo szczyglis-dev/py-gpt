@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.17 19:00:00                  #
 # ================================================== #
 
 from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
@@ -28,9 +28,20 @@ class UI:
 
     def update(self):
         """Updates UI"""
-        self.update_counters()
+        self.update_tokens()
 
-    def update_counters(self):
+    def update_all(self):
+        """Updates all UI elements"""
+        # update chat label
+        self.window.controller.ui.update_chat_label()
+
+        # show / hide widgets
+        self.window.controller.ui.update_active()
+
+        # update token counters
+        self.window.controller.ui.update_tokens()
+
+    def update_tokens(self):
         """Updates tokens counters"""
         model = self.window.config.get('model')
         mode = self.window.config.get('mode')
@@ -101,3 +112,186 @@ class UI:
         string = "{} + {} + {} + {} = {} / {}".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,
                                                       parsed_total, parsed_max_total)
         self.window.data['input.counter'].setText(string)
+
+    def update_active(self):
+        """Updates mode, model, preset and rest of the toolbox"""
+        mode = self.window.config.data['mode']
+        if mode == 'chat':
+            # temperature
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+            self.window.config_option['current_temperature'].setVisible(True)
+            self.window.data['temperature.label'].setVisible(True)
+
+            # presets
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['preset.ai_name'].setDisabled(False)
+            self.window.data['preset.user_name'].setDisabled(False)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['assistants.widget'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
+
+            # stream checkbox
+            self.window.data['input.stream'].setVisible(True)
+
+        elif mode == 'img':
+            # temperature
+            self.window.config_option['current_temperature'].slider.setDisabled(True)
+            self.window.config_option['current_temperature'].input.setDisabled(True)
+            self.window.config_option['current_temperature'].setVisible(False)
+            self.window.data['temperature.label'].setVisible(False)
+
+            # presets
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['preset.prompt'].setDisabled(False)
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
+            self.window.data['preset.clear'].setVisible(False)
+            self.window.data['preset.use'].setVisible(True)
+
+            self.window.data['assistants.widget'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(True)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
+
+            # stream checkbox
+            self.window.data['input.stream'].setVisible(False)
+
+        elif mode == 'completion':
+            # temperature
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+            self.window.config_option['current_temperature'].setVisible(True)
+            self.window.data['temperature.label'].setVisible(True)
+
+            # presets
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['preset.prompt'].setDisabled(False)
+            self.window.data['preset.ai_name'].setDisabled(False)
+            self.window.data['preset.user_name'].setDisabled(False)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['assistants.widget'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
+
+            # stream checkbox
+            self.window.data['input.stream'].setVisible(True)
+
+        elif mode == 'vision':
+            # temperature
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+            self.window.config_option['current_temperature'].setVisible(False)
+            self.window.data['temperature.label'].setVisible(False)
+
+            # presets
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['assistants.widget'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(True)
+            self.window.data['attachments.capture_clear'].setVisible(True)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, True)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
+
+            # stream checkbox
+            self.window.data['input.stream'].setVisible(True)
+
+        elif mode == 'langchain':
+            # temperature
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+            self.window.config_option['current_temperature'].setVisible(True)
+            self.window.data['temperature.label'].setVisible(True)
+
+            # presets
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['preset.ai_name'].setDisabled(False)
+            self.window.data['preset.user_name'].setDisabled(False)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['assistants.widget'].setVisible(False)
+            self.window.data['dalle.options'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, False)  # files
+            self.window.tabs['input'].setTabVisible(2, False)  # uploaded files
+
+            # stream checkbox
+            self.window.data['input.stream'].setVisible(True)
+
+        elif mode == 'assistant':
+            # temperature
+            self.window.config_option['current_temperature'].slider.setDisabled(False)
+            self.window.config_option['current_temperature'].input.setDisabled(False)
+            self.window.config_option['current_temperature'].setVisible(True)
+            self.window.data['temperature.label'].setVisible(True)
+
+            # presets
+            self.window.data['presets.widget'].setVisible(True)
+            self.window.data['preset.ai_name'].setDisabled(True)
+            self.window.data['preset.user_name'].setDisabled(True)
+            self.window.data['preset.clear'].setVisible(True)
+            self.window.data['preset.use'].setVisible(False)
+
+            self.window.data['assistants.widget'].setVisible(True)
+            self.window.data['dalle.options'].setVisible(False)
+
+            # vision capture
+            self.window.data['vision.capture.options'].setVisible(False)
+            self.window.data['attachments.capture_clear'].setVisible(False)
+
+            # files tabs
+            self.window.tabs['input'].setTabVisible(1, True)  # files
+            self.window.tabs['input'].setTabVisible(2, True)  # uploaded files
+
+            # stream checkbox
+            self.window.data['input.stream'].setVisible(False)
+
+    def update_chat_label(self):
+        """Updates chat label"""
+        mode = self.window.config.get('mode')
+        model = self.window.config.get('model')
+        if model is None or model == "":
+            model_str = "{}".format(trans("mode." + mode))
+        else:
+            model_str = "{} ({})".format(trans("mode." + mode), model)
+        self.window.data['chat.model'].setText(model_str)

@@ -154,7 +154,7 @@ class SettingsInput(QLineEdit):
         super(SettingsInput, self).keyPressEvent(event)
         if not self.autoupdate:
             return
-        self.window.controller.ui.update()
+        self.window.controller.ui.update_all()
         self.window.controller.settings.change(self.id, self.text(), self.section)
 
 
@@ -183,7 +183,7 @@ class SettingsTextarea(QTextEdit):
         super(SettingsTextarea, self).keyPressEvent(event)
         if not self.autoupdate:
             return
-        self.window.controller.ui.update()
+        self.window.controller.ui.update_all()
         self.window.controller.settings.change(self.id, self.toPlainText(), self.section)
 
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 19:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -128,7 +128,7 @@ class Assistant:
                 if model in self.window.config.models:
                     self.window.config.set('model', model)
                     self.window.config.data['current_model'][mode] = model
-                    self.window.controller.model.update()
+                    self.update_assistants()
 
     def update_field(self, id, value, assistant_id=None, current=False):
         """
@@ -150,8 +150,6 @@ class Assistant:
                     assistant.instructions = value
                 elif id == 'assistant.model':
                     assistant.model = value
-
-        self.window.controller.ui.update()
 
     def edit(self, idx=None):
         """
@@ -258,7 +256,7 @@ class Assistant:
 
         # save file
         self.assistants.save()
-        self.window.controller.model.update()
+        self.update_assistants()
         self.update()
 
         self.window.ui.dialogs.close('editor.assistants')
@@ -303,8 +301,8 @@ class Assistant:
             self.assistants.save()
 
             # import uploaded files
-            for assistant_id in self.assistants.items:
-                assistant = self.assistants.get_by_id(assistant_id)
+            for id in self.assistants.items:
+                assistant = self.assistants.get_by_id(id)
                 self.import_files(assistant)
             # status
             self.window.set_status("Imported assistants: " + str(len(items)))
@@ -347,7 +345,7 @@ class Assistant:
             'function': [],  # functions are assigned separately
         }
 
-        # assign functions
+        # assign assistant's functions tool
         functions = []
         for function in self.window.config_option['assistant.tool.function'].items:
             name = function['name']
@@ -391,10 +389,10 @@ class Assistant:
 
         :param idx: index of file
         """
-        assistant_id = self.window.config.get('assistant')
-        if assistant_id is None or assistant_id == "":
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
             return
-        assistant = self.assistants.get_by_id(assistant_id)
+        assistant = self.assistants.get_by_id(id)
         if assistant is None:
             return
         self.assistants.current_file = self.assistants.get_file_id_by_idx(assistant, idx)
@@ -409,10 +407,10 @@ class Assistant:
             self.window.ui.dialogs.confirm('assistant_import_files', '', trans('confirm.assistant.import_files'))
             return
 
-        assistant_id = self.window.config.get('assistant')
-        if assistant_id is None or assistant_id == "":
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
             return
-        assistant = self.assistants.get_by_id(assistant_id)
+        assistant = self.assistants.get_by_id(id)
         if assistant is None:
             return
         try:
@@ -431,16 +429,16 @@ class Assistant:
             self.window.ui.dialogs.confirm('attachments_uploaded.clear', -1, trans('attachments_uploaded.clear.confirm'))
             return
 
-        assistant_id = self.window.config.get('assistant')
-        if assistant_id is None or assistant_id == "":
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
             return
 
         # delete all files
-        if self.assistants.has(assistant_id):
-            assistant = self.assistants.get_by_id(assistant_id)
+        if self.assistants.has(id):
+            assistant = self.assistants.get_by_id(id)
             for file_id in list(assistant.files):
                 try:
-                    self.window.gpt.assistant_file_delete(assistant_id, file_id)
+                    self.window.gpt.assistant_file_delete(id, file_id)
                     assistant.delete_file(file_id)
                 except Exception as e:
                     self.window.ui.dialogs.alert(str(e))
@@ -527,10 +525,10 @@ class Assistant:
 
         :param idx: selected attachment index
         """
-        assistant_id = self.window.config.get('assistant')
-        if assistant_id is None or assistant_id == "":
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
             return
-        assistant = self.assistants.get_by_id(assistant_id)
+        assistant = self.assistants.get_by_id(id)
         if assistant is None:
             return
 
@@ -556,11 +554,11 @@ class Assistant:
         :param file_id: file_id
         :param name: new name
         """
-        assistant_id = self.window.config.get('assistant')
-        if assistant_id is None or assistant_id == "":
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
             self.close_rename_file()
             return
-        assistant = self.assistants.get_by_id(assistant_id)
+        assistant = self.assistants.get_by_id(id)
         if assistant is None:
             self.close_rename_file()
             return
@@ -584,10 +582,10 @@ class Assistant:
             return
 
         # get current assistant
-        assistant_id = self.window.config.get('assistant')
-        if assistant_id is None or assistant_id == "":
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
             return
-        assistant = self.assistants.get_by_id(assistant_id)
+        assistant = self.assistants.get_by_id(id)
         if assistant is None:
             return
 
@@ -596,13 +594,13 @@ class Assistant:
 
         # delete file in API
         try:
-            self.window.gpt.assistant_file_delete(assistant_id, file_id)
+            self.window.gpt.assistant_file_delete(id, file_id)
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
             return  # do not delete locally if not deleted in API
 
         # delete locally
-        if self.assistants.has(assistant_id):
+        if self.assistants.has(id):
             need_save = False
             # delete file
             if assistant.has_file(file_id):
@@ -736,6 +734,19 @@ class Assistant:
             idx = list(items.keys()).index(assistant_id)
             current = self.window.models['assistants'].index(idx, 0)
             self.window.data['assistants'].setCurrentIndex(current)
+
+    def select_default_assistant(self):
+        """Sets default assistant"""
+        assistant = self.window.config.get('assistant')
+        if assistant is None or assistant == "":
+            mode = self.window.config.get('mode')
+            if mode == 'assistant':
+                self.window.config.set('assistant', self.assistants.get_default_assistant())
+                self.update()
+
+    def update_assistants(self):
+        """Updates assistants"""
+        self.select_default_assistant()
 
     def handle_message_files(self, msg):
         """

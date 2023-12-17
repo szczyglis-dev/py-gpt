@@ -34,7 +34,7 @@ class NameInput(QLineEdit):
         :param event: key event
         """
         super(NameInput, self).keyPressEvent(event)
-        self.window.controller.ui.update()
+        self.window.controller.ui.update_tokens()
         self.window.controller.presets.update_field(self.id, self.text(), self.window.config.get('preset'), True)
 
 
@@ -60,7 +60,7 @@ class ChatInput(QTextEdit):
         :param event: key event
         """
         super(ChatInput, self).keyPressEvent(event)
-        self.window.controller.ui.update()
+        self.window.controller.ui.update_tokens()
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
             mode = self.window.config.get('send_mode')
             if mode > 0:

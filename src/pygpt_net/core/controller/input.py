@@ -236,7 +236,7 @@ class Input:
         # append input to chat window
         self.window.controller.output.append_input(ctx)
         QApplication.processEvents()  # process events to update UI
-        self.window.controller.ui.update()  # update UI
+        self.window.controller.ui.update_tokens()  # update UI
 
         # async or sync mode
         stream_mode = self.window.config.get('stream')
@@ -390,7 +390,7 @@ class Input:
                         output_tokens += 1
                         self.window.controller.output.append_chunk(ctx, response, begin)
                         QApplication.processEvents()  # process events to update UI
-                        self.window.controller.ui.update()  # update UI
+                        self.window.controller.ui.update_tokens()  # update UI
                         begin = False
 
             except Exception as e:
@@ -503,7 +503,6 @@ class Input:
             # check API key
             if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
                 self.window.controller.launcher.show_api_monit()
-                self.window.controller.ui.update()
                 self.window.statusChanged.emit("Missing API KEY!")
                 self.generating = False
                 return
@@ -543,17 +542,17 @@ class Input:
             self.window.log("Context: output: {}".format(ctx.dump()))  # log
             ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
             self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
-            self.window.controller.ui.update()  # update UI
+            self.window.controller.ui.update_tokens()  # update tokens counters
 
             # if reply from commands then send reply (as response JSON)
             if ctx.reply:
                 self.window.controller.input.send(json.dumps(ctx.results))
-                self.window.controller.ui.update()
+                self.window.controller.ui.update_tokens()
 
             self.generating = False
             return
 
-        self.window.controller.ui.update()  # update UI
+        self.window.controller.ui.update_tokens()  # update tokens counters
         self.generating = False  # unlock as not generating
 
     def append(self, text):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 16:00:00                  #
+# Updated Date: 2023.12.17 19:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -131,13 +131,23 @@ class Context:
                 return False
         return True
 
-    def update(self):
-        """Updates context list"""
+    def reload(self):
+        """Reloads current contexts list"""
         items = self.window.gpt.context.get_list()
         self.window.ui.contexts.update_list('ctx.contexts', items)
-        self.select_ctx_by_current()
-        self.window.controller.ui.update()
-        self.window.debugger.update(True)
+
+    def update(self, reload=True):
+        """
+        Updates context list
+
+        :param reload: reload contexts list items
+        """
+        # reload contexts list items
+        if reload:
+            self.reload()
+            self.select_ctx_by_current()
+
+        self.window.controller.ui.update_all()
         self.window.debugger.update(True)
 
         ctx = self.window.gpt.context.current_ctx
@@ -171,41 +181,44 @@ class Context:
 
         :param ctx: context name (id)
         """
+        # select ctx
         self.window.gpt.context.select(ctx)
 
-        # get current settings stored in context
+        # get current settings stored in ctx
         thread = self.window.gpt.context.current_thread
         mode = self.window.gpt.context.current_mode
         assistant_id = self.window.gpt.context.current_assistant
         preset = self.window.gpt.context.current_preset
 
-        # restore current thread
+        # restore thread from ctx
         self.window.config.set('assistant_thread', thread)
 
-        # update output and context list
+        # clear and append ctx to output
         self.window.controller.output.clear()
         self.window.controller.output.append_context()
 
-        # switch to saved mode
+        # switch to ctx mode
         if mode is not None:
             self.window.controller.model.set_mode(mode)  # preset reset here
 
-            # switch to saved preset
+            # switch to ctx preset
             if preset is not None:
                 self.window.controller.model.set_preset(mode, preset)
-                self.window.controller.model.update()
+                self.window.controller.model.update_presets()  # update presets only
 
-            # if assistant then switch to stored assistant
+            # if ctx mode == assistant then switch to ctx assistant
             if mode == 'assistant':
+                # if assistant defined then select it
                 if assistant_id is not None:
                     self.window.controller.assistant.select_by_id(assistant_id)
                 else:
-                    # empty ctx assistant
+                    # if empty ctx assistant then get assistant from current selected
                     assistant_id = self.window.config.get('assistant')
 
+        # reload ctx list and select current ctx on list
         self.update()
 
-        # set current context label
+        # set current ctx label
         self.update_ctx_label(mode, assistant_id)
 
     def refresh(self):
@@ -214,15 +227,18 @@ class Context:
 
     def update_ctx_label_by_current(self):
         """
-        Updates context label by current context
+        Updates context label with currently loaded context
         """
         mode = self.window.gpt.context.current_mode
         assistant_id = self.window.gpt.context.current_assistant
 
+        # if no ctx mode then use current mode
         if mode is None:
             mode = self.window.config.get('mode')
 
         mode_str = trans('mode.' + mode)
+
+        # append assistant name to ctx name label
         if mode == 'assistant':
             assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
             if assistant is not None:
@@ -232,7 +248,8 @@ class Context:
                 assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
                 if assistant is not None:
                     mode_str += ' (' + assistant.name + ')'
-        # update context label
+
+        # update ctx label
         self.set_ctx_label(mode_str)
 
     def update_ctx_label(self, mode, assistant_id=None):
@@ -249,7 +266,8 @@ class Context:
             assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
             if assistant is not None:
                 mode_str += ' (' + assistant.name + ')'
-        # update context label
+
+        # update ctx label
         self.set_ctx_label(mode_str)
 
     def set_ctx_label(self, label):
@@ -335,7 +353,9 @@ class Context:
         if ctx in items:
             idx = list(items.keys()).index(ctx)
             current = self.window.models['ctx.contexts'].index(idx, 0)
+            self.window.data['ctx.contexts'].unlocked = True  # tmp allow change if locked
             self.window.data['ctx.contexts'].setCurrentIndex(current)
+            self.window.data['ctx.contexts'].unlocked = False # tmp allow change if locked disable
 
     def update_name(self, ctx, name):
         """

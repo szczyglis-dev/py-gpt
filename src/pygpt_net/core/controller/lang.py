@@ -263,7 +263,7 @@ class Lang:
             name = self.window.controller.theme.trans_theme(theme)
             self.window.menu['theme'][theme].setText(name)
 
-        self.window.controller.model.update()
+        self.window.controller.model.update()  # update all (toolbox, etc.)
         self.window.set_status('')
 
     def update_settings_dialogs(self):

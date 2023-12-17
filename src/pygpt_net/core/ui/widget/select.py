@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 03:00:00                  #
+# Updated Date: 2023.12.17 19:00:00                  #
 # ================================================== #
 from PySide6.QtCore import QItemSelectionModel
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
@@ -32,6 +32,7 @@ class SelectMenu(QTreeView):
         self.setIndentation(0)
         self.selection_locked = None
         self.selection = None
+        self.unlocked = False
         self.clicked.connect(self.click)
         self.header().hide()
 
@@ -65,6 +66,10 @@ class SelectMenu(QTreeView):
         :param index: Index
         :param event: Event
         """
+        # check tmp unlock
+        if self.unlocked:
+            return super().selectionCommand(index, event)
+
         if self.selection_locked is not None and self.selection_locked():
             return QItemSelectionModel.NoUpdate
         return super().selectionCommand(index, event)
