@@ -301,3 +301,11 @@ class UI:
         else:
             model_str = "{} ({})".format(trans("mode." + mode), model)
         self.window.data['chat.model'].setText(model_str)
+
+    def update_ctx_label(self, label):
+        """
+        Updates context label
+
+        :param label: label
+        """
+        self.window.data['chat.label'].setText(str(label))

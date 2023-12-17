@@ -254,7 +254,7 @@ class ContextSelectMenu(SelectMenu):
 
         :param val: click event
         """
-        self.window.controller.context.select(val.row())
+        self.window.controller.context.select_by_idx(val.row())
 
     def dblclick(self, val):
         """
@@ -262,7 +262,7 @@ class ContextSelectMenu(SelectMenu):
 
         :param val: double click event
         """
-        self.window.controller.context.select(val.row())
+        self.window.controller.context.select_by_idx(val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -286,7 +286,7 @@ class ContextSelectMenu(SelectMenu):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.context.select(item.row())
+            self.window.controller.context.select_by_idx(item.row())
             menu.exec_(event.globalPos())
 
     def action_rename(self, event):

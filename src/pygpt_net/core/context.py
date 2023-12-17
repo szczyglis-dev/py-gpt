@@ -282,6 +282,17 @@ class Context:
                 return name
             i += 1
 
+    def get_idx_by_name(self, ctx):
+        """
+        Gets context index by name (id)
+
+        :param ctx: name
+        :return: idx
+        """
+        items = self.get_list()
+        if ctx in items:
+            return list(items.keys()).index(ctx)
+
     def get_first_ctx(self):
         """
         Returns first context from list

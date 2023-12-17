@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 19:00:00                  #
+# Updated Date: 2023.12.17 21:00:00                  #
 # ================================================== #
 
 from ..utils import trans
@@ -32,32 +32,83 @@ class Context:
         }
 
     def setup(self):
-        """Setups context"""
+        """Setups ctx"""
+        # load ctx list
         self.window.gpt.context.load_list()
+
+        # if no context yet then create one
         if len(self.window.gpt.context.contexts) == 0:
             self.new()
         else:
+            # get last ctx from config
             ctx = self.window.config.get('ctx')
             if ctx is not None and ctx in self.window.gpt.context.contexts:
                 self.window.gpt.context.current_ctx = ctx
             else:
+                # if no ctx then get first ctx
                 self.window.gpt.context.current_ctx = self.window.gpt.context.get_first_ctx()
 
+        # load selected ctx
         self.load(self.window.gpt.context.current_ctx)
 
-    def context_change_locked(self):
+    def update(self, reload=True):
         """
-        Checks if context change is locked
+        Updates ctx list
 
-        :return: bool
+        :param reload: reload ctx list items
         """
-        if self.window.controller.input.generating:
-            return True
-        return False
+        # reload ctx list items
+        if reload:
+            self.reload()
+            self.select_ctx_by_current()  # select on list
+
+        # update all
+        self.window.controller.ui.update()
+        self.window.debugger.update(True)
+
+        # append ctx and thread id (assistants API) to config
+        ctx = self.window.gpt.context.current_ctx
+        if ctx is not None:
+            self.window.config.set('ctx', ctx)
+            self.window.config.set('assistant_thread', self.window.gpt.context.current_thread)
+            self.window.config.save()
+
+    def select(self, ctx):
+        """
+        Selects ctx
+
+        :param ctx: context id
+        """
+        self.window.gpt.context.current_ctx = ctx
+        self.load(ctx)
+
+    def select_by_idx(self, idx):
+        """
+        Selects ctx by index
+
+        :param idx: context index
+        """
+        # lock if generating response is in progress
+        if self.context_change_locked():
+            return
+
+        ctx = self.window.gpt.context.get_name_by_idx(idx)
+        self.select(ctx)
+
+    def select_ctx_by_current(self):
+        """Selects ctx by current"""
+        ctx = self.window.gpt.context.current_ctx
+        items = self.window.gpt.context.get_list()
+        if ctx in items:
+            idx = self.window.gpt.context.get_idx_by_name(ctx)
+            current = self.window.models['ctx.contexts'].index(idx, 0)
+            self.window.data['ctx.contexts'].unlocked = True  # tmp allow change if locked (enable)
+            self.window.data['ctx.contexts'].setCurrentIndex(current)
+            self.window.data['ctx.contexts'].unlocked = False  # tmp allow change if locked (disable)
 
     def new(self, force=False):
         """
-        Creates new context
+        Creates new ctx
 
         :param force: force context creation
         """
@@ -66,7 +117,7 @@ class Context:
             return
 
         self.window.gpt.context.new()
-        self.window.config.set('assistant_thread', None)  # reset thread
+        self.window.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
         self.window.controller.output.clear()
 
@@ -80,104 +131,18 @@ class Context:
             assistant_id = self.window.config.get('assistant')
         self.update_ctx_label(mode, assistant_id)
 
-    def handle_allowed(self, mode):
-        """
-        Checks if context is allowed for this mode, if not then switch to new context
-
-        :param mode: mode name
-        :return: bool
-        """
-        if not self.is_allowed_for_mode(mode):
-            self.new(True)
-            return False
-        return True
-
-    def is_allowed_for_mode(self, mode, check_assistant=True):
-        """
-        Checks if context is allowed for this mode
-
-        :param mode: mode name
-        :param check_assistant: True if check also current assistant
-        :return: bool
-        """
-        # always allow if lock_modes is disabled
-        if not self.window.config.get('lock_modes'):
-            return True
-
-        ctx = self.window.config.get('ctx')
-        if ctx is None or ctx == '':
-            return True
-        ctx_data = self.window.gpt.context.get_context_by_name(ctx)
-        if 'last_mode' not in ctx_data or ctx_data['last_mode'] is None:
-            return True
-        prev_mode = ctx_data['last_mode']
-        if prev_mode not in self.allowed_modes[mode]:
-            # exception for assistant (if before was assistant then allow)
-            if mode == 'assistant':
-                if 'assistant' in ctx_data and ctx_data['assistant'] is not None:
-                    if ctx_data['assistant'] == self.window.config.get('assistant'):
-                        return True
-                else:
-                    return True  # if no assistant in context then allow
-            # in other modes, then always return False
-            return False
-
-        # check allowed assistant
-        if mode == 'assistant' and check_assistant:
-            if 'assistant' not in ctx_data or ctx_data['assistant'] is None:
-                return True
-            # check if current assistant is allowed
-            if ctx_data['assistant'] != self.window.config.get('assistant'):
-                return False
-        return True
-
     def reload(self):
-        """Reloads current contexts list"""
+        """Reloads current ctx list"""
         items = self.window.gpt.context.get_list()
         self.window.ui.contexts.update_list('ctx.contexts', items)
 
-    def update(self, reload=True):
-        """
-        Updates context list
-
-        :param reload: reload contexts list items
-        """
-        # reload contexts list items
-        if reload:
-            self.reload()
-            self.select_ctx_by_current()
-
-        self.window.controller.ui.update()
-        self.window.debugger.update(True)
-
-        ctx = self.window.gpt.context.current_ctx
-        thread = self.window.gpt.context.current_thread
-
-        if ctx is not None:
-            self.window.config.set('ctx', ctx)
-            self.window.config.set('assistant_thread', thread)
-            self.window.config.save()
-
-    def update_ctx(self):
-        """Updates current context mode if allowed"""
-        mode = self.window.config.get('mode')
-        # update ctx mode only if current ctx is allowed for this mode
-        if self.is_allowed_for_mode(mode, False):  # do not check assistant match
-            self.window.gpt.context.update()
-            # set current context label
-            assistant_id = None
-            if mode == 'assistant':
-                # get from context if defined
-                ctx_assistant_id = self.window.gpt.context.current_assistant
-                if ctx_assistant_id is not None:
-                    assistant_id = ctx_assistant_id
-                else:
-                    assistant_id = self.window.config.get('assistant')
-            self.update_ctx_label(mode, assistant_id)  # OK
+    def refresh(self):
+        """Refreshes context"""
+        self.load(self.window.gpt.context.current_ctx)
 
     def load(self, ctx):
         """
-        Loads context
+        Loads ctx data
 
         :param ctx: context name (id)
         """
@@ -193,20 +158,20 @@ class Context:
         # restore thread from ctx
         self.window.config.set('assistant_thread', thread)
 
-        # clear and append ctx to output
+        # clear before output and append ctx to output
         self.window.controller.output.clear()
         self.window.controller.output.append_context()
 
-        # switch to ctx mode
+        # switch mode to ctx mode
         if mode is not None:
             self.window.controller.model.set_mode(mode)  # preset reset here
 
-            # switch to ctx preset
+            # switch preset to ctx preset
             if preset is not None:
                 self.window.controller.model.set_preset(mode, preset)
                 self.window.controller.model.update_presets()  # update presets only
 
-            # if ctx mode == assistant then switch to ctx assistant
+            # if ctx mode == assistant then switch assistant to ctx assistant
             if mode == 'assistant':
                 # if assistant defined then select it
                 if assistant_id is not None:
@@ -218,92 +183,80 @@ class Context:
         # reload ctx list and select current ctx on list
         self.update()
 
-        # set current ctx label
+        # update current ctx label
         self.update_ctx_label(mode, assistant_id)
 
-    def refresh(self):
-        """Refreshes context"""
-        self.load(self.window.gpt.context.current_ctx)
+    def update_ctx(self):
+        """Updates current ctx mode if allowed"""
+        mode = self.window.config.get('mode')
+
+        # update ctx mode only if current ctx is allowed for this mode
+        if self.is_allowed_for_mode(mode, False):  # do not check assistant match
+            self.window.gpt.context.update()
+
+            # update current context label
+            id = None
+            if mode == 'assistant':
+                if self.window.gpt.context.current_assistant is not None:
+                    # get assistant id from ctx if defined in ctx
+                    id = self.window.gpt.context.current_assistant
+                else:
+                    # or get assistant id from current selected assistant
+                    id = self.window.config.get('assistant')
+
+            # update ctx label
+            self.update_ctx_label(mode, id)
 
     def update_ctx_label_by_current(self):
         """
-        Updates context label with currently loaded context
+        Updates ctx label from current ctx
         """
         mode = self.window.gpt.context.current_mode
-        assistant_id = self.window.gpt.context.current_assistant
 
         # if no ctx mode then use current mode
         if mode is None:
             mode = self.window.config.get('mode')
 
-        mode_str = trans('mode.' + mode)
+        label = trans('mode.' + mode)
 
         # append assistant name to ctx name label
         if mode == 'assistant':
-            assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+            id = self.window.gpt.context.current_assistant
+            assistant = self.window.controller.assistant.assistants.get_by_id(id)
             if assistant is not None:
-                mode_str += ' (' + assistant.name + ')'
+                # get ctx assistant
+                label += ' (' + assistant.name + ')'
             else:
-                assistant_id = self.window.config.get('assistant')
-                assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+                # get current assistant
+                id = self.window.config.get('assistant')
+                assistant = self.window.controller.assistant.assistants.get_by_id(id)
                 if assistant is not None:
-                    mode_str += ' (' + assistant.name + ')'
+                    label += ' (' + assistant.name + ')'
 
         # update ctx label
-        self.set_ctx_label(mode_str)
+        self.window.controller.ui.update_ctx_label(label)
 
     def update_ctx_label(self, mode, assistant_id=None):
         """
-        Updates context label
+        Updates ctx label
 
         :param mode: Mode
         :param assistant_id: Assistant id
         """
         if mode is None:
             return
-        mode_str = trans('mode.' + mode)
+        label = trans('mode.' + mode)
         if mode == 'assistant' and assistant_id is not None:
             assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
             if assistant is not None:
-                mode_str += ' (' + assistant.name + ')'
+                label += ' (' + assistant.name + ')'
 
         # update ctx label
-        self.set_ctx_label(mode_str)
-
-    def set_ctx_label(self, label):
-        """
-        Sets context label
-
-        :param label: label
-        """
-        self.window.data['chat.label'].setText(label)
-
-    def selection_change(self):
-        """
-        Selects context on list change
-        """
-        # TODO: implement this
-        # idx = self.window.data['ctx.contexts'].currentIndex().row()
-        # self.select(idx)
-        pass
-
-    def select(self, idx):
-        """
-        Selects context
-
-        :param idx: context index
-        """
-        # lock if generating response is in progress
-        if self.context_change_locked():
-            return
-
-        ctx = self.window.gpt.context.get_name_by_idx(idx)
-        self.window.gpt.context.current_ctx = ctx
-        self.load(ctx)
+        self.window.controller.ui.update_ctx_label(label)
 
     def delete(self, idx, force=False):
         """
-        Deletes context
+        Deletes ctx
 
         :param idx: context index
         :param force: force delete
@@ -314,6 +267,8 @@ class Context:
 
         ctx = self.window.gpt.context.get_name_by_idx(idx)
         self.window.gpt.context.delete_ctx(ctx)
+
+        # reset current if current ctx deleted
         if self.window.gpt.context.current_ctx == ctx:
             self.window.gpt.context.current_ctx = None
             self.window.controller.output.clear()
@@ -321,7 +276,7 @@ class Context:
 
     def delete_history(self, force=False):
         """
-        Deletes context history item
+        Deletes ctx history item
 
         :param force: force delete
         """
@@ -329,12 +284,13 @@ class Context:
             self.window.ui.dialogs.confirm('ctx_delete_all', '', trans('ctx.delete.all.confirm'))
             return
 
+        # delete all ctx
         self.window.gpt.context.delete_all_ctx()
         self.update()
 
     def rename(self, idx):
         """
-        Renames context
+        Ctx name rename (shows dialog)
 
         :param idx: context index
         """
@@ -346,20 +302,9 @@ class Context:
         self.window.dialog['rename'].show()
         self.update()
 
-    def select_ctx_by_current(self):
-        """Selects ctx by current"""
-        ctx = self.window.gpt.context.current_ctx
-        items = self.window.gpt.context.get_list()
-        if ctx in items:
-            idx = list(items.keys()).index(ctx)
-            current = self.window.models['ctx.contexts'].index(idx, 0)
-            self.window.data['ctx.contexts'].unlocked = True  # tmp allow change if locked
-            self.window.data['ctx.contexts'].setCurrentIndex(current)
-            self.window.data['ctx.contexts'].unlocked = False # tmp allow change if locked disable
-
     def update_name(self, ctx, name):
         """
-        Updates context name
+        Updates ctx name
 
         :param ctx: context name (id)
         :param name: context name
@@ -378,9 +323,87 @@ class Context:
 
     def add(self, ctx):
         """
-        Adds context
+        Adds ctx
 
         :param ctx: context name (id)
         """
         self.window.gpt.context.add(ctx)
         self.update()
+
+    def handle_allowed(self, mode):
+        """
+        Checks if ctx is allowed for this mode, if not then switch to new context
+
+        :param mode: mode name
+        :return: bool
+        """
+        if not self.is_allowed_for_mode(mode):
+            self.new(True)  # force new context
+            return False
+        return True
+
+    def is_allowed_for_mode(self, mode, check_assistant=True):
+        """
+        Checks if ctx is allowed for this mode
+
+        :param mode: mode name
+        :param check_assistant: True if check also current assistant
+        :return: bool
+        """
+        # always allow if lock_modes is disabled
+        if not self.window.config.get('lock_modes'):
+            return True
+
+        # always allow if no ctx
+        ctx = self.window.config.get('ctx')
+        if ctx is None or ctx == '':
+            return True
+
+        ctx_data = self.window.gpt.context.get_context_by_name(ctx)
+
+        # always allow if no last mode
+        if 'last_mode' not in ctx_data or ctx_data['last_mode'] is None:
+            return True
+
+        # get last used mode from ctx
+        prev_mode = ctx_data['last_mode']
+        if prev_mode not in self.allowed_modes[mode]:
+            # exception for assistant (if assistant exists in ctx then allow)
+            if mode == 'assistant':
+                if 'assistant' in ctx_data and ctx_data['assistant'] is not None:
+                    # if the same assistant then allow
+                    if ctx_data['assistant'] == self.window.config.get('assistant'):
+                        return True
+                else:
+                    return True  # if no assistant in ctx then allow
+            # if other mode, then always disallow
+            return False
+
+        # check if the same assistant
+        if mode == 'assistant' and check_assistant:
+            # allow if no assistant yet in ctx
+            if 'assistant' not in ctx_data or ctx_data['assistant'] is None:
+                return True
+            # disallow if different assistant
+            if ctx_data['assistant'] != self.window.config.get('assistant'):
+                return False
+        return True
+
+    def selection_change(self):
+        """
+        Selects ctx on list change
+        """
+        # TODO: implement this
+        # idx = self.window.data['ctx.contexts'].currentIndex().row()
+        # self.select(idx)
+        pass
+
+    def context_change_locked(self):
+        """
+        Checks if ctx change is locked
+
+        :return: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False
