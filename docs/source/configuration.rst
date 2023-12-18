@@ -26,6 +26,7 @@ The following basic options can be modified directly within the application:
 * ``Store History`` Dictates whether the conversation history and context are saved. When turned off, history won't be written to the disk upon closing the application.
 * ``Store Time in History`` Chooses whether timestamps are added to the .txt files. These files are stored in the *history* directory within the user's work directory.
 * ``Context Auto-summary`` Toggles context auto-summarization on contexts list. (GPT-3.5 is used for this)
+* ``Lock incompatible modes`` If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 * ``Temperature`` Sets the randomness of the conversation. A lower value makes the model's responses more deterministic, while a higher value increases creativity and abstraction.
 * ``Top-p`` A parameter that influences the model's response diversity, similar to temperature. For more information, please check the OpenAI documentation.
 * ``Frequency Penalty`` Decreases the likelihood of repetition in the model's responses.

@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.34** build: **2023.12.17** | Python: **3.9+**
+Release: **2.0.35** | build: **2023.12.18** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1056,7 +1056,7 @@ When turned off, history won't be written to the disk upon closing the applicati
 - `Store Time in History`: Chooses whether timestamps are added to the .txt files. 
 These files are stored in the *history* directory within the user's work directory.
 
-- `Context Auto-summary`: Toggles context auto-summarization on contexts list. (GPT-3.5 is used for this)
+- `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
 - `Temperature`: Sets the randomness of the conversation. A lower value makes the model's 
 responses more deterministic, while a higher value increases creativity and abstraction.
@@ -1182,6 +1182,16 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.35 (2023-12-18)
+
+- Fixed lists focus lost and selection disappearing
+- Added clickable links to API keys pages
+- Added scroll position store in notepads
+- Auto auto-switch to preset after create
+- Assistants files and thread moved to external classes
+- UI fixes
+- Code fixes
 
 ## 2.0.34 (2023-12-17)
 

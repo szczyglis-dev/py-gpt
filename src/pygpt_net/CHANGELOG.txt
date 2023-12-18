@@ -1,3 +1,13 @@
+2.0.35 (2023-12-18)
+
+- Fixed lists focus lost and selection disappearing
+- Added clickable links to API keys pages
+- Added scroll position store in notepads
+- Auto auto-switch to preset after create
+- Assistants files and thread moved to external classes
+- UI fixes
+- Code fixes
+
 2.0.34 (2023-12-17)
 
 - Added option "Lock incompatible modes" to prevent mixing of incompatible contexts.
