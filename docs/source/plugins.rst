@@ -452,25 +452,104 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 Creating Your Own Plugins
 --------------------------
 
-You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins. Then, you can create your own and register it in the system using:
+You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins.
+
+Extending PyGPT with custom plugins and LLMs wrappers:
+
+- You can pass custom plugin instances and LLMs wrappers to the launcher.
+
+- This is useful if you want to extend PyGPT with your own plugins and LLMs.
+
+To register custom plugins:
+
+- Pass a list with the plugin instances as the first argument.
+
+To register custom LLMs wrappers:
+
+- Pass a list with the LLMs wrappers instances as the second argument.
+
+**Example:**
+
 
 .. code-block:: python
 
-  # custom_launcher.py
+   # my_launcher.py
 
-  from pygpt_net.app import Launcher
-  from my_plugin import MyPlugin
+   from pygpt_net.core.app import run
+   from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+   from my_llms import MyCustomLLM
+
+   plugins = [
+       MyCustomPlugin(),
+       MyOtherCustomPlugin(),
+   ]
+   llms = [
+       MyCustomLLM(),
+   ]
+
+   run(plugins, llms)  # <-- plugins as the first argument
+
+## Handling events
+
+In the plugin, you can receive and modify dispatched events.
+To do this, create a method named ``handle(self, event, *args, **kwargs)`` and handle the received events like here:
+
+.. code-block:: python
+
+   # my_plugin.py
+
+   def handle(self, event, *args, **kwargs):
+       """
+       Handle dispatched events
+
+       :param event: event object
+       """
+       name = event.name
+       data = event.data
+       ctx = event.ctx
+
+       if name == 'input.before':
+           self.some_method(data['value'])
+       elif name == 'ctx.begin':
+           self.some_other_method(ctx)
+       else:
+           # ...
+
+**List of Events**
+
+Syntax: event name - triggered on, additional data:
+
+- **ai.name** - when preparing an AI name, ``data['value']`` `(name of the AI assistant)`
+
+- **audio.input.toggle** - when speech input is enabled or disabled, ``data['value']`` `(True/False)`
+
+- **cmd.execute** - when a command is executed, ``data['commands']`` `(list of commands and arguments)`
+
+- **cmd.syntax** - when appending syntax for commands, ``data['value']`` `(prompt with command usage syntax)`
+
+- **ctx.after** - after the context is sent, ``ctx``
+
+- **ctx.before** - before the context is sent, ``ctx``
+
+- **ctx.begin** - when context creation occurs, ``ctx``
+
+- **ctx.end** - when context handling is finished, ``ctx``
+
+- **disable** - when the plugin is disabled, ``data['value']`` `(plugin ID)`
+
+- **enable** - when the plugin is enabled, ``data['value']`` `(plugin ID)`
+
+- **input.before** - upon receiving input from the textarea, ``data['value']`` `(text to be sent)`
+
+- **system.prompt** - when preparing a system prompt, ``data['value']`` `(system prompt)`
+
+- **user.name** - when preparing a user's name, ``data['value']`` `(name of the user)`
+
+- **user.send** - just before the input text is sent, ``data['value']`` `(input text)`
 
 
-  def run():
-      """Runs the app."""
-      # Initialize the app
-      launcher = Launcher()
-      launcher.init()
+You can stop the propagation of a received event at any time by setting ``stop`` to ``True``:
 
-      # Add your plugins
-      ...
-      launcher.add_plugin(MyPlugin())
+.. code-block:: python
 
-      # Launch the app
-      launcher.run()
+   event.stop = True

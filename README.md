@@ -472,7 +472,7 @@ from .llm.HuggingFace import HuggingFaceLLM
 from .llm.Llama2 import Llama2LLM
 from .llm.Ollama import OllamaLLM
 
-def run():
+def run(plugins=None, llms=None):
     """Runs the app."""
     # Initialize the app
     launcher = Launcher()
@@ -481,7 +481,7 @@ def run():
     # Register plugins
     ...
 
-    # Register Langchain LLMs
+    # Register langchain LLMs wrappers
     launcher.add_llm(OpenAILLM())
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
@@ -493,29 +493,35 @@ def run():
     launcher.run()
 ```
 
-To add support for any provider not included by default, simply create your own wrapper that returns a custom model to the application and register your class in a custom launcher, like so:
+To add support for providers not included by default, you can create your own wrapper that returns a custom model to the application and then pass this custom wrapper to the launcher.
+
+Extending PyGPT with custom plugins and LLM wrappers is straightforward:
+
+- Pass instances of custom plugins and LLM wrappers directly to the launcher.
+
+To register custom LLM wrappers:
+
+- Provide a list of LLM wrapper instances as the second argument when initializing the custom app launcher.
+
+**Example:**
+
 
 ```python
-# custom_launcher.py
+# my_launcher.py
 
-from pygpt_net.app import Launcher
-from my_llm import MyCustomLLM
+from pygpt_net.core.app import run
+from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+from my_llms import MyCustomLLM
 
-def run():
-    """Runs the app."""
-    # Initialize the app
-    launcher = Launcher()
-    launcher.init()
+plugins = [
+    MyCustomPlugin(),
+    MyOtherCustomPlugin(),
+]
+llms = [
+    MyCustomLLM(),
+]
 
-    # Register plugins
-    ...
-
-    # Register Langchain LLMs
-    ...
-    launcher.add_llm(MyCustomLLM())
-
-    # Launch the app
-    launcher.run()
+run(plugins, llms)  # <-- LLMs as the second argument
 ```
 
 To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
@@ -974,28 +980,108 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 
 # Creating Your Own Plugins
 
-You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins. Then, you can create your own and register it in the system using:
+You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
+
+Extending PyGPT with custom plugins and LLMs wrappers:
+
+- You can pass custom plugin instances and LLMs wrappers to the launcher.
+
+- This is useful if you want to extend PyGPT with your own plugins and LLMs.
+
+To register custom plugins:
+
+- Pass a list with the plugin instances as the first argument.
+
+To register custom LLMs wrappers:
+
+- Pass a list with the LLMs wrappers instances as the second argument.
+
+**Example:**
+
 
 ```python
-# custom_launcher.py
+# my_launcher.py
 
-from pygpt_net.app import Launcher
-from my_plugin import MyPlugin
+from pygpt_net.core.app import run
+from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+from my_llms import MyCustomLLM
 
+plugins = [
+    MyCustomPlugin(),
+    MyOtherCustomPlugin(),
+]
+llms = [
+    MyCustomLLM(),
+]
 
-def run():
-    """Runs the app."""
-    # Initialize the app
-    launcher = Launcher()
-    launcher.init()
-
-    # Add your plugins
-    ...
-    launcher.add_plugin(MyPlugin())
-
-    # Launch the app
-    launcher.run()
+run(plugins, llms)  # <-- plugins as the first argument
 ```
+
+## Handling events
+
+In the plugin, you can receive and modify dispatched events.
+To do this, create a method named `handle(self, event, *args, **kwargs)` and handle the received events like here:
+
+```python
+# my_plugin.py
+
+def handle(self, event, *args, **kwargs):
+    """
+    Handle dispatched events
+
+    :param event: event object
+    """
+    name = event.name
+    data = event.data
+    ctx = event.ctx
+
+    if name == 'input.before':
+        self.some_method(data['value'])
+    elif name == 'ctx.begin':
+        self.some_other_method(ctx)
+    else:
+    	# ...
+```
+
+**List of Events**
+
+Syntax: event name - triggered on, additional data:
+
+- **ai.name** - when preparing an AI name, `data['value']` *(name of the AI assistant)*
+
+- **audio.input.toggle** - when speech input is enabled or disabled, `data['value']` *(True/False)*
+
+- **cmd.execute** - when a command is executed, `data['commands']` *(list of commands and arguments)*
+
+- **cmd.syntax** - when appending syntax for commands, `data['value']` *(prompt with command usage syntax)*
+
+- **ctx.after** - after the context is sent, `ctx`
+
+- **ctx.before** - before the context is sent, `ctx`
+
+- **ctx.begin** - when context creation occurs, `ctx`
+
+- **ctx.end** - when context handling is finished, `ctx`
+
+- **disable** - when the plugin is disabled, `data['value']` *(plugin ID)*
+
+- **enable** - when the plugin is enabled, `data['value']` *(plugin ID)*
+
+- **input.before** - upon receiving input from the textarea, `data['value']` *(text to be sent)*
+
+- **system.prompt** - when preparing a system prompt, `data['value']` *(system prompt)*
+
+- **user.name** - when preparing a user's name, `data['value']` *(name of the user)*
+
+- **user.send** - just before the input text is sent, `data['value']` *(input text)*
+
+
+You can stop the propagation of a received event at any time by setting `stop` to `True`:
+
+```
+event.stop = True
+```
+
 
 # Token usage calculation
 
