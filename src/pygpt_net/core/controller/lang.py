@@ -28,21 +28,21 @@ class Lang:
         # get files from lang folder
         langs = self.window.config.get_available_langs()
         for lang in langs:
-            self.window.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
-            self.window.menu['lang'][lang].triggered.connect(
+            self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
+            self.window.ui.menu['lang'][lang].triggered.connect(
                 lambda checked=None, lang=lang: self.window.controller.lang.toggle(lang))
-            self.window.menu['menu.lang'].addAction(self.window.menu['lang'][lang])
+            self.window.ui.menu['menu.lang'].addAction(self.window.ui.menu['lang'][lang])
 
         self.update()
 
     def update(self):
         """Update language menu"""
-        for lang in self.window.menu['lang']:
-            self.window.menu['lang'][lang].setChecked(False)
+        for lang in self.window.ui.menu['lang']:
+            self.window.ui.menu['lang'][lang].setChecked(False)
 
         lang = self.window.config.get('lang')
-        if lang in self.window.menu['lang']:
-            self.window.menu['lang'][lang].setChecked(True)
+        if lang in self.window.ui.menu['lang']:
+            self.window.ui.menu['lang'][lang].setChecked(True)
 
     def toggle(self, id):
         """
@@ -201,38 +201,38 @@ class Lang:
         self.window.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
 
         # menu
-        self.window.menu['menu.app'].setTitle(trans("menu.file"))
-        self.window.menu['app.exit'].setText(trans("menu.file.exit"))
-        self.window.menu['app.clear_history'].setText(trans("menu.file_clear_history"))
+        self.window.ui.menu['menu.app'].setTitle(trans("menu.file"))
+        self.window.ui.menu['app.exit'].setText(trans("menu.file.exit"))
+        self.window.ui.menu['app.clear_history'].setText(trans("menu.file_clear_history"))
 
-        self.window.menu['menu.plugins'].setTitle(trans("menu.plugins"))
-        self.window.menu['menu.audio'].setTitle(trans("menu.audio"))
+        self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
+        self.window.ui.menu['menu.audio'].setTitle(trans("menu.audio"))
 
-        self.window.menu['menu.config'].setTitle(trans("menu.config"))
-        self.window.menu['config.settings'].setText(trans("menu.config.settings"))
-        self.window.menu['config.edit.config'].setText(trans("menu.config.edit.config"))
-        self.window.menu['config.edit.models'].setText(trans("menu.config.edit.models"))
-        self.window.menu['config.open_dir'].setText(trans("menu.config.open_dir"))
-        self.window.menu['config.save'].setText(trans("menu.config.save"))
+        self.window.ui.menu['menu.config'].setTitle(trans("menu.config"))
+        self.window.ui.menu['config.settings'].setText(trans("menu.config.settings"))
+        self.window.ui.menu['config.edit.config'].setText(trans("menu.config.edit.config"))
+        self.window.ui.menu['config.edit.models'].setText(trans("menu.config.edit.models"))
+        self.window.ui.menu['config.open_dir'].setText(trans("menu.config.open_dir"))
+        self.window.ui.menu['config.save'].setText(trans("menu.config.save"))
 
-        self.window.menu['menu.lang'].setTitle(trans("menu.lang"))
-        self.window.menu['menu.theme'].setTitle(trans("menu.theme"))
+        self.window.ui.menu['menu.lang'].setTitle(trans("menu.lang"))
+        self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))
 
         # debug menu
-        if 'menu.debug' in self.window.menu:
-            self.window.menu['menu.debug'].setTitle(trans("menu.debug"))
-            self.window.menu['debug.config'].setText(trans("menu.debug.config"))
-            self.window.menu['debug.context'].setText(trans("menu.debug.context"))
-            self.window.menu['debug.presets'].setText(trans("menu.debug.presets"))
-            self.window.menu['debug.models'].setText(trans("menu.debug.models"))
+        if 'menu.debug' in self.window.ui.menu:
+            self.window.ui.menu['menu.debug'].setTitle(trans("menu.debug"))
+            self.window.ui.menu['debug.config'].setText(trans("menu.debug.config"))
+            self.window.ui.menu['debug.context'].setText(trans("menu.debug.context"))
+            self.window.ui.menu['debug.presets'].setText(trans("menu.debug.presets"))
+            self.window.ui.menu['debug.models'].setText(trans("menu.debug.models"))
 
-        self.window.menu['menu.about'].setTitle(trans("menu.info"))
-        self.window.menu['info.about'].setText(trans("menu.info.about"))
-        self.window.menu['info.changelog'].setText(trans("menu.info.changelog"))
-        self.window.menu['info.docs'].setText(trans("menu.info.docs"))
-        self.window.menu['info.pypi'].setText(trans("menu.info.pypi"))
-        self.window.menu['info.website'].setText(trans("menu.info.website"))
-        self.window.menu['info.github'].setText(trans("menu.info.github"))
+        self.window.ui.menu['menu.about'].setTitle(trans("menu.info"))
+        self.window.ui.menu['info.about'].setText(trans("menu.info.about"))
+        self.window.ui.menu['info.changelog'].setText(trans("menu.info.changelog"))
+        self.window.ui.menu['info.docs'].setText(trans("menu.info.docs"))
+        self.window.ui.menu['info.pypi'].setText(trans("menu.info.pypi"))
+        self.window.ui.menu['info.website'].setText(trans("menu.info.website"))
+        self.window.ui.menu['info.github'].setText(trans("menu.info.github"))
 
         # start
         self.window.ui.nodes['start.title'].setText(trans('dialog.start.title.text'))
@@ -258,9 +258,9 @@ class Lang:
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
 
         # theme menu
-        for theme in self.window.menu['theme']:
+        for theme in self.window.ui.menu['theme']:
             name = self.window.controller.theme.trans_theme(theme)
-            self.window.menu['theme'][theme].setText(name)
+            self.window.ui.menu['theme'][theme].setText(name)
 
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')

@@ -64,6 +64,6 @@ class Info:
         """Update info menu"""
         for id in self.window.app.info.ids:
             if id in self.window.app.info.active and self.window.app.info.active[id]:
-                self.window.menu['info.' + id].setChecked(True)
+                self.window.ui.menu['info.' + id].setChecked(True)
             else:
-                self.window.menu['info.' + id].setChecked(False)
+                self.window.ui.menu['info.' + id].setChecked(False)

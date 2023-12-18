@@ -172,12 +172,12 @@ class Settings:
 
         :param id: settings window id
         """
-        if id in self.window.menu:
-            self.window.menu[id].setChecked(False)
+        if id in self.window.ui.menu:
+            self.window.ui.menu[id].setChecked(False)
 
         allowed_settings = ['settings']
-        if id in allowed_settings and id in self.window.menu:
-            self.window.menu[id].setChecked(False)
+        if id in allowed_settings and id in self.window.ui.menu:
+            self.window.ui.menu[id].setChecked(False)
 
     def update(self):
         """Update settings"""
@@ -187,11 +187,11 @@ class Settings:
         """Update menu"""
         for id in self.window.app.settings.ids:
             key = 'config.' + id
-            if key in self.window.menu:
+            if key in self.window.ui.menu:
                 if id in self.window.app.settings.active and self.window.app.settings.active[id]:
-                    self.window.menu['config.' + id].setChecked(True)
+                    self.window.ui.menu['config.' + id].setChecked(True)
                 else:
-                    self.window.menu['config.' + id].setChecked(False)
+                    self.window.ui.menu['config.' + id].setChecked(False)
 
     def init(self, id):
         """

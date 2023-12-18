@@ -105,11 +105,11 @@ class Theme:
 
     def update(self):
         """Update theme menu"""
-        for theme in self.window.menu['theme']:
-            self.window.menu['theme'][theme].setChecked(False)
+        for theme in self.window.ui.menu['theme']:
+            self.window.ui.menu['theme'][theme].setChecked(False)
         current = self.window.config.get('theme')
-        if current in self.window.menu['theme']:
-            self.window.menu['theme'][current].setChecked(True)
+        if current in self.window.ui.menu['theme']:
+            self.window.ui.menu['theme'][current].setChecked(True)
 
     def get_themes_list(self):
         """
@@ -159,10 +159,10 @@ class Theme:
         themes = self.get_themes_list()
         for theme in themes:
             name = self.trans_theme(theme)
-            self.window.menu['theme'][theme] = QAction(name, self.window, checkable=True)
-            self.window.menu['theme'][theme].triggered.connect(
+            self.window.ui.menu['theme'][theme] = QAction(name, self.window, checkable=True)
+            self.window.ui.menu['theme'][theme].triggered.connect(
                 lambda checked=None, theme=theme: self.window.controller.theme.toggle(theme))
-            self.window.menu['menu.theme'].addAction(self.window.menu['theme'][theme])
+            self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
         # apply theme
         theme = self.window.config.get('theme')

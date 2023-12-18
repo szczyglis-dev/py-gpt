@@ -79,14 +79,14 @@ class Debug:
         """Update debug menu"""
         for id in self.window.app.debug.ids:
             if id in self.window.app.debug.active and self.window.app.debug.active[id]:
-                self.window.menu['debug.' + id].setChecked(True)
+                self.window.ui.menu['debug.' + id].setChecked(True)
             else:
-                self.window.menu['debug.' + id].setChecked(False)
+                self.window.ui.menu['debug.' + id].setChecked(False)
 
         if self.is_logger:
-            self.window.menu['debug.logger'].setChecked(True)
+            self.window.ui.menu['debug.logger'].setChecked(True)
         else:
-            self.window.menu['debug.logger'].setChecked(False)
+            self.window.ui.menu['debug.logger'].setChecked(False)
 
     def update(self):
         """Update debug"""

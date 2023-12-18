@@ -60,16 +60,16 @@ class Audio:
     def update_menu(self):
         """Update menu"""
         if self.window.controller.plugins.is_enabled('audio_azure'):
-            self.window.menu['audio.output.azure'].setChecked(True)
+            self.window.ui.menu['audio.output.azure'].setChecked(True)
         else:
-            self.window.menu['audio.output.azure'].setChecked(False)
+            self.window.ui.menu['audio.output.azure'].setChecked(False)
 
         if self.window.controller.plugins.is_enabled('audio_openai_tts'):
-            self.window.menu['audio.output.tts'].setChecked(True)
+            self.window.ui.menu['audio.output.tts'].setChecked(True)
         else:
-            self.window.menu['audio.output.tts'].setChecked(False)
+            self.window.ui.menu['audio.output.tts'].setChecked(False)
 
         if self.window.controller.plugins.is_enabled('audio_openai_whisper'):
-            self.window.menu['audio.input.whisper'].setChecked(True)
+            self.window.ui.menu['audio.input.whisper'].setChecked(True)
         else:
-            self.window.menu['audio.input.whisper'].setChecked(False)
+            self.window.ui.menu['audio.input.whisper'].setChecked(False)

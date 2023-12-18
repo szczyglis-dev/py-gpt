@@ -34,6 +34,7 @@ class UI:
         self.nodes = {}
         self.splitters = {}
         self.tabs = {}
+        self.menu = {}
         self.models = {}
         self.groups = {}
         self.paths = {}

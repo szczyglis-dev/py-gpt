@@ -61,26 +61,26 @@ class Plugins:
     def setup_menu(self):
         """Set up plugins menu"""
         for id in self.window.app.plugins.plugins:
-            if id in self.window.menu['plugins']:
+            if id in self.window.ui.menu['plugins']:
                 continue
             default_name = self.window.app.plugins.plugins[id].name
             trans_key = 'plugin.' + id
             name = trans(trans_key)
             if name == trans_key:
                 name = default_name
-            self.window.menu['plugins'][id] = QAction(name, self.window, checkable=True)
-            self.window.menu['plugins'][id].triggered.connect(
+            self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
+            self.window.ui.menu['plugins'][id].triggered.connect(
                 lambda checked=None, id=id: self.window.controller.plugins.toggle(id))
-            self.window.menu['menu.plugins'].addAction(self.window.menu['plugins'][id])
+            self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins'][id])
 
     def update(self):
         """Update plugins menu"""
-        for id in self.window.menu['plugins']:
-            self.window.menu['plugins'][id].setChecked(False)
+        for id in self.window.ui.menu['plugins']:
+            self.window.ui.menu['plugins'][id].setChecked(False)
 
         for id in self.enabled:
             if self.enabled[id]:
-                self.window.menu['plugins'][id].setChecked(True)
+                self.window.ui.menu['plugins'][id].setChecked(True)
 
         self.handle_enabled_types()
 
