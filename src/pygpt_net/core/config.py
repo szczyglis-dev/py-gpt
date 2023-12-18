@@ -59,17 +59,25 @@ class Config:
         """
         Return list with available languages
 
-        :return: list with available languages
+        :return: list with available languages (user + app)
         :rtype: list
         """
         langs = []
         path = os.path.join(self.get_root_path(), 'data', 'locale')
-        if not os.path.exists(path):
-            return langs
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                if file.startswith('locale.') and file.endswith(".ini"):
+                    lang_id = file.replace('locale.', '').replace('.ini', '')
+                    if lang_id not in langs:
+                        langs.append(lang_id)
 
-        for file in os.listdir(path):
-            if file.startswith('locale.') and file.endswith(".ini"):
-                langs.append(file.replace('locale.', '').replace('.ini', ''))
+        path = os.path.join(self.get_user_path(), 'locale')
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                if file.startswith('locale.') and file.endswith(".ini"):
+                    lang_id = file.replace('locale.', '').replace('.ini', '')
+                    if lang_id not in langs:
+                        langs.append(lang_id)
 
         # make English first
         if 'en' in langs:
