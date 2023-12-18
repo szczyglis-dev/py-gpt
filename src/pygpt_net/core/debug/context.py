@@ -22,18 +22,18 @@ class ContextDebug:
     def update(self):
         """Update debug window"""
         self.window.debugger.begin(self.id)
-        self.window.debugger.add(self.id, 'current_assistant', str(self.window.gpt.context.current_assistant))
-        self.window.debugger.add(self.id, 'current_ctx', str(self.window.gpt.context.current_ctx))
-        self.window.debugger.add(self.id, 'current_mode', str(self.window.gpt.context.current_mode))
-        self.window.debugger.add(self.id, 'current_preset', str(self.window.gpt.context.current_preset))
-        self.window.debugger.add(self.id, 'current_run', str(self.window.gpt.context.current_run))
-        self.window.debugger.add(self.id, 'current_status', str(self.window.gpt.context.current_status))
-        self.window.debugger.add(self.id, 'current_thread', str(self.window.gpt.context.current_thread))
+        self.window.debugger.add(self.id, 'current_assistant', str(self.window.context.current_assistant))
+        self.window.debugger.add(self.id, 'current_ctx', str(self.window.context.current_ctx))
+        self.window.debugger.add(self.id, 'current_mode', str(self.window.context.current_mode))
+        self.window.debugger.add(self.id, 'current_preset', str(self.window.context.current_preset))
+        self.window.debugger.add(self.id, 'current_run', str(self.window.context.current_run))
+        self.window.debugger.add(self.id, 'current_status', str(self.window.context.current_status))
+        self.window.debugger.add(self.id, 'current_thread', str(self.window.context.current_thread))
 
         current = None
-        if self.window.gpt.context.current_ctx is not None:
-            if self.window.gpt.context.current_ctx in self.window.gpt.context.contexts:
-                current = self.window.gpt.context.contexts[self.window.gpt.context.current_ctx]
+        if self.window.context.current_ctx is not None:
+            if self.window.context.current_ctx in self.window.context.contexts:
+                current = self.window.context.contexts[self.window.context.current_ctx]
             if current is not None:
                 if 'id' in current:
                     self.window.debugger.add(self.id, '[current] id', str(current['id']))
@@ -56,11 +56,11 @@ class ContextDebug:
                 if 'thread' in current:
                     self.window.debugger.add(self.id, '[current] thread', str(current['thread']))
 
-        self.window.debugger.add(self.id, 'len(contexts)', str(len(self.window.gpt.context.contexts)))
-        self.window.debugger.add(self.id, 'len(items)', str(len(self.window.gpt.context.items)))
+        self.window.debugger.add(self.id, 'len(contexts)', str(len(self.window.context.contexts)))
+        self.window.debugger.add(self.id, 'len(items)', str(len(self.window.context.items)))
 
         i = 0
-        for item in self.window.gpt.context.items:
+        for item in self.window.context.items:
             prefix = '[{}] '.format(i)
             self.window.debugger.add(self.id, prefix + 'mode', str(item.mode))
             self.window.debugger.add(self.id, prefix + 'input_name', str(item.input_name))

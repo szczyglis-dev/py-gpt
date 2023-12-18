@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 02:00:00                  #
 # ================================================== #
 import os
 import sys
@@ -84,9 +84,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.settings.load()
 
         # setup GPT, Langchain and DALL-E
-        self.gpt = Gpt(self.config, self.context)
-        self.chain = Chain(self.config, self.context)
-        self.images = Image(self.config, self)
+        self.gpt = Gpt(self)
+        self.chain = Chain(self)
+        self.images = Image(self)
 
         # setup UI
         self.ui = UI(self)

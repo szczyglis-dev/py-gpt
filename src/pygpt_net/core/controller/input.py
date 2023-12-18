@@ -262,7 +262,7 @@ class Input:
 
                     if mode == 'assistant':
                         # get run ID and save it in ctx
-                        self.window.gpt.context.append_run(ctx.run_id)
+                        self.window.context.append_run(ctx.run_id)
 
                         # handle assistant run
                         self.window.controller.assistant_thread.handle_run(ctx)
@@ -309,8 +309,8 @@ class Input:
         :param ctx: ContextItem
         """
         if ctx is not None:
-            if not self.window.gpt.context.is_ctx_initialized():
-                current = self.window.gpt.context.current_ctx
+            if not self.window.context.is_ctx_initialized():
+                current = self.window.context.current_ctx
                 title = self.window.gpt.prepare_ctx_name(ctx)
                 if title is not None and title != "":
                     self.window.controller.context.update_name(current, title)
@@ -432,8 +432,8 @@ class Input:
         """
         # save context
         mode = self.window.config.get('mode')
-        self.window.gpt.context.post_update(mode)  # post update context, store last mode, etc.
-        self.window.gpt.context.store()
+        self.window.context.post_update(mode)  # post update context, store last mode, etc.
+        self.window.context.store()
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
@@ -511,8 +511,8 @@ class Input:
             self.window.images.init()
 
             # prepare context, create new ctx if there is no contexts yet (first run)
-            if len(self.window.gpt.context.contexts) == 0:
-                self.window.gpt.context.new()
+            if len(self.window.context.contexts) == 0:
+                self.window.context.new()
                 self.window.controller.context.update()
                 self.window.log("New context created...")  # log
             else:

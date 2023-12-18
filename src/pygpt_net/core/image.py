@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -18,17 +18,13 @@ from openai import OpenAI
 class Image:
     DIRNAME = "img"
 
-    def __init__(self, config, window):
+    def __init__(self, window):
         """
         DALL-E Wrapper
 
-        :param config: Config instance
         :param window: Window instance
         """
-        self.config = config
         self.window = window
-        if not self.config.initialized:
-            self.config.init()
 
     def init(self):
         """Initialize OpenAI API key"""
@@ -82,14 +78,14 @@ class Image:
         print("Generating image from: '{}'".format(prompt))
 
         client = OpenAI(
-            api_key=self.config.get('api_key'),
-            organization=self.config.get('organization_key'),
+            api_key=self.window.config.get('api_key'),
+            organization=self.window.config.get('organization_key'),
         )
         response = client.images.generate(
             model=model,
             prompt=prompt,
             n=num,
-            size=self.config.get('img_resolution'),
+            size=self.window.config.get('img_resolution'),
         )
 
         # generate and download images
@@ -101,7 +97,7 @@ class Image:
             res = requests.get(url)
             name = self.make_safe_filename(prompt) + "-" + datetime.date.today().strftime(
                 "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
-            path = os.path.join(self.config.path, self.DIRNAME, name)
+            path = os.path.join(self.window.config.path, self.DIRNAME, name)
             print("Downloading... [" + str(i + 1) + " of " + str(num) + "] to: " + path)
             open(path, "wb").write(res.content)
             paths.append(path)

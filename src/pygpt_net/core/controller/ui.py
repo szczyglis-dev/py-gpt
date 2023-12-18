@@ -92,8 +92,8 @@ class UI:
         used_tokens = prompt_tokens + input_tokens
 
         # context tokens
-        ctx_len_all = len(self.window.gpt.context.items)
-        ctx_len, ctx_tokens = self.window.gpt.context.count_prompt_items(model, mode, used_tokens, max_total_tokens)
+        ctx_len_all = len(self.window.context.items)
+        ctx_len, ctx_tokens = self.window.context.count_prompt_items(model, mode, used_tokens, max_total_tokens)
 
         # zero if context not used
         if not self.window.config.get('use_context'):

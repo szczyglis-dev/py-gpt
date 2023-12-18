@@ -37,7 +37,7 @@ class AssistantThread:
         """
         thread_id = self.window.gpt.assistant_thread_create()
         self.window.config.set('assistant_thread', thread_id)
-        self.window.gpt.context.append_thread(thread_id)
+        self.window.context.append_thread(thread_id)
         return thread_id
 
     def handle_run_messages(self, ctx):

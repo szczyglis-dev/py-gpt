@@ -6,32 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 02:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from .context import ContextItem
 
 class Chain:
-    def __init__(self, config, context):
+    def __init__(self, window=None):
         """
         Langchain Wrapper
 
-        :param config: Config instance
-        :param context: Context instance
+        :param window: Window instance
         """
-        self.config = config
-        self.context = context
-
+        self.window = window
         self.ai_name = None
         self.user_name = None
         self.system_prompt = None
         self.input_tokens = 0
         self.attachments = {}
         self.llms = {}
-
-        if not self.config.initialized:
-            self.config.init()
 
     def register(self, id, llm):
         """
@@ -61,8 +55,8 @@ class Chain:
                 messages.append(SystemMessage(content=self.system_prompt))
 
         # append messages from context (memory)
-        if self.config.get('use_context'):
-            items = self.context.get_all_items()
+        if self.window.config.get('use_context'):
+            items = self.window.context.get_all_items()
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -88,8 +82,8 @@ class Chain:
         if self.system_prompt is not None and self.system_prompt != "":
             message += self.system_prompt
 
-        if self.config.get('use_context'):
-            items = self.context.get_all_items()
+        if self.window.config.get('use_context'):
+            items = self.window.context.get_all_items()
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -126,13 +120,13 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        cfg = self.config.get_model_cfg(self.config.get('model'))
+        cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
         if 'langchain' in cfg:
             if 'provider' in cfg['langchain']:
                 provider = cfg['langchain']['provider']
                 if provider in self.llms:
                     try:
-                        llm = self.llms[provider].chat(self.config.all(), cfg['langchain'], stream_mode)
+                        llm = self.llms[provider].chat(self.window.config.all(), cfg['langchain'], stream_mode)
                     except Exception as e:
                         print(e)
 
@@ -155,13 +149,13 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        cfg = self.config.get_model_cfg(self.config.get('model'))
+        cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
         if 'langchain' in cfg:
             if 'provider' in cfg['langchain']:
                 provider = cfg['langchain']['provider']
                 if provider in self.llms:
                     try:
-                        llm = self.llms[provider].completion(self.config.all(), cfg['langchain'], stream_mode)
+                        llm = self.llms[provider].completion(self.window.config.all(), cfg['langchain'], stream_mode)
                     except Exception as e:
                         print(e)
         if llm is None:
@@ -183,7 +177,7 @@ class Chain:
         :return: context (memory)
         :rtype: ContextItem
         """
-        cfg = self.config.get_model_cfg(self.config.get('model'))
+        cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
         response = None
         mode = 'chat'
 
@@ -207,12 +201,12 @@ class Chain:
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = ContextItem(self.config.get('mode'))
+                ctx = ContextItem(self.window.config.get('mode'))
                 ctx.set_input(text, self.user_name)
 
             ctx.stream = response
             ctx.set_output("", self.ai_name)
-            self.context.add(ctx)
+            self.window.context.add(ctx)
             return ctx
 
         if response is None:
@@ -227,10 +221,10 @@ class Chain:
 
         # store context (memory)
         if ctx is None:
-            ctx = ContextItem(self.config.get('mode'))
+            ctx = ContextItem(self.window.config.get('mode'))
             ctx.set_input(text, self.user_name)
 
         ctx.set_output(output, self.ai_name)
-        self.context.add(ctx)
+        self.window.context.add(ctx)
 
         return ctx
