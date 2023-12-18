@@ -64,6 +64,28 @@ class Command:
         # cmd += '\n"read_file": read data from file, params: "filename"'
         return cmd
 
+    def append_syntax(self, event_data):
+        """
+        Append syntax to prompt
+
+        :param event_data: event data
+        :return: prompt with syntax
+        :rtype: str
+        """
+        cmd = event_data['prompt']
+        for item in event_data['syntax']:
+            if isinstance(item, str):
+                cmd += '\n' + item
+            elif isinstance(item, dict):
+                cmd += '\n"' + item['cmd'] + '": ' + item['instruction']
+                if 'params' in item:
+                    if len(item['params']) > 0:
+                        cmd += ', params: "{}"'.format('", "'.join(item['params']))
+                if 'example' in item:
+                    if item['example'] is not None:
+                        cmd += ', example: "{}"'.format(item['example'])
+        return cmd
+
     def extract_cmds(self, response):
         """
         Extract commands from response

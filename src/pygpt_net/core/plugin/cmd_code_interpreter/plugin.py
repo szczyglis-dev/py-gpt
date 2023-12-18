@@ -90,7 +90,7 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         if name == 'cmd.syntax':
-            data['value'] = self.cmd_syntax(data['value'])
+            self.cmd_syntax(data)
         elif name == 'cmd.execute':
             self.cmd(ctx, data['commands'])
 
@@ -116,20 +116,17 @@ class Plugin(BasePlugin):
         self.window.log('[CMD] ' + str(msg))
         print('[CMD] ' + str(msg))
 
-    def cmd_syntax(self, syntax):
+    def cmd_syntax(self, data):
         """
         Event: On cmd syntax prepare
 
-        :param syntax: syntax
-        :return: syntax
-        :rtype: str
+        :param data: event data dict
         """
         for item in self.allowed_cmds:
             if self.is_cmd_allowed(item):
                 key = "syntax_" + item
                 if self.has_option(key):
-                    syntax += "\n" + str(self.get_option_value(key))
-        return syntax
+                    data['syntax'].append(str(self.get_option_value(key)))
 
     def cmd(self, ctx, cmds):
         """

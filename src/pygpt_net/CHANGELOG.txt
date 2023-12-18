@@ -1,3 +1,9 @@
+2.0.38 (2023-12-18)
+
+- Multi-language support added to plugins
+- Implemented feature to override locale and CSS files by overwriting them in the home directory
+- Bug fixes
+
 2.0.37 (2023-12-18)
 
 - Fixed prompt typing in real-time on the right toolbox

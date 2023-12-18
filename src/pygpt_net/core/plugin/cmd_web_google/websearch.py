@@ -189,7 +189,7 @@ class WebSearch:
             self.plugin.window.log("Plugin: cmd_web_google:get_summarized_text "
                                    "(chunk, max_tokens): {}, {}".
                                    format(chunk, max_tokens))  # log
-            response = self.plugin.window.gpt.quick_call(chunk, sys_prompt, False, max_tokens, model)
+            response = self.plugin.window.app.gpt.quick_call(chunk, sys_prompt, False, max_tokens, model)
             if response is not None and response != "":
                 summary += response
 

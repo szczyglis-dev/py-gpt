@@ -238,13 +238,15 @@ class Input:
         # if commands enabled: append commands prompt
         if self.window.config.get('cmd'):
             sys_prompt += " " + self.window.app.command.get_prompt()
-
+            data = {
+                'prompt': sys_prompt,
+                'syntax': [],
+            }
             # dispatch event
-            event = Event('cmd.syntax', {
-                'value': sys_prompt,
-            })
+            event = Event('cmd.syntax', data)
             self.window.dispatch(event)
-            sys_prompt = self.window.app.gpt.system_prompt = event.data['value']
+            sys_prompt = self.window.app.command.append_syntax(event.data)
+            self.window.app.gpt.system_prompt = sys_prompt
 
         # set system prompt
         self.window.app.gpt.system_prompt = sys_prompt

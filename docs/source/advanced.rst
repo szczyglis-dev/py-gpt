@@ -40,3 +40,16 @@ create and save the file with the appropriate name, for example:
 
 
 This will add Spanish as a selectable language in the application's language menu.
+
+**Overwriting with your own files:**
+
+You can also overwrite files in the ``locale`` and ``css`` app directories with your own files in the user directory. 
+This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
+
+
+.. code-block:: ini
+
+   {HOME_DIR}/.config/pygpt-net/
+
+   - `locale` - a directory for locales in `.ini` format.
+   - `css` - a directory for css styles

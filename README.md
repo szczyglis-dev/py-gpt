@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.37** | build: **2023.12.18** | Python: **3.9+**
+Release: **2.0.38** | build: **2023.12.18** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1226,7 +1226,7 @@ You can manually edit the configuration files in this directory:
 
 ## Translations / Locale
 
-Locale `.ini` files are located in the directory:
+Locale `.ini` files are located in the app directory:
 
 ``` ini
 ./data/locale
@@ -1240,6 +1240,19 @@ locale.es.ini
 ```
 
 This will add Spanish as a selectable language in the application's language menu.
+
+**Overwriting with your own files:**
+
+You can also overwrite files in the `locale` and `css` app directories with your own files in the user directory. 
+This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
+
+
+``` ini
+{HOME_DIR}/.config/pygpt-net/
+```
+
+- `locale` - a directory for locales in `.ini` format.
+- `css` - a directory for css styles
 
 ---
 
@@ -1270,6 +1283,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.38 (2023-12-18)
+
+- Multi-language support added to plugins
+- Implemented feature to override locale and CSS files by overwriting them in the home directory
+- Bug fixes
 
 ## 2.0.37 (2023-12-18)
 
