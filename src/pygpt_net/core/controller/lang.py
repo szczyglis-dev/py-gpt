@@ -225,6 +225,9 @@ class Lang:
             self.window.ui.menu['debug.context'].setText(trans("menu.debug.context"))
             self.window.ui.menu['debug.presets'].setText(trans("menu.debug.presets"))
             self.window.ui.menu['debug.models'].setText(trans("menu.debug.models"))
+            self.window.ui.menu['debug.attachments'].setText(trans("menu.debug.attachments"))
+            self.window.ui.menu['debug.assistants'].setText(trans("menu.debug.assistants"))
+            self.window.ui.menu['debug.ui'].setText(trans("menu.debug.ui"))
 
         self.window.ui.menu['menu.about'].setTitle(trans("menu.info"))
         self.window.ui.menu['info.about'].setText(trans("menu.info.about"))

@@ -49,13 +49,13 @@ class UI:
         self.tabs = {}
 
         # setup builders
-        self.chat = Output(window)
-        self.toolbox = Toolbox(window)
-        self.contexts = Contexts(window)
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
-        self.menus = Menu(window)
+        self.chat = Output(window)
+        self.contexts = Contexts(window)
         self.dialogs = Dialogs(window)
+        self.menus = Menu(window)
+        self.toolbox = Toolbox(window)
 
     def setup(self):
         """Setup UI"""
