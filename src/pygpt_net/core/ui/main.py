@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 18:00:00                  #
 # ================================================== #
 import os
 
@@ -31,22 +31,24 @@ class UI:
         :param window: Window instance
         """
         self.window = window
-        self.nodes = {}
-        self.splitters = {}
-        self.tabs = {}
+
+        # setup containers
+        self.config_option = {}
+        self.debug = {}
+        self.dialog = {}
+        self.editor = {}
+        self.groups = {}
         self.menu = {}
         self.models = {}
-        self.groups = {}
+        self.nodes = {}
         self.paths = {}
-        self.config_option = {}
+        self.plugin_addon = {}
         self.plugin_data = {}
         self.plugin_option = {}
-        self.plugin_addon = {}
+        self.splitters = {}
+        self.tabs = {}
 
-        self.dialog = {}
-        self.debug = {}
-        self.editor = {}
-
+        # setup builders
         self.chat = Output(window)
         self.toolbox = Toolbox(window)
         self.contexts = Contexts(window)
@@ -93,5 +95,3 @@ class UI:
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:
             print("Error loading font file {}".format(path))
-        else:
-            family = QFontDatabase.applicationFontFamilies(font_id)[0]
