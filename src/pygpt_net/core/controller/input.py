@@ -121,7 +121,7 @@ class Input:
         """
         Stop input
         """
-        self.window.controller.assistant.force_stop = True
+        self.window.controller.assistant_thread.force_stop = True
         self.window.controller.plugins.dispatch('audio.input.toggle', False)  # stop audio input
         self.force_stop = True
         self.window.gpt.stop()
@@ -180,7 +180,7 @@ class Input:
             if self.window.config.get('assistant_thread') is None:
                 try:
                     self.window.set_status(trans('status.starting'))
-                    self.window.config.set('assistant_thread', self.window.controller.assistant.create_thread())
+                    self.window.config.set('assistant_thread', self.window.controller.assistant_thread.create_thread())
                 except Exception as e:
                     print(e)
                     self.window.ui.dialogs.alert(str(e))
@@ -265,7 +265,7 @@ class Input:
                         self.window.gpt.context.append_run(ctx.run_id)
 
                         # handle assistant run
-                        self.window.controller.assistant.handle_run(ctx)
+                        self.window.controller.assistant_thread.handle_run(ctx)
 
                 if ctx is not None:
                     self.window.log("Context: output: {}".format(ctx.dump()))  # log
@@ -478,7 +478,7 @@ class Input:
                     self.window.controller.camera.capture_frame(False)
 
         # unlock Assistant run thread if locked
-        self.window.controller.assistant.force_stop = False
+        self.window.controller.assistant_thread.force_stop = False
         self.force_stop = False
         self.window.set_status(trans('status.sending'))
 

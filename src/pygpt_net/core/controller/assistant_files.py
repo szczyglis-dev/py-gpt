@@ -6,17 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 01:00:00                  #
 # ================================================== #
 import os
-import threading
-import time
-import webbrowser
-
-from PySide6.QtCore import QObject, Signal, Slot
 
 from ..utils import trans
-from ..assistants import Assistants
 
 
 class AssistantFiles:
@@ -28,16 +22,11 @@ class AssistantFiles:
         """
         self.window = window
 
-    def update(self, update_list=True):
+    def update(self):
         """
-        Update assistants list
-
-        :param update_list: update list
+        Update assistants files list
         """
-        if update_list:
-            self.window.controller.assistant.update_list()
         self.update_uploaded()
-        self.window.controller.assistant.select_assistant_by_current()
 
     def select_file(self, idx):
         """
@@ -51,7 +40,8 @@ class AssistantFiles:
         assistant = self.window.controller.assistant.assistants.get_by_id(id)
         if assistant is None:
             return
-        self.window.controller.assistant.assistants.current_file = self.window.controller.assistant.assistants.get_file_id_by_idx(assistant, idx)
+        self.window.controller.assistant.assistants.current_file = \
+            self.window.controller.assistant.assistants.get_file_id_by_idx(assistant, idx)
 
     def count_upload_attachments(self, attachments):
         """
@@ -78,7 +68,7 @@ class AssistantFiles:
             files = self.window.gpt.assistant_file_list(assistant.id)
             self.window.controller.assistant.assistants.import_files(assistant, files)
             self.window.controller.assistant.assistants.save()
-            self.update(False)
+            self.update()
             self.window.set_status("Imported files: " + str(len(files)))
         except Exception as e:
             print("Error importing assistant files")
@@ -134,7 +124,7 @@ class AssistantFiles:
         self.window.dialog['rename'].input.setText(data['name'])
         self.window.dialog['rename'].current = file_id
         self.window.dialog['rename'].show()
-        self.update(False)
+        self.update()
 
     def update_file_name(self, file_id, name):
         """
@@ -195,7 +185,7 @@ class AssistantFiles:
                     assistant.delete_attachment(file_id)
 
             self.window.controller.assistant.assistants.save()
-            self.update(False)
+            self.update()
 
     def delete_file(self, idx, force=False):
         """
@@ -251,7 +241,7 @@ class AssistantFiles:
         """
         assistant.clear_attachments()
         self.window.controller.assistant.assistants.save()
-        self.update(False)
+        self.update()
 
     def upload_attachments(self, mode, attachments):
         """

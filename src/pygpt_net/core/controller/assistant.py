@@ -6,14 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 02:00:00                  #
 # ================================================== #
-import os
-import threading
-import time
 import webbrowser
-
-from PySide6.QtCore import QObject, Signal, Slot
 
 from ..utils import trans
 from ..assistants import Assistants
@@ -28,9 +23,6 @@ class Assistant:
         """
         self.window = window
         self.assistants = Assistants(self.window.config)
-        self.thread_run = None
-        self.thread_run_started = False
-        self.force_stop = False
 
     def setup(self):
         """Setup assistants"""
@@ -102,6 +94,28 @@ class Assistant:
                     self.window.config.data['current_model'][mode] = model
                     self.update_assistants()
 
+    def select_assistant_by_current(self):
+        """Select assistant by current"""
+        assistant_id = self.window.config.get('assistant')
+        items = self.window.controller.assistant.assistants.get_all()
+        if assistant_id in items:
+            idx = list(items.keys()).index(assistant_id)
+            current = self.window.models['assistants'].index(idx, 0)
+            self.window.data['assistants'].setCurrentIndex(current)
+
+    def select_default_assistant(self):
+        """Set default assistant"""
+        assistant = self.window.config.get('assistant')
+        if assistant is None or assistant == "":
+            mode = self.window.config.get('mode')
+            if mode == 'assistant':
+                self.window.config.set('assistant', self.assistants.get_default_assistant())
+                self.update()
+
+    def update_assistants(self):
+        """Update assistants"""
+        self.select_default_assistant()
+
     def update_field(self, id, value, assistant_id=None, current=False):
         """
         Update assistant field from editor
@@ -122,19 +136,6 @@ class Assistant:
                     assistant.instructions = value
                 elif id == 'assistant.model':
                     assistant.model = value
-
-    def edit(self, idx=None):
-        """
-        Open assistant editor
-
-        :param idx: assistant index (row index)
-        """
-        id = None
-        if idx is not None:
-            id = self.assistants.get_by_idx(idx)
-
-        self.init_editor(id)
-        self.window.ui.dialogs.open_editor('editor.assistants', idx)
 
     def init_editor(self, id=None):
         """
@@ -192,6 +193,19 @@ class Assistant:
 
         # set focus to name field
         self.window.config_option['assistant.name'].setFocus()
+
+    def edit(self, idx=None):
+        """
+        Open assistant editor
+
+        :param idx: assistant index (row index)
+        """
+        id = None
+        if idx is not None:
+            id = self.assistants.get_by_idx(idx)
+
+        self.init_editor(id)
+        self.window.ui.dialogs.open_editor('editor.assistants', idx)
 
     def save(self):
         """
@@ -410,149 +424,3 @@ class Assistant:
     def goto_online(self):
         """Opens Assistants page"""
         webbrowser.open('https://platform.openai.com/assistants')
-
-    def create_thread(self):
-        """
-        Create assistant thread
-
-        :return: thread_id
-        :rtype: str
-        """
-        thread_id = self.window.gpt.assistant_thread_create()
-        self.window.config.set('assistant_thread', thread_id)
-        self.window.gpt.context.append_thread(thread_id)
-        return thread_id
-
-    def select_assistant_by_current(self):
-        """Select assistant by current"""
-        assistant_id = self.window.config.get('assistant')
-        items = self.window.controller.assistant.assistants.get_all()
-        if assistant_id in items:
-            idx = list(items.keys()).index(assistant_id)
-            current = self.window.models['assistants'].index(idx, 0)
-            self.window.data['assistants'].setCurrentIndex(current)
-
-    def select_default_assistant(self):
-        """Set default assistant"""
-        assistant = self.window.config.get('assistant')
-        if assistant is None or assistant == "":
-            mode = self.window.config.get('mode')
-            if mode == 'assistant':
-                self.window.config.set('assistant', self.assistants.get_default_assistant())
-                self.update()
-
-    def update_assistants(self):
-        """Update assistants"""
-        self.select_default_assistant()
-
-    def handle_run_messages(self, ctx):
-        """
-        Handle run messages
-
-        :param ctx: ContextItem
-        """
-        data = self.window.gpt.assistant_msg_list(ctx.thread)
-        for msg in data:
-            if msg.role == "assistant":
-                ctx.set_output(msg.content[0].text.value)
-                self.window.controller.assistant_files.handle_message_files(msg)
-                self.window.controller.input.handle_response(ctx, 'assistant', False)
-                self.window.controller.input.handle_commands(ctx)
-                break
-
-    def handle_run(self, ctx):
-        """
-        Handle assistant's run
-
-        :param ctx: ContextItem
-        """
-        listener = AssistantRunThread(window=self.window, ctx=ctx)
-        listener.updated.connect(self.handle_status)
-        listener.destroyed.connect(self.handle_destroy)
-        listener.started.connect(self.handle_started)
-
-        self.thread_run = threading.Thread(target=listener.run)
-        self.thread_run.start()
-        self.thread_run_started = True
-
-    @Slot(str, object)
-    def handle_status(self, status, ctx):
-        """
-        Insert text to input and send
-
-        :param status: status
-        :param ctx: ContextItem
-        """
-        print("Run status: {}".format(status))
-        if status != "queued" and status != "in_progress":
-            self.window.controller.input.unlock_input()  # unlock input
-        if status == "completed":
-            self.force_stop = False
-            self.handle_run_messages(ctx)
-            self.window.statusChanged.emit(trans('assistant.run.completed'))
-        elif status == "failed":
-            self.force_stop = False
-            self.window.controller.input.unlock_input()
-            self.window.statusChanged.emit(trans('assistant.run.failed'))
-
-    @Slot()
-    def handle_destroy(self):
-        """
-        Insert text to input and send
-        """
-        self.thread_run_started = False
-        self.force_stop = False
-
-    @Slot()
-    def handle_started(self):
-        """
-        Handle listening started
-        """
-        print("Run: assistant is listening status...")
-        self.window.statusChanged.emit(trans('assistant.run.listening'))
-
-
-class AssistantRunThread(QObject):
-    updated = Signal(object, object)
-    destroyed = Signal()
-    started = Signal()
-
-    def __init__(self, window=None, ctx=None):
-        """
-        Run assistant run status check thread
-
-        :param window: Window instance
-        :param ctx: ContextItem
-        """
-        super().__init__()
-        self.window = window
-        self.ctx = ctx
-        self.check = True
-        self.stop_reasons = [
-            "cancelling",
-            "cancelled",
-            "failed",
-            "completed",
-            "expired",
-            "requires_action",
-        ]
-
-    def run(self):
-        """Run thread"""
-        try:
-            self.started.emit()
-            while self.check \
-                    and not self.window.is_closing \
-                    and not self.window.controller.assistant.force_stop:
-                status = self.window.gpt.assistant_run_status(self.ctx.thread, self.ctx.run_id)
-                self.updated.emit(status, self.ctx)
-                # finished or failed
-                if status in self.stop_reasons:
-                    self.check = False
-                    self.destroyed.emit()
-                    break
-                time.sleep(1)
-            self.destroyed.emit()
-        except Exception as e:
-            print(e)
-            self.destroyed.emit()
