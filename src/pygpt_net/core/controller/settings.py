@@ -9,6 +9,7 @@
 # Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import os
+import copy
 
 from showinfm import show_in_file_manager
 from ..utils import trans
@@ -47,7 +48,7 @@ class Settings:
         self.load_config_options()
 
         # store copy of loaded config data
-        self.before_config = dict(self.window.config.all())
+        self.before_config = copy.deepcopy(self.window.config.all())
 
     def load_config_options(self, initialize=True):
         """
@@ -79,13 +80,15 @@ class Settings:
         info = trans('info.settings.saved')
         self.window.config.save()
         self.window.set_status(info)
-        self.close_window(id)
         self.update_font_size()
         self.window.controller.ui.update()
 
         # update layout if needed
         if self.before_config['layout.density'] != self.window.config.get('layout.density'):
             self.window.controller.theme.reload()
+
+        self.before_config = copy.deepcopy(self.window.config.all())
+        self.close_window(id)
 
     def save_all(self):
         """Save all settings"""
@@ -104,14 +107,7 @@ class Settings:
 
     def update_font_size(self):
         """Update font size"""
-        self.window.ui.nodes['output'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.ui.nodes['input'].setStyleSheet(self.window.controller.theme.get_style('chat_input'))
-        self.window.ui.nodes['ctx.contexts'].setStyleSheet(self.window.controller.theme.get_style('ctx.contexts'))
-        self.window.ui.nodes['notepad1'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.ui.nodes['notepad2'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.ui.nodes['notepad3'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.ui.nodes['notepad4'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.ui.nodes['notepad5'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.controller.theme.apply(False)
 
     def toggle_settings(self, id):
         """
@@ -255,7 +251,6 @@ class Settings:
         :param value: input option value
         :param section: settings section
         """
-        self.before_config = dict(self.window.config.all())
 
         # dialog: preset
         if id.startswith('preset.'):
@@ -305,7 +300,6 @@ class Settings:
         :param type: option type (slider, input, None)
         :param section: option section (settings, preset.editor, None)
         """
-        self.before_config = dict(self.window.config.all())
 
         # dialog: preset
         if id.startswith('preset.'):
@@ -316,8 +310,6 @@ class Settings:
         elif id.startswith('plugin.'):
             self.window.controller.plugins.config_slider(id, value, type)
             return
-
-        orig_value = value
 
         # dialog: settings or global settings
         option_type = None
@@ -481,7 +473,7 @@ class Settings:
 
         # re-init settings
         self.window.controller.settings.init('settings')
-        self.window.ui.dialogs.alert(trans('dialog.settings.defaults.user.result'))
+        # self.window.ui.dialogs.alert(trans('dialog.settings.defaults.user.result'))
 
     def load_defaults_app(self, force=False):
         """

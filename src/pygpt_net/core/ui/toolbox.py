@@ -205,6 +205,7 @@ class Toolbox:
         header.addWidget(self.window.ui.nodes['preset.clear'], alignment=Qt.AlignRight)
 
         self.window.ui.nodes['preset.prompt'] = SettingsTextarea(self.window, 'preset.prompt', True)
+        self.window.ui.nodes['preset.prompt'].update_ui = False
         layout = QVBoxLayout()
         layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes['preset.prompt'])

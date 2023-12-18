@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.36",
-    "app.version": "2.0.36",
-    "updated_at": "2023-12-18T04:00:00"
+    "version": "2.0.37",
+    "app.version": "2.0.37",
+    "updated_at": "2023-12-18T19:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -39,6 +39,7 @@
   "font_size": 12,
   "font_size.input": 12,
   "font_size.ctx": 11,
+  "font_size.toolbox": 12,
   "frequency_penalty": 0.0,
   "img_prompt": "1. Apply these rules if the request is related to image generation or image description; otherwise, return the user's prompt as is.\n2. Translate any non-English image prompts accurately into English.\n3. Start from \"A photograph of...\" or \"An image of...\", etc. DO NOT use asking, like \"Please generate...\", \"I want to see...\", etc.\n4. Use as many details as possible to describe the image.\n5. If the user only wants to talk, then return the user's prompt as is (AND ONLY their prompt, without adding any text to it).\n",
   "img_prompt_model": "gpt-4-1106-preview",

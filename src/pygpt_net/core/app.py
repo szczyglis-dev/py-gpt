@@ -6,45 +6,45 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.18 19:00:00                  #
 # ================================================== #
 import os
 import sys
 
-from PySide6.QtGui import QScreen
 from PySide6.QtCore import QTimer, Signal, Slot
+from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
 
 from .config import Config
-from .ui.main import UI
 from .container import Container
 from .controller.main import Controller
+from .ui.main import UI
 from .utils import get_app_meta
 
-from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
-from .plugin.real_time.plugin import Plugin as RealTimePlugin
 from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
 from .plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
 from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperPlugin
-from .plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
-from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
 from .plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
 from .plugin.cmd_custom.plugin import Plugin as CmdCustomCommandPlugin
+from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
+from .plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
+from .plugin.real_time.plugin import Plugin as RealTimePlugin
+from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 
-from .llm.OpenAI import OpenAILLM
-from .llm.AzureOpenAI import AzureOpenAILLM
 from .llm.Anthropic import AnthropicLLM
+from .llm.AzureOpenAI import AzureOpenAILLM
 from .llm.HuggingFace import HuggingFaceLLM
 from .llm.Llama2 import Llama2LLM
 from .llm.Ollama import OllamaLLM
+from .llm.OpenAI import OpenAILLM
 
 
 class MainWindow(QMainWindow, QtStyleTools):
     statusChanged = Signal(str)
 
     def __init__(self):
-        """Application main window"""
+        """Main window"""
         super().__init__()
         self.timer = None
         self.is_closing = False

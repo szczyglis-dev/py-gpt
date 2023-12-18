@@ -378,6 +378,7 @@ class Presets:
         if section == 'preset.editor':
             preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
             is_current = False
+
         self.update_field(id, value, preset, is_current)
         self.window.ui.config_option[id].setText('{}'.format(value))
 

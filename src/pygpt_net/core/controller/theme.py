@@ -61,12 +61,52 @@ class Theme:
         self.window.set_theme(name + '.xml', 'style.css')  # style.css = additional custom stylesheet
         self.update()
 
-    def apply(self):
+    def apply_common(self, key):
+        """Apply common theme"""
+        if key in self.window.ui.nodes:
+            self.window.ui.nodes[key].setStyleSheet('font-size: {}px;'
+                                                    .format(self.window.config.get('font_size.toolbox')))  # 12px
+
+    def apply(self, all=True):
         """Apply theme"""
+        common_nodes = [
+            'assistants',
+            'assistants.new',
+            'assistants.import',
+            'assistants.label',
+            'cmd.enabled',
+            'dalle.options',
+            'img_variants.label',
+            'preset.clear',
+            'preset.presets',
+            'preset.presets.label',
+            'preset.presets.new',
+            'preset.prompt',
+            'preset.prompt.label',
+            'preset.temperature.label',
+            'preset.use',
+            'prompt.label',
+            'prompt.mode',
+            'prompt.mode.label',
+            'prompt.model',
+            'prompt.model.label',
+            'temperature.label',
+            'toolbox.prompt.label',
+            'toolbox.preset.ai_name.label',
+            'toolbox.preset.user_name.label',
+            'vision.capture.auto',
+            'vision.capture.enable',
+            'vision.capture.label',
+            'vision.capture.options',
+        ]
+        for node in common_nodes:
+            self.apply_common(node)
+
         # windows
         self.window.ui.nodes['output'].setStyleSheet(self.get_style('chat_output'))
         self.window.ui.nodes['input'].setStyleSheet(self.get_style('chat_input'))
         self.window.ui.nodes['ctx.contexts'].setStyleSheet(self.get_style('ctx.contexts'))
+
         # notepads
         self.window.ui.nodes['notepad1'].setStyleSheet(self.get_style('chat_output'))
         self.window.ui.nodes['notepad2'].setStyleSheet(self.get_style('chat_output'))
@@ -75,7 +115,8 @@ class Theme:
         self.window.ui.nodes['notepad5'].setStyleSheet(self.get_style('chat_output'))
 
         # apply to syntax highlighter
-        self.apply_syntax_highlighter(self.window.config.get('theme'))
+        if all:
+            self.apply_syntax_highlighter(self.window.config.get('theme'))
 
     def get_style(self, element):
         """
@@ -86,7 +127,7 @@ class Theme:
         :rtype: str
         """
         # get theme element style
-        if  element == "chat_output":
+        if element == "chat_output":
             return 'font-size: {}px;'.format(self.window.config.get('font_size'))
         elif element == "chat_input":
             return 'font-size: {}px;'.format(self.window.config.get('font_size.input'))

@@ -471,6 +471,13 @@ class Updater:
                     data['lock_modes'] = True
                 updated = True
 
+            # < 2.0.37
+            if old < parse_version("2.0.37"):
+                print("Migrating config from < 2.0.37...")
+                if 'font_size.toolbox' not in data:
+                    data['font_size.toolbox'] = 12
+                updated = True
+
         # update file
         migrated = False
         if updated:

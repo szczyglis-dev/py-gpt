@@ -67,6 +67,17 @@
         "step": 1,
         "advanced": false
     },
+    "font_size.toolbox": {
+        "type": "int",
+        "slider": true,
+        "label": "font_size.toolbox",
+        "value": 12,
+        "min": 8,
+        "max": 20,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "layout.density": {
         "type": "int",
         "slider": true,

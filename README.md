@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.36** | build: **2023.12.18** | Python: **3.9+**
+Release: **2.0.37** | build: **2023.12.18** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1122,6 +1122,8 @@ Config -> Settings...
 
 - `Font Size (ctx list)`: Adjusts the font size in contexts list.
 
+- `Font Size (toolbox)`: Adjusts the font size in toolbox on right.
+
 - `Layout density`: Adjusts layout elements density. "Apply changes" required to take effect. Default: 0. 
 
 - `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
@@ -1268,6 +1270,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.37 (2023-12-18)
+
+- Fixed prompt typing in real-time on the right toolbox
+- Added toolbox font change option
+- Simplified custom plugins and wrappers for LLMs application (see Docs for more details)
+- Bug fixes
+- UI fixes
 
 ## 2.0.36 (2023-12-18)
 

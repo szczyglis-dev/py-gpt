@@ -9,19 +9,19 @@
 # Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
-from .dialog.settings import Settings
-from .dialog.preset import Preset
-from .dialog.debug import Debug
 from .dialog.about import About
+from .dialog.assistant import Assistant
 from .dialog.changelog import Changelog
+from .dialog.debug import Debug
 from .dialog.editor import Editor
+from .dialog.image import Image
+from .dialog.logger import Logger
+from .dialog.plugins import Plugins
+from .dialog.preset import Preset
 from .dialog.rename import Rename
+from .dialog.settings import Settings
 from .dialog.start import Start
 from .dialog.update import Update
-from .dialog.image import Image
-from .dialog.plugins import Plugins
-from .dialog.logger import Logger
-from .dialog.assistant import Assistant
 from .widget.dialog import AlertDialog, ConfirmDialog
 
 

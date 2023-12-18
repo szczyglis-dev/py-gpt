@@ -14,13 +14,13 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QSplitter, QWidget
 
-from .output import Output
-from .toolbox import Toolbox
-from .menu import Menu
-from .dialogs import Dialogs
-from .contexts import Contexts
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
+from .contexts import Contexts
+from .dialogs import Dialogs
+from .menu import Menu
+from .output import Output
+from .toolbox import Toolbox
 
 
 class UI:

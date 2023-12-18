@@ -217,7 +217,7 @@ class Plugins:
 
         # reload settings window
         self.init_settings()
-        self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
+        # self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
 
     def load_defaults_app(self, force=False):
         """

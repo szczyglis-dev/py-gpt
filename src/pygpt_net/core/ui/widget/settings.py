@@ -173,6 +173,7 @@ class SettingsTextarea(QTextEdit):
         self.id = id
         self.section = section
         self.autoupdate = autoupdate
+        self.update_ui = True
 
     def keyPressEvent(self, event):
         """
@@ -183,8 +184,9 @@ class SettingsTextarea(QTextEdit):
         super(SettingsTextarea, self).keyPressEvent(event)
         if not self.autoupdate:
             return
-        self.window.controller.ui.update()
         self.window.controller.settings.change(self.id, self.toPlainText(), self.section)
+        if self.update_ui:
+            self.window.controller.ui.update()
 
 
 class SettingsDialog(QDialog):

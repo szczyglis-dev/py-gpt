@@ -81,6 +81,9 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         self.theme = theme
         self.MARKDOWN_KWS_FORMAT = {}
 
+        if 'background-color' not in theme:
+            return
+
         pal = self.parent.palette()
         pal.setColor(QPalette.Base, QColor(theme['background-color']))
         self.parent.setPalette(pal)
