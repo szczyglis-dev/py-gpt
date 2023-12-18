@@ -41,7 +41,7 @@ class Plugin(BasePlugin):
         Initialize options
         """
         url_api = {
-            "API Key": "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
+            "API Key": "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech",
         }
         self.add_option("azure_api_key", "text", "",
                         "Azure API Key",
