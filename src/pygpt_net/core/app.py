@@ -208,7 +208,7 @@ class Launcher:
 
     def add_llm(self, llm=None):
         """
-        Register LLMs
+        Register LLM wrapper
 
         :param llm: LLM wrapper instance
         """
