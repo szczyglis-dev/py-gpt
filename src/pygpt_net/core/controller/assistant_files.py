@@ -120,10 +120,10 @@ class AssistantFiles:
             return
 
         # set dialog and show
-        self.window.dialog['rename'].id = 'attachment_uploaded'
-        self.window.dialog['rename'].input.setText(data['name'])
-        self.window.dialog['rename'].current = file_id
-        self.window.dialog['rename'].show()
+        self.window.ui.dialog['rename'].id = 'attachment_uploaded'
+        self.window.ui.dialog['rename'].input.setText(data['name'])
+        self.window.ui.dialog['rename'].current = file_id
+        self.window.ui.dialog['rename'].show()
         self.update()
 
     def update_file_name(self, file_id, name):
@@ -149,7 +149,7 @@ class AssistantFiles:
         Close rename dialog
         """
         # close rename dialog and update attachments list
-        self.window.dialog['rename'].close()
+        self.window.ui.dialog['rename'].close()
         self.update()
 
     def clear_files(self, force=False):

@@ -23,4 +23,4 @@ class Update:
 
     def setup(self):
         """Setup updater dialog"""
-        self.window.dialog['update'] = UpdateDialog(self.window)
+        self.window.ui.dialog['update'] = UpdateDialog(self.window)

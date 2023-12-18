@@ -28,8 +28,8 @@ class Editor:
         """Setup config editor dialog"""
         id = 'config'
 
-        self.window.editor[id] = QPlainTextEdit()
-        self.window.editor[id].setReadOnly(False)
+        self.window.ui.editor[id] = QPlainTextEdit()
+        self.window.ui.editor[id].setReadOnly(False)
 
         self.window.ui.nodes['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
         self.window.ui.nodes['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
@@ -50,9 +50,9 @@ class Editor:
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['dialog.editor.label'])
         layout.addWidget(self.window.ui.paths[id])
-        layout.addWidget(self.window.editor['config'])
+        layout.addWidget(self.window.ui.editor['config'])
         layout.addLayout(bottom_layout)
 
-        self.window.dialog['config.editor'] = FileEditorDialog(self.window)
-        self.window.dialog['config.editor'].setLayout(layout)
-        self.window.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
+        self.window.ui.dialog['config.editor'] = FileEditorDialog(self.window)
+        self.window.ui.dialog['config.editor'].setLayout(layout)
+        self.window.ui.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))

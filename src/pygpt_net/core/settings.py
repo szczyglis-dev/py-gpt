@@ -103,14 +103,14 @@ class Settings:
 
     def load_default_editor(self):
         """Load defaults from file"""
-        file = self.window.dialog['config.editor'].file
+        file = self.window.ui.dialog['config.editor'].file
         self.load_editor(file)
         self.window.set_status("Loaded defaults from file: {}".format(file))
 
     def save_editor(self):
         """Save file to disk"""
         # check if this is a valid JSON:
-        data = self.window.editor['config'].toPlainText()
+        data = self.window.ui.editor['config'].toPlainText()
         try:
             json.loads(data)
         except Exception as e:
@@ -118,7 +118,7 @@ class Settings:
             self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
             return
 
-        file = self.window.dialog['config.editor'].file
+        file = self.window.ui.dialog['config.editor'].file
         path = os.path.join(self.window.config.path, file)
 
         # make backup of current file:
@@ -148,12 +148,12 @@ class Settings:
         # load file
         path = os.path.join(self.window.config.path, file)
         self.window.ui.paths['config'].setText(path)
-        self.window.dialog['config.editor'].file = file
+        self.window.ui.dialog['config.editor'].file = file
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 txt = f.read()
                 f.close()
-                self.window.editor['config'].setPlainText(txt)
+                self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
             self.window.set_status("Error loading file: {}".format(e))
             print(e)

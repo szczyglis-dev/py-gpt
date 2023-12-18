@@ -60,10 +60,10 @@ class Files:
 
         :param path: path to file
         """
-        self.window.dialog['rename'].id = 'output_file'
-        self.window.dialog['rename'].input.setText(os.path.basename(path))
-        self.window.dialog['rename'].current = path
-        self.window.dialog['rename'].show()
+        self.window.ui.dialog['rename'].id = 'output_file'
+        self.window.ui.dialog['rename'].input.setText(os.path.basename(path))
+        self.window.ui.dialog['rename'].current = path
+        self.window.ui.dialog['rename'].show()
 
     def update_name(self, path, name):
         """
@@ -73,7 +73,7 @@ class Files:
         :param name: name
         """
         os.rename(path, os.path.join(os.path.dirname(path), name))
-        self.window.dialog['rename'].close()
+        self.window.ui.dialog['rename'].close()
 
     def open_dir(self, path):
         """

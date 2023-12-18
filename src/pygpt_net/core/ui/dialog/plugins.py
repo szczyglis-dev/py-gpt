@@ -228,9 +228,9 @@ class Plugins:
         layout.addLayout(main_layout)  # list + plugins tabs
         layout.addLayout(bottom_layout)  # bottom buttons (save, defaults)
 
-        self.window.dialog[dialog_id] = PluginSettingsDialog(self.window, dialog_id)
-        self.window.dialog[dialog_id].setLayout(layout)
-        self.window.dialog[dialog_id].setWindowTitle(trans('dialog.plugin_settings'))
+        self.window.ui.dialog[dialog_id] = PluginSettingsDialog(self.window, dialog_id)
+        self.window.ui.dialog[dialog_id].setLayout(layout)
+        self.window.ui.dialog[dialog_id].setWindowTitle(trans('dialog.plugin_settings'))
 
         # restore current opened tab if idx is set
         if idx is not None:

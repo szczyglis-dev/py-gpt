@@ -65,7 +65,7 @@ class Confirm:
         elif type == 'plugin.settings.defaults.app':
             self.window.controller.plugins.load_defaults_app(True)
 
-        self.window.dialog['confirm'].close()
+        self.window.ui.dialog['confirm'].close()
 
     def dismiss(self, type, id):
         """
@@ -74,7 +74,7 @@ class Confirm:
         :param type: dialog type
         :param id: dialog object id
         """
-        self.window.dialog['confirm'].close()
+        self.window.ui.dialog['confirm'].close()
 
     def accept_rename(self, type, id, name):
         """
@@ -91,4 +91,4 @@ class Confirm:
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""
-        self.window.dialog['rename'].close()
+        self.window.ui.dialog['rename'].close()

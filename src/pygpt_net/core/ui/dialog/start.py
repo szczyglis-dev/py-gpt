@@ -53,6 +53,6 @@ class Start:
         layout.addWidget(self.window.ui.nodes['start.settings'], alignment=Qt.AlignCenter)
         layout.addWidget(self.window.ui.nodes['start.btn'])
 
-        self.window.dialog['info.' + id] = InfoDialog(self.window, id)
-        self.window.dialog['info.' + id].setLayout(layout)
-        self.window.dialog['info.' + id].setWindowTitle(trans("dialog.start.title"))
+        self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
+        self.window.ui.dialog['info.' + id].setLayout(layout)
+        self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.start.title"))

@@ -140,14 +140,14 @@ class Settings:
         :param file: JSON file to load
         """
         id = 'editor'
-        current_file = self.window.dialog['config.editor'].file
+        current_file = self.window.ui.dialog['config.editor'].file
         if id in self.window.app.settings.active and self.window.app.settings.active[id]:
             if current_file == file:
                 self.window.ui.dialogs.close('config.' + id)
                 self.window.app.settings.active[id] = False
             else:
                 self.window.app.settings.load_editor(file)  # load file to editor
-                self.window.dialog['config.editor'].file = file
+                self.window.ui.dialog['config.editor'].file = file
         else:
             self.window.app.settings.load_editor(file)  # load file to editor
             self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)

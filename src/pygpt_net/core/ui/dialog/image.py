@@ -47,6 +47,6 @@ class Image:
         layout.addLayout(row_one)
         layout.addLayout(row_two)
 
-        self.window.dialog[id] = GeneratedImageDialog(self.window, id)
-        self.window.dialog[id].setLayout(layout)
-        self.window.dialog[id].setWindowTitle(trans("dialog.image.title"))
+        self.window.ui.dialog[id] = GeneratedImageDialog(self.window, id)
+        self.window.ui.dialog[id].setLayout(layout)
+        self.window.ui.dialog[id].setWindowTitle(trans("dialog.image.title"))

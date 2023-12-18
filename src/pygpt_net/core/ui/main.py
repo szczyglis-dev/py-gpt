@@ -43,6 +43,10 @@ class UI:
         self.plugin_option = {}
         self.plugin_addon = {}
 
+        self.dialog = {}
+        self.debug = {}
+        self.editor = {}
+
         self.chat = Output(window)
         self.toolbox = Toolbox(window)
         self.contexts = Contexts(window)

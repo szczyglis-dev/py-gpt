@@ -48,6 +48,6 @@ class Changelog:
         layout.addWidget(self.window.ui.nodes['dialog.changelog.label'])
         layout.addWidget(textarea)
 
-        self.window.dialog['info.' + id] = InfoDialog(self.window, id)
-        self.window.dialog['info.' + id].setLayout(layout)
-        self.window.dialog['info.' + id].setWindowTitle(trans("dialog.changelog.title"))
+        self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
+        self.window.ui.dialog['info.' + id].setLayout(layout)
+        self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.changelog.title"))

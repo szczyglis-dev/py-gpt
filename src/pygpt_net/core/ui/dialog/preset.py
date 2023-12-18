@@ -115,9 +115,9 @@ class Preset:
         layout.addLayout(rows)
         layout.addLayout(bottom_layout)
 
-        self.window.dialog['editor.' + id] = EditorDialog(self.window, id)
-        self.window.dialog['editor.' + id].setLayout(layout)
-        self.window.dialog['editor.' + id].setWindowTitle(trans('dialog.preset'))
+        self.window.ui.dialog['editor.' + id] = EditorDialog(self.window, id)
+        self.window.ui.dialog['editor.' + id].setLayout(layout)
+        self.window.ui.dialog['editor.' + id].setWindowTitle(trans('dialog.preset'))
 
     def add_option(self, title, option, bold=False):
         """

@@ -73,8 +73,8 @@ class Updater:
         txt = trans('update.new_version') + ": " + str(version) + " (" + trans('update.released') + ": " + str(
             build) + ")"
         txt += "\n" + trans('update.current_version') + ": " + self.window.meta['version']
-        self.window.dialog['update'].changelog.setPlainText(changelog)
-        self.window.dialog['update'].message.setText(txt)
+        self.window.ui.dialog['update'].changelog.setPlainText(changelog)
+        self.window.ui.dialog['update'].message.setText(txt)
         self.window.ui.dialogs.open('update')
 
     def load_base_config(self):

@@ -124,8 +124,8 @@ class Image:
             self.window.ui.nodes['dialog.image.pixmap'][j].setVisible(False)
 
         # resize
-        self.window.dialog['image'].resize(520, 520)
-        self.window.dialog['image'].show()
+        self.window.ui.dialog['image'].resize(520, 520)
+        self.window.ui.dialog['image'].show()
 
     def img_action_open(self, path):
         """

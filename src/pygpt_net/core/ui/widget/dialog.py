@@ -79,7 +79,7 @@ class RenameDialog(QDialog):
 
         self.window.ui.nodes['dialog.rename.btn.update'] = QPushButton(trans('dialog.rename.update'))
         self.window.ui.nodes['dialog.rename.btn.update'].clicked.connect(
-            lambda: self.window.controller.confirm.accept_rename(self.id, self.window.dialog['rename'].current,
+            lambda: self.window.controller.confirm.accept_rename(self.id, self.window.ui.dialog['rename'].current,
                                                                  self.input.text()))
 
         self.window.ui.nodes['dialog.rename.btn.dismiss'] = QPushButton(trans('dialog.rename.dismiss'))

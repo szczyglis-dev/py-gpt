@@ -296,10 +296,10 @@ class Context:
         """
         ctx = self.window.app.context.get_name_by_idx(idx)
         ctx_data = self.window.app.context.get_context_by_name(ctx)
-        self.window.dialog['rename'].id = 'ctx'
-        self.window.dialog['rename'].input.setText(ctx_data['name'])
-        self.window.dialog['rename'].current = ctx
-        self.window.dialog['rename'].show()
+        self.window.ui.dialog['rename'].id = 'ctx'
+        self.window.ui.dialog['rename'].input.setText(ctx_data['name'])
+        self.window.ui.dialog['rename'].current = ctx
+        self.window.ui.dialog['rename'].show()
         self.update()
 
     def update_name(self, ctx, name):
@@ -314,12 +314,12 @@ class Context:
         self.window.app.context.contexts[ctx]['name'] = name
         self.window.app.context.set_ctx_initialized()
         self.window.app.context.dump_context(ctx)
-        self.window.dialog['rename'].close()
+        self.window.ui.dialog['rename'].close()
         self.update()
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""
-        self.window.dialog['rename'].close()
+        self.window.ui.dialog['rename'].close()
 
     def add(self, ctx):
         """

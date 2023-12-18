@@ -117,10 +117,10 @@ class Attachment:
             return
 
         # set dialog and show
-        self.window.dialog['rename'].id = 'attachment'
-        self.window.dialog['rename'].input.setText(data.name)
-        self.window.dialog['rename'].current = file_id
-        self.window.dialog['rename'].show()
+        self.window.ui.dialog['rename'].id = 'attachment'
+        self.window.ui.dialog['rename'].input.setText(data.name)
+        self.window.ui.dialog['rename'].current = file_id
+        self.window.ui.dialog['rename'].show()
         self.update()
 
     def update_name(self, file_id, name):
@@ -141,7 +141,7 @@ class Attachment:
                 self.window.controller.assistant_files.update_file_name(file_id, name)
 
         # close rename dialog and update attachments list
-        self.window.dialog['rename'].close()
+        self.window.ui.dialog['rename'].close()
         self.update()
 
     def add(self, mode, attachment):

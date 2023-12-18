@@ -75,7 +75,7 @@ class Debug:
 
         :param id: debug id
         """
-        self.window.debug[id].setModel(self.models[id])
+        self.window.ui.debug[id].setModel(self.models[id])
         if id not in self.counters or self.counters[id] != self.models[id].rowCount():
             self.models[id].removeRows(0, self.models[id].rowCount())
             self.initialized[id] = False

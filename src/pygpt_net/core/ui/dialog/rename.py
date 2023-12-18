@@ -25,5 +25,5 @@ class Rename:
     def setup(self):
         """Setup rename dialog"""
         id = 'rename'
-        self.window.dialog[id] = RenameDialog(self.window, id)
-        self.window.dialog[id].setWindowTitle(trans("dialog.rename.title"))
+        self.window.ui.dialog[id] = RenameDialog(self.window, id)
+        self.window.ui.dialog[id].setWindowTitle(trans("dialog.rename.title"))

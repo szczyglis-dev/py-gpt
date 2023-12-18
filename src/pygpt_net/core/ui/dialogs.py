@@ -36,10 +36,6 @@ class Dialogs:
 
     def setup(self):
         """Setup dialogs"""
-        self.window.dialog = {}
-        self.window.debug = {}
-        self.window.editor = {}
-
         # setup debug dialogs
         debug = Debug(self.window)
         for id in self.window.app.debug.ids:
@@ -88,8 +84,8 @@ class Dialogs:
         logger.setup()
 
         self.window.plugin_settings = Plugins(self.window)
-        self.window.dialog['alert'] = AlertDialog(self.window)
-        self.window.dialog['confirm'] = ConfirmDialog(self.window)
+        self.window.ui.dialog['alert'] = AlertDialog(self.window)
+        self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)
 
     def confirm(self, type, id, msg, parent_object=None):
         """
@@ -100,11 +96,11 @@ class Dialogs:
         :param msg: message to show
         :param parent_object: parent object
         """
-        self.window.dialog['confirm'].type = type
-        self.window.dialog['confirm'].id = id
-        self.window.dialog['confirm'].message.setText(msg)
-        self.window.dialog['confirm'].parent_object = parent_object
-        self.window.dialog['confirm'].show()
+        self.window.ui.dialog['confirm'].type = type
+        self.window.ui.dialog['confirm'].id = id
+        self.window.ui.dialog['confirm'].message.setText(msg)
+        self.window.ui.dialog['confirm'].parent_object = parent_object
+        self.window.ui.dialog['confirm'].show()
 
     def alert(self, msg):
         """
@@ -112,8 +108,8 @@ class Dialogs:
 
         :param msg: message to show
         """
-        self.window.dialog['alert'].message.setPlainText(msg)
-        self.window.dialog['alert'].show()
+        self.window.ui.dialog['alert'].message.setPlainText(msg)
+        self.window.ui.dialog['alert'].show()
 
     def open_editor(self, id, data_id, width=400, height=400):
         """
@@ -124,11 +120,11 @@ class Dialogs:
         :param width: dialog width
         :param height: dialog height
         """
-        if id not in self.window.dialog:
+        if id not in self.window.ui.dialog:
             return
-        self.window.dialog[id].resize(width, height)
-        self.window.dialog[id].data_id = data_id
-        self.window.dialog[id].show()
+        self.window.ui.dialog[id].resize(width, height)
+        self.window.ui.dialog[id].data_id = data_id
+        self.window.ui.dialog[id].show()
 
     def open(self, id, width=400, height=400):
         """
@@ -138,14 +134,14 @@ class Dialogs:
         :param width: dialog width
         :param height: dialog height
         """
-        if id not in self.window.dialog:
+        if id not in self.window.ui.dialog:
             return
-        self.window.dialog[id].resize(width, height)
-        qr = self.window.dialog[id].frameGeometry()
+        self.window.ui.dialog[id].resize(width, height)
+        qr = self.window.ui.dialog[id].frameGeometry()
         cp = self.window.screen().availableGeometry().center()
         qr.moveCenter(cp)
-        self.window.dialog[id].move(qr.topLeft())
-        self.window.dialog[id].show()
+        self.window.ui.dialog[id].move(qr.topLeft())
+        self.window.ui.dialog[id].show()
 
     def close(self, id):
         """
@@ -153,6 +149,6 @@ class Dialogs:
 
         :param id: debug dialog id
         """
-        if id not in self.window.dialog:
+        if id not in self.window.ui.dialog:
             return
-        self.window.dialog[id].close()
+        self.window.ui.dialog[id].close()

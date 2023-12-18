@@ -29,18 +29,18 @@ class Debug:
 
         :param id: debug id
         """
-        self.window.debug[id] = QTreeView()
-        self.window.debug[id].setRootIsDecorated(False)
-        self.window.debug[id].setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.window.debug[id].setWordWrap(True)
+        self.window.ui.debug[id] = QTreeView()
+        self.window.ui.debug[id].setRootIsDecorated(False)
+        self.window.ui.debug[id].setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.window.ui.debug[id].setWordWrap(True)
 
         scroll = QScrollArea()
-        scroll.setWidget(self.window.debug[id])
+        scroll.setWidget(self.window.ui.debug[id])
         scroll.setWidgetResizable(True)
 
         layout = QGridLayout()
         layout.addWidget(scroll, 1, 0)
 
-        self.window.dialog['debug.' + id] = DebugDialog(self.window, id)
-        self.window.dialog['debug.' + id].setLayout(layout)
-        self.window.dialog['debug.' + id].setWindowTitle("Debug" + ": " + id)
+        self.window.ui.dialog['debug.' + id] = DebugDialog(self.window, id)
+        self.window.ui.dialog['debug.' + id].setLayout(layout)
+        self.window.ui.dialog['debug.' + id].setWindowTitle("Debug" + ": " + id)

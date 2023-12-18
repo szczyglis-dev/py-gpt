@@ -162,9 +162,9 @@ class Settings:
         layout.addWidget(scroll)  # rest of options widgets
         layout.addLayout(bottom_layout)  # buttons (save, defaults)
 
-        self.window.dialog['config.' + id] = SettingsDialog(self.window, id)
-        self.window.dialog['config.' + id].setLayout(layout)
-        self.window.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
+        self.window.ui.dialog['config.' + id] = SettingsDialog(self.window, id)
+        self.window.ui.dialog['config.' + id].setLayout(layout)
+        self.window.ui.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
 
     def build_settings_widgets(self, options):
         """

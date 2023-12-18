@@ -40,6 +40,6 @@ class Logger:
         layout.addWidget(self.window.logger)
         layout.addLayout(bottom_layout)
 
-        self.window.dialog['logger'] = LoggerDialog(self.window)
-        self.window.dialog['logger'].setLayout(layout)
-        self.window.dialog['logger'].setWindowTitle(trans('dialog.logger.title'))
+        self.window.ui.dialog['logger'] = LoggerDialog(self.window)
+        self.window.ui.dialog['logger'].setLayout(layout)
+        self.window.ui.dialog['logger'].setWindowTitle(trans('dialog.logger.title'))

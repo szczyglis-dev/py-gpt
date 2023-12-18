@@ -120,7 +120,7 @@ class Lang:
 
         # settings dialog
         self.update_settings_dialogs()
-        self.window.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
+        self.window.ui.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
         self.window.ui.nodes['settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
         self.window.ui.nodes['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
         self.window.ui.nodes['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
@@ -131,7 +131,7 @@ class Lang:
         self.window.ui.nodes['plugin.settings.btn.save'].setText(trans("dialog.plugin.settings.btn.save"))
 
         # preset dialog
-        self.window.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
+        self.window.ui.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
         self.window.ui.nodes['preset.filename.label'].setText(trans("preset.filename"))
         self.window.ui.nodes['preset.name.label'].setText(trans("preset.name"))
         self.window.ui.nodes['preset.ai_name.label'].setText(trans("preset.ai_name"))
@@ -165,17 +165,17 @@ class Lang:
         self.window.ui.nodes['dialog.editor.label'].setText(trans('dialog.editor.label'))
         self.window.ui.nodes['editor.btn.default'].setText(trans("dialog.editor.btn.defaults"))
         self.window.ui.nodes['editor.btn.save'].setText(trans("dialog.editor.btn.save"))
-        self.window.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
+        self.window.ui.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
 
         # rename dialog
-        self.window.dialog['rename'].setWindowTitle(trans("dialog.rename.title"))
+        self.window.ui.dialog['rename'].setWindowTitle(trans("dialog.rename.title"))
         self.window.ui.nodes['dialog.rename.label'].setText(trans("dialog.rename.title"))
         self.window.ui.nodes['dialog.rename.btn.update'].setText(trans("dialog.rename.update"))
         self.window.ui.nodes['dialog.rename.btn.dismiss'].setText(trans("dialog.rename.dismiss"))
 
         # changelog dialog
         self.window.ui.nodes['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
-        self.window.dialog['info.changelog'].setWindowTitle(trans("dialog.changelog.title"))
+        self.window.ui.dialog['info.changelog'].setWindowTitle(trans("dialog.changelog.title"))
 
         # about dialog
         string = "PY-GPT\n" \
@@ -197,8 +197,8 @@ class Lang:
                                self.window.meta['author'],
                                self.window.meta['email'])
         self.window.ui.nodes['dialog.about.content'].setText(string)
-        self.window.dialog['info.about'].setWindowTitle(trans("dialog.about.title"))
-        self.window.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
+        self.window.ui.dialog['info.about'].setWindowTitle(trans("dialog.about.title"))
+        self.window.ui.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
 
         # menu
         self.window.ui.menu['menu.app'].setTitle(trans("menu.file"))

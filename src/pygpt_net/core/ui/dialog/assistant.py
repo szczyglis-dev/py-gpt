@@ -128,9 +128,9 @@ class Assistant:
         layout.addLayout(bottom_layout)
         layout.setStretch(1, 1)
 
-        self.window.dialog['editor.' + id] = EditorDialog(self.window, id)
-        self.window.dialog['editor.' + id].setLayout(layout)
-        self.window.dialog['editor.' + id].setWindowTitle(trans('dialog.assistant'))
+        self.window.ui.dialog['editor.' + id] = EditorDialog(self.window, id)
+        self.window.ui.dialog['editor.' + id].setLayout(layout)
+        self.window.ui.dialog['editor.' + id].setWindowTitle(trans('dialog.assistant'))
 
     def add_option(self, title, option, bold=False):
         """

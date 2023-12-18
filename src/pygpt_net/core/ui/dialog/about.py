@@ -86,6 +86,6 @@ class About:
         layout.addWidget(thx_textarea)
         layout.addLayout(buttons_layout)
 
-        self.window.dialog['info.' + id] = InfoDialog(self.window, id)
-        self.window.dialog['info.' + id].setLayout(layout)
-        self.window.dialog['info.' + id].setWindowTitle(trans("dialog.about.title"))
+        self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
+        self.window.ui.dialog['info.' + id].setLayout(layout)
+        self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.about.title"))
