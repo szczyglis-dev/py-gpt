@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -32,7 +32,7 @@ class Updater:
     def check(self):
         """Check for updates"""
         print("Checking for updates...")
-        url = self.window.website + "/api/version?v=" + str(self.window.version)
+        url = self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
         try:
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
@@ -53,7 +53,7 @@ class Updater:
                 changelog = data_json["changelog"]
 
             parsed_newest_version = parse_version(newest_version)
-            parsed_current_version = parse_version(self.window.version)
+            parsed_current_version = parse_version(self.window.meta['version'])
             if parsed_newest_version > parsed_current_version:
                 self.show_version_dialog(newest_version, newest_build, changelog)
             else:
@@ -72,7 +72,7 @@ class Updater:
         """
         txt = trans('update.new_version') + ": " + str(version) + " (" + trans('update.released') + ": " + str(
             build) + ")"
-        txt += "\n" + trans('update.current_version') + ": " + self.window.version
+        txt += "\n" + trans('update.current_version') + ": " + self.window.meta['version']
         self.window.dialog['update'].changelog.setPlainText(changelog)
         self.window.dialog['update'].message.setText(txt)
         self.window.ui.dialogs.open('update')
@@ -167,7 +167,7 @@ class Updater:
         old = parse_version(version)
 
         # get current version of app
-        current = parse_version(self.window.version)
+        current = parse_version(self.window.meta['version'])
 
         # check if models file is older than current app version
         if old < current:
@@ -206,7 +206,7 @@ class Updater:
             old = parse_version(version)
 
             # get current version of app
-            current = parse_version(self.window.version)
+            current = parse_version(self.window.meta['version'])
 
             # check if presets file is older than current app version
             if old < current:
@@ -236,7 +236,7 @@ class Updater:
         old = parse_version(version)
 
         # get current version of app
-        current = parse_version(self.window.version)
+        current = parse_version(self.window.meta['version'])
 
         # check if config file is older than current app version
         if old < current:

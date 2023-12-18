@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -186,16 +186,16 @@ class Lang:
                  "{}: {}\n\n" \
                  "(c) 2023 {}\n" \
                  "{}\n".format(trans("dialog.about.version"),
-                               self.window.version,
+                               self.window.meta['version'],
                                trans("dialog.about.build"),
-                               self.window.build,
+                               self.window.meta['build'],
 
                                trans("dialog.about.website"),
-                               self.window.website,
+                               self.window.meta['website'],
                                trans("dialog.about.github"),
-                               self.window.github,
-                               self.window.author,
-                               self.window.email)
+                               self.window.meta['github'],
+                               self.window.meta['author'],
+                               self.window.meta['email'])
         self.window.data['dialog.about.content'].setText(string)
         self.window.dialog['info.about'].setWindowTitle(trans("dialog.about.title"))
         self.window.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))

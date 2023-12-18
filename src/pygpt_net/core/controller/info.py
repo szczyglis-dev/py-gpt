@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -42,23 +42,23 @@ class Info:
 
     def goto_website(self):
         """Open project website"""
-        webbrowser.open(self.window.website)
+        webbrowser.open(self.window.meta['website'])
 
     def goto_docs(self):
         """Open docs"""
-        webbrowser.open(self.window.docs)
+        webbrowser.open(self.window.meta['docs'])
 
     def goto_pypi(self):
         """Open PyPi"""
-        webbrowser.open(self.window.pypi)
+        webbrowser.open(self.window.meta['pypi'])
 
     def goto_github(self):
         """Open GitHub page"""
-        webbrowser.open(self.window.github)
+        webbrowser.open(self.window.meta['github'])
 
     def goto_update(self):
         """Open update URL"""
-        webbrowser.open(self.window.website)
+        webbrowser.open(self.window.meta['website'])
 
     def update_menu(self):
         """Update info menu"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 02:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 import os
 import sys
@@ -20,7 +20,7 @@ from .config import Config
 from .ui.main import UI
 from .container import Container
 from .controller.main import Controller
-from .utils import get_init_value
+from .utils import get_app_meta
 
 from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 from .plugin.real_time.plugin import Plugin as RealTimePlugin
@@ -49,15 +49,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.timer = None
         self.is_closing = False
 
-        # version info
-        self.github = get_init_value("__github__")
-        self.website = get_init_value("__website__")
-        self.docs = get_init_value("__documentation__")
-        self.pypi = get_init_value("__pypi__")
-        self.version = get_init_value("__version__")
-        self.build = get_init_value("__build__")
-        self.author = get_init_value("__author__")
-        self.email = get_init_value("__email__")
+        # load version info
+        self.meta = get_app_meta()
         self.data = {}
 
         # setup config
@@ -80,7 +73,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui = UI(self)
         self.ui.setup()
 
-        self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.format(self.version, self.build))
+        # set window title
+        self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.format(self.meta['version'], self.meta['build']))
 
         # setup signals
         self.statusChanged.connect(self.update_status)
@@ -236,14 +230,51 @@ class Launcher:
             print("Closing...")
 
 
-def run():
-    """Run app"""
+def run(plugins=None, llms=None):
+    """
+    PyGPT launcher.
+
+    :param plugins: List containing custom plugin instances.
+    :param llms: List containing custom LLMs (Large Language Models) wrapper instances.
+
+    Extending PyGPT with custom plugins and LLMs wrappers:
+
+    - You can pass custom plugin instances and LLMs wrappers to the launcher.
+    - This is useful if you want to extend PyGPT with your own plugins and LLMs.
+
+    To register custom plugins:
+
+    - Pass a list with the plugin instances as the first argument.
+
+    To register custom LLMs wrappers:
+
+    - Pass a list with the LLMs wrappers instances as the second argument.
+
+    Example:
+    --------
+    ::
+
+        from pygpt_net.core.app import run
+        from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+        from my_llms import MyCustomLLM
+
+        plugins = [
+            MyCustomPlugin(),
+            MyOtherCustomPlugin(),
+        ]
+        llms = [
+            MyCustomLLM(),
+        ]
+
+        run(plugins, llms)
+
+    """
     
-    # initialize app
+    # initialize app launcher
     launcher = Launcher()
     launcher.init()
 
-    # register plugins
+    # register base plugins
     launcher.add_plugin(SelfLoopPlugin())
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(AudioAzurePlugin())
@@ -254,13 +285,23 @@ def run():
     launcher.add_plugin(CmdCodeInterpreterPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())
 
-    # register langchain LLMs
+    # register custom plugins
+    if plugins is not None:
+        for plugin in plugins:
+            launcher.add_plugin(plugin)
+
+    # register base langchain LLMs
     launcher.add_llm(OpenAILLM())
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
     launcher.add_llm(HuggingFaceLLM())
     launcher.add_llm(Llama2LLM())
     launcher.add_llm(OllamaLLM())
+
+    # register custom langchain LLMs
+    if llms is not None:
+        for llm in llms:
+            launcher.add_llm(llm)
 
     # run app
     launcher.run()
