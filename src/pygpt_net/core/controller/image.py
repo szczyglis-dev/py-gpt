@@ -32,7 +32,7 @@ class Image:
         self.window = window
 
     def setup(self):
-        """Setups images"""
+        """Setup images"""
         if self.window.config.get('img_raw'):
             self.window.config_option['img_raw'].setChecked(True)
         else:
