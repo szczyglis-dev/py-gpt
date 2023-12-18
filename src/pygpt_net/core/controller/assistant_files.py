@@ -48,14 +48,14 @@ class AssistantFiles:
         Count uploaded attachments
 
         :param attachments: attachments list
-        :return: number of uploaded files
+        :return: number of files to upload
         :rtype: int
         """
         num = 0
         for id in list(attachments):
             attachment = attachments[id]
             if not attachment.send:
-                num += 1  # increment uploaded files counter
+                num += 1  # increment uploaded files counter if file not sent
         return num
 
     def import_files(self, assistant):

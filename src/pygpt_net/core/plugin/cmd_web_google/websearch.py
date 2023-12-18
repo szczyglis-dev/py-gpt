@@ -197,12 +197,12 @@ class WebSearch:
 
     def make_query(self, query, page_no=1, summarize_prompt=""):
         """
-        Get system prompt from web search results
+        Get result from search query
 
         :param query: query to search
         :param page_no: page number
         :param summarize_prompt: custom prompt
-        :return: result
+        :return: result, total_found, current, url
         """
         self.plugin.log("Using web query: " + query)
         urls = self.get_urls(query)
@@ -259,12 +259,11 @@ class WebSearch:
 
     def open_url(self, url, summarize_prompt=""):
         """
-        Get system prompt from web search results
+        Get result from specified URL
 
-        :param query: query to search
-        :param page_no: page number
+        :param url: URL to visit
         :param summarize_prompt: custom prompt
-        :return: result
+        :return: result, url
         """
         self.plugin.log("Using URL: " + url)
 

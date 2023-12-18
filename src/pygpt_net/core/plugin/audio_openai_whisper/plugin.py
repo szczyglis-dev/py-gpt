@@ -262,7 +262,7 @@ class Plugin(BasePlugin):
 
     def on_disable(self):
         """Event: On plugin disable"""
-        self.speech_enabled = True
+        self.speech_enabled = False
 
     def on_input_before(self, text):
         """
@@ -532,7 +532,7 @@ class AudioInputThread(QObject):
                                             is_empty_phrase = True
                                             break
 
-                                    if is_empty_phrase or transcript.strip() == '':
+                                    if is_empty_phrase:
                                         continue
 
                                     if self.plugin.can_listen():
