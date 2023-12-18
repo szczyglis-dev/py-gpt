@@ -83,9 +83,17 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         Log data to logger and console
 
-        :param data: data to log
+        :param data: content to log
         """
         self.controller.debug.log(data)
+
+    def dispatch(self, event):
+        """
+        Dispatch event to plugins and other listeners
+
+        :param event: event object
+        """
+        self.controller.plugins.dispatch(event)
 
     def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """
