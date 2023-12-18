@@ -81,7 +81,7 @@ class Camera:
         """
         Make and set blank screen
         """
-        self.window.data['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
+        self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
 
     def update(self):
         """
@@ -94,13 +94,13 @@ class Camera:
             return
 
         # scale and update frame
-        width = self.window.data['video.preview'].video.width()
+        width = self.window.ui.nodes['video.preview'].video.width()
         image = QImage(self.frame, self.frame.shape[1], self.frame.shape[0],
                        self.frame.strides[0], QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(image)
         scaled_pixmap = pixmap.scaled(width, pixmap.height(),
                                       Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.window.data['video.preview'].video.setPixmap(scaled_pixmap)
+        self.window.ui.nodes['video.preview'].video.setPixmap(scaled_pixmap)
 
     def manual_capture(self):
         """
@@ -151,7 +151,7 @@ class Camera:
             # switch to attachments tab if needed (tmp: disabled)
             if switch:
                 pass
-                # self.window.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
+                # self.window.ui.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
             return True
         except Exception as e:
             print("Frame capture exception", e)
@@ -163,7 +163,7 @@ class Camera:
         Show camera
         """
         if self.is_capture:
-            self.window.data['video.preview'].setVisible(True)
+            self.window.ui.nodes['video.preview'].setVisible(True)
 
     def hide_camera(self, stop=True):
         """
@@ -171,7 +171,7 @@ class Camera:
 
         :param stop: true if stop capture thread
         """
-        self.window.data['video.preview'].setVisible(False)
+        self.window.ui.nodes['video.preview'].setVisible(False)
 
         if stop:
             self.stop_capture()
@@ -185,7 +185,7 @@ class Camera:
 
         self.is_capture = True
         self.window.config.set('vision.capture.enabled', True)
-        self.window.data['video.preview'].setVisible(True)
+        self.window.ui.nodes['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
 
@@ -198,7 +198,7 @@ class Camera:
 
         self.is_capture = False
         self.window.config.set('vision.capture.enabled', False)
-        self.window.data['video.preview'].setVisible(False)
+        self.window.ui.nodes['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
 
@@ -224,7 +224,7 @@ class Camera:
 
         self.auto = True
         self.window.config.set('vision.capture.auto', True)
-        self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
+        self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
     def disable_auto(self):
         """
@@ -235,7 +235,7 @@ class Camera:
 
         self.auto = False
         self.window.config.set('vision.capture.auto', False)
-        self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
+        self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
 
     def toggle_auto(self, state):
         """
@@ -274,20 +274,20 @@ class Camera:
         """
         if self.window.config.get('vision.capture.enabled'):
             self.is_capture = True
-            self.window.data['vision.capture.enable'].setChecked(True)
+            self.window.ui.nodes['vision.capture.enable'].setChecked(True)
         else:
             self.is_capture = False
-            self.window.data['vision.capture.enable'].setChecked(False)
+            self.window.ui.nodes['vision.capture.enable'].setChecked(False)
 
         if self.window.config.get('vision.capture.auto'):
             self.auto = True
-            self.window.data['vision.capture.auto'].setChecked(True)
+            self.window.ui.nodes['vision.capture.auto'].setChecked(True)
         else:
             self.auto = False
-            self.window.data['vision.capture.auto'].setChecked(False)
+            self.window.ui.nodes['vision.capture.auto'].setChecked(False)
 
         # update label
         if not self.window.config.get('vision.capture.auto'):
-            self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
+            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
         else:
-            self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
+            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))

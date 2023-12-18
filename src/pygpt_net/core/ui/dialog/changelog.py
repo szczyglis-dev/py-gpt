@@ -43,9 +43,9 @@ class Changelog:
         textarea.setReadOnly(True)
         textarea.setPlainText(txt)
 
-        self.window.data['dialog.changelog.label'] = QLabel(trans("dialog.changelog.title"))
+        self.window.ui.nodes['dialog.changelog.label'] = QLabel(trans("dialog.changelog.title"))
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['dialog.changelog.label'])
+        layout.addWidget(self.window.ui.nodes['dialog.changelog.label'])
         layout.addWidget(textarea)
 
         self.window.dialog['info.' + id] = InfoDialog(self.window, id)

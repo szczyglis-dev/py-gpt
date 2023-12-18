@@ -31,24 +31,23 @@ class UI:
         :param window: Window instance
         """
         self.window = window
-        self.window.data = {}
-        self.window.menus = {}
-        self.window.splitters = {}
-        self.window.tabs = {}
-        self.window.models = {}
-        self.window.groups = {}
-        self.window.path_label = {}
-        self.window.config_option = {}
-        self.window.plugin_data = {}
-        self.window.plugin_option = {}
-        self.window.plugin_addon = {}
+        self.nodes = {}
+        self.splitters = {}
+        self.tabs = {}
+        self.models = {}
+        self.groups = {}
+        self.paths = {}
+        self.config_option = {}
+        self.plugin_data = {}
+        self.plugin_option = {}
+        self.plugin_addon = {}
 
         self.chat = Output(window)
         self.toolbox = Toolbox(window)
         self.contexts = Contexts(window)
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
-        self.menu = Menu(window)
+        self.menus = Menu(window)
         self.dialogs = Dialogs(window)
 
     def setup(self):
@@ -68,20 +67,20 @@ class UI:
         self.window.ctx.setMinimumWidth(200)
 
         # horizontal splitter
-        self.window.splitters['main'] = QSplitter(Qt.Horizontal)
-        self.window.splitters['main'].addWidget(self.window.ctx)  # contexts
-        self.window.splitters['main'].addWidget(self.window.chat)  # chat box
-        self.window.splitters['main'].addWidget(self.window.toolbox)  # toolbox
-        self.window.splitters['main'].setSizes([1, 8, 1])
+        self.window.ui.splitters['main'] = QSplitter(Qt.Horizontal)
+        self.window.ui.splitters['main'].addWidget(self.window.ctx)  # contexts
+        self.window.ui.splitters['main'].addWidget(self.window.chat)  # chat box
+        self.window.ui.splitters['main'].addWidget(self.window.toolbox)  # toolbox
+        self.window.ui.splitters['main'].setSizes([1, 8, 1])
 
         # menu
-        self.menu.setup()
+        self.menus.setup()
 
         # dialogs
         self.dialogs.setup()
 
         # set central widget
-        self.window.setCentralWidget(self.window.splitters['main'])
+        self.window.setCentralWidget(self.window.ui.splitters['main'])
 
     def setup_font(self):
         """Setup UI font"""

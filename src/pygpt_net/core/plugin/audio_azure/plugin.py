@@ -141,27 +141,27 @@ class Plugin(BasePlugin):
 
         :param status: status
         """
-        self.window.plugin_addon['audio.output'].set_status(status)
+        self.window.ui.plugin_addon['audio.output'].set_status(status)
 
     def show_stop_button(self):
         """
         Show stop button
         """
-        self.window.plugin_addon['audio.output'].stop.setVisible(True)
+        self.window.ui.plugin_addon['audio.output'].stop.setVisible(True)
 
     def hide_stop_button(self):
         """
         Hide stop button
         """
-        self.window.plugin_addon['audio.output'].stop.setVisible(False)
+        self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
 
     def stop_speak(self):
         """
         Stop speaking
         """
-        self.window.plugin_addon['audio.output'].stop.setVisible(False)
-        self.window.plugin_addon['audio.output'].set_status('Stopped')
-        self.window.plugin_addon['audio.output'].stop_audio()
+        self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
+        self.window.ui.plugin_addon['audio.output'].set_status('Stopped')
+        self.window.ui.plugin_addon['audio.output'].stop_audio()
 
     def stop_audio(self):
         """

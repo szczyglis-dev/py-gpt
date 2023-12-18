@@ -147,7 +147,7 @@ class Settings:
         """
         # load file
         path = os.path.join(self.window.config.path, file)
-        self.window.path_label['config'].setText(path)
+        self.window.ui.paths['config'].setText(path)
         self.window.dialog['config.editor'].file = file
         try:
             with open(path, 'r', encoding="utf-8") as f:

@@ -24,13 +24,13 @@ class Output:
 
     def setup(self):
         """Setup output"""
-        self.window.data['output.timestamp'].setChecked(self.window.config.get('output_timestamp'))
+        self.window.ui.nodes['output.timestamp'].setChecked(self.window.config.get('output_timestamp'))
 
     def clear(self):
         """
         Clear output
         """
-        self.window.data['output'].clear()
+        self.window.ui.nodes['output'].clear()
 
     def append_context(self):
         """
@@ -111,7 +111,7 @@ class Output:
         :param text: text to append
         :param end: end of the line character
         """
-        cur = self.window.data['output'].textCursor()  # Move cursor to end of text
+        cur = self.window.ui.nodes['output'].textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
         s = str(text) + end
         while s:
@@ -119,7 +119,7 @@ class Output:
             cur.insertText(head)  # Insert text at cursor
             if sep:  # New line if LF
                 cur.insertBlock()
-        self.window.data['output'].setTextCursor(cur)  # Update visible cursor
+        self.window.ui.nodes['output'].setTextCursor(cur)  # Update visible cursor
 
     def toggle_timestamp(self, value):
         """

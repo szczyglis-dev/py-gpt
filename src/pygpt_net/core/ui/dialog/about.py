@@ -67,7 +67,7 @@ class About:
                                self.window.meta['author'],
                                self.window.meta['email'])
 
-        self.window.data['dialog.about.content'] = QLabel(string)
+        self.window.ui.nodes['dialog.about.content'] = QLabel(string)
 
         title = QLabel("PyGPT")
         title.setContentsMargins(0, 0, 0, 0)
@@ -81,7 +81,7 @@ class About:
         layout = QVBoxLayout()
         layout.addWidget(logo_label)
         layout.addWidget(title)
-        layout.addWidget(self.window.data['dialog.about.content'])
+        layout.addWidget(self.window.ui.nodes['dialog.about.content'])
         layout.addWidget(QLabel(trans('about.thanks') + ":"))
         layout.addWidget(thx_textarea)
         layout.addLayout(buttons_layout)

@@ -41,80 +41,80 @@ class Input:
         :rtype: QVBoxLayout
         """
         # input textarea
-        self.window.data['input'] = ChatInput(self.window)
+        self.window.ui.nodes['input'] = ChatInput(self.window)
 
         # status
         status_layout = self.status.setup()
         status_layout.setAlignment(Qt.AlignLeft)
 
         # send options
-        self.window.data['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
-        self.window.data['input.send_enter'].clicked.connect(
+        self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
+        self.window.ui.nodes['input.send_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 1))
 
-        self.window.data['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
-        self.window.data['input.send_shift_enter'].clicked.connect(
+        self.window.ui.nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
+        self.window.ui.nodes['input.send_shift_enter'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 2))
 
-        self.window.data['input.send_none'] = QRadioButton(trans("input.radio.none"))
-        self.window.data['input.send_none'].clicked.connect(
+        self.window.ui.nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
+        self.window.ui.nodes['input.send_none'].clicked.connect(
             lambda: self.window.controller.input.toggle_send_shift(
                 0))
 
-        self.window.data['input.send_clear'] = QCheckBox(trans('input.send_clear'))
-        self.window.data['input.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_send_clear(self.window.data['input.send_clear'].isChecked()))
+        self.window.ui.nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
+        self.window.ui.nodes['input.send_clear'].stateChanged.connect(
+            lambda: self.window.controller.input.toggle_send_clear(self.window.ui.nodes['input.send_clear'].isChecked()))
 
-        self.window.data['input.stream'] = QCheckBox(trans('input.stream'))
-        self.window.data['input.stream'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_stream(self.window.data['input.stream'].isChecked()))
+        self.window.ui.nodes['input.stream'] = QCheckBox(trans('input.stream'))
+        self.window.ui.nodes['input.stream'].stateChanged.connect(
+            lambda: self.window.controller.input.toggle_stream(self.window.ui.nodes['input.stream'].isChecked()))
 
         # send button
-        self.window.data['input.send_btn'] = QPushButton(trans("input.btn.send"))
-        self.window.data['input.send_btn'].clicked.connect(
+        self.window.ui.nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
+        self.window.ui.nodes['input.send_btn'].clicked.connect(
             lambda: self.window.controller.input.user_send())
 
         # send button
-        self.window.data['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
-        self.window.data['input.stop_btn'].setVisible(False)
-        self.window.data['input.stop_btn'].clicked.connect(
+        self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
+        self.window.ui.nodes['input.stop_btn'].setVisible(False)
+        self.window.ui.nodes['input.stop_btn'].clicked.connect(
             lambda: self.window.controller.input.stop())
 
         # send layout (options + send button)
-        self.window.data['ui.input.buttons'] = QHBoxLayout()
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.stream'])
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_clear'])
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_enter'])
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_shift_enter'])
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_none'])
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.send_btn'])
-        self.window.data['ui.input.buttons'].addWidget(self.window.data['input.stop_btn'])
-        self.window.data['ui.input.buttons'].setAlignment(Qt.AlignRight)
+        self.window.ui.nodes['ui.input.buttons'] = QHBoxLayout()
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stream'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_clear'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_enter'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_shift_enter'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_none'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_btn'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stop_btn'])
+        self.window.ui.nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
 
         # bottom layout (status + send layout)
         bottom_layout = QHBoxLayout()
         bottom_layout.addLayout(status_layout)
-        bottom_layout.addLayout(self.window.data['ui.input.buttons'])
+        bottom_layout.addLayout(self.window.ui.nodes['ui.input.buttons'])
 
         # header (input label + input counter)
-        self.window.data['input.label'] = QLabel(trans("input.label"))
-        self.window.data['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
-        self.window.data['input.counter'] = QLabel("")
+        self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
+        self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes['input.counter'] = QLabel("")
 
         # plugin audio input addon
-        self.window.plugin_addon['audio.input'] = AudioInput(self.window)
+        self.window.ui.plugin_addon['audio.input'] = AudioInput(self.window)
 
         header = QHBoxLayout()
-        header.addWidget(self.window.data['input.label'])
-        header.addWidget(self.window.plugin_addon['audio.input'])
-        header.addWidget(self.window.data['input.counter'], alignment=Qt.AlignRight)
+        header.addWidget(self.window.ui.nodes['input.label'])
+        header.addWidget(self.window.ui.plugin_addon['audio.input'])
+        header.addWidget(self.window.ui.nodes['input.counter'], alignment=Qt.AlignRight)
 
         # input tab
         input_tab = QWidget()
         input_layout = QVBoxLayout()
-        input_layout.addWidget(self.window.data['input'])
+        input_layout.addWidget(self.window.ui.nodes['input'])
         input_tab.setLayout(input_layout)
 
         # attachments tab
@@ -134,17 +134,17 @@ class Input:
         files_uploaded_tab.setLayout(files_uploaded_layout)
 
         # tabs (input + attachments)
-        self.window.tabs['input'] = QTabWidget()
+        self.window.ui.tabs['input'] = QTabWidget()
 
         # add tabs
-        self.window.tabs['input'].addTab(input_tab, trans('input.tab'))
-        self.window.tabs['input'].addTab(files_tab, trans('attachments.tab'))
-        self.window.tabs['input'].addTab(files_uploaded_tab, trans('attachments_uploaded.tab'))
+        self.window.ui.tabs['input'].addTab(input_tab, trans('input.tab'))
+        self.window.ui.tabs['input'].addTab(files_tab, trans('attachments.tab'))
+        self.window.ui.tabs['input'].addTab(files_uploaded_tab, trans('attachments_uploaded.tab'))
 
         # full input layout
         layout = QVBoxLayout()
         layout.addLayout(header)
-        layout.addWidget(self.window.tabs['input'])
+        layout.addWidget(self.window.ui.tabs['input'])
         layout.addLayout(bottom_layout)
 
         return layout

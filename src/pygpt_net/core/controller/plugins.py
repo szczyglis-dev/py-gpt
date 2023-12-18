@@ -54,8 +54,8 @@ class Plugins:
         """Set up plugins settings"""
         idx = None
         # restore previous selected or restored tab on dialog create
-        if 'plugin.settings' in self.window.tabs:
-            idx = self.window.tabs['plugin.settings'].currentIndex()
+        if 'plugin.settings' in self.window.ui.tabs:
+            idx = self.window.ui.tabs['plugin.settings'].currentIndex()
         self.window.plugin_settings.setup(idx)  # widget dialog Plugins
 
     def setup_menu(self):
@@ -165,26 +165,26 @@ class Plugins:
                 if option['type'] == 'int' or option['type'] == 'float':
                     if 'slider' in option and option['slider'] \
                             and (option['type'] == 'int' or option['type'] == 'float'):
-                        value = self.window.plugin_option[id][key].slider.value() / option['multiplier']
+                        value = self.window.ui.plugin_option[id][key].slider.value() / option['multiplier']
                     else:
                         if option['type'] == 'int':
                             try:
-                                value = int(self.window.plugin_option[id][key].text())
+                                value = int(self.window.ui.plugin_option[id][key].text())
                             except ValueError:
                                 value = 0
                         elif option['type'] == 'float':
                             try:
-                                value = float(self.window.plugin_option[id][key].text())
+                                value = float(self.window.ui.plugin_option[id][key].text())
                             except ValueError:
                                 value = 0.0
                 elif option['type'] == 'text':
-                    value = self.window.plugin_option[id][key].text()
+                    value = self.window.ui.plugin_option[id][key].text()
                 elif option['type'] == 'textarea':
-                    value = self.window.plugin_option[id][key].toPlainText()
+                    value = self.window.ui.plugin_option[id][key].toPlainText()
                 elif option['type'] == 'bool':
-                    value = self.window.plugin_option[id][key].box.isChecked()
+                    value = self.window.ui.plugin_option[id][key].box.isChecked()
                 elif option['type'] == 'dict':
-                    value = self.window.plugin_option[id][key].model.items
+                    value = self.window.ui.plugin_option[id][key].model.items
                 self.window.app.plugins.plugins[id].options[key]['value'] = value
                 self.window.config.data['plugins'][id][key] = value
 
@@ -349,8 +349,8 @@ class Plugins:
                     self.current_plugin = id
                     break
                 plugin_idx += 1
-        current = self.window.models['plugin.list'].index(idx, 0)
-        self.window.data['plugin.list'].setCurrentIndex(current)
+        current = self.window.ui.models['plugin.list'].index(idx, 0)
+        self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
 
     def update_info(self):
         """Update plugins info"""
@@ -369,8 +369,8 @@ class Plugins:
 
         if c > 0:
             count_str = "+ " + str(c) + " " + trans('chatbox.plugins')
-        self.window.data['chat.plugins'].setText(count_str)
-        self.window.data['chat.plugins'].setToolTip(tooltip)
+        self.window.ui.nodes['chat.plugins'].setText(count_str)
+        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
     def load_config(self):
         """
@@ -388,7 +388,7 @@ class Plugins:
         :param value: checkbox option value
         """
         key = id.replace('plugin.' + self.current_plugin + '.', '')
-        self.window.plugin_option[self.current_plugin][key].box.setChecked(value)
+        self.window.ui.plugin_option[self.current_plugin][key].box.setChecked(value)
 
     def config_dict_update(self, id, value):
         """
@@ -399,8 +399,8 @@ class Plugins:
         """
         key = id.replace('plugin.' + self.current_plugin + '.', '')
         values = list(value)
-        self.window.plugin_option[self.current_plugin][key].items = values  # replace model data list
-        self.window.plugin_option[self.current_plugin][key].model.updateData(values)  # update model data
+        self.window.ui.plugin_option[self.current_plugin][key].items = values  # replace model data list
+        self.window.ui.plugin_option[self.current_plugin][key].model.updateData(values)  # update model data
 
     def config_change(self, id, value):
         """
@@ -423,7 +423,7 @@ class Plugins:
                 elif 'max' in option and option['max'] is not None and value > option['max']:
                     value = option['max']
 
-        self.window.plugin_option[self.current_plugin][key].setText('{}'.format(value))
+        self.window.ui.plugin_option[self.current_plugin][key].setText('{}'.format(value))
 
     def config_slider(self, id, value, type=None):
         """
@@ -460,7 +460,7 @@ class Plugins:
             elif 'max' in option and value > option['max']:
                 value = option['max']
 
-            self.window.plugin_option[self.current_plugin][key].input.setText(str(value))
+            self.window.ui.plugin_option[self.current_plugin][key].input.setText(str(value))
 
         slider_value = round(float(value) * multiplier, 0)
         input_value = value
@@ -472,7 +472,7 @@ class Plugins:
         # update from slider
         if type == 'slider':
             txt = '{}'.format(input_value)
-            self.window.plugin_option[self.current_plugin][key].input.setText(txt)
+            self.window.ui.plugin_option[self.current_plugin][key].input.setText(txt)
 
         # update from input
         elif type == 'input':
@@ -480,13 +480,13 @@ class Plugins:
                 slider_value = option['min'] * multiplier
             elif 'max' in option and slider_value > option['max'] * multiplier:
                 slider_value = option['max'] * multiplier
-            self.window.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
+            self.window.ui.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
 
         # update from raw value
         else:
             txt = '{}'.format(value)
-            self.window.plugin_option[self.current_plugin][key].input.setText(txt)
-            self.window.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
+            self.window.ui.plugin_option[self.current_plugin][key].input.setText(txt)
+            self.window.ui.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
 
     def get_option(self, id, key):
         """
@@ -519,15 +519,15 @@ class Plugins:
         for type in self.window.app.plugins.allowed_types:
             if type == 'audio.input':
                 if self.is_type_enabled(type):
-                    self.window.plugin_addon['audio.input'].setVisible(True)
+                    self.window.ui.plugin_addon['audio.input'].setVisible(True)
                 else:
-                    self.window.plugin_addon['audio.input'].setVisible(False)
+                    self.window.ui.plugin_addon['audio.input'].setVisible(False)
             elif type == 'audio.output':
                 if self.is_type_enabled(type):
                     pass
-                    # self.window.plugin_addon['audio.output'].setVisible(True)
+                    # self.window.ui.plugin_addon['audio.output'].setVisible(True)
                 else:
-                    self.window.plugin_addon['audio.output'].setVisible(False)
+                    self.window.ui.plugin_addon['audio.output'].setVisible(False)
 
     def apply_cmds(self, ctx, cmds):
         """

@@ -64,15 +64,15 @@ class Theme:
     def apply(self):
         """Apply theme"""
         # windows
-        self.window.data['output'].setStyleSheet(self.get_style('chat_output'))
-        self.window.data['input'].setStyleSheet(self.get_style('chat_input'))
-        self.window.data['ctx.contexts'].setStyleSheet(self.get_style('ctx.contexts'))
+        self.window.ui.nodes['output'].setStyleSheet(self.get_style('chat_output'))
+        self.window.ui.nodes['input'].setStyleSheet(self.get_style('chat_input'))
+        self.window.ui.nodes['ctx.contexts'].setStyleSheet(self.get_style('ctx.contexts'))
         # notepads
-        self.window.data['notepad1'].setStyleSheet(self.get_style('chat_output'))
-        self.window.data['notepad2'].setStyleSheet(self.get_style('chat_output'))
-        self.window.data['notepad3'].setStyleSheet(self.get_style('chat_output'))
-        self.window.data['notepad4'].setStyleSheet(self.get_style('chat_output'))
-        self.window.data['notepad5'].setStyleSheet(self.get_style('chat_output'))
+        self.window.ui.nodes['notepad1'].setStyleSheet(self.get_style('chat_output'))
+        self.window.ui.nodes['notepad2'].setStyleSheet(self.get_style('chat_output'))
+        self.window.ui.nodes['notepad3'].setStyleSheet(self.get_style('chat_output'))
+        self.window.ui.nodes['notepad4'].setStyleSheet(self.get_style('chat_output'))
+        self.window.ui.nodes['notepad5'].setStyleSheet(self.get_style('chat_output'))
 
         # apply to syntax highlighter
         self.apply_syntax_highlighter(self.window.config.get('theme'))
@@ -101,7 +101,7 @@ class Theme:
 
     def apply_syntax_highlighter(self, theme):
         """Apply syntax highlight"""
-        self.window.data['output_highlighter'].setTheme(self.get_css('highlighter'))
+        self.window.ui.nodes['output_highlighter'].setTheme(self.get_css('highlighter'))
 
     def update(self):
         """Update theme menu"""

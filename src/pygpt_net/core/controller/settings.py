@@ -72,9 +72,9 @@ class Settings:
                     continue
                 type = self.options[option]['type']
                 if type == 'text':
-                    self.window.config.set(option, self.window.config_option[option].text())
+                    self.window.config.set(option, self.window.ui.config_option[option].text())
                 elif type == 'textarea':
-                    self.window.config.set(option, self.window.config_option[option].toPlainText())
+                    self.window.config.set(option, self.window.ui.config_option[option].toPlainText())
 
         info = trans('info.settings.saved')
         self.window.config.save()
@@ -104,14 +104,14 @@ class Settings:
 
     def update_font_size(self):
         """Update font size"""
-        self.window.data['output'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.data['input'].setStyleSheet(self.window.controller.theme.get_style('chat_input'))
-        self.window.data['ctx.contexts'].setStyleSheet(self.window.controller.theme.get_style('ctx.contexts'))
-        self.window.data['notepad1'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.data['notepad2'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.data['notepad3'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.data['notepad4'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.window.data['notepad5'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.ui.nodes['output'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.ui.nodes['input'].setStyleSheet(self.window.controller.theme.get_style('chat_input'))
+        self.window.ui.nodes['ctx.contexts'].setStyleSheet(self.window.controller.theme.get_style('ctx.contexts'))
+        self.window.ui.nodes['notepad1'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.ui.nodes['notepad2'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.ui.nodes['notepad3'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.ui.nodes['notepad4'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.window.ui.nodes['notepad5'].setStyleSheet(self.window.controller.theme.get_style('chat_output'))
 
     def toggle_settings(self, id):
         """
@@ -128,7 +128,7 @@ class Settings:
 
             # if no API key, focus on API key input
             if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
-                self.window.config_option['api_key'].setFocus()
+                self.window.ui.config_option['api_key'].setFocus()
 
         # update menu
         self.update()
@@ -239,13 +239,13 @@ class Settings:
 
                 # call vision checkboxes events
                 if id == "vision.capture.enabled":
-                    self.window.data['vision.capture.enable'].setChecked(value)
+                    self.window.ui.nodes['vision.capture.enable'].setChecked(value)
                 if id == "vision.capture.auto":
-                    self.window.data['vision.capture.auto'].setChecked(value)
+                    self.window.ui.nodes['vision.capture.auto'].setChecked(value)
 
         # update checkbox
-        if id in self.window.config_option and value is not None:
-            self.window.config_option[id].box.setChecked(value)
+        if id in self.window.ui.config_option and value is not None:
+            self.window.ui.config_option[id].box.setChecked(value)
 
     def change(self, id, value, section=None):
         """
@@ -294,7 +294,7 @@ class Settings:
             self.update_font_size()
 
         txt = '{}'.format(value)
-        self.window.config_option[id].setText(txt)
+        self.window.ui.config_option[id].setText(txt)
 
     def apply(self, id, value, type=None, section=None):
         """
@@ -334,7 +334,7 @@ class Settings:
                         value = int(value)
                     except:
                         value = 0
-                        self.window.config_option[id].input.setText(str(value))
+                        self.window.ui.config_option[id].input.setText(str(value))
                 elif option_type == 'float':
                     if 'multiplier' in option:
                         multiplier = option['multiplier']
@@ -343,12 +343,12 @@ class Settings:
                                 value = float(value)
                             except:
                                 value = option['min']
-                                self.window.config_option[id].input.setText(str(value))
+                                self.window.ui.config_option[id].input.setText(str(value))
                             if value < option['min']:
                                 value = option['min']
                             elif value > option['max']:
                                 value = option['max']
-                            self.window.config_option[id].input.setText(str(value))
+                            self.window.ui.config_option[id].input.setText(str(value))
 
         if id in self.float_values:
             multiplier = self.float_values[id]['multiplier']
@@ -372,13 +372,13 @@ class Settings:
                         value = int(value)
                 except:
                     value = min
-                    self.window.config_option[id].input.setText(str(value))
+                    self.window.ui.config_option[id].input.setText(str(value))
                 # fix min max values
                 if value < min:
                     value = min
                 elif value > max:
                     value = max
-                self.window.config_option[id].input.setText(str(value))
+                self.window.ui.config_option[id].input.setText(str(value))
 
         # prepare slider value
         slider_value = round(float(value) * multiplier, 0)
@@ -395,7 +395,7 @@ class Settings:
             preset = self.window.config.get('preset')  # current preset
             is_current = True
             if section == 'preset.editor':
-                preset = self.window.config_option['preset.filename'].text()  # editing preset
+                preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
                 is_current = False
             self.window.controller.presets.update_field(id, input_value, preset, is_current)
             self.window.controller.presets.update_field('preset.temperature', input_value, True)
@@ -410,7 +410,7 @@ class Settings:
         # update from slider
         if type == 'slider':
             txt = '{}'.format(input_value)
-            self.window.config_option[id].input.setText(txt)
+            self.window.ui.config_option[id].input.setText(txt)
 
         # update from input
         elif type == 'input':
@@ -433,10 +433,10 @@ class Settings:
                 elif slider_value > max:
                     slider_value = max
             if id in self.options and self.options[id]['slider']:
-                self.window.config_option[id].slider.setValue(slider_value)
+                self.window.ui.config_option[id].slider.setValue(slider_value)
         else:
             if id in self.options and self.options[id]['slider']:
-                self.window.config_option[id].slider.setValue(slider_value)
+                self.window.ui.config_option[id].slider.setValue(slider_value)
 
         # update from raw value
         if id.startswith('font_size'):
@@ -454,10 +454,10 @@ class Settings:
         :param value: value
         :param section: section
         """
-        if id not in self.window.groups:
+        if id not in self.window.ui.groups:
             return
 
-        self.window.groups[id].collapse(value)
+        self.window.ui.groups[id].collapse(value)
 
     def open_config_dir(self):
         """Open user config directory"""

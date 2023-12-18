@@ -29,19 +29,19 @@ class Image:
     def setup(self):
         """Setup image dialog"""
         id = 'image'
-        self.window.data['dialog.image.pixmap'] = {}
+        self.window.ui.nodes['dialog.image.pixmap'] = {}
 
         for i in range(0, 4):
-            self.window.data['dialog.image.pixmap'][i] = GeneratedImageLabel(self.window, self.path)
-            self.window.data['dialog.image.pixmap'][i].setMaximumSize(512, 512)
+            self.window.ui.nodes['dialog.image.pixmap'][i] = GeneratedImageLabel(self.window, self.path)
+            self.window.ui.nodes['dialog.image.pixmap'][i].setMaximumSize(512, 512)
 
         row_one = QHBoxLayout()
-        row_one.addWidget(self.window.data['dialog.image.pixmap'][0])
-        row_one.addWidget(self.window.data['dialog.image.pixmap'][1])
+        row_one.addWidget(self.window.ui.nodes['dialog.image.pixmap'][0])
+        row_one.addWidget(self.window.ui.nodes['dialog.image.pixmap'][1])
 
         row_two = QHBoxLayout()
-        row_two.addWidget(self.window.data['dialog.image.pixmap'][2])
-        row_two.addWidget(self.window.data['dialog.image.pixmap'][3])
+        row_two.addWidget(self.window.ui.nodes['dialog.image.pixmap'][2])
+        row_two.addWidget(self.window.ui.nodes['dialog.image.pixmap'][3])
 
         layout = QVBoxLayout()
         layout.addLayout(row_one)

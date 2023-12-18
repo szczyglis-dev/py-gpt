@@ -57,124 +57,124 @@ class Lang:
         self.update()
 
         # output
-        self.window.data['output.timestamp'].setText(trans('output.timestamp'))
+        self.window.ui.nodes['output.timestamp'].setText(trans('output.timestamp'))
 
-        self.window.tabs['output'].setTabText(0, trans('output.tab.chat'))
-        self.window.tabs['output'].setTabText(1, trans('output.tab.files'))
-        self.window.tabs['output'].setTabText(2, trans('output.tab.notepad') + " 1")
-        self.window.tabs['output'].setTabText(3, trans('output.tab.notepad') + " 2")
-        self.window.tabs['output'].setTabText(4, trans('output.tab.notepad') + " 3")
-        self.window.tabs['output'].setTabText(5, trans('output.tab.notepad') + " 4")
-        self.window.tabs['output'].setTabText(6, trans('output.tab.notepad') + " 5")
+        self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
+        self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
+        self.window.ui.tabs['output'].setTabText(2, trans('output.tab.notepad') + " 1")
+        self.window.ui.tabs['output'].setTabText(3, trans('output.tab.notepad') + " 2")
+        self.window.ui.tabs['output'].setTabText(4, trans('output.tab.notepad') + " 3")
+        self.window.ui.tabs['output'].setTabText(5, trans('output.tab.notepad') + " 4")
+        self.window.ui.tabs['output'].setTabText(6, trans('output.tab.notepad') + " 5")
 
         # context
-        self.window.data['contexts.label'].setText(trans("ctx.contexts.label"))
-        self.window.data['contexts.new'].setText(trans('context.new'))
+        self.window.ui.nodes['contexts.label'].setText(trans("ctx.contexts.label"))
+        self.window.ui.nodes['contexts.new'].setText(trans('context.new'))
 
         # toolbox
-        self.window.data['prompt.mode.label'].setText(trans("toolbox.mode.label"))
-        self.window.data['prompt.model.label'].setText(trans("toolbox.model.label"))
-        self.window.data['preset.presets.label'].setText(trans("toolbox.presets.label"))
-        self.window.data['preset.presets.new'].setText(trans('preset.new'))
-        self.window.data['preset.clear'].setText(trans('preset.clear'))
-        self.window.data['preset.use'].setText(trans('preset.use'))
-        self.window.data['toolbox.preset.ai_name.label'].setText(trans('toolbox.name.ai'))
-        self.window.data['toolbox.preset.user_name.label'].setText(trans('toolbox.name.user'))
-        self.window.data['toolbox.prompt.label'].setText(trans("toolbox.prompt"))
-        self.window.data['temperature.label'].setText(trans("toolbox.temperature.label"))
+        self.window.ui.nodes['prompt.mode.label'].setText(trans("toolbox.mode.label"))
+        self.window.ui.nodes['prompt.model.label'].setText(trans("toolbox.model.label"))
+        self.window.ui.nodes['preset.presets.label'].setText(trans("toolbox.presets.label"))
+        self.window.ui.nodes['preset.presets.new'].setText(trans('preset.new'))
+        self.window.ui.nodes['preset.clear'].setText(trans('preset.clear'))
+        self.window.ui.nodes['preset.use'].setText(trans('preset.use'))
+        self.window.ui.nodes['toolbox.preset.ai_name.label'].setText(trans('toolbox.name.ai'))
+        self.window.ui.nodes['toolbox.preset.user_name.label'].setText(trans('toolbox.name.user'))
+        self.window.ui.nodes['toolbox.prompt.label'].setText(trans("toolbox.prompt"))
+        self.window.ui.nodes['temperature.label'].setText(trans("toolbox.temperature.label"))
 
         # input
-        self.window.data['input.label'].setText(trans("input.label"))
-        self.window.data['input.send_enter'].setText(trans("input.radio.enter"))
-        self.window.data['input.send_shift_enter'].setText(trans("input.radio.enter_shift"))
-        self.window.data['input.send_none'].setText(trans("input.radio.none"))
-        self.window.data['input.send_clear'].setText(trans('input.send_clear'))
-        self.window.data['input.send_btn'].setText(trans("input.btn.send"))
-        self.window.data['input.stop_btn'].setText(trans("input.btn.stop"))
-        self.window.data['input.stream'].setText(trans('input.stream'))
-        self.window.data['attachments.send_clear'].setText(trans('attachments.send_clear'))
+        self.window.ui.nodes['input.label'].setText(trans("input.label"))
+        self.window.ui.nodes['input.send_enter'].setText(trans("input.radio.enter"))
+        self.window.ui.nodes['input.send_shift_enter'].setText(trans("input.radio.enter_shift"))
+        self.window.ui.nodes['input.send_none'].setText(trans("input.radio.none"))
+        self.window.ui.nodes['input.send_clear'].setText(trans('input.send_clear'))
+        self.window.ui.nodes['input.send_btn'].setText(trans("input.btn.send"))
+        self.window.ui.nodes['input.stop_btn'].setText(trans("input.btn.stop"))
+        self.window.ui.nodes['input.stream'].setText(trans('input.stream'))
+        self.window.ui.nodes['attachments.send_clear'].setText(trans('attachments.send_clear'))
 
-        self.window.models['attachments'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        self.window.models['attachments'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
-        self.window.models['attachments_uploaded'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
-        self.window.models['attachments_uploaded'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
+        self.window.ui.models['attachments'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
+        self.window.ui.models['attachments'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
+        self.window.ui.models['attachments_uploaded'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
+        self.window.ui.models['attachments_uploaded'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
 
         # audio
-        self.window.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))
+        self.window.ui.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))
 
         # assistants
-        self.window.data['assistants.label'].setText(trans("toolbox.assistants.label"))
-        self.window.data['assistants.new'].setText(trans('assistant.new'))
-        self.window.data['assistants.import'].setText(trans('assistant.import'))
-        self.window.data['assistant.btn.save'].setText(trans("dialog.assistant.btn.save"))
-        self.window.data['assistant.name.label'].setText(trans("assistant.name"))
-        self.window.data['assistant.id.label'].setText(trans("assistant.id"))
-        self.window.data['assistant.instructions.label'].setText(trans("assistant.instructions"))
-        self.window.data['assistant.model.label'].setText(trans("assistant.model"))
-        self.window.data['assistant.description.label'].setText(trans("assistant.description"))
-        self.window.data['assistant.functions.label'].setText(trans('assistant.functions.label'))
-        self.window.data['assistant.id_tip'].setText(trans("assistant.new.id_tip"))
-        self.window.data['assistant.api.tip'].setText(trans('assistant.api.tip'))
-        self.window.config_option['assistant.tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
-        self.window.config_option['assistant.tool.code_interpreter'].box.setText(trans('assistant.tool.code_interpreter'))
+        self.window.ui.nodes['assistants.label'].setText(trans("toolbox.assistants.label"))
+        self.window.ui.nodes['assistants.new'].setText(trans('assistant.new'))
+        self.window.ui.nodes['assistants.import'].setText(trans('assistant.import'))
+        self.window.ui.nodes['assistant.btn.save'].setText(trans("dialog.assistant.btn.save"))
+        self.window.ui.nodes['assistant.name.label'].setText(trans("assistant.name"))
+        self.window.ui.nodes['assistant.id.label'].setText(trans("assistant.id"))
+        self.window.ui.nodes['assistant.instructions.label'].setText(trans("assistant.instructions"))
+        self.window.ui.nodes['assistant.model.label'].setText(trans("assistant.model"))
+        self.window.ui.nodes['assistant.description.label'].setText(trans("assistant.description"))
+        self.window.ui.nodes['assistant.functions.label'].setText(trans('assistant.functions.label'))
+        self.window.ui.nodes['assistant.id_tip'].setText(trans("assistant.new.id_tip"))
+        self.window.ui.nodes['assistant.api.tip'].setText(trans('assistant.api.tip'))
+        self.window.ui.config_option['assistant.tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
+        self.window.ui.config_option['assistant.tool.code_interpreter'].box.setText(trans('assistant.tool.code_interpreter'))
 
         # settings dialog
         self.update_settings_dialogs()
         self.window.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
-        self.window.data['settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
-        self.window.data['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
-        self.window.data['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
+        self.window.ui.nodes['settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
+        self.window.ui.nodes['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
+        self.window.ui.nodes['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
 
         # plugin settings dialog
-        self.window.data['plugin.settings.btn.defaults.user'].setText(trans("dialog.plugin.settings.btn.defaults.user"))
-        self.window.data['plugin.settings.btn.defaults.app'].setText(trans("dialog.plugin.settings.btn.defaults.app"))
-        self.window.data['plugin.settings.btn.save'].setText(trans("dialog.plugin.settings.btn.save"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.user'].setText(trans("dialog.plugin.settings.btn.defaults.user"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.app'].setText(trans("dialog.plugin.settings.btn.defaults.app"))
+        self.window.ui.nodes['plugin.settings.btn.save'].setText(trans("dialog.plugin.settings.btn.save"))
 
         # preset dialog
         self.window.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
-        self.window.data['preset.filename.label'].setText(trans("preset.filename"))
-        self.window.data['preset.name.label'].setText(trans("preset.name"))
-        self.window.data['preset.ai_name.label'].setText(trans("preset.ai_name"))
-        self.window.data['preset.user_name.label'].setText(trans("preset.user_name"))
-        self.window.data['preset.temperature.label'].setText(trans("preset.temperature"))
-        self.window.data['preset.prompt.label'].setText(trans("preset.prompt"))
-        self.window.data['cmd.enabled'].setText(trans('cmd.enabled'))
-        self.window.config_option['preset.chat'].box.setText(trans("preset.chat"))
-        self.window.config_option['preset.completion'].box.setText(trans("preset.completion"))
-        self.window.config_option['preset.img'].box.setText(trans("preset.img"))
-        self.window.config_option['img_raw'].setText(trans("img.raw"))
+        self.window.ui.nodes['preset.filename.label'].setText(trans("preset.filename"))
+        self.window.ui.nodes['preset.name.label'].setText(trans("preset.name"))
+        self.window.ui.nodes['preset.ai_name.label'].setText(trans("preset.ai_name"))
+        self.window.ui.nodes['preset.user_name.label'].setText(trans("preset.user_name"))
+        self.window.ui.nodes['preset.temperature.label'].setText(trans("preset.temperature"))
+        self.window.ui.nodes['preset.prompt.label'].setText(trans("preset.prompt"))
+        self.window.ui.nodes['cmd.enabled'].setText(trans('cmd.enabled'))
+        self.window.ui.config_option['preset.chat'].box.setText(trans("preset.chat"))
+        self.window.ui.config_option['preset.completion'].box.setText(trans("preset.completion"))
+        self.window.ui.config_option['preset.img'].box.setText(trans("preset.img"))
+        self.window.ui.config_option['img_raw'].setText(trans("img.raw"))
 
         # vision
-        self.window.data['vision.capture.enable'].setText(trans("vision.capture.enable"))
-        self.window.data['vision.capture.enable'].setToolTip(trans("vision.capture.enable.tooltip"))
-        self.window.data['vision.capture.auto'].setText(trans("vision.capture.auto"))
-        self.window.data['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
-        self.window.data['vision.capture.label'].setText(trans('vision.capture.options.title'))
+        self.window.ui.nodes['vision.capture.enable'].setText(trans("vision.capture.enable"))
+        self.window.ui.nodes['vision.capture.enable'].setToolTip(trans("vision.capture.enable.tooltip"))
+        self.window.ui.nodes['vision.capture.auto'].setText(trans("vision.capture.auto"))
+        self.window.ui.nodes['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
+        self.window.ui.nodes['vision.capture.label'].setText(trans('vision.capture.options.title'))
 
         # capture label
         if not self.window.config.get('vision.capture.auto'):
-            self.window.data['video.preview'].label.setText(trans("vision.capture.label"))
+            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
         else:
-            self.window.data['video.preview'].label.setText(trans("vision.capture.auto.label"))
+            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
         # buttons
-        self.window.data['preset.btn.current'].setText(trans("dialog.preset.btn.current"))
-        self.window.data['preset.btn.save'].setText(trans("dialog.preset.btn.save"))
+        self.window.ui.nodes['preset.btn.current'].setText(trans("dialog.preset.btn.current"))
+        self.window.ui.nodes['preset.btn.save'].setText(trans("dialog.preset.btn.save"))
 
         # editor dialog
-        self.window.data['dialog.editor.label'].setText(trans('dialog.editor.label'))
-        self.window.data['editor.btn.default'].setText(trans("dialog.editor.btn.defaults"))
-        self.window.data['editor.btn.save'].setText(trans("dialog.editor.btn.save"))
+        self.window.ui.nodes['dialog.editor.label'].setText(trans('dialog.editor.label'))
+        self.window.ui.nodes['editor.btn.default'].setText(trans("dialog.editor.btn.defaults"))
+        self.window.ui.nodes['editor.btn.save'].setText(trans("dialog.editor.btn.save"))
         self.window.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
 
         # rename dialog
         self.window.dialog['rename'].setWindowTitle(trans("dialog.rename.title"))
-        self.window.data['dialog.rename.label'].setText(trans("dialog.rename.title"))
-        self.window.data['dialog.rename.btn.update'].setText(trans("dialog.rename.update"))
-        self.window.data['dialog.rename.btn.dismiss'].setText(trans("dialog.rename.dismiss"))
+        self.window.ui.nodes['dialog.rename.label'].setText(trans("dialog.rename.title"))
+        self.window.ui.nodes['dialog.rename.btn.update'].setText(trans("dialog.rename.update"))
+        self.window.ui.nodes['dialog.rename.btn.dismiss'].setText(trans("dialog.rename.dismiss"))
 
         # changelog dialog
-        self.window.data['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
+        self.window.ui.nodes['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
         self.window.dialog['info.changelog'].setWindowTitle(trans("dialog.changelog.title"))
 
         # about dialog
@@ -196,7 +196,7 @@ class Lang:
                                self.window.meta['github'],
                                self.window.meta['author'],
                                self.window.meta['email'])
-        self.window.data['dialog.about.content'].setText(string)
+        self.window.ui.nodes['dialog.about.content'].setText(string)
         self.window.dialog['info.about'].setWindowTitle(trans("dialog.about.title"))
         self.window.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
 
@@ -235,18 +235,18 @@ class Lang:
         self.window.menu['info.github'].setText(trans("menu.info.github"))
 
         # start
-        self.window.data['start.title'].setText(trans('dialog.start.title.text'))
-        self.window.data['start.settings'].setText(trans('dialog.start.settings.text'))
-        self.window.data['start.btn'].setText(trans('dialog.start.btn'))
+        self.window.ui.nodes['start.title'].setText(trans('dialog.start.title.text'))
+        self.window.ui.nodes['start.settings'].setText(trans('dialog.start.settings.text'))
+        self.window.ui.nodes['start.btn'].setText(trans('dialog.start.btn'))
 
         # input tabs
-        self.window.tabs['input'].setTabText(0, trans('input.tab'))
-        self.window.tabs['input'].setTabText(1, trans('attachments.tab'))
-        self.window.data['attachments.btn.add'].setText(trans('attachments.btn.add'))
-        self.window.data['attachments.btn.clear'].setText(trans('attachments.btn.clear'))
-        self.window.data['attachments_uploaded.btn.sync'].setText(trans('attachments_uploaded.btn.sync'))
-        self.window.data['attachments_uploaded.btn.clear'].setText(trans('attachments_uploaded.btn.clear'))
-        self.window.data['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
+        self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
+        self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab'))
+        self.window.ui.nodes['attachments.btn.add'].setText(trans('attachments.btn.add'))
+        self.window.ui.nodes['attachments.btn.clear'].setText(trans('attachments.btn.clear'))
+        self.window.ui.nodes['attachments_uploaded.btn.sync'].setText(trans('attachments_uploaded.btn.sync'))
+        self.window.ui.nodes['attachments_uploaded.btn.clear'].setText(trans('attachments_uploaded.btn.clear'))
+        self.window.ui.nodes['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
 
         # plugins info
         self.window.controller.plugins.update_info()
@@ -254,8 +254,8 @@ class Lang:
         # tabs
         mode = self.window.config.get('mode')
         self.window.controller.attachment.update_tab_label(mode)
-        self.window.controller.assistant.update_tab_label()
-        self.window.tabs['input'].setTabText(0, trans('input.tab'))
+        self.window.controller.assistant_files.update_tab_label()
+        self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
 
         # theme menu
         for theme in self.window.menu['theme']:
@@ -279,8 +279,8 @@ class Lang:
             option_label = 'settings.{}.label'.format(id)
             trans_key = 'settings.{}'.format(option['label'])
             if option['type'] == 'bool':
-                if id in self.window.config_option:
-                    self.window.config_option[id].box.setText(trans(trans_key))
+                if id in self.window.ui.config_option:
+                    self.window.ui.config_option[id].box.setText(trans(trans_key))
             else:
-                if option_label in self.window.data:
-                    self.window.data[option_label].setText(trans(trans_key))
+                if option_label in self.window.ui.nodes:
+                    self.window.ui.nodes[option_label].setText(trans(trans_key))

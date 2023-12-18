@@ -35,9 +35,9 @@ class Image:
     def setup(self):
         """Setup images"""
         if self.window.config.get('img_raw'):
-            self.window.config_option['img_raw'].setChecked(True)
+            self.window.ui.config_option['img_raw'].setChecked(True)
         else:
-            self.window.config_option['img_raw'].setChecked(False)
+            self.window.ui.config_option['img_raw'].setChecked(False)
 
     def send_text(self, text):
         """
@@ -46,7 +46,7 @@ class Image:
         :param text: prompt to send
         """
         try:
-            num_of_images = int(self.window.config_option['img_variants'].input.text())
+            num_of_images = int(self.window.ui.config_option['img_variants'].input.text())
         except:
             num_of_images = 1
             if num_of_images < 1:
@@ -114,14 +114,14 @@ class Image:
         for path in paths:
             pixmap = QtGui.QPixmap(path)
             pixmap = pixmap.scaled(resize_to, resize_to, QtCore.Qt.KeepAspectRatio)
-            self.window.data['dialog.image.pixmap'][i].path = path
-            self.window.data['dialog.image.pixmap'][i].setPixmap(pixmap)
-            self.window.data['dialog.image.pixmap'][i].setVisible(True)
+            self.window.ui.nodes['dialog.image.pixmap'][i].path = path
+            self.window.ui.nodes['dialog.image.pixmap'][i].setPixmap(pixmap)
+            self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(True)
             i += 1
 
         # hide unused images
         for j in range(i, 4):
-            self.window.data['dialog.image.pixmap'][j].setVisible(False)
+            self.window.ui.nodes['dialog.image.pixmap'][j].setVisible(False)
 
         # resize
         self.window.dialog['image'].resize(520, 520)
@@ -178,8 +178,8 @@ class Image:
         try:
             os.remove(path)
             for i in range(0, 4):
-                if self.window.data['dialog.image.pixmap'][i].path == path:
-                    self.window.data['dialog.image.pixmap'][i].setVisible(False)
+                if self.window.ui.nodes['dialog.image.pixmap'][i].path == path:
+                    self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
             print(e)
 

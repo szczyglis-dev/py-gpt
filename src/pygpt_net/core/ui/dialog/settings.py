@@ -32,29 +32,29 @@ class Settings:
         path = self.window.config.path
 
         # buttons
-        self.window.data['settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))
-        self.window.data['settings.btn.defaults.app'] = QPushButton(trans("dialog.settings.btn.defaults.app"))
-        self.window.data['settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
-        self.window.data['settings.btn.defaults.user'].clicked.connect(
+        self.window.ui.nodes['settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))
+        self.window.ui.nodes['settings.btn.defaults.app'] = QPushButton(trans("dialog.settings.btn.defaults.app"))
+        self.window.ui.nodes['settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
+        self.window.ui.nodes['settings.btn.defaults.user'].clicked.connect(
             lambda: self.window.controller.settings.load_defaults_user())
-        self.window.data['settings.btn.defaults.app'].clicked.connect(
+        self.window.ui.nodes['settings.btn.defaults.app'].clicked.connect(
             lambda: self.window.controller.settings.load_defaults_app())
-        self.window.data['settings.btn.save'].clicked.connect(
+        self.window.ui.nodes['settings.btn.save'].clicked.connect(
             lambda: self.window.controller.settings.save(id))
 
         # set enter key to save button
-        self.window.data['settings.btn.defaults.user'].setAutoDefault(False)
-        self.window.data['settings.btn.defaults.app'].setAutoDefault(False)
-        self.window.data['settings.btn.save'].setAutoDefault(True)
+        self.window.ui.nodes['settings.btn.defaults.user'].setAutoDefault(False)
+        self.window.ui.nodes['settings.btn.defaults.app'].setAutoDefault(False)
+        self.window.ui.nodes['settings.btn.save'].setAutoDefault(True)
 
         # bottom buttons layout
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['settings.btn.defaults.user'])
-        bottom_layout.addWidget(self.window.data['settings.btn.defaults.app'])
-        bottom_layout.addWidget(self.window.data['settings.btn.save'])
+        bottom_layout.addWidget(self.window.ui.nodes['settings.btn.defaults.user'])
+        bottom_layout.addWidget(self.window.ui.nodes['settings.btn.defaults.app'])
+        bottom_layout.addWidget(self.window.ui.nodes['settings.btn.save'])
 
-        self.window.path_label[id] = QLabel(str(path))
-        self.window.path_label[id].setStyleSheet("font-weight: bold;")
+        self.window.ui.paths[id] = QLabel(str(path))
+        self.window.ui.paths[id].setStyleSheet("font-weight: bold;")
 
         # advanced options keys
         advanced_options = []
@@ -70,7 +70,7 @@ class Settings:
 
         # apply settings widgets
         for key in settings_widgets:
-            self.window.config_option[key] = settings_widgets[key]
+            self.window.ui.config_option[key] = settings_widgets[key]
 
         # apply widgets to layouts
         options = {}
@@ -135,8 +135,8 @@ class Settings:
         # append advanced options at the end
         if len(advanced_options) > 0:
             group_id = 'settings.advanced'
-            self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
-            self.window.groups[group_id].box.setText(trans('settings.advanced.collapse'))
+            self.window.ui.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
+            self.window.ui.groups[group_id].box.setText(trans('settings.advanced.collapse'))
             for opt_key in options:
                 # hide non-advanced options
                 if opt_key not in advanced_options:
@@ -144,14 +144,14 @@ class Settings:
 
                 # add option to group
                 option = options[opt_key]
-                self.window.groups[group_id].add_layout(option)
+                self.window.ui.groups[group_id].add_layout(option)
 
                 # add line if not last option
                 if opt_key != advanced_options[-1]:
                     line = self.add_line()
-                    self.window.groups[group_id].add_widget(line)
+                    self.window.ui.groups[group_id].add_widget(line)
 
-            scroll_content.addWidget(self.window.groups[group_id])
+            scroll_content.addWidget(self.window.ui.groups[group_id])
 
         scroll_widget = QWidget()
         scroll_widget.setLayout(scroll_content)
@@ -249,15 +249,15 @@ class Settings:
         :param extra: Extra params
         """
         label_key = title + '.label'
-        self.window.data[label_key] = QLabel(trans(title))
+        self.window.ui.nodes[label_key] = QLabel(trans(title))
         if extra is not None and 'bold' in extra and extra['bold']:
-            self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
-        layout.addWidget(self.window.data[label_key])
+        layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(option)
 
         if title == 'settings.api_key':
-            self.window.data[label_key].setMinimumHeight(60)
+            self.window.ui.nodes[label_key].setMinimumHeight(60)
         return layout
 
     def add_row_option(self, title, option, type, extra=None):
@@ -270,11 +270,11 @@ class Settings:
         :param extra: Extra params
         """
         label_key = title + '.label'
-        self.window.data[label_key] = QLabel(trans(title))
+        self.window.ui.nodes[label_key] = QLabel(trans(title))
         if extra is not None and 'bold' in extra and extra['bold']:
-            self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data[label_key])
+        layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(option)
 
         # append URLs
@@ -285,7 +285,7 @@ class Settings:
             layout.addWidget(urls_widget)
 
         if title == 'settings.api_key':
-            self.window.data[label_key].setMinimumHeight(60)
+            self.window.ui.nodes[label_key].setMinimumHeight(60)
         return layout
 
     def add_raw_option(self, option, type, extra=None):

@@ -35,30 +35,30 @@ class Plugins:
 
         dialog_id = "plugin_settings"
 
-        self.window.data['plugin.settings.btn.defaults.user'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.user"))
-        self.window.data['plugin.settings.btn.defaults.app'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.app"))
-        self.window.data['plugin.settings.btn.save'] = QPushButton(trans("dialog.plugin.settings.btn.save"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.user'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.user"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.app'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.app"))
+        self.window.ui.nodes['plugin.settings.btn.save'] = QPushButton(trans("dialog.plugin.settings.btn.save"))
 
-        self.window.data['plugin.settings.btn.defaults.user'].clicked.connect(
+        self.window.ui.nodes['plugin.settings.btn.defaults.user'].clicked.connect(
             lambda: self.window.controller.plugins.load_defaults_user())
-        self.window.data['plugin.settings.btn.defaults.app'].clicked.connect(
+        self.window.ui.nodes['plugin.settings.btn.defaults.app'].clicked.connect(
             lambda: self.window.controller.plugins.load_defaults_app())
-        self.window.data['plugin.settings.btn.save'].clicked.connect(
+        self.window.ui.nodes['plugin.settings.btn.save'].clicked.connect(
             lambda: self.window.controller.plugins.save_settings())
 
         # set enter key to save button
-        self.window.data['plugin.settings.btn.defaults.user'].setAutoDefault(False)
-        self.window.data['plugin.settings.btn.defaults.app'].setAutoDefault(False)
-        self.window.data['plugin.settings.btn.save'].setAutoDefault(True)
+        self.window.ui.nodes['plugin.settings.btn.defaults.user'].setAutoDefault(False)
+        self.window.ui.nodes['plugin.settings.btn.defaults.app'].setAutoDefault(False)
+        self.window.ui.nodes['plugin.settings.btn.save'].setAutoDefault(True)
 
         # bottom buttons
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['plugin.settings.btn.defaults.user'])
-        bottom_layout.addWidget(self.window.data['plugin.settings.btn.defaults.app'])
-        bottom_layout.addWidget(self.window.data['plugin.settings.btn.save'])
+        bottom_layout.addWidget(self.window.ui.nodes['plugin.settings.btn.defaults.user'])
+        bottom_layout.addWidget(self.window.ui.nodes['plugin.settings.btn.defaults.app'])
+        bottom_layout.addWidget(self.window.ui.nodes['plugin.settings.btn.save'])
 
         # plugins tabs
-        self.window.tabs['plugin.settings'] = QTabWidget()
+        self.window.ui.tabs['plugin.settings'] = QTabWidget()
 
         # build plugin settings tabs
         for id in self.window.app.plugins.plugins:
@@ -82,8 +82,8 @@ class Plugins:
             scroll_content = QVBoxLayout()
 
             # create plugin options entry if not exists
-            if id not in self.window.plugin_option:
-                self.window.plugin_option[id] = {}
+            if id not in self.window.ui.plugin_option:
+                self.window.ui.plugin_option[id] = {}
 
             # get plugin options
             options = plugin.setup()
@@ -114,30 +114,30 @@ class Plugins:
                             value = option['value']
 
                         # slider + text input
-                        self.window.plugin_option[id][key] = SettingsSlider(self.window, option_name, '',
+                        self.window.ui.plugin_option[id][key] = SettingsSlider(self.window, option_name, '',
                                                                             min,
                                                                             max,
                                                                             step,
                                                                             int(value))
                     else:
                         # text input
-                        self.window.plugin_option[id][key] = SettingsInput(self.window, option_name)
+                        self.window.ui.plugin_option[id][key] = SettingsInput(self.window, option_name)
                         if 'secret' in option and option['secret']:
                             # password
-                            self.window.plugin_option[id][key].setEchoMode(QLineEdit.Password)
+                            self.window.ui.plugin_option[id][key].setEchoMode(QLineEdit.Password)
                 elif option['type'] == 'textarea':
                     # textarea
-                    self.window.plugin_option[id][key] = SettingsTextarea(self.window, option_name)
+                    self.window.ui.plugin_option[id][key] = SettingsTextarea(self.window, option_name)
                 elif option['type'] == 'bool':
                     # checkbox
-                    self.window.plugin_option[id][key] = SettingsCheckbox(self.window, option_name)
+                    self.window.ui.plugin_option[id][key] = SettingsCheckbox(self.window, option_name)
                 elif option['type'] == 'dict':
                     # dictionary items
-                    self.window.plugin_option[id][key] = SettingsDict(self.window, option_name, True, 'plugin', id,
+                    self.window.ui.plugin_option[id][key] = SettingsDict(self.window, option_name, True, 'plugin', id,
                                                                       option['keys'],
                                                                       option['value'])
 
-                if key not in self.window.plugin_option[id]:
+                if key not in self.window.ui.plugin_option[id]:
                     continue
 
                 # add option to list
@@ -154,28 +154,28 @@ class Plugins:
                     continue
 
                 # add option to scroll
-                scroll_content.addLayout(self.add_option(key, options_widgets[key], self.window.plugin_option[id][key],
+                scroll_content.addLayout(self.add_option(key, options_widgets[key], self.window.ui.plugin_option[id][key],
                                                          options_widgets[key]['type']))
 
             # append advanced options at the end
             if len(advanced_options) > 0:
                 group_id = 'plugin.settings.advanced' + '.' + id
-                self.window.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
-                self.window.groups[group_id].box.setText(trans('settings.advanced.collapse'))
+                self.window.ui.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
+                self.window.ui.groups[group_id].box.setText(trans('settings.advanced.collapse'))
                 for key in options_widgets:
                     # hide non-advanced options
                     if key not in advanced_options:
                         continue
 
                     # build option
-                    option = self.add_option(key, options_widgets[key], self.window.plugin_option[id][key],
+                    option = self.add_option(key, options_widgets[key], self.window.ui.plugin_option[id][key],
                                              options_widgets[key]['type'])
 
                     # add option to group
-                    self.window.groups[group_id].add_layout(option)
+                    self.window.ui.groups[group_id].add_layout(option)
 
                 # add advanced options group to scroll
-                scroll_content.addWidget(self.window.groups[group_id])
+                scroll_content.addWidget(self.window.ui.groups[group_id])
 
             scroll_content.addStretch()
 
@@ -200,16 +200,16 @@ class Plugins:
             area_widget.setLayout(area)
 
             # append to tab
-            self.window.tabs['plugin.settings'].addTab(area_widget, plugin.name)
+            self.window.ui.tabs['plugin.settings'].addTab(area_widget, plugin.name)
 
-        self.window.tabs['plugin.settings'].currentChanged.connect(
-            lambda: self.window.controller.plugins.set_plugin_by_tab(self.window.tabs['plugin.settings'].currentIndex()))
+        self.window.ui.tabs['plugin.settings'].currentChanged.connect(
+            lambda: self.window.controller.plugins.set_plugin_by_tab(self.window.ui.tabs['plugin.settings'].currentIndex()))
 
         # plugins list
         id = 'plugin.list'
-        self.window.data[id] = PluginSelectMenu(self.window, id)
-        self.window.models[id] = self.create_model(self.window)
-        self.window.data[id].setModel(self.window.models[id])
+        self.window.ui.nodes[id] = PluginSelectMenu(self.window, id)
+        self.window.ui.models[id] = self.create_model(self.window)
+        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
 
         data = {}
         for plugin_id in self.window.app.plugins.plugins:
@@ -218,11 +218,11 @@ class Plugins:
         self.update_list(id, data)
 
         # set max width to list
-        self.window.data[id].setMaximumWidth(250)
+        self.window.ui.nodes[id].setMaximumWidth(250)
 
         main_layout = QHBoxLayout()
-        main_layout.addWidget(self.window.data[id])
-        main_layout.addWidget(self.window.tabs['plugin.settings'])
+        main_layout.addWidget(self.window.ui.nodes[id])
+        main_layout.addWidget(self.window.ui.tabs['plugin.settings'])
 
         layout = QVBoxLayout()
         layout.addLayout(main_layout)  # list + plugins tabs
@@ -235,7 +235,7 @@ class Plugins:
         # restore current opened tab if idx is set
         if idx is not None:
             try:
-                self.window.tabs['plugin.settings'].setCurrentIndex(idx)
+                self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
                 self.window.controller.plugins.set_plugin_by_tab(idx)
             except:
                 print('Cannot restore plugin settings tab: {}'.format(idx))
@@ -277,13 +277,13 @@ class Plugins:
         """
         widget.setToolTip(option['tooltip'])
         label_key = key + '.label'
-        self.window.data[label_key] = QLabel(trans(option['label']))
-        self.window.data[label_key].setStyleSheet("font-weight: bold;")
+        self.window.ui.nodes[label_key] = QLabel(trans(option['label']))
+        self.window.ui.nodes[label_key].setStyleSheet("font-weight: bold;")
 
         # 2 cols layout
         if type != 'textarea' and type != 'dict':
             cols = QHBoxLayout()
-            cols.addWidget(self.window.data[label_key])
+            cols.addWidget(self.window.ui.nodes[label_key])
             cols.addWidget(widget)
 
             cols_widget = QWidget()
@@ -302,7 +302,7 @@ class Plugins:
         else:
             # textarea and dict
             layout = QVBoxLayout()
-            layout.addWidget(self.window.data[label_key])
+            layout.addWidget(self.window.ui.nodes[label_key])
             layout.addWidget(widget)
 
             desc_label = QLabel(option['description'])
@@ -349,10 +349,10 @@ class Plugins:
         :param id: ID of the list
         :param data: Data to update
         """
-        self.window.models[id].removeRows(0, self.window.models[id].rowCount())
+        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
         i = 0
         for n in data:
-            self.window.models[id].insertRow(i)
+            self.window.ui.models[id].insertRow(i)
             name = data[n].name
-            self.window.models[id].setData(self.window.models[id].index(i, 0), name)
+            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1

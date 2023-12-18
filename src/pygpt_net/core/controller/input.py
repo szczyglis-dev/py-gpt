@@ -34,39 +34,39 @@ class Input:
         """Set up input"""
         # stream
         if self.window.config.get('stream'):
-            self.window.data['input.stream'].setChecked(True)
+            self.window.ui.nodes['input.stream'].setChecked(True)
         else:
-            self.window.data['input.stream'].setChecked(False)
+            self.window.ui.nodes['input.stream'].setChecked(False)
 
         # send clear
         if self.window.config.get('send_clear'):
-            self.window.data['input.send_clear'].setChecked(True)
+            self.window.ui.nodes['input.send_clear'].setChecked(True)
         else:
-            self.window.data['input.send_clear'].setChecked(False)
+            self.window.ui.nodes['input.send_clear'].setChecked(False)
 
         # send with enter/shift/disabled
         mode = self.window.config.get('send_mode')
         if mode == 2:
-            self.window.data['input.send_shift_enter'].setChecked(True)
-            self.window.data['input.send_enter'].setChecked(False)
-            self.window.data['input.send_none'].setChecked(False)
+            self.window.ui.nodes['input.send_shift_enter'].setChecked(True)
+            self.window.ui.nodes['input.send_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_none'].setChecked(False)
         elif mode == 1:
-            self.window.data['input.send_enter'].setChecked(True)
-            self.window.data['input.send_shift_enter'].setChecked(False)
-            self.window.data['input.send_none'].setChecked(False)
+            self.window.ui.nodes['input.send_enter'].setChecked(True)
+            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_none'].setChecked(False)
         elif mode == 0:
-            self.window.data['input.send_enter'].setChecked(False)
-            self.window.data['input.send_shift_enter'].setChecked(False)
-            self.window.data['input.send_none'].setChecked(True)
+            self.window.ui.nodes['input.send_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
+            self.window.ui.nodes['input.send_none'].setChecked(True)
 
         # cmd enabled
         if self.window.config.get('cmd'):
-            self.window.data['cmd.enabled'].setChecked(True)
+            self.window.ui.nodes['cmd.enabled'].setChecked(True)
         else:
-            self.window.data['cmd.enabled'].setChecked(False)
+            self.window.ui.nodes['cmd.enabled'].setChecked(False)
 
         # set focus to input
-        self.window.data['input'].setFocus()
+        self.window.ui.nodes['input'].setFocus()
 
     def toggle_stream(self, value):
         """
@@ -105,16 +105,16 @@ class Input:
         Lock input
         """
         self.locked = True
-        self.window.data['input.send_btn'].setEnabled(False)
-        self.window.data['input.stop_btn'].setVisible(True)
+        self.window.ui.nodes['input.send_btn'].setEnabled(False)
+        self.window.ui.nodes['input.stop_btn'].setVisible(True)
 
     def unlock_input(self):
         """
         Unlock input
         """
         self.locked = False
-        self.window.data['input.send_btn'].setEnabled(True)
-        self.window.data['input.stop_btn'].setVisible(False)
+        self.window.ui.nodes['input.send_btn'].setEnabled(True)
+        self.window.ui.nodes['input.stop_btn'].setVisible(False)
 
     def stop(self):
         """
@@ -516,7 +516,7 @@ class Input:
 
         ctx = None
         if text is None:
-            text = self.window.data['input'].toPlainText().strip()
+            text = self.window.ui.nodes['input'].toPlainText().strip()
 
         self.window.log("Input text: {}".format(text))  # log
 
@@ -535,7 +535,7 @@ class Input:
 
             # clear input area if clear-on-send enabled
             if self.window.config.get('send_clear'):
-                self.window.data['input'].clear()
+                self.window.ui.nodes['input'].clear()
 
             # check API key
             if mode != 'langchain':
@@ -604,7 +604,7 @@ class Input:
 
         :param text: text to append
         """
-        cur = self.window.data['input'].textCursor()  # Move cursor to end of text
+        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
         s = str(text) + "\n"
         while s:
@@ -612,4 +612,4 @@ class Input:
             cur.insertText(head)  # Insert text at cursor
             if sep:  # New line if LF
                 cur.insertBlock()
-        self.window.data['input'].setTextCursor(cur)  # Update visible cursor
+        self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor

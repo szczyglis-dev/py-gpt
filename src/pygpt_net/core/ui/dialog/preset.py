@@ -31,71 +31,71 @@ class Preset:
         id = "preset.presets"
         path = self.window.config.path
 
-        self.window.data['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
-        self.window.data['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
-        self.window.data['preset.btn.current'].clicked.connect(
+        self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
+        self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
+        self.window.ui.nodes['preset.btn.current'].clicked.connect(
             lambda: self.window.controller.presets.from_current())
-        self.window.data['preset.btn.save'].clicked.connect(
+        self.window.ui.nodes['preset.btn.save'].clicked.connect(
             lambda: self.window.controller.presets.save())
 
-        self.window.data['preset.btn.current'].setAutoDefault(False)
-        self.window.data['preset.btn.save'].setAutoDefault(True)
+        self.window.ui.nodes['preset.btn.current'].setAutoDefault(False)
+        self.window.ui.nodes['preset.btn.save'].setAutoDefault(True)
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['preset.btn.current'])
-        bottom_layout.addWidget(self.window.data['preset.btn.save'])
+        bottom_layout.addWidget(self.window.ui.nodes['preset.btn.current'])
+        bottom_layout.addWidget(self.window.ui.nodes['preset.btn.save'])
 
         section = 'preset.editor'  # prevent autoupdate current preset
 
         # fields
-        self.window.path_label[id] = QLabel(str(path))
-        self.window.config_option['preset.prompt'] = SettingsTextarea(self.window, 'preset.prompt', False, section)
-        self.window.config_option['preset.filename'] = SettingsInput(self.window, 'preset.filename', False, section)
-        self.window.config_option['preset.name'] = SettingsInput(self.window, 'preset.name', False, section)
-        self.window.config_option['preset.ai_name'] = SettingsInput(self.window, 'preset.ai_name', False, section)
-        self.window.config_option['preset.user_name'] = SettingsInput(self.window, 'preset.user_name', False, section)
-        self.window.config_option['preset.img'] = SettingsCheckbox(self.window, 'preset.img',
+        self.window.ui.paths[id] = QLabel(str(path))
+        self.window.ui.config_option['preset.prompt'] = SettingsTextarea(self.window, 'preset.prompt', False, section)
+        self.window.ui.config_option['preset.filename'] = SettingsInput(self.window, 'preset.filename', False, section)
+        self.window.ui.config_option['preset.name'] = SettingsInput(self.window, 'preset.name', False, section)
+        self.window.ui.config_option['preset.ai_name'] = SettingsInput(self.window, 'preset.ai_name', False, section)
+        self.window.ui.config_option['preset.user_name'] = SettingsInput(self.window, 'preset.user_name', False, section)
+        self.window.ui.config_option['preset.img'] = SettingsCheckbox(self.window, 'preset.img',
                                                                    trans('preset.img'), False, section)
-        self.window.config_option['preset.chat'] = SettingsCheckbox(self.window, 'preset.chat', trans('preset.chat'),
+        self.window.ui.config_option['preset.chat'] = SettingsCheckbox(self.window, 'preset.chat', trans('preset.chat'),
                                                                     False, section)
-        self.window.config_option['preset.completion'] = SettingsCheckbox(self.window, 'preset.completion',
+        self.window.ui.config_option['preset.completion'] = SettingsCheckbox(self.window, 'preset.completion',
                                                                           trans('preset.completion'), False, section)
-        self.window.config_option['preset.vision'] = SettingsCheckbox(self.window, 'preset.vision',
+        self.window.ui.config_option['preset.vision'] = SettingsCheckbox(self.window, 'preset.vision',
                                                                       trans('preset.vision'), False, section)
-        self.window.config_option['preset.langchain'] = SettingsCheckbox(self.window, 'preset.langchain',
+        self.window.ui.config_option['preset.langchain'] = SettingsCheckbox(self.window, 'preset.langchain',
                                                                       trans('preset.langchain'), False, section)
-        self.window.config_option['preset.assistant'] = SettingsCheckbox(self.window, 'preset.assistant',
+        self.window.ui.config_option['preset.assistant'] = SettingsCheckbox(self.window, 'preset.assistant',
                                                                       trans('preset.assistant'), False, section)
-        self.window.config_option['preset.temperature'] = SettingsSlider(self.window, 'preset.temperature',
+        self.window.ui.config_option['preset.temperature'] = SettingsSlider(self.window, 'preset.temperature',
                                                                          '', 0, 200,
                                                                          1, 100, True, section)
 
         # set max width
         max_width = 240
-        self.window.config_option['preset.filename'].setMaximumWidth(max_width)
-        self.window.config_option['preset.name'].setMaximumWidth(max_width)
-        self.window.config_option['preset.ai_name'].setMaximumWidth(max_width)
-        self.window.config_option['preset.user_name'].setMaximumWidth(max_width)
+        self.window.ui.config_option['preset.filename'].setMaximumWidth(max_width)
+        self.window.ui.config_option['preset.name'].setMaximumWidth(max_width)
+        self.window.ui.config_option['preset.ai_name'].setMaximumWidth(max_width)
+        self.window.ui.config_option['preset.user_name'].setMaximumWidth(max_width)
 
         options = {}
-        options['filename'] = self.add_option('preset.filename', self.window.config_option['preset.filename'])
-        options['name'] = self.add_option('preset.name', self.window.config_option['preset.name'])
-        options['ai_name'] = self.add_option('preset.ai_name', self.window.config_option['preset.ai_name'])
-        options['user_name'] = self.add_option('preset.user_name', self.window.config_option['preset.user_name'])
-        options['chat'] = self.add_raw_option(self.window.config_option['preset.chat'])
-        options['completion'] = self.add_raw_option(self.window.config_option['preset.completion'])
-        options['vision'] = self.add_raw_option(self.window.config_option['preset.vision'])
-        options['assistant'] = self.add_raw_option(self.window.config_option['preset.assistant'])
-        options['langchain'] = self.add_raw_option(self.window.config_option['preset.langchain'])
-        options['img'] = self.add_raw_option(self.window.config_option['preset.img'])
-        options['temperature'] = self.add_option('preset.temperature', self.window.config_option['preset.temperature'])
+        options['filename'] = self.add_option('preset.filename', self.window.ui.config_option['preset.filename'])
+        options['name'] = self.add_option('preset.name', self.window.ui.config_option['preset.name'])
+        options['ai_name'] = self.add_option('preset.ai_name', self.window.ui.config_option['preset.ai_name'])
+        options['user_name'] = self.add_option('preset.user_name', self.window.ui.config_option['preset.user_name'])
+        options['chat'] = self.add_raw_option(self.window.ui.config_option['preset.chat'])
+        options['completion'] = self.add_raw_option(self.window.ui.config_option['preset.completion'])
+        options['vision'] = self.add_raw_option(self.window.ui.config_option['preset.vision'])
+        options['assistant'] = self.add_raw_option(self.window.ui.config_option['preset.assistant'])
+        options['langchain'] = self.add_raw_option(self.window.ui.config_option['preset.langchain'])
+        options['img'] = self.add_raw_option(self.window.ui.config_option['preset.img'])
+        options['temperature'] = self.add_option('preset.temperature', self.window.ui.config_option['preset.temperature'])
 
-        self.window.config_option['preset.prompt'].setMinimumHeight(150)
+        self.window.ui.config_option['preset.prompt'].setMinimumHeight(150)
 
-        self.window.data['preset.prompt.label'] = QLabel(trans('preset.prompt'))
+        self.window.ui.nodes['preset.prompt.label'] = QLabel(trans('preset.prompt'))
         options['prompt'] = QVBoxLayout()
-        options['prompt'].addWidget(self.window.data['preset.prompt.label'])
-        options['prompt'].addWidget(self.window.config_option['preset.prompt'])
+        options['prompt'].addWidget(self.window.ui.nodes['preset.prompt.label'])
+        options['prompt'].addWidget(self.window.ui.config_option['preset.prompt'])
 
         rows = QVBoxLayout()
         rows.addLayout(options['filename'])
@@ -128,11 +128,11 @@ class Preset:
         :param bold: Bold title
         """
         label_key = title + '.label'
-        self.window.data[label_key] = QLabel(trans(title))
+        self.window.ui.nodes[label_key] = QLabel(trans(title))
         if bold:
-            self.window.data[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
-        layout.addWidget(self.window.data[label_key])
+        layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(option)
 
         return layout

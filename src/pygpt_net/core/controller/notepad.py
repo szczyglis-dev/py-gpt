@@ -33,34 +33,34 @@ class Notepad:
 
         if '1' not in data:
             data['1'] = ""
-        self.window.data['notepad1'].setText(data['1'])
+        self.window.ui.nodes['notepad1'].setText(data['1'])
 
         if '2' not in data:
             data['2'] = ""
-        self.window.data['notepad2'].setText(data['2'])
+        self.window.ui.nodes['notepad2'].setText(data['2'])
 
         if '3' not in data:
             data['3'] = ""
-        self.window.data['notepad3'].setText(data['3'])
+        self.window.ui.nodes['notepad3'].setText(data['3'])
 
         if '4' not in data:
             data['4'] = ""
-        self.window.data['notepad3'].setText(data['4'])
+        self.window.ui.nodes['notepad3'].setText(data['4'])
 
         if '5' not in data:
             data['5'] = ""
-        self.window.data['notepad3'].setText(data['5'])
+        self.window.ui.nodes['notepad3'].setText(data['5'])
 
     def save(self):
         """
         Save notepad contents
         """
         data = {}
-        data['1'] = self.window.data['notepad1'].toPlainText()
-        data['2'] = self.window.data['notepad2'].toPlainText()
-        data['3'] = self.window.data['notepad3'].toPlainText()
-        data['4'] = self.window.data['notepad4'].toPlainText()
-        data['5'] = self.window.data['notepad5'].toPlainText()
+        data['1'] = self.window.ui.nodes['notepad1'].toPlainText()
+        data['2'] = self.window.ui.nodes['notepad2'].toPlainText()
+        data['3'] = self.window.ui.nodes['notepad3'].toPlainText()
+        data['4'] = self.window.ui.nodes['notepad4'].toPlainText()
+        data['5'] = self.window.ui.nodes['notepad5'].toPlainText()
         self.window.app.notepad.save(data)
         self.update()
 

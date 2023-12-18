@@ -31,25 +31,25 @@ class Editor:
         self.window.editor[id] = QPlainTextEdit()
         self.window.editor[id].setReadOnly(False)
 
-        self.window.data['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
-        self.window.data['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
-        self.window.data['editor.btn.default'].clicked.connect(
+        self.window.ui.nodes['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
+        self.window.ui.nodes['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
+        self.window.ui.nodes['editor.btn.default'].clicked.connect(
             lambda: self.window.app.settings.load_default_editor())
-        self.window.data['editor.btn.save'].clicked.connect(
+        self.window.ui.nodes['editor.btn.save'].clicked.connect(
             lambda: self.window.app.settings.save_editor())
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['editor.btn.default'])
-        bottom_layout.addWidget(self.window.data['editor.btn.save'])
+        bottom_layout.addWidget(self.window.ui.nodes['editor.btn.default'])
+        bottom_layout.addWidget(self.window.ui.nodes['editor.btn.save'])
 
-        self.window.path_label[id] = QLabel("")
-        self.window.path_label[id].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.paths[id] = QLabel("")
+        self.window.ui.paths[id].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
-        self.window.data['dialog.editor.label'] = QLabel(trans('dialog.editor.label'))
+        self.window.ui.nodes['dialog.editor.label'] = QLabel(trans('dialog.editor.label'))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['dialog.editor.label'])
-        layout.addWidget(self.window.path_label[id])
+        layout.addWidget(self.window.ui.nodes['dialog.editor.label'])
+        layout.addWidget(self.window.ui.paths[id])
         layout.addWidget(self.window.editor['config'])
         layout.addLayout(bottom_layout)
 

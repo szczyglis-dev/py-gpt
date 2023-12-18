@@ -36,13 +36,13 @@ class Contexts:
         """
         # contexts
         contexts = self.setup_contexts()
-        self.window.models['ctx.contexts'] = self.create_model(self.window)
-        self.window.data['ctx.contexts'].setModel(self.window.models['ctx.contexts'])
-        self.window.data['ctx.contexts'].selectionModel().selectionChanged.connect(
+        self.window.ui.models['ctx.contexts'] = self.create_model(self.window)
+        self.window.ui.nodes['ctx.contexts'].setModel(self.window.ui.models['ctx.contexts'])
+        self.window.ui.nodes['ctx.contexts'].selectionModel().selectionChanged.connect(
             lambda: self.window.controller.context.selection_change())
 
-        self.window.data['video.preview'] = VideoContainer(self.window)
-        self.window.data['video.preview'].setVisible(False)
+        self.window.ui.nodes['video.preview'] = VideoContainer(self.window)
+        self.window.ui.nodes['video.preview'].setVisible(False)
 
         ctx_widget = QWidget()
         ctx_widget.setLayout(contexts)
@@ -50,7 +50,7 @@ class Contexts:
 
         layout = QVBoxLayout()
         layout.addWidget(ctx_widget)
-        layout.addWidget(self.window.data['video.preview'])
+        layout.addWidget(self.window.ui.nodes['video.preview'])
 
         return layout
 
@@ -62,26 +62,26 @@ class Contexts:
         :rtype: QVBoxLayout
         """
         id = 'ctx.contexts'
-        self.window.data['contexts.new'] = QPushButton(trans('context.new'))
-        self.window.data['contexts.new'].clicked.connect(
+        self.window.ui.nodes['contexts.new'] = QPushButton(trans('context.new'))
+        self.window.ui.nodes['contexts.new'].clicked.connect(
             lambda: self.window.controller.context.new())
 
-        self.window.data[id] = ContextSelectMenu(self.window, id)
-        self.window.data[id].setStyleSheet(self.window.controller.theme.get_style('text_small'))
-        self.window.data[id].selection_locked = self.window.controller.context.context_change_locked
-        self.window.data['contexts.label'] = QLabel(trans("ctx.contexts.label"))
-        self.window.data['contexts.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes[id] = ContextSelectMenu(self.window, id)
+        self.window.ui.nodes[id].setStyleSheet(self.window.controller.theme.get_style('text_small'))
+        self.window.ui.nodes[id].selection_locked = self.window.controller.context.context_change_locked
+        self.window.ui.nodes['contexts.label'] = QLabel(trans("ctx.contexts.label"))
+        self.window.ui.nodes['contexts.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['contexts.label'])
-        layout.addWidget(self.window.data['contexts.new'])
-        layout.addWidget(self.window.data[id])
+        layout.addWidget(self.window.ui.nodes['contexts.label'])
+        layout.addWidget(self.window.ui.nodes['contexts.new'])
+        layout.addWidget(self.window.ui.nodes[id])
 
-        self.window.models[id] = self.create_model(self.window)
-        self.window.data[id].setModel(self.window.models[id])
+        self.window.ui.models[id] = self.create_model(self.window)
+        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
 
         # prevent focus out selection leave
-        self.window.data[id].selectionModel().selectionChanged.connect(self.window.data[id].lockSelection)
+        self.window.ui.nodes[id].selectionModel().selectionChanged.connect(self.window.ui.nodes[id].lockSelection)
         return layout
 
     def create_model(self, parent):
@@ -102,18 +102,18 @@ class Contexts:
         :param id: ID of the list
         :param data: Data to update
         """
-        self.window.data[id].backup_selection()
-        self.window.models[id].removeRows(0, self.window.models[id].rowCount())
+        self.window.ui.nodes[id].backup_selection()
+        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
         i = 0
         for n in data:
             if 'name' in data[n] and 'date' in data[n]:
-                self.window.models[id].insertRow(i)
+                self.window.ui.models[id].insertRow(i)
                 dt = self.convert_date(data[n]['date'])
                 name = data[n]['name'] + ' (' + dt + ')'
-                self.window.models[id].setData(self.window.models[id].index(i, 0), name)
+                self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
                 i += 1
 
-        self.window.data[id].restore_selection()
+        self.window.ui.nodes[id].restore_selection()
 
     def convert_date(self, date_str):
         """

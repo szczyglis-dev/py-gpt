@@ -29,12 +29,12 @@ class Logger:
         self.window.logger = QPlainTextEdit()
         self.window.logger.setReadOnly(False)
 
-        self.window.data['logger.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
-        self.window.data['logger.btn.clear'].clicked.connect(
+        self.window.ui.nodes['logger.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
+        self.window.ui.nodes['logger.btn.clear'].clicked.connect(
             lambda: self.window.controller.debug.logger_clear())
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.data['logger.btn.clear'])
+        bottom_layout.addWidget(self.window.ui.nodes['logger.btn.clear'])
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.logger)

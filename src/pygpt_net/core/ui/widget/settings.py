@@ -248,7 +248,7 @@ class PluginSelectMenu(SelectMenu):
 
     def click(self, val):
         idx = val.row()
-        self.window.tabs['plugin.settings'].setCurrentIndex(idx)
+        self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
         self.window.controller.plugins.set_plugin_by_tab(idx)
 
     def dblclick(self, val):

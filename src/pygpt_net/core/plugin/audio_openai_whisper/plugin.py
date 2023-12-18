@@ -196,7 +196,7 @@ class Plugin(BasePlugin):
         :param state: state to set
         """
         self.speech_enabled = state
-        self.window.plugin_addon['audio.input'].btn_toggle.setChecked(state)
+        self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(state)
 
         # Start thread if not started
         if state:
@@ -317,7 +317,7 @@ class Plugin(BasePlugin):
 
         :param status: status
         """
-        self.window.plugin_addon['audio.input'].set_status(status)
+        self.window.ui.plugin_addon['audio.input'].set_status(status)
 
     @Slot(str)
     def handle_input(self, text):
@@ -371,13 +371,13 @@ class Plugin(BasePlugin):
             if not magic_prev_detected:
                 if not is_magic_word:
                     self.window.set_status(trans('audio.magic_word.invalid'))
-                self.window.data['input'].setText(text)
+                self.window.ui.nodes['input'].setText(text)
                 return
             else:
                 self.window.set_status("")
 
         # update input text
-        self.window.data['input'].setText(text)
+        self.window.ui.nodes['input'].setText(text)
 
         # send text
         if self.get_option_value('auto_send'):

@@ -141,7 +141,7 @@ class Presets:
             self.config_toggle('preset.assistant', data['assistant'], 'preset.editor')
 
         # set focus to name field
-        self.window.config_option['preset.name'].setFocus()
+        self.window.ui.config_option['preset.name'].setFocus()
 
     def make_preset_filename(self, name):
         """
@@ -161,7 +161,7 @@ class Presets:
 
         :param force: force overwrite file
         """
-        preset = self.window.config_option['preset.filename'].text()
+        preset = self.window.ui.config_option['preset.filename'].text()
         mode = self.window.config.get('mode')
         is_created = False
 
@@ -170,7 +170,7 @@ class Presets:
             return
 
         if preset is None or preset == "":
-            name = self.window.config_option['preset.name'].text()
+            name = self.window.ui.config_option['preset.name'].text()
             if name is None or name == "":
                 self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
                 self.window.set_status(trans('status.preset.empty_id'))
@@ -198,12 +198,12 @@ class Presets:
             return
 
         # check if at least one mode is enabled
-        is_chat = self.window.config_option['preset.chat'].box.isChecked()
-        is_completion = self.window.config_option['preset.completion'].box.isChecked()
-        is_img = self.window.config_option['preset.img'].box.isChecked()
-        is_vision = self.window.config_option['preset.vision'].box.isChecked()
-        is_langchain = self.window.config_option['preset.langchain'].box.isChecked()
-        is_assistant = self.window.config_option['preset.assistant'].box.isChecked()
+        is_chat = self.window.ui.config_option['preset.chat'].box.isChecked()
+        is_completion = self.window.ui.config_option['preset.completion'].box.isChecked()
+        is_img = self.window.ui.config_option['preset.img'].box.isChecked()
+        is_vision = self.window.ui.config_option['preset.vision'].box.isChecked()
+        is_langchain = self.window.ui.config_option['preset.langchain'].box.isChecked()
+        is_assistant = self.window.ui.config_option['preset.assistant'].box.isChecked()
 
         # if any mode selected
         if not is_chat \
@@ -235,22 +235,22 @@ class Presets:
 
         :param preset: preset name (id / filename)
         """
-        name = self.window.config_option['preset.name'].text()
+        name = self.window.ui.config_option['preset.name'].text()
         if name is None or name == "":
             name = preset + " " + trans('preset.untitled')
         self.window.config.presets[preset]['name'] = name
-        self.window.config.presets[preset]['ai_name'] = self.window.config_option['preset.ai_name'].text()
-        self.window.config.presets[preset]['user_name'] = self.window.config_option['preset.user_name'].text()
-        self.window.config.presets[preset]['prompt'] = self.window.config_option['preset.prompt'].toPlainText()
+        self.window.config.presets[preset]['ai_name'] = self.window.ui.config_option['preset.ai_name'].text()
+        self.window.config.presets[preset]['user_name'] = self.window.ui.config_option['preset.user_name'].text()
+        self.window.config.presets[preset]['prompt'] = self.window.ui.config_option['preset.prompt'].toPlainText()
         self.window.config.presets[preset]['temperature'] = float(
-            self.window.config_option['preset.temperature'].input.text())
-        self.window.config.presets[preset]['img'] = self.window.config_option['preset.img'].box.isChecked()
-        self.window.config.presets[preset]['chat'] = self.window.config_option['preset.chat'].box.isChecked()
-        self.window.config.presets[preset]['completion'] = self.window.config_option[
+            self.window.ui.config_option['preset.temperature'].input.text())
+        self.window.config.presets[preset]['img'] = self.window.ui.config_option['preset.img'].box.isChecked()
+        self.window.config.presets[preset]['chat'] = self.window.ui.config_option['preset.chat'].box.isChecked()
+        self.window.config.presets[preset]['completion'] = self.window.ui.config_option[
             'preset.completion'].box.isChecked()
-        self.window.config.presets[preset]['vision'] = self.window.config_option['preset.vision'].box.isChecked()
-        self.window.config.presets[preset]['langchain'] = self.window.config_option['preset.langchain'].box.isChecked()
-        self.window.config.presets[preset]['assistant'] = self.window.config_option['preset.assistant'].box.isChecked()
+        self.window.config.presets[preset]['vision'] = self.window.ui.config_option['preset.vision'].box.isChecked()
+        self.window.config.presets[preset]['langchain'] = self.window.ui.config_option['preset.langchain'].box.isChecked()
+        self.window.config.presets[preset]['assistant'] = self.window.ui.config_option['preset.assistant'].box.isChecked()
 
     def duplicate(self, idx=None):
         """
@@ -331,7 +331,7 @@ class Presets:
 
     def use(self):
         """Copy preset prompt to input"""
-        self.window.controller.input.append(self.window.data['preset.prompt'].toPlainText())
+        self.window.controller.input.append(self.window.ui.nodes['preset.prompt'].toPlainText())
 
     def validate_filename(self, value):
         """
@@ -355,10 +355,10 @@ class Presets:
         preset = self.window.config.get('preset')  # current preset
         is_current = True
         if section == 'preset.editor':
-            preset = self.window.config_option['preset.filename'].text()  # editing preset
+            preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
             is_current = False
         self.update_field(id, value, preset, is_current)
-        self.window.config_option[id].box.setChecked(value)
+        self.window.ui.config_option[id].box.setChecked(value)
 
     def config_change(self, id, value, section=None):
         """
@@ -371,15 +371,15 @@ class Presets:
         # validate filename
         if id == 'preset.filename':
             value = self.validate_filename(value)
-            self.window.config_option[id].setText(value)
+            self.window.ui.config_option[id].setText(value)
 
         preset = self.window.config.get('preset')  # current preset
         is_current = True
         if section == 'preset.editor':
-            preset = self.window.config_option['preset.filename'].text()  # editing preset
+            preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
             is_current = False
         self.update_field(id, value, preset, is_current)
-        self.window.config_option[id].setText('{}'.format(value))
+        self.window.ui.config_option[id].setText('{}'.format(value))
 
     def config_slider(self, id, value, type=None, section=None):
         """
@@ -397,12 +397,12 @@ class Presets:
                 value = float(value)
             except:
                 value = 0.0
-                self.window.config_option[id].input.setText(str(value))
+                self.window.ui.config_option[id].input.setText(str(value))
             if value < 0:
                 value = 0.0
             elif value > 2:
                 value = 2.0
-            self.window.config_option[id].input.setText(str(value))
+            self.window.ui.config_option[id].input.setText(str(value))
 
         slider_value = round(float(value) * multiplier, 0)
         input_value = value
@@ -412,14 +412,14 @@ class Presets:
         preset = self.window.config.get('preset')  # current preset
         is_current = True
         if section == 'preset.editor':
-            preset = self.window.config_option['preset.filename'].text()  # editing preset
+            preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
             is_current = False
         self.update_field(id, input_value, preset, is_current)
 
         # update from slider
         if type == 'slider':
             txt = '{}'.format(input_value)
-            self.window.config_option[id].input.setText(txt)
+            self.window.ui.config_option[id].input.setText(txt)
 
         # update from input
         elif type == 'input':
@@ -427,10 +427,10 @@ class Presets:
                 slider_value = 1
             elif slider_value > 200:
                 slider_value = 200
-            self.window.config_option[id].slider.setValue(slider_value)
+            self.window.ui.config_option[id].slider.setValue(slider_value)
 
         # update from raw value
         else:
             txt = '{}'.format(value)
-            self.window.config_option[id].input.setText(txt)
-            self.window.config_option[id].slider.setValue(slider_value)
+            self.window.ui.config_option[id].input.setText(txt)
+            self.window.ui.config_option[id].slider.setValue(slider_value)

@@ -31,8 +31,8 @@ class Start:
         """Setup start dialog"""
         id = 'start'
 
-        self.window.data['start.btn'] = QPushButton(trans('dialog.start.btn'))
-        self.window.data['start.btn'].clicked.connect(lambda: self.window.controller.settings.start_settings())
+        self.window.ui.nodes['start.btn'] = QPushButton(trans('dialog.start.btn'))
+        self.window.ui.nodes['start.btn'].clicked.connect(lambda: self.window.controller.settings.start_settings())
 
         logo_label = QLabel()
         path = os.path.abspath(
@@ -40,18 +40,18 @@ class Start:
         pixmap = QPixmap(path)
         logo_label.setPixmap(pixmap)
 
-        self.window.data['start.title'] = QLabel(trans('dialog.start.title.text'))
+        self.window.ui.nodes['start.title'] = QLabel(trans('dialog.start.title.text'))
         link = QLabel(trans('dialog.start.link'))
-        self.window.data['start.settings'] = QLabel(trans('dialog.start.settings.text'))
-        self.window.data['start.settings'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['start.settings'] = QLabel(trans('dialog.start.settings.text'))
+        self.window.ui.nodes['start.settings'].setAlignment(Qt.AlignCenter)
 
-        self.window.data['start.title'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['start.title'].setAlignment(Qt.AlignCenter)
         layout = QVBoxLayout()
         layout.addWidget(logo_label, alignment=Qt.AlignCenter)
-        layout.addWidget(self.window.data['start.title'], alignment=Qt.AlignCenter)
+        layout.addWidget(self.window.ui.nodes['start.title'], alignment=Qt.AlignCenter)
         layout.addWidget(link, alignment=Qt.AlignCenter)
-        layout.addWidget(self.window.data['start.settings'], alignment=Qt.AlignCenter)
-        layout.addWidget(self.window.data['start.btn'])
+        layout.addWidget(self.window.ui.nodes['start.settings'], alignment=Qt.AlignCenter)
+        layout.addWidget(self.window.ui.nodes['start.btn'])
 
         self.window.dialog['info.' + id] = InfoDialog(self.window, id)
         self.window.dialog['info.' + id].setLayout(layout)

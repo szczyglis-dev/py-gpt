@@ -31,15 +31,15 @@ class Attachment:
         """Setup attachments"""
         # send clear
         if self.window.config.has('attachments_send_clear') and self.window.config.get('attachments_send_clear'):
-            self.window.data['attachments.send_clear'].setChecked(True)
+            self.window.ui.nodes['attachments.send_clear'].setChecked(True)
         else:
-            self.window.data['attachments.send_clear'].setChecked(False)
+            self.window.ui.nodes['attachments.send_clear'].setChecked(False)
 
         #  capture clear
         if self.window.config.has('attachments_capture_clear') and self.window.config.get('attachments_capture_clear'):
-            self.window.data['attachments.capture_clear'].setChecked(True)
+            self.window.ui.nodes['attachments.capture_clear'].setChecked(True)
         else:
-            self.window.data['attachments.capture_clear'].setChecked(False)
+            self.window.ui.nodes['attachments.capture_clear'].setChecked(False)
 
         self.window.app.attachments.load()
         self.update()
@@ -61,7 +61,7 @@ class Attachment:
         suffix = ''
         if num_files > 0:
             suffix = f' ({num_files})'
-        self.window.tabs['input'].setTabText(1, trans('attachments.tab') + suffix)
+        self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab') + suffix)
 
     def select(self, mode, idx):
         """

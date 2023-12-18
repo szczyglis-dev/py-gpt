@@ -101,10 +101,10 @@ class Context:
         items = self.window.app.context.get_list()
         if ctx in items:
             idx = self.window.app.context.get_idx_by_name(ctx)
-            current = self.window.models['ctx.contexts'].index(idx, 0)
-            self.window.data['ctx.contexts'].unlocked = True  # tmp allow change if locked (enable)
-            self.window.data['ctx.contexts'].setCurrentIndex(current)
-            self.window.data['ctx.contexts'].unlocked = False  # tmp allow change if locked (disable)
+            current = self.window.ui.models['ctx.contexts'].index(idx, 0)
+            self.window.ui.nodes['ctx.contexts'].unlocked = True  # tmp allow change if locked (enable)
+            self.window.ui.nodes['ctx.contexts'].setCurrentIndex(current)
+            self.window.ui.nodes['ctx.contexts'].unlocked = False  # tmp allow change if locked (disable)
 
     def new(self, force=False):
         """
@@ -396,7 +396,7 @@ class Context:
         Select ctx on list change
         """
         # TODO: implement this
-        # idx = self.window.data['ctx.contexts'].currentIndex().row()
+        # idx = self.window.ui.nodes['ctx.contexts'].currentIndex().row()
         # self.select(idx)
         pass
 

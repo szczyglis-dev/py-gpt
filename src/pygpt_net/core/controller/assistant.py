@@ -98,8 +98,8 @@ class Assistant:
         items = self.window.app.assistants.get_all()
         if assistant_id in items:
             idx = list(items.keys()).index(assistant_id)
-            current = self.window.models['assistants'].index(idx, 0)
-            self.window.data['assistants'].setCurrentIndex(current)
+            current = self.window.ui.models['assistants'].index(idx, 0)
+            self.window.ui.nodes['assistants'].setCurrentIndex(current)
 
     def select_default_assistant(self):
         """Set default assistant"""
@@ -161,7 +161,7 @@ class Assistant:
         if assistant.model is None:
             assistant.model = ""
 
-        self.window.config_option['assistant.id'].setText(id)
+        self.window.ui.config_option['assistant.id'].setText(id)
         self.config_change('assistant.name', assistant.name, 'assistant.editor')
         self.config_change('assistant.description', assistant.description, 'assistant.editor')
         self.config_change('assistant.instructions', assistant.instructions, 'assistant.editor')
@@ -183,14 +183,14 @@ class Assistant:
             values = []
             for function in functions:
                 values.append({"name": function['name'], "params": function['params'], "desc": function['desc']})
-            self.window.config_option['assistant.tool.function'].items = values
-            self.window.config_option['assistant.tool.function'].model.updateData(values)
+            self.window.ui.config_option['assistant.tool.function'].items = values
+            self.window.ui.config_option['assistant.tool.function'].model.updateData(values)
         else:
-            self.window.config_option['assistant.tool.function'].items = []
-            self.window.config_option['assistant.tool.function'].model.updateData([])
+            self.window.ui.config_option['assistant.tool.function'].items = []
+            self.window.ui.config_option['assistant.tool.function'].model.updateData([])
 
         # set focus to name field
-        self.window.config_option['assistant.name'].setFocus()
+        self.window.ui.config_option['assistant.name'].setFocus()
 
     def edit(self, idx=None):
         """
@@ -210,9 +210,9 @@ class Assistant:
         Save assistant
         """
         created = False
-        id = self.window.config_option['assistant.id'].text()
-        name = self.window.config_option['assistant.name'].text()
-        model = self.window.config_option['assistant.model'].text()
+        id = self.window.ui.config_option['assistant.id'].text()
+        name = self.window.ui.config_option['assistant.name'].text()
+        model = self.window.ui.config_option['assistant.model'].text()
 
         # check name
         if name is None or name == "" or model is None or model == "":
@@ -226,7 +226,7 @@ class Assistant:
                 return
             id = assistant.id
             self.window.app.assistants.add(assistant)
-            self.window.config_option['assistant.id'].setText(id)
+            self.window.ui.config_option['assistant.id'].setText(id)
             created = True
         else:
             assistant = self.window.app.assistants.get_by_id(id)
@@ -303,19 +303,19 @@ class Assistant:
 
         :param assistant: assistant
         """
-        assistant.name = self.window.config_option['assistant.name'].text()
-        assistant.model = self.window.config_option['assistant.model'].text()
-        assistant.description = self.window.config_option['assistant.description'].text()
-        assistant.instructions = self.window.config_option['assistant.instructions'].toPlainText()
+        assistant.name = self.window.ui.config_option['assistant.name'].text()
+        assistant.model = self.window.ui.config_option['assistant.model'].text()
+        assistant.description = self.window.ui.config_option['assistant.description'].text()
+        assistant.instructions = self.window.ui.config_option['assistant.instructions'].toPlainText()
         assistant.tools = {
-            'code_interpreter': self.window.config_option['assistant.tool.code_interpreter'].box.isChecked(),
-            'retrieval': self.window.config_option['assistant.tool.retrieval'].box.isChecked(),
+            'code_interpreter': self.window.ui.config_option['assistant.tool.code_interpreter'].box.isChecked(),
+            'retrieval': self.window.ui.config_option['assistant.tool.retrieval'].box.isChecked(),
             'function': [],  # functions are assigned separately
         }
 
         # assign assistant's functions tool
         functions = []
-        for function in self.window.config_option['assistant.tool.function'].items:
+        for function in self.window.ui.config_option['assistant.tool.function'].items:
             name = function['name']
             params = function['params']
             desc = function['desc']
@@ -395,7 +395,7 @@ class Assistant:
         assistant_id = self.window.config.get('assistant')  # current assistant
         is_current = True
         if section == 'assistant.editor':
-            assistant_id = self.window.config_option['assistant.id']  # editing assistant
+            assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant
             is_current = False
         self.update_field(id, value, assistant_id, is_current)
 
@@ -409,15 +409,15 @@ class Assistant:
         """
         # validate filename
         if id == 'assistant.id':
-            self.window.config_option[id].setText(value)
+            self.window.ui.config_option[id].setText(value)
 
         assistant_id = self.window.config.get('assistant')  # current assistant
         is_current = True
         if section == 'assistant.editor':
-            assistant_id = self.window.config_option['assistant.id']  # editing assistant
+            assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant
             is_current = False
         self.update_field(id, value, assistant_id, is_current)
-        self.window.config_option[id].setText('{}'.format(value))
+        self.window.ui.config_option[id].setText('{}'.format(value))
 
     def goto_online(self):
         """Opens Assistants page"""

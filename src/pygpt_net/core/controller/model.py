@@ -139,8 +139,8 @@ class Model:
         mode = self.window.config.get('mode')
         items = self.window.config.get_modes()
         idx = list(items.keys()).index(mode)
-        current = self.window.models['prompt.mode'].index(idx, 0)
-        self.window.data['prompt.mode'].setCurrentIndex(current)
+        current = self.window.ui.models['prompt.mode'].index(idx, 0)
+        self.window.ui.nodes['prompt.mode'].setCurrentIndex(current)
 
     def select_model_by_current(self):
         """Select model by current"""
@@ -149,8 +149,8 @@ class Model:
         items = self.window.config.get_models(mode)
         if model in items:
             idx = list(items.keys()).index(model)
-            current = self.window.models['prompt.model'].index(idx, 0)
-            self.window.data['prompt.model'].setCurrentIndex(current)
+            current = self.window.ui.models['prompt.model'].index(idx, 0)
+            self.window.ui.nodes['prompt.model'].setCurrentIndex(current)
 
     def select_preset_by_current(self):
         """Select preset by current"""
@@ -159,8 +159,8 @@ class Model:
         items = self.window.config.get_presets(mode)
         if preset in items:
             idx = list(items.keys()).index(preset)
-            current = self.window.models['preset.presets'].index(idx, 0)
-            self.window.data['preset.presets'].setCurrentIndex(current)
+            current = self.window.ui.models['preset.presets'].index(idx, 0)
+            self.window.ui.nodes['preset.presets'].setCurrentIndex(current)
 
     def select_default(self):
         """Set default mode, model and preset"""
@@ -225,9 +225,9 @@ class Model:
 
         # update preset fields
         preset_data = self.window.config.presets[preset]
-        self.window.data['preset.prompt'].setPlainText(preset_data['prompt'])
-        self.window.data['preset.ai_name'].setText(preset_data['ai_name'])
-        self.window.data['preset.user_name'].setText(preset_data['user_name'])
+        self.window.ui.nodes['preset.prompt'].setPlainText(preset_data['prompt'])
+        self.window.ui.nodes['preset.ai_name'].setText(preset_data['ai_name'])
+        self.window.ui.nodes['preset.user_name'].setText(preset_data['user_name'])
 
         # update current data
         self.window.config.set('prompt', preset_data['prompt'])
@@ -312,9 +312,9 @@ class Model:
 
     def reset_preset_data(self):
         """Reset preset data"""
-        self.window.data['preset.prompt'].setPlainText("")
-        self.window.data['preset.ai_name'].setText("")
-        self.window.data['preset.user_name'].setText("")
+        self.window.ui.nodes['preset.prompt'].setPlainText("")
+        self.window.ui.nodes['preset.ai_name'].setText("")
+        self.window.ui.nodes['preset.user_name'].setText("")
 
     def reset_current_data(self):
         """Reset current data"""

@@ -40,27 +40,27 @@ class Attachments:
         centered_layout['attachments.send_clear'] = QHBoxLayout()
         centered_layout['attachments.send_clear'].setContentsMargins(0, 0, 0, 0)
         centered_layout['attachments.send_clear'].setAlignment(Qt.AlignCenter)
-        centered_layout['attachments.send_clear'].addWidget(self.window.data['attachments.send_clear'])
+        centered_layout['attachments.send_clear'].addWidget(self.window.ui.nodes['attachments.send_clear'])
         centered_widget['attachments.send_clear'] = QWidget()
         centered_widget['attachments.send_clear'].setLayout(centered_layout['attachments.send_clear'])
 
         centered_layout['attachments.capture_clear'] = QHBoxLayout()
         centered_layout['attachments.capture_clear'].setContentsMargins(0, 0, 0, 0)
         centered_layout['attachments.capture_clear'].setAlignment(Qt.AlignCenter)
-        centered_layout['attachments.capture_clear'].addWidget(self.window.data['attachments.capture_clear'])
+        centered_layout['attachments.capture_clear'].addWidget(self.window.ui.nodes['attachments.capture_clear'])
         centered_widget['attachments.capture_clear'] = QWidget()
         centered_widget['attachments.capture_clear'].setLayout(centered_layout['attachments.capture_clear'])
 
         # buttons layout
         buttons_layout = QHBoxLayout()
-        buttons_layout.addWidget(self.window.data['attachments.btn.add'])
-        buttons_layout.addWidget(self.window.data['attachments.btn.clear'])
+        buttons_layout.addWidget(self.window.ui.nodes['attachments.btn.add'])
+        buttons_layout.addWidget(self.window.ui.nodes['attachments.btn.clear'])
         buttons_layout.addWidget(centered_widget['attachments.send_clear'])
         buttons_layout.addWidget(centered_widget['attachments.capture_clear'])
 
         # layout
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['attachments'])
+        layout.addWidget(self.window.ui.nodes['attachments'])
         layout.addLayout(buttons_layout)
 
         return layout
@@ -72,28 +72,28 @@ class Attachments:
         id = 'attachments'
 
         # attachments
-        self.window.data[id] = AttachmentSelectMenu(self.window)
+        self.window.ui.nodes[id] = AttachmentSelectMenu(self.window)
 
         # buttons
-        self.window.data['attachments.btn.add'] = QPushButton(trans('attachments.btn.add'))
-        self.window.data['attachments.btn.clear'] = QPushButton(trans('attachments.btn.clear'))
+        self.window.ui.nodes['attachments.btn.add'] = QPushButton(trans('attachments.btn.add'))
+        self.window.ui.nodes['attachments.btn.clear'] = QPushButton(trans('attachments.btn.clear'))
 
-        self.window.data['attachments.btn.add'].clicked.connect(
+        self.window.ui.nodes['attachments.btn.add'].clicked.connect(
             lambda: self.window.controller.attachment.open_add())
-        self.window.data['attachments.btn.clear'].clicked.connect(
+        self.window.ui.nodes['attachments.btn.clear'].clicked.connect(
             lambda: self.window.controller.attachment.clear())
 
-        self.window.data['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
-        self.window.data['attachments.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.attachment.toggle_send_clear(self.window.data['attachments.send_clear'].isChecked()))
+        self.window.ui.nodes['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
+        self.window.ui.nodes['attachments.send_clear'].stateChanged.connect(
+            lambda: self.window.controller.attachment.toggle_send_clear(self.window.ui.nodes['attachments.send_clear'].isChecked()))
 
-        self.window.data['attachments.capture_clear'] = QCheckBox(trans('attachments.capture_clear'))
-        self.window.data['attachments.capture_clear'].stateChanged.connect(
+        self.window.ui.nodes['attachments.capture_clear'] = QCheckBox(trans('attachments.capture_clear'))
+        self.window.ui.nodes['attachments.capture_clear'].stateChanged.connect(
             lambda: self.window.controller.attachment.toggle_capture_clear(
-                self.window.data['attachments.capture_clear'].isChecked()))
+                self.window.ui.nodes['attachments.capture_clear'].isChecked()))
 
-        self.window.models[id] = self.create_model(self.window)
-        self.window.data[id].setModel(self.window.models[id])
+        self.window.ui.models[id] = self.create_model(self.window)
+        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
 
     def create_model(self, parent):
         """
@@ -115,10 +115,10 @@ class Attachments:
         :param id: ID of the list
         :param data: Data to update
         """
-        self.window.models[id].removeRows(0, self.window.models[id].rowCount())
+        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
         i = 0
         for uuid in data:
-            self.window.models[id].insertRow(i)
-            self.window.models[id].setData(self.window.models[id].index(i, 0), data[uuid].name)
-            self.window.models[id].setData(self.window.models[id].index(i, 1), data[uuid].path)
+            self.window.ui.models[id].insertRow(i)
+            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), data[uuid].name)
+            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 1), data[uuid].path)
             i += 1

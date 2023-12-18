@@ -77,23 +77,23 @@ class RenameDialog(QDialog):
         self.input = RenameInput(window, id)
         self.input.setMinimumWidth(400)
 
-        self.window.data['dialog.rename.btn.update'] = QPushButton(trans('dialog.rename.update'))
-        self.window.data['dialog.rename.btn.update'].clicked.connect(
+        self.window.ui.nodes['dialog.rename.btn.update'] = QPushButton(trans('dialog.rename.update'))
+        self.window.ui.nodes['dialog.rename.btn.update'].clicked.connect(
             lambda: self.window.controller.confirm.accept_rename(self.id, self.window.dialog['rename'].current,
                                                                  self.input.text()))
 
-        self.window.data['dialog.rename.btn.dismiss'] = QPushButton(trans('dialog.rename.dismiss'))
-        self.window.data['dialog.rename.btn.dismiss'].clicked.connect(
+        self.window.ui.nodes['dialog.rename.btn.dismiss'] = QPushButton(trans('dialog.rename.dismiss'))
+        self.window.ui.nodes['dialog.rename.btn.dismiss'].clicked.connect(
             lambda: self.window.controller.confirm.dismiss_rename())
 
         bottom = QHBoxLayout()
-        bottom.addWidget(self.window.data['dialog.rename.btn.dismiss'])
-        bottom.addWidget(self.window.data['dialog.rename.btn.update'])
+        bottom.addWidget(self.window.ui.nodes['dialog.rename.btn.dismiss'])
+        bottom.addWidget(self.window.ui.nodes['dialog.rename.btn.update'])
 
-        self.window.data['dialog.rename.label'] = QLabel(trans("dialog.rename.title"))
+        self.window.ui.nodes['dialog.rename.label'] = QLabel(trans("dialog.rename.title"))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.data['dialog.rename.label'])
+        layout.addWidget(self.window.ui.nodes['dialog.rename.label'])
         layout.addWidget(self.input)
         layout.addLayout(bottom)
 

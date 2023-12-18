@@ -332,7 +332,7 @@ class AssistantFiles:
         """
         assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
-            self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
+            self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
             return
 
         assistant = self.window.app.assistants.get_by_id(assistant_id)
@@ -343,7 +343,7 @@ class AssistantFiles:
         # append num of files
         if num_files > 0:
             suffix = f' ({num_files})'
-        self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
+        self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
     def handle_message_files(self, msg):
         """

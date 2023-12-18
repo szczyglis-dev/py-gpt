@@ -159,7 +159,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param text: status text
         """
-        self.data['status'].setText(str(text))
+        self.ui.nodes['status'].setText(str(text))
 
     @Slot(str)
     def update_status(self, text):

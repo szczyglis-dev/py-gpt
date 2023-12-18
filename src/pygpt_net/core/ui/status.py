@@ -30,7 +30,7 @@ class Status:
         :return: QHBoxLayout
         :rtype: QHBoxLayout
         """
-        self.window.data['status'] = QLabel(trans('status.started'))
+        self.window.ui.nodes['status'] = QLabel(trans('status.started'))
         layout = QHBoxLayout()
-        layout.addWidget(self.window.data['status'])
+        layout.addWidget(self.window.ui.nodes['status'])
         return layout
