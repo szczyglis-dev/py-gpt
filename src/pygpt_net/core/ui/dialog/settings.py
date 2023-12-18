@@ -8,11 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
-
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame, QLineEdit
 
 from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog, SettingsTextarea
-from ..widget.elements import CollapsedGroup
+from ..widget.elements import CollapsedGroup, UrlLabel
 from ...utils import trans
 
 
@@ -85,18 +85,28 @@ class Settings:
             elif type == 'textarea':
                 options[key] = self.add_row_option(label, settings_widgets[key], type, extra)
             elif type == 'bool':
-                options[key] = self.add_raw_option(settings_widgets[key], type)
+                options[key] = self.add_raw_option(settings_widgets[key], type, extra)
 
-        # API keys at the top
-        rows = QVBoxLayout()
-        rows.addLayout(options['api_key'])
-        rows.addLayout(options['organization_key'])
+        fixed_options = [
+            'api_key',
+            'organization_key'
+        ]
 
+        # prepare scroll area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
 
         line = self.add_line()
         scroll_content = QVBoxLayout()
+
+        # API keys at the top
+        rows = QVBoxLayout()
+        for key in fixed_options:
+            scroll_content.addLayout(options[key])
+            if 'urls' in settings_options[key]:
+                urls_widget = self.add_urls(settings_options[key]['urls'], Qt.AlignCenter)
+                scroll_content.addWidget(urls_widget)
+
         scroll_content.addWidget(line)
 
         # append widgets options layouts to scroll area
@@ -108,11 +118,17 @@ class Settings:
                 continue
 
             # prevent already added options from being added again
-            if opt_key in ['api_key', 'organization_key']:
+            if opt_key in fixed_options:
                 continue
 
             # add option
             scroll_content.addLayout(option)
+
+            # append URLs
+            if 'urls' in settings_options[opt_key]:
+                urls_widget = self.add_urls(settings_options[opt_key]['urls'])
+                scroll_content.addWidget(urls_widget)
+
             line = self.add_line()
             scroll_content.addWidget(line)
 
@@ -142,7 +158,7 @@ class Settings:
         scroll.setWidget(scroll_widget)
 
         layout = QVBoxLayout()
-        layout.addLayout(rows)  # api keys
+        #layout.addLayout(rows)  # api keys
         layout.addWidget(scroll)  # rest of options widgets
         layout.addLayout(bottom_layout)  # buttons (save, defaults)
 
@@ -225,12 +241,12 @@ class Settings:
 
     def add_option(self, title, option, type, extra=None):
         """
-        Add option
+        Add option (label + option)
 
         :param title: Title
         :param option: Option
         :param type: Option type
-        :param extra: Extra options
+        :param extra: Extra params
         """
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
@@ -246,12 +262,12 @@ class Settings:
 
     def add_row_option(self, title, option, type, extra=None):
         """
-        Add option
+        Add option (label + option)
 
         :param title: Title
         :param option: Option
         :param type: Option type
-        :param extra: Extra options
+        :param extra: Extra params
         """
         label_key = title + '.label'
         self.window.data[label_key] = QLabel(trans(title))
@@ -261,17 +277,53 @@ class Settings:
         layout.addWidget(self.window.data[label_key])
         layout.addWidget(option)
 
+        # append URLs
+        if 'urls' in extra \
+                and extra['urls'] is not None \
+                and len(extra['urls']) > 0:
+            urls_widget = self.add_urls(extra['urls'])
+            layout.addWidget(urls_widget)
+
         if title == 'settings.api_key':
             self.window.data[label_key].setMinimumHeight(60)
         return layout
 
-    def add_raw_option(self, option, type):
+    def add_raw_option(self, option, type, extra=None):
         """
-        Add raw option row
+        Add raw option row (option only)
 
         :param option: Option
         :param type: Option type
+        :param extra: Extra options
         """
         layout = QHBoxLayout()
         layout.addWidget(option)
+
+        # append URLs
+        if 'urls' in extra \
+                and extra['urls'] is not None \
+                and len(extra['urls']) > 0:
+            urls_widget = self.add_urls(extra['urls'])
+            layout.addWidget(urls_widget)
+
         return layout
+
+    def add_urls(self, urls, align=Qt.AlignLeft):
+        """
+        Add clickable urls to list
+
+        :param urls: urls dict
+        :param align: alignment
+        """
+        layout = QVBoxLayout()
+        for name in urls:
+            url = urls[name]
+            label = UrlLabel(name, url)
+            layout.addWidget(label)
+
+        layout.setAlignment(align)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setContentsMargins(0, 0, 0, 0)
+        return widget

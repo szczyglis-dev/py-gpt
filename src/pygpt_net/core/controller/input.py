@@ -500,11 +500,12 @@ class Input:
                 self.window.data['input'].clear()
 
             # check API key
-            if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
-                self.window.controller.launcher.show_api_monit()
-                self.window.set_status("Missing API KEY!")
-                self.generating = False
-                return
+            if mode != 'langchain':
+                if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
+                    self.window.controller.launcher.show_api_monit()
+                    self.window.set_status("Missing API KEY!")
+                    self.generating = False
+                    return
 
             # init api key if defined later
             self.window.gpt.init()

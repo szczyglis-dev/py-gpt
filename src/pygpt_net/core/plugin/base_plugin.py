@@ -15,6 +15,7 @@ class BasePlugin:
         self.name = ""
         self.type = []  # audio.input, audio.output
         self.description = ""
+        self.urls = {}
         self.options = {}
         self.initial_options = {}
         self.window = None
@@ -31,7 +32,7 @@ class BasePlugin:
 
     def add_option(self, name, type, value=None, label="", description="",
                    tooltip=None, min=None, max=None, multiplier=1, step=1, slider=False,
-                   keys=None, advanced=False, secret=False, persist=False):
+                   keys=None, advanced=False, secret=False, persist=False, urls=None):
         """
         Add option
 
@@ -50,6 +51,7 @@ class BasePlugin:
         :param advanced: Option advanced (True/False)
         :param secret: Option secret (True/False)
         :param persist: Option persist (True/False)
+        :param urls: Option URLs
         """
         if tooltip is None:
             tooltip = description
@@ -69,6 +71,7 @@ class BasePlugin:
             "advanced": advanced,
             "secret": secret,
             "persist": persist,
+            "urls": urls,
         }
         self.options[name] = option
 

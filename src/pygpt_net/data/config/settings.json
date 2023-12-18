@@ -27,6 +27,9 @@
         "extra": {
             "bold": true
         },
+        "urls": {
+            "OpenAI API Keys": "https://platform.openai.com/account/api-keys"
+        },
         "secret": true,
         "persist": true,
         "advanced": false

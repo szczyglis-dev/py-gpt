@@ -8,6 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
+import webbrowser
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
@@ -15,7 +17,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 
 from ..widget.settings import SettingsInput, SettingsTextarea, SettingsSlider, SettingsCheckbox, SettingsDict, \
     PluginSettingsDialog, PluginSelectMenu
-from ..widget.elements import CollapsedGroup
+from ..widget.elements import CollapsedGroup, UrlLabel
 from ...utils import trans
 
 
@@ -141,6 +143,11 @@ class Plugins:
                 # add option to list
                 options_widgets[key] = option
 
+            # append URLs at the beginning
+            if len(plugin.urls) > 0:
+                urls_widget = self.add_urls(plugin.urls)
+                scroll_content.addWidget(urls_widget)
+
             for key in options_widgets:
                 # hide advanced options
                 if key in advanced_options:
@@ -242,6 +249,22 @@ class Plugins:
         line.setFrameShadow(QFrame.Sunken)
         return line
 
+    def add_urls(self, urls):
+        """
+        Add clickable urls to list
+
+        :param urls: urls dict
+        """
+        layout = QVBoxLayout()
+        for name in urls:
+            url = urls[name]
+            label = UrlLabel(name, url)
+            layout.addWidget(label)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        return widget
+
     def add_option(self, key, option, widget, type):
         """
         Append option row
@@ -289,6 +312,11 @@ class Plugins:
             desc_label.setToolTip(option['tooltip'])
 
             layout.addWidget(desc_label)
+
+        # append URLs at the beginning
+        if option['urls'] is not None and len(option['urls']) > 0:
+            urls_widget = self.add_urls(option['urls'])
+            layout.addWidget(urls_widget)
 
         line = self.add_line()
         layout.addWidget(line)
