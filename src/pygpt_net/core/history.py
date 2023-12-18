@@ -16,18 +16,14 @@ import os
 class History:
     DIRNAME = "history"
 
-    def __init__(self, config):
+    def __init__(self, window):
         """
         History handler
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
-
-        if not self.config.initialized:
-            self.config.init()
-
-        self.path = os.path.join(self.config.path, self.DIRNAME)
+        self.window = window
+        self.path = os.path.join(self.window.config.path, self.DIRNAME)
 
     def save(self, text):
         """
@@ -46,7 +42,7 @@ class History:
             try:
                 with open(f, 'a', encoding="utf-8") as file:
                     prefix = ""
-                    if self.config.get('store_history_time'):
+                    if self.window.config.get('store_history_time'):
                         prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
                     file.write(prefix + text + "\n")
                     file.close()

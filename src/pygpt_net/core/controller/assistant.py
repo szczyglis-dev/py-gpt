@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 02:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 import webbrowser
 
 from ..utils import trans
-from ..assistants import Assistants
 
 
 class Assistant:
@@ -22,11 +21,10 @@ class Assistant:
         :param window: Window instance
         """
         self.window = window
-        self.assistants = Assistants(self.window.config)
 
     def setup(self):
         """Setup assistants"""
-        self.assistants.load()
+        self.window.app.assistants.load()
         self.update()
 
     def update(self, update_list=True):
@@ -42,7 +40,7 @@ class Assistant:
 
     def update_list(self):
         """Update assistants list"""
-        items = self.assistants.get_all()
+        items = self.window.app.assistants.get_all()
         self.window.ui.toolbox.update_list_assistants('assistants', items)
 
     def assistant_change_locked(self):
@@ -67,7 +65,7 @@ class Assistant:
             return
 
         # mark assistant as selected
-        id = self.assistants.get_by_idx(idx)
+        id = self.window.app.assistants.get_by_idx(idx)
         self.select_by_id(id)
 
     def select_by_id(self, id):
@@ -80,7 +78,7 @@ class Assistant:
 
         # update attachments list with list of attachments from assistant
         mode = self.window.config.get('mode')
-        assistant = self.assistants.get_by_id(id)
+        assistant = self.window.app.assistants.get_by_id(id)
         self.window.controller.attachment.import_from_assistant(mode, assistant)
         self.window.controller.attachment.update()
         self.update(False)
@@ -97,7 +95,7 @@ class Assistant:
     def select_assistant_by_current(self):
         """Select assistant by current"""
         assistant_id = self.window.config.get('assistant')
-        items = self.window.controller.assistant.assistants.get_all()
+        items = self.window.app.assistants.get_all()
         if assistant_id in items:
             idx = list(items.keys()).index(assistant_id)
             current = self.window.models['assistants'].index(idx, 0)
@@ -109,7 +107,7 @@ class Assistant:
         if assistant is None or assistant == "":
             mode = self.window.config.get('mode')
             if mode == 'assistant':
-                self.window.config.set('assistant', self.assistants.get_default_assistant())
+                self.window.config.set('assistant', self.window.app.assistants.get_default_assistant())
                 self.update()
 
     def update_assistants(self):
@@ -126,8 +124,8 @@ class Assistant:
         :param current: if true, updates current assistant
         """
         if assistant_id is not None and assistant_id != "":
-            if self.assistants.has(assistant_id):
-                assistant = self.assistants.get_by_id(assistant_id)
+            if self.window.app.assistants.has(assistant_id):
+                assistant = self.window.app.assistants.get_by_id(assistant_id)
                 if id == 'assistant.name':
                     assistant.name = value
                 elif id == 'assistant.description':
@@ -143,13 +141,13 @@ class Assistant:
 
         :param id: assistant ID
         """
-        assistant = self.assistants.create()
+        assistant = self.window.app.assistants.create()
         assistant.model = "gpt-4-1106-preview"  # default model
 
         # if editing existing assistant
         if id is not None and id != "":
-            if self.assistants.has(id):
-                assistant = self.assistants.get_by_id(id)
+            if self.window.app.assistants.has(id):
+                assistant = self.window.app.assistants.get_by_id(id)
         else:
             # default instructions
             assistant.instructions = 'You are a helpful assistant.'
@@ -202,7 +200,7 @@ class Assistant:
         """
         id = None
         if idx is not None:
-            id = self.assistants.get_by_idx(idx)
+            id = self.window.app.assistants.get_by_idx(idx)
 
         self.init_editor(id)
         self.window.ui.dialogs.open_editor('editor.assistants', idx)
@@ -221,17 +219,17 @@ class Assistant:
             self.window.ui.dialogs.alert(trans('assistant.form.empty.fields'))
             return
 
-        if id is None or id == "" or not self.assistants.has(id):
+        if id is None or id == "" or not self.window.app.assistants.has(id):
             assistant = self.create()  # id created in API
             if assistant is None:
                 print("Assistant not created")
                 return
             id = assistant.id
-            self.assistants.add(assistant)
+            self.window.app.assistants.add(assistant)
             self.window.config_option['assistant.id'].setText(id)
             created = True
         else:
-            assistant = self.assistants.get_by_id(id)
+            assistant = self.window.app.assistants.get_by_id(id)
 
         # assign data from fields to assistant
         self.assign_data(assistant)
@@ -241,7 +239,7 @@ class Assistant:
             self.assistant_update(assistant)
 
         # save file
-        self.assistants.save()
+        self.window.app.assistants.save()
         self.update_assistants()
         self.update()
 
@@ -252,10 +250,10 @@ class Assistant:
         """
         Create assistant
         """
-        assistant = self.assistants.create()
+        assistant = self.window.app.assistants.create()
         self.assign_data(assistant)
         try:
-            return self.window.gpt.assistant_create(assistant)
+            return self.window.app.gpt.assistant_create(assistant)
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
@@ -265,7 +263,7 @@ class Assistant:
         """
         self.assign_data(assistant)
         try:
-            return self.window.gpt.assistant_update(assistant)
+            return self.window.app.gpt.assistant_update(assistant)
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
 
@@ -282,14 +280,14 @@ class Assistant:
 
         try:
             # import assistants
-            items = self.assistants.get_all()
-            self.window.gpt.assistant_import(items)
-            self.assistants.items = items
-            self.assistants.save()
+            items = self.window.app.assistants.get_all()
+            self.window.app.gpt.assistant_import(items)
+            self.window.app.assistants.items = items
+            self.window.app.assistants.save()
 
             # import uploaded files
-            for id in self.assistants.items:
-                assistant = self.assistants.get_by_id(id)
+            for id in self.window.app.assistants.items:
+                assistant = self.window.app.assistants.get_by_id(id)
                 self.window.controller.assistant_files.import_files(assistant)
             # status
             self.window.set_status("Imported assistants: " + str(len(items)))
@@ -347,8 +345,8 @@ class Assistant:
             return
 
         if id is not None and id != "":
-            if self.assistants.has(id):
-                assistant = self.assistants.get_by_id(id)
+            if self.window.app.assistants.has(id):
+                assistant = self.window.app.assistants.get_by_id(id)
                 assistant.reset()
 
         self.window.set_status(trans('status.assistant.cleared'))
@@ -362,9 +360,9 @@ class Assistant:
         :param force: force delete without confirmation
         """
         if idx is not None:
-            id = self.assistants.get_by_idx(idx)
+            id = self.window.app.assistants.get_by_idx(idx)
             if id is not None and id != "":
-                if self.assistants.has(id):
+                if self.window.app.assistants.has(id):
                     # if exists then show confirmation dialog
                     if not force:
                         self.window.ui.dialogs.confirm('assistant_delete', idx,
@@ -378,11 +376,11 @@ class Assistant:
 
                     # delete in API
                     try:
-                        self.window.gpt.assistant_delete(id)
+                        self.window.app.gpt.assistant_delete(id)
                     except Exception as e:
                         self.window.ui.dialogs.alert(str(e))
 
-                    self.assistants.delete(id)
+                    self.window.app.assistants.delete(id)
                     self.update()
                     self.window.set_status(trans('status.assistant.deleted'))
 

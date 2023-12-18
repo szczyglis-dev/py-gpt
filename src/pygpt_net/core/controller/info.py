@@ -30,12 +30,12 @@ class Info:
 
         :param id: window to toggle
         """
-        if id in self.window.info.active and self.window.info.active[id]:
+        if id in self.window.app.info.active and self.window.app.info.active[id]:
             self.window.ui.dialogs.close('info.' + id)
-            self.window.info.active[id] = False
+            self.window.app.info.active[id] = False
         else:
             self.window.ui.dialogs.open('info.' + id)
-            self.window.info.active[id] = True
+            self.window.app.info.active[id] = True
 
         # update menu
         self.update_menu()
@@ -62,8 +62,8 @@ class Info:
 
     def update_menu(self):
         """Update info menu"""
-        for id in self.window.info.ids:
-            if id in self.window.info.active and self.window.info.active[id]:
+        for id in self.window.app.info.ids:
+            if id in self.window.app.info.active and self.window.app.info.active[id]:
                 self.window.menu['info.' + id].setChecked(True)
             else:
                 self.window.menu['info.' + id].setChecked(False)

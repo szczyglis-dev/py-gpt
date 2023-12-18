@@ -40,8 +40,8 @@ class Audio:
         """Enable audio/voice"""
         self.window.controller.plugins.enable('audio_azure')
         if self.window.controller.plugins.is_enabled('audio_azure') \
-                and (self.window.controller.plugins.handler.plugins['audio_azure'].options['azure_api_key'] is None
-                     or self.window.controller.plugins.handler.plugins['audio_azure'].options['azure_api_key'] == ''):
+                and (self.window.app.plugins.plugins['audio_azure'].options['azure_api_key'] is None
+                     or self.window.app.plugins.plugins['audio_azure'].options['azure_api_key'] == ''):
             self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugins settings.")
             self.window.controller.plugins.disable('audio_azure')
         self.window.config.save()

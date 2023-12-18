@@ -34,9 +34,9 @@ class Editor:
         self.window.data['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
         self.window.data['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
         self.window.data['editor.btn.default'].clicked.connect(
-            lambda: self.window.settings.load_default_editor())
+            lambda: self.window.app.settings.load_default_editor())
         self.window.data['editor.btn.save'].clicked.connect(
-            lambda: self.window.settings.save_editor())
+            lambda: self.window.app.settings.save_editor())
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.data['editor.btn.default'])

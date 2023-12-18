@@ -15,13 +15,13 @@ import uuid
 
 
 class Attachments:
-    def __init__(self, config=None):
+    def __init__(self, window=None):
         """
         Attachments
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
+        self.window = window
         self.config_file = 'attachments.json'
         self.items = {}
         self.current = None
@@ -152,8 +152,8 @@ class Attachments:
         self.clear(mode)
 
         # update index
-        path = os.path.join(self.config.path, self.config_file)
-        data = {'__meta__': self.config.append_meta(), 'items': {}}
+        path = os.path.join(self.window.config.path, self.config_file)
+        data = {'__meta__': self.window.config.append_meta(), 'items': {}}
         try:
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
@@ -296,7 +296,7 @@ class Attachments:
 
     def load(self):
         """Load attachments from file"""
-        path = os.path.join(self.config.path, self.config_file)
+        path = os.path.join(self.window.config.path, self.config_file)
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -323,7 +323,7 @@ class Attachments:
         """
         try:
             # update attachments
-            path = os.path.join(self.config.path, self.config_file)
+            path = os.path.join(self.window.config.path, self.config_file)
             data = {}
             items = {}
 
@@ -334,7 +334,7 @@ class Attachments:
                     attachment = self.items[mode][id]
                     items[mode][id] = attachment.serialize()
 
-            data['__meta__'] = self.config.append_meta()
+            data['__meta__'] = self.window.config.append_meta()
             data['items'] = items
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:

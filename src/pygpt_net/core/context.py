@@ -19,13 +19,13 @@ from .utils import trans
 
 
 class Context:
-    def __init__(self, config=None):
+    def __init__(self, window=None):
         """
         Context handler
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
+        self.window = window
         self.contexts = {}
         self.items = []
         self.current_ctx = None
@@ -39,7 +39,7 @@ class Context:
 
     def load_list(self):
         """Loads contexts list from file"""
-        path = os.path.join(self.config.path, 'context.json')
+        path = os.path.join(self.window.config.path, 'context.json')
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -61,7 +61,7 @@ class Context:
         :return: context items
         :rtype: list
         """
-        path = os.path.join(self.config.path, 'context', name + '.json')
+        path = os.path.join(self.window.config.path, 'context', name + '.json')
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding="utf-8") as file:
@@ -96,7 +96,7 @@ class Context:
         """
         Update current context parent (when context item load from the list or setting mode)
         """
-        self.current_mode = self.config.get('mode')
+        self.current_mode = self.window.config.get('mode')
 
         if self.current_ctx is None:
             return
@@ -113,8 +113,8 @@ class Context:
             return
 
         # update current
-        self.current_assistant = self.config.get('assistant')  # update assistant
-        self.current_preset = self.config.get('preset')  # update preset
+        self.current_assistant = self.window.config.get('assistant')  # update assistant
+        self.current_preset = self.window.config.get('preset')  # update preset
 
         # update current context data
         self.contexts[self.current_ctx]['last_mode'] = mode
@@ -150,8 +150,8 @@ class Context:
             'id': name,
             "name": "{}".format(trans('ctx.new.prefix')),
             "date": datetime.datetime.now().strftime("%Y-%m-%d"),
-            'mode': self.config.get('mode'),
-            'last_mode': self.config.get('mode'),
+            'mode': self.window.config.get('mode'),
+            'last_mode': self.window.config.get('mode'),
             'thread': None,
             'assistant': None,
             'preset': None,
@@ -162,8 +162,8 @@ class Context:
         self.current_ctx = name
         self.current_thread = None
         self.current_assistant = None
-        self.current_mode = self.config.get('mode')
-        self.current_preset = self.config.get('preset')
+        self.current_mode = self.window.config.get('mode')
+        self.current_preset = self.window.config.get('preset')
         self.items = []
         self.dump_context(name)
 
@@ -238,12 +238,12 @@ class Context:
 
         :param name: context name (id)
         """
-        if not self.config.get('store_history'):
+        if not self.window.config.get('store_history'):
             return
 
         try:
             # update current context items
-            items_path = os.path.join(self.config.path, 'context', name + '.json')
+            items_path = os.path.join(self.window.config.path, 'context', name + '.json')
             items = []
             for item in self.items:
                 items.append(item.serialize())
@@ -253,10 +253,10 @@ class Context:
                 f.close()
 
             # update contexts index
-            index_path = os.path.join(self.config.path, 'context.json')
+            index_path = os.path.join(self.window.config.path, 'context.json')
             data = {}
             data['items'] = self.contexts.copy()
-            data['__meta__'] = self.config.append_meta()
+            data['__meta__'] = self.window.config.append_meta()
             dump = json.dumps(data, indent=4)
             with open(index_path, 'w', encoding="utf-8") as f:
                 f.write(dump)
@@ -329,7 +329,7 @@ class Context:
         """
         if name in self.contexts:
             del self.contexts[name]
-            path = os.path.join(self.config.path, 'context', name + '.json')
+            path = os.path.join(self.window.config.path, 'context', name + '.json')
             if os.path.exists(path):
                 try:
                     os.remove(path)
@@ -346,7 +346,7 @@ class Context:
         """Delete all contexts"""
         # delete all context files
         for name in self.contexts:
-            path = os.path.join(self.config.path, 'context', name + '.json')
+            path = os.path.join(self.window.config.path, 'context', name + '.json')
             if os.path.exists(path):
                 try:
                     os.remove(path)
@@ -355,10 +355,10 @@ class Context:
         self.contexts = {}
 
         # update contexts index
-        index_path = os.path.join(self.config.path, 'context.json')
+        index_path = os.path.join(self.window.config.path, 'context.json')
         data = {}
         data['items'] = {}
-        data['__meta__'] = self.config.append_meta()
+        data['__meta__'] = self.window.config.append_meta()
         try:
             dump = json.dumps(data, indent=4)
             with open(index_path, 'w', encoding="utf-8") as f:
@@ -368,7 +368,7 @@ class Context:
             print(e)
 
         # delete all txt history files from history dir
-        path = os.path.join(self.config.path, 'history')
+        path = os.path.join(self.window.config.path, 'history')
         for file in os.listdir(path):
             if file.endswith('.txt'):
                 try:

@@ -205,7 +205,7 @@ class SettingsDialog(QDialog):
 
         :param event: close event
         """
-        self.window.settings.active[self.id] = False
+        self.window.app.settings.active[self.id] = False
         self.window.controller.settings.close(self.id)
         self.window.controller.settings.update()
 

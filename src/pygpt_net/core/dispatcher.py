@@ -26,9 +26,9 @@ class Dispatcher:
         :param id: plugin id
         :param event: event object
         """
-        if id in self.window.controller.plugins.handler.plugins:
+        if id in self.window.app.plugins.plugins:
             try:
-                self.window.controller.plugins.handler.plugins[id].handle(event)
+                self.window.app.plugins.plugins[id].handle(event)
             except AttributeError:
                 pass
 

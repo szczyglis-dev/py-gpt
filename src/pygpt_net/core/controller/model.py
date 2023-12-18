@@ -63,9 +63,9 @@ class Model:
         """
         # if ctx loaded with assistant then switch to this assistant
         if mode == "assistant":
-            if self.window.context.current_ctx is not None \
-                    and self.window.context.current_assistant is not None:
-                self.window.controller.assistant.select_by_id(self.window.context.current_assistant)
+            if self.window.app.context.current_ctx is not None \
+                    and self.window.app.context.current_assistant is not None:
+                self.window.controller.assistant.select_by_id(self.window.app.context.current_assistant)
 
         self.window.config.set('mode', mode)
         self.window.config.set('model', "")

@@ -55,7 +55,7 @@ class Settings:
 
         :param initialize: True if marks settings as initialized
         """
-        self.options = self.window.settings.get_options()
+        self.options = self.window.app.settings.get_options()
         if initialize:
             self.initialized = True
 
@@ -119,12 +119,12 @@ class Settings:
 
         :param id: settings id
         """
-        if id in self.window.settings.active and self.window.settings.active[id]:
+        if id in self.window.app.settings.active and self.window.app.settings.active[id]:
             self.close_window(id)
         else:
             self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
             self.init(id)
-            self.window.settings.active[id] = True
+            self.window.app.settings.active[id] = True
 
             # if no API key, focus on API key input
             if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
@@ -141,17 +141,17 @@ class Settings:
         """
         id = 'editor'
         current_file = self.window.dialog['config.editor'].file
-        if id in self.window.settings.active and self.window.settings.active[id]:
+        if id in self.window.app.settings.active and self.window.app.settings.active[id]:
             if current_file == file:
                 self.window.ui.dialogs.close('config.' + id)
-                self.window.settings.active[id] = False
+                self.window.app.settings.active[id] = False
             else:
-                self.window.settings.load_editor(file)  # load file to editor
+                self.window.app.settings.load_editor(file)  # load file to editor
                 self.window.dialog['config.editor'].file = file
         else:
-            self.window.settings.load_editor(file)  # load file to editor
+            self.window.app.settings.load_editor(file)  # load file to editor
             self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
-            self.window.settings.active[id] = True
+            self.window.app.settings.active[id] = True
 
         # update menu
         self.update()
@@ -162,9 +162,9 @@ class Settings:
 
         :param id: settings window id
         """
-        if id in self.window.settings.active and self.window.settings.active[id]:
+        if id in self.window.app.settings.active and self.window.app.settings.active[id]:
             self.window.ui.dialogs.close('config.' + id)
-            self.window.settings.active[id] = False
+            self.window.app.settings.active[id] = False
 
     def close(self, id):
         """
@@ -185,10 +185,10 @@ class Settings:
 
     def update_menu(self):
         """Update menu"""
-        for id in self.window.settings.ids:
+        for id in self.window.app.settings.ids:
             key = 'config.' + id
             if key in self.window.menu:
-                if id in self.window.settings.active and self.window.settings.active[id]:
+                if id in self.window.app.settings.active and self.window.app.settings.active[id]:
                     self.window.menu['config.' + id].setChecked(True)
                 else:
                     self.window.menu['config.' + id].setChecked(False)
@@ -477,7 +477,7 @@ class Settings:
             return
 
         # load default user config
-        self.window.settings.load_user_settings()
+        self.window.app.settings.load_user_settings()
 
         # re-init settings
         self.window.controller.settings.init('settings')
@@ -494,7 +494,7 @@ class Settings:
             return
 
         # load default user config
-        self.window.settings.load_app_settings()
+        self.window.app.settings.load_app_settings()
 
         # re-init settings
         self.window.controller.settings.init('settings')

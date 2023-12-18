@@ -38,6 +38,6 @@ class Launcher:
         if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
             self.show_api_monit()
 
-        self.window.gpt.init()
-        self.window.images.init()
+        self.window.app.gpt.init()
+        self.window.app.images.init()
         self.window.controller.settings.update_font_size()

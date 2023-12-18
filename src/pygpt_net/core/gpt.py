@@ -175,7 +175,7 @@ class Gpt:
 
         # append messages from context (memory)
         if self.window.config.get('use_context'):
-            items = self.window.context.get_prompt_items(model, used_tokens, max_tokens)
+            items = self.window.app.context.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -259,7 +259,7 @@ class Gpt:
             message += self.system_prompt
 
         if self.window.config.get('use_context'):
-            items = self.window.context.get_prompt_items(model, used_tokens, max_tokens)
+            items = self.window.app.context.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -717,7 +717,7 @@ class Gpt:
                 run = self.assistant_run_create(self.thread_id, self.assistant_id, self.system_prompt)
                 if run is not None:
                     ctx.run_id = run.id
-            self.window.context.add(ctx)
+            self.window.app.context.add(ctx)
             return ctx  # if assistant then return here
 
         # async mode (stream)
@@ -730,7 +730,7 @@ class Gpt:
             ctx.stream = response
             ctx.set_output("", self.ai_name)
             ctx.input_tokens = self.input_tokens  # from global tokens calculation
-            self.window.context.add(ctx)
+            self.window.app.context.add(ctx)
             return ctx
 
         if response is None:
@@ -755,7 +755,7 @@ class Gpt:
 
         ctx.set_output(output, self.ai_name)
         ctx.set_tokens(response.usage.prompt_tokens, response.usage.completion_tokens)
-        self.window.context.add(ctx)
+        self.window.app.context.add(ctx)
 
         return ctx
 
@@ -794,7 +794,7 @@ class Gpt:
 
     def clear(self):
         """Clear context (memory)"""
-        self.window.context.clear()
+        self.window.app.context.clear()
 
     def extract_urls(self, text):
         """

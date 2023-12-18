@@ -18,16 +18,8 @@ from qt_material import QtStyleTools
 
 from .config import Config
 from .ui.main import UI
+from .container import Container
 from .controller.main import Controller
-from .debugger import Debug
-from .dispatcher import Dispatcher
-from .settings import Settings
-from .info import Info
-from .gpt import Gpt
-from .chain import Chain
-from .context import Context
-from .command import Command
-from .image import Image
 from .utils import get_init_value
 
 from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
@@ -56,6 +48,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         super().__init__()
         self.timer = None
         self.is_closing = False
+
+        # version info
         self.github = get_init_value("__github__")
         self.website = get_init_value("__website__")
         self.docs = get_init_value("__documentation__")
@@ -69,28 +63,18 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup config
         self.config = Config()
         self.config.init(True, True)
-        self.context = Context(self.config)
 
-        # event dispatcher
-        self.dispatcher = Dispatcher(self)
+        # setup service container
+        self.app = Container(self)
 
-        # app controller
+        # setup main controller
         self.controller = Controller(self)
-        self.debugger = Debug(self)
-        self.info = Info(self)
-        self.settings = Settings(self)
-        self.command = Command(self)
 
-        # handle config migration if needed
-        self.controller.launcher.migrate_version()
+        # handle version migration
+        self.controller.migrate()
 
-        # load settings options
-        self.controller.settings.load()
-
-        # setup GPT, Langchain, DALL-E
-        self.gpt = Gpt(self)
-        self.chain = Chain(self)
-        self.images = Image(self)
+        # init, load settings options, etc.
+        self.controller.init()
 
         # setup UI
         self.ui = UI(self)
@@ -147,13 +131,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param llm: LLM wrapper instance
         """
         id = llm.id
-        self.chain.register(id, llm)
+        self.app.chain.register(id, llm)
 
     def setup(self):
         """Setup app"""
         self.controller.setup()
         self.controller.plugins.setup()
-        self.controller.setup_plugins()
+        self.controller.post_setup()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(30)
@@ -164,7 +148,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def update(self):
         """Called on every update"""
-        self.debugger.update()
+        self.app.debug.update()
         self.controller.update()
 
     def set_status(self, text):

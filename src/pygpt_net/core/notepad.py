@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 
 import json
@@ -14,17 +14,17 @@ import os
 
 
 class Notepad:
-    def __init__(self, config=None):
+    def __init__(self, window=None):
         """
         Notepad
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
+        self.window = window
 
     def load(self):
         """Load content from file"""
-        path = os.path.join(self.config.path, 'notepad.json')
+        path = os.path.join(self.window.config.path, 'notepad.json')
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -44,8 +44,8 @@ class Notepad:
         """
         try:
             # update contexts index
-            path = os.path.join(self.config.path, 'notepad.json')
-            data = {'__meta__': self.config.append_meta(), 'content': content}
+            path = os.path.join(self.window.config.path, 'notepad.json')
+            data = {'__meta__': self.window.config.append_meta(), 'content': content}
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)

@@ -92,11 +92,19 @@ class Controller:
         self.camera.setup_settings()
         self.image.setup()
 
-    def setup_plugins(self):
-        """Setup plugins"""
+    def post_setup(self):
+        """Post-setup, after plugins are loaded"""
         # setup plugins settings
         self.plugins.setup_settings()
 
     def update(self):
         """On app main loop update"""
         self.camera.update()
+
+    def init(self):
+        """Init base settings"""
+        self.settings.load()
+
+    def migrate(self):
+        """Migrate versions"""
+        self.launcher.migrate_version()

@@ -23,23 +23,23 @@ class AttachmentsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.debugger.begin(self.id)
+        self.window.app.debug.begin(self.id)
 
-        path = os.path.join(self.window.config.path, '', self.window.controller.attachment.attachments.config_file)
-        self.window.debugger.add(self.id, 'File', path)
+        path = os.path.join(self.window.config.path, '', self.window.app.attachments.config_file)
+        self.window.app.debug.add(self.id, 'File', path)
 
         modes = ['chat', 'completion', 'img', 'vision', 'langchain', 'assistant']
         for mode in modes:
-            self.window.debugger.add(self.id, '[mode]', mode)
-            attachments = self.window.controller.attachment.attachments.get_all(mode)
+            self.window.app.debug.add(self.id, '[mode]', mode)
+            attachments = self.window.app.attachments.get_all(mode)
             for key in list(attachments):
                 prefix = "[{}] ".format(key)
                 attachment = attachments[key]
-                self.window.debugger.add(self.id, prefix + 'ID', str(key))
-                self.window.debugger.add(self.id, 'id', str(attachment.id))
-                self.window.debugger.add(self.id, 'name', str(attachment.name))
-                self.window.debugger.add(self.id, 'path', str(attachment.path))
-                self.window.debugger.add(self.id, 'remote', str(attachment.remote))
-                self.window.debugger.add(self.id, 'send', str(attachment.send))
+                self.window.app.debug.add(self.id, prefix + 'ID', str(key))
+                self.window.app.debug.add(self.id, 'id', str(attachment.id))
+                self.window.app.debug.add(self.id, 'name', str(attachment.name))
+                self.window.app.debug.add(self.id, 'path', str(attachment.path))
+                self.window.app.debug.add(self.id, 'remote', str(attachment.remote))
+                self.window.app.debug.add(self.id, 'send', str(attachment.send))
 
-        self.window.debugger.end(self.id)
+        self.window.app.debug.end(self.id)

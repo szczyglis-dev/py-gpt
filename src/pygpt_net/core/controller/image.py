@@ -65,12 +65,12 @@ class Image:
         event.ctx = ctx
         self.window.controller.plugins.dispatch(event)
 
-        self.window.context.add(ctx)
+        self.window.app.context.add(ctx)
         self.window.controller.output.append_input(ctx)
 
         # call DALL-E API and generate images
         try:
-            paths, prompt = self.window.images.generate(text, self.window.config.get('model'), num_of_images)
+            paths, prompt = self.window.app.images.generate(text, self.window.config.get('model'), num_of_images)
             string = ""
             i = 1
             for path in paths:
@@ -90,7 +90,7 @@ class Image:
             self.window.controller.plugins.dispatch(event)
 
             self.window.controller.output.append_output(ctx)
-            self.window.context.store()
+            self.window.app.context.store()
             self.window.set_status("OK.")
         except Exception as e:
             print(e)

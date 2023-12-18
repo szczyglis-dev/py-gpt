@@ -6,11 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
-
-from ..notepad import Notepad as NotepadCore
-
 
 class Notepad:
     def __init__(self, window=None):
@@ -20,13 +17,12 @@ class Notepad:
         :param window: Window instance
         """
         self.window = window
-        self.notepad = NotepadCore(self.window.config)
 
     def load(self):
         """
         Load notepad contents
         """
-        data = self.notepad.load()
+        data = self.window.app.notepad.load()
         if data is None:
             data = {}
             data['1'] = ""
@@ -65,7 +61,7 @@ class Notepad:
         data['3'] = self.window.data['notepad3'].toPlainText()
         data['4'] = self.window.data['notepad4'].toPlainText()
         data['5'] = self.window.data['notepad5'].toPlainText()
-        self.notepad.save(data)
+        self.window.app.notepad.save(data)
         self.update()
 
     def setup(self):

@@ -37,25 +37,25 @@ class AssistantFiles:
         id = self.window.config.get('assistant')
         if id is None or id == "":
             return
-        assistant = self.window.controller.assistant.assistants.get_by_id(id)
+        assistant = self.window.app.assistants.get_by_id(id)
         if assistant is None:
             return
-        self.window.controller.assistant.assistants.current_file = \
-            self.window.controller.assistant.assistants.get_file_id_by_idx(assistant, idx)
+        self.window.app.assistants.current_file = \
+            self.window.app.assistants.get_file_id_by_idx(assistant, idx)
 
     def count_upload_attachments(self, attachments):
         """
-        Count uploaded attachments
+        Count attachments for upload
 
         :param attachments: attachments list
-        :return: number of files to upload
+        :return: number of files need to be uploaded
         :rtype: int
         """
         num = 0
         for id in list(attachments):
             attachment = attachments[id]
             if not attachment.send:
-                num += 1  # increment uploaded files counter if file not sent
+                num += 1  # increment uploaded files counter if file is not uploaded yet
         return num
 
     def import_files(self, assistant):
@@ -65,9 +65,9 @@ class AssistantFiles:
         :param assistant: assistant
         """
         try:
-            files = self.window.gpt.assistant_file_list(assistant.id)
-            self.window.controller.assistant.assistants.import_files(assistant, files)
-            self.window.controller.assistant.assistants.save()
+            files = self.window.app.gpt.assistant_file_list(assistant.id)
+            self.window.app.assistants.import_files(assistant, files)
+            self.window.app.assistants.save()
             self.update()
             self.window.set_status("Imported files: " + str(len(files)))
         except Exception as e:
@@ -89,7 +89,7 @@ class AssistantFiles:
         id = self.window.config.get('assistant')
         if id is None or id == "":
             return
-        assistant = self.window.controller.assistant.assistants.get_by_id(id)
+        assistant = self.window.app.assistants.get_by_id(id)
         if assistant is None:
             return
         try:
@@ -107,15 +107,15 @@ class AssistantFiles:
         id = self.window.config.get('assistant')
         if id is None or id == "":
             return
-        assistant = self.window.controller.assistant.assistants.get_by_id(id)
+        assistant = self.window.app.assistants.get_by_id(id)
         if assistant is None:
             return
 
         # get attachment ID by index
-        file_id = self.window.controller.assistant.assistants.get_file_id_by_idx(assistant, idx)
+        file_id = self.window.app.assistants.get_file_id_by_idx(assistant, idx)
 
         # get attachment object by ID
-        data = self.window.controller.assistant.assistants.get_file_by_id(assistant, file_id)
+        data = self.window.app.assistants.get_file_by_id(assistant, file_id)
         if data is None:
             return
 
@@ -137,11 +137,11 @@ class AssistantFiles:
         if id is None or id == "":
             self.close_rename_file()
             return
-        assistant = self.window.controller.assistant.assistants.get_by_id(id)
+        assistant = self.window.app.assistants.get_by_id(id)
         if assistant is None:
             self.close_rename_file()
             return
-        self.window.controller.assistant.assistants.rename_file(assistant, file_id, name)
+        self.window.app.assistants.rename_file(assistant, file_id, name)
         self.close_rename_file()
 
     def close_rename_file(self):
@@ -168,11 +168,11 @@ class AssistantFiles:
             return
 
         # delete all files
-        if self.window.controller.assistant.assistants.has(id):
-            assistant = self.window.controller.assistant.assistants.get_by_id(id)
+        if self.window.app.assistants.has(id):
+            assistant = self.window.app.assistants.get_by_id(id)
             for file_id in list(assistant.files):
                 try:
-                    self.window.gpt.assistant_file_delete(id, file_id)
+                    self.window.app.gpt.assistant_file_delete(id, file_id)
                     assistant.delete_file(file_id)
                 except Exception as e:
                     self.window.ui.dialogs.alert(str(e))
@@ -184,7 +184,7 @@ class AssistantFiles:
                 if assistant.has_attachment(file_id):
                     assistant.delete_attachment(file_id)
 
-            self.window.controller.assistant.assistants.save()
+            self.window.app.assistants.save()
             self.update()
 
     def delete_file(self, idx, force=False):
@@ -203,22 +203,22 @@ class AssistantFiles:
         id = self.window.config.get('assistant')
         if id is None or id == "":
             return
-        assistant = self.window.controller.assistant.assistants.get_by_id(id)
+        assistant = self.window.app.assistants.get_by_id(id)
         if assistant is None:
             return
 
         # get attachment ID by index
-        file_id = self.window.controller.assistant.assistants.get_file_id_by_idx(assistant, idx)
+        file_id = self.window.app.assistants.get_file_id_by_idx(assistant, idx)
 
         # delete file in API
         try:
-            self.window.gpt.assistant_file_delete(id, file_id)
+            self.window.app.gpt.assistant_file_delete(id, file_id)
         except Exception as e:
             self.window.ui.dialogs.alert(str(e))
             return  # do not delete locally if not deleted in API
 
         # delete locally
-        if self.window.controller.assistant.assistants.has(id):
+        if self.window.app.assistants.has(id):
             need_save = False
             # delete file
             if assistant.has_file(file_id):
@@ -230,7 +230,7 @@ class AssistantFiles:
                 need_save = True
             # save assistants and update assistants list
             if need_save:
-                self.window.controller.assistant.assistants.save()
+                self.window.app.assistants.save()
                 self.update()
 
     def clear_attachments(self, assistant):
@@ -240,7 +240,7 @@ class AssistantFiles:
         :param assistant: assistant object
         """
         assistant.clear_attachments()
-        self.window.controller.assistant.assistants.save()
+        self.window.app.assistants.save()
         self.update()
 
     def upload_attachments(self, mode, attachments):
@@ -256,7 +256,7 @@ class AssistantFiles:
         assistant_id = self.window.config.get('assistant')
         if assistant_id is None:
             return 0
-        assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+        assistant = self.window.app.assistants.get_by_id(assistant_id)
 
         num = 0
         # loop on attachments
@@ -272,7 +272,7 @@ class AssistantFiles:
                     continue
 
                 # upload local attachment file and get new ID (file_id)
-                new_id = self.window.gpt.assistant_file_upload(assistant_id, attachment.path)
+                new_id = self.window.app.gpt.assistant_file_upload(assistant_id, attachment.path)
                 if new_id is not None:
                     # mark as already uploaded
                     attachment.send = True
@@ -280,7 +280,7 @@ class AssistantFiles:
                     attachment.remote = new_id
 
                     # replace old ID with new one
-                    self.window.controller.attachment.attachments.replace_id(mode, old_id, attachment)
+                    self.window.app.attachments.replace_id(mode, old_id, attachment)
 
                     # update assistant remote files list
                     assistant.files[new_id] = {
@@ -290,11 +290,11 @@ class AssistantFiles:
                     }
 
                     # update assistant attachments list
-                    self.window.controller.assistant.assistants.replace_attachment(assistant, attachment, old_id, new_id)
+                    self.window.app.assistants.replace_attachment(assistant, attachment, old_id, new_id)
                     num += 1  # increment uploaded files counter
 
         # update assistants list
-        self.window.controller.assistant.assistants.save()
+        self.window.app.assistants.save()
 
         # update attachments UI
         self.window.controller.attachment.update()
@@ -314,14 +314,14 @@ class AssistantFiles:
         """
         # get current chosen assistant
         assistant.add_attachment(attachment)  # append attachment
-        self.window.controller.assistant.assistants.save()  # save assistants
+        self.window.app.assistants.save()  # save assistants
 
     def update_uploaded(self):
         """Update uploaded files list"""
         assistant_id = self.window.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
-        assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+        assistant = self.window.app.assistants.get_by_id(assistant_id)
         items = assistant.files
         self.window.ui.attachments_uploaded.update_list('attachments_uploaded', items)
         self.update_tab_label()
@@ -335,7 +335,7 @@ class AssistantFiles:
             self.window.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
             return
 
-        assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+        assistant = self.window.app.assistants.get_by_id(assistant_id)
         items = assistant.files
         num_files = len(items)
         suffix = ''

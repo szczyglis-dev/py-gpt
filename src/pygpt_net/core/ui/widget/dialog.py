@@ -36,7 +36,7 @@ class DebugDialog(QDialog):
 
         :param event: close event
         """
-        self.window.debugger.active[self.id] = False
+        self.window.app.debug.active[self.id] = False
         self.window.controller.debug.update_menu()
 
 
@@ -58,7 +58,7 @@ class InfoDialog(QDialog):
 
         :param event: close event
         """
-        self.window.info.active[self.id] = False
+        self.window.app.info.active[self.id] = False
         self.window.controller.info.update_menu()
 
 
@@ -121,7 +121,7 @@ class EditorDialog(QDialog):
         :param event: close event
         """
         pass
-        # self.window.settings.active[self.id] = False
+        # self.window.app.settings.active[self.id] = False
         # self.window.controller.settings.close(self.id)
         # self.window.controller.settings.update()
 
@@ -250,7 +250,7 @@ class FileEditorDialog(QDialog):
 
         :param event: close event
         """
-        self.window.settings.active['editor'] = False
+        self.window.app.settings.active['editor'] = False
         self.window.controller.settings.close('editor')
         self.window.controller.settings.update()
 

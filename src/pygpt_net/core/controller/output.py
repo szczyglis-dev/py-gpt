@@ -36,7 +36,7 @@ class Output:
         """
         Append context to output
         """
-        for item in self.window.context.items:
+        for item in self.window.app.context.items:
             self.append_context_item(item)
 
     def append_context_item(self, item):

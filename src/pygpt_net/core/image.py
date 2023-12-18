@@ -68,7 +68,7 @@ class Image:
             temperature = 1.0
             try:
                 # call GPT for generate best image generate prompt
-                response = self.window.gpt.quick_call(prompt, system_cmd, False, max_tokens,
+                response = self.window.app.gpt.quick_call(prompt, system_cmd, False, max_tokens,
                                                       self.window.config.get('img_prompt_model'), temperature)
                 if response is not None and response != "":
                     prompt = response

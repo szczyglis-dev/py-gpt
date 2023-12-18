@@ -34,22 +34,22 @@ class Context:
     def setup(self):
         """Setup ctx"""
         # load ctx list
-        self.window.context.load_list()
+        self.window.app.context.load_list()
 
         # if no context yet then create one
-        if len(self.window.context.contexts) == 0:
+        if len(self.window.app.context.contexts) == 0:
             self.new()
         else:
             # get last ctx from config
             ctx = self.window.config.get('ctx')
-            if ctx is not None and ctx in self.window.context.contexts:
-                self.window.context.current_ctx = ctx
+            if ctx is not None and ctx in self.window.app.context.contexts:
+                self.window.app.context.current_ctx = ctx
             else:
                 # if no ctx then get first ctx
-                self.window.context.current_ctx = self.window.context.get_first_ctx()
+                self.window.app.context.current_ctx = self.window.app.context.get_first_ctx()
 
         # load selected ctx
-        self.load(self.window.context.current_ctx)
+        self.load(self.window.app.context.current_ctx)
 
     def update(self, reload=True):
         """
@@ -64,13 +64,13 @@ class Context:
 
         # update all
         self.window.controller.ui.update()
-        self.window.debugger.update(True)
+        self.window.app.debug.update(True)
 
         # append ctx and thread id (assistants API) to config
-        ctx = self.window.context.current_ctx
+        ctx = self.window.app.context.current_ctx
         if ctx is not None:
             self.window.config.set('ctx', ctx)
-            self.window.config.set('assistant_thread', self.window.context.current_thread)
+            self.window.config.set('assistant_thread', self.window.app.context.current_thread)
             self.window.config.save()
 
     def select(self, ctx):
@@ -79,7 +79,7 @@ class Context:
 
         :param ctx: context id
         """
-        self.window.context.current_ctx = ctx
+        self.window.app.context.current_ctx = ctx
         self.load(ctx)
 
     def select_by_idx(self, idx):
@@ -92,15 +92,15 @@ class Context:
         if self.context_change_locked():
             return
 
-        ctx = self.window.context.get_name_by_idx(idx)
+        ctx = self.window.app.context.get_name_by_idx(idx)
         self.select(ctx)
 
     def select_ctx_by_current(self):
         """Select ctx by current"""
-        ctx = self.window.context.current_ctx
-        items = self.window.context.get_list()
+        ctx = self.window.app.context.current_ctx
+        items = self.window.app.context.get_list()
         if ctx in items:
-            idx = self.window.context.get_idx_by_name(ctx)
+            idx = self.window.app.context.get_idx_by_name(ctx)
             current = self.window.models['ctx.contexts'].index(idx, 0)
             self.window.data['ctx.contexts'].unlocked = True  # tmp allow change if locked (enable)
             self.window.data['ctx.contexts'].setCurrentIndex(current)
@@ -116,7 +116,7 @@ class Context:
         if not force and self.context_change_locked():
             return
 
-        self.window.context.new()
+        self.window.app.context.new()
         self.window.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
         self.window.controller.output.clear()
@@ -125,7 +125,7 @@ class Context:
             self.window.controller.input.unlock_input()
 
         # update context label
-        mode = self.window.context.current_mode
+        mode = self.window.app.context.current_mode
         assistant_id = None
         if mode == 'assistant':
             assistant_id = self.window.config.get('assistant')
@@ -133,12 +133,12 @@ class Context:
 
     def reload(self):
         """Reload current ctx list"""
-        items = self.window.context.get_list()
+        items = self.window.app.context.get_list()
         self.window.ui.contexts.update_list('ctx.contexts', items)
 
     def refresh(self):
         """Refresh context"""
-        self.load(self.window.context.current_ctx)
+        self.load(self.window.app.context.current_ctx)
 
     def load(self, ctx):
         """
@@ -147,13 +147,13 @@ class Context:
         :param ctx: context name (id)
         """
         # select ctx
-        self.window.context.select(ctx)
+        self.window.app.context.select(ctx)
 
         # get current settings stored in ctx
-        thread = self.window.context.current_thread
-        mode = self.window.context.current_mode
-        assistant_id = self.window.context.current_assistant
-        preset = self.window.context.current_preset
+        thread = self.window.app.context.current_thread
+        mode = self.window.app.context.current_mode
+        assistant_id = self.window.app.context.current_assistant
+        preset = self.window.app.context.current_preset
 
         # restore thread from ctx
         self.window.config.set('assistant_thread', thread)
@@ -192,14 +192,14 @@ class Context:
 
         # update ctx mode only if current ctx is allowed for this mode
         if self.is_allowed_for_mode(mode, False):  # do not check assistant match
-            self.window.context.update()
+            self.window.app.context.update()
 
             # update current context label
             id = None
             if mode == 'assistant':
-                if self.window.context.current_assistant is not None:
+                if self.window.app.context.current_assistant is not None:
                     # get assistant id from ctx if defined in ctx
-                    id = self.window.context.current_assistant
+                    id = self.window.app.context.current_assistant
                 else:
                     # or get assistant id from current selected assistant
                     id = self.window.config.get('assistant')
@@ -211,7 +211,7 @@ class Context:
         """
         Update ctx label from current ctx
         """
-        mode = self.window.context.current_mode
+        mode = self.window.app.context.current_mode
 
         # if no ctx mode then use current mode
         if mode is None:
@@ -221,15 +221,15 @@ class Context:
 
         # append assistant name to ctx name label
         if mode == 'assistant':
-            id = self.window.context.current_assistant
-            assistant = self.window.controller.assistant.assistants.get_by_id(id)
+            id = self.window.app.context.current_assistant
+            assistant = self.window.app.assistants.get_by_id(id)
             if assistant is not None:
                 # get ctx assistant
                 label += ' (' + assistant.name + ')'
             else:
                 # get current assistant
                 id = self.window.config.get('assistant')
-                assistant = self.window.controller.assistant.assistants.get_by_id(id)
+                assistant = self.window.app.assistants.get_by_id(id)
                 if assistant is not None:
                     label += ' (' + assistant.name + ')'
 
@@ -247,7 +247,7 @@ class Context:
             return
         label = trans('mode.' + mode)
         if mode == 'assistant' and assistant_id is not None:
-            assistant = self.window.controller.assistant.assistants.get_by_id(assistant_id)
+            assistant = self.window.app.assistants.get_by_id(assistant_id)
             if assistant is not None:
                 label += ' (' + assistant.name + ')'
 
@@ -265,12 +265,12 @@ class Context:
             self.window.ui.dialogs.confirm('ctx_delete', idx, trans('ctx.delete.confirm'))
             return
 
-        ctx = self.window.context.get_name_by_idx(idx)
-        self.window.context.delete_ctx(ctx)
+        ctx = self.window.app.context.get_name_by_idx(idx)
+        self.window.app.context.delete_ctx(ctx)
 
         # reset current if current ctx deleted
-        if self.window.context.current_ctx == ctx:
-            self.window.context.current_ctx = None
+        if self.window.app.context.current_ctx == ctx:
+            self.window.app.context.current_ctx = None
             self.window.controller.output.clear()
         self.update()
 
@@ -285,7 +285,7 @@ class Context:
             return
 
         # delete all ctx
-        self.window.context.delete_all_ctx()
+        self.window.app.context.delete_all_ctx()
         self.update()
 
     def rename(self, idx):
@@ -294,8 +294,8 @@ class Context:
 
         :param idx: context index
         """
-        ctx = self.window.context.get_name_by_idx(idx)
-        ctx_data = self.window.context.get_context_by_name(ctx)
+        ctx = self.window.app.context.get_name_by_idx(idx)
+        ctx_data = self.window.app.context.get_context_by_name(ctx)
         self.window.dialog['rename'].id = 'ctx'
         self.window.dialog['rename'].input.setText(ctx_data['name'])
         self.window.dialog['rename'].current = ctx
@@ -309,11 +309,11 @@ class Context:
         :param ctx: context name (id)
         :param name: context name
         """
-        if ctx not in self.window.context.contexts:
+        if ctx not in self.window.app.context.contexts:
             return
-        self.window.context.contexts[ctx]['name'] = name
-        self.window.context.set_ctx_initialized()
-        self.window.context.dump_context(ctx)
+        self.window.app.context.contexts[ctx]['name'] = name
+        self.window.app.context.set_ctx_initialized()
+        self.window.app.context.dump_context(ctx)
         self.window.dialog['rename'].close()
         self.update()
 
@@ -327,7 +327,7 @@ class Context:
 
         :param ctx: context name (id)
         """
-        self.window.context.add(ctx)
+        self.window.app.context.add(ctx)
         self.update()
 
     def handle_allowed(self, mode):
@@ -361,7 +361,7 @@ class Context:
         if ctx is None or ctx == '':
             return True
 
-        ctx_data = self.window.context.get_context_by_name(ctx)
+        ctx_data = self.window.app.context.get_context_by_name(ctx)
 
         # always allow if no last mode
         if 'last_mode' not in ctx_data or ctx_data['last_mode'] is None:

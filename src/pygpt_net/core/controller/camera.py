@@ -141,8 +141,8 @@ class Camera:
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
             title = trans('vision.capture.name.prefix') + ' ' + name
             title = title.replace('cap-', '').replace('_', ' ')
-            self.window.controller.attachment.attachments.new(mode, title, path, False)
-            self.window.controller.attachment.attachments.save()
+            self.window.app.attachments.new(mode, title, path, False)
+            self.window.app.attachments.save()
             self.window.controller.attachment.update()
 
             # show last capture time in status

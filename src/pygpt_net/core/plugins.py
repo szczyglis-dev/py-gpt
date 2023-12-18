@@ -15,13 +15,13 @@ from .dispatcher import Event
 
 
 class Plugins:
-    def __init__(self, config):
+    def __init__(self, window):
         """
         Plugins handler
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
+        self.window = window
         self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output']
         self.plugins = {}
 
@@ -49,7 +49,7 @@ class Plugins:
             self.plugins[id].initial_options = copy.deepcopy(plugin.options)
 
         try:
-            plugins = self.config.get('plugins')
+            plugins = self.window.config.get('plugins')
             if id in plugins:
                 for key in plugins[id]:
                     if key in self.plugins[id].options:

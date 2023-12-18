@@ -15,7 +15,6 @@ from PySide6.QtWidgets import QApplication
 
 from ..context import ContextItem
 from ..dispatcher import Event
-from ..history import History
 from ..utils import trans
 
 
@@ -27,7 +26,6 @@ class Input:
         :param window: Window instance
         """
         self.window = window
-        self.history = History(self.window.config)
         self.locked = False
         self.force_stop = False
         self.generating = False
@@ -126,7 +124,7 @@ class Input:
         self.window.controller.assistant_thread.force_stop = True
         self.window.controller.plugins.dispatch(event)  # stop audio input
         self.force_stop = True
-        self.window.gpt.stop()
+        self.window.app.gpt.stop()
         self.unlock_input()
         self.generating = False
 
@@ -160,13 +158,13 @@ class Input:
 
         # store history (input)
         if self.window.config.get('store_history') and text is not None and text.strip() != "":
-            self.history.save(text)
+            self.window.app.history.save(text)
 
         # get mode
         mode = self.window.config.get('mode')
 
         # clear
-        self.window.gpt.file_ids = []  # file ids
+        self.window.app.gpt.file_ids = []  # file ids
 
         # upload new attachments if assistant mode
         if mode == 'assistant':
@@ -174,13 +172,13 @@ class Input:
             num_uploaded = 0
             try:
                 # it uploads only new attachments (not uploaded before to remote)
-                attachments = self.window.controller.attachment.attachments.get_all(mode)
+                attachments = self.window.app.attachments.get_all(mode)
                 c = self.window.controller.assistant_files.count_upload_attachments(attachments)
                 if c > 0:
                     is_upload = True
                     self.window.set_status(trans('status.uploading'))
                     num_uploaded = self.window.controller.assistant_files.upload_attachments(mode, attachments)
-                    self.window.gpt.file_ids = self.window.controller.attachment.attachments.get_ids(mode)
+                    self.window.app.gpt.file_ids = self.window.app.attachments.get_ids(mode)
                 # show uploaded status
                 if is_upload and num_uploaded > 0:
                     self.window.set_status(trans('status.uploaded'))
@@ -206,8 +204,8 @@ class Input:
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
             ctx.thread = self.window.config.get('assistant_thread')
-            self.window.gpt.assistant_id = self.window.config.get('assistant')
-            self.window.gpt.thread_id = ctx.thread
+            self.window.app.gpt.assistant_id = self.window.config.get('assistant')
+            self.window.app.gpt.thread_id = ctx.thread
 
         # log
         self.window.log("Context: input: {}".format(ctx.dump()))
@@ -219,13 +217,13 @@ class Input:
 
         # log
         self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))
-        self.window.log("System: {}".format(self.window.gpt.system_prompt))
+        self.window.log("System: {}".format(self.window.app.gpt.system_prompt))
 
         # apply cfg, plugins
-        self.window.gpt.user_name = ctx.input_name
-        self.window.gpt.ai_name = ctx.output_name
-        self.window.chain.user_name = ctx.input_name
-        self.window.chain.ai_name = ctx.output_name
+        self.window.app.gpt.user_name = ctx.input_name
+        self.window.app.gpt.ai_name = ctx.output_name
+        self.window.app.chain.user_name = ctx.input_name
+        self.window.app.chain.ai_name = ctx.output_name
 
         # prepare system prompt
         sys_prompt = self.window.config.get('prompt')
@@ -239,23 +237,23 @@ class Input:
 
         # if commands enabled: append commands prompt
         if self.window.config.get('cmd'):
-            sys_prompt += " " + self.window.command.get_prompt()
+            sys_prompt += " " + self.window.app.command.get_prompt()
 
             # dispatch event
             event = Event('cmd.syntax', {
                 'value': sys_prompt,
             })
             self.window.controller.plugins.dispatch(event)
-            sys_prompt = self.window.gpt.system_prompt = event.data['value']
+            sys_prompt = self.window.app.gpt.system_prompt = event.data['value']
 
         # set system prompt
-        self.window.gpt.system_prompt = sys_prompt
-        self.window.chain.system_prompt = sys_prompt
+        self.window.app.gpt.system_prompt = sys_prompt
+        self.window.app.chain.system_prompt = sys_prompt
 
         # log
-        self.window.log("System [after plugin: system.prompt]: {}".format(self.window.gpt.system_prompt))
-        self.window.log("User name: {}".format(self.window.gpt.user_name))
-        self.window.log("AI name: {}".format(self.window.gpt.ai_name))
+        self.window.log("System [after plugin: system.prompt]: {}".format(self.window.app.gpt.system_prompt))
+        self.window.log("User name: {}".format(self.window.app.gpt.user_name))
+        self.window.log("AI name: {}".format(self.window.app.gpt.ai_name))
         self.window.log("Appending input to chat window...")
 
         # append input to chat window
@@ -272,7 +270,7 @@ class Input:
         # call the model
         try:
             # set attachments (attachments are separated by mode)
-            self.window.gpt.attachments = self.window.controller.attachment.attachments.get_all(mode)
+            self.window.app.gpt.attachments = self.window.app.attachments.get_all(mode)
 
             # make API call
             try:
@@ -281,14 +279,14 @@ class Input:
 
                 if mode == "langchain":
                     self.window.log("Calling LangChain...")  # log
-                    ctx = self.window.chain.call(text, ctx, stream_mode)
+                    ctx = self.window.app.chain.call(text, ctx, stream_mode)
                 else:
                     self.window.log("Calling OpenAI API...")  # log
-                    ctx = self.window.gpt.call(text, ctx, stream_mode)
+                    ctx = self.window.app.gpt.call(text, ctx, stream_mode)
 
                     if mode == 'assistant':
                         # get run ID and save it in ctx
-                        self.window.context.append_run(ctx.run_id)
+                        self.window.app.context.append_run(ctx.run_id)
 
                         # handle assistant run
                         self.window.controller.assistant_thread.handle_run(ctx)
@@ -335,9 +333,9 @@ class Input:
         :param ctx: ContextItem
         """
         if ctx is not None:
-            if not self.window.context.is_ctx_initialized():
-                current = self.window.context.current_ctx
-                title = self.window.gpt.prepare_ctx_name(ctx)
+            if not self.window.app.context.is_ctx_initialized():
+                current = self.window.app.context.current_ctx
+                title = self.window.app.gpt.prepare_ctx_name(ctx)
                 if title is not None and title != "":
                     self.window.controller.context.update_name(current, title)
 
@@ -348,7 +346,7 @@ class Input:
         :param ctx: ContextItem
         """
         if ctx is not None and self.window.config.get('cmd'):
-            cmds = self.window.command.extract_cmds(ctx.output)
+            cmds = self.window.app.command.extract_cmds(ctx.output)
             self.window.log("Executing commands...")
             self.window.set_status("Executing commands...")
             self.window.controller.plugins.apply_cmds(ctx, cmds)
@@ -461,8 +459,8 @@ class Input:
         """
         # save context
         mode = self.window.config.get('mode')
-        self.window.context.post_update(mode)  # post update context, store last mode, etc.
-        self.window.context.store()
+        self.window.app.context.post_update(mode)  # post update context, store last mode, etc.
+        self.window.app.context.store()
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
@@ -470,7 +468,7 @@ class Input:
         if self.window.config.get('store_history') \
                 and ctx.output is not None \
                 and ctx.output.strip() != "":
-            self.history.save(ctx.output)
+            self.window.app.history.save(ctx.output)
 
     def user_send(self, text=None):
         """
@@ -548,12 +546,12 @@ class Input:
                     return
 
             # init api key if defined later
-            self.window.gpt.init()
-            self.window.images.init()
+            self.window.app.gpt.init()
+            self.window.app.images.init()
 
             # prepare context, create new ctx if there is no contexts yet (first run)
-            if len(self.window.context.contexts) == 0:
-                self.window.context.new()
+            if len(self.window.app.context.contexts) == 0:
+                self.window.app.context.new()
                 self.window.controller.context.update()
                 self.window.log("New context created...")  # log
             else:

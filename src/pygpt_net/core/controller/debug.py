@@ -62,13 +62,13 @@ class Debug:
 
         :param id: window to toggle
         """
-        if id in self.window.debugger.active and self.window.debugger.active[id]:
+        if id in self.window.app.debug.active and self.window.app.debug.active[id]:
             self.window.ui.dialogs.close('debug.' + id)
-            self.window.debugger.active[id] = False
+            self.window.app.debug.active[id] = False
         else:
             self.window.ui.dialogs.open('debug.' + id)
-            self.window.debugger.active[id] = True
-            self.window.debugger.update(True)
+            self.window.app.debug.active[id] = True
+            self.window.app.debug.update(True)
 
         self.window.log('debug.' + id + ' toggled')
 
@@ -77,8 +77,8 @@ class Debug:
 
     def update_menu(self):
         """Update debug menu"""
-        for id in self.window.debugger.ids:
-            if id in self.window.debugger.active and self.window.debugger.active[id]:
+        for id in self.window.app.debug.ids:
+            if id in self.window.app.debug.active and self.window.app.debug.active[id]:
                 self.window.menu['debug.' + id].setChecked(True)
             else:
                 self.window.menu['debug.' + id].setChecked(False)

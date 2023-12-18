@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
 
 import json
@@ -16,13 +16,13 @@ from .attachments import AttachmentItem
 
 
 class Assistants:
-    def __init__(self, config=None):
+    def __init__(self, window=None):
         """
         Assistants
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
+        self.window = window
         self.config_file = 'assistants.json'
         self.current_file = None
         self.items = {}
@@ -221,7 +221,7 @@ class Assistants:
 
     def load(self):
         """Load assistants from file"""
-        path = os.path.join(self.config.path, self.config_file)
+        path = os.path.join(self.window.config.path, self.config_file)
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -246,7 +246,7 @@ class Assistants:
         """
         try:
             # update assistants
-            path = os.path.join(self.config.path, self.config_file)
+            path = os.path.join(self.window.config.path, self.config_file)
             data = {}
             items = {}
 
@@ -255,7 +255,7 @@ class Assistants:
                 assistant = self.items[uuid]
                 items[uuid] = assistant.serialize()
 
-            data['__meta__'] = self.config.append_meta()
+            data['__meta__'] = self.window.config.append_meta()
             data['items'] = items
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:

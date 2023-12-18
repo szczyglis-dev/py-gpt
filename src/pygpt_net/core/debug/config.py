@@ -24,13 +24,13 @@ class ConfigDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.debugger.begin(self.id)
+        self.window.app.debug.begin(self.id)
 
         path = os.path.join(self.window.config.path, '', 'config.json')
-        self.window.debugger.add(self.id, 'Config File', str(path))
+        self.window.app.debug.add(self.id, 'Config File', str(path))
 
         # config data
         for key in self.window.config.all():
-            self.window.debugger.add(self.id, key, str(self.window.config.get(key)))
+            self.window.app.debug.add(self.id, key, str(self.window.config.get(key)))
 
-        self.window.debugger.end(self.id)
+        self.window.app.debug.end(self.id)

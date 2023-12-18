@@ -24,24 +24,24 @@ class ModelsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.debugger.begin(self.id)
+        self.window.app.debug.begin(self.id)
 
         path = os.path.join(self.window.config.path, '', 'models.json')
-        self.window.debugger.add(self.id, 'Models File', str(path))
+        self.window.app.debug.add(self.id, 'Models File', str(path))
 
         # models
         for key in self.window.config.models:
             if key == '__meta__':
-                self.window.debugger.add(self.id, '__meta__', str(self.window.config.models[key]))
+                self.window.app.debug.add(self.id, '__meta__', str(self.window.config.models[key]))
                 continue
             prefix = "[{}] ".format(key)
             model = self.window.config.models[key]
-            self.window.debugger.add(self.id, '----', '')
-            self.window.debugger.add(self.id, str(key), '')
-            self.window.debugger.add(self.id, prefix + 'Key', str(key))
-            self.window.debugger.add(self.id, prefix + 'id', str(model['id']))
-            self.window.debugger.add(self.id, prefix + 'name', str(model['name']))
-            self.window.debugger.add(self.id, prefix + 'mode', str(model['mode']))
-            self.window.debugger.add(self.id, prefix + 'tokens', str(model['tokens']))
+            self.window.app.debug.add(self.id, '----', '')
+            self.window.app.debug.add(self.id, str(key), '')
+            self.window.app.debug.add(self.id, prefix + 'Key', str(key))
+            self.window.app.debug.add(self.id, prefix + 'id', str(model['id']))
+            self.window.app.debug.add(self.id, prefix + 'name', str(model['name']))
+            self.window.app.debug.add(self.id, prefix + 'mode', str(model['mode']))
+            self.window.app.debug.add(self.id, prefix + 'tokens', str(model['tokens']))
 
-        self.window.debugger.end(self.id)
+        self.window.app.debug.end(self.id)

@@ -12,7 +12,6 @@
 from PySide6.QtGui import QAction
 
 from ..dispatcher import Event
-from ..plugins import Plugins as Handler
 from ..utils import trans
 
 
@@ -24,7 +23,6 @@ class Plugins:
         :param window: Window instance
         """
         self.window = window
-        self.handler = Handler(self.window.config)
         self.config_dialog = False
         self.config_initialized = False
         self.current_plugin = None
@@ -43,8 +41,8 @@ class Plugins:
         """
         Set up plugins ui
         """
-        for id in self.handler.plugins:
-            plugin = self.handler.plugins[id]
+        for id in self.window.app.plugins.plugins:
+            plugin = self.window.app.plugins.plugins[id]
             try:
                 plugin.setup_ui()  # setup UI
             except AttributeError:
@@ -62,10 +60,10 @@ class Plugins:
 
     def setup_menu(self):
         """Set up plugins menu"""
-        for id in self.handler.plugins:
+        for id in self.window.app.plugins.plugins:
             if id in self.window.menu['plugins']:
                 continue
-            default_name = self.handler.plugins[id].name
+            default_name = self.window.app.plugins.plugins[id].name
             trans_key = 'plugin.' + id
             name = trans(trans_key)
             if name == trans_key:
@@ -90,8 +88,8 @@ class Plugins:
         """
         Destroy plugins workers
         """
-        for id in self.handler.plugins:
-            plugin = self.handler.plugins[id]
+        for id in self.window.app.plugins.plugins:
+            plugin = self.window.app.plugins.plugins[id]
             try:
                 plugin.destroy()  # destroy plugin workers
             except AttributeError:
@@ -120,12 +118,12 @@ class Plugins:
 
         # select first plugin on list if no plugin selected yet
         if selected_plugin is None:
-            if len(self.handler.plugins) > 0:
-                selected_plugin = list(self.handler.plugins.keys())[0]
+            if len(self.window.app.plugins.plugins) > 0:
+                selected_plugin = list(self.window.app.plugins.plugins.keys())[0]
 
         # assign plugin options to config dialog fields
-        for id in self.handler.plugins:
-            plugin = self.handler.plugins[id]
+        for id in self.window.app.plugins.plugins:
+            plugin = self.window.app.plugins.plugins[id]
             options = plugin.setup()  # get plugin options
             self.current_plugin = id
 
@@ -151,8 +149,8 @@ class Plugins:
     def save_settings(self):
         """Save plugins settings"""
         selected_plugin = self.current_plugin
-        for id in self.handler.plugins:
-            plugin = self.handler.plugins[id]
+        for id in self.window.app.plugins.plugins:
+            plugin = self.window.app.plugins.plugins[id]
             options = plugin.setup()  # get plugin options
 
             # add plugin to config if not exists
@@ -187,12 +185,12 @@ class Plugins:
                     value = self.window.plugin_option[id][key].box.isChecked()
                 elif option['type'] == 'dict':
                     value = self.window.plugin_option[id][key].model.items
-                self.handler.plugins[id].options[key]['value'] = value
+                self.window.app.plugins.plugins[id].options[key]['value'] = value
                 self.window.config.data['plugins'][id][key] = value
 
             # update config if option not exists
             for key in list(self.window.config.data['plugins'].keys()):
-                if key not in self.handler.plugins:
+                if key not in self.window.app.plugins.plugins:
                     self.window.config.data['plugins'].pop(key)
 
         # save config
@@ -233,7 +231,7 @@ class Plugins:
             return
 
         # restore default options
-        self.handler.restore_options(self.current_plugin)
+        self.window.app.plugins.restore_options(self.current_plugin)
 
         # reload settings window
         self.init_settings()
@@ -245,7 +243,7 @@ class Plugins:
 
         :param plugin: Plugin
         """
-        self.handler.register(plugin)
+        self.window.app.plugins.register(plugin)
 
     def unregister(self, id):
         """
@@ -253,8 +251,8 @@ class Plugins:
 
         :param id: Plugin id
         """
-        if self.handler.is_registered(id):
-            self.handler.plugins.pop(id)
+        if self.window.app.plugins.is_registered(id):
+            self.window.app.plugins.plugins.pop(id)
             if id in self.enabled:
                 self.enabled.pop(id)
 
@@ -264,9 +262,9 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.handler.is_registered(id):
+        if self.window.app.plugins.is_registered(id):
             self.enabled[id] = True
-            self.handler.plugins[id].enabled = True
+            self.window.app.plugins.plugins[id].enabled = True
 
             # dispatch event
             event = Event('enable', {
@@ -291,9 +289,9 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.handler.is_registered(id):
+        if self.window.app.plugins.is_registered(id):
             self.enabled[id] = False
-            self.handler.plugins[id].enabled = False
+            self.window.app.plugins.plugins[id].enabled = False
 
             # dispatch event
             event = Event('disable', {
@@ -319,7 +317,7 @@ class Plugins:
         :return: true if enabled
         :rtype: bool
         """
-        if self.handler.is_registered(id):
+        if self.window.app.plugins.is_registered(id):
             if id in self.enabled:
                 return self.enabled[id]
         return False
@@ -330,7 +328,7 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.handler.is_registered(id):
+        if self.window.app.plugins.is_registered(id):
             if self.is_enabled(id):
                 self.disable(id)
             else:
@@ -345,8 +343,8 @@ class Plugins:
         :param idx: tab index
         """
         plugin_idx = 0
-        for id in self.handler.plugins:
-            if self.handler.plugins[id].options:
+        for id in self.window.app.plugins.plugins:
+            if self.window.app.plugins.plugins[id].options:
                 if plugin_idx == idx:
                     self.current_plugin = id
                     break
@@ -355,17 +353,17 @@ class Plugins:
         self.window.data['plugin.list'].setCurrentIndex(current)
 
     def update_info(self):
-        """Updates plugins info"""
+        """Update plugins info"""
         enabled_list = []
-        for id in self.handler.plugins:
+        for id in self.window.app.plugins.plugins:
             if self.is_enabled(id):
-                enabled_list.append(self.handler.plugins[id].name)
+                enabled_list.append(self.window.app.plugins.plugins[id].name)
         tooltip = " + ".join(enabled_list)
 
         count_str = ""
         c = 0
-        if len(self.handler.plugins) > 0:
-            for id in self.handler.plugins:
+        if len(self.window.app.plugins.plugins) > 0:
+            for id in self.window.app.plugins.plugins:
                 if self.is_enabled(id):
                     c += 1
 
@@ -498,7 +496,7 @@ class Plugins:
         :return: option value
         :rtype: any
         """
-        return self.handler.plugins[id].options[key]
+        return self.window.app.plugins.plugins[id].options[key]
 
     def is_type_enabled(self, type):
         """
@@ -508,8 +506,8 @@ class Plugins:
         :rtype: bool
         """
         enabled = False
-        for id in self.handler.plugins:
-            if type in self.handler.plugins[id].type and self.is_enabled(id):
+        for id in self.window.app.plugins.plugins:
+            if type in self.window.app.plugins.plugins[id].type and self.is_enabled(id):
                 enabled = True
                 break
         return enabled
@@ -518,7 +516,7 @@ class Plugins:
         """
         Handle plugin type
         """
-        for type in self.handler.allowed_types:
+        for type in self.window.app.plugins.allowed_types:
             if type == 'audio.input':
                 if self.is_type_enabled(type):
                     self.window.plugin_addon['audio.input'].setVisible(True)
@@ -546,7 +544,7 @@ class Plugins:
         if len(commands) == 0:
             return
 
-        # dispatch 'command' event
+        # dispatch 'cmd.execute' event
         event = Event('cmd.execute', {
             'commands': commands
         })
@@ -560,8 +558,8 @@ class Plugins:
         :param event: event to dispatch
         :param all: true if dispatch to all plugins (enabled or not)
         """
-        for id in self.handler.plugins:
+        for id in self.window.app.plugins.plugins:
             if self.is_enabled(id) or all:
                 if event.stop:
                     break
-                self.window.dispatcher.dispatch(id, event)
+                self.window.app.dispatcher.dispatch(id, event)
