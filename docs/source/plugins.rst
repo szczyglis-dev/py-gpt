@@ -525,13 +525,13 @@ Syntax: **event name** - triggered on, ``event data`` `(data type)`:
 
 - **cmd.execute** - when a command is executed, ``data['commands']`` `(list, commands and arguments)`
 
-- **cmd.syntax** - when appending syntax for commands, ``data['value']`` `(string, prompt with commands usage syntax)`
+- **cmd.syntax** - when appending syntax for commands, ``data['prompt'], data['syntax']`` `(string, list, prompt and list with commands usage syntax)`
 
-- **ctx.after** - after the context is sent, ``ctx``
+- **ctx.after** - after the context item is sent, ``ctx``
 
-- **ctx.before** - before the context is sent, ``ctx``
+- **ctx.before** - before the context item is sent, ``ctx``
 
-- **ctx.begin** - when context creation occurs, ``ctx``
+- **ctx.begin** - when context item create, ``ctx``
 
 - **ctx.end** - when context handling is finished, ``ctx``
 
