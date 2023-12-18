@@ -63,7 +63,7 @@ class Image:
         # dispatch event
         event = Event('ctx.before')
         event.ctx = ctx
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
 
         self.window.app.context.add(ctx)
         self.window.controller.output.append_input(ctx)
@@ -87,7 +87,7 @@ class Image:
             # dispatch event
             event = Event('ctx.after')
             event.ctx = ctx
-            self.window.controller.plugins.dispatch(event)
+            self.window.dispatch(event)
 
             self.window.controller.output.append_output(ctx)
             self.window.app.context.store()

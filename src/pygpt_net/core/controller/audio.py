@@ -27,7 +27,7 @@ class Audio:
     def toggle_input(self, state):
         """Toggle audio/voice"""
         event = Event('audio.input.toggle', {"value": state})
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
 
     def toggle_output(self):
         """Toggle audio/voice"""

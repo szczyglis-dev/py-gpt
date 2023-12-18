@@ -122,7 +122,7 @@ class Input:
         """
         event = Event('audio.input.toggle', {"value": False})
         self.window.controller.assistant_thread.force_stop = True
-        self.window.controller.plugins.dispatch(event)  # stop audio input
+        self.window.dispatch(event)  # stop audio input
         self.force_stop = True
         self.window.app.gpt.stop()
         self.unlock_input()
@@ -134,7 +134,7 @@ class Input:
 
         :param text: text to send
         """
-        self.window.statusChanged.emit(trans('status.sending'))
+        self.window.set_status(trans('status.sending'))
 
         # prepare names
         self.window.log("User name: {}".format(self.window.config.get('user_name')))  # log
@@ -144,13 +144,13 @@ class Input:
         event = Event('user.name', {
             'value': self.window.config.get('user_name'),
         })
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
         user_name = event.data['value']
 
         event = Event('ai.name', {
             'value': self.window.config.get('ai_name'),
         })
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
         ai_name = event.data['value']
 
         self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.get('user_name')))  # log
@@ -213,7 +213,7 @@ class Input:
         # dispatch event
         event = Event('ctx.before')
         event.ctx = ctx
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
 
         # log
         self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))
@@ -232,7 +232,7 @@ class Input:
         event = Event('system.prompt', {
             'value': sys_prompt,
         })
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
         sys_prompt = event.data['value']
 
         # if commands enabled: append commands prompt
@@ -243,7 +243,7 @@ class Input:
             event = Event('cmd.syntax', {
                 'value': sys_prompt,
             })
-            self.window.controller.plugins.dispatch(event)
+            self.window.dispatch(event)
             sys_prompt = self.window.app.gpt.system_prompt = event.data['value']
 
         # set system prompt
@@ -438,7 +438,7 @@ class Input:
             # dispatch event
             event = Event('ctx.after')
             event.ctx = ctx
-            self.window.controller.plugins.dispatch(event)
+            self.window.dispatch(event)
 
         # log
         if ctx is not None:
@@ -480,7 +480,7 @@ class Input:
         event = Event('user.send', {
             'value': text,
         })
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
         text = event.data['value']
         self.send(text)
 
@@ -524,7 +524,7 @@ class Input:
         event = Event('input.before', {
             'value': text,
         })
-        self.window.controller.plugins.dispatch(event)
+        self.window.dispatch(event)
         text = event.data['value']
 
         self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
@@ -582,7 +582,7 @@ class Input:
             # dispatch event
             event = Event('ctx.end')
             event.ctx = ctx
-            self.window.controller.plugins.dispatch(event)
+            self.window.dispatch(event)
 
             self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
