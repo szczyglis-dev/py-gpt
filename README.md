@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.35** | build: **2023.12.18** | Python: **3.9+**
+Release: **2.0.36** | build: **2023.12.18** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1182,6 +1182,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.36 (2023-12-18)
+
+- Improved plugins handling
+- Added Event Dispatcher and event-based system
 
 ## 2.0.35 (2023-12-18)
 

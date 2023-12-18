@@ -11,6 +11,7 @@
 
 from PySide6.QtGui import QAction
 
+from ..dispatcher import Event
 from ..plugins import Plugins as Handler
 from ..utils import trans
 
@@ -266,11 +267,18 @@ class Plugins:
         if self.handler.is_registered(id):
             self.enabled[id] = True
             self.handler.plugins[id].enabled = True
-            self.handler.plugins[id].on_enable()  # call plugin enable method
+
+            # dispatch event
+            event = Event('enable', {
+                'value': id,
+            })
+            self.window.controller.plugins.dispatch(event)
+
             self.window.config.data['plugins_enabled'][id] = True
             self.window.config.save()
 
             # update audio menu
+            # TODO: by type loop
             if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
                 self.window.controller.audio.update()
 
@@ -286,7 +294,13 @@ class Plugins:
         if self.handler.is_registered(id):
             self.enabled[id] = False
             self.handler.plugins[id].enabled = False
-            self.handler.plugins[id].on_disable()  # call plugin disable method
+
+            # dispatch event
+            event = Event('disable', {
+                'value': id,
+            })
+            self.window.controller.plugins.dispatch(event)
+
             self.window.config.data['plugins_enabled'][id] = False
             self.window.config.save()
 
@@ -482,6 +496,7 @@ class Plugins:
 
         :param id: option id
         :return: option value
+        :rtype: any
         """
         return self.handler.plugins[id].options[key]
 
@@ -516,24 +531,11 @@ class Plugins:
                 else:
                     self.window.plugin_addon['audio.output'].setVisible(False)
 
-    def apply(self, event, data):
-        """
-        Apply plugins
-
-        :param event: event
-        :param data: event data
-        """
-        for id in self.handler.plugins:
-            if self.is_enabled(id):
-                data = self.handler.apply(id, event, data)
-
-        return data
-
     def apply_cmds(self, ctx, cmds):
         """
         Apply commands
 
-        :param ctx: context
+        :param ctx: ContextItem
         :param cmds: commands
         """
         commands = []
@@ -542,24 +544,24 @@ class Plugins:
                 commands.append(cmd)
 
         if len(commands) == 0:
-            return ctx
+            return
 
-        for id in self.handler.plugins:
-            if self.is_enabled(id):
-                ctx = self.handler.apply_cmd(id, ctx, commands)
+        # dispatch 'command' event
+        event = Event('cmd.execute', {
+            'commands': commands
+        })
+        event.ctx = ctx
+        self.dispatch(event)
 
-        return ctx
-
-    def dispatch(self, event, data, all=False):
+    def dispatch(self, event, all=False):
         """
-        Apply plugins
+        Dispatch event to plugins
 
-        :param event: event
-        :param data: event data
-        :param all: dispatch to all plugins
+        :param event: event to dispatch
+        :param all: true if dispatch to all plugins (enabled or not)
         """
         for id in self.handler.plugins:
             if self.is_enabled(id) or all:
-                data = self.handler.dispatch(id, event, data)
-
-        return data
+                if event.stop:
+                    break
+                self.window.dispatcher.dispatch(id, event)

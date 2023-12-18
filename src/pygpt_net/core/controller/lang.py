@@ -106,7 +106,6 @@ class Lang:
         self.window.data['assistants.label'].setText(trans("toolbox.assistants.label"))
         self.window.data['assistants.new'].setText(trans('assistant.new'))
         self.window.data['assistants.import'].setText(trans('assistant.import'))
-        self.window.data['assistant.btn.current'].setText(trans("dialog.assistant.btn.current"))
         self.window.data['assistant.btn.save'].setText(trans("dialog.assistant.btn.save"))
         self.window.data['assistant.name.label'].setText(trans("assistant.name"))
         self.window.data['assistant.id.label'].setText(trans("assistant.id"))

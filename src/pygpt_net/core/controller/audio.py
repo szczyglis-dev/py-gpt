@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
+from ..dispatcher import Event
+
 
 class Audio:
     def __init__(self, window=None):
@@ -21,6 +23,11 @@ class Audio:
     def setup(self):
         """Setup controller"""
         self.update()
+
+    def toggle_input(self, state):
+        """Toggle audio/voice"""
+        event = Event('audio.input.toggle', {"value": state})
+        self.window.controller.plugins.dispatch(event)
 
     def toggle_output(self):
         """Toggle audio/voice"""

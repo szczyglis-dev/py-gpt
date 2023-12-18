@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -54,43 +54,29 @@ class Plugin(BasePlugin):
         """
         Attach window
 
-        :param window: Window
+        :param window: Window instance
         """
         self.window = window
 
-    def on_user_send(self, text):
+    def handle(self, event, *args, **kwargs):
         """
-        Event: On user send text
+        Handle dispatched event
 
-        :param text: Text
-        :return: Text
+        :param event: event object
         """
-        return text
+        name = event.name
+        data = event.data
 
-    def on_ctx_begin(self, ctx):
-        """
-        Event: On new context begin
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
-
-    def on_ctx_end(self, ctx):
-        """
-        Event: On context end
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
+        if name == 'system.prompt':
+            data['value'] = self.on_system_prompt(data['value'])
 
     def on_system_prompt(self, prompt):
         """
         Event: On prepare system prompt
 
-        :param prompt: Prompt
-        :return: Prompt
+        :param prompt: prompt
+        :return: updated prompt
+        :rtype: str
         """
         self.window.log("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
         if self.get_option_value("hour") or self.get_option_value("date"):
@@ -102,56 +88,3 @@ class Plugin(BasePlugin):
                 prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d'))
         self.window.log("Plugin: real_time:on_system_prompt [after]: {}".format(prompt))  # log
         return prompt
-
-    def on_ai_name(self, name):
-        """
-        Event: On set AI name
-
-        :param name: Name
-        :return: Name
-        """
-        return name
-
-    def on_user_name(self, name):
-        """
-        Event: On set username
-
-        :param name: Name
-        :return: Name
-        """
-        return name
-
-    def on_enable(self):
-        """Event: On plugin enable"""
-        pass
-
-    def on_disable(self):
-        """Event: On plugin disable"""
-        pass
-
-    def on_input_before(self, text):
-        """
-        Event: Before input
-
-        :param text: Text
-        :return: Text
-        """
-        return text
-
-    def on_ctx_before(self, ctx):
-        """
-        Event: Before ctx
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
-
-    def on_ctx_after(self, ctx):
-        """
-        Event: After ctx
-
-        :param ctx: ctx
-        :return: ctx
-        """
-        return ctx

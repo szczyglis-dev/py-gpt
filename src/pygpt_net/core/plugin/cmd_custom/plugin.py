@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
 import os.path
 import subprocess
@@ -55,6 +55,7 @@ class Plugin(BasePlugin):
         Return available config options
 
         :return: config options
+        :rtype: dict
         """
         return self.options
 
@@ -62,104 +63,30 @@ class Plugin(BasePlugin):
         """
         Attach window
 
-        :param window: Window
+        :param window: Window instance
         """
         self.window = window
 
-    def on_user_send(self, text):
+    def handle(self, event, *args, **kwargs):
         """
-        Event: On user send text
+        Handle dispatched event
 
-        :param text: Text
-        :return: Text
+        :param event: event object
         """
-        return text
+        name = event.name
+        data = event.data
+        ctx = event.ctx
 
-    def on_ctx_begin(self, ctx):
-        """
-        Event: On new context begin
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
-
-    def on_ctx_end(self, ctx):
-        """
-        Event: On context end
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
-
-    def on_system_prompt(self, prompt):
-        """
-        Event: On prepare system prompt
-
-        :param prompt: Prompt
-        :return: Prompt
-        """
-        return prompt
-
-    def on_ai_name(self, name):
-        """
-        Event: On set AI name
-
-        :param name: Name
-        :return: Name
-        """
-        return name
-
-    def on_user_name(self, name):
-        """
-        Event: On set username
-
-        :param name: Name
-        :return: Name
-        """
-        return name
-
-    def on_enable(self):
-        """Event: On plugin enable"""
-        pass
-
-    def on_disable(self):
-        """Event: On plugin disable"""
-        pass
-
-    def on_input_before(self, text):
-        """
-        Event: Before input
-
-        :param text: Text
-        :return: Text
-        """
-        return text
-
-    def on_ctx_before(self, ctx):
-        """
-        Event: Before ctx
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
-
-    def on_ctx_after(self, ctx):
-        """
-        Event: After ctx
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
+        if name == 'cmd.syntax':
+            data['value'] = self.cmd_syntax(data['value'])
+        elif name == 'cmd.execute':
+            self.cmd(ctx, data['commands'])
 
     def log(self, msg):
         """
         Log message to console
 
-        :param msg: Message to log
+        :param msg: message to log
         """
         self.window.log('[CMD] ' + str(msg))
         print('[CMD] ' + str(msg))
@@ -168,8 +95,9 @@ class Plugin(BasePlugin):
         """
         Event: On cmd syntax prepare
 
-        :param syntax: Syntax
-        :return: Syntax
+        :param syntax: syntax
+        :return: syntax
+        :rtype: str
         """
         for item in self.get_option_value("cmds"):
             syntax += '\n"{}": {}'.format(item["name"], item["instruction"])
@@ -183,8 +111,9 @@ class Plugin(BasePlugin):
         """
         Extract params from params string
 
-        :param text: Text
-        :return: Params list
+        :param text: text
+        :return: params list
+        :rtype: list
         """
         params = []
         if text is None or text == "":
@@ -201,9 +130,8 @@ class Plugin(BasePlugin):
         """
         Event: On command
 
-        :param ctx: Context
-        :param cmds: Commands requests
-        :return: Context
+        :param ctx: ContextItem
+        :param cmds: commands dict
         """
         msg = None
         for item in cmds:
@@ -263,5 +191,4 @@ class Plugin(BasePlugin):
 
         # update status
         if msg is not None:
-            self.window.statusChanged.emit(msg)
-        return ctx
+            self.window.set_status(msg)

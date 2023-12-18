@@ -20,6 +20,7 @@ from .config import Config
 from .ui.main import UI
 from .controller.main import Controller
 from .debugger import Debug
+from .dispatcher import Dispatcher
 from .settings import Settings
 from .info import Info
 from .gpt import Gpt
@@ -70,6 +71,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.config.init(True, True)
         self.context = Context(self.config)
 
+        # event dispatcher
+        self.dispatcher = Dispatcher(self)
+
         # app controller
         self.controller = Controller(self)
         self.debugger = Debug(self)
@@ -83,7 +87,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         # load settings options
         self.controller.settings.load()
 
-        # setup GPT, Langchain and DALL-E
+        # setup GPT, Langchain, DALL-E
         self.gpt = Gpt(self)
         self.chain = Chain(self)
         self.images = Image(self)
@@ -99,7 +103,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def log(self, data):
         """
-        Log data to console
+        Log data to logger and console
 
         :param data: data to log
         """
@@ -107,9 +111,9 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """
-        Update material theme and applies custom CSS
+        Update material theme and apply custom CSS
 
-        :param theme: Material theme name
+        :param theme: material theme name
         :param custom_css: custom CSS file
         """
         inverse = False

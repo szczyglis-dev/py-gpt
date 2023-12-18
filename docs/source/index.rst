@@ -10,7 +10,7 @@ PyGPT v2 - pygpt.net
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 2.0.35 (2023-12-18)
+| **Release:** 2.0.36 (2023-12-18)
 
 .. toctree::
    :maxdepth: 3

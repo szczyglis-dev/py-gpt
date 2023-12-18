@@ -14,6 +14,7 @@ from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
 from ..context import ContextItem
+from ..dispatcher import Event
 from ..history import History
 from ..utils import trans
 
@@ -121,8 +122,9 @@ class Input:
         """
         Stop input
         """
+        event = Event('audio.input.toggle', {"value": False})
         self.window.controller.assistant_thread.force_stop = True
-        self.window.controller.plugins.dispatch('audio.input.toggle', False)  # stop audio input
+        self.window.controller.plugins.dispatch(event)  # stop audio input
         self.force_stop = True
         self.window.gpt.stop()
         self.unlock_input()
@@ -140,8 +142,18 @@ class Input:
         self.window.log("User name: {}".format(self.window.config.get('user_name')))  # log
         self.window.log("AI name: {}".format(self.window.config.get('ai_name')))  # log
 
-        user_name = self.window.controller.plugins.apply('user.name', self.window.config.get('user_name'))
-        ai_name = self.window.controller.plugins.apply('ai.name', self.window.config.get('ai_name'))
+        # dispatch events
+        event = Event('user.name', {
+            'value': self.window.config.get('user_name'),
+        })
+        self.window.controller.plugins.dispatch(event)
+        user_name = event.data['value']
+
+        event = Event('ai.name', {
+            'value': self.window.config.get('ai_name'),
+        })
+        self.window.controller.plugins.dispatch(event)
+        ai_name = event.data['value']
 
         self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.get('user_name')))  # log
         self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.get('ai_name')))  # log
@@ -200,8 +212,10 @@ class Input:
         # log
         self.window.log("Context: input: {}".format(ctx.dump()))
 
-        # apply plugins
-        ctx = self.window.controller.plugins.apply('ctx.before', ctx)
+        # dispatch event
+        event = Event('ctx.before')
+        event.ctx = ctx
+        self.window.controller.plugins.dispatch(event)
 
         # log
         self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))
@@ -215,12 +229,24 @@ class Input:
 
         # prepare system prompt
         sys_prompt = self.window.config.get('prompt')
-        sys_prompt = self.window.controller.plugins.apply('system.prompt', sys_prompt)
+
+        # dispatch event
+        event = Event('system.prompt', {
+            'value': sys_prompt,
+        })
+        self.window.controller.plugins.dispatch(event)
+        sys_prompt = event.data['value']
 
         # if commands enabled: append commands prompt
         if self.window.config.get('cmd'):
             sys_prompt += " " + self.window.command.get_prompt()
-            sys_prompt = self.window.gpt.system_prompt = self.window.controller.plugins.apply('cmd.syntax', sys_prompt)
+
+            # dispatch event
+            event = Event('cmd.syntax', {
+                'value': sys_prompt,
+            })
+            self.window.controller.plugins.dispatch(event)
+            sys_prompt = self.window.gpt.system_prompt = event.data['value']
 
         # set system prompt
         self.window.gpt.system_prompt = sys_prompt
@@ -411,7 +437,10 @@ class Input:
 
         # apply plugins
         if ctx is not None:
-            ctx = self.window.controller.plugins.apply('ctx.after', ctx)
+            # dispatch event
+            event = Event('ctx.after')
+            event.ctx = ctx
+            self.window.controller.plugins.dispatch(event)
 
         # log
         if ctx is not None:
@@ -449,7 +478,12 @@ class Input:
 
         :param text: input text
         """
-        text = self.window.controller.plugins.apply('user.send', text)
+        # dispatch event
+        event = Event('user.send', {
+            'value': text,
+        })
+        self.window.controller.plugins.dispatch(event)
+        text = event.data['value']
         self.send(text)
 
     def send(self, text=None):
@@ -487,7 +521,13 @@ class Input:
             text = self.window.data['input'].toPlainText().strip()
 
         self.window.log("Input text: {}".format(text))  # log
-        text = self.window.controller.plugins.apply('input.before', text)
+
+        # dispatch event
+        event = Event('input.before', {
+            'value': text,
+        })
+        self.window.controller.plugins.dispatch(event)
+        text = event.data['value']
 
         self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
@@ -540,7 +580,12 @@ class Input:
 
         if ctx is not None:
             self.window.log("Context: output: {}".format(ctx.dump()))  # log
-            ctx = self.window.controller.plugins.apply('ctx.end', ctx)  # apply plugins
+
+            # dispatch event
+            event = Event('ctx.end')
+            event.ctx = ctx
+            self.window.controller.plugins.dispatch(event)
+
             self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 

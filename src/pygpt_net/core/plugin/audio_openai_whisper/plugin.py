@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
 import os
 import threading
@@ -142,27 +142,14 @@ class Plugin(BasePlugin):
         """
         Setup UI
         """
-        # show/hide widget
-        if self.enabled:
-            pass
-        else:
-            pass
-
-    def on_dispatch(self, event, data=None):
-        """
-        Receive events from dispatcher
-
-        :param event: Event name
-        :param data: Event data
-        """
-        if event == 'audio.input.toggle':
-            self.toggle_speech(data)
+        pass
 
     def get_stop_words(self):
         """
         Return stop words
 
         :return: stop words
+        :rtype: list
         """
         words_str = self.get_option_value('stop_words')
         words = []
@@ -177,6 +164,7 @@ class Plugin(BasePlugin):
         Return magic words
 
         :return: stop words
+        :rtype: list
         """
         words_str = self.get_option_value('magic_words')
         words = []
@@ -191,6 +179,7 @@ class Plugin(BasePlugin):
         Return prefix words
 
         :return: prefix words
+        :rtype: list
         """
         words_str = self.get_option_value('prefix_words')
         words = []
@@ -204,7 +193,7 @@ class Plugin(BasePlugin):
         """
         Toggle speech
 
-        :param state: State
+        :param state: state to set
         """
         self.speech_enabled = state
         self.window.plugin_addon['audio.input'].btn_toggle.setChecked(state)
@@ -221,65 +210,50 @@ class Plugin(BasePlugin):
         """
         Attach window
 
-        :param window: Window
+        :param window: Window instance
         """
         self.window = window
 
-    def on_user_send(self, text):
+    def handle(self, event, *args, **kwargs):
         """
-        Event: On user send text
+        Handle dispatched event
 
-        :param text: Text
-        :return: text
+        :param event: event object
         """
-        return text
+        name = event.name
+        data = event.data
+        ctx = event.ctx
+
+        if name == 'input.before':
+            self.on_input_before(data['value'])
+        elif name == 'ctx.begin':
+            self.on_ctx_begin(ctx)
+        elif name == 'ctx.end':
+            self.on_ctx_end(ctx)
+        elif name == 'enable':
+            if data['value'] == self.id:
+                self.on_enable()
+        elif name == 'disable':
+            if data['value'] == self.id:
+                self.on_disable()
+        elif name == 'audio.input.toggle':
+            self.toggle_speech(data['value'])
 
     def on_ctx_begin(self, ctx):
         """
         Event: On new context begin
 
-        :param ctx: Context
-        :return: ctx
+        :param ctx: ContextItem
         """
         self.waiting = True
-        return ctx
 
     def on_ctx_end(self, ctx):
         """
         Event: On context end
 
-        :param ctx: Context
-        :return: ctx
+        :param ctx: ContextItem
         """
         self.waiting = False
-        return ctx
-
-    def on_system_prompt(self, prompt):
-        """
-        Event: On prepare system prompt
-
-        :param prompt: Prompt
-        :return: prompt
-        """
-        return prompt
-
-    def on_ai_name(self, name):
-        """
-        Event: On set AI name
-
-        :param name: Name
-        :return: name
-        """
-        return name
-
-    def on_user_name(self, name):
-        """
-        Event: On set user name
-
-        :param name: Name
-        :return: name
-        """
-        return name
 
     def on_enable(self):
         """Event: On plugin enable"""
@@ -294,29 +268,9 @@ class Plugin(BasePlugin):
         """
         Event: Before input
 
-        :param text: Text
-        :return: text
+        :param text: text
         """
         self.input_text = text
-        return text
-
-    def on_ctx_before(self, ctx):
-        """
-        Event: Before ctx
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
-
-    def on_ctx_after(self, ctx):
-        """
-        Event: After ctx
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
 
     def destroy(self):
         """
@@ -347,7 +301,8 @@ class Plugin(BasePlugin):
         """
         Check if can listen
 
-        :return: True if can listen
+        :return: true if can listen
+        :rtype: bool
         """
         state = True
         if self.get_option_value('wait_response') and self.window.controller.input.generating:
@@ -360,7 +315,7 @@ class Plugin(BasePlugin):
         """
         Set status
 
-        :param status: Status
+        :param status: status
         """
         self.window.plugin_addon['audio.input'].set_status(status)
 
@@ -369,7 +324,7 @@ class Plugin(BasePlugin):
         """
         Insert text to input and send
 
-        :param text: Text
+        :param text: text
         """
         if text is None or text.strip() == '':
             return
@@ -384,8 +339,7 @@ class Plugin(BasePlugin):
                 check_text = text.lower().strip()
                 check_word = word.lower().strip()
                 if not check_text.startswith(check_word):
-                    # self.window.data['input'].setText(text)
-                    self.window.statusChanged.emit(trans('audio.speak.ignoring'))
+                    self.window.set_status(trans('audio.speak.ignoring'))
                     self.set_status(trans('audio.speak.ignoring'))
                     return
 
@@ -402,7 +356,7 @@ class Plugin(BasePlugin):
                 if check_text.startswith(check_word):
                     is_magic_word = True
                     self.set_status(trans('audio.magic_word.detected'))
-                    self.window.statusChanged.emit(trans('audio.magic_word.detected'))
+                    self.window.set_status(trans('audio.magic_word.detected'))
                     break
 
         # if magic word enabled
@@ -416,11 +370,11 @@ class Plugin(BasePlugin):
             # if not previously detected, then abort now
             if not magic_prev_detected:
                 if not is_magic_word:
-                    self.window.statusChanged.emit(trans('audio.magic_word.invalid'))
+                    self.window.set_status(trans('audio.magic_word.invalid'))
                 self.window.data['input'].setText(text)
                 return
             else:
-                self.window.statusChanged.emit("")
+                self.window.set_status("")
 
         # update input text
         self.window.data['input'].setText(text)
@@ -428,7 +382,7 @@ class Plugin(BasePlugin):
         # send text
         if self.get_option_value('auto_send'):
             self.set_status('...')
-            self.window.statusChanged.emit(trans('audio.speak.sending'))
+            self.window.set_status(trans('audio.speak.sending'))
             self.window.controller.input.send(text)
             self.set_status('')
 
@@ -453,7 +407,7 @@ class Plugin(BasePlugin):
         """
         self.thread_started = False
         self.listening = False
-        self.window.statusChanged.emit("")
+        self.window.set_status("")
         print("Whisper stopped listening...")
         self.toggle_speech(False)
 
@@ -550,7 +504,7 @@ class AudioInputThread(QObject):
                             # check RMS / energy
                             rms = audioop.rms(raw_data, 2)
                             if min_energy > 0:
-                                self.plugin.window.statusChanged.emit("{}: {} / {} (x{})".format(trans('audio.speak.energy'),
+                                self.plugin.window.set_status("{}: {} / {} (x{})".format(trans('audio.speak.energy'),
                                                                                            rms, int(ambient_noise_energy), min_energy))
                             if rms < ambient_noise_energy:
                                 continue

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
 
 import threading
@@ -74,106 +74,40 @@ class Plugin(BasePlugin):
         """
         Attach window
 
-        :param window: Window
+        :param window: Window instance
         """
         self.window = window
 
-    def on_user_send(self, text):
+    def handle(self, event, *args, **kwargs):
         """
-        Event: On user send text
+        Handle dispatched event
 
-        :param text: Text
-        :return: text
-        :rtype: str
+        :param event: event object
         """
-        return text
+        name = event.name
+        data = event.data
+        ctx = event.ctx
 
-    def on_ctx_begin(self, ctx):
-        """
-        Event: On new context begin
-
-        :param ctx: Context
-        :return: Context (modified)
-        :rtype: ContextItem
-        """
-        return ctx
-
-    def on_ctx_end(self, ctx):
-        """
-        Event: On context end
-
-        :param ctx: Context
-        :return: Context (modified)
-        :rtype: ContextItem
-        """
-        return ctx
-
-    def on_system_prompt(self, prompt):
-        """
-        Event: On prepare system prompt
-
-        :param prompt: Prompt
-        :return: prompt
-        :rtype: str
-        """
-        return prompt
-
-    def on_ai_name(self, name):
-        """
-        Event: On set AI name
-
-        :param name: Name
-        :return: name
-        :rtype: str
-        """
-        return name
-
-    def on_user_name(self, name):
-        """
-        Event: On set user name
-
-        :param name: Name
-        :return: name
-        :rtype: str
-        """
-        return name
-
-    def on_enable(self):
-        """Event: On plugin enable"""
-        pass
-
-    def on_disable(self):
-        """Event: On plugin disable"""
-        pass
+        if name == 'input.before':
+            self.on_input_before(data['value'])
+        elif name == 'ctx.after':
+            self.on_ctx_after(ctx)
+        elif name == 'audio.output.stop':
+            self.stop_audio()
 
     def on_input_before(self, text):
         """
         Event: Before input
 
         :param text: Text
-        :return: text
-        :rtype: str
         """
         self.input_text = text
-        return text
-
-    def on_ctx_before(self, ctx):
-        """
-        Event: Before ctx
-
-        :param ctx: Context
-        :return: Context (modified)
-        :rtype: ContextItem
-        """
-        return ctx
 
     def on_ctx_after(self, ctx):
         """
         Event: After ctx
 
-        :param ctx: Context
-        :return: Context (modified)
-        :rtype: ContextItem
+        :param ctx: ContextItem
         """
         # Check if api key is set
         api_key = self.get_option_value("azure_api_key")
@@ -181,10 +115,10 @@ class Plugin(BasePlugin):
 
         if api_key is None or api_key == "":
             self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugin settings.")
-            return ctx
+            return
         if region is None or region == "":
             self.window.ui.dialogs.alert("Azure Region is not set. Please set it in plugin settings.")
-            return ctx
+            return
 
         text = ctx.output
         try:
@@ -201,13 +135,11 @@ class Plugin(BasePlugin):
         except Exception as e:
             print(e)
 
-        return ctx
-
     def set_status(self, status):
         """
         Set status
 
-        :param status: Status
+        :param status: status
         """
         self.window.plugin_addon['audio.output'].set_status(status)
 
@@ -239,15 +171,6 @@ class Plugin(BasePlugin):
             self.thread.stop()
         if self.tts is not None:
             self.tts.stop()
-
-    def on_signal(self, signal):
-        """
-        Event: On signal
-
-        :param signal: Signal
-        """
-        if signal == 'audio.output.stop':
-            self.stop_audio()
 
 
 class TTS(QObject):

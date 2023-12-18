@@ -12,6 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QCheckBox, QHBoxLayout, QWidget, QPushButton
 
+from ...dispatcher import Event
 from ...utils import trans
 
 
@@ -27,7 +28,7 @@ class AudioInput(QWidget):
 
         self.btn_toggle = QCheckBox(trans('audio.speak.btn'))
         self.btn_toggle.stateChanged.connect(
-            lambda: self.window.controller.plugins.dispatch('audio.input.toggle', self.btn_toggle.isChecked()))
+            lambda: self.window.controller.audio.toggle_input(self.btn_toggle.isChecked()))
 
         # status
         self.status = QLabel("")

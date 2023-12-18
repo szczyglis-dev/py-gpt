@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -56,32 +56,39 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
+    def handle(self, event, *args, **kwargs):
+        """
+        Handle dispatched event
+
+        :param event: event object
+        """
+        name = event.name
+        data = event.data
+        ctx = event.ctx
+
+        if name == 'ctx.before':
+            self.on_ctx_before(ctx)
+        elif name == 'ctx.after':
+            self.on_ctx_after(ctx)
+        elif name == 'ctx.end':
+            self.on_ctx_end(ctx)
+        elif name == 'user.send':
+            self.on_user_send(data['value'])
+
     def on_user_send(self, text):
         """
         Event: On user send text
 
         :param text: text
-        :return: text
         """
         self.iteration = 0
         self.prev_output = None
-        return text
-
-    def on_ctx_begin(self, ctx):
-        """
-        Event: On new context begin
-
-        :param ctx: Context
-        :return: Context
-        """
-        return ctx
 
     def on_ctx_end(self, ctx):
         """
         Event: On context end
 
-        :param ctx: Context
-        :return: Context
+        :param ctx: ContextItem
         """
         iterations = int(self.get_option_value("iterations"))
         if iterations == 0 or self.iteration < iterations:
@@ -90,58 +97,12 @@ class Plugin(BasePlugin):
                 self.window.log(
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
                 self.window.controller.input.send(self.prev_output)
-        return ctx
-
-    def on_system_prompt(self, prompt):
-        """
-        Event: On prepare system prompt
-
-        :param prompt: Prompt
-        :return: Prompt
-        """
-        return prompt
-
-    def on_ai_name(self, name):
-        """
-        Event: On set AI name
-
-        :param name: Name
-        :return: Name
-        """
-        return name
-
-    def on_user_name(self, name):
-        """
-        Event: On set user name
-
-        :param name: Name
-        :return: Name
-        """
-        return name
-
-    def on_enable(self):
-        """Event: On plugin enable"""
-        pass
-
-    def on_disable(self):
-        """Event: On plugin disable"""
-        pass
-
-    def on_input_before(self, text):
-        """
-        Event: Before input
-
-        :param text: Text
-        :return: Text
-        """
-        return text
 
     def on_ctx_before(self, ctx):
         """
         Event: Before ctx
 
-        :param ctx: Context
-        :return: Context
+        :param ctx: ContextItem
         """
         if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
             self.window.log("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
@@ -150,18 +111,15 @@ class Plugin(BasePlugin):
             ctx.input_name = tmp_output_name
             ctx.output_name = tmp_input_name
             self.window.log("Plugin: self_loop:on_ctx_before [after]: {}".format(ctx.dump()))  # log
-        return ctx
 
     def on_ctx_after(self, ctx):
         """
         Event: After ctx
 
-        :param ctx: ctx
-        :return: ctx
+        :param ctx: ContextItem
         """
         self.prev_output = ctx.output
         if self.get_option_value("clear_output"):
             self.window.log("Plugin: self_loop:on_ctx_after [before]: {}".format(ctx.dump()))  # log
             ctx.output = ""
             self.window.log("Plugin: self_loop:on_ctx_after [after]: {}".format(ctx.dump()))  # log
-        return ctx

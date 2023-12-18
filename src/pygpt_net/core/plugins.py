@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 22:00:00                  #
 # ================================================== #
 
 import copy
+
+from .dispatcher import Event
 
 
 class Plugins:
@@ -22,79 +24,6 @@ class Plugins:
         self.config = config
         self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output']
         self.plugins = {}
-
-    def dispatch(self, id, event, data):
-        """
-        Dispatch custom plugin event
-
-        :param id: plugin id
-        :param event: event name
-        :param data: event data
-        :return: event data
-        """
-        if id in self.plugins:
-            try:
-                return self.plugins[id].on_dispatch(event, data)
-            except AttributeError:
-                pass
-        return data
-
-    def apply(self, id, event, data):
-        """
-        Apply plugin event
-
-        :param id: plugin id
-        :param event: event name
-        :param data: event data
-        :return: event data
-        """
-        if id in self.plugins:
-            try:
-                if event == 'input.before':
-                    return self.plugins[id].on_input_before(data)
-                elif event == 'ctx.before':
-                    return self.plugins[id].on_ctx_before(data)
-                elif event == 'ctx.after':
-                    return self.plugins[id].on_ctx_after(data)
-                elif event == 'ctx.begin':
-                    return self.plugins[id].on_ctx_begin(data)
-                elif event == 'ctx.end':
-                    return self.plugins[id].on_ctx_end(data)
-                elif event == 'system.prompt':
-                    return self.plugins[id].on_system_prompt(data)
-                elif event == 'ai.name':
-                    return self.plugins[id].on_ai_name(data)
-                elif event == 'user.name':
-                    return self.plugins[id].on_user_name(data)
-                elif event == 'user.send':
-                    return self.plugins[id].on_user_send(data)
-                elif event == 'enable':
-                    return self.plugins[id].on_enable()
-                elif event == 'disable':
-                    return self.plugins[id].on_disable()
-                elif event == 'cmd.syntax':
-                    return self.plugins[id].cmd_syntax(data)
-            except AttributeError:
-                pass
-
-        return data
-
-    def apply_cmd(self, id, ctx, cmds):
-        """
-        Apply commands
-
-        :param id: plugin id
-        :param ctx: event data
-        :param cmds: commands
-        :return: event data
-        """
-        if id in self.plugins:
-            try:
-                return self.plugins[id].cmd(ctx, cmds)
-            except AttributeError:
-                pass
-
-        return ctx
 
     def is_registered(self, id):
         """

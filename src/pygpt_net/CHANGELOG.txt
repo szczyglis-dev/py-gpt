@@ -1,3 +1,8 @@
+2.0.36 (2023-12-18)
+
+- Improved plugins handling
+- Added Event Dispatcher and event-based system
+
 2.0.35 (2023-12-18)
 
 - Fixed lists focus lost and selection disappearing
