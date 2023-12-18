@@ -80,7 +80,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         # handle config migration if needed
         self.controller.launcher.migrate_version()
 
-        # load settings options from json
+        # load settings options
         self.controller.settings.load()
 
         # setup GPT, Langchain and DALL-E
