@@ -39,6 +39,7 @@ class Plugin(BasePlugin):
         self.is_first_adjust = True
         self.empty_phrases = ['Thank you for watching']  # phrases to ignore (fix for empty phrases)
         self.order = 1
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):

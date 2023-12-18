@@ -22,6 +22,7 @@ class Plugin(BasePlugin):
         self.prev_output = None
         self.window = None
         self.order = 9998
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):

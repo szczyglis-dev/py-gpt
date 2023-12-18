@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -50,6 +50,9 @@ class Plugins:
         # show/hide UI elements
         self.handle_enabled_types()
 
+        # tmp dump locales
+        # self.window.app.plugins.dump_plugin_locales()
+
     def setup_settings(self):
         """Set up plugins settings"""
         idx = None
@@ -61,6 +64,7 @@ class Plugins:
     def setup_menu(self):
         """Set up plugins menu"""
         for id in self.window.app.plugins.plugins:
+            plugin = self.window.app.plugins.plugins[id]
             if id in self.window.ui.menu['plugins']:
                 continue
             default_name = self.window.app.plugins.plugins[id].name
@@ -68,6 +72,9 @@ class Plugins:
             name = trans(trans_key)
             if name == trans_key:
                 name = default_name
+            if plugin.use_locale:
+                domain = 'plugin.{}'.format(id)
+                name = trans('plugin.name', False, domain)
             self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
             self.window.ui.menu['plugins'][id].triggered.connect(
                 lambda checked=None, id=id: self.window.controller.plugins.toggle(id))
@@ -351,6 +358,21 @@ class Plugins:
                 plugin_idx += 1
         current = self.window.ui.models['plugin.list'].index(idx, 0)
         self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
+
+    def get_plugin_tab_idx(self, plugin_id):
+        """
+        Get plugin tab index
+
+        :param plugin_id: plugin id
+        """
+        plugin_idx = None
+        i = 0
+        for id in self.window.app.plugins.plugins:
+            if id == plugin_id:
+                plugin_idx = i
+                break
+            i += 1
+        return plugin_idx
 
     def update_info(self):
         """Update plugins info"""

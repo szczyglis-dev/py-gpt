@@ -17,7 +17,19 @@ locale = None
 init_file_meta = None
 
 
-def trans(key, reload=False):
+def _(key, reload=False, domain=None):
+    """
+    Short alias for trans()
+
+    :param key: translation key
+    :param reload: force reload translations
+    :return: translated string
+    :rtype: str
+    """
+    return trans(key, reload, domain)
+
+
+def trans(key, reload=False, domain=None):
     """
     Return translation
 
@@ -28,10 +40,10 @@ def trans(key, reload=False):
     """
     global locale
     if locale is None:
-        locale = Locale()
+        locale = Locale(domain)
     if reload:
-        locale.reload()
-    return locale.get(key)
+        locale.reload(domain)
+    return locale.get(key, domain)
 
 
 def get_init_value(key="__version__"):
@@ -61,6 +73,11 @@ def get_init_value(key="__version__"):
 
 
 def get_app_meta():
+    """
+    Return app meta data
+    :return: app meta data
+    :rtype: dict
+    """
     return {
         'github': get_init_value("__github__"),
         'website': get_init_value("__website__"),

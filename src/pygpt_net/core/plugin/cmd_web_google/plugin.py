@@ -24,6 +24,7 @@ class Plugin(BasePlugin):
         self.window = None
         self.allowed_cmds = ["web_search", "web_url_open"]
         self.order = 100
+        self.use_locale = True
         self.init_options()
         self.websearch = WebSearch(self)
 

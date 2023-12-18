@@ -21,6 +21,7 @@ class Plugin(BasePlugin):
         self.description = "Appends current time and date to every system prompt."
         self.window = None
         self.order = 2
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):

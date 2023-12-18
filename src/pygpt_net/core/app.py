@@ -74,7 +74,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui.setup()
 
         # set window title
-        self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.format(self.meta['version'], self.meta['build']))
+        self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
+                            format(self.meta['version'], self.meta['build']))
 
         # setup signals
         self.statusChanged.connect(self.update_status)
@@ -111,8 +112,12 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # append custom CSS
         if custom_css is not None:
-            path = os.path.join(self.config.get_root_path(), 'data', 'css', custom_css)
+            # check for override in user directory
+            path = os.path.join(self.config.get_user_path(), 'css', custom_css)
             stylesheet = self.styleSheet()
+            if not os.path.exists(path):
+                # check in app directory
+                path = os.path.join(self.config.get_root_path(), 'data', 'css', custom_css)
             if os.path.exists(path):
                 with open(path) as file:
                     self.setStyleSheet(stylesheet + file.read().format(**os.environ))

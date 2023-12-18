@@ -46,6 +46,15 @@ class Config:
         else:
             return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
+    def get_user_path(self):
+        """
+        Return user path
+
+        :return: user path
+        :rtype: str
+        """
+        return self.path
+
     def get_available_langs(self):
         """
         Return list with available languages
@@ -59,7 +68,7 @@ class Config:
             return langs
 
         for file in os.listdir(path):
-            if file.endswith(".ini"):
+            if file.startswith('locale.') and file.endswith(".ini"):
                 langs.append(file.replace('locale.', '').replace('.ini', ''))
 
         # make English first

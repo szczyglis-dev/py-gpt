@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.18 23:00:00                  #
 # ================================================== #
+from ..utils import trans
+
 
 class BasePlugin:
     def __init__(self):
@@ -20,6 +22,7 @@ class BasePlugin:
         self.initial_options = {}
         self.window = None
         self.enabled = False
+        self.use_locale = False
         self.order = 0
 
     def setup(self):
@@ -124,7 +127,7 @@ class BasePlugin:
 
     def attach(self, window):
         """
-        Attach window
+        Attach window to plugin
 
         :param window: Window instance
         """
@@ -139,3 +142,15 @@ class BasePlugin:
         :param kwargs: keyword arguments
         """
         return
+
+    def trans(self, text=None):
+        """
+        Translate text using plugin domain
+        :param text: text to translate
+        :return: translated text
+        :rtype: str
+        """
+        if text is None:
+            return ""
+        domain = 'plugin.{}'.format(self.id)
+        return trans(text, False, domain)

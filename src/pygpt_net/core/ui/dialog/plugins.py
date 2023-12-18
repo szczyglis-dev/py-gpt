@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 23:00:00                  #
 # ================================================== #
-import webbrowser
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
@@ -35,9 +34,12 @@ class Plugins:
 
         dialog_id = "plugin_settings"
 
-        self.window.ui.nodes['plugin.settings.btn.defaults.user'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.user"))
-        self.window.ui.nodes['plugin.settings.btn.defaults.app'] = QPushButton(trans("dialog.plugin.settings.btn.defaults.app"))
-        self.window.ui.nodes['plugin.settings.btn.save'] = QPushButton(trans("dialog.plugin.settings.btn.save"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.user'] = \
+            QPushButton(trans("dialog.plugin.settings.btn.defaults.user"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.app'] = \
+            QPushButton(trans("dialog.plugin.settings.btn.defaults.app"))
+        self.window.ui.nodes['plugin.settings.btn.save'] = \
+            QPushButton(trans("dialog.plugin.settings.btn.save"))
 
         self.window.ui.nodes['plugin.settings.btn.defaults.user'].clicked.connect(
             lambda: self.window.controller.plugins.load_defaults_user())
@@ -154,7 +156,8 @@ class Plugins:
                     continue
 
                 # add option to scroll
-                scroll_content.addLayout(self.add_option(key, options_widgets[key], self.window.ui.plugin_option[id][key],
+                scroll_content.addLayout(self.add_option(plugin, key, options_widgets[key],
+                                                         self.window.ui.plugin_option[id][key],
                                                          options_widgets[key]['type']))
 
             # append advanced options at the end
@@ -168,7 +171,7 @@ class Plugins:
                         continue
 
                     # build option
-                    option = self.add_option(key, options_widgets[key], self.window.ui.plugin_option[id][key],
+                    option = self.add_option(plugin, key, options_widgets[key], self.window.ui.plugin_option[id][key],
                                              options_widgets[key]['type'])
 
                     # add option to group
@@ -184,15 +187,23 @@ class Plugins:
             scroll_widget.setLayout(scroll_content)
             scroll.setWidget(scroll_widget)
 
-            desc_label = QLabel(plugin.description)
-            desc_label.setWordWrap(True)
-            desc_label.setAlignment(Qt.AlignCenter)
-            desc_label.setStyleSheet("font-weight: bold;")
+            # set description, translate if localization is enabled
+            name_txt = plugin.name
+            desc_key = 'plugin.settings.' + id + '.desc'
+            desc_txt = plugin.description
+            if plugin.use_locale:
+                domain = 'plugin.' + plugin.id
+                name_txt = trans('plugin.name', False, domain)
+                desc_txt = trans('plugin.description', False, domain)
+            self.window.ui.nodes[desc_key] = QLabel(desc_txt)
+            self.window.ui.nodes[desc_key].setWordWrap(True)
+            self.window.ui.nodes[desc_key].setAlignment(Qt.AlignCenter)
+            self.window.ui.nodes[desc_key].setStyleSheet("font-weight: bold;")
 
             line = self.add_line()
 
             area = QVBoxLayout()
-            area.addWidget(desc_label)
+            area.addWidget(self.window.ui.nodes[desc_key])
             area.addWidget(line)
             area.addWidget(scroll)
 
@@ -200,10 +211,11 @@ class Plugins:
             area_widget.setLayout(area)
 
             # append to tab
-            self.window.ui.tabs['plugin.settings'].addTab(area_widget, plugin.name)
+            self.window.ui.tabs['plugin.settings'].addTab(area_widget, name_txt)
 
         self.window.ui.tabs['plugin.settings'].currentChanged.connect(
-            lambda: self.window.controller.plugins.set_plugin_by_tab(self.window.ui.tabs['plugin.settings'].currentIndex()))
+            lambda: self.window.controller.plugins.set_plugin_by_tab(
+                self.window.ui.tabs['plugin.settings'].currentIndex()))
 
         # plugins list
         id = 'plugin.list'
@@ -238,7 +250,7 @@ class Plugins:
                 self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
                 self.window.controller.plugins.set_plugin_by_tab(idx)
             except:
-                print('Cannot restore plugin settings tab: {}'.format(idx))
+                print('Can\'t restore plugin settings tab: {}'.format(idx))
 
     def add_line(self):
         """
@@ -265,19 +277,38 @@ class Plugins:
         widget.setLayout(layout)
         return widget
 
-    def add_option(self, key, option, widget, type):
+    def add_option(self, plugin, key, option, widget, type):
         """
         Append option row
 
+        :param plugin: plugin object
         :param key: option key
         :param option: option
         :param widget: widget
         :param type: option type
         :return: QVBoxLayout
         """
-        widget.setToolTip(option['tooltip'])
-        label_key = key + '.label'
-        self.window.ui.nodes[label_key] = QLabel(trans(option['label']))
+        label_key = 'plugin.' + plugin.id + '.' + key + '.label'
+        desc_key = 'plugin.' + plugin.id + '.' + key + '.desc'
+
+        # get option label and description
+        txt_title = option['label']
+        txt_desc = option['description']
+        txt_tooltip = option['tooltip']
+
+        # translate if localization is enabled
+        if plugin.use_locale:
+            domain = 'plugin.' + plugin.id
+            txt_title = trans(key + '.label', False, domain)
+            txt_desc = trans(key + '.description', False, domain)
+            txt_tooltip = trans(key + '.tooltip', False, domain)
+
+            # if empty tooltip then use description
+            if txt_tooltip == key + '.tooltip':
+                txt_tooltip = txt_desc
+
+        widget.setToolTip(txt_tooltip)
+        self.window.ui.nodes[label_key] = QLabel(txt_title)
         self.window.ui.nodes[label_key].setStyleSheet("font-weight: bold;")
 
         # 2 cols layout
@@ -290,28 +321,28 @@ class Plugins:
             cols_widget.setLayout(cols)
             cols_widget.setMaximumHeight(90)
 
-            desc_label = QLabel(option['description'])
-            desc_label.setWordWrap(True)
-            desc_label.setMaximumHeight(30)
-            desc_label.setStyleSheet("font-size: 10px;")
-            desc_label.setToolTip(option['tooltip'])
+            self.window.ui.nodes[desc_key] = QLabel(txt_desc)
+            self.window.ui.nodes[desc_key].setWordWrap(True)
+            self.window.ui.nodes[desc_key].setMaximumHeight(30)
+            self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
+            self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
             layout = QVBoxLayout()
             layout.addWidget(cols_widget)
-            layout.addWidget(desc_label)
+            layout.addWidget(self.window.ui.nodes[desc_key])
         else:
             # textarea and dict
             layout = QVBoxLayout()
             layout.addWidget(self.window.ui.nodes[label_key])
             layout.addWidget(widget)
 
-            desc_label = QLabel(option['description'])
-            desc_label.setWordWrap(True)
-            desc_label.setMaximumHeight(30)
-            desc_label.setStyleSheet("font-size: 10px;")
-            desc_label.setToolTip(option['tooltip'])
+            self.window.ui.nodes[desc_key] = QLabel(txt_desc)
+            self.window.ui.nodes[desc_key].setWordWrap(True)
+            self.window.ui.nodes[desc_key].setMaximumHeight(30)
+            self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
+            self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
-            layout.addWidget(desc_label)
+            layout.addWidget(self.window.ui.nodes[desc_key])
 
         # append URLs at the beginning
         if option['urls'] is not None and len(option['urls']) > 0:
@@ -354,5 +385,9 @@ class Plugins:
         for n in data:
             self.window.ui.models[id].insertRow(i)
             name = data[n].name
+            # translate if localization is enabled
+            if data[n].use_locale:
+                domain = 'plugin.' + data[n].id
+                name = trans('plugin.name', False, domain)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1

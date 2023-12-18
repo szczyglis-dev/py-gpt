@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.18 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -52,7 +52,7 @@ class Lang:
         """
         self.window.config.set('lang', id)
         self.window.config.save()
-        trans('', True)
+        trans('', True)  # reload translations, TODO: for with plugins IDs
 
         self.update()
 
@@ -265,8 +265,83 @@ class Lang:
             name = self.window.controller.theme.trans_theme(theme)
             self.window.ui.menu['theme'][theme].setText(name)
 
+        # update plugins settings
+        try:
+            self.toggle_plugins()
+        except Exception as e:
+            print("Error updating plugin locale", e)
+
         self.window.controller.ui.update()  # update all (toolbox, etc.)
-        self.window.set_status('')
+        self.window.set_status('')  # clear status
+
+    def toggle_plugins(self):
+        """
+        Toggle plugins locale
+        """
+        # reload all domains (plugin locale files)
+        ids = self.window.app.plugins.plugins.keys()
+        for id in ids:
+            plugin = self.window.app.plugins.plugins[id]
+            if not plugin.use_locale:
+                continue
+            domain = 'plugin.{}'.format(id)
+            trans('', True, domain)
+
+        # apply to settings
+        for id in ids:
+            plugin = self.window.app.plugins.plugins[id]
+            if not plugin.use_locale:
+                continue
+            domain = 'plugin.{}'.format(id)
+
+            # set name, translate if localization is enabled
+            name_txt = trans('plugin.name', False, domain)
+
+            # set description, translate if localization is enabled
+            desc_key = 'plugin.settings.' + id + '.desc'
+            desc_txt = trans('plugin.description', False, domain)
+            if desc_key in self.window.ui.nodes:
+                self.window.ui.nodes[desc_key].setText(desc_txt)
+
+            # update tab name
+            tab_idx = self.window.controller.plugins.get_plugin_tab_idx(id)
+            # update tab name
+            if tab_idx is not None:
+                self.window.ui.tabs['plugin.settings'].setTabText(tab_idx, name_txt)
+
+            if id in self.window.ui.menu['plugins']:
+                self.window.ui.menu['plugins'][id].setText(name_txt)
+
+            option_ids = plugin.setup().keys()
+            for option_id in option_ids:
+                # prepare element nodes keys
+                label_key = 'plugin.' + id + '.' + option_id + '.label'
+                desc_key = 'plugin.' + id + '.' + option_id + '.desc'
+
+                # update options label, description and tooltip
+                label_str = trans(option_id + '.label', False, domain)
+                desc_str = trans(option_id + '.description', False, domain)
+                tooltip_str = trans(option_id + '.tooltip', False, domain)
+
+                if tooltip_str == option_id + '.tooltip':
+                    tooltip_str = desc_str
+                if label_key in self.window.ui.nodes:
+                    self.window.ui.nodes[label_key].setText(label_str)
+                if desc_key in self.window.ui.nodes:
+                    self.window.ui.nodes[desc_key].setText(desc_str)
+                    self.window.ui.nodes[desc_key].setToolTip(tooltip_str)
+
+                # update widget tooltip
+                if id in self.window.ui.plugin_option and option_id in self.window.ui.plugin_option[id]:
+                    try:
+                        self.window.ui.plugin_option[id][option_id].setText(label_str)
+                    except Exception as e:
+                        pass
+
+        # update settings dialog list
+        idx = self.window.ui.tabs['plugin.settings'].currentIndex()
+        self.window.plugin_settings.update_list('plugin.list', self.window.app.plugins.plugins)
+        self.window.controller.plugins.set_plugin_by_tab(idx)
 
     def update_settings_dialogs(self):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.18 20:00:00                  #
 # ================================================== #
 
 import json
@@ -18,7 +18,7 @@ from .config import Config
 
 
 class Locale:
-    def __init__(self):
+    def __init__(self, domain=None):
         """Locale handler"""
         self.config = Config()
         self.config.init(False)
@@ -26,18 +26,18 @@ class Locale:
         if self.config.has('lang'):
             self.lang = self.config.get('lang')
         self.data = {}
-        self.load(self.lang)
+        self.load(self.lang, domain)
 
-    def reload(self):
+    def reload(self, domain=None):
         """
-        Reload translations
+        Reload translations for domain
         """
         self.config.load_config()
         if self.config.has('lang'):
             self.lang = self.config.get('lang')
-        self.load(self.lang)
+        self.load(self.lang, domain)
 
-    def load(self, lang):
+    def load(self, lang, domain=None):
         """
         Load translation ini file
 
@@ -45,27 +45,43 @@ class Locale:
         """
         if type(lang) is not str:
             lang = 'en'
-        path = os.path.join(self.config.get_root_path(), 'data', 'locale', 'locale.' + lang + '.ini')
+        locale_id = 'locale'
+        if domain is not None:
+            locale_id = domain
+
+        # at first check if file exists in user data dir (override)
+        path = os.path.join(self.config.get_user_path(), 'locale', locale_id + '.' + lang + '.ini')
+        if not os.path.exists(path):
+            # if not check if file exists in app data dir
+            path = os.path.join(self.config.get_root_path(), 'data', 'locale', locale_id + '.' + lang + '.ini')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
+        # TODO: add home dir override as option
         try:
             ini = configparser.ConfigParser()
             data = io.open(path, mode="r", encoding="utf-8")
             ini.read_string(data.read())
-            self.data = dict(ini.items('LOCALE'))
+            self.data[locale_id] = dict(ini.items('LOCALE'))
         except Exception as e:
             print(e)
 
-    def get(self, key):
+    def get(self, key, domain=None):
         """
-        Return translation for key
+        Return translation for key and domain
 
         :param key: translation key
         :return: translated string
         :rtype: str
         """
-        if key in self.data:
-            return self.data[key].replace('\\n', "\n")
+        locale_id = 'locale'
+        if domain is not None:
+            locale_id = domain
+
+        if locale_id not in self.data:
+            self.load(self.lang, domain)
+
+        if locale_id in self.data and key in self.data[locale_id]:
+            return self.data[locale_id][key].replace('\\n', "\n")
         else:
             return key

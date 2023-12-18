@@ -23,6 +23,7 @@ class Plugin(BasePlugin):
         self.description = "Provides availability to create and execute custom commands"
         self.window = None
         self.order = 100
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):

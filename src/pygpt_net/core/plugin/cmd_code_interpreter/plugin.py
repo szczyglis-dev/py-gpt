@@ -27,6 +27,7 @@ class Plugin(BasePlugin):
             "code_execute_file",
             "sys_exec"
         ]
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):

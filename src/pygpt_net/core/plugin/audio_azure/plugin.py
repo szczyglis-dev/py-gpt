@@ -34,6 +34,7 @@ class Plugin(BasePlugin):
         self.playback = None
         self.audio = None
         self.order = 9999
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):

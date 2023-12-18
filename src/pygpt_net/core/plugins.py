@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 22:00:00                  #
+# Updated Date: 2023.12.18 23:00:00                  #
 # ================================================== #
 
 import copy
-
-from .dispatcher import Event
+import configparser
+import io
+import os
 
 
 class Plugins:
@@ -82,3 +83,55 @@ class Plugins:
         # restore persisted values
         for key in persisted_options:
             self.plugins[id].options[key]['value'] = persisted_values[key]
+
+    def dump_locale(self, plugin, path):
+        """
+        Dump locale
+
+        :param plugin: plugin
+        """
+        options = {}
+        options['plugin.name'] = plugin.name
+        options['plugin.description'] = plugin.description
+
+        sorted_keys = sorted(plugin.options.keys())
+        for key in sorted_keys:
+            option = plugin.options[key]
+            if 'label' in option:
+                option_key = key + '.label'
+                options[option_key] = option['label']
+            if 'description' in option:
+                option_key = key + '.description'
+                options[option_key] = option['description']
+            if 'tooltip' in option and option['tooltip'] is not None and option['tooltip'] != '':
+                option_key = key + '.tooltip'
+                options[option_key] = option['tooltip']
+
+        # dump options to .ini file:
+        ini = configparser.ConfigParser()
+        ini['LOCALE'] = options
+
+        # save with utf-8 encoding
+        with io.open(path, mode="w", encoding="utf-8") as f:
+            ini.write(f)
+
+    def dump_locale_by_id(self, id, path):
+        """
+        Dump locale by id
+
+        :param id: plugin id
+        """
+        if id in self.plugins:
+            self.dump_locale(self.plugins[id], path)
+
+    def dump_plugin_locales(self):
+        """
+        Dump all locales
+        """
+        langs = ['en', 'pl']
+        for id in self.plugins:
+            domain = 'plugin.' + id
+            for lang in langs:
+                path = os.path.join(self.window.config.get_root_path(), 'data', 'locale', domain + '.' + lang + '.ini')
+                self.dump_locale(self.plugins[id], path)
+

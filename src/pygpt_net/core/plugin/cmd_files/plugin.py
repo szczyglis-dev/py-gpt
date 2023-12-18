@@ -43,6 +43,7 @@ class Plugin(BasePlugin):
             "file_size",
             "file_info",
         ]
+        self.use_locale = True
         self.init_options()
 
     def init_options(self):
