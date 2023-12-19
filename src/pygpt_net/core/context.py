@@ -129,14 +129,28 @@ class Context:
 
     def create_id(self):
         """
-        Create context ID
+        Create unique context ID
 
         Format: YYYYMMDDHHMMSS.MICROSECONDS.json
 
-        :return: Generated ID
+        :return: generated ID
         :rtype: str
         """
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
+
+    def is_empty(self):
+        """
+        Check if context is empty
+
+        :return: true if empty, false otherwise
+        :rtype: bool
+        """
+        if self.current_ctx is None:
+            return True
+        else:
+            if len(self.items) == 0:
+                return True
+        return False
 
     def new(self):
         """

@@ -356,6 +356,9 @@ class Context:
         if not self.window.config.get('lock_modes'):
             return True
 
+        if self.window.app.context.is_empty():
+            return True
+
         # always allow if no ctx
         ctx = self.window.config.get('ctx')
         if ctx is None or ctx == '':
