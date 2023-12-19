@@ -36,6 +36,25 @@ class DebugDialog(QDialog):
 
         :param event: close event
         """
+        self.cleanup()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(DebugDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
         self.window.app.debug.active[self.id] = False
         self.window.controller.debug.update_menu()
 
@@ -57,6 +76,25 @@ class InfoDialog(QDialog):
         Close event
 
         :param event: close event
+        """
+        self.cleanup()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(InfoDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
         """
         self.window.app.info.active[self.id] = False
         self.window.controller.info.update_menu()
@@ -120,10 +158,26 @@ class EditorDialog(QDialog):
 
         :param event: close event
         """
-        pass
-        # self.window.app.settings.active[self.id] = False
-        # self.window.controller.settings.close(self.id)
-        # self.window.controller.settings.update()
+        self.cleanup()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(EditorDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
+        self.window.app.settings.active[self.id] = False
 
 
 class AlertDialog(QDialog):
@@ -250,6 +304,25 @@ class FileEditorDialog(QDialog):
 
         :param event: close event
         """
+        self.cleanup()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(FileEditorDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
         self.window.app.settings.active['editor'] = False
         self.window.controller.settings.close('editor')
         self.window.controller.settings.update()
@@ -270,6 +343,25 @@ class LoggerDialog(QDialog):
         Close event
 
         :param event: close event
+        """
+        self.cleanup()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(LoggerDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
         """
         self.window.controller.debug.is_logger = False
         self.window.controller.debug.logger_close()

@@ -248,6 +248,9 @@ class Assistant:
         self.window.ui.dialogs.close('editor.assistants')
         self.window.set_status(trans('status.assistant.saved'))
 
+        # switch to new assistant
+        self.select_by_id(id)
+
     def create(self):
         """
         Create assistant

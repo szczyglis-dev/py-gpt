@@ -207,6 +207,25 @@ class SettingsDialog(QDialog):
 
         :param event: close event
         """
+        self.cleanup()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(SettingsDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
+        """
         self.window.app.settings.active[self.id] = False
         self.window.controller.settings.close(self.id)
         self.window.controller.settings.update()
@@ -229,6 +248,25 @@ class PluginSettingsDialog(QDialog):
         Close event
 
         :param event: close event
+        """
+        self.window.controller.plugins.config_dialog = False
+        self.window.controller.plugins.update()
+
+    def keyPressEvent(self, event):
+        """
+        Key press event
+
+        :param event: key press event
+        """
+        if event.key() == Qt.Key_Escape:
+            self.cleanup()
+            self.close()  # close dialog when the Esc key is pressed.
+        else:
+            super(PluginSettingsDialog, self).keyPressEvent(event)
+
+    def cleanup(self):
+        """
+        Cleanup on close
         """
         self.window.controller.plugins.config_dialog = False
         self.window.controller.plugins.update()

@@ -213,7 +213,7 @@ class Camera:
         else:
             self.disable_capture()
 
-        self.window.statusChanged.emit('')
+        self.window.set_status('')
 
     def enable_auto(self):
         """
@@ -225,6 +225,10 @@ class Camera:
         self.auto = True
         self.window.config.set('vision.capture.auto', True)
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
+
+        if not self.window.config.get('vision.capture.enabled'):
+            self.enable_capture()
+            self.window.ui.nodes['vision.capture.enable'].setChecked(True)
 
     def disable_auto(self):
         """
@@ -248,7 +252,7 @@ class Camera:
         else:
             self.disable_auto()
 
-        self.window.statusChanged.emit('')
+        self.window.set_status('')
 
     def is_enabled(self):
         """
