@@ -41,7 +41,7 @@ class Platform:
 
     def init(self):
         """Initialize platform"""
-        print("Platform: " + self.get_os() + " " + self.get_architecture())
+        pass
 
     def get_os(self):
         """
