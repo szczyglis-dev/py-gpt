@@ -1284,7 +1284,7 @@ may consume additional tokens that are not displayed in the main window.
 
 # CHANGELOG
 
-## 2.0.40 (2023-12-18)
+## 2.0.40 (2023-12-19)
 
 - Totally improved material themes support
 - Added QSS-configurable themes to chat output window and code highlighter
