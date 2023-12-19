@@ -91,7 +91,7 @@ class Config:
         Initialize config
 
         :param all: load all configs
-        :param log: log loading
+        :param log: log loading to console
         """
         if not self.initialized:
             if all:
