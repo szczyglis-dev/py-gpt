@@ -20,11 +20,11 @@ Multiple operation modes are included, such as chat, text completion, assistant,
 
 Video (mp4):
 
-https://github.com/szczyglis-dev/py-gpt/assets/61396542/2cbb7770-64fc-4b3d-8c81-6a997cabc861
+https://github.com/szczyglis-dev/py-gpt/assets/61396542/bbf5076d-6c91-4a45-bbdd-9564d18a6612
 
 Screenshot:
 
-![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2933de69-5a65-43c7-a386-b222ae2090ca)
+![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7216bc26-b580-41bc-b2d9-c7fe5f271450)
 
 You can download compiled version for Windows and Linux here: https://pygpt.net/#download
 
@@ -179,7 +179,7 @@ Config -> Settings...
 
 and then paste the API key into the `OpenAI API KEY` field.
 
-![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/07bc916d-7049-4224-81db-08b6b05bec20)
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f4be3d53-23ee-4b0e-9e46-296253f688b8)
 
 The API key can be obtained by registering on the OpenAI website:
 
@@ -201,7 +201,7 @@ The main part of the interface is a chat window where conversations appear. Righ
 
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Files` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
 
-![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/84d84a41-9a86-4c95-8586-de1eb245e570)
+![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1579417c-8e8d-4b98-b255-6593103a1c4f)
 
 ## Completion
 
@@ -211,7 +211,8 @@ Similar to chat mode, on the right-hand side of the interface, there are conveni
 
 Additionally, this mode offers options for labeling the AI and the user, making it possible to simulate dialogues between specific characters - for example, you could create a conversation between Batman and the Joker, as predefined in the prompt. This feature presents a range of creative possibilities for setting up different conversational scenarios in an engaging and exploratory manner.
 
-![v2_mode_completion](https://github.com/szczyglis-dev/py-gpt/assets/61396542/829718eb-2faf-4604-9ae3-9541e0f543f3)
+![v2_mode_completion](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1c5f80aa-4864-451f-be4d-ee72efd5b0c4)
+
 In this mode, models from the `davinci` family within `GPT-3` are available. 
 **Note:** The `davinci` models are tagged for deprecation in the near future.
 
@@ -223,11 +224,11 @@ This mode expands on the basic chat functionality by including additional extern
 
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
-![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5115144d-804a-406c-9fbc-9de370910179)
+![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8752bb86-234b-4769-821d-ac7826f8641f)
 
 In Assistant mode you are allowed to storage your files (per Assistant) and manage them easily from app:
 
-![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1e1c7732-a4af-4800-a3ed-52ca12c3ad76)
+![v2_mode_assistant_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ac599b23-e675-4db1-b7b7-d134fa9b15b1)
 
 Please note that token usage calculation is unavailable in this mode. Nonetheless, file (attachment) 
 uploads are supported. Simply navigate to the `Files` tab to effortlessly manage files and attachments which 
@@ -241,22 +242,23 @@ images and those found online.
 
 **From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
 
-![v2_capture_enable](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f2a29c21-caa7-4a77-a36e-951824415736)
+![v2_capture_enable](https://github.com/szczyglis-dev/py-gpt/assets/61396542/dd8ee149-afd2-4d7b-b2be-5c4e9725c584)
 
 
 **1) Video camera real-time image capture:**
 
-![v2_capture1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7092fc58-d8eb-4d23-aa4c-8686eb3efdb0)
+![v2_capture1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f69a5510-fc34-4073-80ef-fcc5ce5c50a7)
 
-![v2_capture_result](https://github.com/szczyglis-dev/py-gpt/assets/61396542/fff7e72d-3427-4dc2-b204-750d792d1782)
+
+![v2_capture_result](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ac9a8223-75f0-418b-81c7-9855d04ffde3)
 
 **2) ...you can also provide an image URL:**
 
-![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1e618d68-6c60-4826-82c5-87149523e989)
+![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/051bfaf7-467c-4e44-bd79-3c28548ea41e)
 
 **3) ...or you can just upload your local images:**
 
-![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ee796ef5-706d-4dd8-bb02-dd28b7042a12)
+![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1508ccc2-f0a0-4f42-a9e6-106462890dae)
 
 ## Langchain
 
@@ -276,7 +278,7 @@ Available LLMs providers supported by **PyGPT**:
 - Ollama
 ```
 
-![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7565e4df-aa6f-4de5-97ac-61cb124e0340)
+![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d0a30457-468e-42ec-b470-77888bce3b81)
 
 You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
@@ -286,7 +288,7 @@ You have the ability to add custom model wrappers for models that are not availa
 
 **PyGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
 
-![v2_file_input](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7e84368e-2ac2-4947-8723-528788d82ed7)
+![v2_file_input](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f61b677a-6c5e-41fb-8029-edc7f0eded0a)
 
 The attachment feature is available in both the `Assistant` and `Vision` modes.
 
@@ -298,11 +300,11 @@ This `output` directory is also where the application stores files that are gene
 
 The `Command: Files I/O` plugin takes care of file operations in the `output` directory, while the `Command: Code Interpreter` plugin allows for the execution of code from these files.
 
-![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4ade40d4-b234-4cf5-bb98-fe1c55156a88)
+![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c01ca3fc-c7dd-4532-ae4c-e9c75e2c005c)
 
 To allow the model to manage files or python code execution, the `Execute commands` option must be active, along with the above-mentioned plugins:
 
-![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7f1cf97b-7702-41c0-a21f-344d57a1b3e1)
+![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/df7087c3-71c7-4387-8ced-4c51cd7d1116)
 
 # Context and memory
 
@@ -314,7 +316,7 @@ To allow the model to manage files or python code execution, the `Execute comman
 
 On the left side of the application interface, there is a panel that displays a list of saved conversations. You can save numerous contexts and switch between them with ease. This feature allows you to revisit and continue from any point in a previous conversation. **PyGPT** automatically generates a summary for each context, akin to the way `ChatGPT` operates and gives you the option to modify these titles itself.
 
-![v2_context_list](https://github.com/szczyglis-dev/py-gpt/assets/61396542/055c71bf-164c-45fa-842b-b0b9d1c31114)
+![v2_context_list](https://github.com/szczyglis-dev/py-gpt/assets/61396542/501f272b-8d91-415a-b0ef-22355c7fdc5f)
 
 You can disable context support in the settings by using the following option:
 
@@ -345,7 +347,7 @@ Presets in **PyGPT** are essentially templates used to store and quickly apply d
 
 The system lets you create as many presets as needed and easily switch among them. Additionally, you can clone an existing preset, which is useful for creating variations based on previously set configurations and experimentation.
 
-![v2_preset](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7322683f-4efc-4089-b25b-79a266c82b01)
+![v2_preset](https://github.com/szczyglis-dev/py-gpt/assets/61396542/5e1874e2-a5f3-4b91-9412-6fb5b52943b2)
 
 ## Example usage
 
@@ -367,7 +369,7 @@ You can generate up to **4 different variants** (DALL-E 2) for a given prompt in
 To select the desired number of variants to create, use the slider located in the right-hand corner at 
 the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
 
-![v2_dalle](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ad3fb8f9-0e09-4ac3-aa1f-baad98c1320f)
+![v2_dalle](https://github.com/szczyglis-dev/py-gpt/assets/61396542/46b42488-b0fb-4da0-a937-7b04fe7606bd)
 
 
 ## Raw mode
@@ -377,7 +379,7 @@ There is an option for switching prompt generation mode.
 If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
 If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
 
-![v2_dalle2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/662c456c-1dc8-446f-9d23-577a64d60875)
+![v2_dalle2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d32e753f-7a3f-4e32-86d9-9a479ea24f77)
 
 ## Image storage
 
@@ -675,7 +677,7 @@ Allows system commands execution. *Default:* `True`
 
 With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
-![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b0d01e9b-c6f8-4e85-be56-106abec88200)
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/2d102ef9-2002-4ab4-8018-52431d5823bb)
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -731,7 +733,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 ```> please execute tutorial test command```
 
-![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8df560db-aef2-45c4-81a1-4fc56e5282f2)
+![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b55c25cb-7432-4290-9edb-952edcf3c030)
 
 
 ## Command: Google Web Search
@@ -757,7 +759,7 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ed5e9326-8f4a-4ce2-bb9f-75cecf08aacb)
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/6f80df94-4bd7-4bc6-bf59-7e1dab188b63)
 
 
 ## Audio Output (Microsoft Azure)
@@ -775,7 +777,7 @@ Region in the settings.
 
 This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
 
-![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1aa81001-3953-4a92-9d56-89a1d5443422)
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/cfd2181c-eb70-42eb-8f73-cdc783defb1c)
 
 **Options:**
 
@@ -1092,13 +1094,13 @@ a particular query will consume and displays this estimate in real time. This gi
 control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
 the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
-![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4cefdb35-016d-49a6-be05-50a980388323)
+![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f1d9217-6610-41ee-a72d-60b3ae45b61d)
 
 ## Total tokens
 
 After receiving a response from the model, the application displays the actual total number of tokens used for the query.
 
-![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ddaf8d94-8d2a-471a-84b2-5a97f680853a)
+![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f8f09e58-50bd-4703-aa1c-041a10d14cdd)
 
 # Configuration
 
@@ -1110,7 +1112,7 @@ The following basic options can be modified directly within the application:
 Config -> Settings...
 ```
 
-![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/07bc916d-7049-4224-81db-08b6b05bec20)
+![v2_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f4be3d53-23ee-4b0e-9e46-296253f688b8)
 
 - `OpenAI API KEY`: The personal API key you'll need to enter into the application for it to function.
 
@@ -1197,7 +1199,7 @@ These configuration files are located in the user's work directory within the fo
 
 The application has a built-in notebook, divided into several tabs. This can be useful for storing informations in a convenient way, without the need to open an external text editor. The content of the notebook is automatically saved whenever the content changes.
 
-![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8fb3ae49-372e-4e80-a327-7117c8f9688a)
+![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d055f50d-8823-42de-8c9e-0ebafcc89d71)
 
 # Advanced configuration
 
