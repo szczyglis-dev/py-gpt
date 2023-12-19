@@ -159,6 +159,9 @@ class Input:
         return layout
 
     def update_min_heigth(self):
+        """
+        Update the minimum height of the input tab
+        """
         idx = self.window.ui.tabs['input'].currentIndex()
         if idx == 0:
             self.window.ui.nodes['input'].setMinimumHeight(50)
