@@ -1,3 +1,11 @@
+2.0.40 (2023-12-19)
+
+- Totally improved material themes support
+- Added QSS-configurable themes to chat output window and code highlighter
+- Added ability to overriding styles per any theme in user directory
+- Fixed UI layout elements
+- Fixed DPI issues in Windows systems
+
 2.0.39 (2023-12-18)
 
 - Fixed dialogs closing with the Esc key

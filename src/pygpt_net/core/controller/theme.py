@@ -28,7 +28,19 @@ class Theme:
 
     def load_css(self):
         """Load CSS"""
-        path = os.path.join(self.window.config.get_root_path(), 'data', 'css', 'highlighter.json')
+        theme = self.window.config.get('theme')
+
+        # user area
+        path = os.path.join(self.window.config.get_user_path(), 'css', 'highlighter.' + theme + '.json')
+        if not os.path.exists(path):
+            path = os.path.join(self.window.config.get_user_path(), 'css', 'highlighter.json')
+
+        # app area
+        if not os.path.exists(path):
+            path = os.path.join(self.window.config.get_root_path(), 'data', 'css', 'highlighter.' + theme + '.json')
+            if not os.path.exists(path):
+                path = os.path.join(self.window.config.get_root_path(), 'data', 'css', 'highlighter.json')
+
         if os.path.exists(path):
             try:
                 with open(path, 'r') as f:
@@ -57,6 +69,7 @@ class Theme:
         """
         self.window.config.set('theme', name)
         self.window.config.save()
+        self.load_css()
         self.apply()
         self.window.set_theme(name + '.xml', 'style.css')  # style.css = additional custom stylesheet
         self.update()

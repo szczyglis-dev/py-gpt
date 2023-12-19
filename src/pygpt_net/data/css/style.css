@@ -12,9 +12,11 @@ QPushButton {{
 
 QLineEdit {{
   color: #ffffff; 
+  border: 1px solid #5c5c5c;
 }}
 QTextEdit {{
   color: #ffffff; 
+  border: 1px solid #5c5c5c;
 }}
 
 QCheckBox::indicator:checked {{

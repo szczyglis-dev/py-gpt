@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.39** | build: **2023.12.19** | Python: **3.9+**
+Release: **2.0.40** | build: **2023.12.19** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1283,6 +1283,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.40 (2023-12-18)
+
+- Totally improved material themes support
+- Added QSS-configurable themes to chat output window and code highlighter
+- Added ability to overriding styles per any theme in user directory
+- Fixed UI layout elements
+- Fixed DPI issues in Windows systems
 
 ## 2.0.39 (2023-12-18)
 

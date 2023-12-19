@@ -34,8 +34,8 @@ class Platform:
             os.environ['QT_SCALE_FACTOR'] = '1'
             if hasattr(QtCore.Qt, 'AA_DisableHighDpiScaling'):
                 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_DisableHighDpiScaling, True)
-            # if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-            # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+            if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+                QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, False)
             if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
                 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
