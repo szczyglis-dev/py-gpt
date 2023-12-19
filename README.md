@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.38** | build: **2023.12.18** | Python: **3.9+**
+Release: **2.0.39** | build: **2023.12.19** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -1283,6 +1283,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.39 (2023-12-18)
+
+- Fixed dialogs closing with the Esc key
+- Added an indicator for "can append to context in this mode"
+- Added functionality to fetch filenames from the API when importing files uploaded to Assistants
+- Enabled switching to newly created Assistants after creation
+- Optimized class structure
 
 ## 2.0.38 (2023-12-18)
 
