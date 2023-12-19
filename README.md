@@ -1,6 +1,6 @@
 # PyGPT v2
 
-Release: **2.0.40** | build: **2023.12.19** | Python: **3.9+**
+Release: **2.0.41** | build: **2023.12.20** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -648,7 +648,7 @@ Allows `file_info` command. *Default:* `True`
 
 ### Executing Code
 
-The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `output` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose.
+The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `output` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
 
 ### Executing system commands
 
@@ -671,6 +671,14 @@ Allows Python code execution from existing file. *Default:* `True`
 - `Enable: System Command Execute` *cmd_sys_exec*
 
 Allows system commands execution. *Default:* `True`
+
+- `Sandbox (docker container)` *sandbox_docker*
+
+Executes commands in sandbox (docker container). Docker must be installed and running. *Default:* `False`
+
+- `Docker image` *sandbox_docker_image*
+
+Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 
 ## Command: Custom Commands
@@ -1285,6 +1293,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.41 (2023-12-20)
+
+- Added "sandbox" feature to the Code Interpreter – it allows the use of any Docker image as an environment for code and commands execution.
+- Context auto-summary moved to an async thread.
+- Command execution moved to an async thread.
 
 ## 2.0.40 (2023-12-19)
 

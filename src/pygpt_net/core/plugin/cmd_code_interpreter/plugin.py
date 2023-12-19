@@ -49,7 +49,7 @@ class Plugin(BasePlugin):
                         "Enable: System Command Execute",
                         "Allows system commands execution")
         self.add_option("sandbox_docker", "bool", False,
-                        "Work in sandbox (docker container)",
+                        "Sandbox (docker container)",
                         "Executes commands in sandbox (docker container). Docker must be installed and running.")
         self.add_option("sandbox_docker_image", "text", 'python:3.8-alpine',
                         "Docker image",

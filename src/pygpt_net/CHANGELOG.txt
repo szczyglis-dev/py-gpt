@@ -1,3 +1,9 @@
+2.0.41 (2023-12-20)
+
+- Added "sandbox" feature to the Code Interpreter – it allows the use of any Docker image as an environment for code and commands execution.
+- Context auto-summary moved to an async thread.
+- Command execution moved to an async thread.
+
 2.0.40 (2023-12-19)
 
 - Totally improved material themes support
