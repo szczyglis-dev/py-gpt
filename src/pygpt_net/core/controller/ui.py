@@ -308,4 +308,12 @@ class UI:
 
         :param label: label
         """
+        mode = self.window.config.get('mode')
+        allowed = self.window.controller.context.is_allowed_for_mode(mode)
+        if label is None:
+            label = ''
+
+        # add (+) if allowed to append data to this context
+        if allowed:
+            label += ' (+)'
         self.window.ui.nodes['chat.label'].setText(str(label))

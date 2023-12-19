@@ -463,6 +463,7 @@ class Input:
         mode = self.window.config.get('mode')
         self.window.app.context.post_update(mode)  # post update context, store last mode, etc.
         self.window.app.context.store()
+        self.window.controller.context.update_ctx()  # update current ctx info
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 

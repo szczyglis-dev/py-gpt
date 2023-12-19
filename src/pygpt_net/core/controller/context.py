@@ -190,12 +190,12 @@ class Context:
         """Update current ctx mode if allowed"""
         mode = self.window.config.get('mode')
 
+        id = None
         # update ctx mode only if current ctx is allowed for this mode
         if self.is_allowed_for_mode(mode, False):  # do not check assistant match
             self.window.app.context.update()
 
             # update current context label
-            id = None
             if mode == 'assistant':
                 if self.window.app.context.current_assistant is not None:
                     # get assistant id from ctx if defined in ctx
@@ -204,8 +204,8 @@ class Context:
                     # or get assistant id from current selected assistant
                     id = self.window.config.get('assistant')
 
-            # update ctx label
-            self.update_ctx_label(mode, id)
+        # update ctx label
+        self.update_ctx_label(mode, id)
 
     def update_ctx_label_by_current(self):
         """

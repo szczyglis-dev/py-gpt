@@ -92,6 +92,8 @@ class Assistant:
                     self.window.config.data['current_model'][mode] = model
                     self.update_assistants()
 
+        self.window.controller.context.update_ctx()  # update current ctx info
+
     def select_assistant_by_current(self):
         """Select assistant by current"""
         assistant_id = self.window.config.get('assistant')
