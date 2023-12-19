@@ -12,7 +12,7 @@ import os
 import sys
 
 from PySide6.QtCore import QTimer, Signal, Slot
-from PySide6.QtGui import QScreen
+from PySide6.QtGui import QScreen, QIcon
 from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
 
@@ -209,6 +209,7 @@ class Launcher:
         """Initialize app"""
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
+        self.app.setWindowIcon(QIcon(os.path.join(self.window.config.get_root_path(), 'data', 'icon.ico')))
         self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin=None):

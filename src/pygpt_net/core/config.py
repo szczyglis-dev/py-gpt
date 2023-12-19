@@ -12,6 +12,7 @@
 import datetime
 import os
 import re
+import platform
 from pathlib import Path
 import shutil
 import json
@@ -95,10 +96,12 @@ class Config:
         if not self.initialized:
             if all:
                 v = self.get_version()
-                print("PyGPT v{}".format(v))
+                os = self.get_os()
+                architecture = self.get_architecture()
+                print("PyGPT v{} ({}, {})".format(v, os, architecture))
                 print("Author: Marcin Szczyglinski")
-                print("Project website: https://pygpt.net")
                 print("GitHub: https://github.com/szczyglis-dev/py-gpt")
+                print("WWW: https://pygpt.net")
                 print("Email: info@pygpt.net")
                 print("")
                 print("Initializing...")
@@ -655,6 +658,51 @@ class Config:
         if model in self.models:
             return self.models[model]
 
+    def get_os(self):
+        """
+        Return OS name
+
+        :return: OS name
+        :rtype: str
+        """
+        return platform.system()
+
+    def get_architecture(self):
+        """
+        Return platform architecture
+
+        :return: platform architecture
+        :rtype: str
+        """
+        return platform.machine()
+
+    def is_linux(self):
+        """
+        Return True if OS is Linux
+
+        :return: true if OS is Linux
+        :rtype: bool
+        """
+        return self.get_os() == 'Linux'
+
+    def is_mac(self):
+        """
+        Return True if OS is MacOS
+
+        :return: True if OS is MacOS
+        :rtype: bool
+        """
+        return self.get_os() == 'Darwin'
+
+    def is_windows(self):
+        """
+        Return True if OS is Windows
+
+        :return: true if OS is Windows
+        :rtype: bool
+        """
+        return self.get_os() == 'Windows'
+
     def append_meta(self):
         """
         Append meta data
@@ -687,7 +735,7 @@ class Config:
                 src = os.path.join(self.get_root_path(), 'data', 'config', 'models.json')
                 shutil.copyfile(src, dst)
 
-            # install prompt presets
+            # install presets
             presets_dir = os.path.join(self.path, 'presets')
             if not os.path.exists(presets_dir):
                 src = os.path.join(self.get_root_path(), 'data', 'config', 'presets')
@@ -727,4 +775,4 @@ class Config:
                 os.mkdir(capture_dir)
 
         except Exception as e:
-            print(e)
+            print("Error installing config files:", e)
