@@ -323,7 +323,7 @@ class Plugins:
 
             self.window.ui.nodes[desc_key] = QLabel(txt_desc)
             self.window.ui.nodes[desc_key].setWordWrap(True)
-            self.window.ui.nodes[desc_key].setMaximumHeight(30)
+            self.window.ui.nodes[desc_key].setMaximumHeight(40)
             self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
             self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
@@ -338,7 +338,7 @@ class Plugins:
 
             self.window.ui.nodes[desc_key] = QLabel(txt_desc)
             self.window.ui.nodes[desc_key].setWordWrap(True)
-            self.window.ui.nodes[desc_key].setMaximumHeight(30)
+            self.window.ui.nodes[desc_key].setMaximumHeight(40)
             self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
             self.window.ui.nodes[desc_key].setToolTip(txt_tooltip)
 
