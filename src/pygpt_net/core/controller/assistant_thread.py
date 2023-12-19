@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 02:00:00                  #
+# Updated Date: 2023.12.19 02:00:00                  #
 # ================================================== #
 import threading
 import time
@@ -19,7 +19,7 @@ from ..utils import trans
 class AssistantThread:
     def __init__(self, window=None):
         """
-        Assistants controller
+        Assistant thread  controller
 
         :param window: Window instance
         """
@@ -93,7 +93,7 @@ class AssistantThread:
     @Slot()
     def handle_destroy(self):
         """
-        Insert text to input and send
+        Handle thread destroy
         """
         self.thread_run_started = False
         self.force_stop = False

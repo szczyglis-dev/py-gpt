@@ -31,6 +31,7 @@ from .output import Output
 from .plugins import Plugins
 from .presets import Presets
 from .settings import Settings
+from .summarize import Summarize
 from .theme import Theme
 from .ui import UI
 
@@ -65,6 +66,7 @@ class Controller:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
+        self.summarize = Summarize(window)
         self.theme = Theme(window)
         self.ui = UI(window)
 

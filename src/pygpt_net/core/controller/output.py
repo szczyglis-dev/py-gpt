@@ -143,10 +143,8 @@ class Output:
         """
         if ctx is not None:
             if not self.window.app.context.is_ctx_initialized():
-                current = self.window.app.context.current_ctx
-                title = self.window.app.gpt.prepare_ctx_name(ctx)
-                if title is not None and title != "":
-                    self.window.controller.context.update_name(current, title)
+                id = self.window.app.context.current_ctx
+                self.window.controller.summarize.summarize_ctx(id, ctx)
 
     def handle_commands(self, ctx):
         """
