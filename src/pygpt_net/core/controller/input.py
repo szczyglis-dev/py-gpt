@@ -9,7 +9,9 @@
 # Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 import json
+import threading
 
+from PySide6.QtCore import QObject
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
@@ -29,6 +31,8 @@ class Input:
         self.locked = False
         self.force_stop = False
         self.generating = False
+        self.thread = None
+        self.thread_started = False
 
     def setup(self):
         """Set up input"""
@@ -285,6 +289,24 @@ class Input:
 
     def send(self, text=None):
         """
+        Send input wrapper
+        :param text: input text
+        """
+        self.send_execute(text)
+
+    def start_thread(self, text):
+        """
+        Handle thread start
+
+        :param ctx: ContextItem
+        """
+        sender = SendThread(window=self.window, text=text)
+        self.thread = threading.Thread(target=sender.run)
+        self.thread.start()
+        self.thread_started = True
+
+    def send_execute(self, text=None):
+        """
         Send input text to API
 
         :param text: input text
@@ -293,8 +315,7 @@ class Input:
         if self.locked:
             return
 
-        self.generating = True
-
+        self.generating = True  # set generating flag
         mode = self.window.config.get('mode')
         if mode == 'assistant':
             # check if assistant is selected
@@ -386,9 +407,9 @@ class Input:
             self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 
-            # if reply from commands then send reply (as response JSON)
-            if ctx.reply:
-                self.send(json.dumps(ctx.results))
+            # from v.2.0.41: reply from commands in now handled in async thread!
+            # if ctx.reply:
+            #   self.send(json.dumps(ctx.results))
 
             self.generating = False
             self.window.controller.ui.update()  # update UI
@@ -412,6 +433,12 @@ class Input:
         :param value: value of the checkbox
         """
         self.window.config.set('cmd', value)
+
+        # stop commands thread if running
+        if not value:
+            self.window.controller.command.force_stop = True
+        else:
+            self.window.controller.command.force_stop = False
 
     def toggle_send_clear(self, value):
         """
@@ -456,6 +483,7 @@ class Input:
         self.window.app.gpt.stop()
         self.unlock_input()
         self.generating = False
+        self.window.set_status(trans('status.stopped'))
 
     def append(self, text):
         """
@@ -472,3 +500,23 @@ class Input:
             if sep:  # New line if LF
                 cur.insertBlock()
         self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
+
+
+class SendThread(QObject):
+    def __init__(self, window=None, text=None):
+        """
+        Run summarize thread
+
+        :param window: Window instance
+        :param ctx: ContextItem
+        """
+        super().__init__()
+        self.window = window
+        self.text = text
+
+    def run(self):
+        """Run thread"""
+        try:
+            self.window.controller.input.send_execute(self.text)
+        except Exception as e:
+            print(e)

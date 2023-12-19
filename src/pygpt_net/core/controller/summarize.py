@@ -34,7 +34,7 @@ class Summarize:
 
     def start_thread(self, id, ctx):
         """
-        Handle assistant's run
+        Handle thread start
 
         :param ctx: ContextItem
         """

@@ -154,10 +154,10 @@ class Output:
         """
         if ctx is not None and self.window.config.get('cmd'):
             cmds = self.window.app.command.extract_cmds(ctx.output)
-            self.window.log("Executing commands...")
-            self.window.set_status("Executing commands...")
-            self.window.controller.plugins.apply_cmds(ctx, cmds)
-            self.window.set_status("")
+            if len(cmds) > 0:
+                self.window.log("Executing commands...")
+                self.window.set_status(trans('status.cmd.wait'))
+                self.window.controller.plugins.apply_cmds(ctx, cmds)
 
     def handle_response(self, ctx, mode, stream_mode=False):
         """

@@ -15,6 +15,7 @@ from .assistant_thread import AssistantThread
 from .attachment import Attachment
 from .audio import Audio
 from .camera import Camera
+from .command import Command
 from .confirm import Confirm
 from .context import Context
 from .debug import Debug
@@ -50,6 +51,7 @@ class Controller:
         self.attachment = Attachment(window)
         self.audio = Audio(window)
         self.camera = Camera(window)
+        self.command = Command(window)
         self.confirm = Confirm(window)
         self.context = Context(window)
         self.debug = Debug(window)

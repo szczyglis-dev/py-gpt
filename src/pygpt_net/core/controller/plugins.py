@@ -571,7 +571,7 @@ class Plugins:
             'commands': commands
         })
         event.ctx = ctx
-        self.dispatch(event)
+        self.window.controller.command.dispatch_async(event)
 
     def dispatch(self, event, all=False):
         """
