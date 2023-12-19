@@ -48,11 +48,17 @@ class Summarize:
 
     @Slot(str, str)
     def handle_update(self, id, title):
+        """
+        Handle thread name update
+        :param id: ctx id
+        :param title: generated title
+        """
         self.window.controller.context.update_name(id, title)
         self.thread_started = False
 
     @Slot()
     def handle_destroy(self):
+        """Handle thread destroy"""
         self.thread_started = False
 
 

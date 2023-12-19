@@ -571,17 +571,4 @@ class Plugins:
             'commands': commands
         })
         event.ctx = ctx
-        self.window.controller.command.dispatch_async(event)
-
-    def dispatch(self, event, all=False):
-        """
-        Dispatch event to plugins
-
-        :param event: event to dispatch
-        :param all: true if dispatch to all plugins (enabled or not)
-        """
-        for id in self.window.app.plugins.plugins:
-            if self.is_enabled(id) or all:
-                if event.stop:
-                    break
-                self.window.app.dispatcher.dispatch(id, event)
+        self.window.controller.command.dispatch(event)

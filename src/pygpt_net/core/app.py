@@ -96,7 +96,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param event: event object
         """
-        self.controller.plugins.dispatch(event)
+        self.app.dispatcher.dispatch(event)
 
     def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """

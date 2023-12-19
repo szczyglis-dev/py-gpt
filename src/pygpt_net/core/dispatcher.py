@@ -19,9 +19,22 @@ class Dispatcher:
         """
         self.window = window
 
-    def dispatch(self, id, event):
+    def dispatch(self, event, all=False):
         """
-        Dispatch event to plugin with provided id
+        Dispatch event to plugins
+
+        :param event: event to dispatch
+        :param all: true if dispatch to all plugins (enabled or not)
+        """
+        for id in self.window.app.plugins.plugins:
+            if self.window.controller.plugins.is_enabled(id) or all:
+                if event.stop:
+                    break
+                self.apply(id, event)
+
+    def apply(self, id, event):
+        """
+        Handle event in plugin with provided id
 
         :param id: plugin id
         :param event: event object

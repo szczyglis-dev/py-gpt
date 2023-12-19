@@ -26,9 +26,9 @@ class Command:
         self.thread_started = False
         self.force_stop = False
 
-    def dispatch_async(self, event):
+    def dispatch(self, event):
         """
-        Handle thread start
+        Dispatch async event (command execution)
 
         :param event: event object
         """
@@ -51,6 +51,10 @@ class Command:
 
     @Slot(object)
     def handle_finished(self, event):
+        """
+        Handle thread command execution finish
+        :param event: event object
+        """
         ctx = event.ctx
         if ctx.reply:
             self.window.controller.input.send(json.dumps(ctx.results))
@@ -58,6 +62,7 @@ class Command:
 
     @Slot()
     def handle_destroy(self):
+        """Handle thread destroy"""
         self.thread_started = False
 
 
@@ -67,7 +72,7 @@ class CommandThread(QObject):
 
     def __init__(self, window=None, event=None):
         """
-        Run commands dispatch thread
+        Run command dispatch thread
 
         :param window: Window instance
         :param event: event object
@@ -84,7 +89,7 @@ class CommandThread(QObject):
                 if self.window.controller.plugins.is_enabled(id):
                     if self.event.stop or self.window.controller.command.is_stop():
                         break
-                    self.window.app.dispatcher.dispatch(id, self.event)
+                    self.window.app.dispatcher.apply(id, self.event)
             self.window.set_status("")  # Clear status
             self.finished.emit(self.event)
         except Exception as e:
