@@ -87,3 +87,4 @@ class Platform:
         :rtype: bool
         """
         return self.get_os() == 'Windows'
+    
