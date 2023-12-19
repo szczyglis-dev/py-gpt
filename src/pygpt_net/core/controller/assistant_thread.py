@@ -51,8 +51,8 @@ class AssistantThread:
             if msg.role == "assistant":
                 ctx.set_output(msg.content[0].text.value)
                 self.window.controller.assistant_files.handle_message_files(msg)
-                self.window.controller.input.handle_response(ctx, 'assistant', False)
-                self.window.controller.input.handle_commands(ctx)
+                self.window.controller.output.handle_response(ctx, 'assistant', False)
+                self.window.controller.output.handle_commands(ctx)
                 break
 
     def handle_run(self, ctx):

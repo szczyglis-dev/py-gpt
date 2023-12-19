@@ -6,11 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.19 03:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from PySide6.QtGui import QTextCursor
+from PySide6.QtWidgets import QApplication
+
+from ..dispatcher import Event
+from ..utils import trans
 
 
 class Output:
@@ -130,3 +134,148 @@ class Output:
         self.window.config.set('output_timestamp', value)
         self.window.config.save()
         self.window.controller.context.refresh()
+
+    def handle_ctx_name(self, ctx):
+        """
+        Handle context name (summarize input and output)
+
+        :param ctx: ContextItem
+        """
+        if ctx is not None:
+            if not self.window.app.context.is_ctx_initialized():
+                current = self.window.app.context.current_ctx
+                title = self.window.app.gpt.prepare_ctx_name(ctx)
+                if title is not None and title != "":
+                    self.window.controller.context.update_name(current, title)
+
+    def handle_commands(self, ctx):
+        """
+        Handle plugin commands
+
+        :param ctx: ContextItem
+        """
+        if ctx is not None and self.window.config.get('cmd'):
+            cmds = self.window.app.command.extract_cmds(ctx.output)
+            self.window.log("Executing commands...")
+            self.window.set_status("Executing commands...")
+            self.window.controller.plugins.apply_cmds(ctx, cmds)
+            self.window.set_status("")
+
+    def handle_response(self, ctx, mode, stream_mode=False):
+        """
+        Handle response from LLM
+
+        :param ctx: ContextItem
+        :param mode: mode
+        :param stream_mode: async stream mode
+        """
+        # if async stream mode
+        if stream_mode and mode != 'assistant':
+            output = ""
+            output_tokens = 0
+            begin = True
+            submode = None  # submode for langchain (chat, completion)
+
+            # get submode for langchain
+            if mode == "langchain":
+                cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
+                submode = 'chat'
+                # get available modes for langchain
+                if 'langchain' in cfg:
+                    if 'chat' in cfg['langchain']['mode']:
+                        submode = 'chat'
+                    elif 'completion' in cfg['langchain']['mode']:
+                        submode = 'completion'
+
+            # read stream
+            try:
+                self.window.log("Reading stream...")  # log
+                for chunk in ctx.stream:
+                    # if force stop then break
+                    if self.window.controller.input.force_stop:
+                        break
+
+                    response = None
+                    if mode == "chat" or mode == "vision" or mode == "assistant":
+                        if chunk.choices[0].delta.content is not None:
+                            response = chunk.choices[0].delta.content
+                    elif mode == "completion":
+                        if chunk.choices[0].text is not None:
+                            response = chunk.choices[0].text
+
+                    # langchain can provide different modes itself
+                    elif mode == "langchain":
+                        if submode == 'chat':
+                            # if chat model response is object
+                            if chunk.content is not None:
+                                response = chunk.content
+                        elif submode == 'completion':
+                            # if completion response is string
+                            if chunk is not None:
+                                response = chunk
+
+                    if response is not None:
+                        # prevent empty begin
+                        if begin and response == "":
+                            continue
+                        output += response
+                        output_tokens += 1
+                        self.append_chunk(ctx, response, begin)
+                        QApplication.processEvents()  # process events to update UI
+                        self.window.controller.ui.update_tokens()  # update UI
+                        begin = False
+
+            except Exception as e:
+                # debug
+                # self.window.log("Stream error: {}".format(e))  # log
+                # print("Error in stream: " + str(e))
+                # self.window.ui.dialogs.alert(str(e))
+                pass
+
+            self.append("\n")  # append EOL
+            self.window.log("End of stream.")  # log
+
+            # update ctx
+            if ctx is not None:
+                ctx.output = output
+                ctx.set_tokens(ctx.input_tokens, output_tokens)
+
+            # --- end of stream mode ---
+
+        # apply plugins
+        if ctx is not None:
+            # dispatch event
+            event = Event('ctx.after')
+            event.ctx = ctx
+            self.window.dispatch(event)
+
+        # log
+        if ctx is not None:
+            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
+            self.window.log("Appending output to chat window...")
+
+            # only append output if not in async stream mode, TODO: plugin output add
+            if not stream_mode:
+                self.append_output(ctx)
+
+            self.handle_complete(ctx)
+
+    def handle_complete(self, ctx):
+        """
+        Handle completed context
+
+        :param ctx: ContextItem
+        """
+        # save context
+        mode = self.window.config.get('mode')
+        self.window.app.context.post_update(mode)  # post update context, store last mode, etc.
+        self.window.app.context.store()
+        self.window.controller.context.update_ctx()  # update current ctx info
+        self.window.set_status(
+            trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
+
+        # store history (output)
+        if self.window.config.get('store_history') \
+                and ctx.output is not None \
+                and ctx.output.strip() != "":
+            self.window.app.history.save(ctx.output)

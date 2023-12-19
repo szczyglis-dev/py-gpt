@@ -68,66 +68,6 @@ class Input:
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
 
-    def toggle_stream(self, value):
-        """
-        Toggle stream
-
-        :param value: value of the checkbox
-        """
-        self.window.config.set('stream', value)
-
-    def toggle_cmd(self, value):
-        """
-        Toggle cmd enabled
-
-        :param value: value of the checkbox
-        """
-        self.window.config.set('cmd', value)
-
-    def toggle_send_clear(self, value):
-        """
-        Toggle send clear
-
-        :param value: value of the checkbox
-        """
-        self.window.config.set('send_clear', value)
-
-    def toggle_send_shift(self, value):
-        """
-        Toggle send with shift
-
-        :param value: value of the checkbox
-        """
-        self.window.config.set('send_mode', value)
-
-    def lock_input(self):
-        """
-        Lock input
-        """
-        self.locked = True
-        self.window.ui.nodes['input.send_btn'].setEnabled(False)
-        self.window.ui.nodes['input.stop_btn'].setVisible(True)
-
-    def unlock_input(self):
-        """
-        Unlock input
-        """
-        self.locked = False
-        self.window.ui.nodes['input.send_btn'].setEnabled(True)
-        self.window.ui.nodes['input.stop_btn'].setVisible(False)
-
-    def stop(self):
-        """
-        Stop input
-        """
-        event = Event('audio.input.toggle', {"value": False})
-        self.window.controller.assistant_thread.force_stop = True
-        self.window.dispatch(event)  # stop audio input
-        self.force_stop = True
-        self.window.app.gpt.stop()
-        self.unlock_input()
-        self.generating = False
-
     def send_text(self, text):
         """
         Send text to GPT
@@ -190,7 +130,8 @@ class Input:
             if self.window.config.get('assistant_thread') is None:
                 try:
                     self.window.set_status(trans('status.starting'))
-                    self.window.config.set('assistant_thread', self.window.controller.assistant_thread.create_thread())
+                    self.window.config.set('assistant_thread',
+                                           self.window.controller.assistant_thread.create_thread())
                 except Exception as e:
                     print(e)
                     self.window.ui.dialogs.alert(str(e))
@@ -309,7 +250,7 @@ class Input:
 
             # handle response (if no assistant mode)
             if mode != "assistant":
-                self.handle_response(ctx, mode, stream_mode)
+                self.window.controller.output.handle_response(ctx, mode, stream_mode)
 
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
@@ -319,159 +260,14 @@ class Input:
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
-            self.handle_commands(ctx)
+            self.window.controller.output.handle_commands(ctx)
             self.unlock_input()
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.config.get('ctx.auto_summary'):
-            self.handle_ctx_name(ctx)
+            self.window.controller.output.handle_ctx_name(ctx)
 
         return ctx
-
-    def handle_ctx_name(self, ctx):
-        """
-        Handle context name (summarize input and output)
-
-        :param ctx: ContextItem
-        """
-        if ctx is not None:
-            if not self.window.app.context.is_ctx_initialized():
-                current = self.window.app.context.current_ctx
-                title = self.window.app.gpt.prepare_ctx_name(ctx)
-                if title is not None and title != "":
-                    self.window.controller.context.update_name(current, title)
-
-    def handle_commands(self, ctx):
-        """
-        Handle plugin commands
-
-        :param ctx: ContextItem
-        """
-        if ctx is not None and self.window.config.get('cmd'):
-            cmds = self.window.app.command.extract_cmds(ctx.output)
-            self.window.log("Executing commands...")
-            self.window.set_status("Executing commands...")
-            self.window.controller.plugins.apply_cmds(ctx, cmds)
-            self.window.set_status("")
-
-    def handle_response(self, ctx, mode, stream_mode=False):
-        """
-        Handle response from LLM
-
-        :param ctx: ContextItem
-        :param mode: mode
-        :param stream_mode: async stream mode
-        """
-        # if async stream mode
-        if stream_mode and mode != 'assistant':
-            output = ""
-            output_tokens = 0
-            begin = True
-            submode = None  # submode for langchain (chat, completion)
-
-            # get submode for langchain
-            if mode == "langchain":
-                cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
-                submode = 'chat'
-                # get available modes for langchain
-                if 'langchain' in cfg:
-                    if 'chat' in cfg['langchain']['mode']:
-                        submode = 'chat'
-                    elif 'completion' in cfg['langchain']['mode']:
-                        submode = 'completion'
-
-            # read stream
-            try:
-                self.window.log("Reading stream...")  # log
-                for chunk in ctx.stream:
-                    # if force stop then break
-                    if self.force_stop:
-                        break
-
-                    response = None
-                    if mode == "chat" or mode == "vision" or mode == "assistant":
-                        if chunk.choices[0].delta.content is not None:
-                            response = chunk.choices[0].delta.content
-                    elif mode == "completion":
-                        if chunk.choices[0].text is not None:
-                            response = chunk.choices[0].text
-
-                    # langchain can provide different modes itself
-                    elif mode == "langchain":
-                        if submode == 'chat':
-                            # if chat model response is object
-                            if chunk.content is not None:
-                                response = chunk.content
-                        elif submode == 'completion':
-                            # if completion response is string
-                            if chunk is not None:
-                                response = chunk
-
-                    if response is not None:
-                        # prevent empty begin
-                        if begin and response == "":
-                            continue
-                        output += response
-                        output_tokens += 1
-                        self.window.controller.output.append_chunk(ctx, response, begin)
-                        QApplication.processEvents()  # process events to update UI
-                        self.window.controller.ui.update_tokens()  # update UI
-                        begin = False
-
-            except Exception as e:
-                # debug
-                # self.window.log("Stream error: {}".format(e))  # log
-                # print("Error in stream: " + str(e))
-                # self.window.ui.dialogs.alert(str(e))
-                pass
-
-            self.window.controller.output.append("\n")  # append EOL
-            self.window.log("End of stream.")  # log
-
-            # update ctx
-            if ctx is not None:
-                ctx.output = output
-                ctx.set_tokens(ctx.input_tokens, output_tokens)
-
-            # --- end of stream mode ---
-
-        # apply plugins
-        if ctx is not None:
-            # dispatch event
-            event = Event('ctx.after')
-            event.ctx = ctx
-            self.window.dispatch(event)
-
-        # log
-        if ctx is not None:
-            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
-            self.window.log("Appending output to chat window...")
-
-            # only append output if not in async stream mode, TODO: plugin output add
-            if not stream_mode:
-                self.window.controller.output.append_output(ctx)
-
-            self.handle_complete(ctx)
-
-    def handle_complete(self, ctx):
-        """
-        Handle completed context
-
-        :param ctx: ContextItem
-        """
-        # save context
-        mode = self.window.config.get('mode')
-        self.window.app.context.post_update(mode)  # post update context, store last mode, etc.
-        self.window.app.context.store()
-        self.window.controller.context.update_ctx()  # update current ctx info
-        self.window.set_status(
-            trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
-
-        # store history (output)
-        if self.window.config.get('store_history') \
-                and ctx.output is not None \
-                and ctx.output.strip() != "":
-            self.window.app.history.save(ctx.output)
 
     def user_send(self, text=None):
         """
@@ -569,7 +365,7 @@ class Input:
             if self.window.config.get('mode') == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
-                ctx = self.window.controller.input.send_text(text)
+                ctx = self.send_text(text)
         else:
             # reset status if input is empty
             self.window.statusChanged.emit("")
@@ -592,7 +388,7 @@ class Input:
 
             # if reply from commands then send reply (as response JSON)
             if ctx.reply:
-                self.window.controller.input.send(json.dumps(ctx.results))
+                self.send(json.dumps(ctx.results))
 
             self.generating = False
             self.window.controller.ui.update()  # update UI
@@ -600,6 +396,66 @@ class Input:
 
         self.generating = False  # unlock as not generating
         self.window.controller.ui.update()  # update UI
+
+    def toggle_stream(self, value):
+        """
+        Toggle stream
+
+        :param value: value of the checkbox
+        """
+        self.window.config.set('stream', value)
+
+    def toggle_cmd(self, value):
+        """
+        Toggle cmd enabled
+
+        :param value: value of the checkbox
+        """
+        self.window.config.set('cmd', value)
+
+    def toggle_send_clear(self, value):
+        """
+        Toggle send clear
+
+        :param value: value of the checkbox
+        """
+        self.window.config.set('send_clear', value)
+
+    def toggle_send_shift(self, value):
+        """
+        Toggle send with shift
+
+        :param value: value of the checkbox
+        """
+        self.window.config.set('send_mode', value)
+
+    def lock_input(self):
+        """
+        Lock input
+        """
+        self.locked = True
+        self.window.ui.nodes['input.send_btn'].setEnabled(False)
+        self.window.ui.nodes['input.stop_btn'].setVisible(True)
+
+    def unlock_input(self):
+        """
+        Unlock input
+        """
+        self.locked = False
+        self.window.ui.nodes['input.send_btn'].setEnabled(True)
+        self.window.ui.nodes['input.stop_btn'].setVisible(False)
+
+    def stop(self):
+        """
+        Stop input
+        """
+        event = Event('audio.input.toggle', {"value": False})
+        self.window.controller.assistant_thread.force_stop = True
+        self.window.dispatch(event)  # stop audio input
+        self.force_stop = True
+        self.window.app.gpt.stop()
+        self.unlock_input()
+        self.generating = False
 
     def append(self, text):
         """
