@@ -57,7 +57,7 @@ class Command:
         """
         ctx = event.ctx
         if ctx.reply:
-            self.window.controller.input.send(json.dumps(ctx.results))
+            self.window.controller.input.send(json.dumps(ctx.results), force=True)
         self.thread_started = False
 
     @Slot()

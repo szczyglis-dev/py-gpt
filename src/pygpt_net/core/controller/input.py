@@ -287,12 +287,12 @@ class Input:
         text = event.data['value']
         self.send(text)
 
-    def send(self, text=None):
+    def send(self, text=None, force=False):
         """
         Send input wrapper
         :param text: input text
         """
-        self.send_execute(text)
+        self.send_execute(text, force)
 
     def start_thread(self, text):
         """
@@ -305,14 +305,14 @@ class Input:
         self.thread.start()
         self.thread_started = True
 
-    def send_execute(self, text=None):
+    def send_execute(self, text=None, force=False):
         """
         Send input text to API
 
         :param text: input text
         """
         # check if input is not locked
-        if self.locked:
+        if self.locked and not force:
             return
 
         self.generating = True  # set generating flag
