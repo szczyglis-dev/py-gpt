@@ -236,7 +236,7 @@ class Assistants:
         """
         name = id
         try:
-            remote_data = self.window.app.gpt.assistant_file_info(id)
+            remote_data = self.window.app.gpt_assistants.file_info(id)
             if remote_data is not None:
                 name = remote_data.filename
         except Exception as e:

@@ -6,20 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 01:20:00                  #
+# Updated Date: 2023.12.19 02:20:00                  #
 # ================================================== #
 import base64
-import json
 import os
 import re
-import uuid
-from uuid import uuid4
 
 from openai import OpenAI
 from .tokens import num_tokens_prompt, num_tokens_extra, num_tokens_from_messages, num_tokens_completion, \
     num_tokens_only
 from .context import ContextItem
-from .assistants import AssistantItem
 
 
 class Gpt:
@@ -37,7 +33,6 @@ class Gpt:
         self.attachments = {}
         self.thread_id = None  # assistant thread id
         self.assistant_id = None  # assistant id
-        self.file_ids = []  # file ids
 
     def init(self):
         pass
@@ -314,7 +309,8 @@ class Gpt:
         tokens += num_tokens_extra(model)  # extra tokens (required for output)
         return tokens
 
-    def quick_call(self, prompt, sys_prompt, append_context=False, max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):
+    def quick_call(self, prompt, sys_prompt, append_context=False,
+                   max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):
         """
         Call OpenAI API with custom prompt
 
@@ -324,7 +320,7 @@ class Gpt:
         :param max_tokens: max output tokens
         :param model: model name
         :param temp: temperature
-        :return: response text
+        :return: response content
         :rtype: str
         """
         client = self.get_client()
@@ -348,338 +344,7 @@ class Gpt:
             )
             return response.choices[0].message.content
         except Exception as e:
-            print("Error in custom call: " + str(e))
-
-    def assistant_thread_create(self):
-        """
-        Create thread
-
-        :return: thread ID
-        :rtype: str
-        """
-        client = self.get_client()
-        thread = client.beta.threads.create()
-        if thread is not None:
-            return thread.id
-
-    def assistant_thread_delete(self, id):
-        """
-        Delete thread
-
-        :param id: thread ID
-        :return: thread ID
-        :rtype: str
-        """
-        client = self.get_client()
-        response = client.beta.threads.delete(id)
-        if response is not None:
-            return response.id
-
-    def assistant_msg_send(self, id, text):
-        """
-        Send message to thread
-
-        :param id: thread ID
-        :param text: message text
-        :return: message
-        """
-        client = self.get_client()
-        additional_args = {}
-        ids = []
-        for file_id in self.file_ids:
-            ids.append(file_id)
-        if ids:
-            additional_args['file_ids'] = ids
-
-        message = client.beta.threads.messages.create(
-            id,
-            role="user",
-            content=text,
-            **additional_args
-        )
-        if message is not None:
-            return message
-
-    def assistant_msg_list(self, thread_id):
-        """
-        Get messages from thread
-
-        :param thread_id: thread ID
-        :return: messages
-        :rtype: list
-        """
-        client = self.get_client()
-        thread_messages = client.beta.threads.messages.list(thread_id)
-        return thread_messages.data
-
-    def assistant_file_info(self, file_id):
-        """
-        Get file info
-
-        :param file_id: file ID
-        :return: file info
-        """
-        client = self.get_client()
-        return client.files.retrieve(file_id)
-
-    def assistant_file_download(self, file_id, path):
-        """
-        Download file
-
-        :param file_id: file ID
-        :param path: path to save file
-        """
-        client = self.get_client()
-        content = client.files.retrieve_content(file_id)
-        with open(path, 'wb',) as f:
-            f.write(content.encode())
-            f.close()
-
-    def assistant_run_create(self, thread_id, assistant_id, instructions=None):
-        """
-        Create assistant run
-
-        :param thread_id: tread ID
-        :param assistant_id: assistant ID
-        :param instructions: instructions
-        :return: Run
-        """
-        client = self.get_client()
-        additional_args = {}
-        if instructions is not None and instructions != "":
-            additional_args['instructions'] = instructions
-        if self.window.config.get('model') is not None:
-            additional_args['model'] = self.window.config.get('model')
-
-        run = client.beta.threads.runs.create(
-            thread_id=thread_id,
-            assistant_id=assistant_id,
-            **additional_args
-        )
-        if run is not None:
-            return run
-
-    def assistant_run_status(self, thread_id, run_id):
-        """
-        Get assistant run status
-
-        :param thread_id: thread ID
-        :param run_id: Run ID
-        :return: Run status
-        """
-        client = self.get_client()
-        run = client.beta.threads.runs.retrieve(
-            thread_id=thread_id,
-            run_id=run_id
-        )
-        if run is not None:
-            return run.status
-
-    def assistant_file_upload(self, id, path, purpose="assistants"):
-        """
-        Upload file to assistant
-
-        :param id: assistant ID
-        :param path: file path
-        :param purpose: file purpose
-        :return: file ID
-        :rtype: str
-        """
-        client = self.get_client()
-
-        if not os.path.exists(path):
-            return None
-
-        # upload file
-        result = client.files.create(
-            file=open(path, "rb"),
-            purpose=purpose,
-        )
-
-        # attach to assistant
-        if result is not None:
-            file_id = result.id
-            assistant_file = client.beta.assistants.files.create(
-                assistant_id=id,
-                file_id=file_id,
-            )
-            if assistant_file is not None:
-                return assistant_file.id
-
-    def assistant_file_delete(self, assistant_id, file_id):
-        """
-        Delete file from assistant
-
-        :param assistant_id: assistant ID
-        :param file_id: file ID
-        :return: file ID
-        :rtype: str
-        """
-        client = self.get_client()
-        deleted_file = client.beta.assistants.files.delete(
-            assistant_id=assistant_id,
-            file_id=file_id
-        )
-        if deleted_file is not None:
-            if deleted_file is not None:
-                return deleted_file.id
-
-    def assistant_file_list(self, assistant_id):
-        """
-        Get files from assistant
-
-        :param assistant_id: assistant ID
-        :return: files list
-        :rtype: list
-        """
-        client = self.get_client()
-        assistant_files = client.beta.assistants.files.list(
-            assistant_id=assistant_id,
-            limit=100
-        )
-        if assistant_files is not None:
-            return assistant_files.data
-
-    def assistant_create(self, assistant):
-        """
-        Create assistant
-
-        :param assistant: assistant object
-        :return: assistant object
-        :rtype: Assistant
-        """
-        client = self.get_client()
-        tools = self.assistant_get_tools(assistant)
-        result = client.beta.assistants.create(
-            instructions=assistant.instructions,
-            description=assistant.description,
-            name=assistant.name,
-            tools=tools,
-            model=assistant.model,
-        )
-        if result is not None:
-            assistant.id = result.id
-            return assistant
-
-    def assistant_update(self, assistant):
-        """
-        Update assistant
-
-        :param assistant: assistant object
-        :return: assistant object
-        :rtype: Assistant
-        """
-        client = self.get_client()
-        tools = self.assistant_get_tools(assistant)
-        result = client.beta.assistants.update(
-            assistant.id,
-            instructions=assistant.instructions,
-            description=assistant.description,
-            name=assistant.name,
-            tools=tools,
-            model=assistant.model,
-        )
-        if result is not None:
-            assistant.id = result.id
-            return assistant
-
-    def assistant_delete(self, id):
-        """
-        Delete assistant
-
-        :param id: assistant ID
-        :return: assistant ID
-        :rtype: str
-        """
-        client = self.get_client()
-        response = client.beta.assistants.delete(id)
-        if response is not None:
-            return response.id
-
-    def assistant_get_files(self, id, limit=100):
-        """
-        Get assistant files
-
-        :param id: assistant ID
-        :param limit: limit
-        :return: files list
-        :rtype: list
-        """
-        client = self.get_client()
-        return client.beta.assistants.files.list(
-            assistant_id=id,
-            limit=limit,
-        )
-
-    def assistant_import(self, items, order="asc", limit=100):
-        """
-        Import assistants from API
-
-        :param items: items
-        :param order: order
-        :param limit: limit
-        :return: items dict
-        :rtype: dict
-        """
-        client = self.get_client()
-        assistants = client.beta.assistants.list(
-            order=order,
-            limit=limit,
-        )
-        if assistants is not None:
-            for remote in assistants.data:
-                id = remote.id
-                if id not in items:
-                    items[id] = AssistantItem()
-                items[id].id = id
-                items[id].name = remote.name
-                items[id].description = remote.description
-                items[id].instructions = remote.instructions
-                items[id].model = remote.model
-                items[id].meta = remote.metadata
-
-                # check if assistant tool is bool
-                if isinstance(items[id].tools['function'], bool):
-                    items[id].tools['function'] = []
-
-                # append files
-                for file_id in remote.file_ids:
-                    if not items[id].has_file(file_id):
-                        items[id].add_file(file_id)
-                for tool in remote.tools:
-                    if tool.type == "function":
-                        # pack params to JSON string
-                        params = ''
-                        try:
-                            params = json.dumps(tool.function.parameters)
-                        except:
-                            pass
-                        items[id].add_function(tool.function.name, params, tool.function.description)
-                    else:
-                        items[id].tools[tool.type] = True
-        return items
-
-    def assistant_get_tools(self, assistant):
-        """
-        Get assistant tools
-
-        :param assistant: assistant
-        :return: tools list
-        :rtype: list
-        """
-        tools = []
-        if assistant.has_tool("code_interpreter"):
-            tools.append({"type": "code_interpreter"})
-        if assistant.has_tool("retrieval"):
-            tools.append({"type": "retrieval"})
-        if assistant.has_functions():
-            functions = assistant.get_functions()
-            for function in functions:
-                if str(function['name']).strip() == '' or function['name'] is None:
-                    continue
-                params = json.loads(function['params'])  # unpack JSON from string
-                tools.append({"type": "function", "function": {"name": function['name'], "parameters": params, "description": function['desc']}})
-        return tools
+            print("Error in GPT custom call: " + str(e))
 
     def call(self, prompt, ctx=None, stream_mode=False):
         """
@@ -711,10 +376,11 @@ class Gpt:
         elif mode == "vision":
             response = self.vision(prompt, max_tokens, stream_mode)
         elif mode == "assistant":
-            response = self.assistant_msg_send(self.thread_id, prompt)
+            response = self.window.app.gpt_assistants.msg_send(self.thread_id, prompt)
             if response is not None:
                 ctx.msg_id = response.id
-                run = self.assistant_run_create(self.thread_id, self.assistant_id, self.system_prompt)
+                run = self.window.app.gpt_assistants.run_create(self.thread_id, self.assistant_id,
+                                                                self.system_prompt)
                 if run is not None:
                     ctx.run_id = run.id
             self.window.app.context.add(ctx)
@@ -728,7 +394,7 @@ class Gpt:
                 ctx.set_input(prompt, self.user_name)
 
             ctx.stream = response
-            ctx.set_output("", self.ai_name)
+            ctx.set_output("", self.ai_name)  # set empty output
             ctx.input_tokens = self.input_tokens  # from global tokens calculation
             self.window.app.context.add(ctx)
             return ctx
@@ -738,7 +404,7 @@ class Gpt:
 
         # check for errors
         if "error" in response:
-            print("Error: " + str(response["error"]))
+            print("Error in GPT response: " + str(response["error"]))
             return None
 
         # get output
@@ -780,11 +446,15 @@ class Gpt:
         text += "User: " + str(ctx.input) + "\nAI Assistant: " + str(ctx.output)
 
         # custom values
-        if self.window.config.get('ctx.auto_summary.system') is not None and self.window.config.get('ctx.auto_summary.system') != "":
+        if self.window.config.get('ctx.auto_summary.system') is not None \
+                and self.window.config.get('ctx.auto_summary.system') != "":
             sys_prompt = self.window.config.get('ctx.auto_summary.system')
-        if self.window.config.get('ctx.auto_summary.prompt') is not None and self.window.config.get('ctx.auto_summary.prompt') != "":
-            text = self.window.config.get('ctx.auto_summary.prompt').replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
-        if self.window.config.get('ctx.auto_summary.model') is not None and self.window.config.get('ctx.auto_summary.model') != "":
+        if self.window.config.get('ctx.auto_summary.prompt') is not None \
+                and self.window.config.get('ctx.auto_summary.prompt') != "":
+            text = self.window.config.get('ctx.auto_summary.prompt').\
+                replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
+        if self.window.config.get('ctx.auto_summary.model') is not None \
+                and self.window.config.get('ctx.auto_summary.model') != "":
             model = self.window.config.get('ctx.auto_summary.model')
 
         # call OpenAI API

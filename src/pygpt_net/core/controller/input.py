@@ -164,7 +164,7 @@ class Input:
         mode = self.window.config.get('mode')
 
         # clear
-        self.window.app.gpt.file_ids = []  # file ids
+        self.window.app.gpt_assistants.file_ids = []  # file ids
 
         # upload new attachments if assistant mode
         if mode == 'assistant':
@@ -178,7 +178,7 @@ class Input:
                     is_upload = True
                     self.window.set_status(trans('status.uploading'))
                     num_uploaded = self.window.controller.assistant_files.upload_attachments(mode, attachments)
-                    self.window.app.gpt.file_ids = self.window.app.attachments.get_ids(mode)
+                    self.window.app.gpt_assistants.file_ids = self.window.app.attachments.get_ids(mode)
                 # show uploaded status
                 if is_upload and num_uploaded > 0:
                     self.window.set_status(trans('status.uploaded'))

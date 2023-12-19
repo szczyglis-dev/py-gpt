@@ -248,7 +248,7 @@ class Attachment:
         """
         try:
             # get file info from assistant API
-            data = self.window.app.gpt.assistant_file_info(file_id)
+            data = self.window.app.gpt_assistants.file_info(file_id)
             if data is None:
                 return
 
@@ -263,7 +263,7 @@ class Attachment:
                 path = os.path.join(self.window.config.path, 'output', filename)
 
             # download file
-            self.window.app.gpt.assistant_file_download(file_id, path)
+            self.window.app.gpt_assistants.file_download(file_id, path)
             return path  # return path to downloaded file
         except Exception as e:
             print(e)
