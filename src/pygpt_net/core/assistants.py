@@ -178,7 +178,7 @@ class Assistants:
         files = assistant.files
         return files[id]
 
-    def import_files(self, assistant, data):
+    def import_files(self, assistant, data, import_data=True):
         """
         Import files from remote API
 
@@ -195,11 +195,16 @@ class Assistants:
             remote_ids.append(id)
             name = ""
             path = ""
+
+            # if file with this ID already in assistant.files
             if id in assistant.files:
                 if 'name' in assistant.files[id] and assistant.files[id]['name'] != '':
                     name = assistant.files[id]['name']
                 else:
                     name = id
+                    # import name from remote
+                    if import_data:
+                        name = self.import_filenames(id)
                 if 'path' in assistant.files[id]:
                     path = assistant.files[id]['path']
             elif id in assistant.attachments:
@@ -207,6 +212,8 @@ class Assistants:
                 path = assistant.attachments[id].path
             else:
                 name = id
+                if import_data:
+                    name = self.import_filenames(id)
                 path = None
             assistant.files[id] = {
                 'id': id,
@@ -218,6 +225,23 @@ class Assistants:
         for id in list(assistant.files.keys()):
             if id not in remote_ids:
                 del assistant.files[id]
+
+    def import_filenames(self, id):
+        """
+        Import filenames from remote API
+
+        :param id: file id
+        :return: filename
+        :rtype: str
+        """
+        name = id
+        try:
+            remote_data = self.window.app.gpt.assistant_file_info(id)
+            if remote_data is not None:
+                name = remote_data.filename
+        except Exception as e:
+            print(e)
+        return name
 
     def load(self):
         """Load assistants from file"""

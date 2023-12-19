@@ -482,6 +482,10 @@ class AttachmentUploadedSelectMenu(SelectMenu):
         :param event: context menu event
         """
         actions = {}
+        actions['download'] = QAction(QIcon.fromTheme("edit-download"), trans('action.download'), self)
+        actions['download'].triggered.connect(
+            lambda: self.action_download(event))
+
         actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
         actions['rename'].triggered.connect(
             lambda: self.action_rename(event))
@@ -491,6 +495,7 @@ class AttachmentUploadedSelectMenu(SelectMenu):
             lambda: self.action_delete(event))
 
         menu = QMenu(self)
+        # menu.addAction(actions['download'])  # not allowed for download files with purpose: assistants :(
         menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])
 
@@ -510,6 +515,17 @@ class AttachmentUploadedSelectMenu(SelectMenu):
         idx = item.row()
         if idx >= 0:
             self.window.controller.assistant_files.rename_file(idx)
+
+    def action_download(self, event):
+        """
+        Download action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.assistant_files.download_file(idx)
 
     def action_delete(self, event):
         """

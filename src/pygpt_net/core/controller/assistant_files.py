@@ -75,6 +75,25 @@ class AssistantFiles:
             print(e)
             self.window.ui.dialogs.alert(str(e))
 
+    def download_file(self, idx):
+        """
+        Download file
+
+        :param idx: selected attachment index
+        """
+        id = self.window.config.get('assistant')
+        if id is None or id == "":
+            return
+        assistant = self.window.app.assistants.get_by_id(id)
+        if assistant is None:
+            return
+
+        # get attachment ID by index
+        file_id = self.window.app.assistants.get_file_id_by_idx(assistant, idx)
+
+        # download file
+        self.window.controller.attachment.download(file_id)
+
     def sync_files(self, force=False):
         """
         Sync files with API
