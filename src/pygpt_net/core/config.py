@@ -12,7 +12,6 @@
 import datetime
 import os
 import re
-import platform
 from pathlib import Path
 import shutil
 import json
@@ -25,8 +24,13 @@ class Config:
     TYPE_FLOAT = 2
     TYPE_BOOL = 3
 
-    def __init__(self):
-        """Config handler"""
+    def __init__(self, window=None):
+        """
+        Config handler
+
+        :param window: Window instance
+        """
+        self.window = window
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
         self.models = {}
@@ -96,8 +100,8 @@ class Config:
         if not self.initialized:
             if all:
                 v = self.get_version()
-                os = self.get_os()
-                architecture = self.get_architecture()
+                os = self.window.platform.get_os()
+                architecture = self.window.platform.get_architecture()
                 print("PyGPT v{} ({}, {})".format(v, os, architecture))
                 print("Author: Marcin Szczyglinski")
                 print("GitHub: https://github.com/szczyglis-dev/py-gpt")
@@ -191,7 +195,7 @@ class Config:
             self.data = json.load(f)
             self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             f.close()
-            if log:
+            if log:  # TODO: move to self
                 print("Loaded config: {}".format(path))
         except Exception as e:
             print(e)
@@ -657,51 +661,6 @@ class Config:
         """
         if model in self.models:
             return self.models[model]
-
-    def get_os(self):
-        """
-        Return OS name
-
-        :return: OS name
-        :rtype: str
-        """
-        return platform.system()
-
-    def get_architecture(self):
-        """
-        Return platform architecture
-
-        :return: platform architecture
-        :rtype: str
-        """
-        return platform.machine()
-
-    def is_linux(self):
-        """
-        Return True if OS is Linux
-
-        :return: true if OS is Linux
-        :rtype: bool
-        """
-        return self.get_os() == 'Linux'
-
-    def is_mac(self):
-        """
-        Return True if OS is MacOS
-
-        :return: True if OS is MacOS
-        :rtype: bool
-        """
-        return self.get_os() == 'Darwin'
-
-    def is_windows(self):
-        """
-        Return True if OS is Windows
-
-        :return: true if OS is Windows
-        :rtype: bool
-        """
-        return self.get_os() == 'Windows'
 
     def append_meta(self):
         """

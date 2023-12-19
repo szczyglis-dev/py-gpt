@@ -19,6 +19,7 @@ from qt_material import QtStyleTools
 from .config import Config
 from .container import Container
 from .controller.main import Controller
+from .platform import Platform
 from .ui.main import UI
 from .utils import get_app_meta
 
@@ -51,10 +52,11 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # load version info
         self.meta = get_app_meta()
-        self.data = {}
+        self.platform = Platform(self)
+        self.platform.init()
 
         # setup config
-        self.config = Config()
+        self.config = Config(self)
         self.config.init(True, True)
 
         # setup service container
@@ -207,6 +209,8 @@ class Launcher:
 
     def init(self):
         """Initialize app"""
+        Platform.prepare()  # setup platform specific options
+
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
         self.app.setWindowIcon(QIcon(os.path.join(self.window.config.get_root_path(), 'data', 'icon.ico')))

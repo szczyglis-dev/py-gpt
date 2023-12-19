@@ -73,9 +73,10 @@ class Contexts:
         self.window.ui.nodes['contexts.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['contexts.label'])
+        # layout.addWidget(self.window.ui.nodes['contexts.label'])
         layout.addWidget(self.window.ui.nodes['contexts.new'])
         layout.addWidget(self.window.ui.nodes[id])
+        layout.setContentsMargins(0, 0, 0, 0)
 
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])

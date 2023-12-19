@@ -64,6 +64,7 @@ class Toolbox:
         self.window.ui.nodes['assistants.widget'] = QWidget()
         self.window.ui.nodes['assistants.widget'].setLayout(assistants)
         self.window.ui.nodes['assistants.widget'].setMinimumHeight(150)
+        # self.window.ui.nodes['assistants.widget'].setMinimumWidth(40)
 
         # initial prompt text
         prompt = self.setup_prompt()
@@ -305,6 +306,7 @@ class Toolbox:
 
         self.window.ui.nodes[id] = AssistantSelectMenu(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.assistant.assistant_change_locked
+        self.window.ui.nodes[id].setMinimumWidth(40)
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[id])

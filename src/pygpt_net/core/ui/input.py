@@ -115,31 +115,40 @@ class Input:
         input_tab = QWidget()
         input_layout = QVBoxLayout()
         input_layout.addWidget(self.window.ui.nodes['input'])
+        input_layout.setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['input'].setMinimumHeight(50)
         input_tab.setLayout(input_layout)
 
         # attachments tab
         attachments_layout = self.attachments.setup()
         attachment_uploaded_layout = self.attachments_uploaded.setup()
 
+        input_tab_minimum_height = 80
+        files_tabs_min_height = 120
+
         # files tab
         files_tab = QWidget()
         files_layout = QVBoxLayout()
         files_layout.addLayout(attachments_layout)
         files_tab.setLayout(files_layout)
+        files_tab.setMinimumHeight(files_tabs_min_height)
 
         # files uploaded tab
         files_uploaded_tab = QWidget()
         files_uploaded_layout = QVBoxLayout()
         files_uploaded_layout.addLayout(attachment_uploaded_layout)
         files_uploaded_tab.setLayout(files_uploaded_layout)
+        files_uploaded_tab.setMinimumHeight(files_tabs_min_height)
 
         # tabs (input + attachments)
         self.window.ui.tabs['input'] = QTabWidget()
+        self.window.ui.tabs['input'].setMinimumHeight(input_tab_minimum_height)
 
         # add tabs
         self.window.ui.tabs['input'].addTab(input_tab, trans('input.tab'))
         self.window.ui.tabs['input'].addTab(files_tab, trans('attachments.tab'))
         self.window.ui.tabs['input'].addTab(files_uploaded_tab, trans('attachments_uploaded.tab'))
+        self.window.ui.tabs['input'].currentChanged.connect(self.update_min_heigth)
 
         # full input layout
         layout = QVBoxLayout()
@@ -148,3 +157,13 @@ class Input:
         layout.addLayout(bottom_layout)
 
         return layout
+
+    def update_min_heigth(self):
+        idx = self.window.ui.tabs['input'].currentIndex()
+        if idx == 0:
+            self.window.ui.nodes['input'].setMinimumHeight(50)
+            self.window.ui.tabs['input'].setMinimumHeight(80)
+        else:
+            self.window.ui.nodes['input'].setMinimumHeight(120)
+            self.window.ui.tabs['input'].setMinimumHeight(180)
+
