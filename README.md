@@ -123,17 +123,21 @@ sudo apt install libxcb-cursor0
 
 If this not help then try to downgrade PySide to `PySide6-Essentials==6.4.2`:
 
-If you have a problems with audio on Linux, then try to install `libasound2` and/or `portaudio19-dev`:
-
-```commandline
-sudo apt install portaudio19-dev
-sudo apt install libasound2
-sudo apt install libasound2-data 
-sudo apt install libasound2-plugins
-```
 
 ```commandline
 pip install PySide6-Essentials==6.4.2
+```
+
+If you have a problems with audio on Linux, then try to install `portaudio19-dev` and/or `libasound2`:
+
+```commandline
+sudo apt install portaudio19-dev
+```
+
+```commandline
+sudo apt install libasound2
+sudo apt install libasound2-data 
+sudo apt install libasound2-plugins
 ```
 
 ### Running from GitHub source code
