@@ -27,6 +27,7 @@ dependencies = [
     'opencv-python>=4.8.1.78',
     'packaging>=23.0',
     'PyAudio>=0.2.14',
+    'pygame>=2.5.2',
     'pyinstaller>=5.9.0',
     'PySide6>=6.4.2',
     'PySide6-Addons>=6.4.2',
