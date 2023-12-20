@@ -453,7 +453,7 @@ class Settings:
     def open_config_dir(self):
         """Open user config directory"""
         if os.path.exists(self.window.config.path):
-            self.window.controller.files.open_in_file_manager(self.window.config.path, False)
+            self.window.controller.files.open_in_file_manager(self.window.config.path, True)
         else:
             self.window.set_status('Config directory not exists: {}'.format(self.window.config.path))
 

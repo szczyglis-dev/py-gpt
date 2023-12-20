@@ -74,7 +74,7 @@ class Files:
         """
         self.open_in_file_manager(path)
 
-    def open_in_file_manager(self, path, select=True):
+    def open_in_file_manager(self, path, select=False):
         """
         Open in file manager
 
