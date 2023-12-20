@@ -102,6 +102,7 @@ class Config:
                 v = self.get_version()
                 os = self.window.platform.get_os()
                 architecture = self.window.platform.get_architecture()
+                print("")
                 print("PyGPT v{} ({}, {})".format(v, os, architecture))
                 print("Author: Marcin Szczyglinski")
                 print("GitHub: https://github.com/szczyglis-dev/py-gpt")

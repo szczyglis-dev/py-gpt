@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.20 21:00:00                  #
 # ================================================== #
 import os
 
@@ -31,15 +31,6 @@ class Files:
         """
         # TODO: implement this
         pass
-
-    def select(self, idx):
-        """
-        Select attachment
-
-        :param idx: index
-        """
-        # TODO: check this
-        self.attachments.current = self.attachments.get_uuid_by_idx(idx)
 
     def delete(self, path, force=False):
         """
@@ -79,9 +70,28 @@ class Files:
         """
         Open in directory
 
-        :param path: path to file
+        :param path: path to file or directory
         """
-        parts = path_split = PurePath(path).parts
+        self.open_in_file_manager(path)
+
+    def open_in_file_manager(self, path, select=True):
+        """
+        Open in file manager
+
+        :param path: path to file or directory
+        :param select: select file in file manager
+        """
+        parts = PurePath(path).parts
         path_os = os.path.join(*parts)  # fix for windows \\ path separators
         if os.path.exists(path_os):
-            show_in_file_manager(path_os, True)
+            if not self.window.platform.is_snap():
+                show_in_file_manager(path_os, select)
+            else:
+                # show alert info only if running in snap
+                info = trans('alert.snap.file_manager') + "\n\n{}".format(path_os)
+                if not os.path.isdir(path_os):
+                    path_os = os.path.dirname(path_os)
+                    info = trans('alert.snap.file_manager') + "\n\n{}".format(path_os)
+                    self.window.ui.dialogs.alert(info)
+                self.window.ui.dialogs.alert(info)
+

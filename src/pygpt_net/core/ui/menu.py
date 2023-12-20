@@ -187,6 +187,10 @@ class Menu:
                                                    self.window)
         self.window.ui.menu['info.pypi'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.pypi"),
                                                 self.window)
+        """
+        self.window.ui.menu['info.snap'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.snap"),
+                                                   self.window)
+        """
         self.window.ui.menu['info.github'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.github"),
                                                   self.window)
 
@@ -200,6 +204,10 @@ class Menu:
             lambda: self.window.controller.info.goto_docs())
         self.window.ui.menu['info.pypi'].triggered.connect(
             lambda: self.window.controller.info.goto_pypi())
+        """
+        self.window.ui.menu['info.snap'].triggered.connect(
+            lambda: self.window.controller.info.goto_snap())
+        """
         self.window.ui.menu['info.github'].triggered.connect(
             lambda: self.window.controller.info.goto_github())
 
@@ -208,5 +216,6 @@ class Menu:
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.changelog'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.docs'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.pypi'])
+        # self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.website'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.github'])

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 17:00:00                  #
+# Updated Date: 2023.12.20 21:00:00                  #
 # ================================================== #
 
 import platform
@@ -24,6 +24,7 @@ class Platform:
         :param window: Window instance
         """
         self.window = window
+        self.snap_name = 'pygpt'
 
     @staticmethod
     def prepare(force_dpi=True):
@@ -87,3 +88,14 @@ class Platform:
         :rtype: bool
         """
         return self.get_os() == 'Windows'
+
+    def is_snap(self):
+        """
+        Return True if app is running as snap
+
+        :return: true if app is running as snap
+        :rtype: bool
+        """
+        return "SNAP" in os.environ \
+               and "SNAP_NAME" in os.environ \
+               and os.environ["SNAP_NAME"] == self.snap_name

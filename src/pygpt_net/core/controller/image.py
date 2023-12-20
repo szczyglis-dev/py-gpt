@@ -6,14 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.20 18:00:00                  #
 # ================================================== #
 
 import os
 import shutil
 import webbrowser
 from pathlib import PurePath
-from showinfm import show_in_file_manager
 
 from PySide6 import QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog
@@ -142,9 +141,7 @@ class Image:
         :param path: path to image
         """
         if os.path.exists(path):
-            parts = PurePath(path).parts
-            path_os = os.path.join(*parts)  # fix for windows \\ path separators
-            show_in_file_manager(path_os)
+            self.window.controller.files.open_in_file_manager(path)
 
     def img_action_save(self, path):
         """

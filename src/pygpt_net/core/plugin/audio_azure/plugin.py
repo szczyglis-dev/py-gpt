@@ -6,16 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.20 18:00:00                  #
 # ================================================== #
-
+import os
 import threading
 
 import requests
-from PySide6.QtCore import QObject, Signal
-from pydub import AudioSegment
-from pydub.playback import _play_with_simpleaudio
-import io
+from PySide6.QtCore import QObject
+import pygame
 
 from ..base_plugin import BasePlugin
 
@@ -122,6 +120,7 @@ class Plugin(BasePlugin):
             return
 
         text = ctx.output
+        path = os.path.join(self.window.config.path, 'output.mp3')
         try:
             if text is not None and len(text) > 0:
                 lang = self.window.config.get('lang')
@@ -130,7 +129,7 @@ class Plugin(BasePlugin):
                     voice = self.get_option_value("voice_pl")
                 elif lang == "en":
                     voice = self.get_option_value("voice_en")
-                tts = TTS(self, api_key, region, voice, text)
+                tts = TTS(self, api_key, region, voice, text, path)
                 self.thread = threading.Thread(target=tts.run)
                 self.thread.start()
         except Exception as e:
@@ -175,9 +174,8 @@ class Plugin(BasePlugin):
 
 
 class TTS(QObject):
-    finished = Signal(object)
 
-    def __init__(self, plugin, subscription_key, region, voice, text):
+    def __init__(self, plugin, subscription_key, region, voice, text, path):
         """
         Text to speech
 
@@ -192,6 +190,7 @@ class TTS(QObject):
         self.region = region
         self.text = text
         self.voice = voice
+        self.path = path
 
     def run(self):
         """Run TTS thread"""
@@ -204,23 +203,26 @@ class TTS(QObject):
             "Content-Type": "application/ssml+xml",
             "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3"
         }
-        body = f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
+        body = f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' " \
+               f"xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
         response = requests.post(url, headers=headers, data=body.encode('utf-8'))
         if response.status_code == 200:
             # self.plugin.set_status('Saying...')
             # self.plugin.show_stop_button()
-            audio_file = response.content
-            self.plugin.audio = AudioSegment.from_file(io.BytesIO(audio_file), format="mp3")
-            self.plugin.playback = _play_with_simpleaudio(self.plugin.audio)
+            with open(self.path, "wb") as file:
+                file.write(response.content)
+
+            pygame.mixer.init()
+            self.plugin.playback = pygame.mixer.Sound(self.path)
+            self.plugin.playback.play()
+
             self.plugin.set_status('')
             # self.plugin.hide_stop_button()
-            self.finished.emit(audio_file)
         else:
             self.plugin.set_status('')
             # self.plugin.hide_stop_button()
             error_msg = f"Error: {response.status_code} - {response.text}"
             print(error_msg)
-            self.finished.emit(error_msg)
 
     def stop(self):
         """Stop TTS thread"""

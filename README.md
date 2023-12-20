@@ -1,6 +1,6 @@
-# PyGPT v2
+# PyGPT
 
-Release: **2.0.41** | build: **2023.12.20** | Python: **3.9+**
+Release: **2.0.42** | build: **2023.12.20** | Python: **3.9+**
 
 Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
 
@@ -66,7 +66,7 @@ The full Python source code is available on `GitHub`.
 **PyGPT uses the user's API key  -  to use the application, 
 you must have a registered OpenAI account and your own API key.**
 
-You can also use buil-it Langchain support to connect to other Large Language Models (LLMs), 
+You can also use built-it Langchain support to connect to other Large Language Models (LLMs), 
 such as those on HuggingFace. Additional API keys may be required.
 
 
@@ -107,7 +107,7 @@ pygpt
 
 **Troubleshooting**: 
 
-If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
+If you have problems with `xcb` plugin with newer versions of PySide on Linux, e.g. like this:
 
 ```commandline
 qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
@@ -115,13 +115,22 @@ This application failed to start because no Qt platform plugin could be initiali
 Reinstalling the application may fix this problem.
 ```
 
-...then install libxcb on linux:
+...then install `libxcb`:
 
 ```commandline
 sudo apt install libxcb-cursor0
 ```
 
 If this not help then try to downgrade PySide to `PySide6-Essentials==6.4.2`:
+
+If you have a problems with audio on Linux, then try to install `libasound2` and/or `portaudio19-dev`:
+
+```commandline
+sudo apt install portaudio19-dev
+sudo apt install libasound2
+sudo apt install libasound2-data 
+sudo apt install libasound2-plugins
+```
 
 ```commandline
 pip install PySide6-Essentials==6.4.2
@@ -1288,11 +1297,17 @@ resulting from the use of this application. It is provided "as is," without any 
 Users are reminded to be mindful of token usage - always verify the number of tokens utilized by the model on 
 the OpenAI website and engage with the application responsibly. Activating plugins, such as Web Search, 
 may consume additional tokens that are not displayed in the main window. 
+
 **Always monitor your actual token usage on the OpenAI website.**
 
 ---
 
 # CHANGELOG
+
+## 2.0.42 (2023-12-20)
+
+- Audio output library changed to `PyGame` mixer (instead of `PyDub`)
+- Added `PyGame` as a dependency and removed `PyDub` and `simpleaudio` dependencies
 
 ## 2.0.41 (2023-12-20)
 

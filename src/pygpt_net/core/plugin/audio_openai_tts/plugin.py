@@ -6,15 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.20 18:00:00                  #
 # ================================================== #
 import os
 import threading
+import pygame
 
-from PySide6.QtCore import QObject, Signal, Qt
-from PySide6.QtWidgets import QCheckBox
-from pydub import AudioSegment
-from pydub.playback import _play_with_simpleaudio
+from PySide6.QtCore import QObject
 from openai import OpenAI
 
 from ..base_plugin import BasePlugin
@@ -203,8 +201,9 @@ class TTS(QObject):
             response.stream_to_file(self.path)
             # self.plugin.set_status('Saying...')
             # self.plugin.show_stop_button()
-            self.plugin.audio = AudioSegment.from_mp3(self.path)
-            self.plugin.playback = _play_with_simpleaudio(self.plugin.audio)
+            pygame.mixer.init()
+            self.plugin.playback = pygame.mixer.Sound(self.path)
+            self.plugin.playback.play()
             self.plugin.set_status('')
             # self.plugin.hide_stop_button()
         except Exception as e:

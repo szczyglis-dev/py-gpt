@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Snap package
+*.snap
+
 # Distribution / packaging
 .Python
 build/

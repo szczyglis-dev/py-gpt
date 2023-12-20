@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.41",
-    "app.version": "2.0.41",
-    "updated_at": "2023-12-20T01:00:00"
+    "version": "2.0.42",
+    "app.version": "2.0.42",
+    "updated_at": "2023-12-20T22:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -81,7 +81,7 @@
     "cmd_custom": true,
     "cmd_files": true,
     "cmd_web_google": true,
-    "real_time": false,
+    "real_time": true,
     "self_loop": false
   },
   "presence_penalty": 0.0,
@@ -97,10 +97,10 @@
   "top_p": 1.0,
   "use_context": true,
   "user_name": "",
-  "vision.capture.auto": true,
-  "vision.capture.enabled": true,
+  "vision.capture.auto": false,
+  "vision.capture.enabled": false,
   "vision.capture.height": 720,
   "vision.capture.idx": 0,
-  "vision.capture.quality": 85,
+  "vision.capture.quality": 95,
   "vision.capture.width": 1280
 }

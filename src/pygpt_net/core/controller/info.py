@@ -56,6 +56,10 @@ class Info:
         """Open GitHub page"""
         webbrowser.open(self.window.meta['github'])
 
+    def goto_snap(self):
+        """Open Snapcraft page"""
+        webbrowser.open(self.window.meta['snap'])
+
     def goto_update(self):
         """Open update URL"""
         webbrowser.open(self.window.meta['website'])

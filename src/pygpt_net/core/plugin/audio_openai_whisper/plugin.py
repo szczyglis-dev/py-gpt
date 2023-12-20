@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.20 18:00:00                  #
 # ================================================== #
 import os
 import threading
 import time
 
-from PySide6.QtCore import QObject, Signal, Qt, Slot
+from PySide6.QtCore import QObject, Signal, Slot
 import speech_recognition as sr
 from openai import OpenAI
 import audioop
@@ -51,14 +51,16 @@ class Plugin(BasePlugin):
                         "Specify model, default: whisper-1")
         self.add_option("timeout", "int", 2,
                         "Timeout",
-                        "Speech recognition timeout. Default: 2", min=0, max=30, slider=True, tooltip="Timeout, default: 2")
+                        "Speech recognition timeout. Default: 2", min=0, max=30, slider=True,
+                        tooltip="Timeout, default: 2")
         self.add_option("phrase_length", "int", 4,
                         "Phrase max length",
-                        "Speech recognition phrase length. Default: 4", min=0, max=30, slider=True, tooltip="Phrase max length, "
-                                                                                                "default: 4")
+                        "Speech recognition phrase length. Default: 4", min=0, max=30, slider=True,
+                        tooltip="Phrase max length, default: 4")
         self.add_option("min_energy", "float", 1.3,
                         "Min. energy",
-                        "Minimum threshold multiplier above the noise level to begin recording; 1 = disabled. Default: 1.3",
+                        "Minimum threshold multiplier above the noise level to begin recording; 1 = disabled. "
+                        "Default: 1.3",
                         min=1, max=50, slider=True,
                         tooltip="Min. energy, default: 1.3, 1 = disabled, adjust for your microphone", multiplier=10)
         self.add_option("adjust_noise", "bool", True,
@@ -90,10 +92,12 @@ class Plugin(BasePlugin):
                         "Magic word option must be enabled, examples: \"Hey GPT, OK GPT\"")
         self.add_option("magic_word_timeout", "int", 1,
                         "Magic word timeout",
-                        "Magic word recognition timeout. Default: 1", min=0, max=30, slider=True, tooltip="Timeout, default: 1")
+                        "Magic word recognition timeout. Default: 1", min=0, max=30, slider=True,
+                        tooltip="Timeout, default: 1")
         self.add_option("magic_word_phrase_length", "int", 2,
                         "Magic word phrase max length",
-                        "Magic word phrase length. Default: 2", min=0, max=30, slider=True, tooltip="Phrase length, default: 2")
+                        "Magic word phrase length. Default: 2", min=0, max=30, slider=True,
+                        tooltip="Phrase length, default: 2")
         self.add_option("prefix_words", "text", "",
                         "Prefix words",
                         "Specify prefix words: if defined, only phrases starting with these words will be transmitted, "
@@ -109,7 +113,8 @@ class Plugin(BasePlugin):
         # advanced options
         self.add_option("recognition_energy_threshold", "int", 300,
                         "energy_threshold",
-                        "Represents the energy level threshold for sounds. Default: 300", min=0, max=10000, slider=True, advanced=True)
+                        "Represents the energy level threshold for sounds. Default: 300", min=0, max=10000,
+                        slider=True, advanced=True)
         self.add_option("recognition_dynamic_energy_threshold", "bool", True,
                         "dynamic_energy_threshold",
                         "Represents whether the energy level threshold "
@@ -505,8 +510,9 @@ class AudioInputThread(QObject):
                             # check RMS / energy
                             rms = audioop.rms(raw_data, 2)
                             if min_energy > 0:
-                                self.plugin.window.set_status("{}: {} / {} (x{})".format(trans('audio.speak.energy'),
-                                                                                           rms, int(ambient_noise_energy), min_energy))
+                                self.plugin.window.set_status("{}: {} / {} (x{})".
+                                                              format(trans('audio.speak.energy'),
+                                                                     rms, int(ambient_noise_energy), min_energy))
                             if rms < ambient_noise_energy:
                                 continue
 
@@ -551,10 +557,10 @@ class AudioInputThread(QObject):
                             self.plugin.set_status('')  # clear status
                             break
                     except Exception as e:
-                        print(f"An error occurred: {str(e)}\n")  # timeout
+                        print("Speech recognition error: {}".format(str(e)))
 
             self.destroyed.emit()
 
         except Exception as e:
             self.destroyed.emit()
-            print(e)
+            print("Audio input thread error: {}".format(str(e)))

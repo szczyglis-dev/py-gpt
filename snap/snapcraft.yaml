@@ -1,0 +1,54 @@
+name: pygpt
+base: core22  # Ubuntu 22.04
+version: '2.0.42'
+summary: Desktop AI Assistant - GPT-4, GPT-4V, GPT-3, DALL-E 3, chat, assistant, vision
+description: |
+  **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including GPT-4, GPT-4 Vision, and GPT-3.5, through the OpenAI API. The application also integrates with alternative LLMs, like those available on HuggingFace, by utilizing Langchain.
+
+grade: stable  # 'stable', 'devel'
+confinement: strict  # 'strict', 'classic', 'devmode'
+architectures:
+    - build-on: [amd64]
+      build-for: [amd64]
+
+parts:
+  pygpt:
+    #source: https://github.com/szczyglis-dev/py-gpt.git
+    #source-branch: master
+    source: .
+    plugin: python
+    python-requirements: [requirements.txt]
+    stage-packages:
+      - portaudio19-dev
+      - ffmpeg
+    build-packages:
+      - portaudio19-dev
+    override-build: |
+      snapcraftctl build
+      cp -r $SNAPCRAFT_PART_SRC/snaprun.sh $SNAPCRAFT_PART_INSTALL/
+      cp -r $SNAPCRAFT_PART_SRC/src $SNAPCRAFT_PART_INSTALL/
+
+layout:
+  /usr/share/alsa:
+    bind: $SNAP/usr/share/alsa
+
+apps:
+  pygpt:
+    command: snaprun.sh
+    extensions: [kde-neon]
+    environment:
+      "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
+    plugs:
+    - alsa
+    - audio-playback
+    - audio-record
+    - network
+    - home
+    - gsettings
+    - desktop
+    - desktop-legacy
+    - wayland
+    - x11
+    - opengl
+    - unity7
+    - camera
