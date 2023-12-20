@@ -90,13 +90,13 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.controller.debug.log(data)
 
-    def dispatch(self, event):
+    def dispatch(self, event, all=False):
         """
         Dispatch event to plugins and other listeners
 
         :param event: event object
         """
-        self.app.dispatcher.dispatch(event)
+        self.app.dispatcher.dispatch(event, all)
 
     def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """

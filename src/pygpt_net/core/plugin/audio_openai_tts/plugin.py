@@ -162,10 +162,14 @@ class Plugin(BasePlugin):
         """
         Stop TTS thread and stop playing the audio
         """
-        if self.thread is not None:
-            self.thread.stop()
         if self.tts is not None:
             self.tts.stop()
+        if self.thread is not None:
+            self.thread.stop()
+        if self.playback is not None:
+            self.playback.stop()
+            self.playback = None
+            self.audio = None
 
 
 class TTS(QObject):

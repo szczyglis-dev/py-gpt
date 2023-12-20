@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.20 04:00:00                  #
 # ================================================== #
 from ..dispatcher import Event
 
@@ -24,7 +24,7 @@ class Audio:
         """Setup controller"""
         self.update()
 
-    def toggle_input(self, state):
+    def toggle_input(self, state, btn=True):
         """Toggle audio/voice"""
         event = Event('audio.input.toggle', {"value": state})
         self.window.dispatch(event)
@@ -53,9 +53,45 @@ class Audio:
         self.window.config.save()
         self.update()
 
+    def disable_input(self, update=True):
+        """Disable audio/voice"""
+        self.window.controller.plugins.disable('audio_openai_whisper')
+        self.window.config.save()
+        if update:
+            self.update()
+
+    def stop_input(self):
+        """Stop audio/voice"""
+        event = Event('audio.input.stop', {"value": True})
+        self.window.dispatch(event, True)
+
+    def stop_output(self):
+        """Stop audio/voice"""
+        event = Event('audio.output.stop', {"value": True})
+        self.window.dispatch(event, True)
+
     def update(self):
-        """Update UI"""
+        """Update UI and listeners"""
+        self.update_listeners()
         self.update_menu()
+
+    def update_listeners(self):
+        """
+        Update listeners
+        """
+        is_output = False
+        if self.window.controller.plugins.is_enabled('audio_azure'):
+            is_output = True
+        if self.window.controller.plugins.is_enabled('audio_openai_tts'):
+            is_output = True
+        if not is_output:
+            self.stop_output()
+
+        if not self.window.controller.plugins.is_enabled('audio_openai_whisper'):
+            self.toggle_input(False)
+            self.stop_input()
+            if self.window.ui.plugin_addon['audio.input'].btn_toggle.isChecked():
+                self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(False)
 
     def update_menu(self):
         """Update menu"""

@@ -1308,6 +1308,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Audio output library changed to `PyGame` mixer (instead of `PyDub`)
 - Added `PyGame` as a dependency and removed `PyDub` and `simpleaudio` dependencies
+- Added audio input/output stop immediately on plugin disable
 
 ## 2.0.41 (2023-12-20)
 

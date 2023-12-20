@@ -35,6 +35,7 @@ class Plugin(BasePlugin):
         self.thread = None
         self.listening = False
         self.waiting = False
+        self.stop = False
         self.magic_word_detected = False
         self.is_first_adjust = True
         self.empty_phrases = ['Thank you for watching']  # phrases to ignore (fix for empty phrases)
@@ -207,6 +208,7 @@ class Plugin(BasePlugin):
         # Start thread if not started
         if state:
             self.listening = True
+            self.stop = False
             self.handle_thread()
         else:
             self.listening = False
@@ -244,6 +246,8 @@ class Plugin(BasePlugin):
                 self.on_disable()
         elif name == 'audio.input.toggle':
             self.toggle_speech(data['value'])
+        elif name == 'audio.input.stop':
+            self.on_stop()
 
     def on_ctx_begin(self, ctx):
         """
@@ -269,6 +273,17 @@ class Plugin(BasePlugin):
     def on_disable(self):
         """Event: On plugin disable"""
         self.speech_enabled = False
+        self.listening = False
+        self.stop = True
+        self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(False)
+        self.set_status('')
+
+    def on_stop(self):
+        """Event: On input stop"""
+        self.stop = True
+        self.listening = False
+        self.speech_enabled = False
+        self.set_status('')
 
     def on_input_before(self, text):
         """
@@ -285,6 +300,7 @@ class Plugin(BasePlugin):
         self.waiting = True
         self.listening = False
         self.thread_started = False
+        self.set_status('')
 
     def handle_thread(self):
         """
@@ -398,13 +414,15 @@ class Plugin(BasePlugin):
         Insert text to input and send
         """
         self.thread_started = False
+        self.set_status('')
 
     @Slot()
     def handle_started(self):
         """
         Handle listening started
         """
-        print("Whisper is listening...")
+        pass
+        # print("Whisper is listening...")
 
     @Slot()
     def handle_stop(self):
@@ -414,7 +432,8 @@ class Plugin(BasePlugin):
         self.thread_started = False
         self.listening = False
         self.window.set_status("")
-        print("Whisper stopped listening...")
+        self.set_status('')
+        # print("Whisper stopped listening...")
         self.toggle_speech(False)
 
 
@@ -433,10 +452,14 @@ class AudioInputThread(QObject):
 
     def run(self):
         try:
+            if not self.plugin.listening:
+                return
+
             client = OpenAI(
                 api_key=self.plugin.window.config.get('api_key'),
                 organization=self.plugin.window.config.get('organization_key'),
             )
+
             print("Starting audio listener....")
             path = os.path.join(self.plugin.window.config.path, 'input.wav')
 
@@ -446,6 +469,13 @@ class AudioInputThread(QObject):
             with sr.Microphone() as source:
                 while self.plugin.listening and not self.plugin.window.is_closing:
                     self.plugin.set_status('')
+
+                    if self.plugin.stop:
+                        self.plugin.stop = False
+                        self.plugin.listening = False
+                        self.plugin.set_status('Stop.')
+                        self.stopped.emit()
+                        break
 
                     if not self.plugin.can_listen():
                         time.sleep(0.5)

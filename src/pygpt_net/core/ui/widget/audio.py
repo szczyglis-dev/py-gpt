@@ -28,7 +28,7 @@ class AudioInput(QWidget):
 
         self.btn_toggle = QCheckBox(trans('audio.speak.btn'))
         self.btn_toggle.stateChanged.connect(
-            lambda: self.window.controller.audio.toggle_input(self.btn_toggle.isChecked()))
+            lambda: self.window.controller.audio.toggle_input(self.btn_toggle.isChecked(), True))
 
         # status
         self.status = QLabel("")

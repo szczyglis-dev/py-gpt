@@ -33,6 +33,7 @@ class Plugin(BasePlugin):
         self.audio = None
         self.order = 9999
         self.use_locale = True
+        self.tts = None
         self.init_options()
 
     def init_options(self):
@@ -129,8 +130,8 @@ class Plugin(BasePlugin):
                     voice = self.get_option_value("voice_pl")
                 elif lang == "en":
                     voice = self.get_option_value("voice_en")
-                tts = TTS(self, api_key, region, voice, text, path)
-                self.thread = threading.Thread(target=tts.run)
+                self.tts = TTS(self, api_key, region, voice, text, path)
+                self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
             print(e)
@@ -167,10 +168,14 @@ class Plugin(BasePlugin):
         """
         Stop TTS thread and stop playing the audio
         """
-        if self.thread is not None:
-            self.thread.stop()
         if self.tts is not None:
             self.tts.stop()
+        if self.thread is not None:
+            self.thread.stop()
+        if self.playback is not None:
+            self.playback.stop()
+            self.playback = None
+            self.audio = None
 
 
 class TTS(QObject):
