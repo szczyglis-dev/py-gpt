@@ -98,10 +98,26 @@ class Command:
         try:
             chunks = response.split('~###~')
             for chunk in chunks:
-                try:
-                    cmds.append(json.loads(chunk.strip()))
-                except:
-                    pass
-        except:
+                cmd_dict = self.extract_cmd(chunk)
+                if cmd_dict is not None:
+                    cmds.append(cmd_dict)
+        except Exception as e:
             pass
         return cmds
+
+    def extract_cmd(self, chunk):
+        """
+        Extract command from response
+
+        :param chunk: chunk
+        :return: command json
+        :rtype: dict
+        """
+        cmd = None
+        chunk = chunk.strip()
+        if chunk and chunk.startswith('{') and chunk.endswith('}'):
+            try:
+                cmd = json.loads(chunk)
+            except json.JSONDecodeError as e:
+                pass
+        return cmd
