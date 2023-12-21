@@ -164,6 +164,8 @@ class Assistants:
         :rtype: str
         """
         files = assistant.files
+        if idx >= len(files):
+            return None
         return list(files.keys())[idx]
 
     def get_file_by_id(self, assistant, id):
@@ -176,6 +178,8 @@ class Assistants:
         :rtype: dict or None
         """
         files = assistant.files
+        if id not in files:
+            return None
         return files[id]
 
     def import_files(self, assistant, data, import_data=True):

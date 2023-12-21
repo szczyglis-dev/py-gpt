@@ -46,4 +46,3 @@ def test_extract_cmds_with_text():
     json1 = json.loads(cmd1.strip())
     json2 = json.loads(cmd2.strip())
     assert cmd.extract_cmds(response) == [json1, json2]
-    
