@@ -75,7 +75,7 @@ such as those on HuggingFace. Additional API keys may be required.
 
 # Installation
 
-## Compiled versions (WIndows, Linux)
+## Compiled versions (Windows, Linux)
 
 You can download compiled versions for `Windows 10`, `Windows 11` and `Linux`. 
 
