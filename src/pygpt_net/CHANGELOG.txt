@@ -1,3 +1,8 @@
+2.0.43 (2023-12-21)
+
+- PyGPT publicated at Snap Store: https://snapcraft.io/pygpt
+- Added link to Snap Store in app menu
+
 2.0.42 (2023-12-20)
 
 - Audio output library changed to `PyGame` mixer (instead of `PyDub`)

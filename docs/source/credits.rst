@@ -7,6 +7,9 @@ https://pygpt.net
 **Github:**
 https://github.com/szczyglis-dev/py-gpt
 
+**Snap Store:**
+https://snapcraft.io/pygpt
+
 **PyPI:**
 https://pypi.org/project/pygpt-net
 

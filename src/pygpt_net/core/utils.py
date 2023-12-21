@@ -83,6 +83,7 @@ def get_app_meta():
         'website': get_init_value("__website__"),
         'docs': get_init_value("__documentation__"),
         'pypi': get_init_value("__pypi__"),
+        'snap': get_init_value("__snap__"),
         'version': get_init_value("__version__"),
         'build': get_init_value("__build__"),
         'author': get_init_value("__author__"),

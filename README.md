@@ -1,10 +1,14 @@
 # PyGPT
 
-Release: **2.0.42** | build: **2023.12.20** | Python: **3.9+**
+[![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Official website: https://pygpt.net | Docs: https://pygpt.readthedocs.io | PyPi: https://pypi.org/project/pygpt-net
+Release: **2.0.43** | build: **2023.12.21** | Python: **3.9+**
 
-### **Compiled versions for Linux and Windows (64-bit)**: https://pygpt.net/#download
+Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
+
+Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
+
+Compiled version for Linux (tar.gz) and Windows 10/11 (msi) 64-bit: https://pygpt.net/#download
 
 ## Overview
 
@@ -69,22 +73,44 @@ you must have a registered OpenAI account and your own API key.**
 You can also use built-it Langchain support to connect to other Large Language Models (LLMs), 
 such as those on HuggingFace. Additional API keys may be required.
 
+# Installation
 
-# Requirements
+## Compiled versions (WIndows, Linux)
 
-## Supported Systems (Compiled Version)
+You can download compiled versions for `Windows 10`, `Windows 11` and `Linux`. 
 
-**PyGPT** is compatible with PCs running `Windows 10`, `Windows 11`, or `Linux`. 
-Simply download the installer or the archive for the appropriate version from the download page, 
-extract it, install it, and run the application.
+Download the .msi or tar.gz for the appropriate OS from the download page at:
 
-## Python Version (Source Code)
+https://pygpt.net
 
-An alternative method is to download the source code from `GitHub` and execute the application using 
-the Python interpreter (version `3.9` or higher). The application can also be installed from `PyPI` 
-using the command `pip install` and this type of installation is recommended.
 
-### PyPi (pip)
+...and then extract files from the archive and run the application.
+
+## Snap Store
+
+You can install PyGPT directly from Snap Store:
+
+```commandline
+sudo snap install pygpt
+```
+
+To manage future updates just use:
+
+```commandline
+sudo snap refresh pygpt
+```
+
+**Info:** to use camera in Snap version you must connect the camera with interface:
+
+```commandline
+snap connect pygpt:camera
+```
+
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
+
+## PyPi (pip)
+
+The application can also be installed from `PyPI` using `pip install`:
 
 1. Create virtual environment:
 
@@ -105,40 +131,10 @@ pip install pygpt-net
 pygpt
 ```
 
-**Troubleshooting**: 
+## Source Code
 
-If you have problems with `xcb` plugin with newer versions of PySide on Linux, e.g. like this:
-
-```commandline
-qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
-This application failed to start because no Qt platform plugin could be initialized. 
-Reinstalling the application may fix this problem.
-```
-
-...then install `libxcb`:
-
-```commandline
-sudo apt install libxcb-cursor0
-```
-
-If this not help then try to downgrade PySide to `PySide6-Essentials==6.4.2`:
-
-
-```commandline
-pip install PySide6-Essentials==6.4.2
-```
-
-If you have a problems with audio on Linux, then try to install `portaudio19-dev` and/or `libasound2`:
-
-```commandline
-sudo apt install portaudio19-dev
-```
-
-```commandline
-sudo apt install libasound2
-sudo apt install libasound2-data 
-sudo apt install libasound2-plugins
-```
+An alternative method is to download the source code from `GitHub` and execute the application using 
+the Python interpreter (version `3.9` or higher). 
 
 ### Running from GitHub source code
 
@@ -171,6 +167,41 @@ python app.py
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
 the application for your system (version < `6.x`, e.g. `5.13.2`).
+
+### Troubleshooting
+
+If you have a problems with `xcb` plugin with newer versions of PySide on Linux, e.g. like this:
+
+```commandline
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. 
+Reinstalling the application may fix this problem.
+```
+
+...then install `libxcb`:
+
+```commandline
+sudo apt install libxcb-cursor0
+```
+
+If this not help then try to downgrade PySide to `PySide6-Essentials==6.4.2`:
+
+
+```commandline
+pip install PySide6-Essentials==6.4.2
+```
+
+If you have a problems with audio on Linux, then try to install `portaudio19-dev` and/or `libasound2`:
+
+```commandline
+sudo apt install portaudio19-dev
+```
+
+```commandline
+sudo apt install libasound2
+sudo apt install libasound2-data 
+sudo apt install libasound2-plugins
+```
 
 ## Other requirements
 
@@ -1308,6 +1339,11 @@ may consume additional tokens that are not displayed in the main window.
 
 # CHANGELOG
 
+## 2.0.43 (2023-12-21)
+
+- PyGPT publicated at Snap Store: https://snapcraft.io/pygpt
+- Added link to Snap Store in app menu
+
 ## 2.0.42 (2023-12-20)
 
 - Audio output library changed to `PyGame` mixer (instead of `PyDub`)
@@ -1631,6 +1667,8 @@ New features in version 2.0.0:
 **Documentation:** <https://pygpt.readthedocs.io>
 
 **GitHub:** <https://github.com/szczyglis-dev/py-gpt>
+
+**Snap Store:** <https://snapcraft.io/pygpt>
 
 **PyPI:** <https://pypi.org/project/pygpt-net>
 

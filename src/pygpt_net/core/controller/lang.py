@@ -234,7 +234,7 @@ class Lang:
         self.window.ui.menu['info.changelog'].setText(trans("menu.info.changelog"))
         self.window.ui.menu['info.docs'].setText(trans("menu.info.docs"))
         self.window.ui.menu['info.pypi'].setText(trans("menu.info.pypi"))
-        # self.window.ui.menu['info.snap'].setText(trans("menu.info.snap"))
+        self.window.ui.menu['info.snap'].setText(trans("menu.info.snap"))
         self.window.ui.menu['info.website'].setText(trans("menu.info.website"))
         self.window.ui.menu['info.github'].setText(trans("menu.info.github"))
 
