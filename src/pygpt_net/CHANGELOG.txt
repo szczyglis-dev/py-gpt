@@ -1,3 +1,7 @@
+2.0.44 (2023-12-21)
+
+- Fixed language switch in plugins settings
+
 2.0.43 (2023-12-21)
 
 - PyGPT publicated at Snap Store: https://snapcraft.io/pygpt

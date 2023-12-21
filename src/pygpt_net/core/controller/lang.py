@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 23:00:00                  #
+# Updated Date: 2023.12.21 07:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -224,6 +224,7 @@ class Lang:
             self.window.ui.menu['debug.config'].setText(trans("menu.debug.config"))
             self.window.ui.menu['debug.context'].setText(trans("menu.debug.context"))
             self.window.ui.menu['debug.presets'].setText(trans("menu.debug.presets"))
+            self.window.ui.menu['debug.plugins'].setText(trans("menu.debug.plugins"))
             self.window.ui.menu['debug.models'].setText(trans("menu.debug.models"))
             self.window.ui.menu['debug.attachments'].setText(trans("menu.debug.attachments"))
             self.window.ui.menu['debug.assistants'].setText(trans("menu.debug.assistants"))
@@ -335,7 +336,7 @@ class Lang:
                 # update widget tooltip
                 if id in self.window.ui.plugin_option and option_id in self.window.ui.plugin_option[id]:
                     try:
-                        self.window.ui.plugin_option[id][option_id].setText(label_str)
+                        self.window.ui.plugin_option[id][option_id].setTooltip(tooltip_str)
                     except Exception as e:
                         pass
 

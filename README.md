@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.43** | build: **2023.12.21** | Python: **3.9+**
+Release: **2.0.44** | build: **2023.12.21** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1333,6 +1333,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.44 (2023-12-21)
+
+- Fixed language switch in plugins settings
 
 ## 2.0.43 (2023-12-21)
 
