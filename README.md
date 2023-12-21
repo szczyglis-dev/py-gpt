@@ -79,16 +79,11 @@ such as those on HuggingFace. Additional API keys may be required.
 
 You can download compiled versions for `Windows 10`, `Windows 11` and `Linux`. 
 
-Download the .msi or tar.gz for the appropriate OS from the download page at:
-
-https://pygpt.net
-
-
-...and then extract files from the archive and run the application.
+Download the `.msi` or `tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application.
 
 ## Snap Store
 
-You can install PyGPT directly from Snap Store:
+You can install **PyGPT** directly from Snap Store:
 
 ```commandline
 sudo snap install pygpt
