@@ -12,6 +12,7 @@
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from .context import ContextItem
 
+
 class Chain:
     def __init__(self, window=None):
         """
