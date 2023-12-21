@@ -71,7 +71,7 @@ class Attachments:
         if mode not in self.items:
             self.items[mode] = {}
 
-        return self.items[mode].keys()
+        return list(self.items[mode].keys())
 
     def get_id_by_idx(self, mode, idx):
         """
