@@ -34,45 +34,60 @@ class Attachments:
         :rtype: QVBoxLayout
         """
         self.setup_attachments()
-
-        centered_layout = {}
-        centered_widget = {}
-        centered_layout['attachments.send_clear'] = QHBoxLayout()
-        centered_layout['attachments.send_clear'].setContentsMargins(0, 0, 0, 0)
-        centered_layout['attachments.send_clear'].setAlignment(Qt.AlignCenter)
-        centered_layout['attachments.send_clear'].addWidget(self.window.ui.nodes['attachments.send_clear'])
-        centered_widget['attachments.send_clear'] = QWidget()
-        centered_widget['attachments.send_clear'].setLayout(centered_layout['attachments.send_clear'])
-
-        centered_layout['attachments.capture_clear'] = QHBoxLayout()
-        centered_layout['attachments.capture_clear'].setContentsMargins(0, 0, 0, 0)
-        centered_layout['attachments.capture_clear'].setAlignment(Qt.AlignCenter)
-        centered_layout['attachments.capture_clear'].addWidget(self.window.ui.nodes['attachments.capture_clear'])
-        centered_widget['attachments.capture_clear'] = QWidget()
-        centered_widget['attachments.capture_clear'].setLayout(centered_layout['attachments.capture_clear'])
+        self.setup_buttons()
 
         # buttons layout
-        buttons_layout = QHBoxLayout()
-        buttons_layout.addWidget(self.window.ui.nodes['attachments.btn.add'])
-        buttons_layout.addWidget(self.window.ui.nodes['attachments.btn.clear'])
-        buttons_layout.addWidget(centered_widget['attachments.send_clear'])
-        buttons_layout.addWidget(centered_widget['attachments.capture_clear'])
+        buttons = QHBoxLayout()
+        buttons.addWidget(self.window.ui.nodes['attachments.btn.add'])
+        buttons.addWidget(self.window.ui.nodes['attachments.btn.clear'])
+        buttons.addWidget(self.setup_send_clear())
+        buttons.addWidget(self.setup_capture_clear())
 
         # layout
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['attachments'])
-        layout.addLayout(buttons_layout)
+        layout.addLayout(buttons)
 
         return layout
 
-    def setup_attachments(self):
+    def setup_send_clear(self):
         """
-        Setup attachments list
-        """
-        # attachments
-        self.window.ui.nodes[self.id] = AttachmentList(self.window)
+        Setup send clear checkbox
 
-        # buttons
+        :return: QWidget
+        :rtype: QWidget
+        """
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.window.ui.nodes['attachments.send_clear'])
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
+
+    def setup_capture_clear(self):
+        """
+        Setup after capture clear checkbox
+
+        :return: QWidget
+        :rtype: QWidget
+        """
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.window.ui.nodes['attachments.capture_clear'])
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
+
+    def setup_buttons(self):
+        """
+        Setup buttons
+        """
         self.window.ui.nodes['attachments.btn.add'] = QPushButton(trans('attachments.btn.add'))
         self.window.ui.nodes['attachments.btn.clear'] = QPushButton(trans('attachments.btn.clear'))
 
@@ -91,6 +106,11 @@ class Attachments:
             lambda: self.window.controller.attachment.toggle_capture_clear(
                 self.window.ui.nodes['attachments.capture_clear'].isChecked()))
 
+    def setup_attachments(self):
+        """
+        Setup attachments list
+        """
+        self.window.ui.nodes[self.id] = AttachmentList(self.window)
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
