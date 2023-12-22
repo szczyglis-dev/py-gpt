@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.22 16:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QLineEdit, QTextEdit, QApplication, QTextBrowser
 
 from ...utils import trans
@@ -78,12 +77,12 @@ class ChatInput(QTextEdit):
         self.window.controller.ui.update_tokens()
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
             mode = self.window.config.get('send_mode')
-            if mode > 0:
-                if mode == 2:
+            if mode > 0:  # Enter or Shift + Enter
+                if mode == 2:  # Shift + Enter
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == QtCore.Qt.ShiftModifier:
                         self.window.controller.input.user_send()
-                else:
+                else:  # Enter
                     self.window.controller.input.user_send()
                 self.setFocus()
 
@@ -133,7 +132,6 @@ class ChatOutput(QTextBrowser):
         menu.exec_(event.globalPos())
 
     def process_selection(self):
-        print("process_selection")
         self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def wheelEvent(self, event):
@@ -170,6 +168,18 @@ class NotepadOutput(QTextEdit):
         self.value = self.window.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
+
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu()
+
+        selected_text = self.textCursor().selectedText()
+        if selected_text:
+            action = menu.addAction(trans('text.context_menu.audio.read'))
+            action.triggered.connect(self.process_selection)
+        menu.exec_(event.globalPos())
+
+    def process_selection(self):
+        self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
         """
