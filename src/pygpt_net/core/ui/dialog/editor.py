@@ -11,7 +11,7 @@
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
-from ..widget.dialog.file_editor import FileEditorDialog
+from ..widget.dialog.editor_file import EditorFileDialog
 from ...utils import trans
 
 
@@ -53,6 +53,6 @@ class Editor:
         layout.addWidget(self.window.ui.editor['config'])
         layout.addLayout(bottom_layout)
 
-        self.window.ui.dialog['config.editor'] = FileEditorDialog(self.window)
+        self.window.ui.dialog['config.editor'] = EditorFileDialog(self.window)
         self.window.ui.dialog['config.editor'].setLayout(layout)
         self.window.ui.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))

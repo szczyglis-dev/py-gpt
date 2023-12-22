@@ -13,14 +13,14 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog
 
 
-class FileEditorDialog(QDialog):
+class EditorFileDialog(QDialog):
     def __init__(self, window=None):
         """
         File editor dialog
 
         :param window: main window
         """
-        super(FileEditorDialog, self).__init__(window)
+        super(EditorFileDialog, self).__init__(window)
         self.window = window
         self.file = None
 
@@ -43,7 +43,7 @@ class FileEditorDialog(QDialog):
             self.cleanup()
             self.close()  # close dialog when the Esc key is pressed.
         else:
-            super(FileEditorDialog, self).keyPressEvent(event)
+            super(EditorFileDialog, self).keyPressEvent(event)
 
     def cleanup(self):
         """
