@@ -342,7 +342,7 @@ class AssistantFiles:
             return
         assistant = self.window.app.assistants.get_by_id(assistant_id)
         items = assistant.files
-        self.window.ui.attachments_uploaded.update_list('attachments_uploaded', items)
+        self.window.ui.chat.input.attachments_uploaded.update_list('attachments_uploaded', items)
         self.update_tab_label()
 
     def update_tab_label(self):

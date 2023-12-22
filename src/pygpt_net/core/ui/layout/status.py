@@ -9,9 +9,10 @@
 # Updated Date: 2023.12.17 22:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout
 
-from ..utils import trans
+from ...utils import trans
 
 
 class Status:
@@ -31,6 +32,9 @@ class Status:
         :rtype: QHBoxLayout
         """
         self.window.ui.nodes['status'] = QLabel(trans('status.started'))
+
         layout = QHBoxLayout()
         layout.addWidget(self.window.ui.nodes['status'])
+        layout.setAlignment(Qt.AlignLeft)
+
         return layout

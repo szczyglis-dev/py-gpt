@@ -13,9 +13,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, \
     QTabWidget, QWidget
 
-from ...status import Status
-from ...attachments import Attachments
-from ...attachments_uploaded import AttachmentsUploaded
+from .attachments import Attachments
+from .attachments_uploaded import AttachmentsUploaded
+from ..status import Status
 from ...widget.audio.input import AudioInput
 from ...widget.textarea.input import ChatInput
 from ....utils import trans
@@ -146,7 +146,7 @@ class Input:
         :rtype: QHBoxLayout
         """
         layout = QHBoxLayout()
-        layout.addLayout(self.setup_status())
+        layout.addLayout(self.status.setup())
         layout.addLayout(self.setup_buttons())
 
         return layout
@@ -210,16 +210,6 @@ class Input:
         self.window.ui.nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
 
         return self.window.ui.nodes['ui.input.buttons']
-
-    def setup_status(self):
-        """
-        Setup the status layout
-
-        :return: QHBoxLayout
-        """
-        status = self.status.setup()
-        status.setAlignment(Qt.AlignLeft)
-        return status
 
     def update_min_height(self):
         """

@@ -19,7 +19,7 @@ from .output import Output
 class ChatMain:
     def __init__(self, window=None):
         """
-        Chatbox UI
+        Chat UI
 
         :param window: Window instance
         """

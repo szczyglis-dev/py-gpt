@@ -14,8 +14,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QSplitter
 
-from .attachments import Attachments
-from .attachments_uploaded import AttachmentsUploaded
 from .layout.chat.main import ChatMain
 from .layout.ctx.ctx_list import CtxList
 from .dialogs import Dialogs
@@ -50,8 +48,6 @@ class UI:
         self.tabs = {}
 
         # setup builders
-        self.attachments = Attachments(window)
-        self.attachments_uploaded = AttachmentsUploaded(window)
         self.chat = ChatMain(window)
         self.contexts = CtxList(window)
         self.dialogs = Dialogs(window)

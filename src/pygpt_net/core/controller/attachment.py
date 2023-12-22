@@ -47,7 +47,7 @@ class Attachment:
         """Update attachments list"""
         mode = self.window.config.get('mode')
         items = self.window.app.attachments.get_all(mode)
-        self.window.ui.attachments.update_list('attachments', items)
+        self.window.ui.chat.input.attachments.update_list('attachments', items)
         self.update_tab_label(mode)
 
     def update_tab_label(self, mode):
