@@ -61,10 +61,13 @@ class ChatInput(QTextEdit):
         selected_text = self.textCursor().selectedText()
         if selected_text:
             action = menu.addAction(trans('text.context_menu.audio.read'))
-            action.triggered.connect(self.process_selection)
+            action.triggered.connect(self.audio_read_selection)
         menu.exec_(event.globalPos())
 
-    def process_selection(self):
+    def audio_read_selection(self):
+        """
+        Read selected text (audio)
+        """
         self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
@@ -128,10 +131,13 @@ class ChatOutput(QTextBrowser):
         selected_text = self.textCursor().selectedText()
         if selected_text:
             action = menu.addAction(trans('text.context_menu.audio.read'))
-            action.triggered.connect(self.process_selection)
+            action.triggered.connect(self.audio_read_selection)
         menu.exec_(event.globalPos())
 
-    def process_selection(self):
+    def audio_read_selection(self):
+        """
+        Read selected text (audio)
+        """
         self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def wheelEvent(self, event):
@@ -175,10 +181,13 @@ class NotepadOutput(QTextEdit):
         selected_text = self.textCursor().selectedText()
         if selected_text:
             action = menu.addAction(trans('text.context_menu.audio.read'))
-            action.triggered.connect(self.process_selection)
+            action.triggered.connect(self.audio_read_selection)
         menu.exec_(event.globalPos())
 
-    def process_selection(self):
+    def audio_read_selection(self):
+        """
+        Read selected text (audio)
+        """
         self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
@@ -232,6 +241,8 @@ class RenameInput(QLineEdit):
         :param event: key event
         """
         super(RenameInput, self).keyPressEvent(event)
+        
+        # save on Enter
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
             self.window.controller.confirm.accept_rename(self.window.ui.dialog['rename'].id,
                                                          self.window.ui.dialog['rename'].current,
