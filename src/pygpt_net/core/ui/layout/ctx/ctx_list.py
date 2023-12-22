@@ -9,19 +9,19 @@
 # Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QStandardItemModel, Qt
+from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
-from .widget.lists.context import ContextList
-from .widget.vision.camera import VideoContainer
-from ..utils import trans
+from ...widget.lists.context import ContextList
+from ...widget.vision.camera import VideoContainer
+from ....utils import trans
 
 
-class Contexts:
+class CtxList:
     def __init__(self, window=None):
         """
-        Contexts UI
+        Context list UI
 
         :param window: Window instance
         """
@@ -29,72 +29,76 @@ class Contexts:
 
     def setup(self):
         """
-        Setup contexts list
+        Setup layout
 
-        :return: QVBoxLayout
-        :rtype: QVBoxLayout
+        :return: QWidget
+        :rtype: QWidget
         """
-        # contexts
-        contexts = self.setup_contexts()
-        self.window.ui.models['ctx.contexts'] = self.create_model(self.window)
-        self.window.ui.nodes['ctx.contexts'].setModel(self.window.ui.models['ctx.contexts'])
-        self.window.ui.nodes['ctx.contexts'].selectionModel().selectionChanged.connect(
-            lambda: self.window.controller.context.selection_change())
-
-        self.window.ui.nodes['video.preview'] = VideoContainer(self.window)
-        self.window.ui.nodes['video.preview'].setVisible(False)
-
-        ctx_widget = QWidget()
-        ctx_widget.setLayout(contexts)
-        ctx_widget.setContentsMargins(0, 0, 0, 0)
+        ctx = self.setup_ctx()
+        video = self.setup_video()
 
         layout = QVBoxLayout()
-        layout.addWidget(ctx_widget)
-        layout.addWidget(self.window.ui.nodes['video.preview'])
+        layout.addWidget(ctx)
+        layout.addWidget(video)
 
-        return layout
+        widget = QWidget()
+        widget.setLayout(layout)
 
-    def setup_contexts(self):
+        return widget
+
+    def setup_ctx(self):
         """
-        Setup contexts list
+        Setup list
 
-        :return: QVBoxLayout
-        :rtype: QVBoxLayout
+        :return: QWidget
+        :rtype: QWidget
         """
-        id = 'ctx.contexts'
-        self.window.ui.nodes['contexts.new'] = QPushButton(trans('context.new'))
-        self.window.ui.nodes['contexts.new'].clicked.connect(
+        id = 'ctx.list'
+        self.window.ui.nodes['ctx.new'] = QPushButton(trans('ctx.new'))
+        self.window.ui.nodes['ctx.new'].clicked.connect(
             lambda: self.window.controller.context.new())
 
         self.window.ui.nodes[id] = ContextList(self.window, id)
-        self.window.ui.nodes[id].setStyleSheet(self.window.controller.theme.get_style('text_small'))
         self.window.ui.nodes[id].selection_locked = self.window.controller.context.context_change_locked
-        self.window.ui.nodes['contexts.label'] = QLabel(trans("ctx.contexts.label"))
-        self.window.ui.nodes['contexts.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes['ctx.label'] = QLabel(trans("ctx.list.label"))
+        self.window.ui.nodes['ctx.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         layout = QVBoxLayout()
-        # layout.addWidget(self.window.ui.nodes['contexts.label'])
-        layout.addWidget(self.window.ui.nodes['contexts.new'])
+        layout.addWidget(self.window.ui.nodes['ctx.new'])
         layout.addWidget(self.window.ui.nodes[id])
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
+        self.window.ui.nodes[id].selectionModel().selectionChanged.connect(
+            lambda: self.window.controller.context.selection_change())
 
-        # prevent focus out selection leave
-        self.window.ui.nodes[id].selectionModel().selectionChanged.connect(self.window.ui.nodes[id].lockSelection)
-        return layout
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setContentsMargins(0, 0, 0, 0)
+
+        return widget
+
+    def setup_video(self):
+        """
+        Setup video preview
+        :return: VideoContainer
+        :rtype: VideoContainer
+        """
+        self.window.ui.nodes['video.preview'] = VideoContainer(self.window)
+        self.window.ui.nodes['video.preview'].setVisible(False)
+
+        return self.window.ui.nodes['video.preview']
 
     def create_model(self, parent):
         """
-        Create list model
+        Create model
 
         :param parent: parent widget
         :return: QStandardItemModel
         :rtype: QStandardItemModel
         """
-        model = QStandardItemModel(0, 1, parent)
-        return model
+        return QStandardItemModel(0, 1, parent)
 
     def update_list(self, id, data):
         """

@@ -146,7 +146,7 @@ class Theme:
         # windows
         self.window.ui.nodes['output'].setStyleSheet(self.get_style('chat_output'))
         self.window.ui.nodes['input'].setStyleSheet(self.get_style('chat_input'))
-        self.window.ui.nodes['ctx.contexts'].setStyleSheet(self.get_style('ctx.contexts'))
+        self.window.ui.nodes['ctx.list'].setStyleSheet(self.get_style('ctx.list'))
 
         # notepads
         self.window.ui.nodes['notepad1'].setStyleSheet(self.get_style('chat_output'))
@@ -172,7 +172,7 @@ class Theme:
             return 'font-size: {}px;'.format(self.window.config.get('font_size'))
         elif element == "chat_input":
             return 'font-size: {}px;'.format(self.window.config.get('font_size.input'))
-        elif element == "ctx.contexts":
+        elif element == "ctx.list":
             return 'font-size: {}px;'.format(self.window.config.get('font_size.ctx'))
         elif element == "text_bold":
             return "font-weight: bold;"

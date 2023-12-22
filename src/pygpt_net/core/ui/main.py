@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QSplitter, QWidget
 
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
-from .contexts import Contexts
+from .layout.ctx.ctx_list import CtxList
 from .dialogs import Dialogs
 from .menu import Menu
 from .output import Output
@@ -41,6 +41,7 @@ class UI:
         self.menu = {}
         self.models = {}
         self.nodes = {}
+        self.parts = {}
         self.paths = {}
         self.plugin_addon = {}
         self.plugin_data = {}
@@ -52,7 +53,7 @@ class UI:
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
         self.chat = Output(window)
-        self.contexts = Contexts(window)
+        self.contexts = CtxList(window)
         self.dialogs = Dialogs(window)
         self.menus = Menu(window)
         self.toolbox = Toolbox(window)
@@ -62,23 +63,20 @@ class UI:
         # load font
         self.setup_font()
 
-        # chat and toolbox
-        self.window.chat = self.chat.setup()
-        self.window.toolbox = self.toolbox.setup()
-
-        # ctx
-        self.window.ctx = QWidget()
-        self.window.ctx.setLayout(self.contexts.setup())
+        # ctx, chat and toolbox
+        self.parts['chat'] = self.chat.setup()
+        self.parts['toolbox'] = self.toolbox.setup()
+        self.parts['ctx'] = self.contexts.setup()
 
         # set width
-        self.window.ctx.setMinimumWidth(200)
+        self.parts['ctx'].setMinimumWidth(200)
 
         # horizontal splitter
-        self.window.ui.splitters['main'] = QSplitter(Qt.Horizontal)
-        self.window.ui.splitters['main'].addWidget(self.window.ctx)  # contexts
-        self.window.ui.splitters['main'].addWidget(self.window.chat)  # chat box
-        self.window.ui.splitters['main'].addWidget(self.window.toolbox)  # toolbox
-        self.window.ui.splitters['main'].setSizes([1, 8, 1])
+        self.splitters['main'] = QSplitter(Qt.Horizontal)
+        self.splitters['main'].addWidget(self.parts['ctx'])  # contexts
+        self.splitters['main'].addWidget(self.parts['chat'])  # chat box
+        self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
+        self.splitters['main'].setSizes([1, 8, 1])
 
         # menu
         self.menus.setup()

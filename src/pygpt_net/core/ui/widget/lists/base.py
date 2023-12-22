@@ -38,7 +38,7 @@ class BaseList(QTreeView):
         self.window.controller.model.select(self.id, val.row())
         self.selection = self.selectionModel().selection()
 
-    def lockSelection(self, selected, deselected):
+    def lockSelection(self, selected=None, deselected=None):
         if self.selection is not None:
             self.selectionModel().select(self.selection, QItemSelectionModel.Select)
 

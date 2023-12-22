@@ -69,8 +69,8 @@ class Lang:
         self.window.ui.tabs['output'].setTabText(6, trans('output.tab.notepad') + " 5")
 
         # context
-        self.window.ui.nodes['contexts.label'].setText(trans("ctx.contexts.label"))
-        self.window.ui.nodes['contexts.new'].setText(trans('context.new'))
+        self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))
+        self.window.ui.nodes['ctx.new'].setText(trans('ctx.new'))
 
         # toolbox
         self.window.ui.nodes['prompt.mode.label'].setText(trans("toolbox.mode.label"))

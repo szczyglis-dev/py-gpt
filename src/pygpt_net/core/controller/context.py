@@ -101,10 +101,10 @@ class Context:
         items = self.window.app.context.get_list()
         if ctx in items:
             idx = self.window.app.context.get_idx_by_name(ctx)
-            current = self.window.ui.models['ctx.contexts'].index(idx, 0)
-            self.window.ui.nodes['ctx.contexts'].unlocked = True  # tmp allow change if locked (enable)
-            self.window.ui.nodes['ctx.contexts'].setCurrentIndex(current)
-            self.window.ui.nodes['ctx.contexts'].unlocked = False  # tmp allow change if locked (disable)
+            current = self.window.ui.models['ctx.list'].index(idx, 0)
+            self.window.ui.nodes['ctx.list'].unlocked = True  # tmp allow change if locked (enable)
+            self.window.ui.nodes['ctx.list'].setCurrentIndex(current)
+            self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
 
     def new(self, force=False):
         """
@@ -134,7 +134,7 @@ class Context:
     def reload(self):
         """Reload current ctx list"""
         items = self.window.app.context.get_list()
-        self.window.ui.contexts.update_list('ctx.contexts', items)
+        self.window.ui.contexts.update_list('ctx.list', items)
 
     def refresh(self):
         """Refresh context"""
@@ -399,9 +399,9 @@ class Context:
         Select ctx on list change
         """
         # TODO: implement this
-        # idx = self.window.ui.nodes['ctx.contexts'].currentIndex().row()
+        # idx = self.window.ui.nodes['ctx.list'].currentIndex().row()
         # self.select(idx)
-        pass
+        self.window.ui.nodes['ctx.list'].lockSelection()
 
     def context_change_locked(self):
         """

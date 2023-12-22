@@ -44,8 +44,8 @@ class Input:
         self.window.ui.nodes['input'] = ChatInput(self.window)
 
         # status
-        status_layout = self.status.setup()
-        status_layout.setAlignment(Qt.AlignLeft)
+        status = self.status.setup()
+        status.setAlignment(Qt.AlignLeft)
 
         # send options
         self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
@@ -95,7 +95,7 @@ class Input:
 
         # bottom layout (status + send layout)
         bottom_layout = QHBoxLayout()
-        bottom_layout.addLayout(status_layout)
+        bottom_layout.addLayout(status)
         bottom_layout.addLayout(self.window.ui.nodes['ui.input.buttons'])
 
         # header (input label + input counter)
