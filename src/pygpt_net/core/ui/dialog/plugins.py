@@ -14,7 +14,7 @@ from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
     QLineEdit
 
-from ..widget.dialog.plugin_settings import PluginSettingsDialog
+from ..widget.dialog.settings_plugin import PluginSettingsDialog
 from ..widget.element.group import CollapsedGroup
 from ..widget.element.url import UrlLabel
 from ..widget.lists.plugin import PluginList
