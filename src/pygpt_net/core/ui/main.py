@@ -64,9 +64,9 @@ class UI:
         self.setup_font()
 
         # ctx, chat and toolbox
+        self.parts['ctx'] = self.contexts.setup()
         self.parts['chat'] = self.chat.setup()
         self.parts['toolbox'] = self.toolbox.setup()
-        self.parts['ctx'] = self.contexts.setup()
 
         # set width
         self.parts['ctx'].setMinimumWidth(200)
