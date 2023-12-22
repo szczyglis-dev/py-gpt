@@ -12,11 +12,11 @@
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
-from .base import SelectMenu
+from .base import BaseList
 from ....utils import trans
 
 
-class AssistantSelectMenu(SelectMenu):
+class AssistantList(BaseList):
     def __init__(self, window=None, id=None):
         """
         Presets select menu
@@ -24,7 +24,7 @@ class AssistantSelectMenu(SelectMenu):
         :param window: main window
         :param id: input id
         """
-        super(AssistantSelectMenu, self).__init__(window)
+        super(AssistantList, self).__init__(window)
         self.window = window
         self.id = id
 

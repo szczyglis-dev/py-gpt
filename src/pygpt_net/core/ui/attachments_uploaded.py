@@ -12,7 +12,7 @@
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
 
-from .widget.lists.uploaded import AttachmentUploadedSelectMenu
+from .widget.lists.uploaded import UploadedFileList
 from ..utils import trans
 
 
@@ -60,7 +60,7 @@ class AttachmentsUploaded:
         id = 'attachments_uploaded'
 
         # attachments
-        self.window.ui.nodes[id] = AttachmentUploadedSelectMenu(self.window)
+        self.window.ui.nodes[id] = UploadedFileList(self.window)
 
         # buttons
         self.window.ui.nodes['attachments_uploaded.btn.sync'] = QPushButton(trans('attachments_uploaded.btn.sync'))

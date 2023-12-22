@@ -12,11 +12,11 @@
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
-from .base import SelectMenu
+from .base import BaseList
 from ....utils import trans
 
 
-class ContextSelectMenu(SelectMenu):
+class ContextList(BaseList):
     def __init__(self, window=None, id=None):
         """
         Presets select menu
@@ -24,7 +24,7 @@ class ContextSelectMenu(SelectMenu):
         :param window: main window
         :param id: input id
         """
-        super(ContextSelectMenu, self).__init__(window)
+        super(ContextList, self).__init__(window)
         self.window = window
         self.id = id
 

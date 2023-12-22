@@ -13,7 +13,7 @@ from PySide6.QtCore import QItemSelectionModel
 from PySide6.QtWidgets import QTreeView, QAbstractItemView
 
 
-class SelectMenu(QTreeView):
+class BaseList(QTreeView):
     NAME = range(1)  # list of columns
 
     def __init__(self, window=None, id=None):
@@ -23,7 +23,7 @@ class SelectMenu(QTreeView):
         :param window: Window instance
         :param id: input id
         """
-        super(SelectMenu, self).__init__(window)
+        super(BaseList, self).__init__(window)
         self.window = window
         self.id = id
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -53,7 +53,7 @@ class SelectMenu(QTreeView):
         index = self.indexAt(event.pos())
         if not index.isValid():
             return
-        super(SelectMenu, self).mousePressEvent(event)
+        super(BaseList, self).mousePressEvent(event)
 
     def focusOutEvent(self, event):
         pass

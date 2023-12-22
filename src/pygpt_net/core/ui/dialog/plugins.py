@@ -17,7 +17,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 from ..widget.dialog.plugin_settings import PluginSettingsDialog
 from ..widget.element.group import CollapsedGroup
 from ..widget.element.url import UrlLabel
-from ..widget.lists.plugin import PluginSelectMenu
+from ..widget.lists.plugin import PluginList
 from ..widget.option.checkbox import OptionCheckbox
 from ..widget.option.dictionary import OptionDict
 from ..widget.option.input import OptionInput
@@ -225,7 +225,7 @@ class Plugins:
 
         # plugins list
         id = 'plugin.list'
-        self.window.ui.nodes[id] = PluginSelectMenu(self.window, id)
+        self.window.ui.nodes[id] = PluginList(self.window, id)
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
 

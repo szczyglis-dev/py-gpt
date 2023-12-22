@@ -18,9 +18,9 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSp
 from .widget.textarea.name import NameInput
 from .widget.option.slider import OptionSlider
 from .widget.option.textarea import OptionTextarea
-from .widget.lists.base import SelectMenu
-from .widget.lists.preset import PresetSelectMenu
-from .widget.lists.assistant import AssistantSelectMenu
+from .widget.lists.base import BaseList
+from .widget.lists.preset import PresetList
+from .widget.lists.assistant import AssistantList
 from ..utils import trans
 
 
@@ -228,7 +228,7 @@ class Toolbox:
         label_key = id + '.label'
         self.window.ui.nodes[label_key] = QLabel(title)
         self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
-        self.window.ui.nodes[id] = SelectMenu(self.window, id)
+        self.window.ui.nodes[id] = BaseList(self.window, id)
 
         if id == 'prompt.mode':
             self.window.ui.nodes[id].selection_locked = self.window.controller.model.mode_change_locked
@@ -269,7 +269,7 @@ class Toolbox:
         header_widget = QWidget()
         header_widget.setLayout(header)
 
-        self.window.ui.nodes[id] = PresetSelectMenu(self.window, id)
+        self.window.ui.nodes[id] = PresetList(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.model.preset_change_locked
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
@@ -308,7 +308,7 @@ class Toolbox:
         header_widget = QWidget()
         header_widget.setLayout(header)
 
-        self.window.ui.nodes[id] = AssistantSelectMenu(self.window, id)
+        self.window.ui.nodes[id] = AssistantList(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.assistant.assistant_change_locked
         self.window.ui.nodes[id].setMinimumWidth(40)
         layout = QVBoxLayout()

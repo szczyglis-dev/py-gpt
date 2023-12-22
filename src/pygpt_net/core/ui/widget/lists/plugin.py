@@ -9,10 +9,10 @@
 # Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
-from .base import SelectMenu
+from .base import BaseList
 
 
-class PluginSelectMenu(SelectMenu):
+class PluginList(BaseList):
     def __init__(self, window=None, id=None):
         """
         Plugin select menu (in settings dialog)
@@ -20,7 +20,7 @@ class PluginSelectMenu(SelectMenu):
         :param window: main window
         :param id: input id
         """
-        super(PluginSelectMenu, self).__init__(window)
+        super(PluginList, self).__init__(window)
         self.window = window
         self.id = id
 

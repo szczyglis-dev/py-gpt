@@ -13,7 +13,7 @@ from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
-from .widget.lists.context import ContextSelectMenu
+from .widget.lists.context import ContextList
 from .widget.camera import VideoContainer
 from ..utils import trans
 
@@ -66,7 +66,7 @@ class Contexts:
         self.window.ui.nodes['contexts.new'].clicked.connect(
             lambda: self.window.controller.context.new())
 
-        self.window.ui.nodes[id] = ContextSelectMenu(self.window, id)
+        self.window.ui.nodes[id] = ContextList(self.window, id)
         self.window.ui.nodes[id].setStyleSheet(self.window.controller.theme.get_style('text_small'))
         self.window.ui.nodes[id].selection_locked = self.window.controller.context.context_change_locked
         self.window.ui.nodes['contexts.label'] = QLabel(trans("ctx.contexts.label"))
