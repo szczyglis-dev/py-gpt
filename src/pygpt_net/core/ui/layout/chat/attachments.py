@@ -115,8 +115,8 @@ class Attachments:
         """
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
-        for uuid in data:
+        for id in data:
             self.window.ui.models[self.id].insertRow(i)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[uuid].name)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[uuid].path)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id].name)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[id].path)
             i += 1
