@@ -33,7 +33,7 @@ class Input:
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
 
-        # min heights
+        # min height
         self.min_height_files_tab = 120
         self.min_height_input_tab = 80
         self.min_height_input = 50
