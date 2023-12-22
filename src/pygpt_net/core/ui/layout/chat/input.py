@@ -36,6 +36,7 @@ class Input:
         # min heights
         self.min_height_files_tab = 120
         self.min_height_input_tab = 80
+        self.min_height_input = 50
 
     def setup(self):
         """
@@ -76,7 +77,7 @@ class Input:
         """
         # input textarea
         self.window.ui.nodes['input'] = ChatInput(self.window)
-        self.window.ui.nodes['input'].setMinimumHeight(50)
+        self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['input'])
@@ -217,8 +218,8 @@ class Input:
         """
         idx = self.window.ui.tabs['input'].currentIndex()
         if idx == 0:
-            self.window.ui.nodes['input'].setMinimumHeight(50)
+            self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
             self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
         else:
             self.window.ui.nodes['input'].setMinimumHeight(self.min_height_files_tab)
-            self.window.ui.tabs['input'].setMinimumHeight(180)
+            self.window.ui.tabs['input'].setMinimumHeight(self.min_height_files_tab + 60)
