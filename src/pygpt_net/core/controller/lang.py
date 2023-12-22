@@ -177,6 +177,10 @@ class Lang:
         self.window.ui.nodes['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
         self.window.ui.dialog['info.changelog'].setWindowTitle(trans("dialog.changelog.title"))
 
+        # updater dialog
+        self.window.ui.dialog['update'].download.setText(trans('update.download'))
+        self.window.ui.dialog['update'].setWindowTitle(trans('update.title'))
+
         # about dialog
         string = "PY-GPT\n" \
                  "-------------\n" \

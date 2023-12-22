@@ -241,7 +241,7 @@ class RenameInput(QLineEdit):
         :param event: key event
         """
         super(RenameInput, self).keyPressEvent(event)
-        
+
         # save on Enter
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
             self.window.controller.confirm.accept_rename(self.window.ui.dialog['rename'].id,

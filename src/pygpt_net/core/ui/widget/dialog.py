@@ -217,9 +217,9 @@ class UpdateDialog(QDialog):
         self.setParent(window)
         self.setWindowTitle(trans('update.title'))
 
-        download = QPushButton(trans('update.download'))
-        download.setCursor(Qt.PointingHandCursor)
-        download.clicked.connect(
+        self.download = QPushButton(trans('update.download'))
+        self.download.setCursor(Qt.PointingHandCursor)
+        self.download.clicked.connect(
             lambda: self.window.controller.info.goto_update())
 
         self.changelog = QPlainTextEdit()
@@ -244,7 +244,7 @@ class UpdateDialog(QDialog):
         self.layout.addWidget(self.info)
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.changelog, 1)
-        self.layout.addWidget(download)
+        self.layout.addWidget(self.download)
         self.layout.addStretch()
         self.setLayout(self.layout)
 
