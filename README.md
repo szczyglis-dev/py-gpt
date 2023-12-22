@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.45** | build: **2023.12.22** | Python: **3.9+**
+Release: **2.0.46** | build: **2023.12.22** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1333,6 +1333,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.46 (2023-12-22)
+
+- Improved tokens calculation (added extra tokens from plugins to real-time calculation)
+- Added new context menu option to selected text in output/input: "Read with speech synthesis"
 
 ## 2.0.45 (2023-12-22)
 

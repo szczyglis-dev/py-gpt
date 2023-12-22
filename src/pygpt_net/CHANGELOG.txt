@@ -1,3 +1,8 @@
+2.0.46 (2023-12-22)
+
+- Improved tokens calculation (added extra tokens from plugins to real-time calculation)
+- Added new context menu option to selected text in output/input: "Read with speech synthesis"
+
 2.0.45 (2023-12-22)
 
 - Added "light" themes
