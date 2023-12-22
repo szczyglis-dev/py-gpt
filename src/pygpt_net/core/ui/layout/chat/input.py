@@ -54,7 +54,7 @@ class Input:
         self.window.ui.tabs['input'].addTab(input, trans('input.tab'))
         self.window.ui.tabs['input'].addTab(files, trans('attachments.tab'))
         self.window.ui.tabs['input'].addTab(files_uploaded, trans('attachments_uploaded.tab'))
-        self.window.ui.tabs['input'].currentChanged.connect(self.update_min_height)
+        self.window.ui.tabs['input'].currentChanged.connect(self.update_min_height)  # update min height on tab change
 
         # layout
         layout = QVBoxLayout()
@@ -88,7 +88,7 @@ class Input:
 
     def setup_attachments(self):
         """
-        Setup attachments tab
+        Setup attachments
 
         :return: QWidget
         :rtype: QWidget
@@ -103,7 +103,7 @@ class Input:
 
     def setup_attachments_uploaded(self):
         """
-        Setup attachments uploaded tab
+        Setup attachments uploaded
 
         :return: QWidget
         :rtype: QWidget
