@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.18 14:00:00                  #
 # ================================================== #
+
 import webbrowser
 
 from ..utils import trans
@@ -41,7 +42,7 @@ class Assistant:
     def update_list(self):
         """Update assistants list"""
         items = self.window.app.assistants.get_all()
-        self.window.ui.toolbox.assistants.update('assistants', items)
+        self.window.ui.toolbox.assistants.update(items)
 
     def assistant_change_locked(self):
         """

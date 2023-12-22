@@ -24,6 +24,7 @@ class Attachments:
         :param window: Window instance
         """
         self.window = window
+        self.id = 'attachments'
 
     def setup(self):
         """
@@ -32,7 +33,6 @@ class Attachments:
         :return: QVBoxLayout
         :rtype: QVBoxLayout
         """
-
         self.setup_attachments()
 
         centered_layout = {}
@@ -69,10 +69,8 @@ class Attachments:
         """
         Setup attachments list
         """
-        id = 'attachments'
-
         # attachments
-        self.window.ui.nodes[id] = AttachmentList(self.window)
+        self.window.ui.nodes[self.id] = AttachmentList(self.window)
 
         # buttons
         self.window.ui.nodes['attachments.btn.add'] = QPushButton(trans('attachments.btn.add'))
@@ -93,8 +91,8 @@ class Attachments:
             lambda: self.window.controller.attachment.toggle_capture_clear(
                 self.window.ui.nodes['attachments.capture_clear'].isChecked()))
 
-        self.window.ui.models[id] = self.create_model(self.window)
-        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
+        self.window.ui.models[self.id] = self.create_model(self.window)
+        self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
     def create_model(self, parent):
         """
@@ -109,17 +107,16 @@ class Attachments:
         model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
         return model
 
-    def update_list(self, id, data):
+    def update(self, data):
         """
         Update list
 
-        :param id: ID of the list
         :param data: Data to update
         """
-        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
+        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for uuid in data:
-            self.window.ui.models[id].insertRow(i)
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), data[uuid].name)
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 1), data[uuid].path)
+            self.window.ui.models[self.id].insertRow(i)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[uuid].name)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[uuid].path)
             i += 1

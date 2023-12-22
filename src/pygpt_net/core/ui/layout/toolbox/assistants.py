@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 
 from ...widget.lists.assistant import AssistantList
 from ....utils import trans
@@ -24,18 +24,16 @@ class Assistants:
         :param window: Window instance
         """
         self.window = window
+        self.id = 'assistants'
 
     def setup(self):
         """
         Setup assistants
 
-        :return: QSplitter
-        :rtype: QSplitter
+        :return: QWidget
+        :rtype: QWidget
         """
-        layout = self.setup_assistants('assistants', trans("toolbox.assistants.label"))
-
-        self.window.ui.models['assistants'] = self.create_model(self.window)
-        self.window.ui.nodes['assistants'].setModel(self.window.ui.models['assistants'])
+        layout = self.setup_assistants()
 
         self.window.ui.nodes['assistants.widget'] = QWidget()
         self.window.ui.nodes['assistants.widget'].setLayout(layout)
@@ -43,12 +41,10 @@ class Assistants:
 
         return self.window.ui.nodes['assistants.widget']
 
-    def setup_assistants(self, id, title):
+    def setup_assistants(self):
         """
         Setup list of assistants
 
-        :param id: ID of the list
-        :param title: Title of the list
         :return: QVBoxLayout
         :rtype: QVBoxLayout
         """
@@ -63,7 +59,7 @@ class Assistants:
             lambda: self.window.controller.assistant.import_assistants())
 
         # label
-        self.window.ui.nodes['assistants.label'] = QLabel(title)
+        self.window.ui.nodes['assistants.label'] = QLabel(trans("toolbox.assistants.label"))
         self.window.ui.nodes['assistants.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
         # header
@@ -76,18 +72,18 @@ class Assistants:
         header_widget.setLayout(header)
 
         # list
-        self.window.ui.nodes[id] = AssistantList(self.window, id)
-        self.window.ui.nodes[id].selection_locked = self.window.controller.assistant.assistant_change_locked
-        self.window.ui.nodes[id].setMinimumWidth(40)
+        self.window.ui.nodes[self.id] = AssistantList(self.window, self.id)
+        self.window.ui.nodes[self.id].selection_locked = self.window.controller.assistant.assistant_change_locked
+        self.window.ui.nodes[self.id].setMinimumWidth(40)
 
         # rows
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
-        layout.addWidget(self.window.ui.nodes[id])
+        layout.addWidget(self.window.ui.nodes[self.id])
 
         # model
-        self.window.ui.models[id] = self.create_model(self.window)
-        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
+        self.window.ui.models[self.id] = self.create_model(self.window)
+        self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
         return layout
 
@@ -101,23 +97,22 @@ class Assistants:
         """
         return QStandardItemModel(0, 1, parent)
 
-    def update(self, id, data):
+    def update(self, data):
         """
         Update list of assistants
 
-        :param id: ID of the list
         :param data: Data to update
         """
         # store previous selection
-        self.window.ui.nodes[id].backup_selection()
+        self.window.ui.nodes[self.id].backup_selection()
 
-        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
+        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for n in data:
-            self.window.ui.models[id].insertRow(i)
+            self.window.ui.models[self.id].insertRow(i)
             name = data[n].name
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
             i += 1
 
         # restore previous selection
-        self.window.ui.nodes[id].restore_selection()
+        self.window.ui.nodes[self.id].restore_selection()

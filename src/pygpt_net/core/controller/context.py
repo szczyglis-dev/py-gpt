@@ -134,7 +134,7 @@ class Context:
     def reload(self):
         """Reload current ctx list"""
         items = self.window.app.context.get_list()
-        self.window.ui.contexts.update_list('ctx.list', items)
+        self.window.ui.contexts.ctx_list.update('ctx.list', items)
 
     def refresh(self):
         """Refresh context"""

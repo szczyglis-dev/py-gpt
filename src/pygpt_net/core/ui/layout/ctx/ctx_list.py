@@ -14,7 +14,6 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
 from ...widget.lists.context import ContextList
-from ...widget.vision.camera import VideoContainer
 from ....utils import trans
 
 
@@ -28,25 +27,6 @@ class CtxList:
         self.window = window
 
     def setup(self):
-        """
-        Setup layout
-
-        :return: QWidget
-        :rtype: QWidget
-        """
-        ctx = self.setup_ctx()
-        video = self.setup_video()
-
-        layout = QVBoxLayout()
-        layout.addWidget(ctx)
-        layout.addWidget(video)
-
-        widget = QWidget()
-        widget.setLayout(layout)
-
-        return widget
-
-    def setup_ctx(self):
         """
         Setup list
 
@@ -79,17 +59,6 @@ class CtxList:
 
         return widget
 
-    def setup_video(self):
-        """
-        Setup video preview
-        :return: VideoContainer
-        :rtype: VideoContainer
-        """
-        self.window.ui.nodes['video.preview'] = VideoContainer(self.window)
-        self.window.ui.nodes['video.preview'].setVisible(False)
-
-        return self.window.ui.nodes['video.preview']
-
     def create_model(self, parent):
         """
         Create model
@@ -100,7 +69,7 @@ class CtxList:
         """
         return QStandardItemModel(0, 1, parent)
 
-    def update_list(self, id, data):
+    def update(self, id, data):
         """
         Update list
 

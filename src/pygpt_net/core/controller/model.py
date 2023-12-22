@@ -237,19 +237,19 @@ class Model:
     def update_list_modes(self):
         """Update modes list"""
         items = self.window.config.get_modes()
-        self.window.ui.toolbox.mode.update('prompt.mode', items)
+        self.window.ui.toolbox.mode.update(items)
 
     def update_list_models(self):
         """Update models list"""
         mode = self.window.config.get('mode')
         items = self.window.config.get_models(mode)
-        self.window.ui.toolbox.model.update('prompt.model', items)
+        self.window.ui.toolbox.model.update(items)
 
     def update_list_presets(self):
         """Update presets list"""
         mode = self.window.config.get('mode')
         items = self.window.config.get_presets(mode)
-        self.window.ui.toolbox.presets.update('preset.presets', items)
+        self.window.ui.toolbox.presets.update(items)
 
     def update_current_temperature(self, temperature=None):
         """

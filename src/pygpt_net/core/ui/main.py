@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QSplitter
 
 from .dialogs import Dialogs
 from .layout.chat.main import ChatMain
-from .layout.ctx.ctx_list import CtxList
+from .layout.ctx.main import CtxMain
 from .layout.toolbox.main import ToolboxMain
 from .menu import Menu
 
@@ -49,7 +49,7 @@ class UI:
 
         # builders
         self.chat = ChatMain(window)
-        self.contexts = CtxList(window)
+        self.contexts = CtxMain(window)
         self.dialogs = Dialogs(window)
         self.menus = Menu(window)
         self.toolbox = ToolboxMain(window)

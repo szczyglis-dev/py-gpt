@@ -59,6 +59,7 @@ class Prompt:
         header.addWidget(self.window.ui.nodes['preset.use'], alignment=Qt.AlignRight)
         header.addWidget(self.window.ui.nodes['preset.clear'], alignment=Qt.AlignRight)
 
+        # prompt
         self.window.ui.nodes['preset.prompt'] = OptionTextarea(self.window, 'preset.prompt', True)
         self.window.ui.nodes['preset.prompt'].update_ui = False
 

@@ -44,7 +44,7 @@ class Vision:
 
         self.window.ui.nodes['vision.capture.label'] = QLabel(trans('vision.capture.options.title'))
 
-        # checkboxes
+        # checkbox options
         cols = QHBoxLayout()
         cols.addWidget(self.window.ui.nodes['vision.capture.enable'])
         cols.addWidget(self.window.ui.nodes['vision.capture.auto'])

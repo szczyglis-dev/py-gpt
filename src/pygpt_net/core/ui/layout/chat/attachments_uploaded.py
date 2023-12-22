@@ -19,11 +19,12 @@ from ....utils import trans
 class AttachmentsUploaded:
     def __init__(self, window=None):
         """
-        Attachments Uplaoded UI
+        Attachments Uploaded UI
 
         :param window: Window instance
         """
         self.window = window
+        self.id = 'attachments_uploaded'
 
     def setup(self):
         """
@@ -32,7 +33,6 @@ class AttachmentsUploaded:
         :return: QVBoxLayout
         :rtype: QVBoxLayout
         """
-
         self.setup_attachments()
 
         self.window.ui.nodes['attachments_uploaded.sync.tip'] = QLabel(trans('attachments_uploaded.sync.tip'))
@@ -57,10 +57,8 @@ class AttachmentsUploaded:
         """
         Setup attachments uploaded list
         """
-        id = 'attachments_uploaded'
-
         # attachments
-        self.window.ui.nodes[id] = UploadedFileList(self.window)
+        self.window.ui.nodes[self.id] = UploadedFileList(self.window)
 
         # buttons
         self.window.ui.nodes['attachments_uploaded.btn.sync'] = QPushButton(trans('attachments_uploaded.btn.sync'))
@@ -71,8 +69,8 @@ class AttachmentsUploaded:
         self.window.ui.nodes['attachments_uploaded.btn.clear'].clicked.connect(
             lambda: self.window.controller.assistant_files.clear_files())
 
-        self.window.ui.models[id] = self.create_model(self.window)
-        self.window.ui.nodes[id].setModel(self.window.ui.models[id])
+        self.window.ui.models[self.id] = self.create_model(self.window)
+        self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
     def create_model(self, parent):
         """
@@ -87,19 +85,18 @@ class AttachmentsUploaded:
         model.setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
         return model
 
-    def update_list(self, id, data):
+    def update(self, data):
         """
         Update list
 
-        :param id: ID of the list
         :param data: Data to update
         """
-        self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
+        self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
-        for uuid in data:
-            if 'name' not in data[uuid]:
+        for id in data:
+            if 'name' not in data[id] or 'path' not in data[id]:
                 continue
-            self.window.ui.models[id].insertRow(i)
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), data[uuid]['name'])
-            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 1), data[uuid]['path'])
+            self.window.ui.models[self.id].insertRow(i)
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id]['name'])
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[id]['path'])
             i += 1
