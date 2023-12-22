@@ -13,13 +13,13 @@ import os
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter, QTabWidget
 
-from .widget.audio.output import AudioOutput
-from .widget.textarea.output import ChatOutput
-from .widget.textarea.notepad import NotepadOutput
-from .widget.filesystem.explorer import FileExplorer
 from .input import Input
-from .highlighter import MarkdownHighlighter
-from ..utils import trans
+from ...widget.audio.output import AudioOutput
+from ...widget.textarea.output import ChatOutput
+from ...widget.textarea.notepad import NotepadOutput
+from ...widget.filesystem.explorer import FileExplorer
+from ...highlighter import MarkdownHighlighter
+from ....utils import trans
 
 
 class Output:
@@ -39,7 +39,6 @@ class Output:
         :return: QSplitter
         :rtype: QSplitter
         """
-        self.window.layout_input = self.input.setup()
 
         self.window.ui.nodes['output'] = ChatOutput(self.window)
 
@@ -60,8 +59,6 @@ class Output:
         self.window.ui.nodes['chat.model'].setAlignment(Qt.AlignRight)
         self.window.ui.nodes['chat.model'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
 
-        context_layout = self.setup_context()
-
         self.window.ui.nodes['chat.label'] = QLabel('')
         self.window.ui.nodes['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
 
@@ -72,6 +69,8 @@ class Output:
         header.addWidget(self.window.ui.nodes['chat.label'])
         header.addWidget(self.window.ui.nodes['chat.plugins'])
         header.addWidget(self.window.ui.nodes['chat.model'])
+
+        bottom = self.setup_bottom()
 
         # tabs
         self.window.ui.tabs['output'] = QTabWidget()
@@ -88,24 +87,14 @@ class Output:
         layout = QVBoxLayout()
         layout.addLayout(header)
         layout.addWidget(self.window.ui.tabs['output'])
-        layout.addLayout(context_layout)
+        layout.addLayout(bottom)
 
-        output_widget = QWidget()
-        output_widget.setLayout(layout)
+        widget = QWidget()
+        widget.setLayout(layout)
 
-        input_widget = QWidget()
-        input_widget.setLayout(self.window.layout_input)
+        return widget
 
-        # main vertical splitter
-        self.window.ui.splitters['main.output'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['main.output'].addWidget(output_widget)
-        self.window.ui.splitters['main.output'].addWidget(input_widget)
-        self.window.ui.splitters['main.output'].setStretchFactor(0, 4)
-        self.window.ui.splitters['main.output'].setStretchFactor(1, 1)
-
-        return self.window.ui.splitters['main.output']
-
-    def setup_context(self):
+    def setup_bottom(self):
         """
         Setup context
 

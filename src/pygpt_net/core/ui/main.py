@@ -16,10 +16,10 @@ from PySide6.QtWidgets import QSplitter
 
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
+from .layout.chat.main import ChatMain
 from .layout.ctx.ctx_list import CtxList
 from .dialogs import Dialogs
 from .menu import Menu
-from .output import Output
 from .toolbox import Toolbox
 
 
@@ -52,7 +52,7 @@ class UI:
         # setup builders
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
-        self.chat = Output(window)
+        self.chat = ChatMain(window)
         self.contexts = CtxList(window)
         self.dialogs = Dialogs(window)
         self.menus = Menu(window)

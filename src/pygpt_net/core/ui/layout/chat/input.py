@@ -13,12 +13,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, \
     QTabWidget, QWidget
 
-from .status import Status
-from .attachments import Attachments
-from .attachments_uploaded import AttachmentsUploaded
-from .widget.audio.input import AudioInput
-from .widget.textarea.input import ChatInput
-from ..utils import trans
+from ...status import Status
+from ...attachments import Attachments
+from ...attachments_uploaded import AttachmentsUploaded
+from ...widget.audio.input import AudioInput
+from ...widget.textarea.input import ChatInput
+from ....utils import trans
 
 
 class Input:
@@ -37,8 +37,8 @@ class Input:
         """
         Setup input
 
-        :return: QVBoxLayout
-        :rtype: QVBoxLayout
+        :return: QWidget
+        :rtype: QWidget
         """
         # input textarea
         self.window.ui.nodes['input'] = ChatInput(self.window)
@@ -156,7 +156,10 @@ class Input:
         layout.addWidget(self.window.ui.tabs['input'])
         layout.addLayout(bottom_layout)
 
-        return layout
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
 
     def update_min_heigth(self):
         """
