@@ -25,6 +25,7 @@ Highlight Markdown text
 '''
 
 import re
+
 from PySide6.QtGui import QBrush
 from PySide6.QtGui import QColor
 from PySide6.QtGui import QFont

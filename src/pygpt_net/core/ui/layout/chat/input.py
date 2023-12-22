@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 18:00:00                  #
+# Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -33,6 +33,10 @@ class Input:
         self.attachments = Attachments(window)
         self.attachments_uploaded = AttachmentsUploaded(window)
 
+        # min heights
+        self.min_height_files_tab = 120
+        self.min_height_input_tab = 80
+
     def setup(self):
         """
         Setup input
@@ -40,64 +44,85 @@ class Input:
         :return: QWidget
         :rtype: QWidget
         """
+        input = self.setup_input()
+        files = self.setup_attachments()
+        files_uploaded = self.setup_attachments_uploaded()
+
+        # tabs
+        self.window.ui.tabs['input'] = QTabWidget()
+        self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
+        self.window.ui.tabs['input'].addTab(input, trans('input.tab'))
+        self.window.ui.tabs['input'].addTab(files, trans('attachments.tab'))
+        self.window.ui.tabs['input'].addTab(files_uploaded, trans('attachments_uploaded.tab'))
+        self.window.ui.tabs['input'].currentChanged.connect(self.update_min_height)
+
+        # layout
+        layout = QVBoxLayout()
+        layout.addLayout(self.setup_header())
+        layout.addWidget(self.window.ui.tabs['input'])
+        layout.addLayout(self.setup_bottom())
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
+
+    def setup_input(self):
+        """
+        Setup input tab
+
+        :return: QWidget
+        :rtype: QWidget
+        """
         # input textarea
         self.window.ui.nodes['input'] = ChatInput(self.window)
+        self.window.ui.nodes['input'].setMinimumHeight(50)
 
-        # status
-        status = self.status.setup()
-        status.setAlignment(Qt.AlignLeft)
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes['input'])
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        # send options
-        self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
-        self.window.ui.nodes['input.send_enter'].clicked.connect(
-            lambda: self.window.controller.input.toggle_send_shift(
-                1))
+        widget = QWidget()
+        widget.setLayout(layout)
+        return widget
 
-        self.window.ui.nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
-        self.window.ui.nodes['input.send_shift_enter'].clicked.connect(
-            lambda: self.window.controller.input.toggle_send_shift(
-                2))
+    def setup_attachments(self):
+        """
+        Setup attachments tab
 
-        self.window.ui.nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
-        self.window.ui.nodes['input.send_none'].clicked.connect(
-            lambda: self.window.controller.input.toggle_send_shift(
-                0))
+        :return: QWidget
+        :rtype: QWidget
+        """
+        layout = QVBoxLayout()
+        layout.addLayout(self.attachments.setup())
 
-        self.window.ui.nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
-        self.window.ui.nodes['input.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_send_clear(self.window.ui.nodes['input.send_clear'].isChecked()))
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setMinimumHeight(self.min_height_files_tab)
+        return widget
 
-        self.window.ui.nodes['input.stream'] = QCheckBox(trans('input.stream'))
-        self.window.ui.nodes['input.stream'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_stream(self.window.ui.nodes['input.stream'].isChecked()))
+    def setup_attachments_uploaded(self):
+        """
+        Setup attachments uploaded tab
 
-        # send button
-        self.window.ui.nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
-        self.window.ui.nodes['input.send_btn'].clicked.connect(
-            lambda: self.window.controller.input.user_send())
+        :return: QWidget
+        :rtype: QWidget
+        """
+        layout = QVBoxLayout()
+        layout.addLayout(self.attachments_uploaded.setup())
 
-        # send button
-        self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
-        self.window.ui.nodes['input.stop_btn'].setVisible(False)
-        self.window.ui.nodes['input.stop_btn'].clicked.connect(
-            lambda: self.window.controller.input.stop())
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setMinimumHeight(self.min_height_files_tab)
+        return widget
 
-        # send layout (options + send button)
-        self.window.ui.nodes['ui.input.buttons'] = QHBoxLayout()
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stream'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_clear'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_enter'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_shift_enter'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_none'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_btn'])
-        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stop_btn'])
-        self.window.ui.nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
+    def setup_header(self):
+        """
+        Setup input header
 
-        # bottom layout (status + send layout)
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addLayout(status)
-        bottom_layout.addLayout(self.window.ui.nodes['ui.input.buttons'])
-
+        :return: QHBoxLayout
+        :rtype: QHBoxLayout
+        """
         # header (input label + input counter)
         self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
         self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
@@ -111,65 +136,100 @@ class Input:
         header.addWidget(self.window.ui.plugin_addon['audio.input'])
         header.addWidget(self.window.ui.nodes['input.counter'], alignment=Qt.AlignRight)
 
-        # input tab
-        input_tab = QWidget()
-        input_layout = QVBoxLayout()
-        input_layout.addWidget(self.window.ui.nodes['input'])
-        input_layout.setContentsMargins(0, 0, 0, 0)
-        self.window.ui.nodes['input'].setMinimumHeight(50)
-        input_tab.setLayout(input_layout)
+        return header
 
-        # attachments tab
-        attachments_layout = self.attachments.setup()
-        attachment_uploaded_layout = self.attachments_uploaded.setup()
+    def setup_bottom(self):
+        """
+        Setup input bottom
 
-        input_tab_minimum_height = 80
-        files_tabs_min_height = 120
+        :return: QHBoxLayout
+        :rtype: QHBoxLayout
+        """
+        layout = QHBoxLayout()
+        layout.addLayout(self.setup_status())
+        layout.addLayout(self.setup_buttons())
 
-        # files tab
-        files_tab = QWidget()
-        files_layout = QVBoxLayout()
-        files_layout.addLayout(attachments_layout)
-        files_tab.setLayout(files_layout)
-        files_tab.setMinimumHeight(files_tabs_min_height)
+        return layout
 
-        # files uploaded tab
-        files_uploaded_tab = QWidget()
-        files_uploaded_layout = QVBoxLayout()
-        files_uploaded_layout.addLayout(attachment_uploaded_layout)
-        files_uploaded_tab.setLayout(files_uploaded_layout)
-        files_uploaded_tab.setMinimumHeight(files_tabs_min_height)
+    def setup_buttons(self):
+        """
+        Setup input buttons
 
-        # tabs (input + attachments)
-        self.window.ui.tabs['input'] = QTabWidget()
-        self.window.ui.tabs['input'].setMinimumHeight(input_tab_minimum_height)
+        :return: QHBoxLayout
+        :rtype: QHBoxLayout
+        """
+        # send with: enter
+        self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
+        self.window.ui.nodes['input.send_enter'].clicked.connect(
+            lambda: self.window.controller.input.toggle_send_shift(
+                1))
 
-        # add tabs
-        self.window.ui.tabs['input'].addTab(input_tab, trans('input.tab'))
-        self.window.ui.tabs['input'].addTab(files_tab, trans('attachments.tab'))
-        self.window.ui.tabs['input'].addTab(files_uploaded_tab, trans('attachments_uploaded.tab'))
-        self.window.ui.tabs['input'].currentChanged.connect(self.update_min_heigth)
+        # send with: shift + enter
+        self.window.ui.nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
+        self.window.ui.nodes['input.send_shift_enter'].clicked.connect(
+            lambda: self.window.controller.input.toggle_send_shift(
+                2))
 
-        # full input layout
-        layout = QVBoxLayout()
-        layout.addLayout(header)
-        layout.addWidget(self.window.ui.tabs['input'])
-        layout.addLayout(bottom_layout)
+        # send with: none
+        self.window.ui.nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
+        self.window.ui.nodes['input.send_none'].clicked.connect(
+            lambda: self.window.controller.input.toggle_send_shift(
+                0))
 
-        widget = QWidget()
-        widget.setLayout(layout)
+        # send clear
+        self.window.ui.nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
+        self.window.ui.nodes['input.send_clear'].stateChanged.connect(
+            lambda: self.window.controller.input.toggle_send_clear(
+                self.window.ui.nodes['input.send_clear'].isChecked()))
 
-        return widget
+        # stream
+        self.window.ui.nodes['input.stream'] = QCheckBox(trans('input.stream'))
+        self.window.ui.nodes['input.stream'].stateChanged.connect(
+            lambda: self.window.controller.input.toggle_stream(self.window.ui.nodes['input.stream'].isChecked()))
 
-    def update_min_heigth(self):
+        # send button
+        self.window.ui.nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
+        self.window.ui.nodes['input.send_btn'].clicked.connect(
+            lambda: self.window.controller.input.user_send())
+
+        # stop button
+        self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
+        self.window.ui.nodes['input.stop_btn'].setVisible(False)
+        self.window.ui.nodes['input.stop_btn'].clicked.connect(
+            lambda: self.window.controller.input.stop())
+
+        # layout
+        self.window.ui.nodes['ui.input.buttons'] = QHBoxLayout()
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stream'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_clear'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_enter'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_shift_enter'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_none'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.send_btn'])
+        self.window.ui.nodes['ui.input.buttons'].addWidget(self.window.ui.nodes['input.stop_btn'])
+        self.window.ui.nodes['ui.input.buttons'].setAlignment(Qt.AlignRight)
+
+        return self.window.ui.nodes['ui.input.buttons']
+
+    def setup_status(self):
+        """
+        Setup the status layout
+
+        :return: QHBoxLayout
+        """
+        status = self.status.setup()
+        status.setAlignment(Qt.AlignLeft)
+        return status
+
+    def update_min_height(self):
         """
         Update the minimum height of the input tab
         """
         idx = self.window.ui.tabs['input'].currentIndex()
         if idx == 0:
             self.window.ui.nodes['input'].setMinimumHeight(50)
-            self.window.ui.tabs['input'].setMinimumHeight(80)
+            self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
         else:
-            self.window.ui.nodes['input'].setMinimumHeight(120)
+            self.window.ui.nodes['input'].setMinimumHeight(self.min_height_files_tab)
             self.window.ui.tabs['input'].setMinimumHeight(180)
 
