@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu, QLabel
 
-from ...utils import trans
+from ....utils import trans
 
 
-class GeneratedImageLabel(QLabel):
+class ImageLabel(QLabel):
     def __init__(self, window=None, path=None):
         """
         Presets select menu
@@ -23,7 +23,7 @@ class GeneratedImageLabel(QLabel):
         :param window: Window instance
         :param path: image path
         """
-        super(GeneratedImageLabel, self).__init__(window)
+        super(ImageLabel, self).__init__(window)
         self.window = window
         self.path = path
 

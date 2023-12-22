@@ -11,8 +11,8 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
-from ..widget.image import GeneratedImageLabel
-from ..widget.dialog.image import GeneratedImageDialog
+from ..widget.dialog.image import ImageDialog
+from ..widget.image.display import ImageLabel
 from ...utils import trans
 
 
@@ -32,7 +32,7 @@ class Image:
         self.window.ui.nodes['dialog.image.pixmap'] = {}
 
         for i in range(0, 4):
-            self.window.ui.nodes['dialog.image.pixmap'][i] = GeneratedImageLabel(self.window, self.path)
+            self.window.ui.nodes['dialog.image.pixmap'][i] = ImageLabel(self.window, self.path)
             self.window.ui.nodes['dialog.image.pixmap'][i].setMaximumSize(512, 512)
 
         row_one = QHBoxLayout()
@@ -47,6 +47,6 @@ class Image:
         layout.addLayout(row_one)
         layout.addLayout(row_two)
 
-        self.window.ui.dialog[id] = GeneratedImageDialog(self.window, id)
+        self.window.ui.dialog[id] = ImageDialog(self.window, id)
         self.window.ui.dialog[id].setLayout(layout)
         self.window.ui.dialog[id].setWindowTitle(trans("dialog.image.title"))
