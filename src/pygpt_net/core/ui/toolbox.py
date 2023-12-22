@@ -16,7 +16,9 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSp
 
 from .widget.textarea import NameInput
 from .widget.settings import SettingsSlider, SettingsTextarea
-from .widget.select import SelectMenu, PresetSelectMenu, AssistantSelectMenu
+from .widget.lists.base import SelectMenu
+from .widget.lists.preset import PresetSelectMenu
+from .widget.lists.assistant import AssistantSelectMenu
 from ..utils import trans
 
 

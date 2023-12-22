@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 17:00:00                  #
+# Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
-from .widget.select import ContextSelectMenu
+from .widget.lists.context import ContextSelectMenu
 from .widget.camera import VideoContainer
 from ..utils import trans
 

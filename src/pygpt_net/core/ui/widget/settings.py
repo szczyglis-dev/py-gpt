@@ -14,7 +14,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QLineEdit, QDialog, QLabel, QCheckBox, QHBoxLayout, QWidget, QSlider, QTextEdit, \
     QVBoxLayout, QPushButton, QTreeView, QMenu
 
-from .select import SelectMenu
+from .lists.base import SelectMenu
 from ...utils import trans
 
 
