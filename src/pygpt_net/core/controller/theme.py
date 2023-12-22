@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.22 01:00:00                  #
 # ================================================== #
 import json
 import os
@@ -67,11 +67,39 @@ class Theme:
 
         :param name: theme name
         """
+        # check per theme style css
+        custom_css = 'style.css'
+        if custom_css is not None:
+            # per theme mode (light / dark)
+            tmp_css = None
+            if name.startswith('light_'):
+                tmp_css = 'style.light.css'
+            elif name.startswith('dark_'):
+                tmp_css = 'style.dark.css'
+            if tmp_css is not None:
+                # check for override in user directory
+                path = os.path.join(self.window.config.get_user_path(), 'css', tmp_css)
+                if not os.path.exists(path):
+                    # check in app directory
+                    path = os.path.join(self.window.config.get_root_path(), 'data', 'css', tmp_css)
+                if os.path.exists(path):
+                    custom_css = tmp_css
+
+                # per theme name
+                tmp_css = name + '.css'
+                # check for override in user directory
+                path = os.path.join(self.window.config.get_user_path(), 'css', tmp_css)
+                if not os.path.exists(path):
+                    # check in app directory
+                    path = os.path.join(self.window.config.get_root_path(), 'data', 'css', tmp_css)
+                if os.path.exists(path):
+                    custom_css = tmp_css
+
         self.window.config.set('theme', name)
         self.window.config.save()
         self.load_css()
         self.apply()
-        self.window.set_theme(name + '.xml', 'style.css')  # style.css = additional custom stylesheet
+        self.window.set_theme(name + '.xml', custom_css)  # style.css = additional custom stylesheet
         self.update()
 
     def apply_common(self, key):
@@ -181,16 +209,16 @@ class Theme:
                 'dark_red',
                 'dark_teal',
                 'dark_yellow',
-                # 'light_amber',
-                # 'light_blue',
-                # 'light_cyan',
-                # 'light_cyan_500',
-                # 'light_lightgreen',
-                # 'light_pink',
-                # 'light_purple',
-                # 'light_red',
-                # 'light_teal',
-                # 'light_yellow'
+                'light_amber',
+                'light_blue',
+                'light_cyan',
+                'light_cyan_500',
+                'light_lightgreen',
+                'light_pink',
+                'light_purple',
+                'light_red',
+                'light_teal',
+                'light_yellow'
         ]
 
     def trans_theme(self, theme):

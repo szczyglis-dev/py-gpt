@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 17:00:00                  #
+# Updated Date: 2023.12.22 01:00:00                  #
 # ================================================== #
 import os
 import sys
@@ -106,6 +106,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param custom_css: custom CSS file
         """
         inverse = False
+        if theme.startswith('light'):
+            inverse = True
         extra = {
             'density_scale': self.config.get('layout.density'),
             'pyside6': True,
@@ -114,9 +116,9 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # append custom CSS
         if custom_css is not None:
+            stylesheet = self.styleSheet()
             # check for override in user directory
             path = os.path.join(self.config.get_user_path(), 'css', custom_css)
-            stylesheet = self.styleSheet()
             if not os.path.exists(path):
                 # check in app directory
                 path = os.path.join(self.config.get_root_path(), 'data', 'css', custom_css)

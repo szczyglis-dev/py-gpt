@@ -21,6 +21,31 @@ all required dependencies. Just download the archive from the download page and
 extract it. Then run the application by running the ``pygpt`` binary file in the
 root directory.
 
+Snap Store
+-----------
+You can install **PyGPT** directly from Snap Store:
+
+.. code-block:: console
+
+    sudo snap install pygpt
+
+
+To manage future updates just use:
+
+.. code-block:: console
+
+    sudo snap refresh pygpt
+
+
+**Info:** to use camera in Snap version you must connect the camera with interface:
+
+.. code-block:: console
+
+    snap connect pygpt:camera
+
+
+**Snap Store:** https://snapcraft.io/pygpt
+
 Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
@@ -49,29 +74,6 @@ PyPi (pip)
 
     pygpt
 
-
-Troubleshooting
----------------
-
-If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
-
-.. code-block:: console
-
-    qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
-    This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
-
-...then install libxcb on linux:
-
-.. code-block:: console
-
-    sudo apt install libxcb-cursor0
-
-If this not help then try to downgrade PySide to ``PySide6-Essentials==6.4.2``:
-
-
-.. code-block:: console
-
-    pip install PySide6-Essentials==6.4.2
 
 Running from GitHub source code
 ````````````````````````````````
@@ -104,6 +106,43 @@ Running from GitHub source code
 
 **Tip**: you can use ``PyInstaller`` to create a compiled version of
 the application for your system.
+
+Troubleshooting
+---------------
+
+If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
+
+.. code-block:: console
+
+    qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+    This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+...then install libxcb on linux:
+
+.. code-block:: console
+
+    sudo apt install libxcb-cursor0
+
+If this not help then try to downgrade PySide to ``PySide6-Essentials==6.4.2``:
+
+
+.. code-block:: console
+
+    pip install PySide6-Essentials==6.4.2
+
+
+If you have a problems with audio on Linux, then try to install ``portaudio19-dev`` and/or ``libasound2``:
+
+.. code-block:: console
+
+    sudo apt install portaudio19-dev
+
+.. code-block:: console
+
+    sudo apt install libasound2
+    sudo apt install libasound2-data 
+    sudo apt install libasound2-plugins
+
 
 Other requirements
 ------------------

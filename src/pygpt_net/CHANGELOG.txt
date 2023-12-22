@@ -1,3 +1,9 @@
+2.0.45 (2023-12-22)
+
+- Added "light" themes
+- Fixed tokens calculation
+- Updated tests
+
 2.0.44 (2023-12-21)
 
 - Fixed language switch in plugins settings

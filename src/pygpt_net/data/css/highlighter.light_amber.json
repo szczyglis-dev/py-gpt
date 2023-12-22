@@ -1,18 +1,18 @@
 {
-    "background-color": "#d7d7d7",
-    "color": "#fff",
+    "background-color": "#fff",
+    "color": "#1b1b1b",
     "header": {
-        "color": "#795d66",
+        "color": "#887b4a",
         "font-weight": "bold",
         "font-style": "normal"
     },
     "bold": {
-        "color": "#f491b3",
+        "color": "#323232",
         "font-weight": "bold",
         "font-style": "normal"
     },
     "emphasis": {
-        "color": "#f491b3",
+        "color": "#323232",
         "font-weight": "bold",
         "font-style": "italic"
     },
@@ -22,45 +22,45 @@
         "font-style": "normal"
     },
     "unorderedlist": {
-        "color": "#ff4081",
+        "color": "#494949",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "orderedlist": {
-        "color": "#ff4081",
+        "color": "#494949",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "blockquote": {
-        "color": "#eda9c0",
+        "color": "#323232",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "codespan": {
         "background": "#000000",
-        "color": "#eda9c0",
+        "color": "#323232",
         "font-weight": "bold",
         "font-style": "normal"
     },
     "codeblock": {
         "background": "#000000",
-        "color": "#eda9c0",
+        "color": "#323232",
         "margin-left": "20px",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "html": {
-        "color": "#b66e87",
+        "color": "#494949",
         "font-style": "normal",
         "font-weight": "bold"
     },
     "line": {
-        "color": "#b66e87",
+        "color": "#494949",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "image": {
-        "color": "#b66e87",
+        "color": "#494949",
         "font-weight": "normal",
         "font-style": "normal"
     }

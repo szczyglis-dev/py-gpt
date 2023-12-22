@@ -2,7 +2,7 @@
     "background-color": "#d7d7d7",
     "color": "#fff",
     "header": {
-        "color": "#75427d",
+        "color": "#7a617e",
         "font-weight": "bold",
         "font-style": "normal"
     },
@@ -50,17 +50,17 @@
         "font-style": "normal"
     },
     "html": {
-        "color": "#8c3e9a",
+        "color": "#99769f",
         "font-style": "normal",
         "font-weight": "bold"
     },
     "line": {
-        "color": "#8c3e9a",
+        "color": "#99769f",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "image": {
-        "color": "#8c3e9a",
+        "color": "#99769f",
         "font-weight": "normal",
         "font-style": "normal"
     }

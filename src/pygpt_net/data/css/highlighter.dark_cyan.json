@@ -50,17 +50,17 @@
         "font-style": "normal"
     },
     "html": {
-        "color": "#42828b",
+        "color": "#668c91",
         "font-style": "normal",
         "font-weight": "bold"
     },
     "line": {
-        "color": "#42828b",
+        "color": "#668c91",
         "font-weight": "normal",
         "font-style": "normal"
     },
     "image": {
-        "color": "#42828b",
+        "color": "#668c91",
         "font-weight": "normal",
         "font-style": "normal"
     }

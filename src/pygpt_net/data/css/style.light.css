@@ -1,0 +1,41 @@
+* {{ 
+  font-family: 'Lato' !important; 
+}}
+
+
+QPushButton {{
+  color: #3e3e3e;
+  text-transform: none;
+  background-color: {QTMATERIAL_SECONDARYCOLOR};
+}}
+
+
+QLineEdit {{
+  color: #000000; 
+  border: 1px solid #5c5c5c;
+}}
+QTextEdit {{
+  color: #000000; 
+  border: 1px solid #5c5c5c;
+}}
+
+QCheckBox::indicator:checked {{
+  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+}}
+QCheckBox::indicator:unchecked {{ 
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}
+
+QRadioButton::indicator:checked {{
+  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+}} 
+QRadioButton::indicator:unchecked {{
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}
+
+QMenu::indicator:checked {{ 
+  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+}} 
+QMenu::indicator:unchecked {{ 
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}
