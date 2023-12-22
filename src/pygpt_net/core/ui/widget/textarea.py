@@ -11,7 +11,10 @@
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QLineEdit, QTextEdit, QApplication, QTextBrowser
+
+from ...utils import trans
 
 
 class NameInput(QLineEdit):
@@ -52,6 +55,18 @@ class ChatInput(QTextEdit):
         self.value = self.window.config.data['font_size.input']
         self.max_font_size = 42
         self.min_font_size = 8
+
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu()
+
+        selected_text = self.textCursor().selectedText()
+        if selected_text:
+            action = menu.addAction(trans('text.context_menu.audio.read'))
+            action.triggered.connect(self.process_selection)
+        menu.exec_(event.globalPos())
+
+    def process_selection(self):
+        self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
         """
@@ -107,6 +122,19 @@ class ChatOutput(QTextBrowser):
         self.value = self.window.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
+
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu()
+
+        selected_text = self.textCursor().selectedText()
+        if selected_text:
+            action = menu.addAction(trans('text.context_menu.audio.read'))
+            action.triggered.connect(self.process_selection)
+        menu.exec_(event.globalPos())
+
+    def process_selection(self):
+        print("process_selection")
+        self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
 
     def wheelEvent(self, event):
         """

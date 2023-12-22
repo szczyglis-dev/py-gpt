@@ -39,6 +39,7 @@ class Layout:
 
         # restore plugin settings state
         self.window.controller.plugins.set_plugin_by_tab(self.window.ui.tabs['plugin.settings'].currentIndex())
+        self.window.controller.ui.update_tokens()  # update tokens
 
     def save(self):
         """Save layout state"""

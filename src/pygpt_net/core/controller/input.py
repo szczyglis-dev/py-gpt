@@ -440,6 +440,8 @@ class Input:
         else:
             self.window.controller.command.force_stop = False
 
+        self.window.controller.ui.update_tokens()  # update tokens counters
+
     def toggle_send_clear(self, value):
         """
         Toggle send clear

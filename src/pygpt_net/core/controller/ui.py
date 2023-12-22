@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.22 04:00:00                  #
 # ================================================== #
-
+from ..dispatcher import Event
 from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
 from ..utils import trans
 
@@ -47,6 +47,30 @@ class UI:
         self.window.controller.model.update_presets()
         self.window.controller.assistant.update_assistants()
 
+    def build_final_system_prompt(self, prompt):
+        # tmp dispatch event: system.prompt
+        event = Event('system.prompt', {
+            'value': prompt,
+        })
+        self.window.dispatch(event)
+        prompt = event.data['value']
+
+        if self.window.config.get('cmd'):
+            # cmd prompt
+            prompt += self.window.app.command.get_prompt()
+
+            # cmd syntax tokens
+            data = {
+                'prompt': prompt,
+                'syntax': [],
+            }
+            # tmp dispatch event: cmd.syntax
+            event = Event('cmd.syntax', data)
+            self.window.dispatch(event)
+            prompt = self.window.app.command.append_syntax(event.data)
+
+        return prompt
+
     def update_tokens(self):
         """Update tokens counters"""
         model = self.window.config.get('model')
@@ -62,6 +86,7 @@ class UI:
         if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.config.get('prompt')).strip()
+            system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
             prompt_tokens = num_tokens_prompt(system_prompt, "", model)
             prompt_tokens += num_tokens_only("system", model)
 
@@ -72,6 +97,7 @@ class UI:
         elif mode == "completion":
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.config.get('prompt')).strip()
+            system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
             prompt_tokens = num_tokens_only(system_prompt, model)
 
             # input tokens

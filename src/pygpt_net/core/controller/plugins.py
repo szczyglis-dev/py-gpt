@@ -342,6 +342,7 @@ class Plugins:
                 self.enable(id)
 
         self.handle_enabled_types()
+        self.window.controller.ui.update_tokens()  # refresh tokens
 
     def set_plugin_by_tab(self, idx):
         """

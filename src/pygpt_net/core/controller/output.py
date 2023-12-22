@@ -13,6 +13,7 @@ from datetime import datetime
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
+from ..context import ContextItem
 from ..dispatcher import Event
 from ..utils import trans
 
@@ -277,3 +278,21 @@ class Output:
                 and ctx.output is not None \
                 and ctx.output.strip() != "":
             self.window.app.history.save(ctx.output)
+
+    def speech_selected_text(self, text):
+        """
+        Process selected text
+
+        :param text: selected text
+        """
+        ctx = ContextItem()
+        ctx.output = text
+        all = False
+        if self.window.controller.audio.is_output_enabled():
+            event = Event('ctx.after')
+        else:
+            all = True
+            event = Event('audio.read_text')  # to all plugins (even if disabled)
+        event.ctx = ctx
+        self.window.dispatch(event, all)
+        self.window.log("Processing selected text...")

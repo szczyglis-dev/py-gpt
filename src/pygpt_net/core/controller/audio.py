@@ -75,6 +75,13 @@ class Audio:
         self.update_listeners()
         self.update_menu()
 
+    def is_output_enabled(self):
+        """Check if any audio output is enabled"""
+        if self.window.controller.plugins.is_enabled('audio_azure') \
+                or self.window.controller.plugins.is_enabled('audio_openai_tts'):
+            return True
+        return False
+
     def update_listeners(self):
         """
         Update listeners

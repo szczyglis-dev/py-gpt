@@ -85,6 +85,8 @@ class Plugin(BasePlugin):
             self.on_input_before(data['value'])
         elif name == 'ctx.after':
             self.on_ctx_after(ctx)
+        elif name == 'audio.read_text':
+            self.on_ctx_after(ctx)
         elif name == 'audio.output.stop':
             self.stop_audio()
 
