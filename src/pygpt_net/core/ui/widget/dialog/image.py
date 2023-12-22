@@ -6,24 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 18:00:00                  #
+# Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
-from ..widget.dialog.rename import RenameDialog
-from ...utils import trans
+from PySide6.QtWidgets import QDialog
 
 
-class Rename:
-    def __init__(self, window=None):
+class GeneratedImageDialog(QDialog):
+    def __init__(self, window=None, id=None):
         """
-        Context rename dialog
+        Image dialog
 
-        :param window: Window instance
+        :param window: main window
+        :param id: info window id
         """
+        super(GeneratedImageDialog, self).__init__(window)
         self.window = window
-
-    def setup(self):
-        """Setup rename dialog"""
-        id = 'rename'
-        self.window.ui.dialog[id] = RenameDialog(self.window, id)
-        self.window.ui.dialog[id].setWindowTitle(trans("dialog.rename.title"))
+        self.id = id

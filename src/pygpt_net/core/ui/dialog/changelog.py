@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QLabel
 
-from ..widget.dialog import InfoDialog
+from ..widget.dialog.info import InfoDialog
 from ...utils import trans
 
 

@@ -22,7 +22,8 @@ from .dialog.rename import Rename
 from .dialog.settings import Settings
 from .dialog.start import Start
 from .dialog.update import Update
-from .widget.dialog import AlertDialog, ConfirmDialog
+from .widget.dialog.alert import AlertDialog
+from .widget.dialog.confirm import ConfirmDialog
 
 
 class Dialogs:

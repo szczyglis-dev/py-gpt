@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTreeView, QGridLayout, QAbstractItemView, QScrollArea
 
-from ..widget.dialog import DebugDialog
+from ..widget.dialog.debug import DebugDialog
 
 
 class Debug:
