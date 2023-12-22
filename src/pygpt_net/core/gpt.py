@@ -225,7 +225,8 @@ class Gpt:
                     # check if it's an image
                     if self.is_image(attachment.path):
                         base64_image = self.encode_image(attachment.path)
-                        content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
+                        content.append(
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
 
         return content
 
@@ -451,7 +452,7 @@ class Gpt:
             sys_prompt = self.window.config.get('ctx.auto_summary.system')
         if self.window.config.get('ctx.auto_summary.prompt') is not None \
                 and self.window.config.get('ctx.auto_summary.prompt') != "":
-            text = self.window.config.get('ctx.auto_summary.prompt').\
+            text = self.window.config.get('ctx.auto_summary.prompt'). \
                 replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
         if self.window.config.get('ctx.auto_summary.model') is not None \
                 and self.window.config.get('ctx.auto_summary.model') != "":

@@ -222,4 +222,3 @@ class Input:
         else:
             self.window.ui.nodes['input'].setMinimumHeight(self.min_height_files_tab)
             self.window.ui.tabs['input'].setMinimumHeight(180)
-

@@ -134,4 +134,3 @@ class Plugins:
             for lang in langs:
                 path = os.path.join(self.window.config.get_root_path(), 'data', 'locale', domain + '.' + lang + '.ini')
                 self.dump_locale(self.plugins[id], path)
-

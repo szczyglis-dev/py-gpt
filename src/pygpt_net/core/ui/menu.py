@@ -41,13 +41,11 @@ class Menu:
     def setup_file(self):
         """Setup file menu"""
         self.window.ui.menu['app.exit'] = QAction(QIcon.fromTheme("application-exit"), trans("menu.file.exit"),
-                                               self.window, shortcut="Ctrl+Q", triggered=self.window.close)
+                                                  self.window, shortcut="Ctrl+Q", triggered=self.window.close)
 
-        self.window.ui.menu['app.clear_history'] = QAction(QIcon.fromTheme("edit-delete"), trans("menu.file_clear_history"),
-                                                        self.window)
-        self.window.ui.menu['app.ctx.new'] = QAction(QIcon.fromTheme("edit-new"),
-                                                           trans("menu.file.new"),
-                                                           self.window)
+        self.window.ui.menu['app.clear_history'] = QAction(QIcon.fromTheme("edit-delete"),
+                                                           trans("menu.file_clear_history"), self.window)
+        self.window.ui.menu['app.ctx.new'] = QAction(QIcon.fromTheme("edit-new"), trans("menu.file.new"), self.window)
 
         self.window.ui.menu['app.clear_history'].triggered.connect(
             lambda: self.window.controller.context.delete_history())
@@ -62,8 +60,8 @@ class Menu:
 
     def setup_plugins(self):
         """Setup plugins menu"""
-        self.window.ui.menu['plugins.settings'] = QAction(QIcon.fromTheme("preferences-other"), trans("menu.plugins.settings"),
-                                                       self.window)
+        self.window.ui.menu['plugins.settings'] = QAction(QIcon.fromTheme("preferences-other"),
+                                                          trans("menu.plugins.settings"), self.window)
 
         self.window.ui.menu['plugins.settings'].triggered.connect(
             lambda: self.window.controller.plugins.toggle_settings())
@@ -76,11 +74,11 @@ class Menu:
     def setup_audio(self):
         """Setup audio menu"""
         self.window.ui.menu['audio.output.azure'] = QAction(trans("menu.audio.output.azure"),
-                                                   self.window, checkable=True)
+                                                            self.window, checkable=True)
         self.window.ui.menu['audio.output.tts'] = QAction(trans("menu.audio.output.tts"),
-                                                   self.window, checkable=True)
+                                                          self.window, checkable=True)
         self.window.ui.menu['audio.input.whisper'] = QAction(trans("menu.audio.input.whisper"),
-                                                   self.window, checkable=True)
+                                                             self.window, checkable=True)
 
         self.window.ui.menu['audio.output.azure'].triggered.connect(
             lambda: self.window.controller.plugins.toggle('audio_azure'))
@@ -96,16 +94,16 @@ class Menu:
 
     def setup_config(self):
         """Setup config menu"""
-        self.window.ui.menu['config.settings'] = QAction(QIcon.fromTheme("preferences-other"), trans("menu.config.settings"),
-                                                      self.window)
-        self.window.ui.menu['config.edit.config'] = QAction(QIcon.fromTheme("document-edit"), trans("menu.config.edit.config"),
-                                                         self.window)
-        self.window.ui.menu['config.edit.models'] = QAction(QIcon.fromTheme("document-edit"), trans("menu.config.edit.models"),
-                                                         self.window)
-        self.window.ui.menu['config.open_dir'] = QAction(QIcon.fromTheme("folder-open"), trans("menu.config.open_dir"),
-                                                      self.window)
-        self.window.ui.menu['config.save'] = QAction(QIcon.fromTheme("document-save"), trans("menu.config.save"),
-                                                  self.window)
+        self.window.ui.menu['config.settings'] = QAction(QIcon.fromTheme("preferences-other"),
+                                                         trans("menu.config.settings"), self.window)
+        self.window.ui.menu['config.edit.config'] = QAction(QIcon.fromTheme("document-edit"),
+                                                            trans("menu.config.edit.config"), self.window)
+        self.window.ui.menu['config.edit.models'] = QAction(QIcon.fromTheme("document-edit"),
+                                                            trans("menu.config.edit.models"), self.window)
+        self.window.ui.menu['config.open_dir'] = QAction(QIcon.fromTheme("folder-open"),
+                                                         trans("menu.config.open_dir"), self.window)
+        self.window.ui.menu['config.save'] = QAction(QIcon.fromTheme("document-save"),
+                                                     trans("menu.config.save"), self.window)
 
         self.window.ui.menu['config.settings'].triggered.connect(
             lambda: self.window.controller.settings.toggle_settings('settings'))
@@ -186,21 +184,21 @@ class Menu:
     def setup_about(self):
         """Setup about menu"""
         self.window.ui.menu['info.about'] = QAction(QIcon.fromTheme("help-about"), trans("menu.info.about"),
-                                                 self.window)
+                                                    self.window)
         self.window.ui.menu['info.changelog'] = QAction(QIcon.fromTheme("history"), trans("menu.info.changelog"),
-                                                     self.window)
-        self.window.ui.menu['info.updates'] = QAction(QIcon.fromTheme("history"), trans("menu.info.updates"),
                                                         self.window)
+        self.window.ui.menu['info.updates'] = QAction(QIcon.fromTheme("history"), trans("menu.info.updates"),
+                                                      self.window)
         self.window.ui.menu['info.website'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.website"),
-                                                   self.window)
+                                                      self.window)
         self.window.ui.menu['info.docs'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.docs"),
                                                    self.window)
         self.window.ui.menu['info.pypi'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.pypi"),
-                                                self.window)
+                                                   self.window)
         self.window.ui.menu['info.snap'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.snap"),
                                                    self.window)
         self.window.ui.menu['info.github'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.github"),
-                                                  self.window)
+                                                     self.window)
 
         self.window.ui.menu['info.about'].triggered.connect(
             lambda: self.window.controller.info.toggle('about'))

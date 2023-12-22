@@ -151,5 +151,3 @@ class AssistantRunThread(QObject):
         except Exception as e:
             print(e)
             self.destroyed.emit()
-
-

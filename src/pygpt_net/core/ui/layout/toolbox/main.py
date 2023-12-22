@@ -60,5 +60,3 @@ class ToolboxMain:
         self.window.ui.splitters['toolbox'].addWidget(self.footer.setup())  # footer (names, temp, logo, etc.)
 
         return self.window.ui.splitters['toolbox']
-
-

@@ -85,7 +85,8 @@ class Attachments:
 
         self.window.ui.nodes['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
         self.window.ui.nodes['attachments.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.attachment.toggle_send_clear(self.window.ui.nodes['attachments.send_clear'].isChecked()))
+            lambda: self.window.controller.attachment.toggle_send_clear(
+                self.window.ui.nodes['attachments.send_clear'].isChecked()))
 
         self.window.ui.nodes['attachments.capture_clear'] = QCheckBox(trans('attachments.capture_clear'))
         self.window.ui.nodes['attachments.capture_clear'].stateChanged.connect(

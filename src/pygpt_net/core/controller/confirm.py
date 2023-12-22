@@ -81,7 +81,7 @@ class Confirm:
         Update name of object
         """
         if type == 'ctx':
-            self.window.controller.context. update_name(id, name)
+            self.window.controller.context.update_name(id, name)
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':

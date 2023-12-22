@@ -58,20 +58,20 @@ class Preset:
         self.window.ui.config_option['preset.ai_name'] = OptionInput(self.window, 'preset.ai_name', False, section)
         self.window.ui.config_option['preset.user_name'] = OptionInput(self.window, 'preset.user_name', False, section)
         self.window.ui.config_option['preset.img'] = OptionCheckbox(self.window, 'preset.img',
-                                                                   trans('preset.img'), False, section)
+                                                                    trans('preset.img'), False, section)
         self.window.ui.config_option['preset.chat'] = OptionCheckbox(self.window, 'preset.chat', trans('preset.chat'),
-                                                                    False, section)
+                                                                     False, section)
         self.window.ui.config_option['preset.completion'] = OptionCheckbox(self.window, 'preset.completion',
-                                                                          trans('preset.completion'), False, section)
+                                                                           trans('preset.completion'), False, section)
         self.window.ui.config_option['preset.vision'] = OptionCheckbox(self.window, 'preset.vision',
-                                                                      trans('preset.vision'), False, section)
+                                                                       trans('preset.vision'), False, section)
         self.window.ui.config_option['preset.langchain'] = OptionCheckbox(self.window, 'preset.langchain',
-                                                                      trans('preset.langchain'), False, section)
+                                                                          trans('preset.langchain'), False, section)
         self.window.ui.config_option['preset.assistant'] = OptionCheckbox(self.window, 'preset.assistant',
-                                                                      trans('preset.assistant'), False, section)
+                                                                          trans('preset.assistant'), False, section)
         self.window.ui.config_option['preset.temperature'] = OptionSlider(self.window, 'preset.temperature',
-                                                                         '', 0, 200,
-                                                                         1, 100, True, section)
+                                                                          '', 0, 200,
+                                                                          1, 100, True, section)
 
         # set max width
         max_width = 240
@@ -91,7 +91,8 @@ class Preset:
         options['assistant'] = self.add_raw_option(self.window.ui.config_option['preset.assistant'])
         options['langchain'] = self.add_raw_option(self.window.ui.config_option['preset.langchain'])
         options['img'] = self.add_raw_option(self.window.ui.config_option['preset.img'])
-        options['temperature'] = self.add_option('preset.temperature', self.window.ui.config_option['preset.temperature'])
+        options['temperature'] = self.add_option('preset.temperature',
+                                                 self.window.ui.config_option['preset.temperature'])
 
         self.window.ui.config_option['preset.prompt'].setMinimumHeight(150)
 

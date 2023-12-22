@@ -391,7 +391,7 @@ class Plugin(BasePlugin):
                     elif item["cmd"] == "copy_dir" and self.is_cmd_allowed("copy_dir"):
                         try:
                             msg = "Copying directory: {} into {}".format(item["params"]['src'], item["params"]['dst'])
-                            self.log( msg)
+                            self.log(msg)
                             dst = os.path.join(self.window.config.path, 'output', item["params"]['dst'])
                             src = os.path.join(self.window.config.path, 'output', item["params"]['src'])
                             shutil.copytree(src, dst)

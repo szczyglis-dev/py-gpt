@@ -289,7 +289,7 @@ def run(plugins=None, llms=None):
         run(plugins, llms)
 
     """
-    
+
     # initialize app launcher
     launcher = Launcher()
     launcher.init()

@@ -110,7 +110,8 @@ class Output:
         # add timestamp checkbox
         self.window.ui.nodes['output.timestamp'] = QCheckBox(trans('output.timestamp'))
         self.window.ui.nodes['output.timestamp'].stateChanged.connect(
-            lambda: self.window.controller.output.toggle_timestamp(self.window.ui.nodes['output.timestamp'].isChecked()))
+            lambda: self.window.controller.output.toggle_timestamp(
+                self.window.ui.nodes['output.timestamp'].isChecked()))
 
         # tokens info
         self.window.ui.nodes['prompt.context'] = QLabel("")

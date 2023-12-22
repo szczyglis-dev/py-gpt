@@ -94,4 +94,3 @@ class Files:
                     info = trans('alert.snap.file_manager') + "\n\n{}".format(path_os)
                     self.window.ui.dialogs.alert(info)
                 self.window.ui.dialogs.alert(info)
-

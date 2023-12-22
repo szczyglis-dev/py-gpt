@@ -17,7 +17,8 @@ from ....utils import trans
 
 
 class OptionDict(QWidget):
-    def __init__(self, window=None, option_id=None, autoupdate=True, section=None, parent_id=None, keys=None, values=None):
+    def __init__(self, window=None, option_id=None, autoupdate=True, section=None, parent_id=None, keys=None,
+                 values=None):
         """
         Settings dictionary items
 
@@ -278,5 +279,3 @@ class OptionDictModel(QAbstractItemModel):
         self.beginResetModel()
         self.items = data
         self.endResetModel()
-
-

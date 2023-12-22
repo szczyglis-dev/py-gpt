@@ -72,8 +72,10 @@ class MarkdownHighlighter(QSyntaxHighlighter):
                              "unorderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
                              "orderedlist": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
                              "blockquote": {"color": "#dc322f", "font-weight": "normal", "font-style": "normal"},
-                             "codespan": {"background": "#000000", "color": "#dc322f", "font-weight": "bold", "font-style": "normal"},
-                             "codeblock": {"background": "#000000", "color": "#ff9900", "margin-left": "20px", "font-weight": "normal", "font-style": "normal"},
+                             "codespan": {"background": "#000000", "color": "#dc322f", "font-weight": "bold",
+                                          "font-style": "normal"},
+                             "codeblock": {"background": "#000000", "color": "#ff9900", "margin-left": "20px",
+                                           "font-weight": "normal", "font-style": "normal"},
                              "line": {"color": "#2aa198", "font-weight": "normal", "font-style": "normal"},
                              "html": {"color": "#859900", "font-weight": "normal", "font-style": "normal"}}
         self.setTheme(self.defaultTheme)
@@ -165,7 +167,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
         self.MARKDOWN_KWS_FORMAT['BlockQuote'] = format
 
         format = QTextCharFormat()
-        #format.setBackground(QBrush(QColor(theme['codespan']['background'])))
+        # format.setBackground(QBrush(QColor(theme['codespan']['background'])))
         format.setForeground(QBrush(QColor(theme['codespan']['color'])))
         format.setFontWeight(QFont.Bold if theme['codespan']['font-weight'] == 'bold' else QFont.Normal)
         format.setFontItalic(True if theme['codespan']['font-style'] == 'italic' else False)
@@ -226,9 +228,9 @@ class MarkdownHighlighter(QSyntaxHighlighter):
 
         self.highlightList(text, cursor, bf, strt)
 
-        #self.highlightLink(text, cursor, bf, strt)
+        # self.highlightLink(text, cursor, bf, strt)
 
-        #self.highlightImage(text, cursor, bf, strt)
+        # self.highlightImage(text, cursor, bf, strt)
 
         self.highlightCodeSpan(text, cursor, bf, strt)
 
@@ -274,7 +276,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
                 formatRange.format = self.MARKDOWN_KWS_FORMAT['Header']
                 formatRange.length = prevCursor.block().length()
                 formatRange.start = 0
-                #prevCursor.block().layout().setAdditionalFormats([formatRange])
+                # prevCursor.block().layout().setAdditionalFormats([formatRange])
             self.setFormat(mo.start() + strt, mo.end() - mo.start(), self.MARKDOWN_KWS_FORMAT['HR'])
 
         for mo in re.finditer(self.MARKDOWN_KEYS_REGEX['eHR'], text):
@@ -290,7 +292,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
                 formatRange.format = self.MARKDOWN_KWS_FORMAT['Header']
                 formatRange.length = prevCursor.block().length()
                 formatRange.start = 0
-                #prevCursor.block().layout().setAdditionalFormats([formatRange])
+                # prevCursor.block().layout().setAdditionalFormats([formatRange])
             self.setFormat(mo.start() + strt, mo.end() - mo.start(), self.MARKDOWN_KWS_FORMAT['HR'])
         return found
 

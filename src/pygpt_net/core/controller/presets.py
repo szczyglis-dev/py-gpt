@@ -249,8 +249,10 @@ class Presets:
         self.window.config.presets[preset]['completion'] = self.window.ui.config_option[
             'preset.completion'].box.isChecked()
         self.window.config.presets[preset]['vision'] = self.window.ui.config_option['preset.vision'].box.isChecked()
-        self.window.config.presets[preset]['langchain'] = self.window.ui.config_option['preset.langchain'].box.isChecked()
-        self.window.config.presets[preset]['assistant'] = self.window.ui.config_option['preset.assistant'].box.isChecked()
+        self.window.config.presets[preset]['langchain'] = self.window.ui.config_option[
+            'preset.langchain'].box.isChecked()
+        self.window.config.presets[preset]['assistant'] = self.window.ui.config_option[
+            'preset.assistant'].box.isChecked()
 
     def duplicate(self, idx=None):
         """

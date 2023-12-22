@@ -53,28 +53,28 @@ class Assistant:
         self.window.ui.config_option['assistant.id'] = OptionInput(self.window, 'assistant.id', False, section)
         self.window.ui.config_option['assistant.name'] = OptionInput(self.window, 'assistant.name', False, section)
         self.window.ui.config_option['assistant.instructions'] = OptionTextarea(self.window, 'assistant.instructions',
-                                                                               False, section)
+                                                                                False, section)
         self.window.ui.config_option['assistant.instructions'].setMinimumHeight(150)
 
         self.window.ui.config_option['assistant.model'] = OptionInput(self.window, 'assistant.model', False, section)
         self.window.ui.config_option['assistant.description'] = OptionInput(self.window, 'assistant.description', False,
-                                                                           section)
+                                                                            section)
         self.window.ui.config_option['assistant.tool.code_interpreter'] = OptionCheckbox(self.window,
-                                                                                        'assistant.tool.code_interpreter',
-                                                                                        trans(
-                                                                                            'assistant.tool.code_interpreter'),
-                                                                                        False, section)
+                                                                                         'assistant.tool.code_interpreter',
+                                                                                         trans(
+                                                                                             'assistant.tool.code_interpreter'),
+                                                                                         False, section)
         self.window.ui.config_option['assistant.tool.code_interpreter'].box.setChecked(True)  # default True
         self.window.ui.config_option['assistant.tool.retrieval'] = OptionCheckbox(self.window,
-                                                                                 'assistant.tool.retrieval',
-                                                                                 trans('assistant.tool.retrieval'),
-                                                                                 False, section)
+                                                                                  'assistant.tool.retrieval',
+                                                                                  trans('assistant.tool.retrieval'),
+                                                                                  False, section)
         self.window.ui.config_option['assistant.tool.retrieval'].box.setChecked(True)  # default True
 
         self.window.ui.config_option['assistant.tool.function'] = OptionDict(self.window, 'assistant.tool.function',
-                                                                            True, section, id,
-                                                                            func_keys,
-                                                                            func_values)
+                                                                             True, section, id,
+                                                                             func_keys,
+                                                                             func_values)
         self.window.ui.config_option['assistant.tool.function'].setMinimumHeight(150)
         self.window.ui.config_option['assistant.tool.function'].add_btn.setText(trans('assistant.func.add'))
         # Empty params: {"type": "object", "properties": {}}
@@ -88,7 +88,7 @@ class Assistant:
         # make button look like a label:
         self.window.ui.nodes['assistant.api.tip'].setFlat(True)
         self.window.ui.nodes['assistant.api.tip'].setStyleSheet("text-align: left; color: #fff; text-decoration: "
-                                                            "underline; text-transform: none;")
+                                                                "underline; text-transform: none;")
         # disable CSS text capitalize, only small letters:
         self.window.ui.nodes['assistant.api.tip'].setStyleSheet("text-transform: none;")
         self.window.ui.nodes['assistant.api.tip'].setCursor(Qt.PointingHandCursor)

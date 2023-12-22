@@ -123,10 +123,10 @@ class Plugins:
 
                         # slider + text input
                         self.window.ui.plugin_option[id][key] = OptionSlider(self.window, option_name, '',
-                                                                            min,
-                                                                            max,
-                                                                            step,
-                                                                            int(value))
+                                                                             min,
+                                                                             max,
+                                                                             step,
+                                                                             int(value))
                     else:
                         # text input
                         self.window.ui.plugin_option[id][key] = OptionInput(self.window, option_name)
@@ -142,8 +142,8 @@ class Plugins:
                 elif option['type'] == 'dict':
                     # dictionary items
                     self.window.ui.plugin_option[id][key] = OptionDict(self.window, option_name, True, 'plugin', id,
-                                                                      option['keys'],
-                                                                      option['value'])
+                                                                       option['keys'],
+                                                                       option['value'])
 
                 if key not in self.window.ui.plugin_option[id]:
                     continue

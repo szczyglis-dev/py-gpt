@@ -164,7 +164,7 @@ class Settings:
         scroll.setWidget(scroll_widget)
 
         layout = QVBoxLayout()
-        #layout.addLayout(rows)  # api keys
+        # layout.addLayout(rows)  # api keys
         layout.addWidget(scroll)  # rest of options widgets
         layout.addLayout(bottom_layout)  # buttons (save, defaults)
 
@@ -215,10 +215,10 @@ class Settings:
 
                     # slider + text input
                     widgets[key] = OptionSlider(self.window, label, '',
-                                                           min,
-                                                           max,
-                                                           step,
-                                                           value)
+                                                min,
+                                                max,
+                                                step,
+                                                value)
                 else:
                     # text input
                     widgets[key] = OptionInput(self.window, label)

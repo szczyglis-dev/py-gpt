@@ -97,4 +97,3 @@ class Mode:
 
         # restore previous selection
         self.window.ui.nodes[id].restore_selection()
-

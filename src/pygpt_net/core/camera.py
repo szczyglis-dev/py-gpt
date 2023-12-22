@@ -70,7 +70,7 @@ class CameraThread(QObject):
             while True:
                 if self.window.is_closing \
                         or self.capture is None \
-                        or not self.capture.isOpened()\
+                        or not self.capture.isOpened() \
                         or self.window.controller.camera.stop:
                     self.release()  # release camera
                     self.stopped.emit()

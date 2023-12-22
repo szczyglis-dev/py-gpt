@@ -120,7 +120,7 @@ class Plugin(BasePlugin):
                         "dynamic_energy_threshold",
                         "Represents whether the energy level threshold "
                         "for sounds should be automatically adjusted based on the currently "
-                        "ambient noise level while listening. Default: True",  advanced=True)
+                        "ambient noise level while listening. Default: True", advanced=True)
         self.add_option("recognition_dynamic_energy_adjustment_damping", "float", 0.15,
                         "dynamic_energy_adjustment_damping",
                         "Represents approximately the fraction of the current energy threshold that "

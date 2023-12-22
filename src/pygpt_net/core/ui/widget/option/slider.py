@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel,  QHBoxLayout, QWidget, QSlider
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QSlider
 
 from .input import OptionInputInline
 

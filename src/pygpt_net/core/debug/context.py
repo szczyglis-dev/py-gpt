@@ -68,9 +68,9 @@ class ContextDebug:
             self.window.app.debug.add(self.id, prefix + 'output_name', str(item.output_name))
             self.window.app.debug.add(self.id, prefix + 'output', str(item.output))
             self.window.app.debug.add(self.id, prefix + 'input_tokens',
-                                     str(item.input_tokens))
+                                      str(item.input_tokens))
             self.window.app.debug.add(self.id, prefix + 'output_tokens',
-                                     str(item.output_tokens))
+                                      str(item.output_tokens))
             self.window.app.debug.add(self.id, prefix + 'total_tokens', str(item.total_tokens))
             self.window.app.debug.add(self.id, '------', '')
             i += 1

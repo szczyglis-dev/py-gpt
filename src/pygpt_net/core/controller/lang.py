@@ -118,7 +118,8 @@ class Lang:
         self.window.ui.nodes['assistant.id_tip'].setText(trans("assistant.new.id_tip"))
         self.window.ui.nodes['assistant.api.tip'].setText(trans('assistant.api.tip'))
         self.window.ui.config_option['assistant.tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
-        self.window.ui.config_option['assistant.tool.code_interpreter'].box.setText(trans('assistant.tool.code_interpreter'))
+        self.window.ui.config_option['assistant.tool.code_interpreter'].box.setText(
+            trans('assistant.tool.code_interpreter'))
         self.window.ui.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
 
         # vision

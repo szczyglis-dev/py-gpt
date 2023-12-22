@@ -96,4 +96,3 @@ class Model:
 
         # restore previous selection
         self.window.ui.nodes[id].restore_selection()
-

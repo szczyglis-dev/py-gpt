@@ -223,4 +223,3 @@ class TTS(QObject):
             self.plugin.playback.stop()
             self.plugin.playback = None
             self.plugin.audio = None
-

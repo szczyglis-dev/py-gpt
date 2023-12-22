@@ -258,7 +258,7 @@ class Plugin(BasePlugin):
         :param request_item: request item
         """
         msg = "Executing Python file: {}".format(item["params"]['filename'])
-        self.log(msg, sandbox=True )
+        self.log(msg, sandbox=True)
         cmd = self.get_option_value('python_cmd_tpl').format(filename=item["params"]['filename'])
         self.log("Running command: {}".format(cmd), sandbox=True)
         response = self.run_docker(cmd)

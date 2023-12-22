@@ -302,4 +302,3 @@ class Attachment:
         if not self.window.config.has('attachments_send_clear'):
             self.window.config.set('attachments_send_clear', False)
         return self.window.config.get('attachments_send_clear')
-

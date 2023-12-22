@@ -84,4 +84,3 @@ class ChatInput(QTextEdit):
             event.accept()
         else:
             super(ChatInput, self).wheelEvent(event)
-

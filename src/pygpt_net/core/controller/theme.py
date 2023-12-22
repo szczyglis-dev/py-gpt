@@ -219,7 +219,7 @@ class Theme:
                 'light_red',
                 'light_teal',
                 'light_yellow'
-        ]
+                ]
 
     def trans_theme(self, theme):
         """

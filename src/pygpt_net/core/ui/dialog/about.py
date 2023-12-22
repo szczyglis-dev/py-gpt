@@ -34,24 +34,24 @@ class About:
         :rtype: str
         """
         data = "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n\n" \
-                 "(c) 2023 {}\n" \
-                 "{}\n".format(trans("dialog.about.version"),
-                               self.window.meta['version'],
-                               trans("dialog.about.build"),
-                               self.window.meta['build'],
+               "{}: {}\n" \
+               "{}: {}\n" \
+               "{}: {}\n" \
+               "{}: {}\n\n" \
+               "(c) 2023 {}\n" \
+               "{}\n".format(trans("dialog.about.version"),
+                             self.window.meta['version'],
+                             trans("dialog.about.build"),
+                             self.window.meta['build'],
 
-                               trans("dialog.about.website"),
-                               self.window.meta['website'],
-                               trans("dialog.about.github"),
-                               self.window.meta['github'],
-                               trans("dialog.about.docs"),
-                               self.window.meta['docs'],
-                               self.window.meta['author'],
-                               self.window.meta['email'])
+                             trans("dialog.about.website"),
+                             self.window.meta['website'],
+                             trans("dialog.about.github"),
+                             self.window.meta['github'],
+                             trans("dialog.about.docs"),
+                             self.window.meta['docs'],
+                             self.window.meta['author'],
+                             self.window.meta['email'])
 
         return data
 

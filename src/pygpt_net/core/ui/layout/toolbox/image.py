@@ -34,8 +34,8 @@ class Image:
         # img variants
         self.window.ui.nodes['img_variants.label'] = QLabel(trans("toolbox.img_variants.label"))
         self.window.ui.config_option['img_variants'] = OptionSlider(self.window, 'img_variants',
-                                                                   '', 1, 4,
-                                                                   1, 1, False)
+                                                                    '', 1, 4,
+                                                                    1, 1, False)
 
         # img raw
         self.window.ui.config_option['img_raw'] = QCheckBox(trans("img.raw"))
@@ -60,4 +60,3 @@ class Image:
         self.window.ui.nodes['dalle.options'].setContentsMargins(0, 0, 0, 0)
 
         return self.window.ui.nodes['dalle.options']
-
