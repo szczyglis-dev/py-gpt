@@ -14,11 +14,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QSplitter
 
+from .dialogs import Dialogs
 from .layout.chat.main import ChatMain
 from .layout.ctx.ctx_list import CtxList
-from .dialogs import Dialogs
+from .layout.toolbox.main import ToolboxMain
 from .menu import Menu
-from .toolbox import Toolbox
 
 
 class UI:
@@ -30,7 +30,7 @@ class UI:
         """
         self.window = window
 
-        # setup containers
+        # prepare
         self.config_option = {}
         self.debug = {}
         self.dialog = {}
@@ -47,12 +47,12 @@ class UI:
         self.splitters = {}
         self.tabs = {}
 
-        # setup builders
+        # builders
         self.chat = ChatMain(window)
         self.contexts = CtxList(window)
         self.dialogs = Dialogs(window)
         self.menus = Menu(window)
-        self.toolbox = Toolbox(window)
+        self.toolbox = ToolboxMain(window)
 
     def setup(self):
         """Setup UI"""
@@ -74,7 +74,7 @@ class UI:
         self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
         self.splitters['main'].setSizes([1, 8, 1])
 
-        # menu
+        # menus
         self.menus.setup()
 
         # dialogs

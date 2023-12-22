@@ -41,7 +41,7 @@ class Assistant:
     def update_list(self):
         """Update assistants list"""
         items = self.window.app.assistants.get_all()
-        self.window.ui.toolbox.update_list_assistants('assistants', items)
+        self.window.ui.toolbox.assistants.update('assistants', items)
 
     def assistant_change_locked(self):
         """

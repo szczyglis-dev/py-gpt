@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 17:00:00                  #
+# Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
 from .dialog.about import About
 from .dialog.assistant import Assistant
 from .dialog.changelog import Changelog
 from .dialog.debug import Debug
+from .widget.dialog.alert import AlertDialog
+from .widget.dialog.confirm import ConfirmDialog
 from .dialog.editor import Editor
 from .dialog.image import Image
 from .dialog.logger import Logger
@@ -22,8 +24,6 @@ from .dialog.rename import Rename
 from .dialog.settings import Settings
 from .dialog.start import Start
 from .dialog.update import Update
-from .widget.dialog.alert import AlertDialog
-from .widget.dialog.confirm import ConfirmDialog
 
 
 class Dialogs:
@@ -44,8 +44,9 @@ class Dialogs:
 
         # setup info dialogs
         self.about = About(self.window)
-        self.changelog = Changelog(self.window)
         self.about.setup()
+
+        self.changelog = Changelog(self.window)
         self.changelog.setup()
 
         # setup settings dialog
