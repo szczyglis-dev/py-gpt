@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 17:00:00                  #
+# Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRa
 from .status import Status
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
-from .widget.audio import AudioInput
+from .widget.audio.input import AudioInput
 from .widget.textarea import ChatInput
 from ..utils import trans
 

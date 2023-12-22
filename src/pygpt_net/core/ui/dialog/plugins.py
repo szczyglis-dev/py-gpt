@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 23:00:00                  #
+# Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -14,9 +14,11 @@ from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
     QLineEdit
 
+from ..widget.dialog.plugin_settings import PluginSettingsDialog
 from ..widget.settings import SettingsInput, SettingsTextarea, SettingsSlider, SettingsCheckbox, SettingsDict, \
-    PluginSettingsDialog, PluginSelectMenu
-from ..widget.elements import CollapsedGroup, UrlLabel
+    PluginSelectMenu
+from ..widget.element.group import CollapsedGroup
+from ..widget.element.url import UrlLabel
 from ...utils import trans
 
 

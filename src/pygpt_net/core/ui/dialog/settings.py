@@ -11,8 +11,10 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame, QLineEdit
 
-from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsDialog, SettingsTextarea
-from ..widget.elements import CollapsedGroup, UrlLabel
+from ..widget.dialog.settings import SettingsDialog
+from ..widget.settings import SettingsInput, SettingsSlider, SettingsCheckbox, SettingsTextarea
+from ..widget.element.group import CollapsedGroup
+from ..widget.element.url import UrlLabel
 from ...utils import trans
 
 
