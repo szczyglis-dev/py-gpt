@@ -12,7 +12,7 @@
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
 
 from ....utils import trans
-from ..textarea import RenameInput
+from ..textarea.rename import RenameInput
 
 
 class RenameDialog(QDialog):

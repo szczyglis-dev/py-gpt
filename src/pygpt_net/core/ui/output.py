@@ -14,7 +14,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSplitter, QTabWidget
 
 from .widget.audio.output import AudioOutput
-from .widget.textarea import ChatOutput, NotepadOutput
+from .widget.textarea.output import ChatOutput
+from .widget.textarea.notepad import NotepadOutput
 from .widget.filesystem import FileExplorerWidget
 from .input import Input
 from .highlighter import MarkdownHighlighter

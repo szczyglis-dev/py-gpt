@@ -17,7 +17,7 @@ from .status import Status
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
 from .widget.audio.input import AudioInput
-from .widget.textarea import ChatInput
+from .widget.textarea.input import ChatInput
 from ..utils import trans
 
 
