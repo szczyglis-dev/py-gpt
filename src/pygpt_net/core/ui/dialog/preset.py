@@ -11,10 +11,10 @@
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
-from ..widget.option.checkbox import SettingsCheckbox
-from ..widget.option.input import SettingsInput
-from ..widget.option.slider import SettingsSlider
-from ..widget.option.textarea import SettingsTextarea
+from ..widget.option.checkbox import OptionCheckbox
+from ..widget.option.input import OptionInput
+from ..widget.option.slider import OptionSlider
+from ..widget.option.textarea import OptionTextarea
 from ..widget.dialog.editor import EditorDialog
 from ...utils import trans
 
@@ -52,24 +52,24 @@ class Preset:
 
         # fields
         self.window.ui.paths[id] = QLabel(str(path))
-        self.window.ui.config_option['preset.prompt'] = SettingsTextarea(self.window, 'preset.prompt', False, section)
-        self.window.ui.config_option['preset.filename'] = SettingsInput(self.window, 'preset.filename', False, section)
-        self.window.ui.config_option['preset.name'] = SettingsInput(self.window, 'preset.name', False, section)
-        self.window.ui.config_option['preset.ai_name'] = SettingsInput(self.window, 'preset.ai_name', False, section)
-        self.window.ui.config_option['preset.user_name'] = SettingsInput(self.window, 'preset.user_name', False, section)
-        self.window.ui.config_option['preset.img'] = SettingsCheckbox(self.window, 'preset.img',
+        self.window.ui.config_option['preset.prompt'] = OptionTextarea(self.window, 'preset.prompt', False, section)
+        self.window.ui.config_option['preset.filename'] = OptionInput(self.window, 'preset.filename', False, section)
+        self.window.ui.config_option['preset.name'] = OptionInput(self.window, 'preset.name', False, section)
+        self.window.ui.config_option['preset.ai_name'] = OptionInput(self.window, 'preset.ai_name', False, section)
+        self.window.ui.config_option['preset.user_name'] = OptionInput(self.window, 'preset.user_name', False, section)
+        self.window.ui.config_option['preset.img'] = OptionCheckbox(self.window, 'preset.img',
                                                                    trans('preset.img'), False, section)
-        self.window.ui.config_option['preset.chat'] = SettingsCheckbox(self.window, 'preset.chat', trans('preset.chat'),
+        self.window.ui.config_option['preset.chat'] = OptionCheckbox(self.window, 'preset.chat', trans('preset.chat'),
                                                                     False, section)
-        self.window.ui.config_option['preset.completion'] = SettingsCheckbox(self.window, 'preset.completion',
+        self.window.ui.config_option['preset.completion'] = OptionCheckbox(self.window, 'preset.completion',
                                                                           trans('preset.completion'), False, section)
-        self.window.ui.config_option['preset.vision'] = SettingsCheckbox(self.window, 'preset.vision',
+        self.window.ui.config_option['preset.vision'] = OptionCheckbox(self.window, 'preset.vision',
                                                                       trans('preset.vision'), False, section)
-        self.window.ui.config_option['preset.langchain'] = SettingsCheckbox(self.window, 'preset.langchain',
+        self.window.ui.config_option['preset.langchain'] = OptionCheckbox(self.window, 'preset.langchain',
                                                                       trans('preset.langchain'), False, section)
-        self.window.ui.config_option['preset.assistant'] = SettingsCheckbox(self.window, 'preset.assistant',
+        self.window.ui.config_option['preset.assistant'] = OptionCheckbox(self.window, 'preset.assistant',
                                                                       trans('preset.assistant'), False, section)
-        self.window.ui.config_option['preset.temperature'] = SettingsSlider(self.window, 'preset.temperature',
+        self.window.ui.config_option['preset.temperature'] = OptionSlider(self.window, 'preset.temperature',
                                                                          '', 0, 200,
                                                                          1, 100, True, section)
 

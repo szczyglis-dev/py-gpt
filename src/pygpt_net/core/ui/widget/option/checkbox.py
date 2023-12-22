@@ -12,7 +12,7 @@
 from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget
 
 
-class SettingsCheckbox(QWidget):
+class OptionCheckbox(QWidget):
     def __init__(self, window=None, id=None, title=None, value=False, section=None):
         """
         Settings checkbox
@@ -23,7 +23,7 @@ class SettingsCheckbox(QWidget):
         :param value: current value
         :param section: settings section
         """
-        super(SettingsCheckbox, self).__init__(window)
+        super(OptionCheckbox, self).__init__(window)
         self.window = window
         self.id = id
         self.title = title

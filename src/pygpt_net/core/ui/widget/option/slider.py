@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel,  QHBoxLayout, QWidget, QSlider
 
-from .input import SettingsInputInline
+from .input import OptionInputInline
 
 
 class NoScrollSlider(QSlider):
@@ -23,7 +23,7 @@ class NoScrollSlider(QSlider):
         event.ignore()  # disable mouse wheel
 
 
-class SettingsSlider(QWidget):
+class OptionSlider(QWidget):
     def __init__(self, window=None, id=None, title=None, min=None, max=None, step=None, value=None, max_width=True,
                  section=None):
         """
@@ -39,7 +39,7 @@ class SettingsSlider(QWidget):
         :param max_width: max width
         :param section: settings section
         """
-        super(SettingsSlider, self).__init__(window)
+        super(OptionSlider, self).__init__(window)
         self.window = window
         self.id = id
         self.title = title
@@ -61,7 +61,7 @@ class SettingsSlider(QWidget):
         if max_width:
             self.slider.setMaximumWidth(240)
 
-        self.input = SettingsInputInline(self.window, self.id, self.section)
+        self.input = OptionInputInline(self.window, self.id, self.section)
         self.input.setText(str(value))
 
         self.layout = QHBoxLayout()

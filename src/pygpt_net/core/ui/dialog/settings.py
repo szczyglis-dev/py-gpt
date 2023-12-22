@@ -13,10 +13,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame, QLineEdit
 
 from ..widget.dialog.settings import SettingsDialog
-from ..widget.option.checkbox import SettingsCheckbox
-from ..widget.option.input import SettingsInput
-from ..widget.option.slider import SettingsSlider
-from ..widget.option.textarea import SettingsTextarea
+from ..widget.option.checkbox import OptionCheckbox
+from ..widget.option.input import OptionInput
+from ..widget.option.slider import OptionSlider
+from ..widget.option.textarea import OptionTextarea
 from ..widget.element.group import CollapsedGroup
 from ..widget.element.url import UrlLabel
 from ...utils import trans
@@ -214,25 +214,25 @@ class Settings:
                         value = int(value)
 
                     # slider + text input
-                    widgets[key] = SettingsSlider(self.window, label, '',
+                    widgets[key] = OptionSlider(self.window, label, '',
                                                            min,
                                                            max,
                                                            step,
                                                            value)
                 else:
                     # text input
-                    widgets[key] = SettingsInput(self.window, label)
+                    widgets[key] = OptionInput(self.window, label)
                     if 'secret' in option and option['secret']:
                         # password
                         widgets[key].setEchoMode(QLineEdit.Password)
 
             elif option['type'] == 'textarea':
                 # textarea
-                widgets[key] = SettingsTextarea(self.window, label)
+                widgets[key] = OptionTextarea(self.window, label)
                 widgets[key].setMinimumHeight(100)
             elif option['type'] == 'bool':
                 # checkbox
-                widgets[key] = SettingsCheckbox(self.window, label, trans('settings.' + key))
+                widgets[key] = OptionCheckbox(self.window, label, trans('settings.' + key))
 
         return widgets
 

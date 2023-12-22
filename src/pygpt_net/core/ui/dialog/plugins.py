@@ -18,11 +18,11 @@ from ..widget.dialog.plugin_settings import PluginSettingsDialog
 from ..widget.element.group import CollapsedGroup
 from ..widget.element.url import UrlLabel
 from ..widget.lists.plugin import PluginSelectMenu
-from ..widget.option.checkbox import SettingsCheckbox
-from ..widget.option.dictionary import SettingsDict
-from ..widget.option.input import SettingsInput
-from ..widget.option.slider import SettingsSlider
-from ..widget.option.textarea import SettingsTextarea
+from ..widget.option.checkbox import OptionCheckbox
+from ..widget.option.dictionary import OptionDict
+from ..widget.option.input import OptionInput
+from ..widget.option.slider import OptionSlider
+from ..widget.option.textarea import OptionTextarea
 from ...utils import trans
 
 
@@ -122,26 +122,26 @@ class Plugins:
                             value = option['value']
 
                         # slider + text input
-                        self.window.ui.plugin_option[id][key] = SettingsSlider(self.window, option_name, '',
+                        self.window.ui.plugin_option[id][key] = OptionSlider(self.window, option_name, '',
                                                                             min,
                                                                             max,
                                                                             step,
                                                                             int(value))
                     else:
                         # text input
-                        self.window.ui.plugin_option[id][key] = SettingsInput(self.window, option_name)
+                        self.window.ui.plugin_option[id][key] = OptionInput(self.window, option_name)
                         if 'secret' in option and option['secret']:
                             # password
                             self.window.ui.plugin_option[id][key].setEchoMode(QLineEdit.Password)
                 elif option['type'] == 'textarea':
                     # textarea
-                    self.window.ui.plugin_option[id][key] = SettingsTextarea(self.window, option_name)
+                    self.window.ui.plugin_option[id][key] = OptionTextarea(self.window, option_name)
                 elif option['type'] == 'bool':
                     # checkbox
-                    self.window.ui.plugin_option[id][key] = SettingsCheckbox(self.window, option_name)
+                    self.window.ui.plugin_option[id][key] = OptionCheckbox(self.window, option_name)
                 elif option['type'] == 'dict':
                     # dictionary items
-                    self.window.ui.plugin_option[id][key] = SettingsDict(self.window, option_name, True, 'plugin', id,
+                    self.window.ui.plugin_option[id][key] = OptionDict(self.window, option_name, True, 'plugin', id,
                                                                       option['keys'],
                                                                       option['value'])
 

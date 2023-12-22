@@ -12,7 +12,7 @@
 from PySide6.QtWidgets import QTextEdit
 
 
-class SettingsTextarea(QTextEdit):
+class OptionTextarea(QTextEdit):
     def __init__(self, window=None, id=None, autoupdate=False, section=None):
         """
         Settings input
@@ -22,7 +22,7 @@ class SettingsTextarea(QTextEdit):
         :param autoupdate: auto update
         :param section: settings section
         """
-        super(SettingsTextarea, self).__init__(window)
+        super(OptionTextarea, self).__init__(window)
         self.window = window
         self.id = id
         self.section = section
@@ -35,7 +35,7 @@ class SettingsTextarea(QTextEdit):
 
         :param event: key event
         """
-        super(SettingsTextarea, self).keyPressEvent(event)
+        super(OptionTextarea, self).keyPressEvent(event)
         if not self.autoupdate:
             return
         self.window.controller.settings.change(self.id, self.toPlainText(), self.section)

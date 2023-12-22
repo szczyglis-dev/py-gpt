@@ -16,8 +16,8 @@ from PySide6.QtGui import QStandardItemModel, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget, QCheckBox, QSizePolicy
 
 from .widget.textarea.name import NameInput
-from .widget.option.slider import SettingsSlider
-from .widget.option.textarea import SettingsTextarea
+from .widget.option.slider import OptionSlider
+from .widget.option.textarea import OptionTextarea
 from .widget.lists.base import SelectMenu
 from .widget.lists.preset import PresetSelectMenu
 from .widget.lists.assistant import AssistantSelectMenu
@@ -91,12 +91,12 @@ class Toolbox:
 
         # bottom
         self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"))
-        self.window.ui.config_option['current_temperature'] = SettingsSlider(self.window, 'current_temperature',
+        self.window.ui.config_option['current_temperature'] = OptionSlider(self.window, 'current_temperature',
                                                                           '', 0, 200,
                                                                           1, 100, False)
 
         self.window.ui.nodes['img_variants.label'] = QLabel(trans("toolbox.img_variants.label"))
-        self.window.ui.config_option['img_variants'] = SettingsSlider(self.window, 'img_variants',
+        self.window.ui.config_option['img_variants'] = OptionSlider(self.window, 'img_variants',
                                                                    '', 1, 4,
                                                                    1, 1, False)
 
@@ -209,7 +209,7 @@ class Toolbox:
         header.addWidget(self.window.ui.nodes['preset.use'], alignment=Qt.AlignRight)
         header.addWidget(self.window.ui.nodes['preset.clear'], alignment=Qt.AlignRight)
 
-        self.window.ui.nodes['preset.prompt'] = SettingsTextarea(self.window, 'preset.prompt', True)
+        self.window.ui.nodes['preset.prompt'] = OptionTextarea(self.window, 'preset.prompt', True)
         self.window.ui.nodes['preset.prompt'].update_ui = False
         layout = QVBoxLayout()
         layout.addLayout(header)

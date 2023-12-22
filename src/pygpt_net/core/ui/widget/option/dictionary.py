@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMen
 from ....utils import trans
 
 
-class SettingsDict(QWidget):
+class OptionDict(QWidget):
     def __init__(self, window=None, option_id=None, autoupdate=True, section=None, parent_id=None, keys=None, values=None):
         """
         Settings dictionary items
@@ -29,7 +29,7 @@ class SettingsDict(QWidget):
         :param keys: dict keys
         :param values: dict values
         """
-        super(SettingsDict, self).__init__(window)
+        super(OptionDict, self).__init__(window)
         self.window = window
         self.id = option_id  # option id (key)
         self.section = section  # settings or plugin
@@ -41,8 +41,8 @@ class SettingsDict(QWidget):
         # setup dict model
         headers = list(self.keys.keys())
 
-        self.list = SettingsDictItems(self)
-        self.model = SettingsDictModel(self.items, headers)
+        self.list = OptionDictItems(self)
+        self.model = OptionDictModel(self.items, headers)
         self.model.dataChanged.connect(self.model.saveData)
 
         # append dict model
@@ -134,7 +134,7 @@ class SettingsDict(QWidget):
             i += 1
 
 
-class SettingsDictItems(QTreeView):
+class OptionDictItems(QTreeView):
     NAME = range(1)  # list of columns
 
     def __init__(self, owner=None):
@@ -144,7 +144,7 @@ class SettingsDictItems(QTreeView):
         :param window: main window
         :param id: input id
         """
-        super(SettingsDictItems, self).__init__(owner)
+        super(OptionDictItems, self).__init__(owner)
         self.parent = owner
         self.setIndentation(0)
         self.setHeaderHidden(False)
@@ -169,9 +169,9 @@ class SettingsDictItems(QTreeView):
             menu.exec_(event.globalPos())
 
 
-class SettingsDictModel(QAbstractItemModel):
+class OptionDictModel(QAbstractItemModel):
     def __init__(self, items, headers, parent=None):
-        super(SettingsDictModel, self).__init__(parent)
+        super(OptionDictModel, self).__init__(parent)
         self.items = items
         self.headers = headers
 
@@ -242,7 +242,7 @@ class SettingsDictModel(QAbstractItemModel):
         """
         if not index.isValid():
             return Qt.NoItemFlags
-        return super(SettingsDictModel, self).flags(index) | Qt.ItemIsEditable
+        return super(OptionDictModel, self).flags(index) | Qt.ItemIsEditable
 
     def parent(self, index):
         """

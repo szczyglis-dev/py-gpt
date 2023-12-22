@@ -12,7 +12,7 @@
 from PySide6.QtWidgets import QLineEdit
 
 
-class SettingsInputInline(QLineEdit):
+class OptionInputInline(QLineEdit):
     def __init__(self, window=None, id=None, section=None):
         """
         Settings input inline
@@ -21,7 +21,7 @@ class SettingsInputInline(QLineEdit):
         :param id: option id
         :param section: settings section
         """
-        super(SettingsInputInline, self).__init__(window)
+        super(OptionInputInline, self).__init__(window)
         self.window = window
         self.id = id
         self.section = section
@@ -33,11 +33,11 @@ class SettingsInputInline(QLineEdit):
 
         :param event: key event
         """
-        super(SettingsInputInline, self).keyPressEvent(event)
+        super(OptionInputInline, self).keyPressEvent(event)
         self.window.controller.settings.apply(self.id, self.text(), 'input', self.section)
 
 
-class SettingsInput(QLineEdit):
+class OptionInput(QLineEdit):
     def __init__(self, window=None, id=None, autoupdate=False, section=None):
         """
         Settings input
@@ -47,7 +47,7 @@ class SettingsInput(QLineEdit):
         :param autoupdate: auto update
         :param section: settings section
         """
-        super(SettingsInput, self).__init__(window)
+        super(OptionInput, self).__init__(window)
         self.window = window
         self.id = id
         self.section = section
@@ -59,7 +59,7 @@ class SettingsInput(QLineEdit):
 
         :param event: key event
         """
-        super(SettingsInput, self).keyPressEvent(event)
+        super(OptionInput, self).keyPressEvent(event)
         if not self.autoupdate:
             return
         self.window.controller.ui.update()

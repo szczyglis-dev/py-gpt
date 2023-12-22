@@ -12,10 +12,10 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy
 
-from ..widget.option.checkbox import SettingsCheckbox
-from ..widget.option.dictionary import SettingsDict
-from ..widget.option.input import SettingsInput
-from ..widget.option.textarea import SettingsTextarea
+from ..widget.option.checkbox import OptionCheckbox
+from ..widget.option.dictionary import OptionDict
+from ..widget.option.input import OptionInput
+from ..widget.option.textarea import OptionTextarea
 from ..widget.dialog.editor import EditorDialog
 from ...utils import trans
 
@@ -50,28 +50,28 @@ class Assistant:
 
         # fields
         self.window.ui.paths[id] = QLabel(str(path))
-        self.window.ui.config_option['assistant.id'] = SettingsInput(self.window, 'assistant.id', False, section)
-        self.window.ui.config_option['assistant.name'] = SettingsInput(self.window, 'assistant.name', False, section)
-        self.window.ui.config_option['assistant.instructions'] = SettingsTextarea(self.window, 'assistant.instructions',
+        self.window.ui.config_option['assistant.id'] = OptionInput(self.window, 'assistant.id', False, section)
+        self.window.ui.config_option['assistant.name'] = OptionInput(self.window, 'assistant.name', False, section)
+        self.window.ui.config_option['assistant.instructions'] = OptionTextarea(self.window, 'assistant.instructions',
                                                                                False, section)
         self.window.ui.config_option['assistant.instructions'].setMinimumHeight(150)
 
-        self.window.ui.config_option['assistant.model'] = SettingsInput(self.window, 'assistant.model', False, section)
-        self.window.ui.config_option['assistant.description'] = SettingsInput(self.window, 'assistant.description', False,
+        self.window.ui.config_option['assistant.model'] = OptionInput(self.window, 'assistant.model', False, section)
+        self.window.ui.config_option['assistant.description'] = OptionInput(self.window, 'assistant.description', False,
                                                                            section)
-        self.window.ui.config_option['assistant.tool.code_interpreter'] = SettingsCheckbox(self.window,
+        self.window.ui.config_option['assistant.tool.code_interpreter'] = OptionCheckbox(self.window,
                                                                                         'assistant.tool.code_interpreter',
                                                                                         trans(
                                                                                             'assistant.tool.code_interpreter'),
                                                                                         False, section)
         self.window.ui.config_option['assistant.tool.code_interpreter'].box.setChecked(True)  # default True
-        self.window.ui.config_option['assistant.tool.retrieval'] = SettingsCheckbox(self.window,
+        self.window.ui.config_option['assistant.tool.retrieval'] = OptionCheckbox(self.window,
                                                                                  'assistant.tool.retrieval',
                                                                                  trans('assistant.tool.retrieval'),
                                                                                  False, section)
         self.window.ui.config_option['assistant.tool.retrieval'].box.setChecked(True)  # default True
 
-        self.window.ui.config_option['assistant.tool.function'] = SettingsDict(self.window, 'assistant.tool.function',
+        self.window.ui.config_option['assistant.tool.function'] = OptionDict(self.window, 'assistant.tool.function',
                                                                             True, section, id,
                                                                             func_keys,
                                                                             func_values)
