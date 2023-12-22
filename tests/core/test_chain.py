@@ -19,6 +19,9 @@ def mock_window():
 
 
 def test_build_chat_messages(mock_window):
+    """
+    Test build chat messages
+    """
     items = []
     ctx_item = ContextItem()
     ctx_item.input = 'user message'
@@ -45,6 +48,9 @@ def test_build_chat_messages(mock_window):
 
 
 def test_build_completion(mock_window):
+    """
+    Test build completion
+    """
     items = []
     ctx_item = ContextItem()
     ctx_item.input = 'user message'
@@ -64,6 +70,9 @@ def test_build_completion(mock_window):
 
 
 def test_build_completion_with_names(mock_window):
+    """
+    Test build completion with names
+    """
     items = []
     ctx_item = ContextItem()
     ctx_item.input = 'user message'
@@ -89,6 +98,9 @@ def test_build_completion_with_names(mock_window):
 
 
 def test_chat(mock_window):
+    """
+    Test chat
+    """
     cfg = {'langchain': {'provider': 'test'}}
     mock_window.config.get_model_cfg.return_value = cfg
     chain = Chain(mock_window)
@@ -109,6 +121,9 @@ def test_chat(mock_window):
 
 
 def test_completion(mock_window):
+    """
+    Test completion
+    """
     cfg = {'langchain': {'provider': 'test'}}
     mock_window.config.get_model_cfg.return_value = cfg
     chain = Chain(mock_window)
@@ -129,6 +144,9 @@ def test_completion(mock_window):
 
 
 def test_call(mock_window):
+    """
+    Test call
+    """
     ctx = ContextItem()
     ctx.input = 'test_input'
 

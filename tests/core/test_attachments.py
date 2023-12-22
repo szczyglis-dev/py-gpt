@@ -15,11 +15,17 @@ def mock_window():
 
 
 def test_create_id():
+    """
+    Test create id
+    """
     attachments = Attachments()
     assert len(attachments.create_id()) == 36  # uuid length
 
 
 def test_select():
+    """
+    Test select
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -35,6 +41,9 @@ def test_select():
 
 
 def test_count():
+    """
+    Test count
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -49,6 +58,9 @@ def test_count():
 
 
 def test_get_ids():
+    """
+    Test get ids
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -63,6 +75,9 @@ def test_get_ids():
 
 
 def test_get_id_by_idx():
+    """
+    Test get id by index
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -77,6 +92,9 @@ def test_get_id_by_idx():
 
 
 def test_get_by_id():
+    """
+    Test get by id
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -91,6 +109,9 @@ def test_get_by_id():
 
 
 def test_get_by_idx():
+    """
+    Test get by index
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -105,6 +126,9 @@ def test_get_by_idx():
 
 
 def test_get_all():
+    """
+    Test get all
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -119,6 +143,9 @@ def test_get_all():
 
 
 def test_delete():
+    """
+    Test delete
+    """
     with patch('pygpt_net.core.attachments.Attachments.save'):
         attachments = Attachments()
         mode = 'test'
@@ -135,6 +162,9 @@ def test_delete():
 
 
 def test_clear():
+    """
+    Test clear
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -150,6 +180,9 @@ def test_clear():
 
 
 def test_clear_all():
+    """
+    Test clear all
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -165,6 +198,9 @@ def test_clear_all():
 
 
 def test_has():
+    """
+    Test has
+    """
     attachments = Attachments()
     mode = 'test'
     file_id = 'test_id'
@@ -181,6 +217,9 @@ def test_has():
 
 
 def test_new():
+    """
+    Test new
+    """
     with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
         mode = 'test'
@@ -199,6 +238,9 @@ def test_new():
 
 
 def test_add():
+    """
+    Test add
+    """
     with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
         mode = 'test'
@@ -220,6 +262,9 @@ def test_add():
 
 
 def test_replace_id():
+    """
+    Test replace id
+    """
     with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
         mode = 'test'
@@ -242,6 +287,9 @@ def test_replace_id():
 
 
 def test_rename_file():
+    """
+    Test rename file
+    """
     with patch('pygpt_net.core.attachments.Attachments.save'):
         attachments = Attachments()
         mode = 'test'
@@ -262,6 +310,9 @@ def test_rename_file():
 
 
 def test_from_files():
+    """
+    Test from files
+    """
     with patch('pygpt_net.core.attachments.Attachments.save'):
         attachments = Attachments()
         mode = 'test'
@@ -278,6 +329,9 @@ def test_from_files():
 
 
 def test_from_attachments():
+    """
+    Test from attachments
+    """
     with patch('pygpt_net.core.attachments.Attachments.save'):
         attachments = Attachments()
         mode = 'test'

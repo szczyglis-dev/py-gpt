@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.44",
-    "app.version": "2.0.44",
-    "updated_at": "2023-12-21T07:00:00"
+    "version": "2.0.45",
+    "app.version": "2.0.45",
+    "updated_at": "2023-12-22T01:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -11,7 +11,7 @@
   "attachments_send_clear": true,
   "attachments_capture_clear": true,
   "context_threshold": 200,
-  "cmd": true,
+  "cmd": false,
   "cmd.prompt": "RUNNING COMMANDS:\nYou can execute commands and also use them to run commands in the user's environment.\n\nImportant rules:\n1) The list of available commands is defined below.\n2) To execute a defined command, return a JSON object with the \"cmd\" key and the command name as its value.\n3) Always use the syntax defined in the command definition and the correct command name.\n4) Put command parameters in the \"params\" key. Example: {\"cmd\": \"web\", \"params\": {\"query\": \"some query\"}}. Use ONLY this syntax. DO NOT use any other syntax.\n5) Append the JSON object to the response at the end and around it with the `~###~` characters. Example: text response ~###~ {\"cmd\": \"web\", \"params\": {\"query\": \"some query\"}} ~###~.\n6) If you want to execute a command without any response, return only the JSON object.\n7) Responses from commands will be returned in the \"result\" key.\n8) Commands are listed one command per line and each command is described with syntax: \"<name>\": <action>, params: <params>\n9) Always use the correct command name, e.g., if the command name is \"sys_exec\", then use \"sys_exec\" and don't use other names, like \"run\" or something.\n10) With these commands, you are allowed to run external commands and apps in the user's system (environment).\n11) Always use the defined syntax to prevent errors.\n12) Always choose the most appropriate command from the list to perform the task, based on the description of the action performed by a given command.\n13) Reply to the user in the language in which they started the conversation with you.\n14) Use ONLY params described in the command definition, do NOT use any additional params not described on the list.\n15) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.\n16) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g., when it is a desktop application).\n17) Every command parameter must be placed in one line, so when you generate code you must put all of the code in one line.\nCommands list:\n",
   "ctx": "",
   "ctx.auto_summary": true,

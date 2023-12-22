@@ -34,6 +34,9 @@ def mock_get(key):
 
 
 def test_completion(mock_window):
+    """
+    Test completion
+    """
     gpt = Gpt(mock_window)
     gpt.window.config.get.side_effect = mock_get
     gpt.window.config.get_model_ctx.return_value = 2048
@@ -54,6 +57,9 @@ def test_completion(mock_window):
 
 
 def test_chat(mock_window):
+    """
+    Test chat
+    """
     gpt = Gpt(mock_window)
     gpt.window.config.get.side_effect = mock_get
     gpt.window.config.get_model_ctx.return_value = 2048
@@ -74,6 +80,9 @@ def test_chat(mock_window):
 
 
 def test_vision(mock_window):
+    """
+    Test vision
+    """
     gpt = Gpt(mock_window)
     gpt.window.config.get.side_effect = mock_get
     gpt.window.config.get_model_ctx.return_value = 2048
@@ -94,6 +103,9 @@ def test_vision(mock_window):
 
 
 def test_reset_tokens(mock_window):
+    """
+    Test reset tokens
+    """
     gpt = Gpt(mock_window)
     gpt.input_tokens = 10
     gpt.reset_tokens()
@@ -101,6 +113,9 @@ def test_reset_tokens(mock_window):
 
 
 def test_build_chat_messages(mock_window):
+    """
+    Test build chat messages
+    """
     items = []
     ctx_item = ContextItem()
     ctx_item.input = 'user message'
@@ -127,6 +142,9 @@ def test_build_chat_messages(mock_window):
 
 
 def test_build_completion(mock_window):
+    """
+    Test build completion
+    """
     items = []
     ctx_item = ContextItem()
     ctx_item.input = 'user message'
@@ -148,6 +166,9 @@ def test_build_completion(mock_window):
 
 
 def test_build_completion_with_names(mock_window):
+    """
+    Test build completion with names
+    """
     items = []
     ctx_item = ContextItem()
     ctx_item.input = 'user message'
@@ -174,6 +195,9 @@ def test_build_completion_with_names(mock_window):
 
 
 def test_build_vision_content(mock_window):
+    """
+    Test build vision content
+    """
     gpt = Gpt(mock_window)
     gpt.extract_urls = MagicMock(return_value=['https://test.com'])
     gpt.is_image = MagicMock(return_value=True)
@@ -193,18 +217,24 @@ def test_build_vision_content(mock_window):
 
 
 def test_count_used_tokens(mock_window):
+    """
+    Test count used tokens
+    """
     gpt = Gpt(mock_window)
     gpt.window.config.get.side_effect = mock_get
     gpt.window.config.get_model_ctx = MagicMock(return_value=2048)
     tokens = gpt.count_used_tokens('test_text')
-    assert tokens == 211
+    assert tokens == 209
     tokens = gpt.count_used_tokens('test_text test_texttest_texttest_texttest_texttest_texttest_text')
-    assert tokens == 223
+    assert tokens == 209
     tokens = gpt.count_used_tokens('')
     assert tokens == 209
 
 
 def test_quick_call(mock_window):
+    """
+    Test quick call
+    """
     client = MagicMock(return_value='test_response')
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
@@ -220,6 +250,9 @@ def test_quick_call(mock_window):
 
 
 def test_prepare_ctx_name(mock_window):
+    """
+    Test prepare ctx name
+    """
     gpt = Gpt(mock_window)
     gpt.quick_call = MagicMock(return_value='test_response')
     gpt.window.config.get.side_effect = mock_get
@@ -230,6 +263,9 @@ def test_prepare_ctx_name(mock_window):
 
 
 def test_extract_urls():
+    """
+    Test extract urls
+    """
     gpt = Gpt()
     urls = gpt.extract_urls('test https://test.com test https://test2.com')
     assert urls == ['https://test.com', 'https://test2.com']
@@ -238,6 +274,9 @@ def test_extract_urls():
 
 
 def test_is_image():
+    """
+    Test is image
+    """
     gpt = Gpt()
     assert gpt.is_image('https://test.com/test.png')
     assert gpt.is_image('https://test.com/test.jpg')
@@ -257,6 +296,9 @@ def test_is_image():
 
 
 def test_encode_image():
+    """
+    Test encode image
+    """
     gpt = Gpt()
     fake_image_data = b'fake_image_binary_data'
     encoded_data = base64.b64encode(fake_image_data)

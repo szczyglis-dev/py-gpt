@@ -18,7 +18,7 @@ from openai import OpenAI
 class Image:
     DIRNAME = "img"
 
-    def __init__(self, window):
+    def __init__(self, window=None):
         """
         DALL-E Wrapper
 
@@ -52,7 +52,18 @@ class Image:
                     cmd = prompt
         return cmd
 
-    def generate(self, prompt, model="dall-e-3", num=None):
+    def get_client(self):
+        """
+        Return OpenAI client
+
+        :return: OpenAI client
+        """
+        return OpenAI(
+            api_key=self.window.config.get('api_key'),
+            organization=self.window.config.get('organization_key'),
+        )
+
+    def generate(self, prompt, model="dall-e-3", num=1):
         """
         Call DALL-E API
 
@@ -69,18 +80,14 @@ class Image:
             try:
                 # call GPT for generate best image generate prompt
                 response = self.window.app.gpt.quick_call(prompt, system_cmd, False, max_tokens,
-                                                      self.window.config.get('img_prompt_model'), temperature)
+                                                          self.window.config.get('img_prompt_model'), temperature)
                 if response is not None and response != "":
                     prompt = response
             except Exception as e:
                 print("Image prompt generate by model error: " + str(e))
 
         print("Generating image from: '{}'".format(prompt))
-
-        client = OpenAI(
-            api_key=self.window.config.get('api_key'),
-            organization=self.window.config.get('organization_key'),
-        )
+        client = self.get_client()
         response = client.images.generate(
             model=model,
             prompt=prompt,
@@ -95,14 +102,34 @@ class Image:
                 break
             url = response.data[i].url
             res = requests.get(url)
+
+            # generate filename
             name = self.make_safe_filename(prompt) + "-" + datetime.date.today().strftime(
                 "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
             path = os.path.join(self.window.config.path, self.DIRNAME, name)
+
             print("Downloading... [" + str(i + 1) + " of " + str(num) + "] to: " + path)
-            open(path, "wb").write(res.content)
-            paths.append(path)
+            # save image
+            if self.save_image(path, res.content):
+                paths.append(path)
 
         return paths, prompt
+
+    def save_image(self, path, image):
+        """
+        Save image to file
+
+        :param path: path to save
+        :param image: image data
+        :return: True if success
+        """
+        try:
+            with open(path, 'wb') as file:
+                file.write(image)
+            return True
+        except Exception as e:
+            print("Image save error: " + str(e))
+            return False
 
     def make_safe_filename(self, name):
         """

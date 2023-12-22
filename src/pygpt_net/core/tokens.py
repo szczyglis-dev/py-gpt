@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.21 22:00:00                  #
 # ================================================== #
 
 import tiktoken
@@ -24,17 +24,25 @@ def num_tokens_from_string(string, model="gpt-4"):
     if string is None or string == "":
         return 0
 
+    default = "cl100k_base"
     try:
-        if model is not None:
-            encoding = tiktoken.encoding_for_model(model)
-        else:
-            encoding = tiktoken.get_encoding("cl100k_base")
-    except KeyError:
-        encoding = tiktoken.get_encoding("cl100k_base")
-    try:
-        return len(encoding.encode(str(string)))
+        try:
+            if model is not None and model != "":
+                encoding = tiktoken.encoding_for_model(model)
+            else:
+                encoding = tiktoken.get_encoding(default)
+        except KeyError:
+            encoding = tiktoken.get_encoding(default)
+        except ValueError:
+            return 0
+
+        try:
+            return len(encoding.encode(str(string)))
+        except Exception as e:
+            print("Tokens calc exception", e)
+            return 0
     except Exception as e:
-        print("Tokens calc exception", e)
+        print("Tokens calculation exception:", e)
         return 0
 
 
@@ -87,7 +95,7 @@ def num_tokens_completion(text, model="gpt-4"):
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
 
-    if text is None or text != "":
+    if text is None or text == "":
         return 0
 
     try:
@@ -110,7 +118,7 @@ def num_tokens_only(text, model="gpt-4"):
     model, tokens_per_message, tokens_per_name = get_tokens_values(model)
     num_tokens = 0
 
-    if text is None or text != "":
+    if text is None or text == "":
         return 0
 
     try:

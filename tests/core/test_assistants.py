@@ -1,4 +1,4 @@
-import json, os
+import json
 
 import pytest
 from unittest.mock import MagicMock, mock_open, patch
@@ -17,6 +17,9 @@ def mock_window():
 
 
 def test_get_by_idx():
+    """
+    Test get by index
+    """
     assistants = Assistants()
     items = {
         'assistant1': AssistantItem(),
@@ -27,6 +30,9 @@ def test_get_by_idx():
 
 
 def test_get_by_id():
+    """
+    Test get by id
+    """
     assistants = Assistants()
     a1 = AssistantItem()
     a2 = AssistantItem()
@@ -39,6 +45,9 @@ def test_get_by_id():
 
 
 def test_get_by_id_not_found():
+    """
+    Test get by id not found
+    """
     assistants = Assistants()
     items = {
         'assistant1': AssistantItem(),
@@ -49,6 +58,9 @@ def test_get_by_id_not_found():
 
 
 def test_get_all():
+    """
+    Test get all
+    """
     assistants = Assistants()
     items = {
         'assistant1': AssistantItem(),
@@ -59,6 +71,9 @@ def test_get_all():
 
 
 def test_has():
+    """
+    Test has
+    """
     assistants = Assistants()
     items = {
         'assistant1': AssistantItem(),
@@ -70,12 +85,18 @@ def test_has():
 
 
 def test_create():
+    """
+    Test create
+    """
     assistants = Assistants()
     assistant = assistants.create()
     assert isinstance(assistant, AssistantItem)
 
 
 def test_add():
+    """
+    Test add
+    """
     assistant = MagicMock()
     assistant.id = "id1"
 
@@ -88,6 +109,9 @@ def test_add():
 
 
 def test_delete():
+    """
+    Test delete
+    """
     a1 = AssistantItem()
     a2 = AssistantItem()
     items = {
@@ -105,6 +129,9 @@ def test_delete():
 
 
 def test_rename_file():
+    """
+    Test rename file
+    """
     assistant = MagicMock()
     assistant.files = {
         'file1': {'name': 'file1'},
@@ -125,6 +152,9 @@ def test_rename_file():
 
 
 def test_replace_attachment():
+    """
+    Test replace attachment
+    """
     assistant = MagicMock()
     assistant.attachments = {
         'id_old': MagicMock(),
@@ -142,11 +172,17 @@ def test_replace_attachment():
 
 
 def test_get_default_assistant_empty():
+    """
+    Test get default assistant empty
+    """
     assistants = Assistants()
     assert assistants.get_default_assistant() is None
 
 
 def test_get_default_assistant():
+    """
+    Test get default assistant
+    """
     assistants = Assistants()
     a1 = AssistantItem()
     a2 = AssistantItem()
@@ -159,6 +195,9 @@ def test_get_default_assistant():
 
 
 def test_get_file_id_by_idx():
+    """
+    Test get file id by index
+    """
     assistants = Assistants()
     assistant = MagicMock()
     assistant.files = {
@@ -170,6 +209,9 @@ def test_get_file_id_by_idx():
 
 
 def test_get_file_id_by_idx_not_found():
+    """
+    Test get file id by index not found
+    """
     assistants = Assistants()
     assistant = MagicMock()
     assistant.files = {
@@ -181,6 +223,9 @@ def test_get_file_id_by_idx_not_found():
 
 
 def test_get_file_by_id():
+    """
+    Test get file by id
+    """
     assistants = Assistants()
     assistant = MagicMock()
     assistant.files = {
@@ -192,6 +237,9 @@ def test_get_file_by_id():
 
 
 def test_get_file_by_id_not_found():
+    """
+    Test get file by id not found
+    """
     assistants = Assistants()
     assistant = MagicMock()
     assistant.files = {
@@ -203,6 +251,9 @@ def test_get_file_by_id_not_found():
 
 
 def test_import_files(mock_window):
+    """
+    Test import files
+    """
     with patch('pygpt_net.core.assistants.Assistants.import_filenames') as mock_import:
         mock_import.return_value = 'remote_name'
 
@@ -224,6 +275,9 @@ def test_import_files(mock_window):
 
 
 def test_import_files_with_remote_name(mock_window):
+    """
+    Test import files with remote name
+    """
     with patch('pygpt_net.core.assistants.Assistants.import_filenames') as mock_import:
         mock_import.return_value = 'remote_name'
 
@@ -245,6 +299,9 @@ def test_import_files_with_remote_name(mock_window):
 
 
 def test_import_filenames(mock_window):
+    """
+    Test import filenames
+    """
     fake_file_info = MagicMock()
     fake_file_info.filename = 'fake.txt'
 
@@ -259,6 +316,9 @@ def test_import_filenames(mock_window):
 
 
 def test_load_method(mock_window):
+    """
+    Test load method
+    """
     fake_data = {'items': {'id1': {'name': 'Assistant 1'}, 'id2': {'name': 'Assistant 2'}}}
     fake_json_data = json.dumps(fake_data)
     fake_file = mock_open(read_data=fake_json_data)

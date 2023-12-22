@@ -1,6 +1,3 @@
-import base64
-import os
-
 import pytest
 from unittest.mock import MagicMock, mock_open, patch
 from PySide6.QtWidgets import QMainWindow

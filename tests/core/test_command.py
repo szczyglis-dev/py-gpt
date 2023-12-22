@@ -16,17 +16,26 @@ def mock_window():
 
 
 def test_get_prompt(mock_window):
+    """
+    Test get prompt
+    """
     cmd = Command(window=mock_window)
     assert cmd.get_prompt().startswith('RUNNING COMMANDS:')
 
 
 def test_append_syntax():
+    """
+    Test append syntax
+    """
     cmd = Command()
     event_data = {'prompt': 'test', 'syntax': ['syntax1', 'syntax2']}
     assert cmd.append_syntax(event_data) == 'test\nsyntax1\nsyntax2'
 
 
 def test_extract_cmds_only():
+    """
+    Test extract cmds only
+    """
     cmd = Command()
     cmd1 = '{"cmd": "command1", "params": {"arg1": "some arg"}}'
     cmd2 = '{"cmd": "command2", "params": {"query": "some other arg"}}'
@@ -38,6 +47,9 @@ def test_extract_cmds_only():
 
 
 def test_extract_cmds_with_text():
+    """
+    Test extract cmds with text
+    """
     cmd = Command()
     cmd1 = '{"cmd": "command1", "params": {"arg1": "some arg"}}'
     cmd2 = '{"cmd": "command2", "params": {"query": "some other arg"}}'
