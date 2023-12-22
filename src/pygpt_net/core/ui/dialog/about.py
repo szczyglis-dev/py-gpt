@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.22 17:00:00                  #
 # ================================================== #
 import os
 
@@ -25,6 +25,34 @@ class About:
         :param window: Window instance
         """
         self.window = window
+
+    def prepare_content(self):
+        """
+        Get info text
+        :return: info text
+        :rtype: str
+        """
+        data = "{}: {}\n" \
+                 "{}: {}\n" \
+                 "{}: {}\n" \
+                 "{}: {}\n" \
+                 "{}: {}\n\n" \
+                 "(c) 2023 {}\n" \
+                 "{}\n".format(trans("dialog.about.version"),
+                               self.window.meta['version'],
+                               trans("dialog.about.build"),
+                               self.window.meta['build'],
+
+                               trans("dialog.about.website"),
+                               self.window.meta['website'],
+                               trans("dialog.about.github"),
+                               self.window.meta['github'],
+                               trans("dialog.about.docs"),
+                               self.window.meta['docs'],
+                               self.window.meta['author'],
+                               self.window.meta['email'])
+
+        return data
 
     def setup(self):
         """Setups about dialog"""
@@ -47,27 +75,9 @@ class About:
         buttons_layout.addWidget(btn_www)
         buttons_layout.addWidget(btn_github)
 
-        string = "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n\n" \
-                 "(c) 2023 {}\n" \
-                 "{}\n".format(trans("dialog.about.version"),
-                               self.window.meta['version'],
-                               trans("dialog.about.build"),
-                               self.window.meta['build'],
-
-                               trans("dialog.about.website"),
-                               self.window.meta['website'],
-                               trans("dialog.about.github"),
-                               self.window.meta['github'],
-                               trans("dialog.about.docs"),
-                               self.window.meta['docs'],
-                               self.window.meta['author'],
-                               self.window.meta['email'])
-
+        string = self.prepare_content()
         self.window.ui.nodes['dialog.about.content'] = QLabel(string)
+        self.window.ui.nodes['dialog.about.thanks'] = QLabel(trans('about.thanks') + ":")
 
         title = QLabel("PyGPT")
         title.setContentsMargins(0, 0, 0, 0)
@@ -82,7 +92,7 @@ class About:
         layout.addWidget(logo_label)
         layout.addWidget(title)
         layout.addWidget(self.window.ui.nodes['dialog.about.content'])
-        layout.addWidget(QLabel(trans('about.thanks') + ":"))
+        layout.addWidget(self.window.ui.nodes['dialog.about.thanks'])
         layout.addWidget(thx_textarea)
         layout.addLayout(buttons_layout)
 

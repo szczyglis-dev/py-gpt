@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.22 17:00:00                  #
 # ================================================== #
 
 from .dialog.about import About
@@ -42,10 +42,10 @@ class Dialogs:
             debug.setup(id)
 
         # setup info dialogs
-        about = About(self.window)
-        changelog = Changelog(self.window)
-        about.setup()
-        changelog.setup()
+        self.about = About(self.window)
+        self.changelog = Changelog(self.window)
+        self.about.setup()
+        self.changelog.setup()
 
         # setup settings dialog
         settings = Settings(self.window)

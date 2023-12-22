@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 03:00:00                  #
+# Updated Date: 2023.12.22 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -25,7 +25,7 @@ class Lang:
 
     def setup(self):
         """Setup language handler"""
-        # get files from lang folder
+        # get files from locale directory
         langs = self.window.config.get_available_langs()
         for lang in langs:
             self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
@@ -52,13 +52,14 @@ class Lang:
         """
         self.window.config.set('lang', id)
         self.window.config.save()
-        trans('', True)  # reload translations, TODO: for with plugins IDs
+        trans('', True)  # reload translations
 
         self.update()
 
         # output
         self.window.ui.nodes['output.timestamp'].setText(trans('output.timestamp'))
 
+        # output: tabs
         self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
         self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
         self.window.ui.tabs['output'].setTabText(2, trans('output.tab.notepad') + " 1")
@@ -94,12 +95,13 @@ class Lang:
         self.window.ui.nodes['input.stream'].setText(trans('input.stream'))
         self.window.ui.nodes['attachments.send_clear'].setText(trans('attachments.send_clear'))
 
+        # input: attachments headers
         self.window.ui.models['attachments'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
         self.window.ui.models['attachments'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
         self.window.ui.models['attachments_uploaded'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
         self.window.ui.models['attachments_uploaded'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
 
-        # audio
+        # audio speak btn
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))
 
         # assistants
@@ -117,32 +119,7 @@ class Lang:
         self.window.ui.nodes['assistant.api.tip'].setText(trans('assistant.api.tip'))
         self.window.ui.config_option['assistant.tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
         self.window.ui.config_option['assistant.tool.code_interpreter'].box.setText(trans('assistant.tool.code_interpreter'))
-
-        # settings dialog
-        self.update_settings_dialogs()
-        self.window.ui.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
-        self.window.ui.nodes['settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
-        self.window.ui.nodes['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
-        self.window.ui.nodes['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
-
-        # plugin settings dialog
-        self.window.ui.nodes['plugin.settings.btn.defaults.user'].setText(trans("dialog.plugin.settings.btn.defaults.user"))
-        self.window.ui.nodes['plugin.settings.btn.defaults.app'].setText(trans("dialog.plugin.settings.btn.defaults.app"))
-        self.window.ui.nodes['plugin.settings.btn.save'].setText(trans("dialog.plugin.settings.btn.save"))
-
-        # preset dialog
-        self.window.ui.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
-        self.window.ui.nodes['preset.filename.label'].setText(trans("preset.filename"))
-        self.window.ui.nodes['preset.name.label'].setText(trans("preset.name"))
-        self.window.ui.nodes['preset.ai_name.label'].setText(trans("preset.ai_name"))
-        self.window.ui.nodes['preset.user_name.label'].setText(trans("preset.user_name"))
-        self.window.ui.nodes['preset.temperature.label'].setText(trans("preset.temperature"))
-        self.window.ui.nodes['preset.prompt.label'].setText(trans("preset.prompt"))
-        self.window.ui.nodes['cmd.enabled'].setText(trans('cmd.enabled'))
-        self.window.ui.config_option['preset.chat'].box.setText(trans("preset.chat"))
-        self.window.ui.config_option['preset.completion'].box.setText(trans("preset.completion"))
-        self.window.ui.config_option['preset.img'].box.setText(trans("preset.img"))
-        self.window.ui.config_option['img_raw'].setText(trans("img.raw"))
+        self.window.ui.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
 
         # vision
         self.window.ui.nodes['vision.capture.enable'].setText(trans("vision.capture.enable"))
@@ -157,58 +134,66 @@ class Lang:
         else:
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
-        # buttons
-        self.window.ui.nodes['preset.btn.current'].setText(trans("dialog.preset.btn.current"))
-        self.window.ui.nodes['preset.btn.save'].setText(trans("dialog.preset.btn.save"))
+        # dialog: about
+        self.window.ui.nodes['dialog.about.content'].setText(self.window.ui.dialogs.about.prepare_content())
+        self.window.ui.nodes['dialog.about.thanks'].setText(trans('about.thanks') + ":")
+        self.window.ui.dialog['info.about'].setWindowTitle(trans("dialog.about.title"))
 
-        # editor dialog
+        # dialog: changelog
+        self.window.ui.nodes['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
+        self.window.ui.dialog['info.changelog'].setWindowTitle(trans("dialog.changelog.title"))
+
+        # dialog: editor
         self.window.ui.nodes['dialog.editor.label'].setText(trans('dialog.editor.label'))
         self.window.ui.nodes['editor.btn.default'].setText(trans("dialog.editor.btn.defaults"))
         self.window.ui.nodes['editor.btn.save'].setText(trans("dialog.editor.btn.save"))
         self.window.ui.dialog['config.editor'].setWindowTitle(trans('dialog.editor.title'))
 
-        # rename dialog
+        # dialog: plugin settings
+        self.window.ui.nodes['plugin.settings.btn.defaults.user'].setText(
+            trans("dialog.plugin.settings.btn.defaults.user"))
+        self.window.ui.nodes['plugin.settings.btn.defaults.app'].setText(
+            trans("dialog.plugin.settings.btn.defaults.app"))
+        self.window.ui.nodes['plugin.settings.btn.save'].setText(trans("dialog.plugin.settings.btn.save"))
+
+        # dialog: preset
+        self.window.ui.dialog['editor.preset.presets'].setWindowTitle(trans('dialog.preset'))
+        self.window.ui.nodes['preset.filename.label'].setText(trans("preset.filename"))
+        self.window.ui.nodes['preset.name.label'].setText(trans("preset.name"))
+        self.window.ui.nodes['preset.ai_name.label'].setText(trans("preset.ai_name"))
+        self.window.ui.nodes['preset.user_name.label'].setText(trans("preset.user_name"))
+        self.window.ui.nodes['preset.temperature.label'].setText(trans("preset.temperature"))
+        self.window.ui.nodes['preset.prompt.label'].setText(trans("preset.prompt"))
+        self.window.ui.nodes['preset.btn.current'].setText(trans("dialog.preset.btn.current"))
+        self.window.ui.nodes['preset.btn.save'].setText(trans("dialog.preset.btn.save"))
+        self.window.ui.nodes['cmd.enabled'].setText(trans('cmd.enabled'))
+        self.window.ui.config_option['preset.chat'].box.setText(trans("preset.chat"))
+        self.window.ui.config_option['preset.completion'].box.setText(trans("preset.completion"))
+        self.window.ui.config_option['preset.img'].box.setText(trans("preset.img"))
+        self.window.ui.config_option['img_raw'].setText(trans("img.raw"))
+
+        # dialog: rename
         self.window.ui.dialog['rename'].setWindowTitle(trans("dialog.rename.title"))
         self.window.ui.nodes['dialog.rename.label'].setText(trans("dialog.rename.title"))
         self.window.ui.nodes['dialog.rename.btn.update'].setText(trans("dialog.rename.update"))
         self.window.ui.nodes['dialog.rename.btn.dismiss'].setText(trans("dialog.rename.dismiss"))
 
-        # changelog dialog
-        self.window.ui.nodes['dialog.changelog.label'].setText(trans("dialog.changelog.title"))
-        self.window.ui.dialog['info.changelog'].setWindowTitle(trans("dialog.changelog.title"))
+        # dialog: settings
+        self.update_settings_dialogs()
+        self.window.ui.dialog['config.settings'].setWindowTitle(trans('dialog.settings'))
+        self.window.ui.nodes['settings.btn.defaults.user'].setText(trans("dialog.settings.btn.defaults.user"))
+        self.window.ui.nodes['settings.btn.defaults.app'].setText(trans("dialog.settings.btn.defaults.app"))
+        self.window.ui.nodes['settings.btn.save'].setText(trans("dialog.settings.btn.save"))
 
-        # updater dialog
+        # dialog: updater
         self.window.ui.dialog['update'].download.setText(trans('update.download'))
         self.window.ui.dialog['update'].setWindowTitle(trans('update.title'))
 
-        # about dialog
-        string = "PY-GPT\n" \
-                 "-------------\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n" \
-                 "{}: {}\n\n" \
-                 "(c) 2023 {}\n" \
-                 "{}\n".format(trans("dialog.about.version"),
-                               self.window.meta['version'],
-                               trans("dialog.about.build"),
-                               self.window.meta['build'],
-
-                               trans("dialog.about.website"),
-                               self.window.meta['website'],
-                               trans("dialog.about.github"),
-                               self.window.meta['github'],
-                               self.window.meta['author'],
-                               self.window.meta['email'])
-        self.window.ui.nodes['dialog.about.content'].setText(string)
-        self.window.ui.dialog['info.about'].setWindowTitle(trans("dialog.about.title"))
-        self.window.ui.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
-
         # menu
         self.window.ui.menu['menu.app'].setTitle(trans("menu.file"))
-        self.window.ui.menu['app.exit'].setText(trans("menu.file.exit"))
         self.window.ui.menu['app.ctx.new'].setText(trans("menu.file.new"))
         self.window.ui.menu['app.clear_history'].setText(trans("menu.file_clear_history"))
+        self.window.ui.menu['app.exit'].setText(trans("menu.file.exit"))
 
         self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
         self.window.ui.menu['menu.audio'].setTitle(trans("menu.audio"))
@@ -259,9 +244,6 @@ class Lang:
         self.window.ui.nodes['attachments_uploaded.btn.clear'].setText(trans('attachments_uploaded.btn.clear'))
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
 
-        # plugins info
-        self.window.controller.plugins.update_info()
-
         # tabs
         mode = self.window.config.get('mode')
         self.window.controller.attachment.update_tab_label(mode)
@@ -273,11 +255,14 @@ class Lang:
             name = self.window.controller.theme.trans_theme(theme)
             self.window.ui.menu['theme'][theme].setText(name)
 
+        # plugins info
+        self.window.controller.plugins.update_info()
+
         # update plugins settings
         try:
             self.toggle_plugins()
         except Exception as e:
-            print("Error updating plugin locale", e)
+            print("Error updating plugin locales", e)
 
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')  # clear status
