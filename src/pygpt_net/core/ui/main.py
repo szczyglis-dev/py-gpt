@@ -12,7 +12,7 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QSplitter, QWidget
+from PySide6.QtWidgets import QSplitter
 
 from .attachments import Attachments
 from .attachments_uploaded import AttachmentsUploaded
