@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
 from .widget.lists.context import ContextList
-from .widget.camera import VideoContainer
+from .widget.vision.camera import VideoContainer
 from ..utils import trans
 
 

@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidg
 from .widget.audio.output import AudioOutput
 from .widget.textarea.output import ChatOutput
 from .widget.textarea.notepad import NotepadOutput
-from .widget.filesystem import FileExplorerWidget
+from .widget.filesystem.explorer import FileExplorer
 from .input import Input
 from .highlighter import MarkdownHighlighter
 from ..utils import trans
@@ -51,7 +51,7 @@ class Output:
         self.window.ui.nodes['notepad5'] = NotepadOutput(self.window)
 
         path = os.path.join(self.window.config.path, 'output')
-        self.window.ui.nodes['output_files'] = FileExplorerWidget(self.window, path)
+        self.window.ui.nodes['output_files'] = FileExplorer(self.window, path)
 
         # markup highlighter
         self.window.ui.nodes['output_highlighter'] = MarkdownHighlighter(self.window.ui.nodes['output'])
