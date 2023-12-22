@@ -203,6 +203,7 @@ class Lang:
         # menu
         self.window.ui.menu['menu.app'].setTitle(trans("menu.file"))
         self.window.ui.menu['app.exit'].setText(trans("menu.file.exit"))
+        self.window.ui.menu['app.ctx.new'].setText(trans("menu.file.new"))
         self.window.ui.menu['app.clear_history'].setText(trans("menu.file_clear_history"))
 
         self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
@@ -233,6 +234,7 @@ class Lang:
         self.window.ui.menu['menu.about'].setTitle(trans("menu.info"))
         self.window.ui.menu['info.about'].setText(trans("menu.info.about"))
         self.window.ui.menu['info.changelog'].setText(trans("menu.info.changelog"))
+        self.window.ui.menu['info.updates'].setText(trans("menu.info.updates"))
         self.window.ui.menu['info.docs'].setText(trans("menu.info.docs"))
         self.window.ui.menu['info.pypi'].setText(trans("menu.info.pypi"))
         self.window.ui.menu['info.snap'].setText(trans("menu.info.snap"))

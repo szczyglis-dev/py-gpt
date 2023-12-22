@@ -44,11 +44,18 @@ class Menu:
 
         self.window.ui.menu['app.clear_history'] = QAction(QIcon.fromTheme("edit-delete"), trans("menu.file_clear_history"),
                                                         self.window)
+        self.window.ui.menu['app.ctx.new'] = QAction(QIcon.fromTheme("edit-new"),
+                                                           trans("menu.file.new"),
+                                                           self.window)
 
         self.window.ui.menu['app.clear_history'].triggered.connect(
             lambda: self.window.controller.context.delete_history())
 
+        self.window.ui.menu['app.ctx.new'].triggered.connect(
+            lambda: self.window.controller.context.new())
+
         self.window.ui.menu['menu.app'] = self.window.menuBar().addMenu(trans("menu.file"))
+        self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.new'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.clear_history'])
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.exit'])
 
@@ -181,6 +188,8 @@ class Menu:
                                                  self.window)
         self.window.ui.menu['info.changelog'] = QAction(QIcon.fromTheme("history"), trans("menu.info.changelog"),
                                                      self.window)
+        self.window.ui.menu['info.updates'] = QAction(QIcon.fromTheme("history"), trans("menu.info.updates"),
+                                                        self.window)
         self.window.ui.menu['info.website'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.website"),
                                                    self.window)
         self.window.ui.menu['info.docs'] = QAction(QIcon.fromTheme("network-wireless"), trans("menu.info.docs"),
@@ -196,6 +205,8 @@ class Menu:
             lambda: self.window.controller.info.toggle('about'))
         self.window.ui.menu['info.changelog'].triggered.connect(
             lambda: self.window.controller.info.toggle('changelog'))
+        self.window.ui.menu['info.updates'].triggered.connect(
+            lambda: self.window.controller.launcher.check_updates())
         self.window.ui.menu['info.website'].triggered.connect(
             lambda: self.window.controller.info.goto_website())
         self.window.ui.menu['info.docs'].triggered.connect(
@@ -210,6 +221,7 @@ class Menu:
         self.window.ui.menu['menu.about'] = self.window.menuBar().addMenu(trans("menu.info"))
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.about'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.changelog'])
+        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.updates'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.docs'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.pypi'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])

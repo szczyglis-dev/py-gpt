@@ -29,7 +29,7 @@ class Updater:
         self.base_config = {}
         self.base_config_loaded = False
 
-    def check(self):
+    def check(self, force=False):
         """Check for updates"""
         print("Checking for updates...")
         url = self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
@@ -54,25 +54,34 @@ class Updater:
 
             parsed_newest_version = parse_version(newest_version)
             parsed_current_version = parse_version(self.window.meta['version'])
-            if parsed_newest_version > parsed_current_version:
-                self.show_version_dialog(newest_version, newest_build, changelog)
+            if parsed_newest_version > parsed_current_version or force:
+                is_new = parsed_newest_version > parsed_current_version
+                self.show_version_dialog(newest_version, newest_build, changelog, is_new)
+                return True
             else:
                 print("No updates available.")
+            return False
         except Exception as e:
             print("Failed to check for updates")
             print(e)
+        return False
 
-    def show_version_dialog(self, version, build, changelog):
+    def show_version_dialog(self, version, build, changelog, is_new=False):
         """
         Display new version dialog
 
         :param version: version number
         :param build: build date
         :param changelog: changelog
+        :param is_new: is new version available
         """
+        info = trans("update.info")
+        if not is_new:
+            info = trans('update.info.none')
         txt = trans('update.new_version') + ": " + str(version) + " (" + trans('update.released') + ": " + str(
             build) + ")"
         txt += "\n" + trans('update.current_version') + ": " + self.window.meta['version']
+        self.window.ui.dialog['update'].info.setText(info)
         self.window.ui.dialog['update'].changelog.setPlainText(changelog)
         self.window.ui.dialog['update'].message.setText(txt)
         self.window.ui.dialogs.open('update')

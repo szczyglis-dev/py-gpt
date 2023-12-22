@@ -30,6 +30,10 @@ class Launcher:
         """Show empty API KEY monit"""
         self.window.ui.dialogs.open('info.start')
 
+    def check_updates(self):
+        """Check for updates"""
+        self.updater.check(True)
+
     def setup(self):
         """Setup launcher"""
         self.updater.check()
