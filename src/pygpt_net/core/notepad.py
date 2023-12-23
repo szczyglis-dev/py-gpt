@@ -42,7 +42,6 @@ class Notepad:
 
         :param content: notepad content to save
         """
-        a = b + 2
         try:
             # update contexts index
             path = os.path.join(self.window.config.path, 'notepad.json')

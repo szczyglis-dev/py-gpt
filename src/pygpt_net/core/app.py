@@ -15,10 +15,12 @@ from PySide6.QtCore import QTimer, Signal, Slot
 from PySide6.QtGui import QScreen, QIcon
 from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
+from logging import ERROR, WARNING, INFO, DEBUG
 
 from .config import Config
 from .container import Container
 from .controller.main import Controller
+from .error_handler import ErrorHandler
 from .platform import Platform
 from .ui.main import UI
 from .utils import get_app_meta
@@ -39,6 +41,9 @@ from .llm.HuggingFace import HuggingFaceLLM
 from .llm.Llama2 import Llama2LLM
 from .llm.Ollama import OllamaLLM
 from .llm.OpenAI import OpenAILLM
+
+
+ErrorHandler.init(ERROR)  # set error handler logging level
 
 
 class MainWindow(QMainWindow, QtStyleTools):

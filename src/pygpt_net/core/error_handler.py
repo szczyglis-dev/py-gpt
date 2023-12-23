@@ -13,6 +13,10 @@ import os
 import sys
 import traceback
 import logging
+from pathlib import Path
+from PySide6.QtCore import QtMsgType, qInstallMessageHandler
+
+from .config import Config
 
 
 class ErrorHandler:
@@ -24,17 +28,41 @@ class ErrorHandler:
         """
         self.window = window
 
-    def get_platform_info(self):
+    @staticmethod
+    def init(level=logging.ERROR):
         """
-        Return platform info
+        Initialize error handler
+        """
+        logging.basicConfig(
+            level=level,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            filename=str(Path(os.path.join(Path.home(), '.config', Config.CONFIG_DIR, 'error.log'))),
+            filemode='a'
+        )
 
-        :return: platform info
-        :rtype: str
-        """
-        data = ""
-        data += "{}, {}, Snap: {}".\
-            format(self.window.platform.get_os(), self.window.platform.get_architecture(), self.window.platform.is_snap())
-        return data
+        def qt_message_handler(mode, context, message):
+            if mode == QtMsgType.QtDebugMsg:
+                msg_type = 'DEBUG'
+            elif mode == QtMsgType.QtInfoMsg:
+                msg_type = 'INFO'
+            elif mode == QtMsgType.QtWarningMsg:
+                msg_type = 'WARNING'
+            elif mode == QtMsgType.QtCriticalMsg:
+                msg_type = 'CRITICAL'
+            elif mode == QtMsgType.QtFatalMsg:
+                msg_type = 'FATAL'
+            else:
+                msg_type = 'UNKNOWN'
+
+            logging.log(getattr(logging, msg_type), f"{msg_type}: {message} (in {context.file}:{context.line})")
+
+        qInstallMessageHandler(qt_message_handler)
+
+        def handle_exception(exc_type, value, tb):
+            logging.error("Uncaught exception:", exc_info=(exc_type, value, tb))
+            traceback.print_exception(exc_type, value, tb)
+
+        sys.excepthook = handle_exception
 
     def log(self, error):
         """
@@ -42,21 +70,10 @@ class ErrorHandler:
 
         :param error: error object
         """
-        path = os.path.join(self.window.config.path, 'error.log')
-        logging.basicConfig(
-            filename=path,
-            filemode='a',
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            level=logging.ERROR
-        )
-
-        # if error is only string then convert it to Exception
+        # if error is only string then log and print it
         if not isinstance(error, Exception):
-            trace = traceback.format_exc()
-            print("*** Error: {}".format(str(error)))
-            data = f"Message: {error}\n" \
-                f"Traceback:\n{trace}" \
-                f"Platform: {self.get_platform_info()}"
+            print("Error: {}".format(str(error)))
+            data = f"MSG: {error}\n"
             print(data)
             logging.error(data)
             return
@@ -68,11 +85,10 @@ class ErrorHandler:
         else:
             last_calls = traceback_details
         formatted_traceback = ''.join(traceback.format_list(last_calls))
-        data = f"Type: {etype.__name__}\n" \
-            f"Message: {value}\n" \
-            f"Traceback:\n{formatted_traceback}" \
-            f"Platform: {self.get_platform_info()}"
+        data = f"Type: {etype.__name__}, MSG: " \
+            f"{value}\n" \
+            f"Traceback:\n{formatted_traceback}"
 
         logging.error(data)
-        print("*** Error: {}".format(str(error)))
+        print("Error: {}".format(str(error)))
         print(data)
