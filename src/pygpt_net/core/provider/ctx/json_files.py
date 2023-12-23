@@ -297,7 +297,7 @@ class JsonFilesProvider(BaseProvider):
         Dump ctx to string
 
         :param ctx: CtxItem
-        :return: dumped item
+        :return: dumped item as string (json)
         :rtype: str
         """
         return json.dumps(self.serialize_item(ctx))
