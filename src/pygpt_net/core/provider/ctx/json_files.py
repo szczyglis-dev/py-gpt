@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
+
 import datetime
 import json
 import os
@@ -34,6 +35,17 @@ class JsonFilesProvider(BaseProvider):
         """
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
 
+    def create(self, meta):
+        """
+        Create new ctx
+
+        :param meta: CtxMeta
+        :return: ctx ID
+        """
+        if meta.id is None or meta.id == "":
+            meta.id = self.create_id()
+        return meta.id
+
     def get_meta(self):
         """Load ctx metadata from file"""
         contexts = {}
@@ -56,7 +68,7 @@ class JsonFilesProvider(BaseProvider):
         Load ctx data from json file
 
         :param id: context id
-        :return: context items
+        :return: context items (list of CtxItem)
         :rtype: list
         """
         data = []
@@ -73,21 +85,21 @@ class JsonFilesProvider(BaseProvider):
                 data = []
         return data
 
-    def save(self, id, ctx_list, ctx_items):
+    def save(self, id, meta, items):
         """
-        Dump ctx to file
+        Dump ctx to json file
 
-        :param id: context id
-        :param ctx_list: context list (meta)
-        :param ctx_items: context items
+        :param id: ctx id
+        :param meta: ctx meta (CtxMeta)
+        :param items: ctx items (list of CtxItem)
         """
         try:
             # update current ctx items
             items_path = os.path.join(self.window.config.path, 'context', id + '.json')
-            items = []
-            for item in ctx_items:
-                items.append(self.serialize_item(item))
-            dump = json.dumps(items, indent=4)
+            serialized_items = []
+            for item in items:
+                serialized_items.append(self.serialize_item(item))
+            dump = json.dumps(serialized_items, indent=4)
 
             # save items
             with open(items_path, 'w', encoding="utf-8") as f:
@@ -95,11 +107,14 @@ class JsonFilesProvider(BaseProvider):
 
             # update ctx meta (index)
             index_path = os.path.join(self.window.config.path, 'context.json')
+            metas = self.get_meta()
+            metas[id] = meta
             data = {}
-            meta = {}
-            for k in ctx_list:
-                meta[k] = self.serialize_meta(ctx_list[k])
-            data['items'] = meta
+            serialized_meta = {}
+            for n in metas:
+                serialized_meta[n] = self.serialize_meta(metas[n])
+
+            data['items'] = serialized_meta
             data['__meta__'] = self.window.config.append_meta()
             dump = json.dumps(data, indent=4)
 
@@ -115,8 +130,26 @@ class JsonFilesProvider(BaseProvider):
         """
         Delete ctx by id
 
-        :param id: context id
+        :param id: ctx id
         """
+        # delete ctx meta (index)
+        index_path = os.path.join(self.window.config.path, 'context.json')
+        metas = self.get_meta()
+        if id in metas:
+            del metas[id]
+        data = {}
+        serialized_meta = {}
+        for n in metas:
+            serialized_meta[n] = self.serialize_meta(metas[n])
+        data['items'] = serialized_meta
+        data['__meta__'] = self.window.config.append_meta()
+        dump = json.dumps(data, indent=4)
+
+        # save index
+        with open(index_path, 'w', encoding="utf-8") as f:
+            f.write(dump)
+
+        # delete items
         path = os.path.join(self.window.config.path, 'context', id + '.json')
         if os.path.exists(path):
             try:
@@ -127,7 +160,7 @@ class JsonFilesProvider(BaseProvider):
     def truncate(self):
         """Delete all ctx"""
         # delete all ctx files
-        contexts = self.get_list()
+        contexts = self.get_meta()
         for id in contexts:
             path = os.path.join(self.window.config.path, 'context', id + '.json')
             if os.path.exists(path):
@@ -153,7 +186,7 @@ class JsonFilesProvider(BaseProvider):
         Serialize CtxMeta to dict
 
         :param meta: CtxMeta
-        :return: dict
+        :return: serialized CtxMeta dict
         :rtype: dict
         """
         return {
@@ -203,10 +236,10 @@ class JsonFilesProvider(BaseProvider):
 
     def serialize_item(self, ctx):
         """
-        Serialize item to dict
+        Serialize CtxItem to dict
 
-        :param ctx: context item
-        :return: serialized item
+        :param ctx: CtxItem
+        :return: serialized item dict
         :rtype: dict
         """
         return {
@@ -227,10 +260,10 @@ class JsonFilesProvider(BaseProvider):
 
     def deserialize_item(self, data, ctx):
         """
-        Deserialize item from dict
+        Deserialize CtxItem from dict
 
         :param data: data dict
-        :param ctx: context item
+        :param ctx: CtxItem
         """
         if 'input' in data:
             ctx.input = data['input']
@@ -270,10 +303,10 @@ class JsonFilesProvider(BaseProvider):
 
     def parse_data(self, data):
         """
-        Parse context data from json to objects
+        Parse ctxdata from json to objects
 
-        :param data: context items data
-        :return: context items (deserialized) as objects list
+        :param data: ctx items data
+        :return: ctx items (deserialized) as objects list
         :rtype: list
         """
         items = []
@@ -285,10 +318,10 @@ class JsonFilesProvider(BaseProvider):
 
     def parse_meta(self, data):
         """
-        Parse context data from json to objects
+        Parse ctx data from json to objects
 
-        :param data: context items data
-        :return: context items (deserialized) dict
+        :param data: ctx items data
+        :return: ctx items (deserialized) dict
         :rtype: dict
         """
         items = {}

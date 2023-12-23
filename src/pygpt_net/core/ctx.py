@@ -110,19 +110,6 @@ class Ctx:
         # save ctx
         self.save(self.current)
 
-    def create_id(self):
-        """
-        Create unique ctx ID
-
-        :return: generated ctx ID
-        :rtype: str
-        """
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].create_id()
-            except Exception as e:
-                self.window.app.error.log(e)
-
     def is_empty(self):
         """
         Check if ctx is empty
@@ -139,31 +126,69 @@ class Ctx:
 
     def new(self):
         """
-        Create new ctx
+        Create new ctx and set as current
 
-        :return: created ctx name (id)
-        :rtype: str
+        :return: CtxMeta instance (new ctx meta)
+        :rtype: CtxMeta
         """
-        id = self.create_id()  # create unique id
+        meta = self.create()  # create new ctx meta
 
-        meta = CtxMeta()  # create ctx meta
-        meta.id = id
-        meta.name = "{}".format(trans('ctx.new.prefix'))
-        meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
-        meta.mode = self.window.config.get('mode')
-        meta.last_mode = self.window.config.get('mode')
-        meta.initialized = False
-        self.meta[id] = meta
+        if meta is None:
+            self.window.app.error.log("Error creating new ctx")
+            return
 
-        self.current = id
+        self.meta[meta.id] = meta
+        self.current = meta.id
         self.thread = None
         self.assistant = None
         self.mode = self.window.config.get('mode')
         self.preset = self.window.config.get('preset')
         self.items = []
-        self.save(id)
+        self.save(meta.id)
 
-        return id
+        return meta
+
+    def build(self):
+        """
+        Build new ctx
+
+        :return: created CtxMeta instance
+        :rtype: CtxMeta
+        """
+        meta = CtxMeta()  # create ctx meta
+        meta.name = "{}".format(trans('ctx.new.prefix'))
+        meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
+        meta.mode = self.window.config.get('mode')
+        meta.last_mode = self.window.config.get('mode')
+        meta.initialized = False
+        return meta
+
+    def create(self):
+        """
+        Send created meta to provider and return new ID
+
+        :return: created ID
+        """
+        meta = self.build()
+        if self.provider in self.providers:
+            try:
+                id = self.providers[self.provider].create(meta)
+                meta.id = id
+                return meta
+            except Exception as e:
+                self.window.app.error.log(e)
+
+    def has(self, id):
+        """
+        Check if ctx meta exists
+
+        :param id: ctx ID
+        :return: true if exists, false otherwise
+        :rtype: bool
+        """
+        if id in self.meta:
+            return True
+        return False
 
     def is_initialized(self):
         """
@@ -237,15 +262,15 @@ class Ctx:
 
         if self.provider in self.providers:
             try:
-                self.providers[self.provider].save(id, self.meta.copy(), self.items)
+                self.providers[self.provider].save(id, self.meta[id], self.items)
             except Exception as e:
                 self.window.app.error.log(e)
 
     def dump(self, ctx):
         """
-        Dump context
+        Dump context item
 
-        :param id: ctx id
+        :param ctx: CtxItem instance
         """
         if self.provider in self.providers:
             try:
@@ -312,7 +337,7 @@ class Ctx:
         """
         Delete ctx by id
 
-        :param id: context id
+        :param id: ctx id
         """
         if id in self.meta:
             del self.meta[id]

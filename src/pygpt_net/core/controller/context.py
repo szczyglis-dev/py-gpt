@@ -368,7 +368,7 @@ class Context:
 
         # always allow if no ctx
         id = self.window.config.get('ctx')
-        if id is None or id == '':
+        if id is None or id == '' or not self.window.app.ctx.has(id):
             return True
 
         meta = self.window.app.ctx.get_meta_by_id(id)

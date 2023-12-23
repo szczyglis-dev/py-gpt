@@ -17,3 +17,5 @@ class DbSqliteProvider(BaseProvider):
         super(DbSqliteProvider, self).__init__()
         self.id = "db_sqlite"
         self.type = "ctx"
+
+        # TODO: Implement sqlite provider and search methods
