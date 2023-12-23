@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 01:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 import threading
@@ -153,7 +153,7 @@ class Input:
             self.window.app.gpt.thread_id = ctx.thread
 
         # log
-        self.window.log("Context: input: {}".format(ctx.dump()))
+        self.window.log("Context: input: {}".format(self.window.app.context.dump(ctx)))
 
         # dispatch event
         event = Event('ctx.before')
@@ -161,7 +161,7 @@ class Input:
         self.window.dispatch(event)
 
         # log
-        self.window.log("Context: input [after plugin: ctx.before]: {}".format(ctx.dump()))
+        self.window.log("Context: input [after plugin: ctx.before]: {}".format(self.window.app.context.dump(ctx)))
         self.window.log("System: {}".format(self.window.app.gpt.system_prompt))
 
         # apply cfg, plugins
@@ -239,7 +239,7 @@ class Input:
                         self.window.controller.assistant_thread.handle_run(ctx)
 
                 if ctx is not None:
-                    self.window.log("Context: output: {}".format(ctx.dump()))  # log
+                    self.window.log("Context: output: {}".format(self.window.app.context.dump(ctx)))  # log
                 else:
                     # error in call if ctx is None
                     self.window.log("Context: output: None")
@@ -293,6 +293,7 @@ class Input:
         """
         Send input wrapper
         :param text: input text
+        :param force: force send
         """
         self.send_execute(text, force)
 
@@ -300,7 +301,7 @@ class Input:
         """
         Handle thread start
 
-        :param ctx: ContextItem
+        :param text: input text
         """
         sender = SendThread(window=self.window, text=text)
         self.thread = threading.Thread(target=sender.run)
@@ -312,6 +313,7 @@ class Input:
         Send input text to API
 
         :param text: input text
+        :param force: force send
         """
         # check if input is not locked
         if self.locked and not force:
@@ -399,14 +401,15 @@ class Input:
             self.window.controller.attachment.update()
 
         if ctx is not None:
-            self.window.log("Context: output: {}".format(ctx.dump()))  # log
+            self.window.log("Context: output: {}".format(self.window.app.context.dump(ctx)))  # log
 
             # dispatch event
             event = Event('ctx.end')
             event.ctx = ctx
             self.window.dispatch(event)
 
-            self.window.log("Context: output [after plugin: ctx.end]: {}".format(ctx.dump()))  # log
+            self.window.log("Context: output [after plugin: ctx.end]: {}".
+                            format(self.window.app.context.dump(ctx)))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 
             # from v.2.0.41: reply from commands in now handled in async thread!

@@ -8,7 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
-
+import datetime
+import json
 import time
 
 
@@ -68,3 +69,21 @@ class ContextItem:
         self.input_tokens = input_tokens
         self.output_tokens = output_tokens
         self.total_tokens = input_tokens + output_tokens
+
+
+class ContextMeta:
+    def __init__(self, id=None):
+        """
+        Context meta data
+        """
+        self.id = id
+        self.name = None
+        self.date = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.mode = None
+        self.last_mode = None
+        self.thread = None
+        self.assistant = None
+        self.preset = None
+        self.run = None
+        self.status = None
+        self.initialized = False

@@ -12,7 +12,7 @@
 import datetime
 import os
 
-from .ctx_item import ContextItem
+from .ctx_item import ContextItem, ContextMeta
 from .tokens import num_tokens_from_context_item
 from .provider.ctx.json_files import JsonFilesCtxProvider
 from .utils import trans
@@ -83,7 +83,7 @@ class Context:
 
         if self.current_ctx is None:
             return
-        self.contexts[self.current_ctx]['mode'] = self.current_mode
+        self.contexts[self.current_ctx].mode = self.current_mode
         self.save(self.current_ctx)
 
     def post_update(self, mode):
@@ -100,14 +100,14 @@ class Context:
         self.current_preset = self.window.config.get('preset')  # update preset
 
         # update current context data
-        self.contexts[self.current_ctx]['last_mode'] = mode
-        self.contexts[self.current_ctx]['preset'] = self.current_preset
+        self.contexts[self.current_ctx].last_mode = mode
+        self.contexts[self.current_ctx].preset = self.current_preset
 
         # if assistant then update assistant
         if mode == 'assistant':
-            self.contexts[self.current_ctx]['assistant'] = self.current_assistant
+            self.contexts[self.current_ctx].assistant = self.current_assistant
 
-        # save context
+        # save ctx
         self.save(self.current_ctx)
 
     def create_id(self):
@@ -145,19 +145,16 @@ class Context:
         :rtype: str
         """
         id = self.create_id()  # create unique id
-        self.contexts[id] = {
-            'id': id,
-            "name": "{}".format(trans('ctx.new.prefix')),
-            "date": datetime.datetime.now().strftime("%Y-%m-%d"),
-            'mode': self.window.config.get('mode'),
-            'last_mode': self.window.config.get('mode'),
-            'thread': None,
-            'assistant': None,
-            'preset': None,
-            'run': None,
-            'status': None,
-            'initialized': False,
-        }
+
+        meta = ContextMeta()  # create ctx meta
+        meta.id = id
+        meta.name = "{}".format(trans('ctx.new.prefix'))
+        meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
+        meta.mode = self.window.config.get('mode')
+        meta.last_mode = self.window.config.get('mode')
+        meta.initialized = False
+        self.contexts[id] = meta
+
         self.current_ctx = id
         self.current_thread = None
         self.current_assistant = None
@@ -170,7 +167,7 @@ class Context:
 
     def is_ctx_initialized(self):
         """
-        Check if context is initialized (name assigned)
+        Check if ctx is initialized (name assigned)
 
         :return: true if initialized, False otherwise
         :rtype: bool
@@ -178,18 +175,16 @@ class Context:
         if self.current_ctx is None:
             return
         if self.current_ctx in self.contexts:
-            if 'initialized' in self.contexts[self.current_ctx]:
-                return self.contexts[self.current_ctx]['initialized']
-        return True  # old versions compatibility
+            return self.contexts[self.current_ctx].initialized
 
     def set_ctx_initialized(self):
         """
-        Set context as initialized (name assigned)
+        Set ctx as initialized (name assigned)
         """
         if self.current_ctx is None:
             return
         if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx]['initialized'] = True
+            self.contexts[self.current_ctx].initialized = True
             self.save(self.current_ctx)
 
     def append_thread(self, thread):
@@ -202,7 +197,7 @@ class Context:
         if self.current_ctx is None:
             return
         if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx]['thread'] = self.current_thread
+            self.contexts[self.current_ctx].thread = self.current_thread
             self.save(self.current_ctx)
 
     def append_run(self, run):
@@ -215,7 +210,7 @@ class Context:
         if self.current_ctx is None:
             return
         if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx]['run'] = self.current_run
+            self.contexts[self.current_ctx].run = self.current_run
             self.save(self.current_ctx)
 
     def append_status(self, status):
@@ -228,7 +223,7 @@ class Context:
         if self.current_ctx is None:
             return
         if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx]['status'] = self.current_status
+            self.contexts[self.current_ctx].status = self.current_status
             self.save(self.current_ctx)
 
     def save(self, id):
@@ -243,6 +238,18 @@ class Context:
         if self.provider in self.providers:
             try:
                 self.providers[self.provider].save(id, self.contexts.copy(), self.items)
+            except Exception as e:
+                self.window.app.error.log(e)
+
+    def dump(self, ctx):
+        """
+        Dump context
+
+        :param id: context id
+        """
+        if self.provider in self.providers:
+            try:
+                return self.providers[self.provider].dump(ctx)
             except Exception as e:
                 self.window.app.error.log(e)
 
@@ -409,15 +416,15 @@ class Context:
         """Clears context"""
         self.items = []
 
-    def select(self, name):
+    def select(self, id):
         """
-        Select context
+        Select ctx
 
-        :param name: context name (id)
+        :param id: context id
         """
-        if name in self.contexts:
-            ctx = self.contexts[name]
-            self.current_ctx = name
+        if id in self.contexts:
+            ctx = self.contexts[id]
+            self.current_ctx = id
 
             # reset
             self.current_thread = None
@@ -425,16 +432,12 @@ class Context:
             self.current_assistant = None
 
             # restore
-            if 'thread' in ctx:
-                self.current_thread = ctx['thread']
-            if 'mode' in ctx:
-                self.current_mode = ctx['mode']
-            if 'assistant' in ctx:
-                self.current_assistant = ctx['assistant']
-            if 'preset' in ctx:
-                self.current_preset = ctx['preset']
+            self.current_thread = ctx.thread
+            self.current_mode = ctx.mode
+            self.current_assistant = ctx.assistant
+            self.current_preset = ctx.preset
 
-            self.items = self.load(name)
+            self.items = self.load(id)
 
     def add(self, item):
         """
@@ -482,16 +485,16 @@ class Context:
         """
         return self.items
 
-    def get(self, index):
+    def get(self, idx):
         """
         Return context item by index
 
-        :param index: item index
+        :param idx: item index
         :return: context item
         :rtype: ContextItem or None
         """
-        if index < len(self.items):
-            return self.items[index]
+        if idx < len(self.items):
+            return self.items[idx]
 
     def get_last(self):
         """

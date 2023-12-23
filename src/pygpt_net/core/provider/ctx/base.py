@@ -58,3 +58,6 @@ class BaseCtxProvider:
 
     def count(self):
         pass
+
+    def dump(self, ctx):
+        pass

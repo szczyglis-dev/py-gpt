@@ -301,11 +301,11 @@ class Context:
 
         :param idx: context index
         """
-        ctx = self.window.app.context.get_name_by_idx(idx)
-        ctx_data = self.window.app.context.get_context_by_name(ctx)
+        id = self.window.app.context.get_name_by_idx(idx)
+        ctx = self.window.app.context.get_context_by_name(id)
         self.window.ui.dialog['rename'].id = 'ctx'
-        self.window.ui.dialog['rename'].input.setText(ctx_data['name'])
-        self.window.ui.dialog['rename'].current = ctx
+        self.window.ui.dialog['rename'].input.setText(ctx.name)
+        self.window.ui.dialog['rename'].current = id
         self.window.ui.dialog['rename'].show()
         self.update()
 
@@ -318,7 +318,7 @@ class Context:
         """
         if ctx not in self.window.app.context.contexts:
             return
-        self.window.app.context.contexts[ctx]['name'] = name
+        self.window.app.context.contexts[ctx].name = name
         self.window.app.context.set_ctx_initialized()
         self.window.app.context.save(ctx)
         self.window.ui.dialog['rename'].close()
@@ -367,24 +367,24 @@ class Context:
             return True
 
         # always allow if no ctx
-        ctx = self.window.config.get('ctx')
-        if ctx is None or ctx == '':
+        id = self.window.config.get('ctx')
+        if id is None or id == '':
             return True
 
-        ctx_data = self.window.app.context.get_context_by_name(ctx)
+        ctx = self.window.app.context.get_context_by_name(id)
 
         # always allow if no last mode
-        if 'last_mode' not in ctx_data or ctx_data['last_mode'] is None:
+        if ctx.last_mode is None:
             return True
 
         # get last used mode from ctx
-        prev_mode = ctx_data['last_mode']
+        prev_mode = ctx.last_mode
         if prev_mode not in self.allowed_modes[mode]:
             # exception for assistant (if assistant exists in ctx then allow)
             if mode == 'assistant':
-                if 'assistant' in ctx_data and ctx_data['assistant'] is not None:
+                if ctx.assistant is not None:
                     # if the same assistant then allow
-                    if ctx_data['assistant'] == self.window.config.get('assistant'):
+                    if ctx.assistant == self.window.config.get('assistant'):
                         return True
                 else:
                     return True  # if no assistant in ctx then allow
@@ -394,10 +394,10 @@ class Context:
         # check if the same assistant
         if mode == 'assistant' and check_assistant:
             # allow if no assistant yet in ctx
-            if 'assistant' not in ctx_data or ctx_data['assistant'] is None:
+            if ctx.assistant is None:
                 return True
             # disallow if different assistant
-            if ctx_data['assistant'] != self.window.config.get('assistant'):
+            if ctx.assistant != self.window.config.get('assistant'):
                 return False
         return True
 

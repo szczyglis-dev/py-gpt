@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 03:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -251,7 +251,7 @@ class Output:
 
         # log
         if ctx is not None:
-            self.window.log("Context: output [after plugin: ctx.after]: {}".format(ctx.dump()))
+            self.window.log("Context: output [after plugin: ctx.after]: {}".format(self.window.app.context.dump(ctx)))
             self.window.log("Appending output to chat window...")
 
             # only append output if not in async stream mode, TODO: plugin output add
@@ -272,7 +272,8 @@ class Output:
         self.window.app.context.store()
         self.window.controller.context.update_ctx()  # update current ctx info
         self.window.set_status(
-            trans('status.tokens') + ": {} + {} = {}".format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
+            trans('status.tokens') + ": {} + {} = {}".
+            format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
         # store history (output)
         if self.window.config.get('store_history') \

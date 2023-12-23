@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 18:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel
@@ -80,12 +80,11 @@ class CtxList:
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
         i = 0
         for n in data:
-            if 'name' in data[n] and 'date' in data[n]:
-                self.window.ui.models[id].insertRow(i)
-                dt = self.convert_date(data[n]['date'])
-                name = data[n]['name'] + ' (' + dt + ')'
-                self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
-                i += 1
+            self.window.ui.models[id].insertRow(i)
+            dt = self.convert_date(data[n].date)
+            name = data[n].name + ' (' + dt + ')'
+            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
+            i += 1
 
         self.window.ui.nodes[id].restore_selection()
 

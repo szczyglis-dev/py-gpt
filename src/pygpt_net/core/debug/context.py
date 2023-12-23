@@ -35,26 +35,16 @@ class ContextDebug:
             if self.window.app.context.current_ctx in self.window.app.context.contexts:
                 current = self.window.app.context.contexts[self.window.app.context.current_ctx]
             if current is not None:
-                if 'id' in current:
-                    self.window.app.debug.add(self.id, '[current] id', str(current['id']))
-                if 'assistant' in current:
-                    self.window.app.debug.add(self.id, '[current] assistant', str(current['assistant']))
-                if 'date' in current:
-                    self.window.app.debug.add(self.id, '[current] date', str(current['date']))
-                if 'last_mode' in current:
-                    self.window.app.debug.add(self.id, '[current] last_mode', str(current['last_mode']))
-                if 'mode' in current:
-                    self.window.app.debug.add(self.id, '[current] mode', str(current['mode']))
-                if 'name' in current:
-                    self.window.app.debug.add(self.id, '[current] name', str(current['name']))
-                if 'preset' in current:
-                    self.window.app.debug.add(self.id, '[current] preset', str(current['preset']))
-                if 'run' in current:
-                    self.window.app.debug.add(self.id, '[current] run', str(current['run']))
-                if 'status' in current:
-                    self.window.app.debug.add(self.id, '[current] status', str(current['status']))
-                if 'thread' in current:
-                    self.window.app.debug.add(self.id, '[current] thread', str(current['thread']))
+                self.window.app.debug.add(self.id, '[current] id', str(current.id))
+                self.window.app.debug.add(self.id, '[current] assistant', str(current.assistant))
+                self.window.app.debug.add(self.id, '[current] date', str(current.date))
+                self.window.app.debug.add(self.id, '[current] last_mode', str(current.last_mode))
+                self.window.app.debug.add(self.id, '[current] mode', str(current.mode))
+                self.window.app.debug.add(self.id, '[current] name', str(current.name))
+                self.window.app.debug.add(self.id, '[current] preset', str(current.preset))
+                self.window.app.debug.add(self.id, '[current] run', str(current.run))
+                self.window.app.debug.add(self.id, '[current] status', str(current.status))
+                self.window.app.debug.add(self.id, '[current] thread', str(current.thread))
 
         self.window.app.debug.add(self.id, 'len(contexts)', str(len(self.window.app.context.contexts)))
         self.window.app.debug.add(self.id, 'len(items)', str(len(self.window.app.context.items)))

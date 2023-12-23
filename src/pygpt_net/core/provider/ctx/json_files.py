@@ -13,7 +13,7 @@ import json
 import os
 
 from .base import BaseCtxProvider
-from ...ctx_item import ContextItem
+from ...ctx_item import ContextItem, ContextMeta
 
 
 class JsonFilesCtxProvider(BaseCtxProvider):
@@ -35,7 +35,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
 
     def get_list(self):
-        """Load ctx list from file"""
+        """Load ctx metadata from file"""
         contexts = {}
         path = os.path.join(self.window.config.path, 'context.json')
         try:
@@ -44,7 +44,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
                     data = json.load(file)
                     if data == "" or data is None or 'items' not in data:
                         return contexts
-                    contexts = data['items']
+                    contexts = self.parse_meta(data['items'])
         except Exception as e:
             self.window.app.error.log(e)
             contexts = {}
@@ -64,7 +64,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding="utf-8") as file:
-                    data = self.parse(json.load(file))
+                    data = self.parse_data(json.load(file))
                     if data == "" or data is None:
                         return []
             except Exception as e:
@@ -78,7 +78,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         Dump ctx to file
 
         :param id: context id
-        :param ctx_list: context list
+        :param ctx_list: context list (meta)
         :param ctx_items: context items
         """
         try:
@@ -88,15 +88,22 @@ class JsonFilesCtxProvider(BaseCtxProvider):
             for item in ctx_items:
                 items.append(self.serialize_item(item))
             dump = json.dumps(items, indent=4)
+
+            # save items
             with open(items_path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
-            # update ctx index
+            # update ctx meta (index)
             index_path = os.path.join(self.window.config.path, 'context.json')
             data = {}
-            data['items'] = ctx_list
+            meta = {}
+            for k in ctx_list:
+                meta[k] = self.serialize_meta(ctx_list[k])
+            data['items'] = meta
             data['__meta__'] = self.window.config.append_meta()
             dump = json.dumps(data, indent=4)
+
+            # save index
             with open(index_path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
@@ -140,6 +147,59 @@ class JsonFilesCtxProvider(BaseCtxProvider):
                 f.write(dump)
         except Exception as e:
             self.window.app.error.log(e)
+
+    def serialize_meta(self, meta):
+        """
+        Serialize ContextMeta to dict
+
+        :param meta: ContextMeta
+        :return: dict
+        :rtype: dict
+        """
+        return {
+            'id': meta.id,
+            'name': meta.name,
+            'date': meta.date,
+            'mode': meta.mode,
+            'last_mode': meta.last_mode,
+            'thread': meta.thread,
+            'assistant': meta.assistant,
+            'preset': meta.preset,
+            'run': meta.run,
+            'status': meta.status,
+            'initialized': meta.initialized,
+        }
+
+    def deserialize_meta(self, data, meta):
+        """
+        Deserialize ContextMeta from dict
+
+        :param data: dict
+        :param meta: ContextMeta
+        """
+        if 'id' in data:
+            meta.id = data['id']
+        if 'name' in data:
+            meta.name = data['name']
+        if 'date' in data:
+            meta.date = data['date']
+        if 'mode' in data:
+            meta.mode = data['mode']
+        if 'last_mode' in data:
+            meta.last_mode = data['last_mode']
+        if 'thread' in data:
+            meta.thread = data['thread']
+        if 'assistant' in data:
+            meta.assistant = data['assistant']
+        if 'preset' in data:
+            meta.preset = data['preset']
+        if 'run' in data:
+            meta.run = data['run']
+        if 'status' in data:
+            meta.status = data['status']
+        if 'initialized' in data:
+            meta.initialized = data['initialized']
+        return meta
 
     def serialize_item(self, ctx):
         """
@@ -208,7 +268,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         """
         return json.dumps(self.serialize_item(ctx))
 
-    def parse(self, data):
+    def parse_data(self, data):
         """
         Parse context data from json to objects
 
@@ -221,4 +281,19 @@ class JsonFilesCtxProvider(BaseCtxProvider):
             ctx = ContextItem()
             self.deserialize_item(item, ctx)
             items.append(ctx)
+        return items
+
+    def parse_meta(self, data):
+        """
+        Parse context data from json to objects
+
+        :param data: context items data
+        :return: context items (deserialized) dict
+        :rtype: dict
+        """
+        items = {}
+        for k in data:
+            meta = ContextMeta()
+            self.deserialize_meta(data[k], meta)
+            items[meta.id] = meta
         return items
