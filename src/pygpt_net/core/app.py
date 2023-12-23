@@ -100,6 +100,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         Dispatch event to plugins and other listeners
 
         :param event: event object
+        :param all: dispatch to all listeners (plugins, etc.)
         """
         self.app.dispatcher.dispatch(event, all)
 
