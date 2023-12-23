@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 from datetime import datetime
 
@@ -29,15 +29,18 @@ class Debug:
 
         :param data: text to log
         """
-        if not self.is_logger:
+        if not self.is_logger or data is None or data.strip() == '':
             return
 
         # prepend log with timestamp
-        txt = datetime.now().strftime('%H:%M:%S') + ' ' + str(data)
+        data = datetime.now().strftime('%H:%M:%S') + ': ' + str(data)
         # append log to logger
-        txt = self.window.logger.toPlainText() + '\n' + txt
+        txt = self.window.logger.toPlainText()
+        if txt.strip() != '':
+            txt += '\n'
+        txt += data
         self.window.logger.setPlainText(txt)
-        # cursor to end
+        # set cursor to end
         self.window.logger.moveCursor(QTextCursor.End)
 
     def logger_close(self):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 19:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -96,6 +96,7 @@ class Input:
         """
         layout = QVBoxLayout()
         layout.addLayout(self.attachments.setup())
+        layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -111,6 +112,7 @@ class Input:
         """
         layout = QVBoxLayout()
         layout.addLayout(self.attachments_uploaded.setup())
+        layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()
         widget.setLayout(layout)

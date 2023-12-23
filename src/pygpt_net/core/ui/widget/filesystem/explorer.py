@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 1900:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
-from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel
+from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel
 
 from ....utils import trans
 
@@ -34,8 +34,15 @@ class FileExplorer(QWidget):
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(directory))
 
+        self.path_label = QLabel(directory)
+        self.path_label.setMaximumHeight(40)
+        self.path_label.setAlignment(Qt.AlignCenter)
+        self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+
         layout = QVBoxLayout()
         layout.addWidget(self.treeView)
+        layout.addWidget(self.path_label)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
