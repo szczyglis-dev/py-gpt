@@ -283,7 +283,7 @@ class Context:
 
     def delete_history(self, force=False):
         """
-        Delete ctx history item
+        Delete all ctx / truncate
 
         :param force: force delete
         """
@@ -291,8 +291,8 @@ class Context:
             self.window.ui.dialogs.confirm('ctx_delete_all', '', trans('ctx.delete.all.confirm'))
             return
 
-        # delete all ctx
-        self.window.app.context.delete_all_ctx()
+        # truncate ctx
+        self.window.app.context.truncate()
         self.update()
 
     def rename(self, idx):
@@ -320,7 +320,7 @@ class Context:
             return
         self.window.app.context.contexts[ctx]['name'] = name
         self.window.app.context.set_ctx_initialized()
-        self.window.app.context.dump_context(ctx)
+        self.window.app.context.save(ctx)
         self.window.ui.dialog['rename'].close()
         self.update()
 

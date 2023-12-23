@@ -8,26 +8,40 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
+import uuid
 
 
 class BaseCtxProvider:
-    def __init__(self):
+    def __init__(self, window=None):
+        self.window = window
         self.id = ""
         self.type = "ctx"
 
     def init(self):
         pass
 
-    def load(self):
+    def install(self):
         pass
 
-    def save(self):
+    def uninstall(self):
+        pass
+
+    def is_installed(self):
+        pass
+
+    def create_id(self):
+        return uuid.uuid4()
+
+    def load(self, id):
+        pass
+
+    def save(self, id, ctx_list, ctx_items):
         pass
 
     def update(self):
         pass
 
-    def remove(self):
+    def remove(self, id):
         pass
 
     def truncate(self):

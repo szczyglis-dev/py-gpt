@@ -10,7 +10,7 @@
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from .context import ContextItem
+from .ctx_item import ContextItem
 
 
 class Chain:

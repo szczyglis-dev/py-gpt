@@ -6,15 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 import datetime
-import json
 import os
-import time
 
+from .ctx_item import ContextItem
 from .tokens import num_tokens_from_context_item
+from .provider.ctx.json_files import JsonFilesCtxProvider
 from .utils import trans
 
 
@@ -26,6 +26,8 @@ class Context:
         :param window: Window instance
         """
         self.window = window
+        self.providers = {}
+        self.provider = "json_files"
         self.contexts = {}
         self.items = []
         self.current_ctx = None
@@ -37,60 +39,41 @@ class Context:
         self.current_mode = None
         self.last_mode = None
 
-    def load_list(self):
-        """Loads contexts list from file"""
-        path = os.path.join(self.window.config.path, 'context.json')
-        try:
-            if os.path.exists(path):
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
-                    file.close()
-                    if data == "" or data is None or 'items' not in data:
-                        self.contexts = {}
-                        return
-                    self.contexts = data['items']
-        except Exception as e:
-            self.window.app.error.log(e)
-            self.contexts = {}
+        # register ctx data providers
+        self.add_provider(JsonFilesCtxProvider())  # json files provider
 
-    def load(self, name):
+    def add_provider(self, provider):
         """
-        Load context from file
+        Add context provider
 
-        :param name: context name (id)
+        :param provider: Context provider instance
+        """
+        self.providers[provider.id] = provider
+        self.providers[provider.id].window = self.window
+
+    def load_list(self):
+        """Load ctx list from provider"""
+        if self.provider in self.providers:
+            try:
+                self.contexts = self.providers[self.provider].get_list()
+            except Exception as e:
+                self.window.app.error.log(e)
+                self.contexts = {}
+
+    def load(self, id):
+        """
+        Load ctx data from provider
+
+        :param id: context id
         :return: context items
         :rtype: list
         """
-        path = os.path.join(self.window.config.path, 'context', name + '.json')
-        if os.path.exists(path):
+        if self.provider in self.providers:
             try:
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = self.parse(json.load(file))
-                    file.close()
-                    if data == "" or data is None:
-                        return []
-                    return data
+                return self.providers[self.provider].load(id)
             except Exception as e:
                 self.window.app.error.log(e)
-                print("Error while loading context: {}".format(name))
-                return []
-        else:
-            return []
-
-    def parse(self, data):
-        """
-        Parse context data
-
-        :param data: context items data
-        :return: context items (deserialized) as objects list
-        :rtype: list
-        """
-        items = []
-        for item in data:
-            ctx = ContextItem()
-            ctx.deserialize(item)
-            items.append(ctx)
-        return items
+        return []
 
     def update(self):
         """
@@ -101,7 +84,7 @@ class Context:
         if self.current_ctx is None:
             return
         self.contexts[self.current_ctx]['mode'] = self.current_mode
-        self.dump_context(self.current_ctx)
+        self.save(self.current_ctx)
 
     def post_update(self, mode):
         """
@@ -125,18 +108,20 @@ class Context:
             self.contexts[self.current_ctx]['assistant'] = self.current_assistant
 
         # save context
-        self.dump_context(self.current_ctx)
+        self.save(self.current_ctx)
 
     def create_id(self):
         """
         Create unique context ID
 
-        Format: YYYYMMDDHHMMSS.MICROSECONDS.json
-
         :return: generated ID
         :rtype: str
         """
-        return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
+        if self.provider in self.providers:
+            try:
+                return self.providers[self.provider].create_id()
+            except Exception as e:
+                self.window.app.error.log(e)
 
     def is_empty(self):
         """
@@ -159,9 +144,9 @@ class Context:
         :return: created context name (id)
         :rtype: str
         """
-        name = self.create_id()  # create unique id
-        self.contexts[name] = {
-            'id': name,
+        id = self.create_id()  # create unique id
+        self.contexts[id] = {
+            'id': id,
             "name": "{}".format(trans('ctx.new.prefix')),
             "date": datetime.datetime.now().strftime("%Y-%m-%d"),
             'mode': self.window.config.get('mode'),
@@ -173,15 +158,15 @@ class Context:
             'status': None,
             'initialized': False,
         }
-        self.current_ctx = name
+        self.current_ctx = id
         self.current_thread = None
         self.current_assistant = None
         self.current_mode = self.window.config.get('mode')
         self.current_preset = self.window.config.get('preset')
         self.items = []
-        self.dump_context(name)
+        self.save(id)
 
-        return name
+        return id
 
     def is_ctx_initialized(self):
         """
@@ -205,7 +190,7 @@ class Context:
             return
         if self.current_ctx in self.contexts:
             self.contexts[self.current_ctx]['initialized'] = True
-            self.dump_context(self.current_ctx)
+            self.save(self.current_ctx)
 
     def append_thread(self, thread):
         """
@@ -218,7 +203,7 @@ class Context:
             return
         if self.current_ctx in self.contexts:
             self.contexts[self.current_ctx]['thread'] = self.current_thread
-            self.dump_context(self.current_ctx)
+            self.save(self.current_ctx)
 
     def append_run(self, run):
         """
@@ -231,7 +216,7 @@ class Context:
             return
         if self.current_ctx in self.contexts:
             self.contexts[self.current_ctx]['run'] = self.current_run
-            self.dump_context(self.current_ctx)
+            self.save(self.current_ctx)
 
     def append_status(self, status):
         """
@@ -244,41 +229,22 @@ class Context:
             return
         if self.current_ctx in self.contexts:
             self.contexts[self.current_ctx]['status'] = self.current_status
-            self.dump_context(self.current_ctx)
+            self.save(self.current_ctx)
 
-    def dump_context(self, name):
+    def save(self, id):
         """
         Dump context to file
 
-        :param name: context name (id)
+        :param id: context id
         """
         if not self.window.config.get('store_history'):
             return
 
-        try:
-            # update current context items
-            items_path = os.path.join(self.window.config.path, 'context', name + '.json')
-            items = []
-            for item in self.items:
-                items.append(item.serialize())
-            dump = json.dumps(items, indent=4)
-            with open(items_path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-
-            # update contexts index
-            index_path = os.path.join(self.window.config.path, 'context.json')
-            data = {}
-            data['items'] = self.contexts.copy()
-            data['__meta__'] = self.window.config.append_meta()
-            dump = json.dumps(data, indent=4)
-            with open(index_path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-
-        except Exception as e:
-            self.window.app.error.log(e)
-            print("Error while dumping context: {}".format(name))
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(id, self.contexts.copy(), self.items)
+            except Exception as e:
+                self.window.app.error.log(e)
 
     def get_list(self):
         """
@@ -335,51 +301,31 @@ class Context:
         if name in self.contexts:
             return self.contexts[name]
 
-    def delete_ctx(self, name):
+    def delete_ctx(self, id):
         """
-        Delete context by name
+        Delete context by id
 
-        :param name: context name (id)
+        :param id: context id
         """
-        if name in self.contexts:
-            del self.contexts[name]
-            path = os.path.join(self.window.config.path, 'context', name + '.json')
-            if os.path.exists(path):
+        if id in self.contexts:
+            del self.contexts[id]
+            if self.provider in self.providers:
                 try:
-                    os.remove(path)
+                    self.providers[self.provider].remove(id)
                 except Exception as e:
                     self.window.app.error.log(e)
 
-    def prepare(self):
-        """Prepare context for prompt"""
-        # if no contexts, create new one
-        if len(self.contexts) == 0:
-            self.new()
-
-    def delete_all_ctx(self):
-        """Delete all contexts"""
-        # delete all context files
-        for name in self.contexts:
-            path = os.path.join(self.window.config.path, 'context', name + '.json')
-            if os.path.exists(path):
-                try:
-                    os.remove(path)
-                except Exception as e:
-                    self.window.app.error.log(e)
+    def truncate(self):
+        """Delete all ctx"""
+        # empty ctx index
         self.contexts = {}
 
-        # update contexts index
-        index_path = os.path.join(self.window.config.path, 'context.json')
-        data = {}
-        data['items'] = {}
-        data['__meta__'] = self.window.config.append_meta()
-        try:
-            dump = json.dumps(data, indent=4)
-            with open(index_path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-        except Exception as e:
-            self.window.app.error.log(e)
+        # remove all ctx data in provider
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].truncate()
+            except Exception as e:
+                self.window.app.error.log(e)
 
         # delete all txt history files from history dir
         path = os.path.join(self.window.config.path, 'history')
@@ -389,6 +335,12 @@ class Context:
                     os.remove(os.path.join(path, file))
                 except Exception as e:
                     self.window.app.error.log(e)
+
+    def prepare(self):
+        """Prepare context for prompt"""
+        # if no contexts, create new one
+        if len(self.contexts) == 0:
+            self.new()
 
     def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
         """
@@ -498,7 +450,7 @@ class Context:
     def store(self):
         """Store current context to file"""
         if self.current_ctx is not None and self.current_ctx in self.contexts:
-            self.dump_context(self.current_ctx)
+            self.save(self.current_ctx)
 
     def get_total_tokens(self):
         """
@@ -593,126 +545,3 @@ class Context:
         if last is not None:
             return last.total_tokens
         return 0
-
-
-class ContextItem:
-    def __init__(self, mode=None):
-        """
-        Context item
-
-        :param mode: Mode (completion, chat, img, vision, langchain, assistant)
-        """
-        self.stream = None
-        self.results = []
-        self.reply = False
-        self.input = None
-        self.output = None
-        self.mode = mode
-        self.thread = None
-        self.msg_id = None
-        self.run_id = None
-        self.input_name = None
-        self.output_name = None
-        self.input_timestamp = None
-        self.output_timestamp = None
-        self.input_tokens = 0
-        self.output_tokens = 0
-        self.total_tokens = 0
-
-    def set_input(self, input, name=None):
-        """
-        Set input
-
-        :param input: input text (prompt)
-        :param name: input person name
-        """
-        self.input = input
-        self.input_name = name
-        self.input_timestamp = int(time.time())
-
-    def set_output(self, output, name=None):
-        """
-        Set output
-
-        :param output: output text
-        :param name: output person name
-        """
-        self.output = output
-        self.output_name = name
-        self.output_timestamp = int(time.time())
-
-    def set_tokens(self, input_tokens, output_tokens):
-        """
-        Set tokens usage
-
-        :param input_tokens: prompt tokens
-        :param output_tokens: output tokens
-        """
-        self.input_tokens = input_tokens
-        self.output_tokens = output_tokens
-        self.total_tokens = input_tokens + output_tokens
-
-    def serialize(self):
-        """
-        Serialize item to dict
-
-        :return: serialized item
-        :rtype: dict
-        """
-        return {
-            'input': self.input,
-            'output': self.output,
-            'mode': self.mode,
-            'thread': self.thread,
-            'msg_id': self.msg_id,
-            'run_id': self.run_id,
-            'input_name': self.input_name,
-            'output_name': self.output_name,
-            'input_tokens': self.input_tokens,
-            'output_tokens': self.output_tokens,
-            'total_tokens': self.total_tokens,
-            'input_timestamp': self.input_timestamp,
-            'output_timestamp': self.output_timestamp
-        }
-
-    def deserialize(self, data):
-        """
-        Deserialize item from dict
-
-        :param data: data dict
-        """
-        if 'input' in data:
-            self.input = data['input']
-        if 'output' in data:
-            self.output = data['output']
-        if 'mode' in data:
-            self.mode = data['mode']
-        if 'thread' in data:
-            self.thread = data['thread']
-        if 'msg_id' in data:
-            self.msg_id = data['msg_id']
-        if 'run_id' in data:
-            self.run_id = data['run_id']
-        if 'input_name' in data:
-            self.input_name = data['input_name']
-        if 'output_name' in data:
-            self.output_name = data['output_name']
-        if 'input_tokens' in data:
-            self.input_tokens = data['input_tokens']
-        if 'output_tokens' in data:
-            self.output_tokens = data['output_tokens']
-        if 'total_tokens' in data:
-            self.total_tokens = data['total_tokens']
-        if 'input_timestamp' in data:
-            self.input_timestamp = data['input_timestamp']
-        if 'output_timestamp' in data:
-            self.output_timestamp = data['output_timestamp']
-
-    def dump(self):
-        """
-        Dump item to string
-
-        :return: dumped item
-        :rtype: str
-        """
-        return json.dumps(self.serialize())
