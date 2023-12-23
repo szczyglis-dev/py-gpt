@@ -13,7 +13,7 @@ from datetime import datetime
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
-from ..ctx_item import CtxItem
+from ..item.ctx import CtxItem
 from ..dispatcher import Event
 from ..utils import trans
 

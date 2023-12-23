@@ -17,7 +17,7 @@ from pathlib import PurePath
 from PySide6 import QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog
 
-from ..ctx_item import CtxItem
+from ..item.ctx import CtxItem
 from ..dispatcher import Event
 from ..utils import trans
 

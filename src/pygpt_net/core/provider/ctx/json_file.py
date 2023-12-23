@@ -14,7 +14,7 @@ import json
 import os
 
 from .base import BaseProvider
-from ...ctx_item import CtxItem, CtxMeta
+from ...item.ctx import CtxItem, CtxMeta
 
 
 class JsonFileProvider(BaseProvider):

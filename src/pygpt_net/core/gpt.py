@@ -15,7 +15,7 @@ import re
 from openai import OpenAI
 from .tokens import num_tokens_prompt, num_tokens_extra, num_tokens_from_messages, num_tokens_completion, \
     num_tokens_only
-from .ctx_item import CtxItem
+from .item.ctx import CtxItem
 
 
 class Gpt:
