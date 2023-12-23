@@ -188,7 +188,7 @@ class Gpt:
                         content = self.build_vision_content(item.output)
                         messages.append({"role": "assistant", "content": content})
 
-        # append current prompt
+        # append current prompt, TODO: name!!!
         if mode == "chat":
             messages.append({"role": "user", "content": str(prompt)})
         elif mode == "vision":
