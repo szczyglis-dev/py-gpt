@@ -75,6 +75,8 @@ class CtxMeta:
     def __init__(self, id=None):
         """
         Context meta data
+
+        :param id: Context ID
         """
         self.id = id
         self.name = None
