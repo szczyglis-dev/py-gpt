@@ -24,6 +24,7 @@ class BasePlugin:
         self.signals = {}
         self.enabled = False
         self.use_locale = False
+        self.is_async = False
         self.order = 0
 
     def setup(self):
@@ -162,7 +163,7 @@ class BasePlugin:
 
         :param data: data to send
         """
-        if 'debug' in self.signals:
+        if self.is_async and 'debug' in self.signals:
             self.signals['debug'].emit(data)
         else:
             self.window.log(data)

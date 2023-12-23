@@ -101,7 +101,7 @@ class CommandThread(QObject):
                 if self.window.controller.plugins.is_enabled(id):
                     if self.event.stop or self.window.controller.command.is_stop():
                         break
-                    self.window.app.dispatcher.apply(id, self.event)
+                    self.window.app.dispatcher.apply(id, self.event, is_async=True)
             self.window.set_status("")  # Clear status
             self.finished.emit(self.event)
         except Exception as e:

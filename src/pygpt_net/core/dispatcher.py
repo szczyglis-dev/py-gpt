@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
 
 
@@ -20,28 +20,31 @@ class Dispatcher:
         self.window = window
         self.signals = {}
 
-    def dispatch(self, event, all=False):
+    def dispatch(self, event, all=False, is_async=False):
         """
         Dispatch event to plugins
 
         :param event: event to dispatch
         :param all: true if dispatch to all plugins (enabled or not)
+        :param is_async: true if async event
         """
         for id in self.window.app.plugins.plugins:
             if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop:
                     break
-                self.apply(id, event)
+                self.apply(id, event, is_async)
 
-    def apply(self, id, event):
+    def apply(self, id, event, is_async=False):
         """
         Handle event in plugin with provided id
 
         :param id: plugin id
         :param event: event object
+        :param is_async: true if async event
         """
         if id in self.window.app.plugins.plugins:
             try:
+                self.window.app.plugins.plugins[id].is_async = is_async
                 self.window.app.plugins.plugins[id].signals = self.signals
                 self.window.app.plugins.plugins[id].handle(event)
             except AttributeError:
