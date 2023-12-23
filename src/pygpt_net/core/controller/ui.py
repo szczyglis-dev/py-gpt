@@ -51,6 +51,7 @@ class UI:
         # tmp dispatch event: system.prompt
         event = Event('system.prompt', {
             'value': prompt,
+            'silent': True,
         })
         self.window.dispatch(event)
         prompt = event.data['value']
