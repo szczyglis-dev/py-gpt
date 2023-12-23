@@ -493,6 +493,13 @@ class Updater:
                 data['cmd'] = False  # disable on default
                 updated = True
 
+            # < 2.0.47
+            if old < parse_version("2.0.47"):
+                print("Migrating config from < 2.0.47...")
+                if 'notepad.num' not in data:
+                    data['notepad.num'] = 5
+                updated = True
+
         # update file
         migrated = False
         if updated:

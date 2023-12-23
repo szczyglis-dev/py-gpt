@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
-import json
+
 import threading
 
 from PySide6.QtCore import QObject
@@ -486,6 +486,21 @@ class Input:
         self.unlock_input()
         self.generating = False
         self.window.set_status(trans('status.stopped'))
+
+    def append_text(self, text):
+        """
+        Append text to notepad
+
+        :param text: Text to append
+        :param i: Notepad index
+        """
+        prev_text = self.window.ui.nodes['input'].toPlainText()
+        if prev_text != "":
+            prev_text += "\n\n"
+        new_text = prev_text + text.strip()
+        self.window.ui.nodes['input'].setText(new_text)
+        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
+        cur.movePosition(QTextCursor.End)
 
     def append(self, text):
         """

@@ -95,7 +95,7 @@ class Plugin(BasePlugin):
         if iterations == 0 or self.iteration < iterations:
             self.iteration += 1
             if self.prev_output is not None and self.prev_output != "":
-                self.window.log(
+                self.debug(
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
                 self.window.controller.input.send(self.prev_output)
 
@@ -106,12 +106,12 @@ class Plugin(BasePlugin):
         :param ctx: ContextItem
         """
         if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
-            self.window.log("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
+            self.debug("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
             tmp_input_name = ctx.input_name
             tmp_output_name = ctx.output_name
             ctx.input_name = tmp_output_name
             ctx.output_name = tmp_input_name
-            self.window.log("Plugin: self_loop:on_ctx_before [after]: {}".format(ctx.dump()))  # log
+            self.debug("Plugin: self_loop:on_ctx_before [after]: {}".format(ctx.dump()))  # log
 
     def on_ctx_after(self, ctx):
         """
@@ -121,6 +121,6 @@ class Plugin(BasePlugin):
         """
         self.prev_output = ctx.output
         if self.get_option_value("clear_output"):
-            self.window.log("Plugin: self_loop:on_ctx_after [before]: {}".format(ctx.dump()))  # log
+            self.debug("Plugin: self_loop:on_ctx_after [before]: {}".format(ctx.dump()))  # log
             ctx.output = ""
-            self.window.log("Plugin: self_loop:on_ctx_after [after]: {}".format(ctx.dump()))  # log
+            self.debug("Plugin: self_loop:on_ctx_after [after]: {}".format(ctx.dump()))  # log

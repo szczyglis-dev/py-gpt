@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.46",
-    "app.version": "2.0.46",
-    "updated_at": "2023-12-22T03:00:00"
+    "version": "2.0.47",
+    "app.version": "2.0.47",
+    "updated_at": "2023-12-23T01:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -59,6 +59,7 @@
   "max_total_tokens": 128000,
   "mode": "chat",
   "model": "gpt-3.5-turbo",
+  "notepad.num": 5,
   "organization_key": "",
   "output_timestamp": true,
   "plugins": {

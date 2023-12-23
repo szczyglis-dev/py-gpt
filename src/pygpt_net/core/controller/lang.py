@@ -62,11 +62,14 @@ class Lang:
         # output: tabs
         self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
         self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
-        self.window.ui.tabs['output'].setTabText(2, trans('output.tab.notepad') + " 1")
-        self.window.ui.tabs['output'].setTabText(3, trans('output.tab.notepad') + " 2")
-        self.window.ui.tabs['output'].setTabText(4, trans('output.tab.notepad') + " 3")
-        self.window.ui.tabs['output'].setTabText(5, trans('output.tab.notepad') + " 4")
-        self.window.ui.tabs['output'].setTabText(6, trans('output.tab.notepad') + " 5")
+
+        # notepads
+        num_notepads = self.window.controller.notepad.get_num_notepads()
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                id = 'notepad' + str(i)
+                tab = i + 2
+                self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
 
         # context
         self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))

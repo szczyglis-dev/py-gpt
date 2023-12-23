@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.08 21:00:00                  #
+# Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
 
 import json
@@ -56,18 +56,18 @@ class WebSearch:
             url += '&fields=items(link)'
             url += '&q=' + quote(q)
 
-            self.plugin.window.log("Plugin: cmd_web_google:google_search: calling API: {}".format(url))  # log
+            self.plugin.debug("Plugin: cmd_web_google:google_search: calling API: {}".format(url))  # log
             data = urlopen(url, timeout=4).read()
             res = json.loads(data)
-            self.plugin.window.log("Plugin: cmd_web_google:google_search: received response: {}".format(res))  # log
+            self.plugin.debug("Plugin: cmd_web_google:google_search: received response: {}".format(res))  # log
             if 'items' not in res:
                 return []
             for item in res['items']:
                 urls.append(item['link'])
-            self.plugin.window.log("Plugin: cmd_web_google:google_search [urls]: {}".format(urls))  # log
+            self.plugin.debug("Plugin: cmd_web_google:google_search [urls]: {}".format(urls))  # log
             return urls
         except Exception as e:
-            self.plugin.window.log("Plugin: cmd_web_google:google_search: error: {}".format(e))  # log
+            self.plugin.debug("Plugin: cmd_web_google:google_search: error: {}".format(e))  # log
             self.plugin.window.ui.dialogs.alert("Google Search Error: " + str(e))
             self.plugin.log("Error in Google Search: " + str(e))
         return []
@@ -85,7 +85,7 @@ class WebSearch:
             text = wiki.content
             text = re.sub(r'==.*?==+', '', text)
             text = text.replace('\n', '')
-            self.plugin.window.log("Plugin: cmd_web_google:query_wiki [content]: {}".format(text))  # log
+            self.plugin.debug("Plugin: cmd_web_google:query_wiki [content]: {}".format(text))  # log
             return text
         except Exception as ex:
             # try summary if page not found
@@ -93,13 +93,13 @@ class WebSearch:
                 text = wikipedia.summary(string)
                 text = re.sub(r'==.*?==+', '', text)
                 text = text.replace('\n', '')
-                self.plugin.window.log("Plugin: cmd_web_google:query_wiki [content]: {}".format(text))  # log
+                self.plugin.debug("Plugin: cmd_web_google:query_wiki [content]: {}".format(text))  # log
                 return text
             except Exception as e:
-                self.plugin.window.log("Plugin: cmd_web_google:query_wiki [error]: {}".format(e))  # log
+                self.plugin.debug("Plugin: cmd_web_google:query_wiki [error]: {}".format(e))  # log
                 print("Error in query_wiki 1: " + str(e))
 
-            self.plugin.window.log("Plugin: cmd_web_google:query_wiki [error]: {}".format(ex))  # log
+            self.plugin.debug("Plugin: cmd_web_google:query_wiki [error]: {}".format(ex))  # log
             self.plugin.log("Error in query_wiki 2: " + str(ex))
 
     def get_urls(self, query):
@@ -119,7 +119,7 @@ class WebSearch:
         :param url: URL to query
         :return: text content
         """
-        self.plugin.window.log("Plugin: cmd_web_google:query_url: crawling URL: {}".format(url))  # log
+        self.plugin.debug("Plugin: cmd_web_google:query_url: crawling URL: {}".format(url))  # log
         text = ''
         try:
             req = Request(
@@ -138,10 +138,10 @@ class WebSearch:
                 text += element.text
             text = text.replace("\n", " ").replace("\t", " ")
             text = re.sub(r'\s+', ' ', text)
-            self.plugin.window.log("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
+            self.plugin.debug("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
             return text
         except Exception as e:
-            self.plugin.window.log("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
+            self.plugin.debug("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
             self.plugin.log("Error in query_web: " + str(e))
 
     def to_chunks(self, text, chunk_size):
@@ -186,7 +186,7 @@ class WebSearch:
         # summarize per chunk
         for chunk in chunks:
             # print("Chunk: " + chunk)
-            self.plugin.window.log("Plugin: cmd_web_google:get_summarized_text "
+            self.plugin.debug("Plugin: cmd_web_google:get_summarized_text "
                                    "(chunk, max_tokens): {}, {}".
                                    format(chunk, max_tokens))  # log
             response = self.plugin.window.app.gpt.quick_call(chunk, sys_prompt, False, max_tokens, model)
@@ -236,7 +236,7 @@ class WebSearch:
             if 0 < max_per_page < len(content):
                 content = content[:max_per_page]
             chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
-            self.plugin.window.log("Plugin: cmd_web_google: URL: {}".format(url))  # log
+            self.plugin.debug("Plugin: cmd_web_google: URL: {}".format(url))  # log
             result = self.get_summarized_text(chunks, str(query), summarize_prompt)
 
             # if result then stop
@@ -245,15 +245,15 @@ class WebSearch:
                 break
             i += 1
 
-        self.plugin.window.log(
+        self.plugin.debug(
             "Plugin: cmd_web_google: summary: {}".format(result))  # log
         if result is not None:
-            self.plugin.window.log("Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
+            self.plugin.debug("Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
 
         if len(result) > max_result_size:
             result = result[:max_result_size]
 
-        self.plugin.window.log("Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
+        self.plugin.debug("Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
 
         return result, total_found, current, url
 
@@ -278,20 +278,20 @@ class WebSearch:
         if 0 < max_per_page < len(content):
             content = content[:max_per_page]
         chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
-        self.plugin.window.log("Plugin: cmd_web_google: URL: {}".format(url))  # log
+        self.plugin.debug("Plugin: cmd_web_google: URL: {}".format(url))  # log
         result = self.get_summarized_text(chunks, "", summarize_prompt)
 
         # if result then stop
         if result is not None and result != "":
             self.plugin.log("Summary generated (chars: {})".format(len(result)))
 
-        self.plugin.window.log("Plugin: cmd_web_google: summary: {}".format(result))  # log
+        self.plugin.debug("Plugin: cmd_web_google: summary: {}".format(result))  # log
         if result is not None:
-            self.plugin.window.log("Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
+            self.plugin.debug("Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
 
         if len(result) > max_result_size:
             result = result[:max_result_size]
 
-        self.plugin.window.log("Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
+        self.plugin.debug("Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
 
         return result, url

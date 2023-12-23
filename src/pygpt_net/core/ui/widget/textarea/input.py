@@ -11,7 +11,7 @@
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QTextEdit, QApplication
+from PySide6.QtWidgets import QTextEdit, QApplication, QMenu
 
 from ....utils import trans
 
@@ -33,11 +33,24 @@ class ChatInput(QTextEdit):
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
-
         selected_text = self.textCursor().selectedText()
         if selected_text:
+            # audio read
             action = menu.addAction(trans('text.context_menu.audio.read'))
             action.triggered.connect(self.audio_read_selection)
+
+            # copy to
+            copy_to_menu = QMenu(trans('text.context_menu.copy_to'), self)
+
+            # notepad
+            num_notepads = self.window.controller.notepad.get_num_notepads()
+            if num_notepads > 0:
+                for i in range(1, num_notepads + 1):
+                    action = copy_to_menu.addAction(trans('text.context_menu.copy_to.notepad') + ' ' + str(i))
+                    action.triggered.connect(lambda checked=False, i=i:
+                                             self.window.controller.notepad.append_text(selected_text, i))
+
+            menu.addMenu(copy_to_menu)
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):

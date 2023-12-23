@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
+import datetime
+
 
 class Notepad:
     def __init__(self, window=None):
@@ -23,51 +25,66 @@ class Notepad:
         Load notepad contents
         """
         data = self.window.app.notepad.load()
+        num_notepads = self.get_num_notepads()
         if data is None:
             data = {}
-            data['1'] = ""
-            data['2'] = ""
-            data['3'] = ""
-            data['4'] = ""
-            data['5'] = ""
+            if num_notepads > 0:
+                for i in range(1, num_notepads + 1):
+                    data[str(i)] = ""
 
-        if '1' not in data:
-            data['1'] = ""
-        self.window.ui.nodes['notepad1'].setText(data['1'])
-
-        if '2' not in data:
-            data['2'] = ""
-        self.window.ui.nodes['notepad2'].setText(data['2'])
-
-        if '3' not in data:
-            data['3'] = ""
-        self.window.ui.nodes['notepad3'].setText(data['3'])
-
-        if '4' not in data:
-            data['4'] = ""
-        self.window.ui.nodes['notepad3'].setText(data['4'])
-
-        if '5' not in data:
-            data['5'] = ""
-        self.window.ui.nodes['notepad3'].setText(data['5'])
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                id = 'notepad' + str(i)
+                if str(i) not in data:
+                    data[str(i)] = ""
+                if id in self.window.ui.nodes:
+                    self.window.ui.nodes['notepad' + str(i)].setText(data[str(i)])
 
     def save(self):
         """
         Save notepad contents
         """
         data = {}
-        data['1'] = self.window.ui.nodes['notepad1'].toPlainText()
-        data['2'] = self.window.ui.nodes['notepad2'].toPlainText()
-        data['3'] = self.window.ui.nodes['notepad3'].toPlainText()
-        data['4'] = self.window.ui.nodes['notepad4'].toPlainText()
-        data['5'] = self.window.ui.nodes['notepad5'].toPlainText()
-        self.window.app.notepad.save(data)
-        self.update()
+        num_notepads = self.get_num_notepads()
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                id = 'notepad' + str(i)
+                if id in self.window.ui.nodes:
+                    data[str(i)] = self.window.ui.nodes[id].toPlainText()
+            self.window.app.notepad.save(data)
+            self.update()
 
     def setup(self):
         """Setup notepad"""
         # send clear
         self.load()
+
+    def append_text(self, text, i):
+        """
+        Append text to notepad
+
+        :param text: Text to append
+        :param i: Notepad index
+        """
+        id = 'notepad' + str(i)
+        if id not in self.window.ui.nodes:
+            return
+        dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
+        prev_text = self.window.ui.nodes['notepad' + str(i)].toPlainText()
+        if prev_text != "":
+            prev_text += "\n\n"
+        new_text = prev_text + dt + text.strip()
+        self.window.ui.nodes['notepad' + str(i)].setText(new_text)
+        self.save()
+
+    def get_num_notepads(self):
+        """
+        Get number of notepads
+
+        :return: Number of notepads
+        :rtype: int
+        """
+        return self.window.config.get('notepad.num') or 5
 
     def update(self):
         """Update notepad"""

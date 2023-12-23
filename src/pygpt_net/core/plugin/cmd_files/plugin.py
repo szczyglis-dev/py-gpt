@@ -187,7 +187,7 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        self.window.log('[CMD] ' + str(msg))
+        self.debug('[CMD] ' + str(msg))
         print('[CMD] ' + str(msg))
 
     def cmd_syntax(self, data):

@@ -149,11 +149,12 @@ class Theme:
         self.window.ui.nodes['ctx.list'].setStyleSheet(self.get_style('ctx.list'))
 
         # notepads
-        self.window.ui.nodes['notepad1'].setStyleSheet(self.get_style('chat_output'))
-        self.window.ui.nodes['notepad2'].setStyleSheet(self.get_style('chat_output'))
-        self.window.ui.nodes['notepad3'].setStyleSheet(self.get_style('chat_output'))
-        self.window.ui.nodes['notepad4'].setStyleSheet(self.get_style('chat_output'))
-        self.window.ui.nodes['notepad5'].setStyleSheet(self.get_style('chat_output'))
+        num_notepads = self.window.controller.notepad.get_num_notepads()
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                id = 'notepad' + str(i)
+                if id in self.window.ui.nodes:
+                    self.window.ui.nodes[id].setStyleSheet(self.get_style('chat_output'))
 
         # apply to syntax highlighter
         if all:

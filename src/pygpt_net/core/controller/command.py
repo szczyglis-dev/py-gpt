@@ -50,6 +50,14 @@ class Command:
         return self.force_stop
 
     @Slot(object)
+    def handle_debug(self, data):
+        """
+        Handle thread debug log
+        :param data
+        """
+        self.window.log(data)
+
+    @Slot(object)
     def handle_finished(self, event):
         """
         Handle thread command execution finish
@@ -68,6 +76,7 @@ class Command:
 
 class CommandThread(QObject):
     finished = Signal(object)
+    debug = Signal(object)
     destroyed = Signal()
 
     def __init__(self, window=None, event=None):
@@ -83,8 +92,11 @@ class CommandThread(QObject):
 
     def run(self):
         """Run thread"""
-        print("Starting commands thread...")
+        print("Starting command thread...")
         try:
+            # attach debug log signal
+            self.window.app.dispatcher.signals["debug"] = self.debug
+            # dispatch event
             for id in self.window.app.plugins.plugins:
                 if self.window.controller.plugins.is_enabled(id):
                     if self.event.stop or self.window.controller.command.is_stop():
@@ -93,6 +105,6 @@ class CommandThread(QObject):
             self.window.set_status("")  # Clear status
             self.finished.emit(self.event)
         except Exception as e:
-            print(e)
+            print("Command thread error: " + str(e))
         self.destroyed.emit()
-        print("Commands thread finished.")
+        print("Command thread finished work.")

@@ -50,21 +50,24 @@ class Output:
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path)
 
         # notepads
-        self.window.ui.nodes['notepad1'] = NotepadOutput(self.window)
-        self.window.ui.nodes['notepad2'] = NotepadOutput(self.window)
-        self.window.ui.nodes['notepad3'] = NotepadOutput(self.window)
-        self.window.ui.nodes['notepad4'] = NotepadOutput(self.window)
-        self.window.ui.nodes['notepad5'] = NotepadOutput(self.window)
+        num_notepads = self.window.controller.notepad.get_num_notepads()
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                id = 'notepad' + str(i)
+                self.window.ui.nodes[id] = NotepadOutput(self.window)
+                self.window.ui.nodes[id].no = i
 
         # tabs
         self.window.ui.tabs['output'] = QTabWidget()
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output'], trans('output.tab.chat'))
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output_files'], trans('output.tab.files'))
-        self.window.ui.tabs['output'].addTab(self.window.ui.nodes['notepad1'], trans('output.tab.notepad') + " 1")
-        self.window.ui.tabs['output'].addTab(self.window.ui.nodes['notepad2'], trans('output.tab.notepad') + " 2")
-        self.window.ui.tabs['output'].addTab(self.window.ui.nodes['notepad3'], trans('output.tab.notepad') + " 3")
-        self.window.ui.tabs['output'].addTab(self.window.ui.nodes['notepad4'], trans('output.tab.notepad') + " 4")
-        self.window.ui.tabs['output'].addTab(self.window.ui.nodes['notepad5'], trans('output.tab.notepad') + " 5")
+
+        # append notepads
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                id = 'notepad' + str(i)
+                self.window.ui.tabs['output'].addTab(self.window.ui.nodes[id],
+                                                     trans('output.tab.notepad') + " " + str(i))
 
         layout = QVBoxLayout()
         layout.addLayout(self.setup_header())

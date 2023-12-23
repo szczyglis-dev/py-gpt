@@ -123,7 +123,7 @@ class Plugin(BasePlugin):
         prefix = '[CMD]'
         if sandbox:
             prefix += '[DOCKER]'
-        self.window.log(prefix + ' ' + str(msg))
+        self.debug(prefix + ' ' + str(msg))
         print(prefix + ' ' + str(msg))
 
     def cmd_syntax(self, data):

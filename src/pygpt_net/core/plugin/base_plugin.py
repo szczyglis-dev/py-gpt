@@ -21,6 +21,7 @@ class BasePlugin:
         self.options = {}
         self.initial_options = {}
         self.window = None
+        self.signals = {}
         self.enabled = False
         self.use_locale = False
         self.order = 0
@@ -154,3 +155,14 @@ class BasePlugin:
             return ""
         domain = 'plugin.{}'.format(self.id)
         return trans(text, False, domain)
+
+    def debug(self, data):
+        """
+        Send thread-safe debug message
+
+        :param data: data to send
+        """
+        if 'debug' in self.signals:
+            self.signals['debug'].emit(data)
+        else:
+            self.window.log(data)

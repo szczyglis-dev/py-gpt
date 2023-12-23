@@ -232,6 +232,17 @@
         "step": null,
         "advanced": false
     },
+    "notepad.num": {
+        "type": "int",
+        "slider": true,
+        "label": "notepad.num",
+        "value": 5,
+        "min": 0,
+        "max": 10,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "vision.capture.enabled": {
         "type": "bool",
         "slider": false,
