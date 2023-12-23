@@ -296,6 +296,7 @@ class JsonFilesProvider(BaseProvider):
         """
         Dump ctx to string
 
+        :param ctx: CtxItem
         :return: dumped item
         :rtype: str
         """
@@ -303,7 +304,7 @@ class JsonFilesProvider(BaseProvider):
 
     def parse_data(self, data):
         """
-        Parse ctxdata from json to objects
+        Parse ctx data from json to objects
 
         :param data: ctx items data
         :return: ctx items (deserialized) as objects list
