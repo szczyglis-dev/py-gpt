@@ -37,7 +37,7 @@ class JsonFilesProvider(BaseProvider):
 
     def create(self, meta):
         """
-        Create new ctx
+        Create new ctx and return its ID
 
         :param meta: CtxMeta
         :return: ctx ID
