@@ -1,3 +1,7 @@
+2.0.48 (2023-12-23)
+
+- Added custom errors handler with logging.
+
 2.0.47 (2023-12-23)
 
 - Added "Copy to Notepad/Input" to the context menu for selected text.

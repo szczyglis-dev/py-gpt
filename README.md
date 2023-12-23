@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.47** | build: **2023.12.23** | Python: **3.9+**
+Release: **2.0.48** | build: **2023.12.23** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1337,6 +1337,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.48 (2023-12-23)
+
+- Added custom errors handler with logging.
 
 ## 2.0.47 (2023-12-23)
 
