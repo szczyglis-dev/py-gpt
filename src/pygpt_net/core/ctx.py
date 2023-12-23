@@ -14,7 +14,7 @@ import os
 
 from .ctx_item import CtxItem, CtxMeta
 from .tokens import num_tokens_from_context_item
-from .provider.ctx.json_files import JsonFilesProvider
+from .provider.ctx.json_file import JsonFileProvider
 from .utils import trans
 
 
@@ -27,7 +27,7 @@ class Ctx:
         """
         self.window = window
         self.providers = {}
-        self.provider = "json_files"
+        self.provider = "json_file"
         self.meta = {}
         self.items = []
         self.current = None
@@ -39,8 +39,8 @@ class Ctx:
         self.thread = None
         self.last_mode = None
 
-        # register ctx data providers
-        self.add_provider(JsonFilesProvider())  # json files provider
+        # register data providers
+        self.add_provider(JsonFileProvider())  # json file provider
 
     def add_provider(self, provider):
         """

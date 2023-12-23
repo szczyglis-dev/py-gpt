@@ -12,7 +12,7 @@
 import json
 import os
 
-from .attachments import AttachmentItem
+from .item.attachment import AttachmentItem
 
 
 class Assistants:

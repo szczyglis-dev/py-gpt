@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-import json
-import os
-import uuid
+from .item.attachment import AttachmentItem
+from .provider.attachment.json_file import JsonFileProvider
 
 
 class Attachments:
@@ -22,30 +21,35 @@ class Attachments:
         :param window: Window instance
         """
         self.window = window
-        self.config_file = 'attachments.json'
+        self.providers = {}
+        self.provider = "json_file"
         self.items = {}
         self.current = None
 
-    def create_id(self):
-        """
-        Create unique uuid
+        # register data providers
+        self.add_provider(JsonFileProvider())  # json file provider
 
-        :return: uuid
+    def add_provider(self, provider):
         """
-        return str(uuid.uuid4())
+        Add data provider
 
-    def select(self, mode, file_id):
+        :param provider: data provider instance
+        """
+        self.providers[provider.id] = provider
+        self.providers[provider.id].window = self.window
+
+    def select(self, mode, id):
         """
         Select attachment by uuid
 
         :param mode: mode
-        :param file_id: file_id
+        :param id: id
         """
         if mode not in self.items:
             self.items[mode] = {}
 
-        if file_id in self.items[mode]:
-            self.current = file_id
+        if id in self.items[mode]:
+            self.current = id
 
     def count(self, mode):
         """
@@ -79,29 +83,29 @@ class Attachments:
 
         :param mode: mode
         :param idx: index
-        :return: uuid
+        :return: file ID
         :rtype: str or None
         """
         i = 0
-        for file_id in self.get_ids(mode):
+        for id in self.get_ids(mode):
             if i == idx:
-                return file_id
+                return id
             i += 1
 
-    def get_by_id(self, mode, file_id):
+    def get_by_id(self, mode, id):
         """
         Return attachment by ID
 
         :param mode: mode
-        :param file_id: file_id
+        :param id: file id
         :return: dict
         :rtype: dict
         """
         if mode not in self.items:
             self.items[mode] = {}
 
-        if file_id in self.items[mode]:
-            return self.items[mode][file_id]
+        if id in self.items[mode]:
+            return self.items[mode][id]
 
     def get_by_idx(self, mode, index):
         """
@@ -112,9 +116,9 @@ class Attachments:
         :return: context item
         :rtype: dict
         """
-        file_id = self.get_id_by_idx(mode, index)
-        if file_id is not None:
-            return self.items[mode][file_id]
+        id = self.get_id_by_idx(mode, index)
+        if id is not None:
+            return self.items[mode][id]
 
     def get_all(self, mode):
         """
@@ -129,18 +133,18 @@ class Attachments:
 
         return self.items[mode]
 
-    def delete(self, mode, file_id):
+    def delete(self, mode, id):
         """
         Delete attachment by file_id
 
         :param mode: mode
-        :param file_id: file_id
+        :param id: file id
         """
         if mode not in self.items:
             self.items[mode] = {}
 
-        if file_id in self.items[mode]:
-            del self.items[mode][file_id]
+        if id in self.items[mode]:
+            del self.items[mode][id]
             self.save()
 
     def delete_all(self, mode):
@@ -151,16 +155,11 @@ class Attachments:
         """
         self.clear(mode)
 
-        # update index
-        path = os.path.join(self.window.config.path, self.config_file)
-        data = {'__meta__': self.window.config.append_meta(), 'items': {}}
-        try:
-            dump = json.dumps(data, indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-        except Exception as e:
-            self.window.app.error.log(e)
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].truncate(mode)
+            except Exception as e:
+                self.window.app.error.log(e)
 
     def clear(self, mode):
         """
@@ -197,25 +196,51 @@ class Attachments:
         :param name: name
         :param path: path
         :param auto_save: auto_save
-        :return: created file ID
-        :rtype: str
+        :return: AttachmentItem
+        :rtype: AttachmentsItem
         """
-        file_id = self.create_id()  # create unique id
-        attachment = AttachmentItem()
-        attachment.id = file_id
+        attachment = self.create()
         attachment.name = name
         attachment.path = path
 
         if mode not in self.items:
             self.items[mode] = {}
 
-        self.items[mode][file_id] = attachment
-        self.current = file_id
+        self.items[mode][attachment.id] = attachment
+        self.current = attachment.id
 
         if auto_save:
             self.save()
 
         return attachment
+
+    def build(self):
+        """
+        Build attachment
+
+        :return: AttachmentItem
+        :rtype: AttachmentItem
+        """
+        attachment = AttachmentItem()
+        attachment.name = None
+        attachment.path = None
+        return attachment
+
+    def create(self):
+        """
+        Create attachment item
+
+        :return: AttachmentItem
+        :rtype: AttachmentItem
+        """
+        attachment = self.build()
+        if self.provider in self.providers:
+            try:
+                id = self.providers[self.provider].create(attachment)
+                attachment.id = id
+                return attachment
+            except Exception as e:
+                self.window.app.error.log(e)
 
     def add(self, mode, item):
         """
@@ -227,10 +252,10 @@ class Attachments:
         if mode not in self.items:
             self.items[mode] = {}
 
-        file_id = item.id
-        self.items[mode][file_id] = item  # add item to attachments
+        id = item.id
+        self.items[mode][id] = item  # add item to attachments
 
-        # save to file
+        # save attachments
         self.save()
 
     def replace_id(self, mode, tmp_id, attachment):
@@ -249,15 +274,15 @@ class Attachments:
             del self.items[mode][tmp_id]
             self.save()
 
-    def rename_file(self, mode, file_id, name):
+    def rename_file(self, mode, id, name):
         """
         Update name
 
         :param mode: mode
-        :param file_id: file_id
+        :param id: file id
         :param name: new name
         """
-        data = self.get_by_id(mode, file_id)
+        data = self.get_by_id(mode, id)
         data.name = name
         self.save()
 
@@ -273,10 +298,12 @@ class Attachments:
             file = files[id]
             item = AttachmentItem()
             item.name = id
+
             if 'name' in file and file['name'] is not None and file['name'] != "":
                 item.name = file['name']
             if 'path' in file and file['path'] is not None and file['path'] != "":
                 item.path = file['path']
+
             item.id = id
             item.remote = id
             item.send = True
@@ -295,105 +322,20 @@ class Attachments:
             self.add(mode, attachment)
 
     def load(self):
-        """Load attachments from file"""
-        path = os.path.join(self.window.config.path, self.config_file)
-        try:
-            if os.path.exists(path):
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
-                    file.close()
-                    if data == "" or data is None or 'items' not in data:
-                        self.items = {}
-                        return
-                    # deserialize
-                    for mode in data['items']:
-                        self.items[mode] = {}
-                        for id in data['items'][mode]:
-                            attachment = data['items'][mode][id]
-                            item = AttachmentItem()
-                            item.deserialize(attachment)
-                            self.items[mode][id] = item
-        except Exception as e:
-            self.window.app.error.log(e)
-            self.items = {}
+        """Load attachments"""
+        if self.provider in self.providers:
+            try:
+                self.items = self.providers[self.provider].load()
+            except Exception as e:
+                self.window.app.error.log(e)
+                self.items = {}
 
     def save(self):
         """
-        Save attachments to file
+        Save attachments
         """
-        try:
-            # update attachments
-            path = os.path.join(self.window.config.path, self.config_file)
-            data = {}
-            items = {}
-
-            # serialize
-            for mode in self.items:
-                items[mode] = {}
-                for id in self.items[mode]:
-                    attachment = self.items[mode][id]
-                    items[mode][id] = attachment.serialize()
-
-            data['__meta__'] = self.window.config.append_meta()
-            data['items'] = items
-            dump = json.dumps(data, indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-
-        except Exception as e:
-            self.window.app.error.log(e)
-            print("Error while saving attachments: {}".format(str(e)))
-
-
-class AttachmentItem:
-    def __init__(self):
-        """
-        Attachment item
-        """
-        self.name = None
-        self.id = None
-        self.path = None
-        self.remote = None
-        self.send = False
-
-    def serialize(self):
-        """
-        Serialize item to dict
-
-        :return: serialized item
-        :rtype: dict
-        """
-        return {
-            'id': self.id,
-            'name': self.name,
-            'path': self.path,
-            'remote': self.remote,
-            'send': self.send
-        }
-
-    def deserialize(self, data):
-        """
-        Deserialize item from dict
-
-        :param data: serialized item
-        """
-        if 'id' in data:
-            self.id = data['id']
-        if 'name' in data:
-            self.name = data['name']
-        if 'path' in data:
-            self.path = data['path']
-        if 'remote_id' in data:
-            self.remote = data['remote']
-        if 'send' in data:
-            self.send = data['send']
-
-    def dump(self):
-        """
-        Dump item to string
-
-        :return: serialized item
-        :rtype: str
-        """
-        return json.dumps(self.serialize())
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(self.items)
+            except Exception as e:
+                self.window.app.error.log(e)

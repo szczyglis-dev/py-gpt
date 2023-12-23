@@ -17,11 +17,11 @@ from .base import BaseProvider
 from ...ctx_item import CtxItem, CtxMeta
 
 
-class JsonFilesProvider(BaseProvider):
+class JsonFileProvider(BaseProvider):
     def __init__(self, window=None):
-        super(JsonFilesProvider, self).__init__(window)
+        super(JsonFileProvider, self).__init__(window)
         self.window = window
-        self.id = "json_files"
+        self.id = "json_file"
         self.type = "ctx"
 
     def create_id(self):
