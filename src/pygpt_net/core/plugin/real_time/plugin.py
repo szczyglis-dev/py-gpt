@@ -69,17 +69,23 @@ class Plugin(BasePlugin):
         data = event.data
 
         if name == 'system.prompt':
-            data['value'] = self.on_system_prompt(data['value'])
+            silent = False
+            if 'silent' in data and data['silent']:
+                silent = True
+            data['value'] = self.on_system_prompt(data['value'], silent)
 
-    def on_system_prompt(self, prompt):
+    def on_system_prompt(self, prompt, silent=False):
         """
         Event: On prepare system prompt
 
         :param prompt: prompt
+        :param silent: silent mode
         :return: updated prompt
         :rtype: str
         """
-        self.debug("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
+        if not silent:
+            self.debug("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
+
         if self.get_option_value("hour") or self.get_option_value("date"):
             if self.get_option_value("hour") and self.get_option_value("date"):
                 prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -87,5 +93,7 @@ class Plugin(BasePlugin):
                 prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%H:%M:%S'))
             elif self.get_option_value("date"):
                 prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d'))
-        self.debug("Plugin: real_time:on_system_prompt [after]: {}".format(prompt))  # log
+
+        if not silent:
+            self.debug("Plugin: real_time:on_system_prompt [after]: {}".format(prompt))  # log
         return prompt
