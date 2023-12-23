@@ -71,7 +71,7 @@ class Model:
         self.window.config.set('model', "")
         self.window.config.set('preset', "")
         self.window.controller.attachment.update()
-        self.window.controller.context.update_ctx()
+        self.window.controller.ctx.update_ctx()
 
         # update all layout
         self.window.controller.ui.update()
@@ -88,7 +88,7 @@ class Model:
         # assistant
         if mode == "assistant":
             # update ctx label
-            self.window.controller.context.update_ctx_label_by_current()
+            self.window.controller.ctx.update_ctx_label_by_current()
 
     def set_model_by_idx(self, mode, idx):
         """

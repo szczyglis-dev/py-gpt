@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -48,10 +48,10 @@ class Menu:
         self.window.ui.menu['app.ctx.new'] = QAction(QIcon.fromTheme("edit-new"), trans("menu.file.new"), self.window)
 
         self.window.ui.menu['app.clear_history'].triggered.connect(
-            lambda: self.window.controller.context.delete_history())
+            lambda: self.window.controller.ctx.delete_history())
 
         self.window.ui.menu['app.ctx.new'].triggered.connect(
-            lambda: self.window.controller.context.new())
+            lambda: self.window.controller.ctx.new())
 
         self.window.ui.menu['menu.app'] = self.window.menuBar().addMenu(trans("menu.file"))
         self.window.ui.menu['menu.app'].addAction(self.window.ui.menu['app.ctx.new'])

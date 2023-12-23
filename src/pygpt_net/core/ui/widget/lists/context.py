@@ -36,7 +36,7 @@ class ContextList(BaseList):
 
         :param val: click event
         """
-        self.window.controller.context.select_by_idx(val.row())
+        self.window.controller.ctx.select_by_idx(val.row())
 
     def dblclick(self, val):
         """
@@ -44,7 +44,7 @@ class ContextList(BaseList):
 
         :param val: double click event
         """
-        self.window.controller.context.select_by_idx(val.row())
+        self.window.controller.ctx.select_by_idx(val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -68,7 +68,7 @@ class ContextList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.context.select_by_idx(item.row())
+            self.window.controller.ctx.select_by_idx(item.row())
             menu.exec_(event.globalPos())
 
     def action_rename(self, event):
@@ -80,7 +80,7 @@ class ContextList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.context.rename(idx)
+            self.window.controller.ctx.rename(idx)
 
     def action_delete(self, event):
         """
@@ -91,4 +91,4 @@ class ContextList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.context.delete(idx)
+            self.window.controller.ctx.delete(idx)

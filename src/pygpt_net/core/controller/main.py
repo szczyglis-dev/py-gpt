@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from .assistant import Assistant
@@ -17,7 +17,7 @@ from .audio import Audio
 from .camera import Camera
 from .command import Command
 from .confirm import Confirm
-from .context import Context
+from .ctx import Ctx
 from .debug import Debug
 from .files import Files
 from .image import Image
@@ -53,7 +53,7 @@ class Controller:
         self.camera = Camera(window)
         self.command = Command(window)
         self.confirm = Confirm(window)
-        self.context = Context(window)
+        self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.files = Files(window)
         self.image = Image(window)
@@ -87,7 +87,7 @@ class Controller:
         self.assistant.setup()
         self.input.setup()
         self.output.setup()
-        self.context.setup()
+        self.ctx.setup()
         self.ui.update_tokens()
         self.info.setup()
         self.audio.setup()

@@ -376,11 +376,11 @@ class Input:
             # prepare context, create new ctx if there is no contexts yet (first run)
             if len(self.window.app.ctx.meta) == 0:
                 self.window.app.ctx.new()
-                self.window.controller.context.update()
+                self.window.controller.ctx.update()
                 self.window.log("New context created...")  # log
             else:
                 # check if current context is allowed for this mode, if now then create new
-                self.window.controller.context.handle_allowed(mode)
+                self.window.controller.ctx.handle_allowed(mode)
 
             # process events to update UI
             QApplication.processEvents()

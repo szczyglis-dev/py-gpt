@@ -49,7 +49,7 @@ class OptionDict(QWidget):
         # append dict model
         self.list.setModel(self.model)
         self.list.selectionModel().selectionChanged.connect(
-            lambda: self.window.controller.context.selection_change())
+            lambda: self.window.controller.ctx.selection_change())
 
         # add button
         self.add_btn = QPushButton(trans('action.add'), self)

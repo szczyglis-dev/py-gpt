@@ -134,7 +134,7 @@ class Output:
         """
         self.window.config.set('output_timestamp', value)
         self.window.config.save()
-        self.window.controller.context.refresh()
+        self.window.controller.ctx.refresh()
 
     def handle_ctx_name(self, ctx):
         """
@@ -270,7 +270,7 @@ class Output:
         mode = self.window.config.get('mode')
         self.window.app.ctx.post_update(mode)  # post update context, store last mode, etc.
         self.window.app.ctx.store()
-        self.window.controller.context.update_ctx()  # update current ctx info
+        self.window.controller.ctx.update_ctx()  # update current ctx info
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))

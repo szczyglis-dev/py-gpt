@@ -53,7 +53,7 @@ class Summarize:
         :param id: ctx id
         :param title: generated title
         """
-        self.window.controller.context.update_name(id, title)
+        self.window.controller.ctx.update_name(id, title)
         self.thread_started = False
 
     @Slot()

@@ -36,10 +36,10 @@ class CtxList:
         id = 'ctx.list'
         self.window.ui.nodes['ctx.new'] = QPushButton(trans('ctx.new'))
         self.window.ui.nodes['ctx.new'].clicked.connect(
-            lambda: self.window.controller.context.new())
+            lambda: self.window.controller.ctx.new())
 
         self.window.ui.nodes[id] = ContextList(self.window, id)
-        self.window.ui.nodes[id].selection_locked = self.window.controller.context.context_change_locked
+        self.window.ui.nodes[id].selection_locked = self.window.controller.ctx.context_change_locked
         self.window.ui.nodes['ctx.label'] = QLabel(trans("ctx.list.label"))
         self.window.ui.nodes['ctx.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
@@ -51,7 +51,7 @@ class CtxList:
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
         self.window.ui.nodes[id].selectionModel().selectionChanged.connect(
-            lambda: self.window.controller.context.selection_change())
+            lambda: self.window.controller.ctx.selection_change())
 
         widget = QWidget()
         widget.setLayout(layout)

@@ -33,9 +33,9 @@ class Confirm:
         elif type == 'preset_clear':
             self.window.controller.presets.clear(True)
         elif type == 'ctx_delete':
-            self.window.controller.context.delete(id, True)
+            self.window.controller.ctx.delete(id, True)
         elif type == 'ctx_delete_all':
-            self.window.controller.context.delete_history(True)
+            self.window.controller.ctx.delete_history(True)
         elif type == 'img_delete':
             self.window.controller.image.img_action_delete(id, True)
         elif type == 'attachments.delete':
@@ -81,7 +81,7 @@ class Confirm:
         Update name of object
         """
         if type == 'ctx':
-            self.window.controller.context.update_name(id, name)
+            self.window.controller.ctx.update_name(id, name)
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':
