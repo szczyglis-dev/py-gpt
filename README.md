@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.46** | build: **2023.12.22** | Python: **3.9+**
+Release: **2.0.47** | build: **2023.12.23** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1206,6 +1206,10 @@ For more information, please check the OpenAI documentation.
 - `Presence Penalty`: Discourages the model from mentioning topics that have already been 
 brought up in the conversation.
 
+- `DALL-E Image size`: Generated image size (DALL-E 2 only)
+
+- `Number of notepads`: Number of notepad windows (restart is required after every change)
+
 - `Vision: Camera`: Enables camera in Vision mode
 
 - `Vision: Auto capture`: Enables auto-capture on message send in Vision mode
@@ -1333,6 +1337,15 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.47 (2023-12-23)
+
+- Added "Copy to Notepad/Input" to the context menu for selected text.
+- Added an option to read selected text using speech synthesis in the Notepad window.
+- Added a configurable number of notepads.
+- Refactored UI classes.
+- Added a thread-safe plugin debugger/logger.
+- Fixed UI issues.
 
 ## 2.0.46 (2023-12-22)
 

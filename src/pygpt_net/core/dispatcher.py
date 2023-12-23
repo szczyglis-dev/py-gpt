@@ -9,7 +9,6 @@
 # Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
 
-
 class Dispatcher:
     def __init__(self, window=None):
         """

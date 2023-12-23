@@ -73,6 +73,11 @@ class Context:
             self.window.config.set('assistant_thread', self.window.app.context.current_thread)
             self.window.config.save()
 
+    def focus_chat(self):
+        """Focus chat"""
+        # set tab index to 0:
+        self.window.ui.tabs['output'].setCurrentIndex(0)
+
     def select(self, ctx):
         """
         Select ctx
@@ -81,6 +86,7 @@ class Context:
         """
         self.window.app.context.current_ctx = ctx
         self.load(ctx)
+        self.focus_chat()
 
     def select_by_idx(self, idx):
         """
@@ -130,6 +136,7 @@ class Context:
         if mode == 'assistant':
             assistant_id = self.window.config.get('assistant')
         self.update_ctx_label(mode, assistant_id)
+        self.focus_chat()
 
     def reload(self):
         """Reload current ctx list"""

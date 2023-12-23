@@ -1,3 +1,12 @@
+2.0.47 (2023-12-23)
+
+- Added "Copy to Notepad/Input" to the context menu for selected text.
+- Added an option to read selected text using speech synthesis in the Notepad window.
+- Added a configurable number of notepads.
+- Refactored UI classes.
+- Added a thread-safe plugin debugger/logger.
+- Fixed UI issues.
+
 2.0.46 (2023-12-22)
 
 - Improved tokens calculation (added extra tokens from plugins to real-time calculation)

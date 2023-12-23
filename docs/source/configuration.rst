@@ -32,6 +32,8 @@ The following basic options can be modified directly within the application:
 * ``Top-p`` A parameter that influences the model's response diversity, similar to temperature. For more information, please check the OpenAI documentation.
 * ``Frequency Penalty`` Decreases the likelihood of repetition in the model's responses.
 * ``Presence Penalty`` Discourages the model from mentioning topics that have already been brought up in the conversation.
+* ``DALL-E Image size`` Generated image size (DALL-E 2 only)
+* ``Number of notepads`` Number of notepad windows (restart is required after every change)
 * ``Vision: Camera`` Enables camera in Vision mode
 * ``Vision: Auto capture`` Enables auto-capture on message send in Vision mode
 * ``Vision: Camera capture width (px)`` Video capture resolution (width)
