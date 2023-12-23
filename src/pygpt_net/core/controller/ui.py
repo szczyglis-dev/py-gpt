@@ -158,8 +158,8 @@ class UI:
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            self.window.ui.nodes['preset.user_name'].setDisabled(True)
+            self.window.ui.nodes['preset.ai_name'].setDisabled(False)
+            self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
