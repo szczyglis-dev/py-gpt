@@ -295,4 +295,3 @@ class Output:
             event = Event('audio.read_text')  # to all plugins (even if disabled)
         event.ctx = ctx
         self.window.dispatch(event, all)
-        self.window.log("Processing selected text...")

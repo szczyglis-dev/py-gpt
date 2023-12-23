@@ -168,6 +168,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param text: status text
         """
+        return
         self.ui.nodes['status'].setText(str(text))
 
     @Slot(str)

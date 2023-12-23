@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 23:00:00                  #
+# Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
 from ..utils import trans
 
@@ -159,11 +159,11 @@ class BasePlugin:
 
     def debug(self, data):
         """
-        Send thread-safe debug message
+        Send thread-safe debug message to logger window
 
         :param data: data to send
         """
-        if self.is_async and 'debug' in self.signals:
+        if 'debug' in self.signals and self.signals['debug'] is not None:
             self.signals['debug'].emit(data)
-        else:
+        elif not self.is_async:
             self.window.log(data)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
 import json
 
@@ -49,8 +49,8 @@ class Command:
         15) ALWAYS remember that any text content must appear at the beginning of your response and commands must only be included at the end.
         16) Try to run commands executed in the user's system in the background if running them may prevent receiving a response (e.g. when it is a desktop application)
         17) Every command param must be placed in one line, so when you generate code you must put all of code in one line
-        Commands list:
-        '''
+
+        Commands list:'''
 
         # get custom prompt from config if exists
         if allow_custom:

@@ -10,6 +10,8 @@
 # ================================================== #
 from datetime import datetime
 
+from PySide6.QtGui import QTextCursor
+
 
 class Debug:
     def __init__(self, window=None):
@@ -29,9 +31,14 @@ class Debug:
         """
         if not self.is_logger:
             return
+
         # prepend log with timestamp
         txt = datetime.now().strftime('%H:%M:%S') + ' ' + str(data)
-        self.window.logger.appendPlainText(txt)
+        # append log to logger
+        txt = self.window.logger.toPlainText() + '\n' + txt
+        self.window.logger.setPlainText(txt)
+        # cursor to end
+        self.window.logger.moveCursor(QTextCursor.End)
 
     def logger_close(self):
         """Close logger"""

@@ -45,7 +45,7 @@ class Dispatcher:
         if id in self.window.app.plugins.plugins:
             try:
                 self.window.app.plugins.plugins[id].is_async = is_async
-                self.window.app.plugins.plugins[id].signals = self.signals
+                self.window.app.plugins.plugins[id].signals = dict(self.signals)
                 self.window.app.plugins.plugins[id].handle(event)
             except AttributeError:
                 pass
