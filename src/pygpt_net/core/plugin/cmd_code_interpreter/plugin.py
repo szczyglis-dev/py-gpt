@@ -142,7 +142,7 @@ class Plugin(BasePlugin):
         """
         Run command on host machine
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         :return: result
@@ -253,7 +253,7 @@ class Plugin(BasePlugin):
         """
         Execute code from file in sandbox (docker)
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         """
@@ -269,7 +269,7 @@ class Plugin(BasePlugin):
         """
         Execute code in sandbox (docker)
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         """
@@ -293,7 +293,7 @@ class Plugin(BasePlugin):
         """
         Execute system command in sandbox (docker)
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         """
@@ -308,7 +308,7 @@ class Plugin(BasePlugin):
         """
         Execute code from file on host machine
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         """
@@ -335,7 +335,7 @@ class Plugin(BasePlugin):
         """
         Execute code on host machine
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         """
@@ -360,7 +360,7 @@ class Plugin(BasePlugin):
         """
         Execute system command on host
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param item: command item
         :param request_item: request item
         """
@@ -377,7 +377,7 @@ class Plugin(BasePlugin):
         """
         Execute command
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param cmds: commands dict
         """
         msg = None

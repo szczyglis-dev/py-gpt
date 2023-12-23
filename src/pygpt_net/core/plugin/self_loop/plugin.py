@@ -89,7 +89,7 @@ class Plugin(BasePlugin):
         """
         Event: On context end
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         iterations = int(self.get_option_value("iterations"))
         if iterations == 0 or self.iteration < iterations:
@@ -103,7 +103,7 @@ class Plugin(BasePlugin):
         """
         Event: Before ctx
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
             self.debug("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
@@ -117,7 +117,7 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         self.prev_output = ctx.output
         if self.get_option_value("clear_output"):

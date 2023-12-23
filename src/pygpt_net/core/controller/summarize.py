@@ -28,7 +28,7 @@ class Summarize:
         """
         Summarize context
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         self.start_thread(id, ctx)
 
@@ -36,7 +36,7 @@ class Summarize:
         """
         Handle thread start
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         summarizer = SummarizeThread(window=self.window, id=id, ctx=ctx)
         summarizer.updated.connect(self.handle_update)
@@ -71,7 +71,7 @@ class SummarizeThread(QObject):
         Run summarize thread
 
         :param window: Window instance
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         super().__init__()
         self.window = window

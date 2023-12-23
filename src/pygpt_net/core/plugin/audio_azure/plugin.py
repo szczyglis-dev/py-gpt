@@ -107,7 +107,7 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         # Check if api key is set
         api_key = self.get_option_value("azure_api_key")

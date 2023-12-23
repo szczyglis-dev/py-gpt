@@ -15,7 +15,7 @@ from PySide6.QtCore import QObject
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
-from ..ctx_item import ContextItem
+from ..ctx_item import CtxItem
 from ..dispatcher import Event
 from ..utils import trans
 
@@ -141,7 +141,7 @@ class Input:
                     self.window.ui.dialogs.alert(str(e))
 
         # create ctx item
-        ctx = ContextItem()
+        ctx = CtxItem()
         ctx.mode = mode
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
@@ -153,7 +153,7 @@ class Input:
             self.window.app.gpt.thread_id = ctx.thread
 
         # log
-        self.window.log("Context: input: {}".format(self.window.app.context.dump(ctx)))
+        self.window.log("Context: input: {}".format(self.window.app.ctx.dump(ctx)))
 
         # dispatch event
         event = Event('ctx.before')
@@ -161,7 +161,7 @@ class Input:
         self.window.dispatch(event)
 
         # log
-        self.window.log("Context: input [after plugin: ctx.before]: {}".format(self.window.app.context.dump(ctx)))
+        self.window.log("Context: input [after plugin: ctx.before]: {}".format(self.window.app.ctx.dump(ctx)))
         self.window.log("System: {}".format(self.window.app.gpt.system_prompt))
 
         # apply cfg, plugins
@@ -233,13 +233,13 @@ class Input:
 
                     if mode == 'assistant':
                         # get run ID and save it in ctx
-                        self.window.app.context.append_run(ctx.run_id)
+                        self.window.app.ctx.append_run(ctx.run_id)
 
                         # handle assistant run
                         self.window.controller.assistant_thread.handle_run(ctx)
 
                 if ctx is not None:
-                    self.window.log("Context: output: {}".format(self.window.app.context.dump(ctx)))  # log
+                    self.window.log("Context: output: {}".format(self.window.app.ctx.dump(ctx)))  # log
                 else:
                     # error in call if ctx is None
                     self.window.log("Context: output: None")
@@ -374,8 +374,8 @@ class Input:
             self.window.app.images.init()
 
             # prepare context, create new ctx if there is no contexts yet (first run)
-            if len(self.window.app.context.contexts) == 0:
-                self.window.app.context.new()
+            if len(self.window.app.ctx.meta) == 0:
+                self.window.app.ctx.new()
                 self.window.controller.context.update()
                 self.window.log("New context created...")  # log
             else:
@@ -401,7 +401,7 @@ class Input:
             self.window.controller.attachment.update()
 
         if ctx is not None:
-            self.window.log("Context: output: {}".format(self.window.app.context.dump(ctx)))  # log
+            self.window.log("Context: output: {}".format(self.window.app.ctx.dump(ctx)))  # log
 
             # dispatch event
             event = Event('ctx.end')
@@ -409,7 +409,7 @@ class Input:
             self.window.dispatch(event)
 
             self.window.log("Context: output [after plugin: ctx.end]: {}".
-                            format(self.window.app.context.dump(ctx)))  # log
+                            format(self.window.app.ctx.dump(ctx)))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 
             # from v.2.0.41: reply from commands in now handled in async thread!
@@ -530,7 +530,7 @@ class SendThread(QObject):
         Run summarize thread
 
         :param window: Window instance
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         super().__init__()
         self.window = window

@@ -12,13 +12,13 @@ import datetime
 import json
 import os
 
-from .base import BaseCtxProvider
-from ...ctx_item import ContextItem, ContextMeta
+from .base import BaseProvider
+from ...ctx_item import CtxItem, CtxMeta
 
 
-class JsonFilesCtxProvider(BaseCtxProvider):
+class JsonFilesProvider(BaseProvider):
     def __init__(self, window=None):
-        super(JsonFilesCtxProvider, self).__init__(window)
+        super(JsonFilesProvider, self).__init__(window)
         self.window = window
         self.id = "json_files"
         self.type = "ctx"
@@ -34,7 +34,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         """
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
 
-    def get_list(self):
+    def get_meta(self):
         """Load ctx metadata from file"""
         contexts = {}
         path = os.path.join(self.window.config.path, 'context.json')
@@ -150,9 +150,9 @@ class JsonFilesCtxProvider(BaseCtxProvider):
 
     def serialize_meta(self, meta):
         """
-        Serialize ContextMeta to dict
+        Serialize CtxMeta to dict
 
-        :param meta: ContextMeta
+        :param meta: CtxMeta
         :return: dict
         :rtype: dict
         """
@@ -172,10 +172,10 @@ class JsonFilesCtxProvider(BaseCtxProvider):
 
     def deserialize_meta(self, data, meta):
         """
-        Deserialize ContextMeta from dict
+        Deserialize CtxMeta from dict
 
         :param data: dict
-        :param meta: ContextMeta
+        :param meta: CtxMeta
         """
         if 'id' in data:
             meta.id = data['id']
@@ -278,7 +278,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         """
         items = []
         for item in data:
-            ctx = ContextItem()
+            ctx = CtxItem()
             self.deserialize_item(item, ctx)
             items.append(ctx)
         return items
@@ -293,7 +293,7 @@ class JsonFilesCtxProvider(BaseCtxProvider):
         """
         items = {}
         for k in data:
-            meta = ContextMeta()
+            meta = CtxMeta()
             self.deserialize_meta(data[k], meta)
             items[meta.id] = meta
         return items

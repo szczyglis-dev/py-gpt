@@ -22,18 +22,18 @@ class ContextDebug:
     def update(self):
         """Update debug window"""
         self.window.app.debug.begin(self.id)
-        self.window.app.debug.add(self.id, 'current_assistant', str(self.window.app.context.current_assistant))
-        self.window.app.debug.add(self.id, 'current_ctx', str(self.window.app.context.current_ctx))
-        self.window.app.debug.add(self.id, 'current_mode', str(self.window.app.context.current_mode))
-        self.window.app.debug.add(self.id, 'current_preset', str(self.window.app.context.current_preset))
-        self.window.app.debug.add(self.id, 'current_run', str(self.window.app.context.current_run))
-        self.window.app.debug.add(self.id, 'current_status', str(self.window.app.context.current_status))
-        self.window.app.debug.add(self.id, 'current_thread', str(self.window.app.context.current_thread))
+        self.window.app.debug.add(self.id, 'current', str(self.window.app.ctx.current))
+        self.window.app.debug.add(self.id, 'assistant', str(self.window.app.ctx.assistant))
+        self.window.app.debug.add(self.id, 'mode', str(self.window.app.ctx.mode))
+        self.window.app.debug.add(self.id, 'preset', str(self.window.app.ctx.preset))
+        self.window.app.debug.add(self.id, 'run', str(self.window.app.ctx.run))
+        self.window.app.debug.add(self.id, 'status', str(self.window.app.ctx.status))
+        self.window.app.debug.add(self.id, 'thread', str(self.window.app.ctx.thread))
 
         current = None
-        if self.window.app.context.current_ctx is not None:
-            if self.window.app.context.current_ctx in self.window.app.context.contexts:
-                current = self.window.app.context.contexts[self.window.app.context.current_ctx]
+        if self.window.app.ctx.current is not None:
+            if self.window.app.ctx.current in self.window.app.ctx.meta:
+                current = self.window.app.ctx.meta[self.window.app.ctx.current]
             if current is not None:
                 self.window.app.debug.add(self.id, '[current] id', str(current.id))
                 self.window.app.debug.add(self.id, '[current] assistant', str(current.assistant))
@@ -46,11 +46,11 @@ class ContextDebug:
                 self.window.app.debug.add(self.id, '[current] status', str(current.status))
                 self.window.app.debug.add(self.id, '[current] thread', str(current.thread))
 
-        self.window.app.debug.add(self.id, 'len(contexts)', str(len(self.window.app.context.contexts)))
-        self.window.app.debug.add(self.id, 'len(items)', str(len(self.window.app.context.items)))
+        self.window.app.debug.add(self.id, 'len(contexts)', str(len(self.window.app.ctx.meta)))
+        self.window.app.debug.add(self.id, 'len(items)', str(len(self.window.app.ctx.items)))
 
         i = 0
-        for item in self.window.app.context.items:
+        for item in self.window.app.ctx.items:
             prefix = '[{}] '.format(i)
             self.window.app.debug.add(self.id, prefix + 'mode', str(item.mode))
             self.window.app.debug.add(self.id, prefix + 'input_name', str(item.input_name))

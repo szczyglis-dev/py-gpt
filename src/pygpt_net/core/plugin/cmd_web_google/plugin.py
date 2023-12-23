@@ -178,7 +178,7 @@ class Plugin(BasePlugin):
         """
         Event: On cmd
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param cmds: commands dict
         """
         msg = None

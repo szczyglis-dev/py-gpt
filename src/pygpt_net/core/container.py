@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
 from .assistants import Assistants
 from .attachments import Attachments
 from .chain import Chain
 from .command import Command
-from .context import Context
+from .ctx import Ctx
 from .debugger import Debug
 from .dispatcher import Dispatcher
 from .error_handler import ErrorHandler
@@ -41,7 +41,7 @@ class Container:
         self.attachments = Attachments(window)
         self.chain = Chain(window)
         self.command = Command(window)
-        self.context = Context(window)
+        self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
         self.error = ErrorHandler(window)

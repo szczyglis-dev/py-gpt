@@ -253,7 +253,7 @@ class Plugin(BasePlugin):
         """
         Event: On new context begin
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         self.waiting = True
 
@@ -261,7 +261,7 @@ class Plugin(BasePlugin):
         """
         Event: On context end
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         self.waiting = False
 

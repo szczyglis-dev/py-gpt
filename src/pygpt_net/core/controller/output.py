@@ -13,7 +13,7 @@ from datetime import datetime
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
-from ..ctx_item import ContextItem
+from ..ctx_item import CtxItem
 from ..dispatcher import Event
 from ..utils import trans
 
@@ -41,7 +41,7 @@ class Output:
         """
         Append context to output
         """
-        for item in self.window.app.context.items:
+        for item in self.window.app.ctx.items:
             self.append_context_item(item)
 
     def append_context_item(self, item):
@@ -140,18 +140,18 @@ class Output:
         """
         Handle context name (summarize input and output)
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         if ctx is not None:
-            if not self.window.app.context.is_ctx_initialized():
-                id = self.window.app.context.current_ctx
+            if not self.window.app.ctx.is_initialized():
+                id = self.window.app.ctx.current
                 self.window.controller.summarize.summarize_ctx(id, ctx)
 
     def handle_commands(self, ctx):
         """
         Handle plugin commands
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         if ctx is not None and self.window.config.get('cmd'):
             cmds = self.window.app.command.extract_cmds(ctx.output)
@@ -164,7 +164,7 @@ class Output:
         """
         Handle response from LLM
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param mode: mode
         :param stream_mode: async stream mode
         """
@@ -251,7 +251,7 @@ class Output:
 
         # log
         if ctx is not None:
-            self.window.log("Context: output [after plugin: ctx.after]: {}".format(self.window.app.context.dump(ctx)))
+            self.window.log("Context: output [after plugin: ctx.after]: {}".format(self.window.app.ctx.dump(ctx)))
             self.window.log("Appending output to chat window...")
 
             # only append output if not in async stream mode, TODO: plugin output add
@@ -264,12 +264,12 @@ class Output:
         """
         Handle completed context
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         # save context
         mode = self.window.config.get('mode')
-        self.window.app.context.post_update(mode)  # post update context, store last mode, etc.
-        self.window.app.context.store()
+        self.window.app.ctx.post_update(mode)  # post update context, store last mode, etc.
+        self.window.app.ctx.store()
         self.window.controller.context.update_ctx()  # update current ctx info
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".
@@ -287,7 +287,7 @@ class Output:
 
         :param text: selected text
         """
-        ctx = ContextItem()
+        ctx = CtxItem()
         ctx.output = text
         all = False
         if self.window.controller.audio.is_output_enabled():

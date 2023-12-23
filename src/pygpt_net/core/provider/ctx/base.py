@@ -11,7 +11,7 @@
 import uuid
 
 
-class BaseCtxProvider:
+class BaseProvider:
     def __init__(self, window=None):
         self.window = window
         self.id = ""
@@ -50,7 +50,7 @@ class BaseCtxProvider:
     def create(self):
         pass
 
-    def get_list(self):
+    def get_meta(self):
         pass
 
     def get_by_criteria(self):

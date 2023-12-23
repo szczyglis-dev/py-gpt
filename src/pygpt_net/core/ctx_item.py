@@ -8,12 +8,12 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
+
 import datetime
-import json
 import time
 
 
-class ContextItem:
+class CtxItem:
     def __init__(self, mode=None):
         """
         Context item
@@ -71,7 +71,7 @@ class ContextItem:
         self.total_tokens = input_tokens + output_tokens
 
 
-class ContextMeta:
+class CtxMeta:
     def __init__(self, id=None):
         """
         Context meta data

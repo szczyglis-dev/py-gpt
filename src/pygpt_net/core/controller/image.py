@@ -17,7 +17,7 @@ from pathlib import PurePath
 from PySide6 import QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog
 
-from ..ctx_item import ContextItem
+from ..ctx_item import CtxItem
 from ..dispatcher import Event
 from ..utils import trans
 
@@ -56,7 +56,7 @@ class Image:
         self.window.set_status(trans('status.sending'))
 
         # create ctx item
-        ctx = ContextItem()
+        ctx = CtxItem()
         ctx.set_input(text, self.window.config.get('user_name'))
 
         # dispatch event
@@ -64,7 +64,7 @@ class Image:
         event.ctx = ctx
         self.window.dispatch(event)
 
-        self.window.app.context.add(ctx)
+        self.window.app.ctx.add(ctx)
         self.window.controller.output.append_input(ctx)
 
         # call DALL-E API and generate images
@@ -89,7 +89,7 @@ class Image:
             self.window.dispatch(event)
 
             self.window.controller.output.append_output(ctx)
-            self.window.app.context.store()
+            self.window.app.ctx.store()
             self.window.set_status("OK.")
         except Exception as e:
             self.window.app.error.log(e)

@@ -102,7 +102,7 @@ class Plugin(BasePlugin):
         """
         Event: After ctx
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         text = ctx.output
         try:

@@ -556,7 +556,7 @@ class Plugins:
         """
         Apply commands
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         :param cmds: commands
         """
         commands = []

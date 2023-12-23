@@ -37,14 +37,14 @@ class AssistantThread:
         """
         thread_id = self.window.app.gpt_assistants.thread_create()
         self.window.config.set('assistant_thread', thread_id)
-        self.window.app.context.append_thread(thread_id)
+        self.window.app.ctx.append_thread(thread_id)
         return thread_id
 
     def handle_run_messages(self, ctx):
         """
         Handle run messages
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         data = self.window.app.gpt_assistants.msg_list(ctx.thread)
         for msg in data:
@@ -59,7 +59,7 @@ class AssistantThread:
         """
         Handle assistant's run
 
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         listener = AssistantRunThread(window=self.window, ctx=ctx)
         listener.updated.connect(self.handle_status)
@@ -76,7 +76,7 @@ class AssistantThread:
         Insert text to input and send
 
         :param status: status
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         print("Run status: {}".format(status))
         if status != "queued" and status != "in_progress":
@@ -117,7 +117,7 @@ class AssistantRunThread(QObject):
         Run assistant run status check thread
 
         :param window: Window instance
-        :param ctx: ContextItem
+        :param ctx: CtxItem
         """
         super().__init__()
         self.window = window

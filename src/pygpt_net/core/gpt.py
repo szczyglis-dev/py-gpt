@@ -15,7 +15,7 @@ import re
 from openai import OpenAI
 from .tokens import num_tokens_prompt, num_tokens_extra, num_tokens_from_messages, num_tokens_completion, \
     num_tokens_only
-from .ctx_item import ContextItem
+from .ctx_item import CtxItem
 
 
 class Gpt:
@@ -170,7 +170,7 @@ class Gpt:
 
         # append messages from context (memory)
         if self.window.config.get('use_context'):
-            items = self.window.app.context.get_prompt_items(model, used_tokens, max_tokens)
+            items = self.window.app.ctx.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -255,7 +255,7 @@ class Gpt:
             message += self.system_prompt
 
         if self.window.config.get('use_context'):
-            items = self.window.app.context.get_prompt_items(model, used_tokens, max_tokens)
+            items = self.window.app.ctx.get_prompt_items(model, used_tokens, max_tokens)
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -356,7 +356,7 @@ class Gpt:
         :param ctx: context item (memory)
         :param stream_mode: stream mode (default: False)
         :return: context item (memory)
-        :rtype: ContextItem
+        :rtype: CtxItem
         """
         # prepare max tokens
         mode = self.window.config.get('mode')
@@ -385,20 +385,20 @@ class Gpt:
                                                                 self.system_prompt)
                 if run is not None:
                     ctx.run_id = run.id
-            self.window.app.context.add(ctx)
+            self.window.app.ctx.add(ctx)
             return ctx  # if assistant then return here
 
         # async mode (stream)
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = ContextItem(self.window.config.get('mode'))
+                ctx = CtxItem(self.window.config.get('mode'))
                 ctx.set_input(prompt, self.user_name)
 
             ctx.stream = response
             ctx.set_output("", self.ai_name)  # set empty output
             ctx.input_tokens = self.input_tokens  # from global tokens calculation
-            self.window.app.context.add(ctx)
+            self.window.app.ctx.add(ctx)
             return ctx
 
         if response is None:
@@ -418,12 +418,12 @@ class Gpt:
 
         # store context (memory)
         if ctx is None:
-            ctx = ContextItem(self.window.config.get('mode'))
+            ctx = CtxItem(self.window.config.get('mode'))
             ctx.set_input(prompt, self.user_name)
 
         ctx.set_output(output, self.ai_name)
         ctx.set_tokens(response.usage.prompt_tokens, response.usage.completion_tokens)
-        self.window.app.context.add(ctx)
+        self.window.app.ctx.add(ctx)
 
         return ctx
 
@@ -466,7 +466,7 @@ class Gpt:
 
     def clear(self):
         """Clear context (memory)"""
-        self.window.app.context.clear()
+        self.window.app.ctx.clear()
 
     def extract_urls(self, text):
         """

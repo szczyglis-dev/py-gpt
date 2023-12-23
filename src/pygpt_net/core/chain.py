@@ -10,7 +10,7 @@
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from .ctx_item import ContextItem
+from .ctx_item import CtxItem
 
 
 class Chain:
@@ -57,7 +57,7 @@ class Chain:
 
         # append messages from context (memory)
         if self.window.config.get('use_context'):
-            items = self.window.app.context.get_all_items()
+            items = self.window.app.ctx.get_all_items()
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -84,7 +84,7 @@ class Chain:
             message += self.system_prompt
 
         if self.window.config.get('use_context'):
-            items = self.window.app.context.get_all_items()
+            items = self.window.app.ctx.get_all_items()
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -176,7 +176,7 @@ class Chain:
         :param ctx: context (memory)
         :param stream_mode: stream mode
         :return: context (memory)
-        :rtype: ContextItem
+        :rtype: CtxItem
         """
         cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
         response = None
@@ -202,12 +202,12 @@ class Chain:
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = ContextItem(self.window.config.get('mode'))
+                ctx = CtxItem(self.window.config.get('mode'))
                 ctx.set_input(text, self.user_name)
 
             ctx.stream = response
             ctx.set_output("", self.ai_name)
-            self.window.app.context.add(ctx)
+            self.window.app.ctx.add(ctx)
             return ctx
 
         if response is None:
@@ -222,10 +222,10 @@ class Chain:
 
         # store context (memory)
         if ctx is None:
-            ctx = ContextItem(self.window.config.get('mode'))
+            ctx = CtxItem(self.window.config.get('mode'))
             ctx.set_input(text, self.user_name)
 
         ctx.set_output(output, self.ai_name)
-        self.window.app.context.add(ctx)
+        self.window.app.ctx.add(ctx)
 
         return ctx

@@ -9,11 +9,11 @@
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
-from .base import BaseCtxProvider
+from .base import BaseProvider
 
 
-class DbSqliteCtxProvider(BaseCtxProvider):
+class DbSqliteProvider(BaseProvider):
     def __init__(self):
-        super(DbSqliteCtxProvider, self).__init__()
+        super(DbSqliteProvider, self).__init__()
         self.id = "db_sqlite"
         self.type = "ctx"

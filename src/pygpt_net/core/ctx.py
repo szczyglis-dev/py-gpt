@@ -12,13 +12,13 @@
 import datetime
 import os
 
-from .ctx_item import ContextItem, ContextMeta
+from .ctx_item import CtxItem, CtxMeta
 from .tokens import num_tokens_from_context_item
-from .provider.ctx.json_files import JsonFilesCtxProvider
+from .provider.ctx.json_files import JsonFilesProvider
 from .utils import trans
 
 
-class Context:
+class Ctx:
     def __init__(self, window=None):
         """
         Context handler
@@ -28,44 +28,44 @@ class Context:
         self.window = window
         self.providers = {}
         self.provider = "json_files"
-        self.contexts = {}
+        self.meta = {}
         self.items = []
-        self.current_ctx = None
-        self.current_assistant = None
-        self.current_thread = None
-        self.current_run = None
-        self.current_status = None
-        self.current_preset = None
-        self.current_mode = None
+        self.current = None
+        self.assistant = None
+        self.mode = None
+        self.preset = None
+        self.run = None
+        self.status = None
+        self.thread = None
         self.last_mode = None
 
         # register ctx data providers
-        self.add_provider(JsonFilesCtxProvider())  # json files provider
+        self.add_provider(JsonFilesProvider())  # json files provider
 
     def add_provider(self, provider):
         """
-        Add context provider
+        Add ctx provider
 
-        :param provider: Context provider instance
+        :param provider: ctx provider instance
         """
         self.providers[provider.id] = provider
         self.providers[provider.id].window = self.window
 
-    def load_list(self):
+    def load_meta(self):
         """Load ctx list from provider"""
         if self.provider in self.providers:
             try:
-                self.contexts = self.providers[self.provider].get_list()
+                self.meta = self.providers[self.provider].get_meta()
             except Exception as e:
                 self.window.app.error.log(e)
-                self.contexts = {}
+                self.meta = {}
 
     def load(self, id):
         """
         Load ctx data from provider
 
-        :param id: context id
-        :return: context items
+        :param id: ctx id
+        :return: ctx items
         :rtype: list
         """
         if self.provider in self.providers:
@@ -77,44 +77,44 @@ class Context:
 
     def update(self):
         """
-        Update current context parent (when context item load from the list or setting mode)
+        Update current parent (when ctx item load from the list or setting mode)
         """
-        self.current_mode = self.window.config.get('mode')
+        self.mode = self.window.config.get('mode')
 
-        if self.current_ctx is None:
+        if self.current is None:
             return
-        self.contexts[self.current_ctx].mode = self.current_mode
-        self.save(self.current_ctx)
+        self.meta[self.current].mode = self.mode
+        self.save(self.current)
 
     def post_update(self, mode):
         """
-        Update current (last) context data
+        Update current (last) ctx data
 
         :param mode: mode name
         """
-        if self.current_ctx is None:
+        if self.current is None:
             return
 
         # update current
-        self.current_assistant = self.window.config.get('assistant')  # update assistant
-        self.current_preset = self.window.config.get('preset')  # update preset
+        self.assistant = self.window.config.get('assistant')  # update assistant
+        self.preset = self.window.config.get('preset')  # update preset
 
-        # update current context data
-        self.contexts[self.current_ctx].last_mode = mode
-        self.contexts[self.current_ctx].preset = self.current_preset
+        # update current meta
+        self.meta[self.current].last_mode = mode
+        self.meta[self.current].preset = self.preset
 
         # if assistant then update assistant
         if mode == 'assistant':
-            self.contexts[self.current_ctx].assistant = self.current_assistant
+            self.meta[self.current].assistant = self.assistant
 
         # save ctx
-        self.save(self.current_ctx)
+        self.save(self.current)
 
     def create_id(self):
         """
-        Create unique context ID
+        Create unique ctx ID
 
-        :return: generated ID
+        :return: generated ctx ID
         :rtype: str
         """
         if self.provider in self.providers:
@@ -125,12 +125,12 @@ class Context:
 
     def is_empty(self):
         """
-        Check if context is empty
+        Check if ctx is empty
 
         :return: true if empty, false otherwise
         :rtype: bool
         """
-        if self.current_ctx is None:
+        if self.current is None:
             return True
         else:
             if len(self.items) == 0:
@@ -139,105 +139,105 @@ class Context:
 
     def new(self):
         """
-        Create new context
+        Create new ctx
 
-        :return: created context name (id)
+        :return: created ctx name (id)
         :rtype: str
         """
         id = self.create_id()  # create unique id
 
-        meta = ContextMeta()  # create ctx meta
+        meta = CtxMeta()  # create ctx meta
         meta.id = id
         meta.name = "{}".format(trans('ctx.new.prefix'))
         meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
         meta.mode = self.window.config.get('mode')
         meta.last_mode = self.window.config.get('mode')
         meta.initialized = False
-        self.contexts[id] = meta
+        self.meta[id] = meta
 
-        self.current_ctx = id
-        self.current_thread = None
-        self.current_assistant = None
-        self.current_mode = self.window.config.get('mode')
-        self.current_preset = self.window.config.get('preset')
+        self.current = id
+        self.thread = None
+        self.assistant = None
+        self.mode = self.window.config.get('mode')
+        self.preset = self.window.config.get('preset')
         self.items = []
         self.save(id)
 
         return id
 
-    def is_ctx_initialized(self):
+    def is_initialized(self):
         """
         Check if ctx is initialized (name assigned)
 
-        :return: true if initialized, False otherwise
+        :return: true if initialized, false otherwise
         :rtype: bool
         """
-        if self.current_ctx is None:
+        if self.current is None:
             return
-        if self.current_ctx in self.contexts:
-            return self.contexts[self.current_ctx].initialized
+        if self.current in self.meta:
+            return self.meta[self.current].initialized
 
-    def set_ctx_initialized(self):
+    def set_initialized(self):
         """
         Set ctx as initialized (name assigned)
         """
-        if self.current_ctx is None:
+        if self.current is None:
             return
-        if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx].initialized = True
-            self.save(self.current_ctx)
+        if self.current in self.meta:
+            self.meta[self.current].initialized = True
+            self.save(self.current)
 
     def append_thread(self, thread):
         """
-        Append thread to context
+        Append thread ID to ctx
 
         :param thread: thread ID
         """
-        self.current_thread = thread
-        if self.current_ctx is None:
+        self.thread = thread
+        if self.current is None:
             return
-        if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx].thread = self.current_thread
-            self.save(self.current_ctx)
+        if self.current in self.meta:
+            self.meta[self.current].thread = self.thread
+            self.save(self.current)
 
     def append_run(self, run):
         """
-        Append run ID to context
+        Append run ID to ctx
 
         :param run: run ID
         """
-        self.current_run = run
-        if self.current_ctx is None:
+        self.run = run
+        if self.current is None:
             return
-        if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx].run = self.current_run
-            self.save(self.current_ctx)
+        if self.current in self.meta:
+            self.meta[self.current].run = self.run
+            self.save(self.current)
 
     def append_status(self, status):
         """
-        Append status to context
+        Append status to ctx
 
         :param status: status
         """
-        self.current_status = status
-        if self.current_ctx is None:
+        self.status = status
+        if self.current is None:
             return
-        if self.current_ctx in self.contexts:
-            self.contexts[self.current_ctx].status = self.current_status
-            self.save(self.current_ctx)
+        if self.current in self.meta:
+            self.meta[self.current].status = self.status
+            self.save(self.current)
 
     def save(self, id):
         """
-        Dump context to file
+        Dump ctx to file
 
-        :param id: context id
+        :param id: ctx id
         """
         if not self.window.config.get('store_history'):
             return
 
         if self.provider in self.providers:
             try:
-                self.providers[self.provider].save(id, self.contexts.copy(), self.items)
+                self.providers[self.provider].save(id, self.meta.copy(), self.items)
             except Exception as e:
                 self.window.app.error.log(e)
 
@@ -245,7 +245,7 @@ class Context:
         """
         Dump context
 
-        :param id: context id
+        :param id: ctx id
         """
         if self.provider in self.providers:
             try:
@@ -253,69 +253,69 @@ class Context:
             except Exception as e:
                 self.window.app.error.log(e)
 
-    def get_list(self):
+    def get_meta(self):
         """
-        Get context items sorted descending by date
+        Get ctx items sorted descending by date
 
-        :return: contexts dict
+        :return: ctx metas dict
         """
-        return dict(sorted(self.contexts.items(), reverse=True))
+        return dict(sorted(self.meta.items(), reverse=True))
 
-    def get_name_by_idx(self, idx):
+    def get_id_by_idx(self, idx):
         """
-        Get context name (id) by index
+        Get ctx id (id) by index
 
         :param idx: index
-        :return: context name (id)
+        :return: ctx id
         :rtype: str or None
         """
         i = 0
-        for name in self.get_list():
+        for id in self.get_meta():
             if i == idx:
-                return name
+                return id
             i += 1
 
-    def get_idx_by_name(self, ctx):
+    def get_idx_by_id(self, id):
         """
-        Get context index by name (id)
+        Get ctx index by id
 
-        :param ctx: name (id)
+        :param id: id
         :return: idx
         :rtype: int or None
         """
-        items = self.get_list()
-        if ctx in items:
-            return list(items.keys()).index(ctx)
+        items = self.get_meta()
+        if id in items:
+            return list(items.keys()).index(id)
 
-    def get_first_ctx(self):
+    def get_first(self):
         """
-        Return first context from list
+        Return first ctx ID from list
 
-        :return: context name (id)
+        :return: ctx id
         :rtype: str or None
         """
-        for name in self.get_list():
-            return name
+        for id in self.get_meta():
+            return id
 
-    def get_context_by_name(self, name):
+    def get_meta_by_id(self, id):
         """
-        Return context by name
+        Return ctx meta by id
 
-        :param name: context name (id)
-        :return: context dict
+        :param id: ctx id
+        :return: ctx dict
         :rtype: dict or None
         """
-        if name in self.contexts:
-            return self.contexts[name]
+        if id in self.meta:
+            return self.meta[id]
 
-    def delete_ctx(self, id):
+    def remove(self, id):
         """
-        Delete context by id
+        Delete ctx by id
 
         :param id: context id
         """
-        if id in self.contexts:
-            del self.contexts[id]
+        if id in self.meta:
+            del self.meta[id]
             if self.provider in self.providers:
                 try:
                     self.providers[self.provider].remove(id)
@@ -325,7 +325,7 @@ class Context:
     def truncate(self):
         """Delete all ctx"""
         # empty ctx index
-        self.contexts = {}
+        self.meta = {}
 
         # remove all ctx data in provider
         if self.provider in self.providers:
@@ -346,18 +346,18 @@ class Context:
     def prepare(self):
         """Prepare context for prompt"""
         # if no contexts, create new one
-        if len(self.contexts) == 0:
+        if len(self.meta) == 0:
             self.new()
 
     def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
         """
-        Count context items to add to prompt
+        Count ctx items to add to prompt
 
         :param model: model
         :param mode: mode
         :param used_tokens: used tokens
         :param max_tokens: max tokens
-        :return: context items count, context tokens count
+        :return: context items count, ctx tokens count
         :rtype: (int, int)
         """
         i = 0
@@ -376,7 +376,7 @@ class Context:
 
     def get_prompt_items(self, model, used_tokens=100, max_tokens=1000):
         """
-        Return context items to add to prompt
+        Return ctx items to add to prompt
 
         :param model: model
         :param used_tokens: used tokens
@@ -399,9 +399,9 @@ class Context:
 
     def get_all_items(self):
         """
-        Return all context items
+        Return all ctx items
 
-        :return: context items list
+        :return: ctx items list
         :rtype: list
         """
         items = []
@@ -413,7 +413,7 @@ class Context:
         return items
 
     def clear(self):
-        """Clears context"""
+        """Clear ctx items"""
         self.items = []
 
     def select(self, id):
@@ -422,38 +422,38 @@ class Context:
 
         :param id: context id
         """
-        if id in self.contexts:
-            ctx = self.contexts[id]
-            self.current_ctx = id
+        if id in self.meta:
+            ctx = self.meta[id]
+            self.current = id
 
             # reset
-            self.current_thread = None
-            self.current_mode = None
-            self.current_assistant = None
+            self.thread = None
+            self.mode = None
+            self.assistant = None
 
             # restore
-            self.current_thread = ctx.thread
-            self.current_mode = ctx.mode
-            self.current_assistant = ctx.assistant
-            self.current_preset = ctx.preset
+            self.thread = ctx.thread
+            self.mode = ctx.mode
+            self.assistant = ctx.assistant
+            self.preset = ctx.preset
 
             self.items = self.load(id)
 
     def add(self, item):
         """
-        Add item to contexts and saves context
+        Add CtxItem to contexts and saves context
 
-        :param item: item to add
+        :param item: CtxItem to append
         """
-        self.items.append(item)  # add item to context
+        self.items.append(item)  # add CtxItem to context items
 
         # save context to file
         self.store()
 
     def store(self):
-        """Store current context to file"""
-        if self.current_ctx is not None and self.current_ctx in self.contexts:
-            self.save(self.current_ctx)
+        """Store current ctx to file"""
+        if self.current is not None and self.current in self.meta:
+            self.save(self.current)
 
     def get_total_tokens(self):
         """
@@ -469,39 +469,39 @@ class Context:
 
     def count(self):
         """
-        Count context items
+        Count ctx items
 
-        :return: context items count
+        :return: ctx items count
         :rtype: int
         """
         return len(self.items)
 
     def all(self):
         """
-        Return context items
+        Return ctx items
 
-        :return: context items
+        :return: ctx items
         :rtype: list
         """
         return self.items
 
     def get(self, idx):
         """
-        Return context item by index
+        Return ctx item by index
 
         :param idx: item index
         :return: context item
-        :rtype: ContextItem or None
+        :rtype: CtxItem or None
         """
         if idx < len(self.items):
             return self.items[idx]
 
     def get_last(self):
         """
-        Return last item from context
+        Return last item from ctx
 
-        :return: last context item
-        :rtype: ContextItem or None
+        :return: last ctx item
+        :rtype: CtxItem or None
         """
         if len(self.items) > 0:
             return self.items[-1]
