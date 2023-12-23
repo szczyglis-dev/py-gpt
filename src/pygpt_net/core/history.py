@@ -36,6 +36,7 @@ class History:
             try:
                 os.makedirs(self.path)
             except Exception as e:
+                self.window.app.error.log(e)
                 print("Error creating history directory: " + str(e))
         if os.path.exists(self.path):
             f = os.path.join(self.path, name)
@@ -47,4 +48,5 @@ class History:
                     file.write(prefix + text + "\n")
                     file.close()
             except Exception as e:
+                self.window.app.error.log(e)
                 print("Error saving history: " + str(e))

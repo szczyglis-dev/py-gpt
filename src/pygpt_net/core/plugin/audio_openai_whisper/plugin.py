@@ -594,3 +594,4 @@ class AudioInputThread(QObject):
         except Exception as e:
             self.destroyed.emit()
             print("Audio input thread error: {}".format(str(e)))
+            self.plugin.window.app.error.log(e)

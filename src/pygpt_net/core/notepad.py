@@ -34,7 +34,7 @@ class Notepad:
                         return ""
                     return data['content']
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def save(self, content):
         """
@@ -42,6 +42,7 @@ class Notepad:
 
         :param content: notepad content to save
         """
+        a = b + 2
         try:
             # update contexts index
             path = os.path.join(self.window.config.path, 'notepad.json')
@@ -52,4 +53,5 @@ class Notepad:
                 f.close()
 
         except Exception as e:
+            self.window.app.error.log(e)
             print("Error while saving notepad: {}".format(str(e)))

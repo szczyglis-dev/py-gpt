@@ -85,5 +85,5 @@ class SummarizeThread(QObject):
             if title is not None and title != "":
                 self.updated.emit(self.id, title)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
         self.destroyed.emit()

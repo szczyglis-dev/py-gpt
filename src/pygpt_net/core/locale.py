@@ -64,7 +64,7 @@ class Locale:
             ini.read_string(data.read())
             self.data[locale_id] = dict(ini.items('LOCALE'))
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def get(self, key, domain=None):
         """

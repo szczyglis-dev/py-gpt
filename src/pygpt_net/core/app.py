@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 01:00:00                  #
+# Updated Date: 2023.12.22 05:00:00                  #
 # ================================================== #
 import os
 import sys
@@ -237,17 +237,20 @@ class Launcher:
     def run(self):
         """Run app"""
         margin = 50
-        self.window.setup()
-        available_geometry = self.window.screen().availableGeometry()
-        pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-        self.window.resize(available_geometry.width() - margin, available_geometry.height() - margin)
-        self.window.show()
-        self.window.move(pos)
-        self.window.post_setup()
         try:
+            self.window.setup()
+            available_geometry = self.window.screen().availableGeometry()
+            pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
+            self.window.resize(available_geometry.width() - margin, available_geometry.height() - margin)
+            self.window.show()
+            self.window.move(pos)
+            self.window.post_setup()
             sys.exit(self.app.exec())
         except SystemExit:
             print("Closing...")
+        except Exception as e:
+            print("Fatal error, exiting...")
+            self.window.app.error.log(e)
 
 
 def run(plugins=None, llms=None):

@@ -160,7 +160,7 @@ class Attachments:
                 f.write(dump)
                 f.close()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def clear(self, mode):
         """
@@ -314,7 +314,7 @@ class Attachments:
                             item.deserialize(attachment)
                             self.items[mode][id] = item
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
             self.items = {}
 
     def save(self):
@@ -342,6 +342,7 @@ class Attachments:
                 f.close()
 
         except Exception as e:
+            self.window.app.error.log(e)
             print("Error while saving attachments: {}".format(str(e)))
 
 

@@ -127,7 +127,7 @@ class Input:
                 if is_upload and num_uploaded > 0:
                     self.window.set_status(trans('status.uploaded'))
             except Exception as e:
-                print(e)
+                self.window.app.error.log(e)
                 self.window.ui.dialogs.alert(str(e))
 
             # create or get current thread, it is required here
@@ -137,7 +137,7 @@ class Input:
                     self.window.config.set('assistant_thread',
                                            self.window.controller.assistant_thread.create_thread())
                 except Exception as e:
-                    print(e)
+                    self.window.app.error.log(e)
                     self.window.ui.dialogs.alert(str(e))
 
         # create ctx item
@@ -249,6 +249,7 @@ class Input:
             except Exception as e:
                 self.window.log("GPT output error: {}".format(e))  # log
                 print("Error in send text (GPT call): " + str(e))
+                self.window.app.error.log(e)
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
@@ -259,6 +260,7 @@ class Input:
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
             print("Error sending text: " + str(e))
+            self.window.app.error.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -536,4 +538,4 @@ class SendThread(QObject):
         try:
             self.window.controller.input.send_execute(self.text)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)

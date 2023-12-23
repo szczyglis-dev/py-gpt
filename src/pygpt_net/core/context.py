@@ -50,7 +50,7 @@ class Context:
                         return
                     self.contexts = data['items']
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
             self.contexts = {}
 
     def load(self, name):
@@ -71,8 +71,8 @@ class Context:
                         return []
                     return data
             except Exception as e:
+                self.window.app.error.log(e)
                 print("Error while loading context: {}".format(name))
-                print(e)
                 return []
         else:
             return []
@@ -277,8 +277,8 @@ class Context:
                 f.close()
 
         except Exception as e:
+            self.window.app.error.log(e)
             print("Error while dumping context: {}".format(name))
-            print(e)
 
     def get_list(self):
         """
@@ -348,7 +348,7 @@ class Context:
                 try:
                     os.remove(path)
                 except Exception as e:
-                    print(e)
+                    self.window.app.error.log(e)
 
     def prepare(self):
         """Prepare context for prompt"""
@@ -365,7 +365,7 @@ class Context:
                 try:
                     os.remove(path)
                 except Exception as e:
-                    print(e)
+                    self.window.app.error.log(e)
         self.contexts = {}
 
         # update contexts index
@@ -379,7 +379,7 @@ class Context:
                 f.write(dump)
                 f.close()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
         # delete all txt history files from history dir
         path = os.path.join(self.window.config.path, 'history')
@@ -388,7 +388,7 @@ class Context:
                 try:
                     os.remove(os.path.join(path, file))
                 except Exception as e:
-                    print(e)
+                    self.window.app.error.log(e)
 
     def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
         """

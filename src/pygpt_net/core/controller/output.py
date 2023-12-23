@@ -225,6 +225,7 @@ class Output:
                         begin = False
 
             except Exception as e:
+                self.window.app.error.log(e)
                 # debug
                 # self.window.log("Stream error: {}".format(e))  # log
                 # print("Error in stream: " + str(e))

@@ -47,7 +47,7 @@ class Theme:
                     self.css['highlighter'] = json.load(f)
                     f.close()
             except Exception as e:
-                print(e)
+                self.window.app.error.log(e)
 
     def get_css(self, name):
         """

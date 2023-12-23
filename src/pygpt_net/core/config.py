@@ -129,7 +129,7 @@ class Config:
             result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"), data)
             return result.group(1)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def load(self, all=True, log=False):
         """
@@ -159,7 +159,7 @@ class Config:
             json.dump(self.presets[preset], f, indent=4)
             f.close()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def load_models(self, log=False):
         """
@@ -179,7 +179,7 @@ class Config:
             if log:
                 print("Loaded models: {}".format(path))
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def load_config(self, log=False):
         """
@@ -199,7 +199,7 @@ class Config:
             if log:  # TODO: move to self
                 print("Loaded config: {}".format(path))
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def load_base_config(self, log=False):
         """
@@ -219,7 +219,7 @@ class Config:
             if log:
                 print("Loaded default app config: {}".format(path))
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def sort_presets_by_name(self):
         """Sort presets by name"""
@@ -240,7 +240,7 @@ class Config:
             self.sort_presets_by_name()
             self.append_current_presets()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def all(self):
         """
@@ -518,7 +518,7 @@ class Config:
                 try:
                     os.remove(path)
                 except Exception as e:
-                    print(e)
+                    self.window.app.error.log(e)
             self.load_presets()
 
     def get_default_mode(self):
@@ -601,7 +601,7 @@ class Config:
                 f.write(dump)
                 f.close()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def save_models(self):
         """Save models config into file"""
@@ -613,7 +613,7 @@ class Config:
                 f.write(dump)
                 f.close()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def save_presets(self):
         """Save presets into files"""
@@ -626,7 +626,7 @@ class Config:
                     f.write(dump)
                     f.close()
             except Exception as e:
-                print(e)
+                self.window.app.error.log(e)
 
     def get_model_tokens(self, model):
         """
@@ -735,4 +735,5 @@ class Config:
                 os.mkdir(capture_dir)
 
         except Exception as e:
+            self.window.app.error.log(e)
             print("Error installing config files:", e)

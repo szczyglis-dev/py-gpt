@@ -267,6 +267,7 @@ class Lang:
             self.toggle_plugins()
         except Exception as e:
             print("Error updating plugin locales", e)
+            self.window.app.error.log(e)
 
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')  # clear status
@@ -333,6 +334,7 @@ class Lang:
                     try:
                         self.window.ui.plugin_option[id][option_id].setTooltip(tooltip_str)
                     except Exception as e:
+                        self.window.app.error.log(e)
                         pass
 
         # update settings dialog list

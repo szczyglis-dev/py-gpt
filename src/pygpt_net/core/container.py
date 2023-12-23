@@ -16,6 +16,7 @@ from .command import Command
 from .context import Context
 from .debugger import Debug
 from .dispatcher import Dispatcher
+from .error_handler import ErrorHandler
 from .gpt import Gpt
 from .gpt_assistants import GptAssistants
 from .history import History
@@ -43,6 +44,7 @@ class Container:
         self.context = Context(window)
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
+        self.error = ErrorHandler(window)
         self.gpt = Gpt(window)
         self.gpt_assistants = GptAssistants(window)
         self.history = History(window)

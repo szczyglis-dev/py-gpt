@@ -72,7 +72,7 @@ class AssistantFiles:
             self.window.set_status("Imported files: " + str(len(files)))
         except Exception as e:
             print("Error importing assistant files")
-            print(e)
+            self.window.app.error.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def download_file(self, idx):
@@ -114,7 +114,7 @@ class AssistantFiles:
         try:
             self.import_files(assistant)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def rename_file(self, idx):
@@ -233,6 +233,7 @@ class AssistantFiles:
         try:
             self.window.app.gpt_assistants.file_delete(id, file_id)
         except Exception as e:
+            self.window.app.error.log(e)
             self.window.ui.dialogs.alert(str(e))
             return  # do not delete locally if not deleted in API
 

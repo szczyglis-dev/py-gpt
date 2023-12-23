@@ -149,5 +149,5 @@ class AssistantRunThread(QObject):
                 time.sleep(1)
             self.destroyed.emit()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
             self.destroyed.emit()

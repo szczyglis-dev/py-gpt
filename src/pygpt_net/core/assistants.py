@@ -244,7 +244,7 @@ class Assistants:
             if remote_data is not None:
                 name = remote_data.filename
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
         return name
 
     def load(self):
@@ -265,7 +265,7 @@ class Assistants:
                         item.deserialize(assistant)
                         self.items[id] = item
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
             self.items = {}
 
     def save(self):
@@ -291,6 +291,7 @@ class Assistants:
                 f.close()
 
         except Exception as e:
+            self.window.app.error.log(e)
             print("Error while saving assistants: {}".format(str(e)))
 
 

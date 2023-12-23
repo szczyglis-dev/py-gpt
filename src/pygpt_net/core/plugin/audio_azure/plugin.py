@@ -134,7 +134,7 @@ class Plugin(BasePlugin):
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def set_status(self, status):
         """
@@ -227,7 +227,7 @@ class TTS(QObject):
             self.plugin.set_status('')
             # self.plugin.hide_stop_button()
             error_msg = f"Error: {response.status_code} - {response.text}"
-            print(error_msg)
+            self.plugin.window.app.error.log(error_msg)
 
     def stop(self):
         """Stop TTS thread"""

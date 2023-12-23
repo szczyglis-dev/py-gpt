@@ -232,6 +232,7 @@ class Plugin(BasePlugin):
                                 self.log("File saved: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # append to file
@@ -248,6 +249,7 @@ class Plugin(BasePlugin):
                                 self.log("File appended: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # read file
@@ -267,6 +269,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # delete file
@@ -284,6 +287,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # list files
@@ -302,6 +306,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # mkdir
@@ -319,6 +324,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory already exists: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # rmdir
@@ -336,6 +342,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # download
@@ -371,6 +378,7 @@ class Plugin(BasePlugin):
                             self.log("File downloaded: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # copy file
@@ -385,6 +393,7 @@ class Plugin(BasePlugin):
                             self.log("File copied: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # copy dir
@@ -399,6 +408,7 @@ class Plugin(BasePlugin):
                             self.log("Directory copied: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # move
@@ -413,6 +423,7 @@ class Plugin(BasePlugin):
                             self.log("Moved: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # is dir
@@ -429,6 +440,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # is file
@@ -445,6 +457,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # file exists
@@ -461,6 +474,7 @@ class Plugin(BasePlugin):
                                 self.log("Path not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # file size
@@ -477,6 +491,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
 
                     # file info
@@ -505,10 +520,12 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
+                            self.window.app.error.log(e)
                             self.log("Error: {}".format(e))
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error: {}".format(e)})
                 ctx.reply = True
+                self.window.app.error.log(e)
                 self.log("Error: {}".format(e))
 
         if msg is not None:

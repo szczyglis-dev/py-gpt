@@ -92,7 +92,7 @@ class Image:
             self.window.app.context.store()
             self.window.set_status("OK.")
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -158,7 +158,7 @@ class Image:
                 shutil.copyfile(path, save_path[0])
                 self.window.set_status(trans('status.img.saved'))
             except Exception as e:
-                print(e)
+                self.window.app.error.log(e)
 
     def img_action_delete(self, path, force=False):
         """
@@ -178,7 +178,7 @@ class Image:
                 if self.window.ui.nodes['dialog.image.pixmap'][i].path == path:
                     self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def enable_raw(self):
         """

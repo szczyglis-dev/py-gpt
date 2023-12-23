@@ -62,8 +62,8 @@ class Updater:
                 print("No updates available.")
             return False
         except Exception as e:
+            self.window.app.error.log(e)
             print("Failed to check for updates")
-            print(e)
         return False
 
     def show_version_dialog(self, version, build, changelog, is_new=False):
@@ -101,7 +101,7 @@ class Updater:
             self.base_config = dict(sorted(self.base_config.items(), key=lambda item: item[0]))  # sort by key
             f.close()
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def get_base_config(self, option=None):
         """
@@ -126,8 +126,8 @@ class Updater:
             self.patch_presets()
             # TODO: add context patcher
         except Exception as e:
+            self.window.app.error.log(e)
             print("Failed to patch config files!")
-            print(e)
 
     def patch_dir(self, dirname="", force=False):
         """
@@ -146,7 +146,7 @@ class Updater:
                 if not os.path.exists(dst_file) or force:
                     shutil.copyfile(src_file, dst_file)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def patch_file(self, filename="", force=False):
         """
@@ -162,7 +162,7 @@ class Updater:
                 src = os.path.join(self.window.config.get_root_path(), 'data', 'config', filename)
                 shutil.copyfile(src, dst)
         except Exception as e:
-            print(e)
+            self.window.app.error.log(e)
 
     def patch_models(self):
         """Migrate models to current version"""
