@@ -10,6 +10,7 @@
 # ================================================== #
 import datetime
 
+from .item.notepad import NotepadItem
 from .provider.notepad.json_file import JsonFileProvider
 
 
@@ -58,11 +59,40 @@ class Notepad:
         """
         return self.items
 
+    def build(self):
+        """
+        Build notepad
+
+        :param id: notepad id
+        :return: NotepadItem instance
+        :rtype: NotepadItem
+        """
+        item = NotepadItem()
+        return item
+
+    def add(self, notepad):
+        """
+        Add notepad
+
+        :param notepad: NotepadItem instance
+        :return: True if success
+        :rtype: bool
+        """
+        if self.provider in self.providers:
+            try:
+                id = self.providers[self.provider].create(notepad)
+                notepad.id = id
+                self.items[id] = notepad
+                self.save(id)
+                return True
+            except Exception as e:
+                self.window.app.errors.log(e)
+
     def update(self, notepad):
         """
         Update and save notepad
 
-        :param notepad: notepad instance
+        :param notepad: NotepadItem instance
         :return: True if success
         :rtype: bool
         """

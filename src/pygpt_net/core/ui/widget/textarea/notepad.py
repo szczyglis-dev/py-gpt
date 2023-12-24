@@ -77,6 +77,7 @@ class NotepadOutput(QTextEdit):
     def wheelEvent(self, event):
         """
         Wheel event: set font size
+
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:

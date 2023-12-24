@@ -16,4 +16,5 @@ class NotepadItem:
         self.idx = 0
         self.title = ""
         self.content = ""
+        self.created_at = None
         self.updated_at = None

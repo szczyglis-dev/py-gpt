@@ -66,6 +66,7 @@ class JsonFileProvider(BaseProvider):
                             notepad.id = new_id
                             notepad.title = "Notepad " + str(new_id)
                             notepad.content = data['content'][id]
+                            notepad.created_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
                             notepad.updated_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
                             ary[new_id] = notepad
                         self.save_all(ary)
@@ -151,9 +152,12 @@ class JsonFileProvider(BaseProvider):
 
         :param id: id
         """
-        pass
+        items = self.load_all()
+        if id in items:
+            del items[id]
+            self.save_all(items)
 
-    def truncate(self, mode):
+    def truncate(self):
         """Delete all"""
         path = os.path.join(self.window.app.config.path, self.config_file)
         data = {'__meta__': self.window.app.config.append_meta(), 'items': {}}
@@ -177,7 +181,8 @@ class JsonFileProvider(BaseProvider):
             'idx': notepad.idx,
             'title': notepad.title,
             'content': notepad.content,
-            'updated_at': notepad.updated_at
+            'created_at': notepad.created_at,  # '2019-01-01T00:00:00
+            'updated_at': notepad.updated_at,  # '2019-01-01T00:00:00
         }
 
     @staticmethod
@@ -196,6 +201,8 @@ class JsonFileProvider(BaseProvider):
             notepad.title = data['title']
         if 'content' in data:
             notepad.content = data['content']
+        if 'created_at' in data:
+            notepad.created_at = data['created_at']
         if 'updated_at' in data:
             notepad.updated_at = data['updated_at']
 

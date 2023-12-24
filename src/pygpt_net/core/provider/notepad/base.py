@@ -14,7 +14,10 @@ class BaseProvider:
     def __init__(self, window=None):
         self.window = window
         self.id = ""
-        self.type = "config"
+        self.type = "notepad"
+
+    def create(self, notepad):
+        pass
 
     def load(self, id):
         pass
@@ -26,6 +29,12 @@ class BaseProvider:
         pass
 
     def save_all(self, items):
+        pass
+
+    def remove(self, id):
+        pass
+
+    def truncate(self):
         pass
 
     def get_version(self):
