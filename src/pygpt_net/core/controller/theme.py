@@ -100,7 +100,7 @@ class Theme:
         self.window.app.config.save()
         self.load_css()
         self.apply()
-        self.window.set_theme(name + '.xml', custom_css)  # style.css = additional custom stylesheet
+        self.set_theme(name + '.xml', custom_css)  # style.css = additional custom stylesheet
         self.update()
 
     def apply_common(self, key):
@@ -256,3 +256,31 @@ class Theme:
         """Reload theme"""
         theme = self.window.app.config.get('theme')
         self.toggle(theme)
+
+    def set_theme(self, theme='dark_teal.xml', custom_css=None):
+        """
+        Update material theme and apply custom CSS
+
+        :param theme: material theme name
+        :param custom_css: custom CSS file
+        """
+        inverse = False
+        if theme.startswith('light'):
+            inverse = True
+        extra = {
+            'density_scale': self.window.app.config.get('layout.density'),
+            'pyside6': True,
+        }
+        self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
+
+        # append custom CSS
+        if custom_css is not None:
+            stylesheet = self.window.styleSheet()
+            # check for override in user directory
+            path = os.path.join(self.window.app.config.get_user_path(), 'css', custom_css)
+            if not os.path.exists(path):
+                # check in app directory
+                path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', custom_css)
+            if os.path.exists(path):
+                with open(path) as file:
+                    self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
