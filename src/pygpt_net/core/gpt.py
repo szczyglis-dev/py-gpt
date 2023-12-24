@@ -147,7 +147,7 @@ class Gpt:
         mode = self.window.app.config.get('mode')
         used_tokens = self.count_used_tokens(prompt)
         max_tokens = self.window.app.config.get('max_total_tokens')
-        model_ctx = self.window.app.config.get_model_ctx(model)
+        model_ctx = self.window.app.models.get_num_ctx(model)
         if max_tokens > model_ctx:
             max_tokens = model_ctx
 
