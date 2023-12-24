@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import copy
 
 from .item.preset import PresetItem
