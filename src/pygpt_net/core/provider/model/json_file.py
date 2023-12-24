@@ -136,7 +136,7 @@ class JsonFileProvider(BaseProvider):
 
         # get version of models config
         current = self.window.app.models.get_version()
-        old = parse_version(version)
+        old = parse_version(current)
 
         # check if models file is older than current app version
         if old < version:

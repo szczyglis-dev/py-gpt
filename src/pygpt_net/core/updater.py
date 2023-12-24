@@ -10,12 +10,14 @@
 # ================================================== #
 
 import copy
-from urllib.request import urlopen, Request
-from packaging.version import parse as parse_version
 import os
 import shutil
 import json
 import ssl
+
+from urllib.request import urlopen, Request
+from packaging.version import parse as parse_version
+
 from .utils import trans
 
 
@@ -34,7 +36,7 @@ class Updater:
             self.patch_config()
             self.patch_models()
             self.patch_presets()
-            # TODO: add context patcher
+            self.patch_ctx()
         except Exception as e:
             self.window.app.errors.log(e)
             print("Failed to patch config data!")
@@ -56,6 +58,12 @@ class Updater:
         version = self.get_app_version()
         if self.window.app.presets.patch(version):
             print("Migrated presets. [OK]")
+
+    def patch_ctx(self):
+        """Migrate ctx to current app version"""
+        version = self.get_app_version()
+        if self.window.app.ctx.patch(version):
+            print("Migrated ctx. [OK]")
 
     def patch_dir(self, dirname="", force=False):
         """
