@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -29,7 +29,7 @@ class Output:
 
     def setup(self):
         """Setup output"""
-        self.window.ui.nodes['output.timestamp'].setChecked(self.window.config.get('output_timestamp'))
+        self.window.ui.nodes['output.timestamp'].setChecked(self.window.app.config.get('output_timestamp'))
 
     def clear(self):
         """
@@ -61,7 +61,7 @@ class Output:
         """
         if item.input is None or item.input == "":
             return
-        if self.window.config.get('output_timestamp') and item.input_timestamp is not None:
+        if self.window.app.config.get('output_timestamp') and item.input_timestamp is not None:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
@@ -79,7 +79,7 @@ class Output:
         """
         if item.output is None or item.output == "":
             return
-        if self.window.config.get('output_timestamp') and item.output_timestamp is not None:
+        if self.window.app.config.get('output_timestamp') and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -99,7 +99,7 @@ class Output:
         """
         if text_chunk is None or text_chunk == "":
             return
-        if begin and self.window.config.get('output_timestamp') and item.output_timestamp is not None:
+        if begin and self.window.app.config.get('output_timestamp') and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -132,8 +132,8 @@ class Output:
 
         :param value: value of the checkbox
         """
-        self.window.config.set('output_timestamp', value)
-        self.window.config.save()
+        self.window.app.config.set('output_timestamp', value)
+        self.window.app.config.save()
         self.window.controller.ctx.refresh()
 
     def handle_ctx_name(self, ctx):
@@ -153,7 +153,7 @@ class Output:
 
         :param ctx: CtxItem
         """
-        if ctx is not None and self.window.config.get('cmd'):
+        if ctx is not None and self.window.app.config.get('cmd'):
             cmds = self.window.app.command.extract_cmds(ctx.output)
             if len(cmds) > 0:
                 self.window.log("Executing commands...")
@@ -177,13 +177,13 @@ class Output:
 
             # get submode for langchain
             if mode == "langchain":
-                cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
+                config = self.window.app.models.get(self.window.app.config.get('model'))
                 submode = 'chat'
                 # get available modes for langchain
-                if 'langchain' in cfg:
-                    if 'chat' in cfg['langchain']['mode']:
+                if 'mode' in config.langchain:
+                    if 'chat' in config.langchain['mode']:
                         submode = 'chat'
-                    elif 'completion' in cfg['langchain']['mode']:
+                    elif 'completion' in config.langchain['mode']:
                         submode = 'completion'
 
             # read stream
@@ -225,7 +225,7 @@ class Output:
                         begin = False
 
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 # debug
                 # self.window.log("Stream error: {}".format(e))  # log
                 # print("Error in stream: " + str(e))
@@ -267,7 +267,7 @@ class Output:
         :param ctx: CtxItem
         """
         # save context
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
         self.window.app.ctx.post_update(mode)  # post update context, store last mode, etc.
         self.window.app.ctx.store()
         self.window.controller.ctx.update_ctx()  # update current ctx info
@@ -276,7 +276,7 @@ class Output:
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
         # store history (output)
-        if self.window.config.get('store_history') \
+        if self.window.app.config.get('store_history') \
                 and ctx.output is not None \
                 and ctx.output.strip() != "":
             self.window.app.history.save(ctx.output)

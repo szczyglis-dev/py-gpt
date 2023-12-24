@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -75,10 +75,10 @@ class Assistant:
 
         :param id: assistant ID
         """
-        self.window.config.set('assistant', id)
+        self.window.app.config.set('assistant', id)
 
         # update attachments list with list of attachments from assistant
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
         assistant = self.window.app.assistants.get_by_id(id)
         self.window.controller.attachment.import_from_assistant(mode, assistant)
         self.window.controller.attachment.update()
@@ -88,16 +88,16 @@ class Assistant:
         if assistant is not None:
             model = assistant.model
             if model is not None and model != "":
-                if model in self.window.config.models:
-                    self.window.config.set('model', model)
-                    self.window.config.data['current_model'][mode] = model
+                if model in self.window.app.models.items:
+                    self.window.app.config.set('model', model)
+                    self.window.app.config.data['current_model'][mode] = model
                     self.update_assistants()
 
         self.window.controller.ctx.update_ctx()  # update current ctx info
 
     def select_assistant_by_current(self):
         """Select assistant by current"""
-        assistant_id = self.window.config.get('assistant')
+        assistant_id = self.window.app.config.get('assistant')
         items = self.window.app.assistants.get_all()
         if assistant_id in items:
             idx = list(items.keys()).index(assistant_id)
@@ -106,11 +106,11 @@ class Assistant:
 
     def select_default_assistant(self):
         """Set default assistant"""
-        assistant = self.window.config.get('assistant')
+        assistant = self.window.app.config.get('assistant')
         if assistant is None or assistant == "":
-            mode = self.window.config.get('mode')
+            mode = self.window.app.config.get('mode')
             if mode == 'assistant':
-                self.window.config.set('assistant', self.window.app.assistants.get_default_assistant())
+                self.window.app.config.set('assistant', self.window.app.assistants.get_default_assistant())
                 self.update()
 
     def update_assistants(self):
@@ -261,7 +261,7 @@ class Assistant:
         try:
             return self.window.app.gpt_assistants.create(assistant)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def assistant_update(self, assistant):
@@ -272,7 +272,7 @@ class Assistant:
         try:
             return self.window.app.gpt_assistants.update(assistant)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def import_assistants(self, force=False):
@@ -300,7 +300,7 @@ class Assistant:
             # status
             self.window.set_status("Imported assistants: " + str(len(items)))
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Error importing assistants")
             self.window.ui.dialogs.alert(str(e))
         self.update()
@@ -345,7 +345,7 @@ class Assistant:
 
         :param force: force clear data
         """
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
 
         if not force:
             self.window.ui.dialogs.confirm('assistant_clear', '',
@@ -378,9 +378,9 @@ class Assistant:
                         return
 
                     # clear if this is current assistant
-                    if id == self.window.config.get('assistant'):
-                        self.window.config.set('assistant', None)
-                        self.window.config.set('assistant_thread', None)
+                    if id == self.window.app.config.get('assistant'):
+                        self.window.app.config.set('assistant', None)
+                        self.window.app.config.set('assistant_thread', None)
 
                     # delete in API
                     try:
@@ -400,7 +400,7 @@ class Assistant:
         :param value: checkbox option value
         :param section: settings section
         """
-        assistant_id = self.window.config.get('assistant')  # current assistant
+        assistant_id = self.window.app.config.get('assistant')  # current assistant
         is_current = True
         if section == 'assistant.editor':
             assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant
@@ -419,7 +419,7 @@ class Assistant:
         if id == 'assistant.id':
             self.window.ui.config_option[id].setText(value)
 
-        assistant_id = self.window.config.get('assistant')  # current assistant
+        assistant_id = self.window.app.config.get('assistant')  # current assistant
         is_current = True
         if section == 'assistant.editor':
             assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant

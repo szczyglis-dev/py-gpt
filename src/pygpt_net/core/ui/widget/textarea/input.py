@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -27,7 +27,7 @@ class ChatInput(QTextEdit):
         self.window = window
         self.setAcceptRichText(False)
         self.setFocus()
-        self.value = self.window.config.data['font_size.input']
+        self.value = self.window.app.config.data['font_size.input']
         self.max_font_size = 42
         self.min_font_size = 8
 
@@ -68,7 +68,7 @@ class ChatInput(QTextEdit):
         super(ChatInput, self).keyPressEvent(event)
         self.window.controller.ui.update_tokens()
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            mode = self.window.config.get('send_mode')
+            mode = self.window.app.config.get('send_mode')
             if mode > 0:  # Enter or Shift + Enter
                 if mode == 2:  # Shift + Enter
                     modifiers = QApplication.keyboardModifiers()
@@ -91,8 +91,8 @@ class ChatInput(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.config.data['font_size.input'] = self.value
-            self.window.config.save()
+            self.window.app.config.data['font_size.input'] = self.value
+            self.window.app.config.save()
             self.window.controller.settings.update_font_size()
             event.accept()
         else:

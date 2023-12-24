@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 17:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -26,7 +26,7 @@ class Lang:
     def setup(self):
         """Setup language handler"""
         # get files from locale directory
-        langs = self.window.config.get_available_langs()
+        langs = self.window.app.config.get_available_langs()
         for lang in langs:
             self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
             self.window.ui.menu['lang'][lang].triggered.connect(
@@ -40,7 +40,7 @@ class Lang:
         for lang in self.window.ui.menu['lang']:
             self.window.ui.menu['lang'][lang].setChecked(False)
 
-        lang = self.window.config.get('lang')
+        lang = self.window.app.config.get('lang')
         if lang in self.window.ui.menu['lang']:
             self.window.ui.menu['lang'][lang].setChecked(True)
 
@@ -50,8 +50,8 @@ class Lang:
 
         :param id: language to toggle
         """
-        self.window.config.set('lang', id)
-        self.window.config.save()
+        self.window.app.config.set('lang', id)
+        self.window.app.config.save()
         trans('', True)  # reload translations
 
         self.update()
@@ -133,7 +133,7 @@ class Lang:
         self.window.ui.nodes['vision.capture.label'].setText(trans('vision.capture.options.title'))
 
         # capture label
-        if not self.window.config.get('vision.capture.auto'):
+        if not self.window.app.config.get('vision.capture.auto'):
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
         else:
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
@@ -249,7 +249,7 @@ class Lang:
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
 
         # tabs
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
         self.window.controller.attachment.update_tab_label(mode)
         self.window.controller.assistant_files.update_tab_label()
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
@@ -267,7 +267,7 @@ class Lang:
             self.toggle_plugins()
         except Exception as e:
             print("Error updating plugin locales", e)
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')  # clear status
@@ -334,7 +334,7 @@ class Lang:
                     try:
                         self.window.ui.plugin_option[id][option_id].setTooltip(tooltip_str)
                     except Exception as e:
-                        self.window.app.error.log(e)
+                        self.window.app.errors.log(e)
                         pass
 
         # update settings dialog list

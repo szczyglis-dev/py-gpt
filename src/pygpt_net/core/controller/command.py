@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 01:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import json
 import threading
 
@@ -107,6 +108,6 @@ class CommandThread(QObject):
             self.finished.emit(self.event)
         except Exception as e:
             print("Command thread error: " + str(e))
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
         self.destroyed.emit()
         print("Command thread finished work.")

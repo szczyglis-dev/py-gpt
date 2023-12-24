@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.20 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import os
@@ -33,7 +33,7 @@ class Image:
 
     def setup(self):
         """Setup images"""
-        if self.window.config.get('img_raw'):
+        if self.window.app.config.get('img_raw'):
             self.window.ui.config_option['img_raw'].setChecked(True)
         else:
             self.window.ui.config_option['img_raw'].setChecked(False)
@@ -57,7 +57,7 @@ class Image:
 
         # create ctx item
         ctx = CtxItem()
-        ctx.set_input(text, self.window.config.get('user_name'))
+        ctx.set_input(text, self.window.app.config.get('user_name'))
 
         # dispatch event
         event = Event('ctx.before')
@@ -69,7 +69,7 @@ class Image:
 
         # call DALL-E API and generate images
         try:
-            paths, prompt = self.window.app.images.generate(text, self.window.config.get('model'), num_of_images)
+            paths, prompt = self.window.app.images.generate(text, self.window.app.config.get('model'), num_of_images)
             string = ""
             i = 1
             for path in paths:
@@ -77,7 +77,7 @@ class Image:
                 i += 1
             self.open_images(paths)
 
-            if not self.window.config.get('img_raw'):
+            if not self.window.app.config.get('img_raw'):
                 string += "\nPrompt: "
                 string += prompt
 
@@ -92,7 +92,7 @@ class Image:
             self.window.app.ctx.store()
             self.window.set_status("OK.")
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -158,7 +158,7 @@ class Image:
                 shutil.copyfile(path, save_path[0])
                 self.window.set_status(trans('status.img.saved'))
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def img_action_delete(self, path, force=False):
         """
@@ -178,21 +178,21 @@ class Image:
                 if self.window.ui.nodes['dialog.image.pixmap'][i].path == path:
                     self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def enable_raw(self):
         """
         Enable help for images
         """
-        self.window.config.set('img_raw', True)
-        self.window.config.save()
+        self.window.app.config.set('img_raw', True)
+        self.window.app.config.save()
 
     def disable_raw(self):
         """
         Disable help for images
         """
-        self.window.config.set('img_raw', False)
-        self.window.config.save()
+        self.window.app.config.set('img_raw', False)
+        self.window.app.config.save()
 
     def toggle_raw(self, state):
         """

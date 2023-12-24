@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 04:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 from ..dispatcher import Event
 from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
 from ..utils import trans
@@ -56,7 +57,7 @@ class UI:
         self.window.dispatch(event)
         prompt = event.data['value']
 
-        if self.window.config.get('cmd'):
+        if self.window.app.config.get('cmd'):
             # cmd prompt
             prompt += self.window.app.command.get_prompt()
 
@@ -74,11 +75,11 @@ class UI:
 
     def update_tokens(self):
         """Update tokens counters"""
-        model = self.window.config.get('model')
-        mode = self.window.config.get('mode')
-        user_name = self.window.config.get('user_name')
-        ai_name = self.window.config.get('ai_name')
-        max_total_tokens = self.window.config.get('max_total_tokens')
+        model = self.window.app.config.get('model')
+        mode = self.window.app.config.get('mode')
+        user_name = self.window.app.config.get('user_name')
+        ai_name = self.window.app.config.get('ai_name')
+        max_total_tokens = self.window.app.config.get('max_total_tokens')
         extra_tokens = num_tokens_extra(model)
 
         prompt_tokens = 0
@@ -86,7 +87,7 @@ class UI:
 
         if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
             # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.config.get('prompt')).strip()
+            system_prompt = str(self.window.app.config.get('prompt')).strip()
             system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
             prompt_tokens = num_tokens_prompt(system_prompt, "", model)
             prompt_tokens += num_tokens_only("system", model)
@@ -97,7 +98,7 @@ class UI:
             input_tokens += num_tokens_only("user", model)
         elif mode == "completion":
             # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.config.get('prompt')).strip()
+            system_prompt = str(self.window.app.config.get('prompt')).strip()
             system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
             prompt_tokens = num_tokens_only(system_prompt, model)
 
@@ -123,7 +124,7 @@ class UI:
         ctx_len, ctx_tokens = self.window.app.ctx.count_prompt_items(model, mode, used_tokens, max_total_tokens)
 
         # zero if context not used
-        if not self.window.config.get('use_context'):
+        if not self.window.app.config.get('use_context'):
             ctx_tokens = 0
             ctx_len = 0
 
@@ -134,7 +135,7 @@ class UI:
         string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
         self.window.ui.nodes['prompt.context'].setText(string)
 
-        # threshold = str(int(self.window.config.get('context_threshold')))
+        # threshold = str(int(self.window.app.config.get('context_threshold')))
 
         parsed_total = str(int(total_tokens))
         parsed_total = parsed_total.replace("000000", "M").replace("000", "k")
@@ -148,7 +149,7 @@ class UI:
 
     def update_active(self):
         """Update mode, model, preset and rest of the toolbox"""
-        mode = self.window.config.data['mode']
+        mode = self.window.app.config.data['mode']
         if mode == 'chat':
             # temperature
             self.window.ui.config_option['current_temperature'].slider.setDisabled(False)
@@ -321,8 +322,8 @@ class UI:
 
     def update_chat_label(self):
         """Update chat label"""
-        mode = self.window.config.get('mode')
-        model = self.window.config.get('model')
+        mode = self.window.app.config.get('mode')
+        model = self.window.app.config.get('model')
         if model is None or model == "":
             model_str = "{}".format(trans("mode." + mode))
         else:
@@ -335,7 +336,7 @@ class UI:
 
         :param label: label
         """
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
         allowed = self.window.controller.ctx.is_allowed_for_mode(mode)
         if label is None:
             label = ''

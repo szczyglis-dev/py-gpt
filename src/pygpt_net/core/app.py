@@ -18,7 +18,6 @@ from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
 from logging import ERROR, WARNING, INFO, DEBUG
 
-from .config import Config
 from .container import Container
 from .controller.main import Controller
 from .error_handler import ErrorHandler
@@ -58,15 +57,12 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # load version info
         self.meta = get_app_meta()
-        self.platform = Platform(self)
-        self.platform.init()
-
-        # setup config
-        self.config = Config(self)
-        self.config.init(True, True)
 
         # setup service container
         self.app = Container(self)
+        self.app.platform.init()
+        self.app.config.init(True, True)
+        self.app.init()
 
         # setup main controller
         self.controller = Controller(self)
@@ -116,7 +112,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         if theme.startswith('light'):
             inverse = True
         extra = {
-            'density_scale': self.config.get('layout.density'),
+            'density_scale': self.app.config.get('layout.density'),
             'pyside6': True,
         }
         self.apply_stylesheet(self, theme, invert_secondary=inverse, extra=extra)
@@ -125,10 +121,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         if custom_css is not None:
             stylesheet = self.styleSheet()
             # check for override in user directory
-            path = os.path.join(self.config.get_user_path(), 'css', custom_css)
+            path = os.path.join(self.app.config.get_user_path(), 'css', custom_css)
             if not os.path.exists(path):
                 # check in app directory
-                path = os.path.join(self.config.get_root_path(), 'data', 'css', custom_css)
+                path = os.path.join(self.app.config.get_root_path(), 'data', 'css', custom_css)
             if os.path.exists(path):
                 with open(path) as file:
                     self.setStyleSheet(stylesheet + file.read().format(**os.environ))
@@ -203,9 +199,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Stopping event loop...")
         self.timer.stop()
         print("Saving config...")
-        self.config.save()
+        self.app.config.save()
         print("Saving presets...")
-        self.config.save_presets()
+        self.app.config.save_presets()
         print("Exiting...")
         event.accept()  # let the window close
 
@@ -222,7 +218,7 @@ class Launcher:
 
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
-        self.app.setWindowIcon(QIcon(os.path.join(self.window.config.get_root_path(), 'data', 'icon.ico')))
+        self.app.setWindowIcon(QIcon(os.path.join(self.window.app.config.get_root_path(), 'data', 'icon.ico')))
         self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin=None):
@@ -257,7 +253,7 @@ class Launcher:
             print("Closing...")
         except Exception as e:
             print("Fatal error, exiting...")
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
 
 def run(plugins=None, llms=None):

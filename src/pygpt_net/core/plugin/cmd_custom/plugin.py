@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os.path
 import subprocess
 from datetime import datetime
@@ -151,7 +152,7 @@ class Plugin(BasePlugin):
 
                         # append system placeholders
                         command = command.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
-                        command = command.replace("{_home}", self.window.config.path)
+                        command = command.replace("{_home}", self.window.app.config.path)
                         command = command.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
                         command = command.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
                         command = command.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -191,7 +192,7 @@ class Plugin(BasePlugin):
                         msg = "Error: {}".format(e)
                         ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                         ctx.reply = True
-                        self.window.app.error.log(e)
+                        self.window.app.errors.log(e)
                         self.log(msg)
 
         # update status

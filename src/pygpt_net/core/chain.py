@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 01:20:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -56,7 +56,7 @@ class Chain:
                 messages.append(SystemMessage(content=self.system_prompt))
 
         # append messages from context (memory)
-        if self.window.config.get('use_context'):
+        if self.window.app.config.get('use_context'):
             items = self.window.app.ctx.get_all_items()
             for item in items:
                 # input
@@ -83,7 +83,7 @@ class Chain:
         if self.system_prompt is not None and self.system_prompt != "":
             message += self.system_prompt
 
-        if self.window.config.get('use_context'):
+        if self.window.app.config.get('use_context'):
             items = self.window.app.ctx.get_all_items()
             for item in items:
                 if item.input_name is not None \
@@ -121,15 +121,14 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
-        if 'langchain' in cfg:
-            if 'provider' in cfg['langchain']:
-                provider = cfg['langchain']['provider']
-                if provider in self.llms:
-                    try:
-                        llm = self.llms[provider].chat(self.window.config.all(), cfg['langchain'], stream_mode)
-                    except Exception as e:
-                        self.window.app.error.log(e)
+        config = self.window.app.models.get(self.window.app.config.get('model'))
+        if 'provider' in config.langchain:
+            provider = config.langchain['provider']
+            if provider in self.llms:
+                try:
+                    llm = self.llms[provider].chat(self.window.app.config.all(), config.langchain, stream_mode)
+                except Exception as e:
+                    self.window.app.errors.log(e)
 
         # if no LLM here then raise exception
         if llm is None:
@@ -150,15 +149,14 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
-        if 'langchain' in cfg:
-            if 'provider' in cfg['langchain']:
-                provider = cfg['langchain']['provider']
-                if provider in self.llms:
-                    try:
-                        llm = self.llms[provider].completion(self.window.config.all(), cfg['langchain'], stream_mode)
-                    except Exception as e:
-                        self.window.app.error.log(e)
+        config = self.window.app.models.get(self.window.app.config.get('model'))
+        if 'provider' in config.langchain:
+            provider = config.langchain['provider']
+            if provider in self.llms:
+                try:
+                    llm = self.llms[provider].completion(self.window.app.config.all(), config.langchain, stream_mode)
+                except Exception as e:
+                    self.window.app.errors.log(e)
         if llm is None:
             raise Exception("Invalid LLM")
 
@@ -178,16 +176,17 @@ class Chain:
         :return: context (memory)
         :rtype: CtxItem
         """
-        cfg = self.window.config.get_model_cfg(self.window.config.get('model'))
+        config = self.window.app.models.get(self.window.app.config.get('model'))
         response = None
         mode = 'chat'
 
         # get available modes
-        if 'langchain' in cfg:
-            if 'chat' in cfg['langchain']['mode']:
+        if 'mode' in config.langchain:
+            if 'chat' in config.langchain['mode']:
                 mode = 'chat'
-            elif 'completion' in cfg['langchain']['mode']:
+            elif 'completion' in config.langchain['mode']:
                 mode = 'completion'
+
         try:
             if mode == 'chat':
                 response = self.chat(text, stream_mode)
@@ -195,14 +194,14 @@ class Chain:
                 response = self.completion(text, stream_mode)
 
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             raise e  # re-raise to window
 
         # async mode (stream)
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = CtxItem(self.window.config.get('mode'))
+                ctx = CtxItem(self.window.app.config.get('mode'))
                 ctx.set_input(text, self.user_name)
 
             ctx.stream = response
@@ -222,7 +221,7 @@ class Chain:
 
         # store context (memory)
         if ctx is None:
-            ctx = CtxItem(self.window.config.get('mode'))
+            ctx = CtxItem(self.window.app.config.get('mode'))
             ctx.set_input(text, self.user_name)
 
         ctx.set_output(output, self.ai_name)

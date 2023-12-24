@@ -87,11 +87,10 @@ class Model:
         self.window.ui.models[self.id].removeRows(0, self.window.ui.models[self.id].rowCount())
         i = 0
         for n in data:
-            if 'name' in data[n]:
-                self.window.ui.models[self.id].insertRow(i)
-                name = data[n]['name']
-                self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
-                i += 1
+            self.window.ui.models[self.id].insertRow(i)
+            name = data[n].name
+            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
+            i += 1
 
         # restore previous selection
         self.window.ui.nodes[self.id].restore_selection()

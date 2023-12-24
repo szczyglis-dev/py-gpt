@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import os
@@ -27,10 +27,10 @@ class PresetsDebug:
         self.window.app.debug.begin(self.id)
 
         # presets
-        for key in self.window.config.presets:
+        for key in self.window.app.config.presets:
             prefix = "[{}] ".format(key)
-            preset = self.window.config.presets[key]
-            path = os.path.join(self.window.config.path, 'presets', key + '.json')
+            preset = self.window.app.config.presets[key]
+            path = os.path.join(self.window.app.config.path, 'presets', key + '.json')
             self.window.app.debug.add(self.id, prefix + 'ID', str(key))
             self.window.app.debug.add(self.id, prefix + 'File', str(path))
             if 'name' in preset:

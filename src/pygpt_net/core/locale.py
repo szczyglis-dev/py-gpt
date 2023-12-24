@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 20:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import json
@@ -64,7 +64,7 @@ class Locale:
             ini.read_string(data.read())
             self.data[locale_id] = dict(ini.items('LOCALE'))
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def get(self, key, domain=None):
         """

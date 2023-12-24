@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -33,7 +33,6 @@ class Config:
         self.window = window
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
-        self.models = {}
         self.data = {}
         self.presets = {}
         self.assistants = {}
@@ -100,8 +99,8 @@ class Config:
         if not self.initialized:
             if all:
                 v = self.get_version()
-                os = self.window.platform.get_os()
-                architecture = self.window.platform.get_architecture()
+                os = self.window.app.platform.get_os()
+                architecture = self.window.app.platform.get_architecture()
                 print("")
                 print("PyGPT v{} ({}, {})".format(v, os, architecture))
                 print("Author: Marcin Szczyglinski")
@@ -129,7 +128,7 @@ class Config:
             result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"), data)
             return result.group(1)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def load(self, all=True, log=False):
         """
@@ -141,7 +140,7 @@ class Config:
         self.load_config(log)
 
         if all:
-            self.load_models(log)
+            self.window.app.models.load(log)
             self.load_presets()
 
     def save_preset(self, preset):
@@ -159,27 +158,7 @@ class Config:
             json.dump(self.presets[preset], f, indent=4)
             f.close()
         except Exception as e:
-            self.window.app.error.log(e)
-
-    def load_models(self, log=False):
-        """
-        Load models config from JSON file
-
-        :param log: log loading
-        """
-        path = os.path.join(self.path, 'models.json')
-        if not os.path.exists(path):
-            print("FATAL ERROR: {} not found!".format(path))
-            return None
-        try:
-            f = open(path, "r", encoding="utf-8")
-            self.models = json.load(f)
-            self.models = dict(sorted(self.models.items(), key=lambda item: item[0]))  # sort by key
-            f.close()
-            if log:
-                print("Loaded models: {}".format(path))
-        except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def load_config(self, log=False):
         """
@@ -199,7 +178,7 @@ class Config:
             if log:  # TODO: move to self
                 print("Loaded config: {}".format(path))
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def load_base_config(self, log=False):
         """
@@ -219,7 +198,7 @@ class Config:
             if log:
                 print("Loaded default app config: {}".format(path))
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def sort_presets_by_name(self):
         """Sort presets by name"""
@@ -240,7 +219,7 @@ class Config:
             self.sort_presets_by_name()
             self.append_current_presets()
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def all(self):
         """
@@ -384,18 +363,6 @@ class Config:
         modes = self.get_modes()
         return list(modes.keys())[idx]
 
-    def get_model_by_idx(self, idx, mode):
-        """
-        Return model by index
-
-        :param idx: index of model
-        :param mode: mode name
-        :return: model name
-        :rtype: str
-        """
-        models = self.get_models(mode)
-        return list(models.keys())[idx]
-
     def get_preset_by_idx(self, idx, mode):
         """
         Return preset by index
@@ -469,22 +436,6 @@ class Config:
                 presets[key] = self.presets[key]
         return presets
 
-    def get_models(self, mode):
-        """
-        Return models for mode
-
-        :param mode: mode name
-        :return: models dict for mode
-        :rtype: dict
-        """
-        models = {}
-        for key in self.models:
-            if key == '__meta__':
-                continue
-            if mode in self.models[key]['mode']:
-                models[key] = self.models[key]
-        return models
-
     def get_preset_idx(self, mode, name):
         """
         Return preset index
@@ -518,7 +469,7 @@ class Config:
                 try:
                     os.remove(path)
                 except Exception as e:
-                    self.window.app.error.log(e)
+                    self.window.app.errors.log(e)
             self.load_presets()
 
     def get_default_mode(self):
@@ -529,24 +480,6 @@ class Config:
         :rtype: str
         """
         return 'chat'
-
-    def get_default_model(self, mode):
-        """
-        Return default model for mode
-
-        :param mode: mode name
-        :return: default model name
-        :rtype: str
-        """
-        models = {}
-        items = self.get_models(mode)
-        for k in items:
-            if k == "__meta__":
-                continue
-            models[k] = items[k]
-        if len(models) == 0:
-            return None
-        return list(models.keys())[0]
 
     def get_default_preset(self, mode):
         """
@@ -601,19 +534,7 @@ class Config:
                 f.write(dump)
                 f.close()
         except Exception as e:
-            self.window.app.error.log(e)
-
-    def save_models(self):
-        """Save models config into file"""
-        self.models['__meta__'] = self.append_meta()
-        dump = json.dumps(self.models, indent=4)
-        path = os.path.join(self.path, 'models.json')
-        try:
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-        except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def save_presets(self):
         """Save presets into files"""
@@ -626,42 +547,7 @@ class Config:
                     f.write(dump)
                     f.close()
             except Exception as e:
-                self.window.app.error.log(e)
-
-    def get_model_tokens(self, model):
-        """
-        Return model tokens
-
-        :param model: model name
-        :return: number of tokens
-        :rtype: int
-        """
-        if model in self.models:
-            return self.models[model]['tokens']
-        return 1
-
-    def get_model_ctx(self, model):
-        """
-        Return model context window tokens
-
-        :param model: model name
-        :return: number of ctx tokens
-        :rtype: int
-        """
-        if model in self.models:
-            return self.models[model]['ctx']
-        return 4096
-
-    def get_model_cfg(self, model):
-        """
-        Return model context window tokens
-
-        :param model: model name
-        :return: model config
-        :rtype: dict
-        """
-        if model in self.models:
-            return self.models[model]
+                self.window.app.errors.log(e)
 
     def append_meta(self):
         """
@@ -735,5 +621,5 @@ class Config:
                 os.mkdir(capture_dir)
 
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Error installing config files:", e)

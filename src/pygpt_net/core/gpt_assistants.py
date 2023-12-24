@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import json
 import os
 
@@ -33,8 +34,8 @@ class GptAssistants:
         :rtype: OpenAI
         """
         return OpenAI(
-            api_key=self.window.config.get('api_key'),
-            organization=self.window.config.get('organization_key'),
+            api_key=self.window.app.config.get('api_key'),
+            organization=self.window.app.config.get('organization_key'),
         )
 
     def thread_create(self):
@@ -135,8 +136,8 @@ class GptAssistants:
         additional_args = {}
         if instructions is not None and instructions != "":
             additional_args['instructions'] = instructions
-        if self.window.config.get('model') is not None:
-            additional_args['model'] = self.window.config.get('model')
+        if self.window.app.config.get('model') is not None:
+            additional_args['model'] = self.window.app.config.get('model')
 
         run = client.beta.threads.runs.create(
             thread_id=thread_id,

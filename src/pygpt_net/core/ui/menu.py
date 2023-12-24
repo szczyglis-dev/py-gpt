@@ -35,7 +35,7 @@ class Menu:
         self.setup_about()
 
         # debug menu
-        if self.window.config.get('debug'):
+        if self.window.app.config.get('debug'):
             self.setup_debug()
 
     def setup_file(self):

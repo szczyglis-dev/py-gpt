@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.20 21:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 
 from pathlib import PurePath
@@ -84,7 +85,7 @@ class Files:
         parts = PurePath(path).parts
         path_os = os.path.join(*parts)  # fix for windows \\ path separators
         if os.path.exists(path_os):
-            if not self.window.platform.is_snap():
+            if not self.window.app.platform.is_snap():
                 show_in_file_manager(path_os, select)
             else:
                 # show alert info only if running in snap

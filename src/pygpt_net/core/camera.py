@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import cv2
@@ -50,11 +50,11 @@ class CameraThread(QObject):
         """
         try:
             # get params from global config
-            self.capture = cv2.VideoCapture(self.window.config.get('vision.capture.idx'))
-            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.config.get('vision.capture.width'))
-            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.config.get('vision.capture.height'))
+            self.capture = cv2.VideoCapture(self.window.app.config.get('vision.capture.idx'))
+            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.app.config.get('vision.capture.width'))
+            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.app.config.get('vision.capture.height'))
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Camera thread setup exception", e)
             self.finished.emit(e)
 
@@ -81,7 +81,7 @@ class CameraThread(QObject):
                 frame = cv2.flip(frame, 1)
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Camera thread capture exception", e)
 
         # release camera

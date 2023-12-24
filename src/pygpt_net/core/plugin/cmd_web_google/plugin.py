@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from ..base_plugin import BasePlugin
@@ -227,7 +227,7 @@ class Plugin(BasePlugin):
                 response = {"request": item, "result": "Error: {}".format(e)}
                 ctx.results.append(response)
                 ctx.reply = True
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 self.log("Error: {}".format(e))
 
         if msg is not None:

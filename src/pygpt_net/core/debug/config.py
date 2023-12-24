@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.14 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import os
@@ -26,11 +26,11 @@ class ConfigDebug:
         """Update debug window."""
         self.window.app.debug.begin(self.id)
 
-        path = os.path.join(self.window.config.path, '', 'config.json')
+        path = os.path.join(self.window.app.config.path, '', 'config.json')
         self.window.app.debug.add(self.id, 'Config File', str(path))
 
         # config data
-        for key in self.window.config.all():
-            self.window.app.debug.add(self.id, key, str(self.window.config.get(key)))
+        for key in self.window.app.config.all():
+            self.window.app.debug.add(self.id, key, str(self.window.app.config.get(key)))
 
         self.window.app.debug.end(self.id)

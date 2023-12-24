@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 01:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import json
 import os
 
@@ -28,18 +29,18 @@ class Theme:
 
     def load_css(self):
         """Load CSS"""
-        theme = self.window.config.get('theme')
+        theme = self.window.app.config.get('theme')
 
         # user area
-        path = os.path.join(self.window.config.get_user_path(), 'css', 'highlighter.' + theme + '.json')
+        path = os.path.join(self.window.app.config.get_user_path(), 'css', 'highlighter.' + theme + '.json')
         if not os.path.exists(path):
-            path = os.path.join(self.window.config.get_user_path(), 'css', 'highlighter.json')
+            path = os.path.join(self.window.app.config.get_user_path(), 'css', 'highlighter.json')
 
         # app area
         if not os.path.exists(path):
-            path = os.path.join(self.window.config.get_root_path(), 'data', 'css', 'highlighter.' + theme + '.json')
+            path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', 'highlighter.' + theme + '.json')
             if not os.path.exists(path):
-                path = os.path.join(self.window.config.get_root_path(), 'data', 'css', 'highlighter.json')
+                path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', 'highlighter.json')
 
         if os.path.exists(path):
             try:
@@ -47,7 +48,7 @@ class Theme:
                     self.css['highlighter'] = json.load(f)
                     f.close()
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def get_css(self, name):
         """
@@ -78,25 +79,25 @@ class Theme:
                 tmp_css = 'style.dark.css'
             if tmp_css is not None:
                 # check for override in user directory
-                path = os.path.join(self.window.config.get_user_path(), 'css', tmp_css)
+                path = os.path.join(self.window.app.config.get_user_path(), 'css', tmp_css)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.config.get_root_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', tmp_css)
                 if os.path.exists(path):
                     custom_css = tmp_css
 
                 # per theme name
                 tmp_css = name + '.css'
                 # check for override in user directory
-                path = os.path.join(self.window.config.get_user_path(), 'css', tmp_css)
+                path = os.path.join(self.window.app.config.get_user_path(), 'css', tmp_css)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.config.get_root_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', tmp_css)
                 if os.path.exists(path):
                     custom_css = tmp_css
 
-        self.window.config.set('theme', name)
-        self.window.config.save()
+        self.window.app.config.set('theme', name)
+        self.window.app.config.save()
         self.load_css()
         self.apply()
         self.window.set_theme(name + '.xml', custom_css)  # style.css = additional custom stylesheet
@@ -106,7 +107,7 @@ class Theme:
         """Apply common theme"""
         if key in self.window.ui.nodes:
             self.window.ui.nodes[key].setStyleSheet('font-size: {}px;'
-                                                    .format(self.window.config.get('font_size.toolbox')))  # 12px
+                                                    .format(self.window.app.config.get('font_size.toolbox')))  # 12px
 
     def apply(self, all=True):
         """Apply theme"""
@@ -158,7 +159,7 @@ class Theme:
 
         # apply to syntax highlighter
         if all:
-            self.apply_syntax_highlighter(self.window.config.get('theme'))
+            self.apply_syntax_highlighter(self.window.app.config.get('theme'))
 
     def get_style(self, element):
         """
@@ -170,11 +171,11 @@ class Theme:
         """
         # get theme element style
         if element == "chat_output":
-            return 'font-size: {}px;'.format(self.window.config.get('font_size'))
+            return 'font-size: {}px;'.format(self.window.app.config.get('font_size'))
         elif element == "chat_input":
-            return 'font-size: {}px;'.format(self.window.config.get('font_size.input'))
+            return 'font-size: {}px;'.format(self.window.app.config.get('font_size.input'))
         elif element == "ctx.list":
-            return 'font-size: {}px;'.format(self.window.config.get('font_size.ctx'))
+            return 'font-size: {}px;'.format(self.window.app.config.get('font_size.ctx'))
         elif element == "text_bold":
             return "font-weight: bold;"
         elif element == "text_small":
@@ -190,7 +191,7 @@ class Theme:
         """Update theme menu"""
         for theme in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][theme].setChecked(False)
-        current = self.window.config.get('theme')
+        current = self.window.app.config.get('theme')
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
 
@@ -248,10 +249,10 @@ class Theme:
             self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
         # apply theme
-        theme = self.window.config.get('theme')
+        theme = self.window.app.config.get('theme')
         self.toggle(theme)
 
     def reload(self):
         """Reload theme"""
-        theme = self.window.config.get('theme')
+        theme = self.window.app.config.get('theme')
         self.toggle(theme)

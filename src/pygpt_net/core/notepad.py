@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import json
@@ -24,7 +24,7 @@ class Notepad:
 
     def load(self):
         """Load content from file"""
-        path = os.path.join(self.window.config.path, 'notepad.json')
+        path = os.path.join(self.window.app.config.path, 'notepad.json')
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -34,7 +34,7 @@ class Notepad:
                         return ""
                     return data['content']
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def save(self, content):
         """
@@ -44,13 +44,13 @@ class Notepad:
         """
         try:
             # update contexts index
-            path = os.path.join(self.window.config.path, 'notepad.json')
-            data = {'__meta__': self.window.config.append_meta(), 'content': content}
+            path = os.path.join(self.window.app.config.path, 'notepad.json')
+            data = {'__meta__': self.window.app.config.append_meta(), 'content': content}
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
                 f.close()
 
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Error while saving notepad: {}".format(str(e)))

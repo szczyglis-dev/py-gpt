@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.20 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 import threading
 import pygame
@@ -108,12 +109,12 @@ class Plugin(BasePlugin):
         try:
             if text is not None and len(text) > 0:
                 client = OpenAI(
-                    api_key=self.window.config.get('api_key'),
-                    organization=self.window.config.get('organization_key'),
+                    api_key=self.window.app.config.get('api_key'),
+                    organization=self.window.app.config.get('organization_key'),
                 )
                 voice = self.get_option_value('voice')
                 model = self.get_option_value('model')
-                path = os.path.join(self.window.config.path, 'output.mp3')
+                path = os.path.join(self.window.app.config.path, 'output.mp3')
 
                 if model not in self.allowed_models:
                     model = 'tts-1'
@@ -124,7 +125,7 @@ class Plugin(BasePlugin):
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def destroy(self):
         """

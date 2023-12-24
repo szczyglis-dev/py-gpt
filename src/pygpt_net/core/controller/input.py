@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import threading
@@ -37,19 +37,19 @@ class Input:
     def setup(self):
         """Set up input"""
         # stream
-        if self.window.config.get('stream'):
+        if self.window.app.config.get('stream'):
             self.window.ui.nodes['input.stream'].setChecked(True)
         else:
             self.window.ui.nodes['input.stream'].setChecked(False)
 
         # send clear
-        if self.window.config.get('send_clear'):
+        if self.window.app.config.get('send_clear'):
             self.window.ui.nodes['input.send_clear'].setChecked(True)
         else:
             self.window.ui.nodes['input.send_clear'].setChecked(False)
 
         # send with enter/shift/disabled
-        mode = self.window.config.get('send_mode')
+        mode = self.window.app.config.get('send_mode')
         if mode == 2:
             self.window.ui.nodes['input.send_shift_enter'].setChecked(True)
             self.window.ui.nodes['input.send_enter'].setChecked(False)
@@ -64,7 +64,7 @@ class Input:
             self.window.ui.nodes['input.send_none'].setChecked(True)
 
         # cmd enabled
-        if self.window.config.get('cmd'):
+        if self.window.app.config.get('cmd'):
             self.window.ui.nodes['cmd.enabled'].setChecked(True)
         else:
             self.window.ui.nodes['cmd.enabled'].setChecked(False)
@@ -81,31 +81,31 @@ class Input:
         self.window.set_status(trans('status.sending'))
 
         # prepare names
-        self.window.log("User name: {}".format(self.window.config.get('user_name')))  # log
-        self.window.log("AI name: {}".format(self.window.config.get('ai_name')))  # log
+        self.window.log("User name: {}".format(self.window.app.config.get('user_name')))  # log
+        self.window.log("AI name: {}".format(self.window.app.config.get('ai_name')))  # log
 
         # dispatch events
         event = Event('user.name', {
-            'value': self.window.config.get('user_name'),
+            'value': self.window.app.config.get('user_name'),
         })
         self.window.dispatch(event)
         user_name = event.data['value']
 
         event = Event('ai.name', {
-            'value': self.window.config.get('ai_name'),
+            'value': self.window.app.config.get('ai_name'),
         })
         self.window.dispatch(event)
         ai_name = event.data['value']
 
-        self.window.log("User name [after plugin: user_name]: {}".format(self.window.config.get('user_name')))  # log
-        self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.config.get('ai_name')))  # log
+        self.window.log("User name [after plugin: user_name]: {}".format(self.window.app.config.get('user_name')))  # log
+        self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.app.config.get('ai_name')))  # log
 
         # store history (input)
-        if self.window.config.get('store_history') and text is not None and text.strip() != "":
+        if self.window.app.config.get('store_history') and text is not None and text.strip() != "":
             self.window.app.history.save(text)
 
         # get mode
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
 
         # clear
         self.window.app.gpt_assistants.file_ids = []  # file ids
@@ -127,17 +127,17 @@ class Input:
                 if is_upload and num_uploaded > 0:
                     self.window.set_status(trans('status.uploaded'))
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 self.window.ui.dialogs.alert(str(e))
 
             # create or get current thread, it is required here
-            if self.window.config.get('assistant_thread') is None:
+            if self.window.app.config.get('assistant_thread') is None:
                 try:
                     self.window.set_status(trans('status.starting'))
-                    self.window.config.set('assistant_thread',
+                    self.window.app.config.set('assistant_thread',
                                            self.window.controller.assistant_thread.create_thread())
                 except Exception as e:
-                    self.window.app.error.log(e)
+                    self.window.app.errors.log(e)
                     self.window.ui.dialogs.alert(str(e))
 
         # create ctx item
@@ -148,8 +148,8 @@ class Input:
 
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
-            ctx.thread = self.window.config.get('assistant_thread')
-            self.window.app.gpt.assistant_id = self.window.config.get('assistant')
+            ctx.thread = self.window.app.config.get('assistant_thread')
+            self.window.app.gpt.assistant_id = self.window.app.config.get('assistant')
             self.window.app.gpt.thread_id = ctx.thread
 
         # log
@@ -171,7 +171,7 @@ class Input:
         self.window.app.chain.ai_name = ctx.output_name
 
         # prepare system prompt
-        sys_prompt = self.window.config.get('prompt')
+        sys_prompt = self.window.app.config.get('prompt')
 
         # dispatch event
         event = Event('system.prompt', {
@@ -181,7 +181,7 @@ class Input:
         sys_prompt = event.data['value']
 
         # if commands enabled: append commands prompt
-        if self.window.config.get('cmd'):
+        if self.window.app.config.get('cmd'):
             sys_prompt += " " + self.window.app.command.get_prompt()
             data = {
                 'prompt': sys_prompt,
@@ -208,7 +208,7 @@ class Input:
         QApplication.processEvents()  # process events to update UI
 
         # async or sync mode
-        stream_mode = self.window.config.get('stream')
+        stream_mode = self.window.app.config.get('stream')
 
         # disable stream mode for vision mode (tmp)
         if mode == "vision":
@@ -249,7 +249,7 @@ class Input:
             except Exception as e:
                 self.window.log("GPT output error: {}".format(e))  # log
                 print("Error in send text (GPT call): " + str(e))
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
@@ -260,7 +260,7 @@ class Input:
         except Exception as e:
             self.window.log("Output error: {}".format(e))  # log
             print("Error sending text: " + str(e))
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -270,7 +270,7 @@ class Input:
             self.unlock_input()
 
         # handle ctx name (generate title from summary if not initialized)
-        if self.window.config.get('ctx.auto_summary'):
+        if self.window.app.config.get('ctx.auto_summary'):
             self.window.controller.output.handle_ctx_name(ctx)
 
         return ctx
@@ -320,10 +320,10 @@ class Input:
             return
 
         self.generating = True  # set generating flag
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
         if mode == 'assistant':
             # check if assistant is selected
-            if self.window.config.get('assistant') is None or self.window.config.get('assistant') == "":
+            if self.window.app.config.get('assistant') is None or self.window.app.config.get('assistant') == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 self.generating = False
                 return
@@ -358,12 +358,12 @@ class Input:
                 or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
 
             # clear input area if clear-on-send enabled
-            if self.window.config.get('send_clear'):
+            if self.window.app.config.get('send_clear'):
                 self.window.ui.nodes['input'].clear()
 
             # check API key
             if mode != 'langchain':
-                if self.window.config.get('api_key') is None or self.window.config.get('api_key') == '':
+                if self.window.app.config.get('api_key') is None or self.window.app.config.get('api_key') == '':
                     self.window.controller.launcher.show_api_monit()
                     self.window.set_status("Missing API KEY!")
                     self.generating = False
@@ -387,7 +387,7 @@ class Input:
 
             # send input to API
             self.generating = True  # mark as generating (lock)
-            if self.window.config.get('mode') == 'img':
+            if self.window.app.config.get('mode') == 'img':
                 ctx = self.window.controller.image.send_text(text)
             else:
                 ctx = self.send_text(text)
@@ -396,7 +396,7 @@ class Input:
             self.window.statusChanged.emit("")
 
         # clear attachments after send if enabled
-        if self.window.config.get('attachments_send_clear'):
+        if self.window.app.config.get('attachments_send_clear'):
             self.window.controller.attachment.clear(True)
             self.window.controller.attachment.update()
 
@@ -429,7 +429,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.set('stream', value)
+        self.window.app.config.set('stream', value)
 
     def toggle_cmd(self, value):
         """
@@ -437,7 +437,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.set('cmd', value)
+        self.window.app.config.set('cmd', value)
 
         # stop commands thread if running
         if not value:
@@ -453,7 +453,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.set('send_clear', value)
+        self.window.app.config.set('send_clear', value)
 
     def toggle_send_shift(self, value):
         """
@@ -461,7 +461,7 @@ class Input:
 
         :param value: value of the checkbox
         """
-        self.window.config.set('send_mode', value)
+        self.window.app.config.set('send_mode', value)
 
     def lock_input(self):
         """
@@ -541,4 +541,4 @@ class SendThread(QObject):
         try:
             self.window.controller.input.send_execute(self.text)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)

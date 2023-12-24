@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 23:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -161,8 +161,8 @@ class Plugins:
             options = plugin.setup()  # get plugin options
 
             # add plugin to config if not exists
-            if id not in self.window.config.get('plugins'):
-                self.window.config.data['plugins'][id] = {}
+            if id not in self.window.app.config.get('plugins'):
+                self.window.app.config.data['plugins'][id] = {}
 
             self.current_plugin = id
             # update config with new values
@@ -193,15 +193,15 @@ class Plugins:
                 elif option['type'] == 'dict':
                     value = self.window.ui.plugin_option[id][key].model.items
                 self.window.app.plugins.plugins[id].options[key]['value'] = value
-                self.window.config.data['plugins'][id][key] = value
+                self.window.app.config.data['plugins'][id][key] = value
 
             # update config if option not exists
-            for key in list(self.window.config.data['plugins'].keys()):
+            for key in list(self.window.app.config.data['plugins'].keys()):
                 if key not in self.window.app.plugins.plugins:
-                    self.window.config.data['plugins'].pop(key)
+                    self.window.app.config.data['plugins'].pop(key)
 
         # save config
-        self.window.config.save()
+        self.window.app.config.save()
         self.close_settings()
         self.current_plugin = selected_plugin
 
@@ -279,8 +279,8 @@ class Plugins:
             })
             self.window.dispatch(event)
 
-            self.window.config.data['plugins_enabled'][id] = True
-            self.window.config.save()
+            self.window.app.config.data['plugins_enabled'][id] = True
+            self.window.app.config.save()
 
             # update audio menu
             # TODO: by type loop
@@ -306,8 +306,8 @@ class Plugins:
             })
             self.window.dispatch(event)
 
-            self.window.config.data['plugins_enabled'][id] = False
-            self.window.config.save()
+            self.window.app.config.data['plugins_enabled'][id] = False
+            self.window.app.config.save()
 
             # update audio menu
             if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
@@ -399,8 +399,8 @@ class Plugins:
         """
         Load plugins config
         """
-        for id in self.window.config.get('plugins_enabled'):
-            if self.window.config.data['plugins_enabled'][id]:
+        for id in self.window.app.config.get('plugins_enabled'):
+            if self.window.app.config.data['plugins_enabled'][id]:
                 self.enable(id)
 
     def config_toggle(self, id, value):

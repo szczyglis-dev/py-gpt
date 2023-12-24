@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 01:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import datetime
 
 
@@ -84,7 +85,7 @@ class Notepad:
         :return: Number of notepads
         :rtype: int
         """
-        return self.window.config.get('notepad.num') or 5
+        return self.window.app.config.get('notepad.num') or 5
 
     def update(self):
         """Update notepad"""

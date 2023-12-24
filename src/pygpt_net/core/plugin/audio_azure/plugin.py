@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.20 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 import threading
 
@@ -121,10 +122,10 @@ class Plugin(BasePlugin):
             return
 
         text = ctx.output
-        path = os.path.join(self.window.config.path, 'output.mp3')
+        path = os.path.join(self.window.app.config.path, 'output.mp3')
         try:
             if text is not None and len(text) > 0:
-                lang = self.window.config.get('lang')
+                lang = self.window.app.config.get('lang')
                 voice = None
                 if lang == "pl":
                     voice = self.get_option_value("voice_pl")
@@ -134,7 +135,7 @@ class Plugin(BasePlugin):
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def set_status(self, status):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 import os
 
@@ -25,9 +25,6 @@ class AssistantsDebug:
         """Update debug window."""
         self.window.app.debug.begin(self.id)
 
-        path = os.path.join(self.window.config.path, '', self.window.app.assistants.config_file)
-        self.window.app.debug.add(self.id, 'File', path)
-
         # assistants
         assistants = self.window.app.assistants.get_all()
         for key in assistants:
@@ -42,5 +39,6 @@ class AssistantsDebug:
             self.window.app.debug.add(self.id, 'meta', str(assistant.meta))
             self.window.app.debug.add(self.id, 'tools', str(assistant.tools))
             self.window.app.debug.add(self.id, 'files', str(assistant.files))
+            self.window.app.debug.add(self.id, 'tools[function]', str(assistant.tools['function']))
 
         self.window.app.debug.end(self.id)

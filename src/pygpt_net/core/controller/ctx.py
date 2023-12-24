@@ -41,7 +41,7 @@ class Ctx:
             self.new()
         else:
             # get last ctx from config
-            id = self.window.config.get('ctx')
+            id = self.window.app.config.get('ctx')
             if id is not None and id in self.window.app.ctx.meta:
                 self.window.app.ctx.current = id
             else:
@@ -69,9 +69,9 @@ class Ctx:
         # append ctx and thread id (assistants API) to config
         id = self.window.app.ctx.current
         if id is not None:
-            self.window.config.set('ctx', id)
-            self.window.config.set('assistant_thread', self.window.app.ctx.thread)
-            self.window.config.save()
+            self.window.app.config.set('ctx', id)
+            self.window.app.config.set('assistant_thread', self.window.app.ctx.thread)
+            self.window.app.config.save()
 
     def focus_chat(self):
         """Focus chat"""
@@ -123,7 +123,7 @@ class Ctx:
             return
 
         self.window.app.ctx.new()
-        self.window.config.set('assistant_thread', None)  # reset assistant thread id
+        self.window.app.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
         self.window.controller.output.clear()
 
@@ -134,7 +134,7 @@ class Ctx:
         mode = self.window.app.ctx.mode
         assistant_id = None
         if mode == 'assistant':
-            assistant_id = self.window.config.get('assistant')
+            assistant_id = self.window.app.config.get('assistant')
         self.update_ctx_label(mode, assistant_id)
         self.focus_chat()
 
@@ -163,7 +163,7 @@ class Ctx:
         preset = self.window.app.ctx.preset
 
         # restore thread from ctx
-        self.window.config.set('assistant_thread', thread)
+        self.window.app.config.set('assistant_thread', thread)
 
         # clear before output and append ctx to output
         self.window.controller.output.clear()
@@ -185,7 +185,7 @@ class Ctx:
                     self.window.controller.assistant.select_by_id(assistant_id)
                 else:
                     # if empty ctx assistant then get assistant from current selected
-                    assistant_id = self.window.config.get('assistant')
+                    assistant_id = self.window.app.config.get('assistant')
 
         # reload ctx list and select current ctx on list
         self.update()
@@ -195,7 +195,7 @@ class Ctx:
 
     def update_ctx(self):
         """Update current ctx mode if allowed"""
-        mode = self.window.config.get('mode')
+        mode = self.window.app.config.get('mode')
 
         id = None
         # update ctx mode only if current ctx is allowed for this mode
@@ -209,7 +209,7 @@ class Ctx:
                     id = self.window.app.ctx.assistant
                 else:
                     # or get assistant id from current selected assistant
-                    id = self.window.config.get('assistant')
+                    id = self.window.app.config.get('assistant')
 
         # update ctx label
         self.update_ctx_label(mode, id)
@@ -222,7 +222,7 @@ class Ctx:
 
         # if no ctx mode then use current mode
         if mode is None:
-            mode = self.window.config.get('mode')
+            mode = self.window.app.config.get('mode')
 
         label = trans('mode.' + mode)
 
@@ -235,7 +235,7 @@ class Ctx:
                 label += ' (' + assistant.name + ')'
             else:
                 # get current assistant
-                id = self.window.config.get('assistant')
+                id = self.window.app.config.get('assistant')
                 assistant = self.window.app.assistants.get_by_id(id)
                 if assistant is not None:
                     label += ' (' + assistant.name + ')'
@@ -360,14 +360,14 @@ class Ctx:
         :rtype: bool
         """
         # always allow if lock_modes is disabled
-        if not self.window.config.get('lock_modes'):
+        if not self.window.app.config.get('lock_modes'):
             return True
 
         if self.window.app.ctx.is_empty():
             return True
 
         # always allow if no ctx
-        id = self.window.config.get('ctx')
+        id = self.window.app.config.get('ctx')
         if id is None or id == '' or not self.window.app.ctx.has(id):
             return True
 
@@ -384,7 +384,7 @@ class Ctx:
             if mode == 'assistant':
                 if meta.assistant is not None:
                     # if the same assistant then allow
-                    if meta.assistant == self.window.config.get('assistant'):
+                    if meta.assistant == self.window.app.config.get('assistant'):
                         return True
                 else:
                     return True  # if no assistant in ctx then allow
@@ -397,7 +397,7 @@ class Ctx:
             if meta.assistant is None:
                 return True
             # disallow if different assistant
-            if meta.assistant != self.window.config.get('assistant'):
+            if meta.assistant != self.window.app.config.get('assistant'):
                 return False
         return True
 

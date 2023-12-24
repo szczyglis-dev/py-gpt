@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 21:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import threading
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -85,5 +86,5 @@ class SummarizeThread(QObject):
             if title is not None and title != "":
                 self.updated.emit(self.id, title)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
         self.destroyed.emit()

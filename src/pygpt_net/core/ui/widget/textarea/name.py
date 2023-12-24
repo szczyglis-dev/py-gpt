@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QLineEdit
@@ -33,4 +33,4 @@ class NameInput(QLineEdit):
         """
         super(NameInput, self).keyPressEvent(event)
         self.window.controller.ui.update_tokens()
-        self.window.controller.presets.update_field(self.id, self.text(), self.window.config.get('preset'), True)
+        self.window.controller.presets.update_field(self.id, self.text(), self.window.app.config.get('preset'), True)

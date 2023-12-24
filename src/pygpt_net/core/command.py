@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 01:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import json
 
 
@@ -54,8 +55,8 @@ class Command:
 
         # get custom prompt from config if exists
         if allow_custom:
-            if self.window.config.has('cmd.prompt'):
-                prompt = self.window.config.get('cmd.prompt')
+            if self.window.app.config.has('cmd.prompt'):
+                prompt = self.window.app.config.get('cmd.prompt')
                 if prompt is not None and prompt != '':
                     cmd = prompt
 

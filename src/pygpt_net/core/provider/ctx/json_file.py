@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -49,7 +49,7 @@ class JsonFileProvider(BaseProvider):
     def get_meta(self):
         """Load ctx metadata from file"""
         contexts = {}
-        path = os.path.join(self.window.config.path, 'context.json')
+        path = os.path.join(self.window.app.config.path, 'context.json')
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -58,7 +58,7 @@ class JsonFileProvider(BaseProvider):
                         return contexts
                     contexts = self.parse_meta(data['items'])
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             contexts = {}
 
         return contexts
@@ -72,7 +72,7 @@ class JsonFileProvider(BaseProvider):
         :rtype: list
         """
         data = []
-        path = os.path.join(self.window.config.path, 'context', id + '.json')
+        path = os.path.join(self.window.app.config.path, 'context', id + '.json')
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding="utf-8") as file:
@@ -80,7 +80,7 @@ class JsonFileProvider(BaseProvider):
                     if data == "" or data is None:
                         return []
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 print("Error while loading context: {}".format(id))
                 data = []
         return data
@@ -95,7 +95,7 @@ class JsonFileProvider(BaseProvider):
         """
         try:
             # update current ctx items
-            items_path = os.path.join(self.window.config.path, 'context', id + '.json')
+            items_path = os.path.join(self.window.app.config.path, 'context', id + '.json')
             serialized_items = []
             for item in items:
                 serialized_items.append(self.serialize_item(item))
@@ -106,7 +106,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
             # update ctx meta (index)
-            index_path = os.path.join(self.window.config.path, 'context.json')
+            index_path = os.path.join(self.window.app.config.path, 'context.json')
             metas = self.get_meta()
             metas[id] = meta
             data = {}
@@ -115,7 +115,7 @@ class JsonFileProvider(BaseProvider):
                 serialized_meta[n] = self.serialize_meta(metas[n])
 
             data['items'] = serialized_meta
-            data['__meta__'] = self.window.config.append_meta()
+            data['__meta__'] = self.window.app.config.append_meta()
             dump = json.dumps(data, indent=4)
 
             # save index
@@ -123,7 +123,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Error while dumping context: {}".format(id))
 
     def remove(self, id):
@@ -133,7 +133,7 @@ class JsonFileProvider(BaseProvider):
         :param id: ctx id
         """
         # delete ctx meta (index)
-        index_path = os.path.join(self.window.config.path, 'context.json')
+        index_path = os.path.join(self.window.app.config.path, 'context.json')
         metas = self.get_meta()
         if id in metas:
             del metas[id]
@@ -142,7 +142,7 @@ class JsonFileProvider(BaseProvider):
         for n in metas:
             serialized_meta[n] = self.serialize_meta(metas[n])
         data['items'] = serialized_meta
-        data['__meta__'] = self.window.config.append_meta()
+        data['__meta__'] = self.window.app.config.append_meta()
         dump = json.dumps(data, indent=4)
 
         # save index
@@ -150,36 +150,36 @@ class JsonFileProvider(BaseProvider):
             f.write(dump)
 
         # delete items
-        path = os.path.join(self.window.config.path, 'context', id + '.json')
+        path = os.path.join(self.window.app.config.path, 'context', id + '.json')
         if os.path.exists(path):
             try:
                 os.remove(path)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def truncate(self):
         """Delete all ctx"""
         # delete all ctx files
         contexts = self.get_meta()
         for id in contexts:
-            path = os.path.join(self.window.config.path, 'context', id + '.json')
+            path = os.path.join(self.window.app.config.path, 'context', id + '.json')
             if os.path.exists(path):
                 try:
                     os.remove(path)
                 except Exception as e:
-                    self.window.app.error.log(e)
+                    self.window.app.errors.log(e)
 
         # truncate ctx index
-        index_path = os.path.join(self.window.config.path, 'context.json')
+        index_path = os.path.join(self.window.app.config.path, 'context.json')
         data = {}
         data['items'] = {}
-        data['__meta__'] = self.window.config.append_meta()
+        data['__meta__'] = self.window.app.config.append_meta()
         try:
             dump = json.dumps(data, indent=4)
             with open(index_path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     @staticmethod
     def serialize_meta(meta):

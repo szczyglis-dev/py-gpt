@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.20 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 import threading
 import time
@@ -456,12 +457,12 @@ class AudioInputThread(QObject):
                 return
 
             client = OpenAI(
-                api_key=self.plugin.window.config.get('api_key'),
-                organization=self.plugin.window.config.get('organization_key'),
+                api_key=self.plugin.window.app.config.get('api_key'),
+                organization=self.plugin.window.app.config.get('organization_key'),
             )
 
             print("Starting audio listener....")
-            path = os.path.join(self.plugin.window.config.path, 'input.wav')
+            path = os.path.join(self.plugin.window.app.config.path, 'input.wav')
 
             self.started.emit()
             self.plugin.set_status('')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from urllib.request import urlopen, Request
@@ -62,7 +62,7 @@ class Updater:
                 print("No updates available.")
             return False
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Failed to check for updates")
         return False
 
@@ -91,7 +91,7 @@ class Updater:
         Load app config from JSON file
         """
         self.base_config = {}
-        path = os.path.join(self.window.config.get_root_path(), 'data', 'config', 'config.json')
+        path = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', 'config.json')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
@@ -101,7 +101,7 @@ class Updater:
             self.base_config = dict(sorted(self.base_config.items(), key=lambda item: item[0]))  # sort by key
             f.close()
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def get_base_config(self, option=None):
         """
@@ -126,7 +126,7 @@ class Updater:
             self.patch_presets()
             # TODO: add context patcher
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Failed to patch config files!")
 
     def patch_dir(self, dirname="", force=False):
@@ -138,15 +138,15 @@ class Updater:
         """
         try:
             # dir
-            dst_dir = os.path.join(self.window.config.path, dirname)
-            src = os.path.join(self.window.config.get_root_path(), 'data', 'config', dirname)
+            dst_dir = os.path.join(self.window.app.config.path, dirname)
+            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', dirname)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(dst_dir, file)
                 if not os.path.exists(dst_file) or force:
                     shutil.copyfile(src_file, dst_file)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def patch_file(self, filename="", force=False):
         """
@@ -157,22 +157,21 @@ class Updater:
         """
         try:
             # file
-            dst = os.path.join(self.window.config.path, filename)
+            dst = os.path.join(self.window.app.config.path, filename)
             if not os.path.exists(dst) or force:
-                src = os.path.join(self.window.config.get_root_path(), 'data', 'config', filename)
+                src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', filename)
                 shutil.copyfile(src, dst)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     def patch_models(self):
         """Migrate models to current version"""
-        data = self.window.config.models
+        data = self.window.app.models.items
         version = "0.0.0"
         updated = False
 
-        # get version of models file
-        if '__meta__' in data and 'version' in data['__meta__']:
-            version = data['__meta__']['version']
+        # get version of models config
+        version = self.window.app.models.get_version()
         old = parse_version(version)
 
         # get current version of app
@@ -191,21 +190,21 @@ class Updater:
             if old < parse_version("2.0.1"):
                 print("Migrating models from < 2.0.1...")
                 self.patch_file('models.json', True)  # force replace file
-                self.window.config.load_models()
-                data = self.window.config.models
+                self.window.app.models.load()
+                data = self.window.app.models.items
                 updated = True
 
         # update file
         if updated:
             data = dict(sorted(data.items()))
-            self.window.config.models = data
-            self.window.config.save_models()
+            self.window.app.models.items = data
+            self.window.app.models.save()
             print("Migrated models.json. [OK]")
 
     def patch_presets(self):
         """Migrate presets to current version"""
-        for k in self.window.config.presets:
-            data = self.window.config.presets[k]
+        for k in self.window.app.config.presets:
+            data = self.window.app.config.presets[k]
             version = "0.0.0"
             updated = False
 
@@ -228,13 +227,13 @@ class Updater:
             # update file
             if updated:
                 data = dict(sorted(data.items()))
-                self.window.config.presets[k] = data
-                self.window.config.save_preset(k)
+                self.window.app.config.presets[k] = data
+                self.window.app.config.save_preset(k)
                 print("Migrated presets. [OK]")
 
     def patch_config(self):
         """Migrate config to current version"""
-        data = self.window.config.all()
+        data = self.window.app.config.all()
         version = "0.0.0"
         updated = False
         is_old = False
@@ -504,8 +503,8 @@ class Updater:
         migrated = False
         if updated:
             data = dict(sorted(data.items()))
-            self.window.config.data = data
-            self.window.config.save()
+            self.window.app.config.data = data
+            self.window.app.config.save()
             migrated = True
 
         # check for any missing config keys if versions mismatch
@@ -524,7 +523,7 @@ class Updater:
         :rtype: bool
         """
         base = self.get_base_config()
-        data = self.window.config.all()
+        data = self.window.app.config.all()
         updated = False
 
         # check for any missing keys
@@ -536,7 +535,7 @@ class Updater:
         # update file
         if updated:
             data = dict(sorted(data.items()))
-            self.window.config.data = data
-            self.window.config.save()
+            self.window.app.config.data = data
+            self.window.app.config.save()
 
         return updated

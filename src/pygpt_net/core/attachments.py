@@ -159,7 +159,7 @@ class Attachments:
             try:
                 self.providers[self.provider].truncate(mode)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def clear(self, mode):
         """
@@ -240,7 +240,7 @@ class Attachments:
                 attachment.id = id
                 return attachment
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def add(self, mode, item):
         """
@@ -327,7 +327,7 @@ class Attachments:
             try:
                 self.items = self.providers[self.provider].load()
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 self.items = {}
 
     def save(self):
@@ -338,4 +338,4 @@ class Attachments:
             try:
                 self.providers[self.provider].save(self.items)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)

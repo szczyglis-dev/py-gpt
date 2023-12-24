@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -57,7 +57,7 @@ class Ctx:
             try:
                 self.meta = self.providers[self.provider].get_meta()
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 self.meta = {}
 
     def load(self, id):
@@ -72,14 +72,14 @@ class Ctx:
             try:
                 return self.providers[self.provider].load(id)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
         return []
 
     def update(self):
         """
         Update current parent (when ctx item load from the list or setting mode)
         """
-        self.mode = self.window.config.get('mode')
+        self.mode = self.window.app.config.get('mode')
 
         if self.current is None:
             return
@@ -96,8 +96,8 @@ class Ctx:
             return
 
         # update current
-        self.assistant = self.window.config.get('assistant')  # update assistant
-        self.preset = self.window.config.get('preset')  # update preset
+        self.assistant = self.window.app.config.get('assistant')  # update assistant
+        self.preset = self.window.app.config.get('preset')  # update preset
 
         # update current meta
         self.meta[self.current].last_mode = mode
@@ -134,15 +134,15 @@ class Ctx:
         meta = self.create()  # create new ctx meta
 
         if meta is None:
-            self.window.app.error.log("Error creating new ctx")
+            self.window.app.errors.log("Error creating new ctx")
             return
 
         self.meta[meta.id] = meta
         self.current = meta.id
         self.thread = None
         self.assistant = None
-        self.mode = self.window.config.get('mode')
-        self.preset = self.window.config.get('preset')
+        self.mode = self.window.app.config.get('mode')
+        self.preset = self.window.app.config.get('preset')
         self.items = []
         self.save(meta.id)
 
@@ -158,8 +158,8 @@ class Ctx:
         meta = CtxMeta()  # create ctx meta
         meta.name = "{}".format(trans('ctx.new.prefix'))
         meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
-        meta.mode = self.window.config.get('mode')
-        meta.last_mode = self.window.config.get('mode')
+        meta.mode = self.window.app.config.get('mode')
+        meta.last_mode = self.window.app.config.get('mode')
         meta.initialized = False
         return meta
 
@@ -176,7 +176,7 @@ class Ctx:
                 meta.id = id
                 return meta
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def has(self, id):
         """
@@ -257,14 +257,14 @@ class Ctx:
 
         :param id: ctx id
         """
-        if not self.window.config.get('store_history'):
+        if not self.window.app.config.get('store_history'):
             return
 
         if self.provider in self.providers:
             try:
                 self.providers[self.provider].save(id, self.meta[id], self.items)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def dump(self, ctx):
         """
@@ -276,7 +276,7 @@ class Ctx:
             try:
                 return self.providers[self.provider].dump(ctx)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
     def get_meta(self):
         """
@@ -345,7 +345,7 @@ class Ctx:
                 try:
                     self.providers[self.provider].remove(id)
                 except Exception as e:
-                    self.window.app.error.log(e)
+                    self.window.app.errors.log(e)
 
     def truncate(self):
         """Delete all ctx"""
@@ -357,16 +357,16 @@ class Ctx:
             try:
                 self.providers[self.provider].truncate()
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
 
         # delete all txt history files from history dir
-        path = os.path.join(self.window.config.path, 'history')
+        path = os.path.join(self.window.app.config.path, 'history')
         for file in os.listdir(path):
             if file.endswith('.txt'):
                 try:
                     os.remove(os.path.join(path, file))
                 except Exception as e:
-                    self.window.app.error.log(e)
+                    self.window.app.errors.log(e)
 
     def prepare(self):
         """Prepare context for prompt"""

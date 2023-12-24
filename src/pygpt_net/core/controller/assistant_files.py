@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 01:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 
 from ..utils import trans
@@ -34,7 +35,7 @@ class AssistantFiles:
 
         :param idx: index of file
         """
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             return
         assistant = self.window.app.assistants.get_by_id(id)
@@ -72,7 +73,7 @@ class AssistantFiles:
             self.window.set_status("Imported files: " + str(len(files)))
         except Exception as e:
             print("Error importing assistant files")
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def download_file(self, idx):
@@ -81,7 +82,7 @@ class AssistantFiles:
 
         :param idx: selected attachment index
         """
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             return
         assistant = self.window.app.assistants.get_by_id(id)
@@ -105,7 +106,7 @@ class AssistantFiles:
                                            trans('confirm.assistant.import_files'))
             return
 
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             return
         assistant = self.window.app.assistants.get_by_id(id)
@@ -114,7 +115,7 @@ class AssistantFiles:
         try:
             self.import_files(assistant)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def rename_file(self, idx):
@@ -123,7 +124,7 @@ class AssistantFiles:
 
         :param idx: selected attachment index
         """
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             return
         assistant = self.window.app.assistants.get_by_id(id)
@@ -152,7 +153,7 @@ class AssistantFiles:
         :param file_id: file_id
         :param name: new name
         """
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             self.close_rename_file()
             return
@@ -182,7 +183,7 @@ class AssistantFiles:
                                            trans('attachments_uploaded.clear.confirm'))
             return
 
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             return
 
@@ -219,7 +220,7 @@ class AssistantFiles:
             return
 
         # get current assistant
-        id = self.window.config.get('assistant')
+        id = self.window.app.config.get('assistant')
         if id is None or id == "":
             return
         assistant = self.window.app.assistants.get_by_id(id)
@@ -233,7 +234,7 @@ class AssistantFiles:
         try:
             self.window.app.gpt_assistants.file_delete(id, file_id)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.window.ui.dialogs.alert(str(e))
             return  # do not delete locally if not deleted in API
 
@@ -273,7 +274,7 @@ class AssistantFiles:
         :rtype: int
         """
         # get current chosen assistant
-        assistant_id = self.window.config.get('assistant')
+        assistant_id = self.window.app.config.get('assistant')
         if assistant_id is None:
             return 0
         assistant = self.window.app.assistants.get_by_id(assistant_id)
@@ -338,7 +339,7 @@ class AssistantFiles:
 
     def update_uploaded(self):
         """Update uploaded files list"""
-        assistant_id = self.window.config.get('assistant')
+        assistant_id = self.window.app.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.window.app.assistants.get_by_id(assistant_id)
@@ -350,7 +351,7 @@ class AssistantFiles:
         """
         Update tab label (attachments uploaded)
         """
-        assistant_id = self.window.config.get('assistant')
+        assistant_id = self.window.app.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
             return

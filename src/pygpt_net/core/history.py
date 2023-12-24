@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.17 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -23,7 +23,10 @@ class History:
         :param window: Window instance
         """
         self.window = window
-        self.path = os.path.join(self.window.config.path, self.DIRNAME)
+        self.path = None
+
+    def init(self):
+        self.path = os.path.join(self.window.app.config.path, self.DIRNAME)
 
     def save(self, text):
         """
@@ -36,17 +39,17 @@ class History:
             try:
                 os.makedirs(self.path)
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 print("Error creating history directory: " + str(e))
         if os.path.exists(self.path):
             f = os.path.join(self.path, name)
             try:
                 with open(f, 'a', encoding="utf-8") as file:
                     prefix = ""
-                    if self.window.config.get('store_history_time'):
+                    if self.window.app.config.get('store_history_time'):
                         prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
                     file.write(prefix + text + "\n")
                     file.close()
             except Exception as e:
-                self.window.app.error.log(e)
+                self.window.app.errors.log(e)
                 print("Error saving history: " + str(e))

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.20 04:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 from ..dispatcher import Event
 
 
@@ -44,19 +45,19 @@ class Audio:
                      or self.window.app.plugins.plugins['audio_azure'].options['azure_api_key'] == ''):
             self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugins settings.")
             self.window.controller.plugins.disable('audio_azure')
-        self.window.config.save()
+        self.window.app.config.save()
         self.update()
 
     def disable_output(self):
         """Disable audio/voice"""
         self.window.controller.plugins.disable('audio_azure')
-        self.window.config.save()
+        self.window.app.config.save()
         self.update()
 
     def disable_input(self, update=True):
         """Disable audio/voice"""
         self.window.controller.plugins.disable('audio_openai_whisper')
-        self.window.config.save()
+        self.window.app.config.save()
         if update:
             self.update()
 

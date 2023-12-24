@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 
 from PySide6.QtCore import Qt
@@ -46,7 +47,7 @@ class Output:
         self.window.ui.nodes['output_highlighter'] = MarkdownHighlighter(self.window.ui.nodes['output'])
 
         # file explorer
-        path = os.path.join(self.window.config.path, 'output')
+        path = os.path.join(self.window.app.config.path, 'output')
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path)
 
         # notepads

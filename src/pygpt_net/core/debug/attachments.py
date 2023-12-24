@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.05 22:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import os
 
 
@@ -24,9 +25,6 @@ class AttachmentsDebug:
     def update(self):
         """Update debug window."""
         self.window.app.debug.begin(self.id)
-
-        path = os.path.join(self.window.config.path, '', self.window.app.attachments.config_file)
-        self.window.app.debug.add(self.id, 'File', path)
 
         modes = ['chat', 'completion', 'img', 'vision', 'langchain', 'assistant']
         for mode in modes:

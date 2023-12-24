@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 18:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -26,7 +26,7 @@ class ChatOutput(QTextBrowser):
         self.window = window
         self.setReadOnly(True)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.value = self.window.config.data['font_size']
+        self.value = self.window.app.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
 
@@ -76,8 +76,8 @@ class ChatOutput(QTextBrowser):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.config.data['font_size'] = self.value
-            self.window.config.save()
+            self.window.app.config.data['font_size'] = self.value
+            self.window.app.config.save()
             self.window.controller.settings.update_font_size()
             event.accept()
         else:

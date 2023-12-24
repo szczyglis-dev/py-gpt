@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 23:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -50,13 +50,13 @@ class Plugins:
             self.plugins[id].initial_options = copy.deepcopy(plugin.options)
 
         try:
-            plugins = self.window.config.get('plugins')
+            plugins = self.window.app.config.get('plugins')
             if id in plugins:
                 for key in plugins[id]:
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = plugins[id][key]
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print('Error while loading plugin options: {}'.format(id))
 
     def restore_options(self, id):
@@ -132,5 +132,5 @@ class Plugins:
         for id in self.plugins:
             domain = 'plugin.' + id
             for lang in langs:
-                path = os.path.join(self.window.config.get_root_path(), 'data', 'locale', domain + '.' + lang + '.ini')
+                path = os.path.join(self.window.app.config.get_root_path(), 'data', 'locale', domain + '.' + lang + '.ini')
                 self.dump_locale(self.plugins[id], path)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 import json
@@ -48,7 +48,7 @@ class JsonFileProvider(BaseProvider):
 
     def load(self):
         """Load attachments from file"""
-        path = os.path.join(self.window.config.path, self.config_file)
+        path = os.path.join(self.window.app.config.path, self.config_file)
         items = {}
         try:
             if os.path.exists(path):
@@ -65,7 +65,7 @@ class JsonFileProvider(BaseProvider):
                             self.deserialize(item, attachment)
                             items[mode][id] = attachment
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             items = {}
 
         return items
@@ -76,7 +76,7 @@ class JsonFileProvider(BaseProvider):
         """
         try:
             # update attachments
-            path = os.path.join(self.window.config.path, self.config_file)
+            path = os.path.join(self.window.app.config.path, self.config_file)
             data = {}
             ary = {}
 
@@ -87,14 +87,14 @@ class JsonFileProvider(BaseProvider):
                     attachment = items[mode][id]
                     ary[mode][id] = self.serialize(attachment)
 
-            data['__meta__'] = self.window.config.append_meta()
+            data['__meta__'] = self.window.app.config.append_meta()
             data['items'] = ary
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             print("Error while saving attachments: {}".format(str(e)))
 
     def remove(self, id):
@@ -107,14 +107,14 @@ class JsonFileProvider(BaseProvider):
 
     def truncate(self, mode):
         """Delete all"""
-        path = os.path.join(self.window.config.path, self.config_file)
-        data = {'__meta__': self.window.config.append_meta(), 'items': {}}
+        path = os.path.join(self.window.app.config.path, self.config_file)
+        data = {'__meta__': self.window.app.config.append_meta(), 'items': {}}
         try:
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
 
     @staticmethod
     def serialize(attachment):

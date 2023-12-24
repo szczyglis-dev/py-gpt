@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.22 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
@@ -32,7 +32,7 @@ class Preset:
         """Setup preset editor dialog"""
 
         id = "preset.presets"
-        path = self.window.config.path
+        path = self.window.app.config.path
 
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))

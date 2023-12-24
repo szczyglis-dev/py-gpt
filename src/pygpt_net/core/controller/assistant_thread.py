@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 02:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+
 import threading
 import time
 
@@ -36,7 +37,7 @@ class AssistantThread:
         :rtype: str
         """
         thread_id = self.window.app.gpt_assistants.thread_create()
-        self.window.config.set('assistant_thread', thread_id)
+        self.window.app.config.set('assistant_thread', thread_id)
         self.window.app.ctx.append_thread(thread_id)
         return thread_id
 
@@ -149,5 +150,5 @@ class AssistantRunThread(QObject):
                 time.sleep(1)
             self.destroyed.emit()
         except Exception as e:
-            self.window.app.error.log(e)
+            self.window.app.errors.log(e)
             self.destroyed.emit()
