@@ -69,7 +69,7 @@ class Models:
         """
         Return model by index
 
-        :param idx: index of model
+        :param idx: model idx
         :param mode: mode name
         :return: model name
         :rtype: str
