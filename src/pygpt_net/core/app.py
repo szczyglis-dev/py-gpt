@@ -53,6 +53,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         """Main window"""
         super().__init__()
         self.timer = None
+        self.timer_interval = 30
         self.is_closing = False
 
         # load version info
@@ -122,7 +123,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.post_setup()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
-        self.timer.start(30)
+        self.timer.start(self.timer_interval)
 
     def post_setup(self):
         """Called after setup"""
