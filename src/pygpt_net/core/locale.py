@@ -32,7 +32,7 @@ class Locale:
         """
         Reload translations for domain
         """
-        self.config.load_config()
+        self.config.load(False)
         if self.config.has('lang'):
             self.lang = self.config.get('lang')
         self.load(self.lang, domain)
@@ -64,7 +64,7 @@ class Locale:
             ini.read_string(data.read())
             self.data[locale_id] = dict(ini.items('LOCALE'))
         except Exception as e:
-            self.window.app.errors.log(e)
+            print(e)
 
     def get(self, key, domain=None):
         """

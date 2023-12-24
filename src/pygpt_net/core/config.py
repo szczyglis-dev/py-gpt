@@ -14,7 +14,8 @@ import os
 import re
 from pathlib import Path
 import shutil
-import json
+
+from .provider.config.json_file import JsonFileProvider
 
 
 class Config:
@@ -31,10 +32,27 @@ class Config:
         :param window: Window instance
         """
         self.window = window
+        self.providers = {}
+        self.provider = "json_file"
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
         self.data = {}
         self.version = self.get_version()
+
+        # register data providers
+        self.add_provider(JsonFileProvider())  # json file provider
+
+    def add_provider(self, provider):
+        """
+        Add data provider
+
+        :param provider: data provider instance
+        """
+        self.providers[provider.id] = provider
+        self.providers[provider.id].path = self.get_user_path()
+        self.providers[provider.id].path_app = self.get_root_path()
+        self.providers[provider.id].meta = self.append_meta()
+        self.providers[provider.id].window = self.window
 
     def get_root_path(self):
         """
@@ -87,7 +105,7 @@ class Config:
             langs.insert(0, 'en')
         return langs
 
-    def init(self, all=True, log=False):
+    def init(self, all=True):
         """
         Initialize config
 
@@ -108,7 +126,7 @@ class Config:
                 print("")
                 print("Initializing...")
             self.install()
-            self.load(all, log)
+            self.load(all)
             self.initialized = True
 
     def get_version(self):
@@ -125,59 +143,67 @@ class Config:
                 result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format("__version__"), data)
                 return result.group(1)
         except Exception as e:
-            self.window.app.errors.log(e)
+            if self.window is not None:
+                self.window.app.errors.log(e)
+            else:
+                print("Error loading version file: {}".format(e))
 
-    def load(self, all=True, log=False):
+    def load(self, all=True):
         """
         Load config
 
         :param all: load all configs
         :param log: log loading
         """
-        self.load_config(log)
+        self.load_config(all)
 
         if all:
             self.window.app.modes.load()
             self.window.app.models.load()
             self.window.app.presets.load()
 
-    def load_config(self, log=False):
+    def load_config(self, all=True):
         """
         Load user config from JSON file
-
-        :param log: log loading
         """
-        path = os.path.join(self.path, 'config.json')
-        if not os.path.exists(path):
-            print("FATAL ERROR: {} not found!".format(path))
-            return None
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                self.data = json.load(f)
+        if self.provider in self.providers:
+            try:
+                self.data = self.providers[self.provider].load(all)
                 self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-                if log:  # TODO: move to self
-                    print("Loaded config: {}".format(path))
-        except Exception as e:
-            self.window.app.errors.log(e)
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error loading config: {}".format(e))
+                self.data = {}
 
-    def load_base_config(self, log=False):
+    def load_base_config(self):
         """
         Load app config from JSON file
-
-        :param log: log loading
         """
-        path = os.path.join(self.get_root_path(), 'data', 'config', 'config.json')
-        if not os.path.exists(path):
-            print("FATAL ERROR: {} not found!".format(path))
-            return None
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                self.data = json.load(f)
+        if self.provider in self.providers:
+            try:
+                self.data = self.providers[self.provider].load_base()
                 self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-                if log:
-                    print("Loaded default app config: {}".format(path))
-        except Exception as e:
-            self.window.app.errors.log(e)
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error loading config: {}".format(e))
+                self.data = {}
+
+    def save(self, filename='config.json'):
+        """
+        Save config
+        """
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(self.data, filename)
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error saving config: {}".format(e))
 
     def all(self):
         """
@@ -190,7 +216,7 @@ class Config:
 
     def get(self, key):
         """
-        Return config value
+        Return config value by key
 
         :param key: key
         :return: value
@@ -221,17 +247,6 @@ class Config:
         """
         self.data[key] = value
 
-    def save(self, filename='config.json'):
-        """Save config into file"""
-        self.data['__meta__'] = self.append_meta()
-        dump = json.dumps(self.data, indent=4)
-        path = os.path.join(self.path, filename)
-        try:
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-        except Exception as e:
-            self.window.app.errors.log(e)
-
     def append_meta(self):
         """
         Append meta data
@@ -246,7 +261,9 @@ class Config:
         }
 
     def install(self):
-        """Install config files"""
+        """
+        Install config files and directories
+        """
         try:
             # create user config directory
             path = Path(self.path)

@@ -52,7 +52,7 @@ class Lang:
         """
         self.window.app.config.set('lang', id)
         self.window.app.config.save()
-        trans('', True)  # reload translations
+        trans('', True)  # force reload translations
 
         self.update()
 
@@ -334,7 +334,6 @@ class Lang:
                     try:
                         self.window.ui.plugin_option[id][option_id].setTooltip(tooltip_str)
                     except Exception as e:
-                        self.window.app.errors.log(e)
                         pass
 
         # update settings dialog list

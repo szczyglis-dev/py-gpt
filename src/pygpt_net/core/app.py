@@ -61,7 +61,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup service container
         self.app = Container(self)
         self.app.platform.init()
-        self.app.config.init(True, True)
+        self.app.config.init(all=True)
         self.app.init()
 
         # setup main controller
