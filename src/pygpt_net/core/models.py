@@ -133,7 +133,7 @@ class Models:
 
     def get(self, model):
         """
-        Return model context window tokens
+        Return model config
 
         :param model: model name
         :return: model config
