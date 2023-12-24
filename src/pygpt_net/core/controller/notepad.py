@@ -66,7 +66,7 @@ class Notepad:
 
     def save_all(self):
         """
-        Save notepad contents
+        Save all notepads contents
         """
         items = self.window.app.notepad.get_all()
         num_notepads = self.get_num_notepads()
