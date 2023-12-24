@@ -22,7 +22,7 @@ class Locale:
         """
         Locale handler
 
-        :param domain: domain name
+        :param domain: translation domain
         """
         self.config = Config()
         self.config.init(False)
@@ -36,7 +36,7 @@ class Locale:
         """
         Reload translations for domain
 
-        :param domain: domain name
+        :param domain: translation domain
         """
         self.config.load(False)
         if self.config.has('lang'):
@@ -48,7 +48,7 @@ class Locale:
         Load translation ini file
 
         :param lang: language code
-        :param domain: domain name
+        :param domain: translation domain
         """
         if type(lang) is not str:
             lang = 'en'
@@ -78,7 +78,7 @@ class Locale:
         Return translation for key and domain
 
         :param key: translation key
-        :param domain: domain name
+        :param domain: translation domain
         :return: translated string
         :rtype: str
         """

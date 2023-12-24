@@ -23,6 +23,7 @@ def _(key, reload=False, domain=None):
 
     :param key: translation key
     :param reload: force reload translations
+    :param domain: translation domain
     :return: translated string
     :rtype: str
     """
@@ -35,6 +36,7 @@ def trans(key, reload=False, domain=None):
 
     :param key: translation key
     :param reload: force reload translations
+    :param domain: translation domain
     :return: translated string
     :rtype: str
     """
