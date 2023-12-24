@@ -48,8 +48,6 @@ class Models:
     def load(self):
         """
         Load models
-
-        :param log: log loading
         """
         if self.provider in self.providers:
             try:
