@@ -89,7 +89,7 @@ class Notepad:
         """
         Save notepad
 
-        :param notepad: notepad instance
+        :param id: notepad id
         """
         if id not in self.items:
             return False
