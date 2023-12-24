@@ -43,7 +43,7 @@ class Updater:
             self.patch_attachments(version)
             self.patch_notepad(version)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Failed to patch config data!")
 
     def patch_config(self, version):
@@ -127,7 +127,7 @@ class Updater:
                     shutil.copyfile(src_file, dst_file)
                     print("Patched file: {}.".format(dst_file))
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def patch_file(self, filename="", force=False):
         """
@@ -144,7 +144,7 @@ class Updater:
                 shutil.copyfile(src, dst)
                 print("Patched file: {}.".format(dst))
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def get_app_version(self):
         """
@@ -192,7 +192,7 @@ class Updater:
                 print("No updates available.")
             return False
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Failed to check for updates")
         return False
 

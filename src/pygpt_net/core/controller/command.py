@@ -108,6 +108,6 @@ class CommandThread(QObject):
             self.finished.emit(self.event)
         except Exception as e:
             print("Command thread error: " + str(e))
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
         self.destroyed.emit()
         print("Command thread finished work.")

@@ -125,7 +125,7 @@ class Plugin(BasePlugin):
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def destroy(self):
         """

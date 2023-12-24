@@ -90,7 +90,7 @@ class Image:
                 if response is not None and response != "":
                     prompt = response
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 print("Image prompt generate by model error: " + str(e))
 
         print("Generating image from: '{}'".format(prompt))
@@ -135,7 +135,7 @@ class Image:
                 file.write(image)
             return True
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Image save error: " + str(e))
             return False
 

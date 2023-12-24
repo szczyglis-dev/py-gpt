@@ -61,7 +61,7 @@ class Config:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -69,7 +69,7 @@ class Config:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def get_root_path(self):
         """
@@ -135,7 +135,7 @@ class Config:
                 return result.group(1)
         except Exception as e:
             if self.window is not None:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
             else:
                 print("Error loading version file: {}".format(e))
 
@@ -151,7 +151,7 @@ class Config:
                 return self.providers[self.provider].get_options()
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
                 else:
                     print("Error loading settings options: {}".format(e))
         return {}
@@ -266,7 +266,7 @@ class Config:
                 self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
                 else:
                     print("Error loading config: {}".format(e))
                 self.data = {}
@@ -282,7 +282,7 @@ class Config:
                 self.initialized_base = True
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
                 else:
                     print("Error loading config: {}".format(e))
                 self.data_base = {}
@@ -320,6 +320,6 @@ class Config:
                 self.providers[self.provider].save(self.data, filename)
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
                 else:
                     print("Error saving config: {}".format(e))

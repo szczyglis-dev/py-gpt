@@ -57,7 +57,7 @@ class Ctx:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -65,7 +65,7 @@ class Ctx:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def select(self, id):
         """
@@ -100,7 +100,7 @@ class Ctx:
         meta = self.create()  # create new ctx meta
 
         if meta is None:
-            self.window.app.errors.log("Error creating new ctx")
+            self.window.app.debug.log("Error creating new ctx")
             return
 
         self.meta[meta.id] = meta
@@ -142,7 +142,7 @@ class Ctx:
                 meta.id = id
                 return meta
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def add(self, item):
         """
@@ -351,7 +351,7 @@ class Ctx:
                 try:
                     self.providers[self.provider].remove(id)
                 except Exception as e:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
     def truncate(self):
         """Delete all ctx"""
@@ -363,7 +363,7 @@ class Ctx:
             try:
                 self.providers[self.provider].truncate()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
         # delete all txt history files from history dir
         path = os.path.join(self.window.app.config.path, 'history')
@@ -372,7 +372,7 @@ class Ctx:
                 try:
                     os.remove(os.path.join(path, file))
                 except Exception as e:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
     def clear(self):
         """Clear ctx items"""
@@ -540,7 +540,7 @@ class Ctx:
             try:
                 self.meta = self.providers[self.provider].get_meta()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 self.meta = {}
 
     def load(self, id):
@@ -555,7 +555,7 @@ class Ctx:
             try:
                 return self.providers[self.provider].load(id)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
         return []
 
     def save(self, id):
@@ -571,7 +571,7 @@ class Ctx:
             try:
                 self.providers[self.provider].save(id, self.meta[id], self.items)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def store(self):
         """Store current ctx"""
@@ -588,4 +588,4 @@ class Ctx:
             try:
                 return self.providers[self.provider].dump(ctx)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)

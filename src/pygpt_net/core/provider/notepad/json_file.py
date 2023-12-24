@@ -82,7 +82,7 @@ class JsonFileProvider(BaseProvider):
                             id = notepad.id
                             items[id] = notepad
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             items = {}
 
         return items
@@ -105,7 +105,7 @@ class JsonFileProvider(BaseProvider):
                             self.deserialize(item, notepad)
                             return notepad
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def save(self, notepad):
         """
@@ -118,7 +118,7 @@ class JsonFileProvider(BaseProvider):
             self.save_all(items)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
     def save_all(self, items):
@@ -143,7 +143,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
     def remove(self, id):
@@ -166,7 +166,7 @@ class JsonFileProvider(BaseProvider):
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def patch(self, version):
         """

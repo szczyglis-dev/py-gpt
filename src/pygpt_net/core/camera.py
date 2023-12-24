@@ -61,7 +61,7 @@ class CameraThread(QObject):
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.app.config.get('vision.capture.width'))
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.app.config.get('vision.capture.height'))
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Camera thread setup exception", e)
             self.finished.emit(e)
 
@@ -88,7 +88,7 @@ class CameraThread(QObject):
                 frame = cv2.flip(frame, 1)
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Camera thread capture exception", e)
 
         # release camera

@@ -61,7 +61,7 @@ class JsonFileProvider(BaseProvider):
                     items[id] = model
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
         return items
 
@@ -88,7 +88,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def remove(self, id):
         pass

@@ -261,7 +261,7 @@ class Assistant:
         try:
             return self.window.app.gpt_assistants.create(assistant)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def assistant_update(self, assistant):
@@ -272,7 +272,7 @@ class Assistant:
         try:
             return self.window.app.gpt_assistants.update(assistant)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def import_assistants(self, force=False):
@@ -300,7 +300,7 @@ class Assistant:
             # status
             self.window.set_status("Imported assistants: " + str(len(items)))
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error importing assistants")
             self.window.ui.dialogs.alert(str(e))
         self.update()

@@ -70,7 +70,7 @@ class Layout:
                     self.window.ui.tabs[tab].setCurrentIndex(data[tab])
                 except Exception as e:
                     print("Error while restoring tab state: " + str(e))
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
     def splitters_save(self):
         """Save splitters state"""
@@ -90,7 +90,7 @@ class Layout:
                     self.window.ui.splitters[splitter].setSizes(data[splitter])
                 except Exception as e:
                     print("Error while restoring splitter state: " + str(e))
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
     def groups_restore(self):
         """Restore groups state"""
@@ -103,7 +103,7 @@ class Layout:
                     self.window.ui.groups[id].collapse(data[id])
                 except Exception as e:
                     print("Error while restoring group state: " + str(e))
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
     def scroll_save(self):
         """Save scroll state"""
@@ -128,7 +128,7 @@ class Layout:
                         self.window.ui.notepad[id].verticalScrollBar().setValue(data[scroll_id])
                     except Exception as e:
                         print("Error while restoring scroll state: " + str(e))
-                        self.window.app.errors.log(e)
+                        self.window.app.debug.log(e)
 
     def state_restore(self):
         """Restore window state"""
@@ -144,7 +144,7 @@ class Layout:
                 self.window.showMaximized()
         except Exception as e:
             print("Error while restoring window state: " + str(e))
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def state_save(self):
         """Save window state"""
@@ -170,4 +170,4 @@ class Layout:
                     self.window.ui.groups[id].collapse(data[id])
                 except Exception as e:
                     print("Error while restoring group state: " + str(e))
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)

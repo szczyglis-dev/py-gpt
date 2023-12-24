@@ -18,7 +18,6 @@ from .config import Config
 from .ctx import Ctx
 from .debugger import Debug
 from .dispatcher import Dispatcher
-from .error_handler import ErrorHandler
 from .filesystem import Filesystem
 from .gpt import Gpt
 from .gpt_assistants import GptAssistants
@@ -55,7 +54,6 @@ class Container:
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
-        self.errors = ErrorHandler(window)
         self.filesystem = Filesystem(window)
         self.gpt = Gpt(window)
         self.gpt_assistants = GptAssistants(window)
@@ -76,7 +74,6 @@ class Container:
         """Initialize all components"""
         self.platform.init()
         self.config.init(all=True)
-
 
     def patch(self):
         """Patch version"""

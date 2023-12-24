@@ -399,7 +399,7 @@ class Plugin(BasePlugin):
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
-                            self.window.app.errors.log(e)
+                            self.window.app.debug.log(e)
 
                     # code_execute (generate and execute)
                     elif item["cmd"] == "code_execute" and self.is_cmd_allowed("code_execute"):
@@ -411,7 +411,7 @@ class Plugin(BasePlugin):
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
-                            self.window.app.errors.log(e)
+                            self.window.app.debug.log(e)
 
                     # sys_exec
                     elif item["cmd"] == "sys_exec" and self.is_cmd_allowed("sys_exec"):
@@ -423,7 +423,7 @@ class Plugin(BasePlugin):
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
-                            self.window.app.errors.log(e)
+                            self.window.app.debug.log(e)
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error: {}".format(e)})
                 ctx.reply = True  # send result message

@@ -65,7 +65,7 @@ class JsonFileProvider(BaseProvider):
                             self.deserialize(item, attachment)
                             items[mode][id] = attachment
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             items = {}
 
         return items
@@ -94,7 +94,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error while saving attachments: {}".format(str(e)))
 
     def remove(self, id):
@@ -114,7 +114,7 @@ class JsonFileProvider(BaseProvider):
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def patch(self, version):
         """

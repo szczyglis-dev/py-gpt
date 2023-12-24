@@ -44,7 +44,7 @@ class Attachments:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -52,7 +52,7 @@ class Attachments:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def select(self, mode, id):
         """
@@ -201,7 +201,7 @@ class Attachments:
                 attachment.id = id
                 return attachment
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def add(self, mode, item):
         """
@@ -258,7 +258,7 @@ class Attachments:
             try:
                 self.providers[self.provider].truncate(mode)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def clear(self, mode):
         """
@@ -343,7 +343,7 @@ class Attachments:
             try:
                 self.items = self.providers[self.provider].load()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 self.items = {}
 
     def save(self):
@@ -354,4 +354,4 @@ class Attachments:
             try:
                 self.providers[self.provider].save(self.items)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)

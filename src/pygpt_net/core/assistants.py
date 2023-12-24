@@ -45,7 +45,7 @@ class Assistants:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -53,7 +53,7 @@ class Assistants:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def get_by_idx(self, idx):
         """
@@ -274,7 +274,7 @@ class Assistants:
             if remote_data is not None:
                 name = remote_data.filename
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
         return name
 
     def load(self):
@@ -283,7 +283,7 @@ class Assistants:
             try:
                 self.items = self.providers[self.provider].load()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 self.items = {}
 
     def save(self):
@@ -294,4 +294,4 @@ class Assistants:
             try:
                 self.providers[self.provider].save(self.items)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)

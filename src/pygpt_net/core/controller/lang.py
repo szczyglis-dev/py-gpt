@@ -266,7 +266,7 @@ class Lang:
             self.toggle_plugins()
         except Exception as e:
             print("Error updating plugin locales", e)
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')  # clear status

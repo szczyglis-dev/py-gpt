@@ -62,7 +62,7 @@ class JsonFileProvider(BaseProvider):
                         self.deserialize(json.load(f), preset)
                         items[filename[:-5]] = preset
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
         return items
 
@@ -80,7 +80,7 @@ class JsonFileProvider(BaseProvider):
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def save_all(self, items):
         """
@@ -99,7 +99,7 @@ class JsonFileProvider(BaseProvider):
                 with open(path, 'w', encoding="utf-8") as f:
                     f.write(dump)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def remove(self, id):
         """
@@ -112,7 +112,7 @@ class JsonFileProvider(BaseProvider):
             try:
                 os.remove(path)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def truncate(self):
         pass

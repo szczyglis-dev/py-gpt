@@ -156,7 +156,7 @@ class Camera:
             return True
         except Exception as e:
             print("Frame capture exception", e)
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             self.window.statusChanged.emit(trans('vision.capture.error'))
         return False
 

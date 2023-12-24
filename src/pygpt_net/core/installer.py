@@ -65,5 +65,5 @@ class Installer:
             self.window.app.camera.install()
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error installing config files:", e)

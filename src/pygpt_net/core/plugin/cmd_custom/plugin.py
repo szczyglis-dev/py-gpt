@@ -192,7 +192,7 @@ class Plugin(BasePlugin):
                         msg = "Error: {}".format(e)
                         ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                         ctx.reply = True
-                        self.window.app.errors.log(e)
+                        self.window.app.debug.log(e)
                         self.log(msg)
 
         # update status

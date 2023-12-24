@@ -263,7 +263,7 @@ class Attachment:
             self.window.app.gpt_assistants.file_download(file_id, path)
             return path  # return path to downloaded file
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def toggle_send_clear(self, value):

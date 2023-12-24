@@ -57,7 +57,7 @@ class Plugins:
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = plugins[id][key]
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print('Error while loading plugin options: {}'.format(id))
 
     def unregister(self, id):

@@ -56,7 +56,7 @@ class TxtFileProvider(BaseProvider):
             try:
                 os.makedirs(path)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 print("Error creating history directory: " + str(e))
 
         # append to file
@@ -69,7 +69,7 @@ class TxtFileProvider(BaseProvider):
                         prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
                     file.write(prefix + text + "\n")
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 print("Error appending to history: " + str(e))
 
     def truncate(self):
@@ -81,4 +81,4 @@ class TxtFileProvider(BaseProvider):
             for f in os.listdir(path):
                 os.remove(os.path.join(path, f))
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)

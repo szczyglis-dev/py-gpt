@@ -66,7 +66,7 @@ class JsonFileProvider(BaseProvider):
                         self.deserialize(item, assistant)
                         items[id] = assistant
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             items = {}
 
         return items
@@ -93,7 +93,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error while saving assistants: {}".format(str(e)))
 
     def remove(self, id):

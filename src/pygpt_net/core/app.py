@@ -20,7 +20,7 @@ from logging import ERROR, WARNING, INFO, DEBUG
 
 from .container import Container
 from .controller.main import Controller
-from .error_handler import ErrorHandler
+from .debugger import Debug
 from .platform import Platform
 from .ui.main import UI
 from .utils import get_app_meta
@@ -43,7 +43,7 @@ from .llm.Ollama import OllamaLLM
 from .llm.OpenAI import OpenAILLM
 
 
-ErrorHandler.init(ERROR)  # set error handler logging level
+Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -220,7 +220,7 @@ class Launcher:
             print("Closing...")
         except Exception as e:
             print("Fatal error, exiting...")
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
 
 def run(plugins=None, llms=None):

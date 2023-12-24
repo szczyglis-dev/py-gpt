@@ -66,7 +66,7 @@ class JsonFileProvider(BaseProvider):
                         return contexts
                     contexts = self.parse_meta(data['items'])
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             contexts = {}
 
         return contexts
@@ -88,7 +88,7 @@ class JsonFileProvider(BaseProvider):
                     if data == "" or data is None:
                         return []
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 print("Error while loading context: {}".format(id))
                 data = []
         return data
@@ -131,7 +131,7 @@ class JsonFileProvider(BaseProvider):
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             print("Error while dumping context: {}".format(id))
 
     def remove(self, id):
@@ -163,7 +163,7 @@ class JsonFileProvider(BaseProvider):
             try:
                 os.remove(path)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def truncate(self):
         """Delete all ctx"""
@@ -175,7 +175,7 @@ class JsonFileProvider(BaseProvider):
                 try:
                     os.remove(path)
                 except Exception as e:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
         # truncate ctx index
         index_path = os.path.join(self.window.app.config.path, 'context.json')
@@ -187,7 +187,7 @@ class JsonFileProvider(BaseProvider):
             with open(index_path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
 
     def patch(self, version):
         """

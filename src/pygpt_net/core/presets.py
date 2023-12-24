@@ -46,7 +46,7 @@ class Presets:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -54,7 +54,7 @@ class Presets:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def build(self):
         """
@@ -248,7 +248,7 @@ class Presets:
                 try:
                     self.providers[self.provider].remove(id)
                 except Exception as e:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
             # self.load_presets()
 
     def sort_by_name(self):
@@ -263,7 +263,7 @@ class Presets:
             try:
                 self.items = self.providers[self.provider].load()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
                 self.items = {}
 
         # sort presets
@@ -283,7 +283,7 @@ class Presets:
             try:
                 self.providers[self.provider].save(id, self.items[id])
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def save_all(self):
         """Save all presets"""
@@ -291,4 +291,4 @@ class Presets:
             try:
                 self.providers[self.provider].save_all(self.items)
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)

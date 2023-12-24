@@ -43,7 +43,7 @@ class History:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.errors.log(e)
+                self.window.app.debug.log(e)
 
     def append(self, ctx, mode):
         """
@@ -57,6 +57,6 @@ class History:
                 self.providers[self.provider].append(ctx, mode)
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
                 else:
                     print("Error appending to history: {}".format(e))

@@ -128,7 +128,7 @@ class Chain:
                 try:
                     llm = self.llms[provider].chat(self.window.app.config.all(), config.langchain, stream_mode)
                 except Exception as e:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
 
         # if no LLM here then raise exception
         if llm is None:
@@ -156,7 +156,7 @@ class Chain:
                 try:
                     llm = self.llms[provider].completion(self.window.app.config.all(), config.langchain, stream_mode)
                 except Exception as e:
-                    self.window.app.errors.log(e)
+                    self.window.app.debug.log(e)
         if llm is None:
             raise Exception("Invalid LLM")
 
@@ -194,7 +194,7 @@ class Chain:
                 response = self.completion(text, stream_mode)
 
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             raise e  # re-raise to window
 
         # async mode (stream)

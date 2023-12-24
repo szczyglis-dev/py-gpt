@@ -116,7 +116,7 @@ class Settings:
                 txt = f.read()
                 self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             self.window.set_status("Error loading file: {}".format(e))
 
     def save_editor(self):
@@ -147,5 +147,5 @@ class Settings:
             self.window.set_status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
         except Exception as e:
-            self.window.app.errors.log(e)
+            self.window.app.debug.log(e)
             self.window.set_status("Error saving file: {}".format(path))
