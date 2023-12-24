@@ -73,6 +73,9 @@ class Debug:
         """
         Initialize error handler
         """
+        if not os.path.exists(os.path.join(Path.home(), '.config', Config.CONFIG_DIR)):
+            os.makedirs(os.path.join(Path.home(), '.config', Config.CONFIG_DIR))
+
         logging.basicConfig(
             level=level,
             format='%(asctime)s - %(levelname)s - %(message)s',
