@@ -50,6 +50,8 @@ class Notepad:
     def save(self, id=None):
         """
         Save notepad contents
+
+        :param id: notepad id
         """
         item = self.window.app.notepad.get_by_id(id)
         if item is None:
