@@ -103,8 +103,6 @@ class Notepad:
     def save_all(self):
         """
         Save all notepads
-
-        :param notepad: notepad instance
         """
         if self.provider in self.providers:
             try:
