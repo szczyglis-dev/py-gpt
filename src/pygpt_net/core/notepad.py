@@ -9,8 +9,6 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 import datetime
-import json
-import os
 
 from .provider.notepad.json_file import JsonFileProvider
 
@@ -62,7 +60,7 @@ class Notepad:
 
     def update(self, notepad):
         """
-        Update notepad
+        Update and save notepad
 
         :param notepad: notepad instance
         :return: True if success
@@ -98,7 +96,7 @@ class Notepad:
 
     def save(self, id):
         """
-        Save notepad
+        Save notepad by id
 
         :param id: notepad id
         :return: True if saved, False if not
