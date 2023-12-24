@@ -259,7 +259,7 @@ def run(plugins=None, llms=None):
             MyCustomLLM(),
         ]
 
-        run(plugins, llms)
+        run(plugins=plugins, llms=llms)
 
     """
 
