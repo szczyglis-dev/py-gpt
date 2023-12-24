@@ -9,9 +9,6 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from ..updater import Updater
-
-
 class Launcher:
     def __init__(self, window=None):
         """
@@ -33,8 +30,9 @@ class Launcher:
         """Setup launcher"""
         self.window.app.updater.check()
 
-        # show welcome API KEY dialog
-        if self.window.app.config.get('api_key') is None or self.window.app.config.get('api_key') == '':
+        # show welcome API KEY dialog (disable for langchain mode)
+        if self.window.app.config.get('mode') != 'langchain' and \
+                (self.window.app.config.get('api_key') is None or self.window.app.config.get('api_key') == ''):
             self.show_api_monit()
 
         self.window.app.gpt.init()
