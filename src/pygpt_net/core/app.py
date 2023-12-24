@@ -173,7 +173,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Saving config...")
         self.app.config.save()
         print("Saving presets...")
-        self.app.config.save_presets()
+        self.app.presets.save_all()
         print("Exiting...")
         event.accept()  # let the window close
 

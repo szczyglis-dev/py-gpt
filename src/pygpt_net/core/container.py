@@ -27,6 +27,7 @@ from .models import Models
 from .notepad import Notepad
 from .platform import Platform
 from .plugins import Plugins
+from .presets import Presets
 from .settings import Settings
 
 
@@ -58,6 +59,7 @@ class Container:
         self.notepad = Notepad(window)
         self.platform = Platform(window)
         self.plugins = Plugins(window)
+        self.presets = Presets(window)
         self.settings = Settings(window)
 
     def init(self):

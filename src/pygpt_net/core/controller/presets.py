@@ -13,6 +13,7 @@ import datetime
 import os
 import re
 
+from ..item.preset import PresetItem
 from ..utils import trans
 
 
@@ -35,15 +36,15 @@ class Presets:
         :param current: if true, updates current preset
         """
         if preset is not None and preset != "":
-            if preset in self.window.app.config.presets:
+            if preset in self.window.app.presets.items:
                 if id == 'preset.ai_name':
-                    self.window.app.config.presets[preset]['ai_name'] = value
+                    self.window.app.presets.items[preset].ai_name = value
                 elif id == 'preset.user_name':
-                    self.window.app.config.presets[preset]['user_name'] = value
+                    self.window.app.presets.items[preset].user_name = value
                 elif id == 'preset.prompt':
-                    self.window.app.config.presets[preset]['prompt'] = value
+                    self.window.app.presets.items[preset].prompt = value
                 elif id == 'preset.temperature' or id == 'current_temperature':
-                    self.window.app.config.presets[preset]['temperature'] = float(value)
+                    self.window.app.presets.items[preset].temperature = float(value)
 
         # update current data
         if current:
@@ -67,79 +68,75 @@ class Presets:
         preset = None
         if idx is not None:
             mode = self.window.app.config.get('mode')
-            preset = self.window.app.config.get_preset_by_idx(idx, mode)
+            preset = self.window.app.presets.get_by_idx(idx, mode)
 
         self.init_editor(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx)
 
-    def init_editor(self, preset=None):
+    def init_editor(self, id=None):
         """
         Initialize preset editor
 
-        :param preset: preset name (id / filename)
+        :param id: preset id
         """
-        data = {}
-        data['ai_name'] = ""
-        data['user_name'] = ""
-        data['prompt'] = ""
-        data['temperature'] = 1.0
-        data['img'] = False
-        data['chat'] = False
-        data['completion'] = False
-        data['vision'] = False
-        data['langchain'] = False
-        data['assistant'] = False
-        data['name'] = ""
-        data['filename'] = ""
+        data = PresetItem
+        data.ai_name = ""
+        data.user_name = ""
+        data.prompt = ""
+        data.temperature = 1.0
+        data.img = False
+        data.chat = False
+        data.completion = False
+        data.vision = False
+        data.langchain = False
+        data.assistant = False
+        data.name = ""
+        data.filename = ""
 
-        if preset is not None and preset != "":
-            if preset in self.window.app.config.presets:
-                data = self.window.app.config.presets[preset]
-                data['filename'] = preset
+        if id is not None and id != "":
+            if id in self.window.app.presets.items:
+                data = self.window.app.presets.items[id]
+                data.filename = id
 
-        if data['name'] is None:
-            data['name'] = ""
-        if data['ai_name'] is None:
-            data['ai_name'] = ""
-        if data['user_name'] is None:
-            data['user_name'] = ""
-        if data['prompt'] is None:
-            data['prompt'] = ""
-        if data['filename'] is None:
-            data['filename'] = ""
+        if data.name is None:
+            data.name = ""
+        if data.ai_name is None:
+            data.ai_name = ""
+        if data.user_name is None:
+            data.user_name = ""
+        if data.prompt is None:
+            data.prompt = ""
+        if data.filename is None:
+            data.filename = ""
 
-        if preset is None:
+        if id is None:
             mode = self.window.app.config.get('mode')
             if mode == 'chat':
-                data['chat'] = True
+                data.chat = True
             elif mode == 'completion':
-                data['completion'] = True
+                data.completion = True
             elif mode == 'img':
-                data['img'] = True
+                data.img = True
             elif mode == 'vision':
-                data['vision'] = True
+                data.vision = True
             elif mode == 'langchain':
-                data['langchain'] = True
+                data.langchain = True
             elif mode == 'assistant':
-                data['assistant'] = True
+                data.assistant = True
 
-        self.config_change('preset.filename', data['filename'], 'preset.editor')
-        self.config_change('preset.ai_name', data['ai_name'], 'preset.editor')
-        self.config_change('preset.user_name', data['user_name'], 'preset.editor')
-        self.config_change('preset.prompt', data['prompt'], 'preset.editor')
-        self.config_change('preset.name', data['name'], 'preset.editor')
-        self.config_slider('preset.temperature', data['temperature'], '', 'preset.editor')
-        self.config_toggle('preset.img', data['img'], 'preset.editor')
-        self.config_toggle('preset.chat', data['chat'], 'preset.editor')
+        self.config_change('preset.filename', data.filename, 'preset.editor')
+        self.config_change('preset.ai_name', data.ai_name, 'preset.editor')
+        self.config_change('preset.user_name', data.user_name, 'preset.editor')
+        self.config_change('preset.prompt', data.prompt, 'preset.editor')
+        self.config_change('preset.name', data.name, 'preset.editor')
+        self.config_slider('preset.temperature', data.temperature, '', 'preset.editor')
 
-        if 'completion' in data:
-            self.config_toggle('preset.completion', data['completion'], 'preset.editor')
-        if 'vision' in data:
-            self.config_toggle('preset.vision', data['vision'], 'preset.editor')
-        if 'langchain' in data:
-            self.config_toggle('preset.langchain', data['langchain'], 'preset.editor')
-        if 'assistant' in data:
-            self.config_toggle('preset.assistant', data['assistant'], 'preset.editor')
+        self.config_toggle('preset.img', data.img, 'preset.editor')
+        self.config_toggle('preset.chat', data.chat, 'preset.editor')
+        self.config_toggle('preset.completion', data.completion, 'preset.editor')
+        self.config_toggle('preset.vision', data.vision, 'preset.editor')
+        self.config_toggle('preset.langchain', data.langchain, 'preset.editor')
+        self.config_toggle('preset.assistant', data.assistant, 'preset.editor')
 
         # set focus to name field
         self.window.ui.config_option['preset.name'].setFocus()
@@ -162,40 +159,35 @@ class Presets:
 
         :param force: force overwrite file
         """
-        preset = self.window.ui.config_option['preset.filename'].text()
+        id = self.window.ui.config_option['preset.filename'].text()
         mode = self.window.app.config.get('mode')
         is_created = False
 
         # disallow editing current preset cache
-        if preset.startswith('current.'):
+        if id.startswith('current.'):
             return
 
-        if preset is None or preset == "":
+        if id is None or id == "":
             name = self.window.ui.config_option['preset.name'].text()
             if name is None or name == "":
                 self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
                 self.window.set_status(trans('status.preset.empty_id'))
                 return
             # generate new filename
-            preset = self.make_preset_filename(name)
+            id = self.make_preset_filename(name)
             # check if not exists
-            path = os.path.join(self.window.app.config.path, 'presets', preset + '.json')
+            path = os.path.join(self.window.app.config.path, 'presets', id + '.json')
             if os.path.exists(path) and not force:
                 # add datetime suffix to filename
-                preset = preset + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+                id = id + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             is_created = True
 
         # validate filename
-        preset = self.validate_filename(preset)
-        if preset not in self.window.app.config.presets:
-            self.window.app.config.presets[preset] = {}
-
-        # prepare path
-        filepath = os.path.join(self.window.app.config.path, 'presets', preset + '.json')
-
-        # if exists then show confirmation dialog
-        if os.path.exists(filepath) and not force:
-            self.window.ui.dialogs.confirm('preset_exists', preset, trans('confirm.preset.overwrite'))
+        id = self.validate_filename(id)
+        if id not in self.window.app.presets.items:
+            self.window.app.presets.items[id] = {}
+        elif not force:
+            self.window.ui.dialogs.confirm('preset_exists', id, trans('confirm.preset.overwrite'))
             return
 
         # check if at least one mode is enabled
@@ -217,42 +209,42 @@ class Presets:
             return
 
         # assign data from fields to preset
-        self.assign_data(preset)
+        self.assign_data(id)
 
         # save file
-        self.window.app.config.save_preset(preset)
+        self.window.app.presets.save(id)
         self.window.controller.model.update_presets()
 
         self.window.ui.dialogs.close('editor.preset.presets')
         self.window.set_status(trans('status.preset.saved'))
 
         # switch to editing preset
-        self.window.controller.model.set_preset(mode, preset)
+        self.window.controller.model.set_preset(mode, id)
         self.window.controller.model.update_presets()
 
-    def assign_data(self, preset):
+    def assign_data(self, id):
         """
         Assign data from fields to preset
 
-        :param preset: preset name (id / filename)
+        :param id: preset id
         """
         name = self.window.ui.config_option['preset.name'].text()
         if name is None or name == "":
-            name = preset + " " + trans('preset.untitled')
-        self.window.app.config.presets[preset]['name'] = name
-        self.window.app.config.presets[preset]['ai_name'] = self.window.ui.config_option['preset.ai_name'].text()
-        self.window.app.config.presets[preset]['user_name'] = self.window.ui.config_option['preset.user_name'].text()
-        self.window.app.config.presets[preset]['prompt'] = self.window.ui.config_option['preset.prompt'].toPlainText()
-        self.window.app.config.presets[preset]['temperature'] = float(
+            name = id + " " + trans('preset.untitled')
+        self.window.app.presets.items[id].name = name
+        self.window.app.presets.items[id].ai_name = self.window.ui.config_option['preset.ai_name'].text()
+        self.window.app.presets.items[id].user_name = self.window.ui.config_option['preset.user_name'].text()
+        self.window.app.presets.items[id].prompt = self.window.ui.config_option['preset.prompt'].toPlainText()
+        self.window.app.presets.items[id].temperature = float(
             self.window.ui.config_option['preset.temperature'].input.text())
-        self.window.app.config.presets[preset]['img'] = self.window.ui.config_option['preset.img'].box.isChecked()
-        self.window.app.config.presets[preset]['chat'] = self.window.ui.config_option['preset.chat'].box.isChecked()
-        self.window.app.config.presets[preset]['completion'] = self.window.ui.config_option[
+        self.window.app.presets.items[id].img = self.window.ui.config_option['preset.img'].box.isChecked()
+        self.window.app.presets.items[id].chat = self.window.ui.config_option['preset.chat'].box.isChecked()
+        self.window.app.presets.items[id].completion = self.window.ui.config_option[
             'preset.completion'].box.isChecked()
-        self.window.app.config.presets[preset]['vision'] = self.window.ui.config_option['preset.vision'].box.isChecked()
-        self.window.app.config.presets[preset]['langchain'] = self.window.ui.config_option[
+        self.window.app.presets.items[id].vision = self.window.ui.config_option['preset.vision'].box.isChecked()
+        self.window.app.presets.items[id].langchain = self.window.ui.config_option[
             'preset.langchain'].box.isChecked()
-        self.window.app.config.presets[preset]['assistant'] = self.window.ui.config_option[
+        self.window.app.presets.items[id].assistant = self.window.ui.config_option[
             'preset.assistant'].box.isChecked()
 
     def duplicate(self, idx=None):
@@ -263,13 +255,13 @@ class Presets:
         """
         if idx is not None:
             mode = self.window.app.config.get('mode')
-            preset = self.window.app.config.get_preset_by_idx(idx, mode)
+            preset = self.window.app.presets.get_by_idx(idx, mode)
             if preset is not None and preset != "":
-                if preset in self.window.app.config.presets:
-                    new_id = self.window.app.config.duplicate_preset(preset)
+                if preset in self.window.app.presets.items:
+                    new_id = self.window.app.presets.duplicate(preset)
                     self.window.app.config.set('preset', new_id)
                     self.window.controller.model.update_presets()
-                    idx = self.window.app.config.get_preset_idx(mode, new_id)
+                    idx = self.window.app.presets.get_idx_by_id(mode, new_id)
                     self.edit(idx)
                     self.window.set_status(trans('status.preset.duplicated'))
 
@@ -291,11 +283,11 @@ class Presets:
         self.window.app.config.set('temperature', 1.0)
 
         if preset is not None and preset != "":
-            if preset in self.window.app.config.presets:
-                self.window.app.config.presets[preset]['ai_name'] = ""
-                self.window.app.config.presets[preset]['user_name'] = ""
-                self.window.app.config.presets[preset]['prompt'] = ""
-                self.window.app.config.presets[preset]['temperature'] = 1.0
+            if preset in self.window.app.presets.items:
+                self.window.app.presets.items[preset].ai_name = ""
+                self.window.app.presets.items[preset].user_name = ""
+                self.window.app.presets.items[preset].prompt = ""
+                self.window.app.presets.items[preset].temperature = 1.0
                 self.window.controller.model.update_presets()
 
         self.window.set_status(trans('status.preset.cleared'))
@@ -309,9 +301,9 @@ class Presets:
         """
         if idx is not None:
             mode = self.window.app.config.get('mode')
-            preset = self.window.app.config.get_preset_by_idx(idx, mode)
+            preset = self.window.app.presets.get_by_idx(idx, mode)
             if preset is not None and preset != "":
-                if preset in self.window.app.config.presets:
+                if preset in self.window.app.presets.items:
                     # if exists then show confirmation dialog
                     if not force:
                         self.window.ui.dialogs.confirm('preset_delete', idx, trans('confirm.preset.delete'))
@@ -319,7 +311,7 @@ class Presets:
 
                     if preset == self.window.app.config.get('preset'):
                         self.window.app.config.set('preset', None)
-                    self.window.app.config.delete_preset(preset, True)
+                    self.window.app.presets.remove(preset, True)
                     self.window.controller.model.update_presets()
                     self.window.set_status(trans('status.preset.deleted'))
 

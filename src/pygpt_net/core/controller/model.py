@@ -118,7 +118,7 @@ class Model:
         :param mode: mode name
         :param idx: preset index
         """
-        preset = self.window.app.config.get_preset_by_idx(idx, mode)
+        preset = self.window.app.presets.get_by_idx(idx, mode)
         self.window.app.config.data['preset'] = preset
         self.window.app.config.data['current_preset'][mode] = preset
 
@@ -129,7 +129,7 @@ class Model:
         :param mode: mode name
         :param preset: preset name
         """
-        if not self.window.app.config.has_preset(mode, preset):
+        if not self.window.app.presets.has(mode, preset):
             return False
         self.window.app.config.data['preset'] = preset
         self.window.app.config.data['current_preset'][mode] = preset
@@ -156,7 +156,7 @@ class Model:
         """Select preset by current"""
         mode = self.window.app.config.get('mode')
         preset = self.window.app.config.get('preset')
-        items = self.window.app.config.get_presets(mode)
+        items = self.window.app.presets.get_by_mode(mode)
         if preset in items:
             idx = list(items.keys()).index(preset)
             current = self.window.ui.models['preset.presets'].index(idx, 0)
@@ -203,36 +203,36 @@ class Model:
             if mode in current_presets and \
                     current_presets[mode] is not None and \
                     current_presets[mode] != "" and \
-                    current_presets[mode] in self.window.app.config.get_presets(mode):
+                    current_presets[mode] in self.window.app.presets.get_by_mode(mode):
                 self.window.app.config.set('preset', current_presets[mode])
             else:
                 # or set default preset
-                self.window.app.config.set('preset', self.window.app.config.get_default_preset(mode))
+                self.window.app.config.set('preset', self.window.app.presets.get_default(mode))
 
     def update_preset_data(self):
         """Update preset data"""
-        preset = self.window.app.config.get('preset')
-        if preset is None or preset == "":
+        id = self.window.app.config.get('preset')
+        if id is None or id == "":
             self.reset_preset_data()  # clear preset fields
             self.reset_current_data()
             return
 
-        if preset not in self.window.app.config.presets:
+        if id not in self.window.app.presets.items:
             self.window.app.config.set('preset', "")  # clear preset if not found
             self.reset_preset_data()  # clear preset fields
             self.reset_current_data()
             return
 
         # update preset fields
-        preset_data = self.window.app.config.presets[preset]
-        self.window.ui.nodes['preset.prompt'].setPlainText(preset_data['prompt'])
-        self.window.ui.nodes['preset.ai_name'].setText(preset_data['ai_name'])
-        self.window.ui.nodes['preset.user_name'].setText(preset_data['user_name'])
+        data = self.window.app.presets.items[id]
+        self.window.ui.nodes['preset.prompt'].setPlainText(data.prompt)
+        self.window.ui.nodes['preset.ai_name'].setText(data.ai_name)
+        self.window.ui.nodes['preset.user_name'].setText(data.user_name)
 
         # update current data
-        self.window.app.config.set('prompt', preset_data['prompt'])
-        self.window.app.config.set('ai_name', preset_data['ai_name'])
-        self.window.app.config.set('user_name', preset_data['user_name'])
+        self.window.app.config.set('prompt', data.prompt)
+        self.window.app.config.set('ai_name', data.ai_name)
+        self.window.app.config.set('user_name', data.user_name)
 
     def update_list_modes(self):
         """Update modes list"""
@@ -248,7 +248,7 @@ class Model:
     def update_list_presets(self):
         """Update presets list"""
         mode = self.window.app.config.get('mode')
-        items = self.window.app.config.get_presets(mode)
+        items = self.window.app.presets.get_by_mode(mode)
         self.window.ui.toolbox.presets.update(items)
 
     def update_current_temperature(self, temperature=None):
@@ -261,22 +261,22 @@ class Model:
             if self.window.app.config.get('preset') is None or self.window.app.config.get('preset') == "":
                 temperature = 1.0  # default temperature
             else:
-                preset = self.window.app.config.get('preset')
-                if preset in self.window.app.config.presets and 'temperature' in self.window.app.config.presets[preset]:
-                    temperature = float(self.window.app.config.presets[preset]['temperature'])
+                id = self.window.app.config.get('preset')
+                if id in self.window.app.presets.items:
+                    temperature = float(self.window.app.presets.items[id].temperature)
         self.window.controller.settings.apply("current_temperature", temperature)
 
     def update_current_preset(self):
         """Update current mode, model and preset"""
         mode = self.window.app.config.get('mode')
-        preset_id = self.window.app.config.get('preset')
-        if preset_id is not None and preset_id != "":
-            if preset_id in self.window.app.config.presets:
-                preset = self.window.app.config.presets[preset_id]
-                self.window.app.config.set('user_name', preset['user_name'])
-                self.window.app.config.set('ai_name', preset['ai_name'])
-                self.window.app.config.set('prompt', preset['prompt'])
-                self.window.app.config.set('temperature', preset['temperature'])
+        id = self.window.app.config.get('preset')
+        if id is not None and id != "":
+            if id in self.window.app.presets.items:
+                preset = self.window.app.presets.items[id]
+                self.window.app.config.set('user_name', preset.user_name)
+                self.window.app.config.set('ai_name', preset.ai_name)
+                self.window.app.config.set('prompt', preset.prompt)
+                self.window.app.config.set('temperature', preset.temperature)
                 return
 
         self.window.app.config.set('user_name', None)

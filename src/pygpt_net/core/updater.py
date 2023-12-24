@@ -203,14 +203,13 @@ class Updater:
 
     def patch_presets(self):
         """Migrate presets to current version"""
-        for k in self.window.app.config.presets:
-            data = self.window.app.config.presets[k]
+        for k in self.window.app.presets.items:
+            data = self.window.app.presets.items[k]
             version = "0.0.0"
             updated = False
 
-            # get version of presets file
-            if '__meta__' in data and 'version' in data['__meta__']:
-                version = data['__meta__']['version']
+            # get version of preset
+            version = data.version
             old = parse_version(version)
 
             # get current version of app
@@ -227,8 +226,8 @@ class Updater:
             # update file
             if updated:
                 data = dict(sorted(data.items()))
-                self.window.app.config.presets[k] = data
-                self.window.app.config.save_preset(k)
+                self.window.app.presets.items[k] = data
+                self.window.app.presets.save(k)
                 print("Migrated presets. [OK]")
 
     def patch_config(self):

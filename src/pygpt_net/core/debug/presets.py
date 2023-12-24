@@ -27,9 +27,9 @@ class PresetsDebug:
         self.window.app.debug.begin(self.id)
 
         # presets
-        for key in self.window.app.config.presets:
+        for key in self.window.app.presets.items:
             prefix = "[{}] ".format(key)
-            preset = self.window.app.config.presets[key]
+            preset = self.window.app.presets.items[key]
             path = os.path.join(self.window.app.config.path, 'presets', key + '.json')
             self.window.app.debug.add(self.id, prefix + 'ID', str(key))
             self.window.app.debug.add(self.id, prefix + 'File', str(path))
