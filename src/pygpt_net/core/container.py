@@ -24,6 +24,7 @@ from .history import History
 from .image import Image
 from .info import Info
 from .models import Models
+from .modes import Modes
 from .notepad import Notepad
 from .platform import Platform
 from .plugins import Plugins
@@ -56,6 +57,7 @@ class Container:
         self.images = Image(window)
         self.info = Info(window)
         self.models = Models(window)
+        self.modes = Modes(window)
         self.notepad = Notepad(window)
         self.platform = Platform(window)
         self.plugins = Plugins(window)

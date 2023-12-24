@@ -45,7 +45,7 @@ class Models:
             except Exception as e:
                 self.window.app.errors.log(e)
 
-    def load(self, log=False):
+    def load(self):
         """
         Load models
 

@@ -137,7 +137,8 @@ class Config:
         self.load_config(log)
 
         if all:
-            self.window.app.models.load(log)
+            self.window.app.modes.load()
+            self.window.app.models.load()
             self.window.app.presets.load()
 
     def load_config(self, log=False):
@@ -219,54 +220,6 @@ class Config:
         :param value:
         """
         self.data[key] = value
-
-    def get_mode_by_idx(self, idx):
-        """
-        Return mode by index
-
-        :param idx: index of mode
-        :return: mode name
-        :rtype: str
-        """
-        modes = self.get_modes()
-        return list(modes.keys())[idx]
-
-    def get_modes(self):
-        """
-        Return modes
-
-        :return: Dict with modes
-        :rtype: dict
-        """
-        modes = {}
-        modes['chat'] = {
-            'name': 'mode.chat'
-        }
-        modes['completion'] = {
-            'name': 'mode.completion'
-        }
-        modes['img'] = {
-            'name': 'mode.img'
-        }
-        modes['vision'] = {
-            'name': 'mode.vision'
-        }
-        modes['assistant'] = {
-            'name': 'mode.assistant'
-        }
-        modes['langchain'] = {
-            'name': 'mode.langchain'
-        }
-        return modes
-
-    def get_default_mode(self):
-        """
-        Return default mode name
-
-        :return: default mode name
-        :rtype: str
-        """
-        return 'chat'
 
     def save(self, filename='config.json'):
         """Save config into file"""

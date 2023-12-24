@@ -1,0 +1,45 @@
+{
+    "__meta__": {
+        "version": "2.0.48",
+        "app.version": "2.0.48",
+        "updated_at": "2023-12-24T02:35:03"
+    },
+    "items": {
+        "chat": {
+            "id": "chat",
+            "name": "chat",
+            "label": "mode.chat",
+            "default": true
+        },
+        "completion": {
+            "id": "completion",
+            "name": "completion",
+            "label": "mode.completion",
+            "default": false
+        },
+        "img": {
+            "id": "img",
+            "name": "img",
+            "label": "mode.img",
+            "default": false
+        },
+        "vision": {
+            "id": "vision",
+            "name": "vision",
+            "label": "mode.vision",
+            "default": false
+        },
+        "assistant": {
+            "id": "assistant",
+            "name": "assistant",
+            "label": "mode.assistant",
+            "default": false
+        },
+        "langchain": {
+            "id": "langchain",
+            "name": "langchain",
+            "label": "mode.langchain",
+            "default": false
+        }
+    }
+}

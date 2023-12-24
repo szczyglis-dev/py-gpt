@@ -36,7 +36,7 @@ class Model:
             # check if mode change is not locked
             if self.mode_change_locked():
                 return
-            mode = self.window.app.config.get_mode_by_idx(value)
+            mode = self.window.app.modes.get_by_idx(value)
             self.set_mode(mode)
             return
         elif id == 'prompt.model':
@@ -137,7 +137,7 @@ class Model:
     def select_mode_by_current(self):
         """Select mode by current"""
         mode = self.window.app.config.get('mode')
-        items = self.window.app.config.get_modes()
+        items = self.window.app.modes.get_all()
         idx = list(items.keys()).index(mode)
         current = self.window.ui.models['prompt.mode'].index(idx, 0)
         self.window.ui.nodes['prompt.mode'].setCurrentIndex(current)
@@ -173,7 +173,7 @@ class Model:
         """Set default mode"""
         mode = self.window.app.config.get('mode')
         if mode is None or mode == "":
-            self.window.app.config.set('mode', self.window.app.config.get_default_mode())
+            self.window.app.config.set('mode', self.window.app.modes.get_default())
 
     def select_default_model(self):
         """Set default model"""
@@ -236,7 +236,7 @@ class Model:
 
     def update_list_modes(self):
         """Update modes list"""
-        items = self.window.app.config.get_modes()
+        items = self.window.app.modes.get_all()
         self.window.ui.toolbox.mode.update(items)
 
     def update_list_models(self):

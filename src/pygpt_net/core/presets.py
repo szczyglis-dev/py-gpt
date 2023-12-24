@@ -44,7 +44,7 @@ class Presets:
         """
         Save preset
 
-        :param id preset id
+        :param id: preset id
         """
         if id not in self.items:
             return
@@ -155,17 +155,17 @@ class Presets:
         presets = self.get_by_mode(mode)
         return list(presets.keys())[idx]
 
-    def has(self, mode, name):
+    def has(self, mode, id):
         """
         Check if preset for mode exists
 
         :param mode: mode name
-        :param name: preset name (id)
+        :param name: preset id
         :return: bool
         :rtype: bool
         """
         presets = self.get_by_mode(mode)
-        if name in presets:
+        if id in presets:
             return True
         return False
 
@@ -188,19 +188,19 @@ class Presets:
                 presets[id] = self.items[id]
         return presets
 
-    def get_idx_by_id(self, mode, name):
+    def get_idx_by_id(self, mode, id):
         """
         Return preset index
 
         :param mode: mode name
-        :param name: name of preset
-        :return: index of preset
+        :param id: preset id
+        :return: preset idx
         :rtype: int
         """
         presets = self.get_by_mode(mode)
         i = 0
         for key in presets:
-            if key == name:
+            if key == id:
                 return i
             i += 1
         return 0
@@ -236,32 +236,32 @@ class Presets:
             return None
         return list(presets.keys())[0]
 
-    def get_duplicate_name(self, name):
+    def get_duplicate_name(self, id):
         """
         Prepare name for duplicated preset
 
-        :param name: name of preset
+        :param id: preset id
         :return: name of duplicated preset
         :rtype: str or None
         """
-        old_name = self.items[name].name
+        old_name = self.items[id].name
         i = 1
         while True:
-            new_name = name + '_' + str(i)
+            new_name = id + '_' + str(i)
             if new_name not in self.items:
                 return new_name, old_name + ' (' + str(i) + ')'
             i += 1
 
-    def duplicate(self, name):
+    def duplicate(self, id):
         """
         Make preset duplicate
 
-        :param name: name of preset
+        :param id: preset id
         :return: duplicated preset name (ID)
         :rtype: str
         """
-        id, title = self.get_duplicate_name(name)
-        self.items[id] = copy.deepcopy(self.items[name])
+        id, title = self.get_duplicate_name(id)
+        self.items[id] = copy.deepcopy(self.items[id])
         self.items[id].name = title
         self.sort_by_name()
         return id
