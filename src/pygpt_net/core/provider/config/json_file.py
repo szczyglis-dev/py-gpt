@@ -22,10 +22,11 @@ class JsonFileProvider(BaseProvider):
         self.id = "json_file"
         self.type = "config"
         self.config_file = 'config.json'
+        self.settings_file = 'settings.json'
 
     def get_version(self):
         """
-        Get data version
+        Get config file version
 
         :return: version
         :rtype: str
@@ -77,7 +78,6 @@ class JsonFileProvider(BaseProvider):
                 print("Loaded default app config: {}".format(path))
         except Exception as e:
             print("FATAL ERROR: {}".format(e))
-
         return data
 
     def save(self, data, filename='config.json'):
@@ -96,11 +96,24 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             print("FATAL ERROR: {}".format(e))
 
-    def remove(self, id):
-        pass
+    def get_options(self):
+        """
+        Load config settings options from JSON file
 
-    def truncate(self):
-        pass
+        :return: data
+        :rtype: dict
+        """
+        data = {}
+        path = os.path.join(self.path_app, 'data', 'config', self.settings_file)
+        if not os.path.exists(path):
+            print("FATAL ERROR: {} not found!".format(path))
+            return None
+        try:
+            with open(path, 'r', encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            print("FATAL ERROR: {}".format(e))
+        return data
 
     @staticmethod
     def serialize(item):

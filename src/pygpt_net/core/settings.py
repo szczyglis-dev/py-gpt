@@ -13,8 +13,6 @@ import json
 import os
 import shutil
 
-from .utils import trans
-
 
 class Settings:
     def __init__(self, window=None):
@@ -37,15 +35,10 @@ class Settings:
 
     def load(self):
         """
-        Load settings options from config file
+        Load settings options
         """
-        path = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', 'settings.json')
-        if not os.path.isfile(path):
-            return {}
-        with open(path) as f:
-            self.options = json.load(f)
-            self.initialized = True
-            f.close()
+        self.options = self.window.app.config.get_options()
+        self.initialized = True
 
     def get_options(self, id=None):
         """
@@ -64,7 +57,7 @@ class Settings:
 
     def get_persist_options(self):
         """
-        Return persist options keys
+        Return persist options keys (options that should be persisted when loading defaults)
 
         :return: list of keys
         :rtype: list
@@ -133,7 +126,6 @@ class Settings:
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(data)
-                f.close()
             self.window.set_status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
         except Exception as e:
@@ -153,7 +145,6 @@ class Settings:
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 txt = f.read()
-                f.close()
                 self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
             self.window.app.errors.log(e)

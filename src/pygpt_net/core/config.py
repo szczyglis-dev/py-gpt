@@ -205,6 +205,23 @@ class Config:
                 else:
                     print("Error saving config: {}".format(e))
 
+    def get_options(self):
+        """
+        Return settings options
+
+        :return: settings options
+        :rtype: dict
+        """
+        if self.provider in self.providers:
+            try:
+                return self.providers[self.provider].get_options()
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error loading settings options: {}".format(e))
+        return {}
+
     def all(self):
         """
         Return all config values

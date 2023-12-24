@@ -10,26 +10,10 @@
 # ================================================== #
 
 
-class BaseProvider:
-    def __init__(self, window=None):
-        self.window = window
-        self.id = ""
-        self.type = "config"
-        self.path = None
-        self.path_app = None
-        self.meta = None
-
-    def load(self, all=False):
-        pass
-
-    def load_base(self):
-        pass
-
-    def save(self, items, filename='config.json'):
-        pass
-
-    def get_options(self):
-        pass
-
-    def get_version(self):
-        pass
+class NotepadItem:
+    def __init__(self):
+        self.id = None
+        self.idx = 0
+        self.title = ""
+        self.content = ""
+        self.updated_at = None

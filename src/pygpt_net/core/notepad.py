@@ -8,9 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
-
+import datetime
 import json
 import os
+
+from .provider.notepad.json_file import JsonFileProvider
 
 
 class Notepad:
@@ -21,36 +23,91 @@ class Notepad:
         :param window: Window instance
         """
         self.window = window
+        self.providers = {}
+        self.provider = "json_file"
+        self.items = {}
 
-    def load(self):
-        """Load content from file"""
-        path = os.path.join(self.window.app.config.path, 'notepad.json')
-        try:
-            if os.path.exists(path):
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
-                    file.close()
-                    if data == "" or data is None or 'content' not in data:
-                        return ""
-                    return data['content']
-        except Exception as e:
-            self.window.app.errors.log(e)
+        # register data providers
+        self.add_provider(JsonFileProvider())  # json file provider
 
-    def save(self, content):
+    def add_provider(self, provider):
         """
-        Save notepad content to file
+        Add data provider
 
-        :param content: notepad content to save
+        :param provider: data provider instance
         """
-        try:
-            # update contexts index
-            path = os.path.join(self.window.app.config.path, 'notepad.json')
-            data = {'__meta__': self.window.app.config.append_meta(), 'content': content}
-            dump = json.dumps(data, indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
+        self.providers[provider.id] = provider
+        self.providers[provider.id].window = self.window
 
-        except Exception as e:
-            self.window.app.errors.log(e)
-            print("Error while saving notepad: {}".format(str(e)))
+    def get_by_id(self, id):
+        """
+        Get notepad by id
+
+        :param id: notepad id
+        """
+        if id in self.items:
+            return self.items[id]
+        return None
+
+    def get_all(self):
+        """
+        Get all notepads
+        """
+        return self.items
+
+    def update(self, notepad):
+        """
+        Update notepad
+
+        :param notepad: notepad instance
+        """
+        if notepad.id not in self.items:
+            return False
+
+        notepad.updated_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        self.items[notepad.id] = notepad
+        self.save(notepad.id)
+        return True
+
+    def load(self, id):
+        """Load notepad by id"""
+        if self.provider in self.providers:
+            try:
+                self.items[id] = self.providers[self.provider].load(id)
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def load_all(self):
+        """Load all notepads"""
+        if self.provider in self.providers:
+            try:
+                self.items = self.providers[self.provider].load_all()
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def save(self, id):
+        """
+        Save notepad
+
+        :param notepad: notepad instance
+        """
+        if id not in self.items:
+            return False
+
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(self.items[id])
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def save_all(self):
+        """
+        Save all notepads
+
+        :param notepad: notepad instance
+        """
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save_all(self.items)
+            except Exception as e:
+                self.window.app.errors.log(e)

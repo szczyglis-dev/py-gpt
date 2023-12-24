@@ -72,7 +72,7 @@ class NotepadOutput(QTextEdit):
         :param event: key event
         """
         super(NotepadOutput, self).keyPressEvent(event)
-        self.window.controller.notepad.save()
+        self.window.controller.notepad.save(self.no)
 
     def wheelEvent(self, event):
         """

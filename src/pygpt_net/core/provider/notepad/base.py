@@ -15,20 +15,17 @@ class BaseProvider:
         self.window = window
         self.id = ""
         self.type = "config"
-        self.path = None
-        self.path_app = None
-        self.meta = None
 
-    def load(self, all=False):
+    def load(self, id):
         pass
 
-    def load_base(self):
+    def load_all(self):
         pass
 
-    def save(self, items, filename='config.json'):
+    def save(self, notepad):
         pass
 
-    def get_options(self):
+    def save_all(self, items):
         pass
 
     def get_version(self):

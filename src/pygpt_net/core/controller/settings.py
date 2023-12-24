@@ -95,7 +95,7 @@ class Settings:
         info = trans('info.settings.all.saved')
         self.window.app.config.save()
         self.window.app.presets.save_all()
-        self.window.controller.notepad.save()
+        self.window.controller.notepad.save_all()
         self.window.ui.dialogs.alert(info)
         self.window.set_status(info)
         self.window.controller.ui.update()

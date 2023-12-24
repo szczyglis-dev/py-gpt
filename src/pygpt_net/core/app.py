@@ -165,7 +165,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Sending terminate signal to plugins...")
         self.controller.plugins.destroy()
         print("Saving notepad...")
-        self.controller.notepad.save()
+        self.controller.notepad.save_all()
         print("Saving layout state...")
         self.controller.layout.save()
         print("Stopping event loop...")
