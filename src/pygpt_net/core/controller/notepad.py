@@ -26,7 +26,7 @@ class Notepad:
 
     def load(self):
         """
-        Load notepad contents
+        Load all notepads contents
         """
         self.window.app.notepad.load_all()
         items = self.window.app.notepad.get_all()
