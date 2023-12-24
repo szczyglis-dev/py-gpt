@@ -215,12 +215,17 @@ class Presets:
         self.window.app.presets.save(id)
         self.window.controller.model.update_presets()
 
+        # close dialog
         self.window.ui.dialogs.close('editor.preset.presets')
         self.window.set_status(trans('status.preset.saved'))
 
         # switch to editing preset
         self.window.controller.model.set_preset(mode, id)
+
+        # sort by name
         self.window.app.presets.sort_by_name()
+
+        # update list
         self.window.controller.model.update_presets()
 
     def assign_data(self, id):
