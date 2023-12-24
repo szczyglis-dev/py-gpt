@@ -197,6 +197,8 @@ class Image:
     def toggle_raw(self, state):
         """
         Toggle help for images
+
+        :param state: state of checkbox
         """
         if not state:
             self.disable_raw()
