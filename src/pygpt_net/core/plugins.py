@@ -42,6 +42,7 @@ class Plugins:
 
         :param plugin: plugin instance
         """
+        plugin.attach(self.window)
         id = plugin.id
         self.plugins[id] = plugin
 
@@ -58,6 +59,15 @@ class Plugins:
         except Exception as e:
             self.window.app.errors.log(e)
             print('Error while loading plugin options: {}'.format(id))
+
+    def unregister(self, id):
+        """
+        Unregister plugin
+
+        :param id: plugin id
+        """
+        if self.is_registered(id):
+            self.plugins.pop(id)
 
     def restore_options(self, id):
         """

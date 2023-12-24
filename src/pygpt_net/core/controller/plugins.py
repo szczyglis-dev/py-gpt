@@ -244,24 +244,15 @@ class Plugins:
         self.init_settings()
         self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.app.result'))
 
-    def register(self, plugin):
-        """
-        Register plugin
-
-        :param plugin: Plugin
-        """
-        self.window.app.plugins.register(plugin)
-
     def unregister(self, id):
         """
         Unregister plugin
 
-        :param id: Plugin id
+        :param id: plugin id
         """
-        if self.window.app.plugins.is_registered(id):
-            self.window.app.plugins.plugins.pop(id)
-            if id in self.enabled:
-                self.enabled.pop(id)
+        self.window.app.plugins.unregister(id)
+        if id in self.enabled:
+            self.enabled.pop(id)
 
     def enable(self, id):
         """

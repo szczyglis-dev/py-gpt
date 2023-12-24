@@ -105,8 +105,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param plugin: plugin instance
         """
-        plugin.attach(self)
-        self.controller.plugins.register(plugin)
+        self.app.plugins.register(plugin)
 
     def add_llm(self, llm):
         """
@@ -114,8 +113,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param llm: LLM wrapper instance
         """
-        id = llm.id
-        self.app.chain.register(id, llm)
+        self.app.chain.register(llm.id, llm)
 
     def setup(self):
         """Setup app"""
