@@ -47,7 +47,7 @@ class Notepad:
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].setText(items[id].content)
 
-    def save(self, id=None):
+    def save(self, id):
         """
         Save notepad contents
 
