@@ -241,15 +241,15 @@ class Presets:
         Prepare name for duplicated preset
 
         :param id: preset id
-        :return: name of duplicated preset
-        :rtype: str or None
+        :return: new ID, new name
+        :rtype: (str, str)
         """
         old_name = self.items[id].name
         i = 1
         while True:
-            new_name = id + '_' + str(i)
-            if new_name not in self.items:
-                return new_name, old_name + ' (' + str(i) + ')'
+            new_id = id + '_' + str(i)
+            if new_id not in self.items:
+                return new_id, old_name + ' (' + str(i) + ')'
             i += 1
 
     def duplicate(self, id):
@@ -257,12 +257,13 @@ class Presets:
         Make preset duplicate
 
         :param id: preset id
-        :return: duplicated preset name (ID)
+        :return: duplicated preset ID
         :rtype: str
         """
-        id, title = self.get_duplicate_name(id)
-        self.items[id] = copy.deepcopy(self.items[id])
-        self.items[id].name = title
+        prev_id = id
+        id, name = self.get_duplicate_name(id)
+        self.items[id] = copy.deepcopy(self.items[prev_id])
+        self.items[id].name = name
         self.sort_by_name()
         return id
 
