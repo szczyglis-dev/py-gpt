@@ -84,7 +84,7 @@ class Assistants:
 
     def create(self):
         """
-        Create new assistant item
+        Create new assistant item (only empty object)
 
         :return: assistant ID
         :rtype: AssistantItem
