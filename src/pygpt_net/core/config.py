@@ -129,63 +129,6 @@ class Config:
             else:
                 print("Error loading version file: {}".format(e))
 
-    def load(self, all=True):
-        """
-        Load config
-
-        :param all: load all configs
-        :param log: log loading
-        """
-        self.load_config(all)
-
-        if all:
-            self.window.app.modes.load()
-            self.window.app.models.load()
-            self.window.app.presets.load()
-
-    def load_config(self, all=True):
-        """
-        Load user config from JSON file
-        """
-        if self.provider in self.providers:
-            try:
-                self.data = self.providers[self.provider].load(all)
-                self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-            except Exception as e:
-                if self.window is not None:
-                    self.window.app.errors.log(e)
-                else:
-                    print("Error loading config: {}".format(e))
-                self.data = {}
-
-    def load_base_config(self):
-        """
-        Load app config from JSON file
-        """
-        if self.provider in self.providers:
-            try:
-                self.data = self.providers[self.provider].load_base()
-                self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-            except Exception as e:
-                if self.window is not None:
-                    self.window.app.errors.log(e)
-                else:
-                    print("Error loading config: {}".format(e))
-                self.data = {}
-
-    def save(self, filename='config.json'):
-        """
-        Save config
-        """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.data, filename)
-            except Exception as e:
-                if self.window is not None:
-                    self.window.app.errors.log(e)
-                else:
-                    print("Error saving config: {}".format(e))
-
     def get_options(self):
         """
         Return settings options
@@ -229,7 +172,7 @@ class Config:
         Check if key exists in config
 
         :param key: key
-        :return: True if exists
+        :return: true if exists
         :rtype: bool
         """
         if key in self.data:
@@ -287,3 +230,63 @@ class Config:
             'app.version': self.version,
             'updated_at': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         }
+
+    def load(self, all=True):
+        """
+        Load config
+
+        :param all: load all configs
+        """
+        self.load_config(all)
+
+        if all:
+            self.window.app.modes.load()
+            self.window.app.models.load()
+            self.window.app.presets.load()
+
+    def load_config(self, all=True):
+        """
+        Load user config from JSON file
+
+        :param all: load all configs
+        """
+        if self.provider in self.providers:
+            try:
+                self.data = self.providers[self.provider].load(all)
+                self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error loading config: {}".format(e))
+                self.data = {}
+
+    def load_base_config(self):
+        """
+        Load app config from JSON file
+        """
+        if self.provider in self.providers:
+            try:
+                self.data = self.providers[self.provider].load_base()
+                self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error loading config: {}".format(e))
+                self.data = {}
+
+    def save(self, filename='config.json'):
+        """
+        Save config
+
+        :param filename: filename
+        """
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(self.data, filename)
+            except Exception as e:
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error saving config: {}".format(e))

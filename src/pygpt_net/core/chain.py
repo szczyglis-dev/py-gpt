@@ -171,9 +171,9 @@ class Chain:
         Call LLM with Langchain
 
         :param text: input text
-        :param ctx: context (memory)
+        :param ctx: context (CtxItem)
         :param stream_mode: stream mode
-        :return: context (memory)
+        :return: context (CtxItem)
         :rtype: CtxItem
         """
         config = self.window.app.models.get(self.window.app.config.get('model'))

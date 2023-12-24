@@ -33,13 +33,6 @@ class Settings:
         for id in self.ids:
             self.active[id] = False
 
-    def load(self):
-        """
-        Load settings options
-        """
-        self.options = self.window.app.config.get_options()
-        self.initialized = True
-
     def get_options(self, id=None):
         """
         Return options for given id
@@ -69,6 +62,13 @@ class Settings:
             if 'persist' in self.options[option] and self.options[option]['persist']:
                 persist_options.append(option)
         return persist_options
+
+    def load(self):
+        """
+        Load settings options
+        """
+        self.options = self.window.app.config.get_options()
+        self.initialized = True
 
     def load_user_settings(self):
         """Load user config (from user home dir)"""
@@ -101,6 +101,24 @@ class Settings:
         self.load_editor(file)
         self.window.set_status("Loaded defaults from file: {}".format(file))
 
+    def load_editor(self, file=None):
+        """
+        Load file to editor
+
+        :param file: file name
+        """
+        # load file
+        path = os.path.join(self.window.app.config.path, file)
+        self.window.ui.paths['config'].setText(path)
+        self.window.ui.dialog['config.editor'].file = file
+        try:
+            with open(path, 'r', encoding="utf-8") as f:
+                txt = f.read()
+                self.window.ui.editor['config'].setPlainText(txt)
+        except Exception as e:
+            self.window.app.errors.log(e)
+            self.window.set_status("Error loading file: {}".format(e))
+
     def save_editor(self):
         """Save file to disk"""
         # check if this is a valid JSON:
@@ -131,21 +149,3 @@ class Settings:
         except Exception as e:
             self.window.app.errors.log(e)
             self.window.set_status("Error saving file: {}".format(path))
-
-    def load_editor(self, file=None):
-        """
-        Load file to editor
-
-        :param file: file name
-        """
-        # load file
-        path = os.path.join(self.window.app.config.path, file)
-        self.window.ui.paths['config'].setText(path)
-        self.window.ui.dialog['config.editor'].file = file
-        try:
-            with open(path, 'r', encoding="utf-8") as f:
-                txt = f.read()
-                self.window.ui.editor['config'].setPlainText(txt)
-        except Exception as e:
-            self.window.app.errors.log(e)
-            self.window.set_status("Error loading file: {}".format(e))

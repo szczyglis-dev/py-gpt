@@ -45,33 +45,16 @@ class Models:
             except Exception as e:
                 self.window.app.errors.log(e)
 
-    def get_version(self):
-        """Get config version"""
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].get_version()
-            except Exception as e:
-                self.window.app.errors.log(e)
-
-    def load(self):
+    def get(self, model):
         """
-        Load models
-        """
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-                self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
-            except Exception as e:
-                self.window.app.errors.log(e)
-                self.items = {}
+        Return model config
 
-    def save(self):
-        """Save models"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.items)
-            except Exception as e:
-                self.window.app.errors.log(e)
+        :param model: model name
+        :return: model config object
+        :rtype: ModelItem
+        """
+        if model in self.items:
+            return self.items[model]
 
     def get_by_idx(self, idx, mode):
         """
@@ -139,13 +122,30 @@ class Models:
             return self.items[model].ctx
         return 4096
 
-    def get(self, model):
+    def load(self):
         """
-        Return model config
+        Load models
+        """
+        if self.provider in self.providers:
+            try:
+                self.items = self.providers[self.provider].load()
+                self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
+            except Exception as e:
+                self.window.app.errors.log(e)
+                self.items = {}
 
-        :param model: model name
-        :return: model config object
-        :rtype: ModelItem
-        """
-        if model in self.items:
-            return self.items[model]
+    def save(self):
+        """Save models"""
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(self.items)
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def get_version(self):
+        """Get config version"""
+        if self.provider in self.providers:
+            try:
+                return self.providers[self.provider].get_version()
+            except Exception as e:
+                self.window.app.errors.log(e)

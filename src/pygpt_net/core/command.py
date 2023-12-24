@@ -103,6 +103,7 @@ class Command:
                 if cmd_dict is not None:
                     cmds.append(cmd_dict)
         except Exception as e:
+            # do nothing
             pass
         return cmds
 
@@ -120,5 +121,6 @@ class Command:
             try:
                 cmd = json.loads(chunk)
             except json.JSONDecodeError as e:
+                # do nothing
                 pass
         return cmd

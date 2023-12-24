@@ -141,61 +141,6 @@ class Attachments:
 
         return self.items[mode]
 
-    def delete(self, mode, id):
-        """
-        Delete attachment by file_id
-
-        :param mode: mode
-        :param id: file id
-        """
-        if mode not in self.items:
-            self.items[mode] = {}
-
-        if id in self.items[mode]:
-            del self.items[mode][id]
-            self.save()
-
-    def delete_all(self, mode):
-        """
-        Delete all attachments
-
-        :param mode: mode
-        """
-        self.clear(mode)
-
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].truncate(mode)
-            except Exception as e:
-                self.window.app.errors.log(e)
-
-    def clear(self, mode):
-        """
-        Clear all attachments in mode
-
-        :param mode: mode
-        """
-        self.items[mode] = {}
-
-    def clear_all(self):
-        """
-        Clear all attachments
-        """
-        self.items = {}
-
-    def has(self, mode):
-        """
-        Check id mode has attachments
-
-        :param mode: mode
-        :return: true if exists
-        :rtype: bool
-        """
-        if mode not in self.items:
-            self.items[mode] = {}
-
-        return len(self.items[mode]) > 0
-
     def new(self, mode, name=None, path=None, auto_save=True):
         """
         Create new attachment
@@ -265,6 +210,61 @@ class Attachments:
 
         # save attachments
         self.save()
+
+    def has(self, mode):
+        """
+        Check id mode has attachments
+
+        :param mode: mode
+        :return: true if exists
+        :rtype: bool
+        """
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        return len(self.items[mode]) > 0
+
+    def delete(self, mode, id):
+        """
+        Delete attachment by file_id
+
+        :param mode: mode
+        :param id: file id
+        """
+        if mode not in self.items:
+            self.items[mode] = {}
+
+        if id in self.items[mode]:
+            del self.items[mode][id]
+            self.save()
+
+    def delete_all(self, mode):
+        """
+        Delete all attachments
+
+        :param mode: mode
+        """
+        self.clear(mode)
+
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].truncate(mode)
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def clear(self, mode):
+        """
+        Clear all attachments in mode
+
+        :param mode: mode
+        """
+        self.items[mode] = {}
+
+    def clear_all(self):
+        """
+        Clear all attachments
+        """
+        self.items = {}
 
     def replace_id(self, mode, tmp_id, attachment):
         """

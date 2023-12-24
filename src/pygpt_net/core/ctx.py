@@ -59,78 +59,28 @@ class Ctx:
             except Exception as e:
                 self.window.app.errors.log(e)
 
-    def load_meta(self):
-        """Load ctx list from provider"""
-        if self.provider in self.providers:
-            try:
-                self.meta = self.providers[self.provider].get_meta()
-            except Exception as e:
-                self.window.app.errors.log(e)
-                self.meta = {}
-
-    def load(self, id):
+    def select(self, id):
         """
-        Load ctx data from provider
+        Select ctx
 
-        :param id: ctx id
-        :return: ctx items
-        :rtype: list
+        :param id: context id
         """
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].load(id)
-            except Exception as e:
-                self.window.app.errors.log(e)
-        return []
+        if id in self.meta:
+            ctx = self.meta[id]
+            self.current = id
 
-    def update(self):
-        """
-        Update current parent (when ctx item load from the list or setting mode)
-        """
-        self.mode = self.window.app.config.get('mode')
+            # reset
+            self.thread = None
+            self.mode = None
+            self.assistant = None
 
-        if self.current is None:
-            return
-        self.meta[self.current].mode = self.mode
-        self.save(self.current)
+            # restore
+            self.thread = ctx.thread
+            self.mode = ctx.mode
+            self.assistant = ctx.assistant
+            self.preset = ctx.preset
 
-    def post_update(self, mode):
-        """
-        Update current (last) ctx data
-
-        :param mode: mode name
-        """
-        if self.current is None:
-            return
-
-        # update current
-        self.assistant = self.window.app.config.get('assistant')  # update assistant
-        self.preset = self.window.app.config.get('preset')  # update preset
-
-        # update current meta
-        self.meta[self.current].last_mode = mode
-        self.meta[self.current].preset = self.preset
-
-        # if assistant then update assistant
-        if mode == 'assistant':
-            self.meta[self.current].assistant = self.assistant
-
-        # save ctx
-        self.save(self.current)
-
-    def is_empty(self):
-        """
-        Check if ctx is empty
-
-        :return: true if empty, false otherwise
-        :rtype: bool
-        """
-        if self.current is None:
-            return True
-        else:
-            if len(self.items) == 0:
-                return True
-        return False
+            self.items = self.load(id)
 
     def new(self):
         """
@@ -186,17 +136,65 @@ class Ctx:
             except Exception as e:
                 self.window.app.errors.log(e)
 
-    def has(self, id):
+    def add(self, item):
         """
-        Check if ctx meta exists
+        Add CtxItem to contexts and saves context
 
-        :param id: ctx ID
-        :return: true if exists, false otherwise
+        :param item: CtxItem to append
+        """
+        self.items.append(item)  # add CtxItem to context items
+
+        # save context to file
+        self.store()
+
+    def is_empty(self):
+        """
+        Check if ctx is empty
+
+        :return: true if empty, false otherwise
         :rtype: bool
         """
-        if id in self.meta:
+        if self.current is None:
             return True
+        else:
+            if len(self.items) == 0:
+                return True
         return False
+
+    def update(self):
+        """
+        Update current parent (when ctx item load from the list or setting mode)
+        """
+        self.mode = self.window.app.config.get('mode')
+
+        if self.current is None:
+            return
+        self.meta[self.current].mode = self.mode
+        self.save(self.current)
+
+    def post_update(self, mode):
+        """
+        Update current (last) ctx data
+
+        :param mode: mode name
+        """
+        if self.current is None:
+            return
+
+        # update current
+        self.assistant = self.window.app.config.get('assistant')  # update assistant
+        self.preset = self.window.app.config.get('preset')  # update preset
+
+        # update current meta
+        self.meta[self.current].last_mode = mode
+        self.meta[self.current].preset = self.preset
+
+        # if assistant then update assistant
+        if mode == 'assistant':
+            self.meta[self.current].assistant = self.assistant
+
+        # save ctx
+        self.save(self.current)
 
     def is_initialized(self):
         """
@@ -220,71 +218,28 @@ class Ctx:
             self.meta[self.current].initialized = True
             self.save(self.current)
 
-    def append_thread(self, thread):
+    def has(self, id):
         """
-        Append thread ID to ctx
+        Check if ctx meta exists
 
-        :param thread: thread ID
+        :param id: ctx ID
+        :return: true if exists, false otherwise
+        :rtype: bool
         """
-        self.thread = thread
-        if self.current is None:
-            return
-        if self.current in self.meta:
-            self.meta[self.current].thread = self.thread
-            self.save(self.current)
+        if id in self.meta:
+            return True
+        return False
 
-    def append_run(self, run):
+    def get(self, idx):
         """
-        Append run ID to ctx
+        Return ctx item by index
 
-        :param run: run ID
+        :param idx: item index
+        :return: context item
+        :rtype: CtxItem or None
         """
-        self.run = run
-        if self.current is None:
-            return
-        if self.current in self.meta:
-            self.meta[self.current].run = self.run
-            self.save(self.current)
-
-    def append_status(self, status):
-        """
-        Append status to ctx
-
-        :param status: status
-        """
-        self.status = status
-        if self.current is None:
-            return
-        if self.current in self.meta:
-            self.meta[self.current].status = self.status
-            self.save(self.current)
-
-    def save(self, id):
-        """
-        Dump ctx to file
-
-        :param id: ctx id
-        """
-        if not self.window.app.config.get('store_history'):
-            return
-
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(id, self.meta[id], self.items)
-            except Exception as e:
-                self.window.app.errors.log(e)
-
-    def dump(self, ctx):
-        """
-        Dump context item
-
-        :param ctx: CtxItem instance
-        """
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].dump(ctx)
-            except Exception as e:
-                self.window.app.errors.log(e)
+        if idx < len(self.items):
+            return self.items[idx]
 
     def get_meta(self):
         """
@@ -341,6 +296,41 @@ class Ctx:
         if id in self.meta:
             return self.meta[id]
 
+    def get_last(self):
+        """
+        Return last item from ctx
+
+        :return: last ctx item
+        :rtype: CtxItem or None
+        """
+        if len(self.items) > 0:
+            return self.items[-1]
+        return None
+
+    def prepare(self):
+        """Prepare context for prompt"""
+        # if no contexts, create new one
+        if len(self.meta) == 0:
+            self.new()
+
+    def count(self):
+        """
+        Count ctx items
+
+        :return: ctx items count
+        :rtype: int
+        """
+        return len(self.items)
+
+    def all(self):
+        """
+        Return ctx items
+
+        :return: ctx items
+        :rtype: list
+        """
+        return self.items
+
     def remove(self, id):
         """
         Delete ctx by id
@@ -376,11 +366,48 @@ class Ctx:
                 except Exception as e:
                     self.window.app.errors.log(e)
 
-    def prepare(self):
-        """Prepare context for prompt"""
-        # if no contexts, create new one
-        if len(self.meta) == 0:
-            self.new()
+    def clear(self):
+        """Clear ctx items"""
+        self.items = []
+
+    def append_thread(self, thread):
+        """
+        Append thread ID to ctx
+
+        :param thread: thread ID
+        """
+        self.thread = thread
+        if self.current is None:
+            return
+        if self.current in self.meta:
+            self.meta[self.current].thread = self.thread
+            self.save(self.current)
+
+    def append_run(self, run):
+        """
+        Append run ID to ctx
+
+        :param run: run ID
+        """
+        self.run = run
+        if self.current is None:
+            return
+        if self.current in self.meta:
+            self.meta[self.current].run = self.run
+            self.save(self.current)
+
+    def append_status(self, status):
+        """
+        Append status to ctx
+
+        :param status: status
+        """
+        self.status = status
+        if self.current is None:
+            return
+        if self.current in self.meta:
+            self.meta[self.current].status = self.status
+            self.save(self.current)
 
     def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
         """
@@ -445,48 +472,25 @@ class Ctx:
         items.reverse()
         return items
 
-    def clear(self):
-        """Clear ctx items"""
-        self.items = []
-
-    def select(self, id):
+    def check(self, threshold, max_total):
         """
-        Select ctx
+        Check context and clear if limit exceeded
 
-        :param id: context id
+        :param threshold: threshold
+        :param max_total: max total tokens
         """
-        if id in self.meta:
-            ctx = self.meta[id]
-            self.current = id
+        if self.get_tokens_left(max_total) <= threshold:
+            self.remove_first()
 
-            # reset
-            self.thread = None
-            self.mode = None
-            self.assistant = None
-
-            # restore
-            self.thread = ctx.thread
-            self.mode = ctx.mode
-            self.assistant = ctx.assistant
-            self.preset = ctx.preset
-
-            self.items = self.load(id)
-
-    def add(self, item):
+    def get_tokens_left(self, max):
         """
-        Add CtxItem to contexts and saves context
+        Return remaining tokens in context
 
-        :param item: CtxItem to append
+        :param max: max tokens
+        :return: remaining tokens in context
+        :rtype: int
         """
-        self.items.append(item)  # add CtxItem to context items
-
-        # save context to file
-        self.store()
-
-    def store(self):
-        """Store current ctx to file"""
-        if self.current is not None and self.current in self.meta:
-            self.save(self.current)
+        return max - self.get_total_tokens()
 
     def get_total_tokens(self):
         """
@@ -500,76 +504,6 @@ class Ctx:
             return last.total_tokens
         return 0
 
-    def count(self):
-        """
-        Count ctx items
-
-        :return: ctx items count
-        :rtype: int
-        """
-        return len(self.items)
-
-    def all(self):
-        """
-        Return ctx items
-
-        :return: ctx items
-        :rtype: list
-        """
-        return self.items
-
-    def get(self, idx):
-        """
-        Return ctx item by index
-
-        :param idx: item index
-        :return: context item
-        :rtype: CtxItem or None
-        """
-        if idx < len(self.items):
-            return self.items[idx]
-
-    def get_last(self):
-        """
-        Return last item from ctx
-
-        :return: last ctx item
-        :rtype: CtxItem or None
-        """
-        if len(self.items) > 0:
-            return self.items[-1]
-        return None
-
-    def get_tokens_left(self, max):
-        """
-        Return remaining tokens in context
-
-        :param max: max tokens
-        :return: remaining tokens in context
-        :rtype: int
-        """
-        return max - self.get_total_tokens()
-
-    def check(self, threshold, max_total):
-        """
-        Check context and clear if limit exceeded
-
-        :param threshold: threshold
-        :param max_total: max total tokens
-        """
-        if self.get_tokens_left(max_total) <= threshold:
-            self.remove_first()
-
-    def remove_last(self):
-        """Remove last item"""
-        if len(self.items) > 0:
-            self.items.pop()
-
-    def remove_first(self):
-        """Remove first item"""
-        if len(self.items) > 0:
-            self.items.pop(0)
-
     def get_last_tokens(self):
         """
         Return last tokens count
@@ -581,3 +515,69 @@ class Ctx:
         if last is not None:
             return last.total_tokens
         return 0
+
+    def remove_last(self):
+        """Remove last item"""
+        if len(self.items) > 0:
+            self.items.pop()
+
+    def remove_first(self):
+        """Remove first item"""
+        if len(self.items) > 0:
+            self.items.pop(0)
+
+    def load_meta(self):
+        """Load ctx list from provider"""
+        if self.provider in self.providers:
+            try:
+                self.meta = self.providers[self.provider].get_meta()
+            except Exception as e:
+                self.window.app.errors.log(e)
+                self.meta = {}
+
+    def load(self, id):
+        """
+        Load ctx data from provider
+
+        :param id: ctx id
+        :return: ctx items
+        :rtype: list
+        """
+        if self.provider in self.providers:
+            try:
+                return self.providers[self.provider].load(id)
+            except Exception as e:
+                self.window.app.errors.log(e)
+        return []
+
+    def save(self, id):
+        """
+        Save ctx data
+
+        :param id: ctx id
+        """
+        if not self.window.app.config.get('store_history'):
+            return
+
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(id, self.meta[id], self.items)
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def store(self):
+        """Store current ctx"""
+        if self.current is not None and self.current in self.meta:
+            self.save(self.current)
+
+    def dump(self, ctx):
+        """
+        Dump context item
+
+        :param ctx: CtxItem instance
+        """
+        if self.provider in self.providers:
+            try:
+                return self.providers[self.provider].dump(ctx)
+            except Exception as e:
+                self.window.app.errors.log(e)

@@ -48,40 +48,6 @@ class Presets:
             except Exception as e:
                 self.window.app.errors.log(e)
 
-    def save(self, id):
-        """
-        Save preset
-
-        :param id: preset id
-        """
-        if id not in self.items:
-            return
-
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(id, self.items[id])
-            except Exception as e:
-                self.window.app.errors.log(e)
-
-    def sort_by_name(self):
-        """
-        Sort presets by name
-        """
-        self.items = dict(sorted(self.items.items(), key=lambda item: item[1].name))
-
-    def load(self):
-        """Load presets templates"""
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-            except Exception as e:
-                self.window.app.errors.log(e)
-                self.items = {}
-
-        # sort presets
-        self.sort_by_name()
-        self.append_current()
-
     def build(self):
         """
         Build empty preset
@@ -153,18 +119,6 @@ class Presets:
             **self.items
         }
 
-    def get_by_idx(self, idx, mode):
-        """
-        Return preset by index
-
-        :param idx: index
-        :param mode: mode
-        :return: preset id
-        :rtype: str
-        """
-        presets = self.get_by_mode(mode)
-        return list(presets.keys())[idx]
-
     def has(self, mode, id):
         """
         Check if preset for mode exists
@@ -178,6 +132,18 @@ class Presets:
         if id in presets:
             return True
         return False
+
+    def get_by_idx(self, idx, mode):
+        """
+        Return preset by index
+
+        :param idx: index
+        :param mode: mode
+        :return: preset id
+        :rtype: str
+        """
+        presets = self.get_by_mode(mode)
+        return list(presets.keys())[idx]
 
     def get_by_mode(self, mode):
         """
@@ -214,24 +180,6 @@ class Presets:
                 return i
             i += 1
         return 0
-
-    def remove(self, id, remove_file=True):
-        """
-        Delete preset
-
-        :param id: preset id
-        :param remove_file: also remove preset JSON config file
-        """
-        if id in self.items:
-            self.items.pop(id)
-
-        if remove_file:
-            if self.provider in self.providers:
-                try:
-                    self.providers[self.provider].remove(id)
-                except Exception as e:
-                    self.window.app.errors.log(e)
-            # self.load_presets()
 
     def get_default(self, mode):
         """
@@ -276,6 +224,58 @@ class Presets:
         self.items[id].name = name
         self.sort_by_name()
         return id
+
+    def remove(self, id, remove_file=True):
+        """
+        Delete preset
+
+        :param id: preset id
+        :param remove_file: also remove preset JSON config file
+        """
+        if id in self.items:
+            self.items.pop(id)
+
+        if remove_file:
+            if self.provider in self.providers:
+                try:
+                    self.providers[self.provider].remove(id)
+                except Exception as e:
+                    self.window.app.errors.log(e)
+            # self.load_presets()
+
+    def sort_by_name(self):
+        """
+        Sort presets by name
+        """
+        self.items = dict(sorted(self.items.items(), key=lambda item: item[1].name))
+
+    def load(self):
+        """Load presets templates"""
+        if self.provider in self.providers:
+            try:
+                self.items = self.providers[self.provider].load()
+            except Exception as e:
+                self.window.app.errors.log(e)
+                self.items = {}
+
+        # sort presets
+        self.sort_by_name()
+        self.append_current()
+
+    def save(self, id):
+        """
+        Save preset
+
+        :param id: preset id
+        """
+        if id not in self.items:
+            return
+
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(id, self.items[id])
+            except Exception as e:
+                self.window.app.errors.log(e)
 
     def save_all(self):
         """Save all presets"""

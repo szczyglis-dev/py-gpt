@@ -38,13 +38,13 @@ from .settings import Settings
 class Container:
     def __init__(self, window=None):
         """
-        Container
+        Service container
 
         :param window: Window instance
         """
         self.window = window
 
-        # core components
+        # core services
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
         self.camera = Camera(window)
@@ -71,5 +71,6 @@ class Container:
         self.settings = Settings(window)
 
     def init(self):
+        """Initialize all components"""
         self.platform.init()
         self.config.init(all=True)

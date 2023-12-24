@@ -99,6 +99,7 @@ class Plugins:
         Dump locale
 
         :param plugin: plugin
+        :param path: path to locale file
         """
         options = {}
         options['plugin.name'] = plugin.name
@@ -130,6 +131,7 @@ class Plugins:
         Dump locale by id
 
         :param id: plugin id
+        :param path: path to locale file
         """
         if id in self.plugins:
             self.dump_locale(self.plugins[id], path)

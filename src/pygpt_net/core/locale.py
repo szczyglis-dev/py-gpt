@@ -19,7 +19,11 @@ from .config import Config
 
 class Locale:
     def __init__(self, domain=None):
-        """Locale handler"""
+        """
+        Locale handler
+
+        :param domain: domain name
+        """
         self.config = Config()
         self.config.init(False)
         self.lang = 'en'
@@ -31,6 +35,8 @@ class Locale:
     def reload(self, domain=None):
         """
         Reload translations for domain
+
+        :param domain: domain name
         """
         self.config.load(False)
         if self.config.has('lang'):
@@ -42,6 +48,7 @@ class Locale:
         Load translation ini file
 
         :param lang: language code
+        :param domain: domain name
         """
         if type(lang) is not str:
             lang = 'en'
@@ -71,6 +78,7 @@ class Locale:
         Return translation for key and domain
 
         :param key: translation key
+        :param domain: domain name
         :return: translated string
         :rtype: str
         """
