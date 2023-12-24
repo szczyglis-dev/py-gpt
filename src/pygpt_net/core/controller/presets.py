@@ -185,7 +185,7 @@ class Presets:
         # validate filename
         id = self.validate_filename(id)
         if id not in self.window.app.presets.items:
-            self.window.app.presets.items[id] = {}
+            self.window.app.presets.items[id] = PresetItem()
         elif not force:
             self.window.ui.dialogs.confirm('preset_exists', id, trans('confirm.preset.overwrite'))
             return
@@ -220,6 +220,7 @@ class Presets:
 
         # switch to editing preset
         self.window.controller.model.set_preset(mode, id)
+        self.window.app.presets.sort_by_name()
         self.window.controller.model.update_presets()
 
     def assign_data(self, id):

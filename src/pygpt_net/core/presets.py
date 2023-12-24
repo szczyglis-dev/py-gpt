@@ -56,8 +56,10 @@ class Presets:
                 self.window.app.errors.log(e)
 
     def sort_by_name(self):
-        """Sort presets by name"""
-        pass  # TODO
+        """
+        Sort presets by name
+        """
+        self.items = dict(sorted(self.items.items(), key=lambda item: item[1].name))
 
     def load(self):
         """Load presets templates"""
