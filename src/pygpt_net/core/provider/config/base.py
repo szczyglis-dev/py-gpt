@@ -22,6 +22,9 @@ class BaseProvider:
     def install(self):
         pass
 
+    def patch(self, version):
+        pass
+
     def load(self, all=False):
         pass
 

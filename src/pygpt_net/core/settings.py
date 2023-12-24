@@ -88,7 +88,7 @@ class Settings:
         self.window.app.config.save('config.backup.json')
 
         # replace config with app base config
-        self.window.app.config.load_base_config()
+        self.window.app.config.from_base_config()
 
         # restore persisted values
         for option in persist_options:

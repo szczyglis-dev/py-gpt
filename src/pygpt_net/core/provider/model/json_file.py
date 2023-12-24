@@ -12,6 +12,7 @@
 import json
 import os
 import shutil
+from packaging.version import parse as parse_version
 
 from .base import BaseProvider
 from ...item.model import ModelItem
@@ -121,6 +122,46 @@ class JsonFileProvider(BaseProvider):
 
     def truncate(self):
         pass
+
+    def patch(self, version):
+        """
+        Migrate models to current app version
+
+        :param version: current app version
+        :return: true if updated
+        :rtype: bool
+        """
+        data = self.window.app.models.items
+        updated = False
+
+        # get version of models config
+        current = self.window.app.models.get_version()
+        old = parse_version(version)
+
+        # check if models file is older than current app version
+        if old < version:
+
+            # < 0.9.1
+            if old < parse_version("0.9.1"):
+                # apply meta only (not attached in 0.9.0)
+                print("Migrating models from < 0.9.1...")
+                updated = True
+
+            # < 2.0.1
+            if old < parse_version("2.0.1"):
+                print("Migrating models from < 2.0.1...")
+                self.window.app.updater.patch_file('models.json', True)  # force replace file
+                self.window.app.models.load()
+                data = self.window.app.models.items
+                updated = True
+
+        # update file
+        if updated:
+            data = dict(sorted(data.items()))
+            self.window.app.models.items = data
+            self.window.app.models.save()
+
+        return updated
 
     @staticmethod
     def serialize(item):

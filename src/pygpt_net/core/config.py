@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
-
+import copy
 import datetime
 import os
 import re
@@ -35,7 +35,9 @@ class Config:
         self.provider = "json_file"
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
+        self.initialized_base = False
         self.data = {}
+        self.data_base = {}
         self.version = self.get_version()
 
         # register data providers
@@ -58,6 +60,14 @@ class Config:
         if self.provider in self.providers:
             try:
                 self.providers[self.provider].install()
+            except Exception as e:
+                self.window.app.errors.log(e)
+
+    def patch(self, app_version):
+        """Patch provider data"""
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].patch(app_version)
             except Exception as e:
                 self.window.app.errors.log(e)
 
@@ -267,14 +277,37 @@ class Config:
         """
         if self.provider in self.providers:
             try:
-                self.data = self.providers[self.provider].load_base()
-                self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+                self.data_base = self.providers[self.provider].load_base()
+                self.data_base = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+                self.initialized_base = True
             except Exception as e:
                 if self.window is not None:
                     self.window.app.errors.log(e)
                 else:
                     print("Error loading config: {}".format(e))
-                self.data = {}
+                self.data_base = {}
+
+    def from_base_config(self):
+        """
+        Load app config from JSON file
+        """
+        if not self.initialized_base:
+            self.load_base_config()
+        self.data = copy.deepcopy(self.data_base)
+
+    def get_base(self, option=None):
+        """
+        Return base config option or all base config
+
+        :param option: option name
+        :return: option value or all config
+        """
+        if not self.initialized_base:
+            self.load_base_config()
+        if option is None:
+            return self.data_base
+        elif option in self.data_base:
+            return self.data_base[option]
 
     def save(self, filename='config.json'):
         """

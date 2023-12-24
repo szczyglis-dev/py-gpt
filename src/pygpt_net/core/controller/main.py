@@ -108,7 +108,3 @@ class Controller:
     def init(self):
         """Init base settings"""
         self.settings.load()
-
-    def migrate(self):
-        """Migrate versions"""
-        self.launcher.migrate_version()

@@ -20,11 +20,6 @@ class Launcher:
         :param window: Window instance
         """
         self.window = window
-        self.updater = Updater(window)
-
-    def migrate_version(self):
-        """Patch config files if needed"""
-        self.updater.patch()
 
     def show_api_monit(self):
         """Show empty API KEY monit"""
@@ -32,11 +27,11 @@ class Launcher:
 
     def check_updates(self):
         """Check for updates"""
-        self.updater.check(True)
+        self.window.app.updater.check(True)
 
     def setup(self):
         """Setup launcher"""
-        self.updater.check()
+        self.window.app.updater.check()
 
         # show welcome API KEY dialog
         if self.window.app.config.get('api_key') is None or self.window.app.config.get('api_key') == '':

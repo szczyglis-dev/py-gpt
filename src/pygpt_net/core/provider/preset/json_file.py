@@ -12,6 +12,7 @@
 import json
 import os
 import shutil
+from packaging.version import parse as parse_version
 
 from .base import BaseProvider
 from ...item.preset import PresetItem
@@ -115,6 +116,38 @@ class JsonFileProvider(BaseProvider):
 
     def truncate(self):
         pass
+
+    def patch(self, version):
+        """
+        Migrate presets to current app version
+
+        :param version: current app version
+        :return: true if migrated
+        :rtype: bool
+        """
+        migrated = False
+        for k in self.window.app.presets.items:
+            data = self.window.app.presets.items[k]
+            updated = False
+
+            # get version of preset
+            old = parse_version(data.version)
+
+            # check if presets file is older than current app version
+            if old < version:
+                # < 2.0.0
+                if old < parse_version("2.0.0"):
+                    print("Migrating presets dir from < 2.0.0...")
+                    self.window.app.updater.patch_file('presets', True)  # force replace file
+
+            # update file
+            if updated:
+                self.window.app.presets.load()  # reload presets from patched files
+                self.window.app.presets.save(k)  # re-save presets
+                migrated = True
+                print("Preset {} patched to version {}.".format(k, version))
+
+        return migrated
 
     @staticmethod
     def serialize(item):

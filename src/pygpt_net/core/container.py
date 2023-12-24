@@ -33,6 +33,7 @@ from .platform import Platform
 from .plugins import Plugins
 from .presets import Presets
 from .settings import Settings
+from .updater import Updater
 
 
 class Container:
@@ -69,8 +70,14 @@ class Container:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
+        self.updater = Updater(window)
 
     def init(self):
         """Initialize all components"""
         self.platform.init()
         self.config.init(all=True)
+
+
+    def patch(self):
+        """Patch version"""
+        self.updater.patch()

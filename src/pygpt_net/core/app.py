@@ -62,12 +62,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup service container
         self.app = Container(self)
         self.app.init()
+        self.app.patch()  # patch version if needed
 
         # setup controllers
         self.controller = Controller(self)
-
-        # handle version migration
-        self.controller.migrate()
 
         # init, load settings options, etc.
         self.controller.init()
