@@ -62,7 +62,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.app = Container(self)
         self.app.init()
 
-        # setup main controller
+        # setup controllers
         self.controller = Controller(self)
 
         # handle version migration
@@ -79,7 +79,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
                             format(self.meta['version'], self.meta['build']))
 
-        # setup signals
+        # setup global signals
         self.statusChanged.connect(self.update_status)
 
     def log(self, data):
