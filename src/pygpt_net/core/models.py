@@ -136,8 +136,8 @@ class Models:
         Return model config
 
         :param model: model name
-        :return: model config
-        :rtype: dict
+        :return: model config object
+        :rtype: ModelItem
         """
         if model in self.items:
             return self.items[model]
