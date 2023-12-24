@@ -262,7 +262,7 @@ class Assistants:
         return name
 
     def load(self):
-        """Load assistants from file"""
+        """Load assistants"""
         if self.provider in self.providers:
             try:
                 self.items = self.providers[self.provider].load()
@@ -272,7 +272,7 @@ class Assistants:
 
     def save(self):
         """
-        Save assistants to file
+        Save assistants
         """
         if self.provider in self.providers:
             try:
