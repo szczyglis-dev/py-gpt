@@ -44,6 +44,8 @@ class Notepad:
         Get notepad by id
 
         :param id: notepad id
+        :return: notepad instance
+        :rtype: NotepadItem
         """
         if id in self.items:
             return self.items[id]
@@ -52,6 +54,9 @@ class Notepad:
     def get_all(self):
         """
         Get all notepads
+
+        :return: notepads dict
+        :rtype: dict
         """
         return self.items
 
@@ -60,6 +65,8 @@ class Notepad:
         Update notepad
 
         :param notepad: notepad instance
+        :return: True if success
+        :rtype: bool
         """
         if notepad.id not in self.items:
             return False
@@ -70,7 +77,11 @@ class Notepad:
         return True
 
     def load(self, id):
-        """Load notepad by id"""
+        """
+        Load notepad by id
+
+        :param id: notepad id
+        """
         if self.provider in self.providers:
             try:
                 self.items[id] = self.providers[self.provider].load(id)
@@ -90,6 +101,8 @@ class Notepad:
         Save notepad
 
         :param id: notepad id
+        :return: True if saved, False if not
+        :rtype: bool
         """
         if id not in self.items:
             return False
@@ -97,8 +110,10 @@ class Notepad:
         if self.provider in self.providers:
             try:
                 self.providers[self.provider].save(self.items[id])
+                return True
             except Exception as e:
                 self.window.app.errors.log(e)
+        return False
 
     def save_all(self):
         """
