@@ -178,7 +178,6 @@ class JsonFileProvider(BaseProvider):
         """
         return {
             'id': notepad.id,
-            'idx': notepad.idx,
             'title': notepad.title,
             'content': notepad.content,
             'created_at': notepad.created_at,  # '2019-01-01T00:00:00
@@ -195,8 +194,6 @@ class JsonFileProvider(BaseProvider):
         """
         if 'id' in data:
             notepad.id = data['id']
-        if 'idx' in data:
-            notepad.idx = data['idx']
         if 'title' in data:
             notepad.title = data['title']
         if 'content' in data:

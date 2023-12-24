@@ -13,7 +13,6 @@
 class NotepadItem:
     def __init__(self):
         self.id = None
-        self.idx = 0
         self.title = ""
         self.content = ""
         self.created_at = None
