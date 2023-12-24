@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.19 02:20:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 import json
 import os
 
 from openai import OpenAI
-from .assistants import AssistantItem
+from .item.assistant import AssistantItem
 
 
 class GptAssistants:

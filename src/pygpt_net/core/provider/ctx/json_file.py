@@ -181,7 +181,8 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.app.error.log(e)
 
-    def serialize_meta(self, meta):
+    @staticmethod
+    def serialize_meta(meta):
         """
         Serialize CtxMeta to dict
 
@@ -203,7 +204,8 @@ class JsonFileProvider(BaseProvider):
             'initialized': meta.initialized,
         }
 
-    def deserialize_meta(self, data, meta):
+    @staticmethod
+    def deserialize_meta(data, meta):
         """
         Deserialize CtxMeta from dict
 
@@ -234,7 +236,8 @@ class JsonFileProvider(BaseProvider):
             meta.initialized = data['initialized']
         return meta
 
-    def serialize_item(self, ctx):
+    @staticmethod
+    def serialize_item(ctx):
         """
         Serialize CtxItem to dict
 
@@ -258,7 +261,8 @@ class JsonFileProvider(BaseProvider):
             'output_timestamp': ctx.output_timestamp
         }
 
-    def deserialize_item(self, data, ctx):
+    @staticmethod
+    def deserialize_item(data, ctx):
         """
         Deserialize CtxItem from dict
 

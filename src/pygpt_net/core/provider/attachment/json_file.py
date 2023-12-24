@@ -116,7 +116,8 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.app.error.log(e)
 
-    def serialize(self, attachment):
+    @staticmethod
+    def serialize(attachment):
         """
         Serialize item to dict
 
@@ -131,7 +132,8 @@ class JsonFileProvider(BaseProvider):
             'send': attachment.send
         }
 
-    def deserialize(self, data, attachment):
+    @staticmethod
+    def deserialize(data, attachment):
         """
         Deserialize item from dict
 

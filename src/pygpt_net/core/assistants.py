@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 14:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-import json
-import os
 
-from .item.attachment import AttachmentItem
+from .item.assistant import AssistantItem
+from .provider.assistant.json_file import JsonFileProvider
 
 
 class Assistants:
@@ -23,9 +22,22 @@ class Assistants:
         :param window: Window instance
         """
         self.window = window
-        self.config_file = 'assistants.json'
+        self.providers = {}
+        self.provider = "json_file"
         self.current_file = None
         self.items = {}
+
+        # register data providers
+        self.add_provider(JsonFileProvider())  # json file provider
+
+    def add_provider(self, provider):
+        """
+        Add data provider
+
+        :param provider: data provider instance
+        """
+        self.providers[provider.id] = provider
+        self.providers[provider.id].window = self.window
 
     def get_by_idx(self, idx):
         """
@@ -134,6 +146,7 @@ class Assistants:
         Replace temporary attachment with uploaded one
 
         :param assistant: assistant object
+        :param attachment: attachment object
         :param old_id: old id
         :param new_id: new id
         """
@@ -188,6 +201,7 @@ class Assistants:
 
         :param assistant: assistant object
         :param data: data from remote API
+        :param import_data: import data from remote API
         """
         if assistant is None:
             return
@@ -249,266 +263,19 @@ class Assistants:
 
     def load(self):
         """Load assistants from file"""
-        path = os.path.join(self.window.config.path, self.config_file)
-        try:
-            if os.path.exists(path):
-                with open(path, 'r', encoding="utf-8") as file:
-                    data = json.load(file)
-                    file.close()
-                    if data == "" or data is None or 'items' not in data:
-                        self.items = {}
-                        return
-                    # deserialize
-                    for id in data['items']:
-                        assistant = data['items'][id]
-                        item = AssistantItem()
-                        item.deserialize(assistant)
-                        self.items[id] = item
-        except Exception as e:
-            self.window.app.error.log(e)
-            self.items = {}
+        if self.provider in self.providers:
+            try:
+                self.items = self.providers[self.provider].load()
+            except Exception as e:
+                self.window.app.error.log(e)
+                self.items = {}
 
     def save(self):
         """
         Save assistants to file
         """
-        try:
-            # update assistants
-            path = os.path.join(self.window.config.path, self.config_file)
-            data = {}
-            items = {}
-
-            # serialize
-            for uuid in self.items:
-                assistant = self.items[uuid]
-                items[uuid] = assistant.serialize()
-
-            data['__meta__'] = self.window.config.append_meta()
-            data['items'] = items
-            dump = json.dumps(data, indent=4)
-            with open(path, 'w', encoding="utf-8") as f:
-                f.write(dump)
-                f.close()
-
-        except Exception as e:
-            self.window.app.error.log(e)
-            print("Error while saving assistants: {}".format(str(e)))
-
-
-class AssistantItem:
-    def __init__(self):
-        """
-        Assistant item
-        """
-        self.id = None
-        self.name = None
-        self.description = None
-        self.instructions = None
-        self.model = None
-        self.meta = {}
-        self.files = {}  # files IDs (uploaded to remote storage)
-        self.attachments = {}  # attachments (local)
-        self.tools = {
-            "code_interpreter": False,
-            "retrieval": False,
-            "function": [],
-        }
-
-    def reset(self):
-        """
-        Reset assistant
-        """
-        self.id = None
-        self.name = None
-        self.description = None
-        self.instructions = None
-        self.model = None
-        self.meta = {}
-        self.files = {}
-        self.attachments = {}
-        self.tools = {
-            "code_interpreter": False,
-            "retrieval": False,
-            "function": [],
-        }
-
-    def add_function(self, name, parameters, desc):
-        """
-        Add function to assistant
-
-        :param name: function name
-        :param parameters: function parameters (JSON encoded)
-        :param desc: function description
-        """
-        function = {
-            'name': name,
-            'params': parameters,
-            'desc': desc,
-        }
-        self.tools['function'].append(function)
-
-    def has_functions(self):
-        """
-        Check if assistant has functions
-
-        :return: bool
-        :rtype: bool
-        """
-        return len(self.tools['function']) > 0
-
-    def get_functions(self):
-        """
-        Return assistant functions
-
-        :return: functions
-        :rtype: list
-        """
-        return self.tools['function']
-
-    def has_tool(self, tool):
-        """
-        Check if assistant has tool
-
-        :param tool: tool name
-        :return: bool
-        :rtype: bool
-        """
-        return tool in self.tools and self.tools[tool] is True
-
-    def has_file(self, file_id):
-        """
-        Check if assistant has file with ID
-
-        :param file_id: file ID
-        :return: bool
-        """
-        return file_id in self.files
-
-    def add_file(self, file_id):
-        """
-        Add empty file to assistant
-
-        :param file_id: file ID
-        """
-        self.files[file_id] = {}
-        self.files[file_id]['id'] = file_id
-
-    def delete_file(self, file_id):
-        """
-        Delete file from assistant
-
-        :param file_id: file ID
-        """
-        if file_id in self.files:
-            self.files.pop(file_id)
-
-    def clear_files(self):
-        """
-        Clear files
-        """
-        self.files = {}
-
-    def has_attachment(self, attachment_id):
-        """
-        Check if assistant has attachment with ID
-
-        :param attachment_id: attachment ID
-        :return: bool
-        :rtype: bool
-        """
-        return attachment_id in self.attachments
-
-    def add_attachment(self, attachment):
-        """
-        Add attachment to assistant
-
-        :param attachment: attachment
-        """
-        id = attachment.id
-        self.attachments[id] = attachment
-
-    def delete_attachment(self, attachment_id):
-        """
-        Delete attachment from assistant
-
-        :param attachment_id: attachment ID
-        """
-        if attachment_id in self.attachments:
-            self.attachments.pop(attachment_id)
-
-    def clear_attachments(self):
-        """
-        Clear attachments
-        """
-        self.attachments = {}
-
-    def serialize(self):
-        """
-        Serialize item to dict
-
-        :return: serialized item
-        :rtype: dict
-        """
-        # serialize attachments
-        attachments = {}
-        for id in self.attachments:
-            attachment = self.attachments[id]
-            attachments[id] = attachment.serialize()
-
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'instructions': self.instructions,
-            'model': self.model,
-            'meta': self.meta,
-            'attachments': attachments,
-            'files': self.files,
-            'tools': self.tools,
-        }
-
-    def deserialize(self, data):
-        """
-        Deserialize item from dict
-
-        :param data: serialized item
-        """
-        if 'id' in data:
-            self.id = data['id']
-        if 'name' in data:
-            self.name = data['name']
-        if 'description' in data:
-            self.description = data['description']
-        if 'instructions' in data:
-            self.instructions = data['instructions']
-        if 'model' in data:
-            self.model = data['model']
-        if 'meta' in data:
-            self.meta = data['meta']
-        if 'files' in data:
-            self.files = data['files']
-        if 'tools' in data:
-            self.tools = data['tools']
-
-        # fix for older versions
-        if 'function' in self.tools:
-            if isinstance(self.tools['function'], bool):
-                self.tools['function'] = []
-
-        # deserialize attachments
-        if 'attachments' in data:
-            attachments = data['attachments']
-            for id in attachments:
-                attachment = attachments[id]
-                item = AttachmentItem()
-                item.deserialize(attachment)
-                self.attachments[id] = item
-
-    def dump(self):
-        """
-        Dump item to string
-
-        :return: serialized item
-        :rtype: str
-        """
-        return json.dumps(self.serialize())
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].save(self.items)
+            except Exception as e:
+                self.window.app.error.log(e)
