@@ -54,6 +54,7 @@ class Models:
         if self.provider in self.providers:
             try:
                 self.items = self.providers[self.provider].load()
+                self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
             except Exception as e:
                 self.window.app.errors.log(e)
                 self.items = {}

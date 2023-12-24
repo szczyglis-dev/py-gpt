@@ -74,7 +74,6 @@ class JsonFileProvider(BaseProvider):
                     model = ModelItem()
                     self.deserialize(item, model)
                     items[id] = model
-                items = dict(sorted(items.items(), key=lambda item: item[0]))  # sort by key
                 print("Loaded models: {}".format(path))
 
         except Exception as e:
