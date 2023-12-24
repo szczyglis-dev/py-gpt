@@ -6,36 +6,22 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 19:00:00                  #
+# Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+import os
 
 
-class BaseProvider:
+class Filesystem:
     def __init__(self, window=None):
+        """
+        Filesystem handler
+
+        :param window: Window instance
+        """
         self.window = window
-        self.id = ""
-        self.type = "ctx"
 
     def install(self):
-        pass
-
-    def create(self, meta):
-        pass
-
-    def load(self, id):
-        pass
-
-    def save(self, id, meta, items):
-        pass
-
-    def remove(self, id):
-        pass
-
-    def truncate(self):
-        pass
-
-    def get_meta(self):
-        pass
-
-    def dump(self, ctx):
-        pass
+        """Install provider data"""
+        img_dir = os.path.join(self.window.app.config.path, 'output')
+        if not os.path.exists(img_dir):
+            os.mkdir(img_dir)

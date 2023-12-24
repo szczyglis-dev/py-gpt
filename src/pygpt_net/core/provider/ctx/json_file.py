@@ -24,6 +24,14 @@ class JsonFileProvider(BaseProvider):
         self.id = "json_file"
         self.type = "ctx"
 
+    def install(self):
+        """
+        Install provider data
+        """
+        context_dir = os.path.join(self.window.app.config.path, 'context')
+        if not os.path.exists(context_dir):
+            os.mkdir(context_dir)
+
     def create_id(self):
         """
         Create unique ctx ID

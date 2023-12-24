@@ -11,6 +11,7 @@
 
 import json
 import os
+import shutil
 
 from .base import BaseProvider
 from ...item.preset import PresetItem
@@ -23,6 +24,24 @@ class JsonFileProvider(BaseProvider):
         self.id = "json_file"
         self.type = "preset"
         self.config_dir = 'presets'
+
+    def install(self):
+        """
+        Install provider data
+        """
+        # install presets
+        presets_dir = os.path.join(self.window.app.config.path, self.config_dir)
+        if not os.path.exists(presets_dir):
+            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_dir)
+            shutil.copytree(src, presets_dir)
+        else:
+            # copy missing presets
+            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_dir)
+            for file in os.listdir(src):
+                src_file = os.path.join(src, file)
+                dst_file = os.path.join(presets_dir, file)
+                if not os.path.exists(dst_file):
+                    shutil.copyfile(src_file, dst_file)
 
     def load(self):
         """

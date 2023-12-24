@@ -23,6 +23,14 @@ class TxtFileProvider(BaseProvider):
         self.type = "history"
         self.dir_name = 'history'
 
+    def install(self):
+        """
+        Install provider data
+        """
+        history_dir = os.path.join(self.window.app.config.path, self.dir_name)
+        if not os.path.exists(history_dir):
+            os.mkdir(history_dir)
+
     def append(self, ctx, mode):
         """
         Append text to file

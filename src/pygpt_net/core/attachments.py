@@ -38,6 +38,14 @@ class Attachments:
         self.providers[provider.id] = provider
         self.providers[provider.id].window = self.window
 
+    def install(self):
+        """Install provider data"""
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].install()
+            except Exception as e:
+                self.window.app.errors.log(e)
+
     def select(self, mode, id):
         """
         Select attachment by uuid

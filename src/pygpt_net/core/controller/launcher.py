@@ -43,5 +43,5 @@ class Launcher:
             self.show_api_monit()
 
         self.window.app.gpt.init()
-        self.window.app.images.init()
+        self.window.app.image.init()
         self.window.controller.settings.update_font_size()

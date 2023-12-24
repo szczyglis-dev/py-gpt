@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
+import os
 
 import cv2
 
@@ -15,15 +16,21 @@ from PySide6.QtCore import QObject, Signal
 
 
 class Camera:
-    def __init__(self, config=None):
+    def __init__(self, window=None):
         """
-        Camera thread handler
+        Camera handler
 
-        :param config: Config instance
+        :param window: Window instance
         """
-        self.config = config
+        self.window = window
         self.capture = None
         self.current = None
+
+    def install(self):
+        """Install provider data"""
+        img_dir = os.path.join(self.window.app.config.path, 'capture')
+        if not os.path.exists(img_dir):
+            os.mkdir(img_dir)
 
 
 class CameraThread(QObject):

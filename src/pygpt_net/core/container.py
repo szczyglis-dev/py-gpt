@@ -11,6 +11,7 @@
 
 from .assistants import Assistants
 from .attachments import Attachments
+from .camera import Camera
 from .chain import Chain
 from .command import Command
 from .config import Config
@@ -18,11 +19,13 @@ from .ctx import Ctx
 from .debugger import Debug
 from .dispatcher import Dispatcher
 from .error_handler import ErrorHandler
+from .filesystem import Filesystem
 from .gpt import Gpt
 from .gpt_assistants import GptAssistants
 from .history import History
 from .image import Image
 from .info import Info
+from .installer import Installer
 from .models import Models
 from .modes import Modes
 from .notepad import Notepad
@@ -44,6 +47,7 @@ class Container:
         # core components
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
+        self.camera = Camera(window)
         self.chain = Chain(window)
         self.command = Command(window)
         self.config = Config(window)
@@ -51,11 +55,13 @@ class Container:
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
         self.errors = ErrorHandler(window)
+        self.filesystem = Filesystem(window)
         self.gpt = Gpt(window)
         self.gpt_assistants = GptAssistants(window)
         self.history = History(window)
-        self.images = Image(window)
+        self.image = Image(window)
         self.info = Info(window)
+        self.installer = Installer(window)
         self.models = Models(window)
         self.modes = Modes(window)
         self.notepad = Notepad(window)

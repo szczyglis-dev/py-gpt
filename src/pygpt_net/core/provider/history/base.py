@@ -16,6 +16,9 @@ class BaseProvider:
         self.id = ""
         self.type = "history"
 
+    def install(self):
+        pass
+
     def append(self, ctx, mode):
         pass
 

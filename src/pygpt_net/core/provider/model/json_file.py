@@ -11,6 +11,7 @@
 
 import json
 import os
+import shutil
 
 from .base import BaseProvider
 from ...item.model import ModelItem
@@ -23,6 +24,15 @@ class JsonFileProvider(BaseProvider):
         self.id = "json_file"
         self.type = "model"
         self.config_file = 'models.json'
+
+    def install(self):
+        """
+        Install provider data files
+        """
+        dst = os.path.join(self.window.app.config.path, self.config_file)
+        if not os.path.exists(dst):
+            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_file)
+            shutil.copyfile(src, dst)
 
     def get_version(self):
         """

@@ -13,7 +13,6 @@ import datetime
 import os
 import re
 from pathlib import Path
-import shutil
 
 from .provider.config.json_file import JsonFileProvider
 
@@ -54,11 +53,19 @@ class Config:
         self.providers[provider.id].meta = self.append_meta()
         self.providers[provider.id].window = self.window
 
+    def install(self):
+        """Install provider data"""
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].install()
+            except Exception as e:
+                self.window.app.errors.log(e)
+
     def get_root_path(self):
         """
-        Return local data path
+        Return app data path
 
-        :return: local data path
+        :return: app data path
         :rtype: str
         """
         if __file__.endswith('.pyc'):  # if compiled with pyinstaller
@@ -68,51 +75,22 @@ class Config:
 
     def get_user_path(self):
         """
-        Return user path
+        Return user home path
 
-        :return: user path
+        :return: user home path
         :rtype: str
         """
         return self.path
-
-    def get_available_langs(self):
-        """
-        Return list with available languages
-
-        :return: list with available languages (user + app)
-        :rtype: list
-        """
-        langs = []
-        path = os.path.join(self.get_root_path(), 'data', 'locale')
-        if os.path.exists(path):
-            for file in os.listdir(path):
-                if file.startswith('locale.') and file.endswith(".ini"):
-                    lang_id = file.replace('locale.', '').replace('.ini', '')
-                    if lang_id not in langs:
-                        langs.append(lang_id)
-
-        path = os.path.join(self.get_user_path(), 'locale')
-        if os.path.exists(path):
-            for file in os.listdir(path):
-                if file.startswith('locale.') and file.endswith(".ini"):
-                    lang_id = file.replace('locale.', '').replace('.ini', '')
-                    if lang_id not in langs:
-                        langs.append(lang_id)
-
-        # make English first
-        if 'en' in langs:
-            langs.remove('en')
-            langs.insert(0, 'en')
-        return langs
 
     def init(self, all=True):
         """
         Initialize config
 
         :param all: load all configs
-        :param log: log loading to console
         """
         if not self.initialized:
+
+            # if app initialization
             if all:
                 v = self.get_version()
                 os = self.window.app.platform.get_os()
@@ -125,7 +103,10 @@ class Config:
                 print("Email: info@pygpt.net")
                 print("")
                 print("Initializing...")
-            self.install()
+
+                # install all
+                self.window.app.installer.install()
+
             self.load(all)
             self.initialized = True
 
@@ -222,15 +203,6 @@ class Config:
                     print("Error loading settings options: {}".format(e))
         return {}
 
-    def all(self):
-        """
-        Return all config values
-
-        :return: dict with all config values
-        :rtype: dict
-        """
-        return self.data
-
     def get(self, key):
         """
         Return config value by key
@@ -242,6 +214,15 @@ class Config:
         if key in self.data:
             return self.data[key]
         return None
+
+    def set(self, key, value):
+        """
+        Set config value
+
+        :param key:
+        :param value:
+        """
+        self.data[key] = value
 
     def has(self, key):
         """
@@ -255,14 +236,44 @@ class Config:
             return True
         return False
 
-    def set(self, key, value):
+    def all(self):
         """
-        Set config value
+        Return all config values
 
-        :param key:
-        :param value:
+        :return: dict with all config values
+        :rtype: dict
         """
-        self.data[key] = value
+        return self.data
+
+    def get_available_langs(self):
+        """
+        Return list with available languages
+
+        :return: list with available languages (user + app)
+        :rtype: list
+        """
+        langs = []
+        path = os.path.join(self.get_root_path(), 'data', 'locale')
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                if file.startswith('locale.') and file.endswith(".ini"):
+                    lang_id = file.replace('locale.', '').replace('.ini', '')
+                    if lang_id not in langs:
+                        langs.append(lang_id)
+
+        path = os.path.join(self.get_user_path(), 'locale')
+        if os.path.exists(path):
+            for file in os.listdir(path):
+                if file.startswith('locale.') and file.endswith(".ini"):
+                    lang_id = file.replace('locale.', '').replace('.ini', '')
+                    if lang_id not in langs:
+                        langs.append(lang_id)
+
+        # make English first
+        if 'en' in langs:
+            langs.remove('en')
+            langs.insert(0, 'en')
+        return langs
 
     def append_meta(self):
         """
@@ -276,67 +287,3 @@ class Config:
             'app.version': self.version,
             'updated_at': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         }
-
-    def install(self):
-        """
-        Install config files and directories
-        """
-        try:
-            # create user config directory
-            path = Path(self.path)
-            path.mkdir(parents=True, exist_ok=True)
-
-            # install config file
-            dst = os.path.join(self.path, 'config.json')
-            if not os.path.exists(dst):
-                src = os.path.join(self.get_root_path(), 'data', 'config', 'config.json')
-                shutil.copyfile(src, dst)
-
-            # install models file
-            dst = os.path.join(self.path, 'models.json')
-            if not os.path.exists(dst):
-                src = os.path.join(self.get_root_path(), 'data', 'config', 'models.json')
-                shutil.copyfile(src, dst)
-
-            # install presets
-            presets_dir = os.path.join(self.path, 'presets')
-            if not os.path.exists(presets_dir):
-                src = os.path.join(self.get_root_path(), 'data', 'config', 'presets')
-                shutil.copytree(src, presets_dir)
-            else:
-                # copy missing presets
-                src = os.path.join(self.get_root_path(), 'data', 'config', 'presets')
-                for file in os.listdir(src):
-                    src_file = os.path.join(src, file)
-                    dst_file = os.path.join(presets_dir, file)
-                    if not os.path.exists(dst_file):
-                        shutil.copyfile(src_file, dst_file)
-
-            # create history directory
-            history_dir = os.path.join(self.path, 'history')
-            if not os.path.exists(history_dir):
-                os.mkdir(history_dir)
-
-            # create context directory
-            context_dir = os.path.join(self.path, 'context')
-            if not os.path.exists(context_dir):
-                os.mkdir(context_dir)
-
-            # create images directory
-            img_dir = os.path.join(self.path, 'img')
-            if not os.path.exists(img_dir):
-                os.mkdir(img_dir)
-
-            # create output files directory
-            files_dir = os.path.join(self.path, 'output')
-            if not os.path.exists(files_dir):
-                os.mkdir(files_dir)
-
-            # create img capture directory
-            capture_dir = os.path.join(self.path, 'capture')
-            if not os.path.exists(capture_dir):
-                os.mkdir(capture_dir)
-
-        except Exception as e:
-            self.window.app.errors.log(e)
-            print("Error installing config files:", e)

@@ -16,6 +16,9 @@ class BaseProvider:
         self.id = ""
         self.type = "assistant"
 
+    def install(self):
+        pass
+
     def create(self, meta):
         pass
 

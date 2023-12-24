@@ -16,6 +16,9 @@ class BaseProvider:
         self.id = ""
         self.type = "notepad"
 
+    def install(self):
+        pass
+
     def create(self, notepad):
         pass
 

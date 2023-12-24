@@ -16,6 +16,9 @@ class BaseProvider:
         self.id = ""
         self.type = "attachment"
 
+    def install(self):
+        pass
+
     def create(self, meta):
         pass
 

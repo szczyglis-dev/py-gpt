@@ -30,6 +30,12 @@ class Image:
         """Initialize OpenAI API key"""
         pass
 
+    def install(self):
+        """Install provider data"""
+        img_dir = os.path.join(self.window.app.config.path, self.DIRNAME)
+        if not os.path.exists(img_dir):
+            os.mkdir(img_dir)
+
     def get_prompt(self, allow_custom=True):
         """
         Return image generate prompt command

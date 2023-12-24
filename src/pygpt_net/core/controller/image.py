@@ -69,7 +69,7 @@ class Image:
 
         # call DALL-E API and generate images
         try:
-            paths, prompt = self.window.app.images.generate(text, self.window.app.config.get('model'), num_of_images)
+            paths, prompt = self.window.app.image.generate(text, self.window.app.config.get('model'), num_of_images)
             string = ""
             i = 1
             for path in paths:

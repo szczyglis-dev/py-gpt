@@ -19,6 +19,9 @@ class BaseProvider:
         self.path_app = None
         self.meta = None
 
+    def install(self):
+        pass
+
     def load(self, all=False):
         pass
 

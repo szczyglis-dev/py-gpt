@@ -371,7 +371,7 @@ class Input:
 
             # init api key if defined later
             self.window.app.gpt.init()
-            self.window.app.images.init()
+            self.window.app.image.init()
 
             # prepare context, create new ctx if there is no contexts yet (first run)
             if len(self.window.app.ctx.meta) == 0:
