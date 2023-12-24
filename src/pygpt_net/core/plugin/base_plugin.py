@@ -164,6 +164,8 @@ class BasePlugin:
         :param data: data to send
         """
         if 'debug' in self.signals and self.signals['debug'] is not None:
-            self.signals['debug'].emit(data)
+            # TODO: fix debug signal
+            pass
+            # self.signals['debug'].emit(data)
         elif not self.is_async:
             self.window.log(data)

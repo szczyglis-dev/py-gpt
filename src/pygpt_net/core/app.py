@@ -122,14 +122,20 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(self.timer_interval)
+        self.post_timer = QTimer()
+        self.post_timer.timeout.connect(self.post_update)
+        self.post_timer.start(1000)
 
     def post_setup(self):
         """Called after setup"""
         self.controller.layout.post_setup()
 
+    def post_update(self):
+        """Called on post-update (slow)"""
+        self.app.debug.update()
+
     def update(self):
         """Called on every update"""
-        self.app.debug.update()
         self.controller.update()
 
     def set_status(self, text):
@@ -163,8 +169,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.notepad.save_all()
         print("Saving layout state...")
         self.controller.layout.save()
-        print("Stopping event loop...")
+        print("Stopping timers...")
         self.timer.stop()
+        self.post_timer.stop()
         print("Saving config...")
         self.app.config.save()
         print("Saving presets...")
