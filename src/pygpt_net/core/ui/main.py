@@ -40,6 +40,7 @@ class UI:
         self.menu = {}
         self.models = {}
         self.nodes = {}
+        self.notepad = {}
         self.parts = {}
         self.paths = {}
         self.plugin_addon = {}

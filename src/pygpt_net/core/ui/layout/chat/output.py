@@ -54,9 +54,8 @@ class Output:
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
-                id = 'notepad' + str(i)
-                self.window.ui.nodes[id] = NotepadOutput(self.window)
-                self.window.ui.nodes[id].no = i
+                self.window.ui.notepad[i] = NotepadOutput(self.window)
+                self.window.ui.notepad[i].id = i
 
         # tabs
         self.window.ui.tabs['output'] = QTabWidget()
@@ -66,8 +65,7 @@ class Output:
         # append notepads
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
-                id = 'notepad' + str(i)
-                self.window.ui.tabs['output'].addTab(self.window.ui.nodes[id],
+                self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i],
                                                      trans('output.tab.notepad') + " " + str(i))
 
         layout = QVBoxLayout()

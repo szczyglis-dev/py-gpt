@@ -28,7 +28,7 @@ class NotepadOutput(QTextEdit):
         self.value = self.window.app.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
-        self.no = 0
+        self.id = 1
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
@@ -50,7 +50,7 @@ class NotepadOutput(QTextEdit):
             num_notepads = self.window.controller.notepad.get_num_notepads()
             if num_notepads > 0:
                 for i in range(1, num_notepads + 1):
-                    if i == self.no:
+                    if i == self.id:
                         continue
                     action = copy_to_menu.addAction(trans('text.context_menu.copy_to.notepad') + ' ' + str(i))
                     action.triggered.connect(lambda checked=False, i=i:

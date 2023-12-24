@@ -10,9 +10,6 @@
 # ================================================== #
 
 
-from ..utils import trans
-
-
 class Layout:
     def __init__(self, window=None):
         """
@@ -23,7 +20,6 @@ class Layout:
         self.window = window
         # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
         self.splitters = ["main", "main.output", "toolbox", "toolbox.mode"]  # prevent assistants column disappearing
-        self.scrolls = ["notepad1", "notepad2", "notepad3", "notepad4", "notepad5"]
 
     def setup(self):
         """Setup layout"""
@@ -112,8 +108,10 @@ class Layout:
     def scroll_save(self):
         """Save scroll state"""
         data = {}
-        for scroll in self.scrolls:
-            data[scroll] = self.window.ui.nodes[scroll].verticalScrollBar().value()
+        # notepads
+        for id in self.window.ui.notepad:
+            scroll_id = "notepad." + str(id)
+            data[scroll_id] = self.window.ui.notepad[id].verticalScrollBar().value()
         self.window.app.config.set('layout.scroll', data)
 
     def scroll_restore(self):
@@ -121,13 +119,16 @@ class Layout:
         if not self.window.app.config.has('layout.scroll'):
             return
         data = self.window.app.config.get('layout.scroll')
-        for scroll in self.scrolls:
-            if scroll in data:
-                try:
-                    self.window.ui.nodes[scroll].verticalScrollBar().setValue(data[scroll])
-                except Exception as e:
-                    print("Error while restoring scroll state: " + str(e))
-                    self.window.app.errors.log(e)
+        for scroll_id in data:
+            # notepads
+            if scroll_id.startswith("notepad."):
+                id = int(scroll_id.replace("notepad.", ""))
+                if id in self.window.ui.notepad:
+                    try:
+                        self.window.ui.notepad[id].verticalScrollBar().setValue(data[scroll_id])
+                    except Exception as e:
+                        print("Error while restoring scroll state: " + str(e))
+                        self.window.app.errors.log(e)
 
     def state_restore(self):
         """Restore window state"""

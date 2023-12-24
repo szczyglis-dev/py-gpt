@@ -67,7 +67,6 @@ class Lang:
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
-                id = 'notepad' + str(i)
                 tab = i + 2
                 self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
 

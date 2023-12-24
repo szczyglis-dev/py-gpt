@@ -33,20 +33,19 @@ class Notepad:
         num_notepads = self.get_num_notepads()
         if len(items) == 0:
             if num_notepads > 0:
-                for i in range(1, num_notepads + 1):
+                for id in range(1, num_notepads + 1):
                     item = NotepadItem()
-                    item.id = i
-                    items[i] = item
+                    item.id = id
+                    items[id] = item
 
         if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                id = 'notepad' + str(i)
-                if i not in items:
+            for id in range(1, num_notepads + 1):
+                if id not in items:
                     item = NotepadItem()
-                    item.id = i
-                    items[i] = item
-                if id in self.window.ui.nodes:
-                    self.window.ui.nodes['notepad' + str(i)].setText(items[i].content)
+                    item.id = id
+                    items[id] = item
+                if id in self.window.ui.notepad:
+                    self.window.ui.notepad[id].setText(items[id].content)
 
     def save(self, id=None):
         """
@@ -58,10 +57,9 @@ class Notepad:
             item.id = id
             self.window.app.notepad.items[id] = item
 
-        node_id = 'notepad' + str(id)
-        if id in self.window.ui.nodes:
+        if id in self.window.ui.notepad:
             prev_content = item.content
-            item.content = self.window.ui.nodes[node_id].toPlainText()
+            item.content = self.window.ui.notepad[id].toPlainText()
             if prev_content != item.content:  # update only if content changed
                 self.window.app.notepad.update(item)
             self.update()
@@ -73,15 +71,14 @@ class Notepad:
         items = self.window.app.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                id = 'notepad' + str(i)
-                if id in self.window.ui.nodes:
-                    prev_content = items[i].content
-                    items[i].content = self.window.ui.nodes[id].toPlainText()
+            for id in range(1, num_notepads + 1):
+                if id in self.window.ui.notepad:
+                    prev_content = items[id].content
+                    items[id].content = self.window.ui.notepad[id].toPlainText()
 
                     # update only if content changed
-                    if prev_content != items[i].content:
-                        self.window.app.notepad.update(items[i])
+                    if prev_content != items[id].content:
+                        self.window.app.notepad.update(items[id])
             self.update()
 
     def setup(self):
@@ -95,15 +92,14 @@ class Notepad:
         :param text: text to append
         :param id: notepad id
         """
-        node_id = 'notepad' + str(id)
-        if node_id not in self.window.ui.nodes:
+        if id not in self.window.ui.notepad:
             return
         dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
-        prev_text = self.window.ui.nodes['notepad' + str(id)].toPlainText()
+        prev_text = self.window.ui.notepad[id].toPlainText()
         if prev_text != "":
             prev_text += "\n\n"
         new_text = prev_text + dt + text.strip()
-        self.window.ui.nodes['notepad' + str(id)].setText(new_text)
+        self.window.ui.notepad[id].setText(new_text)
         self.save(id)
 
     def get_num_notepads(self):
