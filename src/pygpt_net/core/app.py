@@ -60,8 +60,6 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # setup service container
         self.app = Container(self)
-        self.app.platform.init()
-        self.app.config.init(all=True)
         self.app.init()
 
         # setup main controller
@@ -75,7 +73,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # setup UI
         self.ui = UI(self)
-        self.ui.setup()
+        self.ui.init()
 
         # set window title
         self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.

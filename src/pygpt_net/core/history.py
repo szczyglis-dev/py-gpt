@@ -9,12 +9,10 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-import datetime
-import os
+from .provider.history.txt_file import TxtFileProvider
 
 
 class History:
-    DIRNAME = "history"
 
     def __init__(self, window):
         """
@@ -23,33 +21,34 @@ class History:
         :param window: Window instance
         """
         self.window = window
+        self.providers = {}
+        self.provider = "txt_file"
         self.path = None
 
-    def init(self):
-        self.path = os.path.join(self.window.app.config.path, self.DIRNAME)
+        # register data providers
+        self.add_provider(TxtFileProvider())  # json file provider
 
-    def save(self, text):
+    def add_provider(self, provider):
         """
-        Save text to history file
+        Add data provider
 
-        :param text: text to save
+        :param provider: data provider instance
         """
-        name = datetime.date.today().strftime("%Y_%m_%d") + ".txt"
-        if not os.path.exists(self.path):
+        self.providers[provider.id] = provider
+        self.providers[provider.id].window = self.window
+
+    def append(self, ctx, mode):
+        """
+        Append text to history
+
+        :param ctx: CtxItem instance
+        :param mode: mode (input | output)
+        """
+        if self.provider in self.providers:
             try:
-                os.makedirs(self.path)
+                self.providers[self.provider].append(ctx, mode)
             except Exception as e:
-                self.window.app.errors.log(e)
-                print("Error creating history directory: " + str(e))
-        if os.path.exists(self.path):
-            f = os.path.join(self.path, name)
-            try:
-                with open(f, 'a', encoding="utf-8") as file:
-                    prefix = ""
-                    if self.window.app.config.get('store_history_time'):
-                        prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
-                    file.write(prefix + text + "\n")
-                    file.close()
-            except Exception as e:
-                self.window.app.errors.log(e)
-                print("Error saving history: " + str(e))
+                if self.window is not None:
+                    self.window.app.errors.log(e)
+                else:
+                    print("Error appending to history: {}".format(e))

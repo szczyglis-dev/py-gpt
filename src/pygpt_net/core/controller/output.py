@@ -276,10 +276,8 @@ class Output:
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
         # store history (output)
-        if self.window.app.config.get('store_history') \
-                and ctx.output is not None \
-                and ctx.output.strip() != "":
-            self.window.app.history.save(ctx.output)
+        if self.window.app.config.get('store_history'):
+            self.window.app.history.append(ctx, "output")
 
     def speech_selected_text(self, text):
         """

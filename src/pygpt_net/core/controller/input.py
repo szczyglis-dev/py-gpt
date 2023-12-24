@@ -100,10 +100,6 @@ class Input:
         self.window.log("User name [after plugin: user_name]: {}".format(self.window.app.config.get('user_name')))  # log
         self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.app.config.get('ai_name')))  # log
 
-        # store history (input)
-        if self.window.app.config.get('store_history') and text is not None and text.strip() != "":
-            self.window.app.history.save(text)
-
         # get mode
         mode = self.window.app.config.get('mode')
 
@@ -145,6 +141,10 @@ class Input:
         ctx.mode = mode
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
+
+        # store history (input)
+        if self.window.app.config.get('store_history'):
+            self.window.app.history.append(ctx, "input")
 
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':

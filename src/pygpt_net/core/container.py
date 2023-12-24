@@ -65,4 +65,5 @@ class Container:
         self.settings = Settings(window)
 
     def init(self):
-        self.history.init()
+        self.platform.init()
+        self.config.init(all=True)

@@ -56,7 +56,7 @@ class UI:
         self.menus = Menu(window)
         self.toolbox = ToolboxMain(window)
 
-    def setup(self):
+    def init(self):
         """Setup UI"""
         # load font
         self.setup_font()
