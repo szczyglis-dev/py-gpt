@@ -46,6 +46,14 @@ class Notepad:
             except Exception as e:
                 self.window.app.errors.log(e)
 
+    def patch(self, app_version):
+        """Patch provider data"""
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].patch(app_version)
+            except Exception as e:
+                self.window.app.errors.log(e)
+
     def get_by_id(self, id):
         """
         Get notepad by id

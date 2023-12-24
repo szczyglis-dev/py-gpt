@@ -33,37 +33,81 @@ class Updater:
     def patch(self):
         """Patch config data to current version"""
         try:
-            self.patch_config()
-            self.patch_models()
-            self.patch_presets()
-            self.patch_ctx()
+            version = self.get_app_version()
+
+            self.patch_config(version)
+            self.patch_models(version)
+            self.patch_presets(version)
+            self.patch_ctx(version)
+            self.patch_assistants(version)
+            self.patch_attachments(version)
+            self.patch_notepad(version)
         except Exception as e:
             self.window.app.errors.log(e)
             print("Failed to patch config data!")
 
-    def patch_config(self):
-        """Migrate config to current app version"""
-        version = self.get_app_version()
+    def patch_config(self, version):
+        """
+        Migrate config to current app version
+
+        :param version: current app version
+        """
         if self.window.app.config.patch(version):
             print("Migrated config. [OK]")
 
-    def patch_models(self):
-        """Migrate models to current app version"""
-        version = self.get_app_version()
+    def patch_models(self, version):
+        """
+        Migrate models to current app version
+
+        :param version: current app version
+        """
         if self.window.app.models.patch(version):
             print("Migrated models. [OK]")
 
-    def patch_presets(self):
-        """Migrate presets to current app version"""
-        version = self.get_app_version()
+    def patch_presets(self, version):
+        """
+        Migrate presets to current app version
+
+        :param version: current app version
+        """
         if self.window.app.presets.patch(version):
             print("Migrated presets. [OK]")
 
-    def patch_ctx(self):
-        """Migrate ctx to current app version"""
-        version = self.get_app_version()
+    def patch_ctx(self, version):
+        """
+        Migrate ctx to current app version
+
+        :param version: current app version
+        """
         if self.window.app.ctx.patch(version):
             print("Migrated ctx. [OK]")
+
+    def patch_assistants(self, version):
+        """
+        Migrate assistants to current app version
+
+        :param version: current app version
+        """
+        if self.window.app.assistants.patch(version):
+            print("Migrated assistants. [OK]")
+
+    def patch_attachments(self, version):
+        """
+        Migrate attachments to current app version
+
+        :param version: current app version
+        """
+        if self.window.app.attachments.patch(version):
+            print("Migrated attachments. [OK]")
+
+    def patch_notepad(self, version):
+        """
+        Migrate notepad to current app version
+
+        :param version: current app version
+        """
+        if self.window.app.notepad.patch(version):
+            print("Migrated notepad. [OK]")
 
     def patch_dir(self, dirname="", force=False):
         """

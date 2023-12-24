@@ -116,6 +116,16 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.app.errors.log(e)
 
+    def patch(self, version):
+        """
+        Migrate presets to current app version
+
+        :param version: current app version
+        :return: true if migrated
+        :rtype: bool
+        """
+        return False
+
     @staticmethod
     def serialize(attachment):
         """

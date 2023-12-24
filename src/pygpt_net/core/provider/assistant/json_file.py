@@ -108,6 +108,16 @@ class JsonFileProvider(BaseProvider):
         """Delete all"""
         pass
 
+    def patch(self, version):
+        """
+        Migrate presets to current app version
+
+        :param version: current app version
+        :return: true if migrated
+        :rtype: bool
+        """
+        return False
+
     @staticmethod
     def serialize(item):
         """

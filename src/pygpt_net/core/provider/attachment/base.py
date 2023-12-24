@@ -19,6 +19,9 @@ class BaseProvider:
     def install(self):
         pass
 
+    def patch(self, version):
+        pass
+
     def create(self, meta):
         pass
 
