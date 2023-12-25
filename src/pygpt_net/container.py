@@ -27,7 +27,7 @@ from pygpt_net.core.info import Info
 from pygpt_net.core.models import Models
 from pygpt_net.core.modes import Modes
 from pygpt_net.core.notepad import Notepad
-from pygpt_net.core.platform import Platform
+from pygpt_net.core.platforms import Platforms
 from pygpt_net.core.plugins import Plugins
 from pygpt_net.core.presets import Presets
 from pygpt_net.core.settings import Settings
@@ -64,7 +64,7 @@ class Container:
         self.models = Models(window)
         self.modes = Modes(window)
         self.notepad = Notepad(window)
-        self.platform = Platform(window)
+        self.platforms = Platforms(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
@@ -73,7 +73,7 @@ class Container:
     def init(self):
         """Initialize all components"""
         self.config.init(all=True)
-        self.platform.init()
+        self.platforms.init()
 
     def patch(self):
         """Patch version"""

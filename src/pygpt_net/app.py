@@ -21,7 +21,7 @@ from logging import ERROR, WARNING, INFO, DEBUG
 from pygpt_net.container import Container
 from pygpt_net.controller.main import Controller
 from pygpt_net.core.debugger import Debug
-from pygpt_net.core.platform import Platform
+from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui.main import UI
 from pygpt_net.utils import get_app_meta
 
@@ -189,7 +189,7 @@ class Launcher:
 
     def init(self):
         """Initialize app"""
-        Platform.prepare()  # setup platform specific options
+        Platforms.prepare()  # setup platform specific options
 
         self.app = QApplication(sys.argv)
         self.window = MainWindow()

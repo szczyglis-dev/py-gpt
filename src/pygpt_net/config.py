@@ -103,8 +103,8 @@ class Config:
             # if app initialization
             if all:
                 v = self.get_version()
-                os = self.window.app.platform.get_os()
-                architecture = self.window.app.platform.get_architecture()
+                os = self.window.app.platforms.get_os()
+                architecture = self.window.app.platforms.get_architecture()
                 print("")
                 print("PyGPT v{} ({}, {})".format(v, os, architecture))
                 print("Author: Marcin Szczyglinski")

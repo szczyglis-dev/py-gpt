@@ -17,7 +17,7 @@ from PySide6 import QtCore, QtWidgets
 from pygpt_net.config import Config
 
 
-class Platform:
+class Platforms:
 
     def __init__(self, window=None):
         """
