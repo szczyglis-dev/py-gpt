@@ -147,6 +147,7 @@ class JsonFileProvider(BaseProvider):
                     src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', 'presets',
                                        'current.assistant.json')
                     shutil.copyfile(src, dst)
+                    updated = True
                     print("Patched file: {}.".format(dst))
 
             # update file

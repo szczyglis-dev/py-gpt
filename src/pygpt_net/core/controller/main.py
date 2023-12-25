@@ -100,7 +100,7 @@ class Controller:
         """Post-setup, after plugins are loaded"""
         # setup plugins settings
         self.plugins.setup_settings()
-        self.window.app.updater.check()
+        self.launcher.post_setup()
 
     def update(self):
         """On app main loop update"""

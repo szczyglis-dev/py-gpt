@@ -2,7 +2,7 @@
   "name": "*",
   "ai_name": "",
   "user_name": "",
-  "prompt": "xxx",
+  "prompt": "",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
