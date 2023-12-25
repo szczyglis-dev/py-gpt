@@ -140,6 +140,15 @@ class JsonFileProvider(BaseProvider):
                     print("Migrating presets dir from < 2.0.0...")
                     self.window.app.updater.patch_file('presets', True)  # force replace file
 
+                # < 2.0.53
+                if old < parse_version("2.0.53") and k == 'current.assistant':
+                    print("Migrating preset file from < 2.0.53...")
+                    dst = os.path.join(self.window.app.config.path, 'presets', 'current.assistant.json')
+                    src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', 'presets',
+                                       'current.assistant.json')
+                    shutil.copyfile(src, dst)
+                    print("Patched file: {}.".format(dst))
+
             # update file
             if updated:
                 self.window.app.presets.load()  # reload presets from patched files

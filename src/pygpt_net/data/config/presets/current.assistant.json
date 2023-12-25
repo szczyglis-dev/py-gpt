@@ -2,7 +2,7 @@
   "name": "*",
   "ai_name": "",
   "user_name": "",
-  "prompt": "Question: {question}\n\nAnswer: ",
+  "prompt": "xxx",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
@@ -11,8 +11,8 @@
   "langchain": false,
   "assistant": true,
   "__meta__": {
-    "version": "2.0.0",
-    "app.version": "2.0.0",
-    "updated_at": "2023-12-05T22:00:00"
+    "version": "2.0.53",
+    "app.version": "2.0.53",
+    "updated_at": "2023-12-25T22:00:00"
   }
 }

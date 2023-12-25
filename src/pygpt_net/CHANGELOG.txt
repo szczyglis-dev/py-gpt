@@ -1,3 +1,9 @@
+2.0.53 (2023-12-25)
+
+- Updater new version check moved to post-setup
+- Fixed default assistant preset
+- Added link to Snap Store to updater window
+
 2.0.52 (2023-12-25)
 
 - Added DPI option in settings: enable/disable and scale factor

@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout
 
 from ....utils import trans
 
@@ -35,6 +35,11 @@ class UpdateDialog(QDialog):
         self.download.clicked.connect(
             lambda: self.window.controller.info.goto_update())
 
+        self.snap = QPushButton(trans('update.snap'))
+        self.snap.setCursor(Qt.PointingHandCursor)
+        self.snap.clicked.connect(
+            lambda: self.window.controller.info.goto_snap())
+
         self.changelog = QPlainTextEdit()
         self.changelog.setReadOnly(True)
         self.changelog.setMinimumHeight(200)
@@ -44,6 +49,10 @@ class UpdateDialog(QDialog):
             os.path.join(self.window.app.config.get_root_path(), 'data', 'logo.png'))
         pixmap = QPixmap(path)
         logo_label.setPixmap(pixmap)
+
+        buttons = QHBoxLayout()
+        buttons.addWidget(self.download)
+        buttons.addWidget(self.snap)
 
         self.layout = QVBoxLayout()
         self.message = QLabel("")
@@ -57,6 +66,6 @@ class UpdateDialog(QDialog):
         self.layout.addWidget(self.info)
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.changelog, 1)
-        self.layout.addWidget(self.download)
+        self.layout.addLayout(buttons)
         self.layout.addStretch()
         self.setLayout(self.layout)
