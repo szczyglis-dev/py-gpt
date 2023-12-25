@@ -13,7 +13,7 @@ import os.path
 import subprocess
 import docker
 
-from ..base_plugin import BasePlugin
+from pygpt_net.core.plugin.base_plugin import BasePlugin
 
 
 class Plugin(BasePlugin):

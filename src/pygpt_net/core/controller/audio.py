@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from ..dispatcher import Event
+from pygpt_net.core.dispatcher import Event
 
 
 class Audio:

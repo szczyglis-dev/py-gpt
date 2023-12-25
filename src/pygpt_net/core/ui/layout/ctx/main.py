@@ -11,8 +11,8 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
-from .ctx_list import CtxList
-from .video import Video
+from pygpt_net.core.ui.layout.ctx.ctx_list import CtxList
+from pygpt_net.core.ui.layout.ctx.video import Video
 
 
 class CtxMain:

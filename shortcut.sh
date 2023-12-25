@@ -2,5 +2,4 @@
 
 cd "$(dirname "$0")"
 source ./venv/bin/activate
-cd ./src/pygpt_net
-python3 -m app
+python3 -m run.py

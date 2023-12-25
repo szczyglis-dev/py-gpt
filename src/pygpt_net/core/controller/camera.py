@@ -16,8 +16,8 @@ import cv2
 from PySide6.QtCore import Slot
 
 from PySide6.QtGui import QImage, QPixmap, Qt
-from ..camera import CameraThread
-from ..utils import trans
+from pygpt_net.core.camera import CameraThread
+from pygpt_net.core.utils import trans
 
 
 class Camera:

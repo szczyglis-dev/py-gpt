@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from .provider.history.txt_file import TxtFileProvider
+from pygpt_net.core.provider.history.txt_file import TxtFileProvider
 
 
 class History:

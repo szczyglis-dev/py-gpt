@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
-from ..widget.dialog.update import UpdateDialog
+from pygpt_net.core.ui.widget.dialog.update import UpdateDialog
 
 
 class Update:

@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
-from .base import BaseList
+from pygpt_net.core.ui.widget.lists.base import BaseList
 
 
 class PluginList(BaseList):

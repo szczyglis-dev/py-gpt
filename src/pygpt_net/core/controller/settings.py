@@ -12,7 +12,7 @@
 import os
 import copy
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Settings:

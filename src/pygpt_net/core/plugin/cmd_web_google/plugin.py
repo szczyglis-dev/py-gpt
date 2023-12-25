@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from ..base_plugin import BasePlugin
+from pygpt_net.core.plugin.base_plugin import BasePlugin
 from .websearch import WebSearch
 
 

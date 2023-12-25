@@ -10,8 +10,8 @@
 # ================================================== #
 import datetime
 
-from .item.notepad import NotepadItem
-from .provider.notepad.json_file import JsonFileProvider
+from pygpt_net.core.item.notepad import NotepadItem
+from pygpt_net.core.provider.notepad.json_file import JsonFileProvider
 
 
 class Notepad:

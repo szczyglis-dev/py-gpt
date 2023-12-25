@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Model:

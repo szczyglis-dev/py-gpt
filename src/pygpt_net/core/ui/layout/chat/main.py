@@ -12,8 +12,8 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QSplitter
 
-from .input import Input
-from .output import Output
+from pygpt_net.core.ui.layout.chat.input import Input
+from pygpt_net.core.ui.layout.chat.output import Output
 
 
 class ChatMain:

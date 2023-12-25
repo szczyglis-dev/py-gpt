@@ -11,12 +11,12 @@
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
-from ..widget.option.checkbox import OptionCheckbox
-from ..widget.option.input import OptionInput
-from ..widget.option.slider import OptionSlider
-from ..widget.option.textarea import OptionTextarea
-from ..widget.dialog.editor import EditorDialog
-from ...utils import trans
+from pygpt_net.core.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.core.ui.widget.option.input import OptionInput
+from pygpt_net.core.ui.widget.option.slider import OptionSlider
+from pygpt_net.core.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.core.ui.widget.dialog.editor import EditorDialog
+from pygpt_net.core.utils import trans
 
 
 class Preset:

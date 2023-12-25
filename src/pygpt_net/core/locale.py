@@ -14,7 +14,7 @@ import os
 import configparser
 import io
 
-from .config import Config
+from pygpt_net.core.config import Config
 
 
 class Locale:

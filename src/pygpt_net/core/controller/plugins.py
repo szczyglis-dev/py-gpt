@@ -11,8 +11,8 @@
 
 from PySide6.QtGui import QAction
 
-from ..dispatcher import Event
-from ..utils import trans
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.utils import trans
 
 
 class Plugins:

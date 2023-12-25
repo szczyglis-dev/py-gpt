@@ -12,14 +12,14 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QFrame, QLineEdit
 
-from ..widget.dialog.settings import SettingsDialog
-from ..widget.option.checkbox import OptionCheckbox
-from ..widget.option.input import OptionInput
-from ..widget.option.slider import OptionSlider
-from ..widget.option.textarea import OptionTextarea
-from ..widget.element.group import CollapsedGroup
-from ..widget.element.url import UrlLabel
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.settings import SettingsDialog
+from pygpt_net.core.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.core.ui.widget.option.input import OptionInput
+from pygpt_net.core.ui.widget.option.slider import OptionSlider
+from pygpt_net.core.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.core.ui.widget.element.group import CollapsedGroup
+from pygpt_net.core.ui.widget.element.url import UrlLabel
+from pygpt_net.core.utils import trans
 
 
 class Settings:

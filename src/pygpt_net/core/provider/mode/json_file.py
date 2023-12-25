@@ -12,8 +12,8 @@
 import json
 import os
 
-from .base import BaseProvider
-from ...item.mode import ModeItem
+from pygpt_net.core.provider.mode.base import BaseProvider
+from pygpt_net.core.item.mode import ModeItem
 
 
 class JsonFileProvider(BaseProvider):

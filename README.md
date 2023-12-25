@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.55** | build: **2023.12.25** | Python: **3.9+**
+Release: **2.0.56** | build: **2023.12.25** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -129,7 +129,7 @@ pygpt
 ## Source Code
 
 An alternative method is to download the source code from `GitHub` and execute the application using 
-the Python interpreter (version `3.9` or higher). 
+the Python interpreter (version `3.10` or higher). 
 
 ### Running from GitHub source code
 
@@ -143,7 +143,7 @@ cd py-gpt
 2. Create virtual environment:
 
 ```commandline
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -156,8 +156,7 @@ pip install -r requirements.txt
 4. Run the application:
 
 ```commandline
-cd src/pygpt_net
-python app.py
+python3 run.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of

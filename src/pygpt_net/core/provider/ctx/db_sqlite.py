@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
-from .base import BaseProvider
+from pygpt_net.core.provider.ctx.base import BaseProvider
 
 
 class DbSqliteProvider(BaseProvider):

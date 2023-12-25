@@ -18,8 +18,8 @@ import speech_recognition as sr
 from openai import OpenAI
 import audioop
 
-from ..base_plugin import BasePlugin
-from ...utils import trans
+from pygpt_net.core.plugin.base_plugin import BasePlugin
+from pygpt_net.core.utils import trans
 
 
 class Plugin(BasePlugin):

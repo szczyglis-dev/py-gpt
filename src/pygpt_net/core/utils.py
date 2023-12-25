@@ -11,7 +11,7 @@
 
 import os
 import re
-from .locale import Locale
+from pygpt_net.core.locale import Locale
 
 locale = None
 init_file_meta = None

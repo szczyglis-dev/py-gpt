@@ -13,12 +13,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, \
     QTabWidget, QWidget
 
-from .attachments import Attachments
-from .attachments_uploaded import AttachmentsUploaded
-from ..status import Status
-from ...widget.audio.input import AudioInput
-from ...widget.textarea.input import ChatInput
-from ....utils import trans
+from pygpt_net.core.ui.layout.chat.attachments import Attachments
+from pygpt_net.core.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
+from pygpt_net.core.ui.layout.status import Status
+from pygpt_net.core.ui.widget.audio.input import AudioInput
+from pygpt_net.core.ui.widget.textarea.input import ChatInput
+from pygpt_net.core.utils import trans
 
 
 class Input:

@@ -12,7 +12,7 @@
 import datetime
 import os
 
-from .base import BaseProvider
+from pygpt_net.core.provider.history.base import BaseProvider
 
 
 class TxtFileProvider(BaseProvider):

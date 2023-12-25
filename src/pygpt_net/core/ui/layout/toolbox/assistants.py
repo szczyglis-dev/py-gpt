@@ -12,8 +12,8 @@
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 
-from ...widget.lists.assistant import AssistantList
-from ....utils import trans
+from pygpt_net.core.ui.widget.lists.assistant import AssistantList
+from pygpt_net.core.utils import trans
 
 
 class Assistants:

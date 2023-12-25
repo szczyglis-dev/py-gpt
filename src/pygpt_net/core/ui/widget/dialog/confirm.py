@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class ConfirmDialog(QDialog):

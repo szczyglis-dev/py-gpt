@@ -11,8 +11,8 @@
 
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
 
-from ....utils import trans
-from ..textarea.rename import RenameInput
+from pygpt_net.core.utils import trans
+from pygpt_net.core.ui.widget.textarea.rename import RenameInput
 
 
 class RenameDialog(QDialog):

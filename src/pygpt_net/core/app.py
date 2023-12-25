@@ -18,29 +18,29 @@ from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
 from logging import ERROR, WARNING, INFO, DEBUG
 
-from .container import Container
-from .controller.main import Controller
-from .debugger import Debug
-from .platform import Platform
-from .ui.main import UI
-from .utils import get_app_meta
+from pygpt_net.core.container import Container
+from pygpt_net.core.controller.main import Controller
+from pygpt_net.core.debugger import Debug
+from pygpt_net.core.platform import Platform
+from pygpt_net.core.ui.main import UI
+from pygpt_net.core.utils import get_app_meta
 
-from .plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
-from .plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
-from .plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperPlugin
-from .plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
-from .plugin.cmd_custom.plugin import Plugin as CmdCustomCommandPlugin
-from .plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
-from .plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
-from .plugin.real_time.plugin import Plugin as RealTimePlugin
-from .plugin.self_loop.plugin import Plugin as SelfLoopPlugin
+from pygpt_net.core.plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
+from pygpt_net.core.plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
+from pygpt_net.core.plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperPlugin
+from pygpt_net.core.plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
+from pygpt_net.core.plugin.cmd_custom.plugin import Plugin as CmdCustomCommandPlugin
+from pygpt_net.core.plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
+from pygpt_net.core.plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
+from pygpt_net.core.plugin.real_time.plugin import Plugin as RealTimePlugin
+from pygpt_net.core.plugin.self_loop.plugin import Plugin as SelfLoopPlugin
 
-from .llm.Anthropic import AnthropicLLM
-from .llm.AzureOpenAI import AzureOpenAILLM
-from .llm.HuggingFace import HuggingFaceLLM
-from .llm.Llama2 import Llama2LLM
-from .llm.Ollama import OllamaLLM
-from .llm.OpenAI import OpenAILLM
+from pygpt_net.core.llm.Anthropic import AnthropicLLM
+from pygpt_net.core.llm.AzureOpenAI import AzureOpenAILLM
+from pygpt_net.core.llm.HuggingFace import HuggingFaceLLM
+from pygpt_net.core.llm.Llama2 import Llama2LLM
+from pygpt_net.core.llm.Ollama import OllamaLLM
+from pygpt_net.core.llm.OpenAI import OpenAILLM
 
 
 Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]

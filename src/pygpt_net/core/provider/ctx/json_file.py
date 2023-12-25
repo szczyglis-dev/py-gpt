@@ -13,8 +13,8 @@ import datetime
 import json
 import os
 
-from .base import BaseProvider
-from ...item.ctx import CtxItem, CtxMeta
+from pygpt_net.core.provider.ctx.base import BaseProvider
+from pygpt_net.core.item.ctx import CtxItem, CtxMeta
 
 
 class JsonFileProvider(BaseProvider):

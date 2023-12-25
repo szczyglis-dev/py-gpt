@@ -10,7 +10,7 @@
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from .item.ctx import CtxItem
+from pygpt_net.core.item.ctx import CtxItem
 
 
 class Chain:

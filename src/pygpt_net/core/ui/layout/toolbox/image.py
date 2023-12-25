@@ -11,8 +11,8 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
 
-from ...widget.option.slider import OptionSlider
-from ....utils import trans
+from pygpt_net.core.ui.widget.option.slider import OptionSlider
+from pygpt_net.core.utils import trans
 
 
 class Image:

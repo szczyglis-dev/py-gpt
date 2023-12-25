@@ -11,8 +11,8 @@
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QVBoxLayout
 
-from ..widget.dialog.logger import LoggerDialog
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.logger import LoggerDialog
+from pygpt_net.core.utils import trans
 
 
 class Logger:

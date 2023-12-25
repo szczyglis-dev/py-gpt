@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class OptionDict(QWidget):

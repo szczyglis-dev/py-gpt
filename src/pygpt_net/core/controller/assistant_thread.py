@@ -14,7 +14,7 @@ import time
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class AssistantThread:

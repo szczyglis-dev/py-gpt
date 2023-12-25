@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QSlider
 
-from .input import OptionInputInline
+from pygpt_net.core.ui.widget.option.input import OptionInputInline
 
 
 class NoScrollSlider(QSlider):

@@ -17,9 +17,9 @@ from pathlib import PurePath
 from PySide6 import QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog
 
-from ..item.ctx import CtxItem
-from ..dispatcher import Event
-from ..utils import trans
+from pygpt_net.core.item.ctx import CtxItem
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.utils import trans
 
 
 class Image:

@@ -15,7 +15,7 @@ from datetime import datetime
 from PySide6.QtWidgets import QFileDialog
 from pathlib import PurePath
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Attachment:

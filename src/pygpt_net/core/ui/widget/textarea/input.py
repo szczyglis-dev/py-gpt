@@ -13,7 +13,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextEdit, QApplication, QMenu
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class ChatInput(QTextEdit):

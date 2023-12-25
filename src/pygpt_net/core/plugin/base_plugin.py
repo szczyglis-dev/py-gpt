@@ -8,7 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.23 01:00:00                  #
 # ================================================== #
-from ..utils import trans
+# 
+from pygpt_net.core.utils import trans
 
 from PySide6.QtCore import QCoreApplication, QThread
 

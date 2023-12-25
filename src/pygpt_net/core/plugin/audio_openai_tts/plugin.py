@@ -16,8 +16,8 @@ import pygame
 from PySide6.QtCore import QObject
 from openai import OpenAI
 
-from ..base_plugin import BasePlugin
-from ...utils import trans
+from pygpt_net.core.plugin.base_plugin import BasePlugin
+from pygpt_net.core.utils import trans
 
 
 class Plugin(BasePlugin):

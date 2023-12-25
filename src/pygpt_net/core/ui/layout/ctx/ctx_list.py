@@ -13,8 +13,8 @@ from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
-from ...widget.lists.context import ContextList
-from ....utils import trans
+from pygpt_net.core.ui.widget.lists.context import ContextList
+from pygpt_net.core.utils import trans
 
 
 class CtxList:

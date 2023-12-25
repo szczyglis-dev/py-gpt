@@ -11,7 +11,7 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Vision:

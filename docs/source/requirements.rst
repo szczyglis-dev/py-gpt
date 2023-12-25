@@ -88,7 +88,7 @@ Running from GitHub source code
 
 .. code-block:: console
 
-    python -m venv venv
+    python3 -m venv venv
     source venv/bin/activate
 
 3. Install requirements:
@@ -101,8 +101,7 @@ Running from GitHub source code
 
 .. code-block:: console
 
-    cd src/pygpt_net
-    python app.py
+    python3 run.py
 
 **Tip**: you can use ``PyInstaller`` to create a compiled version of
 the application for your system.

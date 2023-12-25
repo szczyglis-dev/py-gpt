@@ -16,7 +16,7 @@ import requests
 from PySide6.QtCore import QObject
 import pygame
 
-from ..base_plugin import BasePlugin
+from pygpt_net.core.plugin.base_plugin import BasePlugin
 
 
 class Plugin(BasePlugin):

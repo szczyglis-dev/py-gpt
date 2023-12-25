@@ -7,6 +7,7 @@ block_cipher = None
 a = Analysis(
     ['src/pygpt_net/app.py'],
     pathex=[
+        'src',
         'src/pygpt_net'
     ],
     binaries=[],

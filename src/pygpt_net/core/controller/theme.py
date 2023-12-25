@@ -14,7 +14,7 @@ import os
 
 from PySide6.QtGui import QAction
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Theme:

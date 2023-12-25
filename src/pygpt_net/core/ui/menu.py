@@ -11,7 +11,7 @@
 
 from PySide6.QtGui import QAction, QIcon
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Menu:

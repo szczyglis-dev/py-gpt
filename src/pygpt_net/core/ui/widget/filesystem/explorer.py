@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class FileExplorer(QWidget):

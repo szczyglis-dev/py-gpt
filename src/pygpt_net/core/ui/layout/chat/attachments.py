@@ -12,8 +12,8 @@
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget
 
-from ...widget.lists.attachment import AttachmentList
-from ....utils import trans
+from pygpt_net.core.ui.widget.lists.attachment import AttachmentList
+from pygpt_net.core.utils import trans
 
 
 class Attachments:

@@ -14,8 +14,8 @@ import os
 import shutil
 from packaging.version import parse as parse_version
 
-from .base import BaseProvider
-from ...item.model import ModelItem
+from pygpt_net.core.provider.model.base import BaseProvider
+from pygpt_net.core.item.model import ModelItem
 
 
 class JsonFileProvider(BaseProvider):

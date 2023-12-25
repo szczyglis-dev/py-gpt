@@ -9,9 +9,9 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from ..dispatcher import Event
-from ..tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
-from ..utils import trans
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
+from pygpt_net.core.utils import trans
 
 
 class UI:

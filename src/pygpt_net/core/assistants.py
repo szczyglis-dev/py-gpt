@@ -10,8 +10,8 @@
 # ================================================== #
 
 
-from .item.assistant import AssistantItem
-from .provider.assistant.json_file import JsonFileProvider
+from pygpt_net.core.item.assistant import AssistantItem
+from pygpt_net.core.provider.assistant.json_file import JsonFileProvider
 
 
 class Assistants:

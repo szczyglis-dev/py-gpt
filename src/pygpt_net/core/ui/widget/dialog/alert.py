@@ -11,7 +11,7 @@
 
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QPlainTextEdit
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class AlertDialog(QDialog):

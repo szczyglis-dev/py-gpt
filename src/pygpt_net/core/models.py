@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from .provider.model.json_file import JsonFileProvider
+from pygpt_net.core.provider.model.json_file import JsonFileProvider
 
 
 class Models:

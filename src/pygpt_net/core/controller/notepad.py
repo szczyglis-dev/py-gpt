@@ -11,7 +11,7 @@
 
 import datetime
 
-from ..item.notepad import NotepadItem
+from pygpt_net.core.item.notepad import NotepadItem
 
 
 class Notepad:

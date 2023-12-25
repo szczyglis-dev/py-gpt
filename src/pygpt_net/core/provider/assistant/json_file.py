@@ -13,10 +13,10 @@ import json
 import os
 import uuid
 
-from .base import BaseProvider
-from ...item.assistant import AssistantItem
-from ...item.attachment import AttachmentItem
-from ..attachment.json_file import JsonFileProvider as AttachmentJsonFileProvider
+from pygpt_net.core.item.assistant import AssistantItem
+from pygpt_net.core.item.attachment import AttachmentItem
+from pygpt_net.core.provider.assistant.base import BaseProvider
+from pygpt_net.core.provider.attachment.json_file import JsonFileProvider as AttachmentJsonFileProvider
 
 
 class JsonFileProvider(BaseProvider):

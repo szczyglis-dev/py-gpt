@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.06 12:00:00                  #
 # ================================================== #
+
 import os
 from langchain.llms import AzureOpenAI
 from langchain.chat_models import AzureChatOpenAI

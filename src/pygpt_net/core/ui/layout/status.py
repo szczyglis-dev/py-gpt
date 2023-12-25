@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout
 
-from ...utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Status:

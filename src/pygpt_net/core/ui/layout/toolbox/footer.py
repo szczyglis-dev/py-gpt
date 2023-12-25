@@ -15,11 +15,11 @@ from PySide6.QtCore import QSize
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QSizePolicy
 
-from .image import Image
-from .vision import Vision
-from ...widget.textarea.name import NameInput
-from ...widget.option.slider import OptionSlider
-from ....utils import trans
+from pygpt_net.core.ui.layout.toolbox.image import Image
+from pygpt_net.core.ui.layout.toolbox.vision import Vision
+from pygpt_net.core.ui.widget.textarea.name import NameInput
+from pygpt_net.core.ui.widget.option.slider import OptionSlider
+from pygpt_net.core.utils import trans
 
 
 class Footer:

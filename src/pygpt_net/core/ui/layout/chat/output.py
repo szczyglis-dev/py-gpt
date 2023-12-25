@@ -14,13 +14,13 @@ import os
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QTabWidget
 
-from .input import Input
-from .markdown import MarkdownHighlighter
-from ...widget.audio.output import AudioOutput
-from ...widget.textarea.output import ChatOutput
-from ...widget.textarea.notepad import NotepadOutput
-from ...widget.filesystem.explorer import FileExplorer
-from ....utils import trans
+from pygpt_net.core.ui.layout.chat.input import Input
+from pygpt_net.core.ui.layout.chat.markdown import MarkdownHighlighter
+from pygpt_net.core.ui.widget.audio.output import AudioOutput
+from pygpt_net.core.ui.widget.textarea.output import ChatOutput
+from pygpt_net.core.ui.widget.textarea.notepad import NotepadOutput
+from pygpt_net.core.ui.widget.filesystem.explorer import FileExplorer
+from pygpt_net.core.utils import trans
 
 
 class Output:

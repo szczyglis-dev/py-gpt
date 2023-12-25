@@ -9,8 +9,8 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from .item.attachment import AttachmentItem
-from .provider.attachment.json_file import JsonFileProvider
+from pygpt_net.core.item.attachment import AttachmentItem
+from pygpt_net.core.provider.attachment.json_file import JsonFileProvider
 
 
 class Attachments:

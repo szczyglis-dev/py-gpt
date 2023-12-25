@@ -12,12 +12,12 @@
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QSplitter
 
-from .assistants import Assistants
-from .mode import Mode
-from .model import Model
-from .presets import Presets
-from .prompt import Prompt
-from .footer import Footer
+from pygpt_net.core.ui.layout.toolbox.assistants import Assistants
+from pygpt_net.core.ui.layout.toolbox.mode import Mode
+from pygpt_net.core.ui.layout.toolbox.model import Model
+from pygpt_net.core.ui.layout.toolbox.presets import Presets
+from pygpt_net.core.ui.layout.toolbox.prompt import Prompt
+from pygpt_net.core.ui.layout.toolbox.footer import Footer
 
 
 class ToolboxMain:

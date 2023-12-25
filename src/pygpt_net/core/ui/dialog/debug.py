@@ -11,7 +11,7 @@
 
 from PySide6.QtWidgets import QTreeView, QGridLayout, QAbstractItemView, QScrollArea
 
-from ..widget.dialog.debug import DebugDialog
+from pygpt_net.core.ui.widget.dialog.debug import DebugDialog
 
 
 class Debug:

@@ -11,8 +11,8 @@
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
-from ..widget.dialog.editor_file import EditorFileDialog
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.editor_file import EditorFileDialog
+from pygpt_net.core.utils import trans
 
 
 class Editor:

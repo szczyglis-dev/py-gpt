@@ -11,9 +11,9 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
 
-from ..widget.dialog.image import ImageDialog
-from ..widget.image.display import ImageLabel
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.image import ImageDialog
+from pygpt_net.core.ui.widget.image.display import ImageLabel
+from pygpt_net.core.utils import trans
 
 
 class Image:

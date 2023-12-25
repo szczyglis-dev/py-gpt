@@ -14,7 +14,7 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
-from .config import Config
+from pygpt_net.core.config import Config
 
 
 class Platform:

@@ -12,9 +12,9 @@
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget
 
-from ...widget.lists.preset import PresetList
-from .footer import Footer
-from ....utils import trans
+from pygpt_net.core.ui.widget.lists.preset import PresetList
+from pygpt_net.core.ui.layout.toolbox.footer import Footer
+from pygpt_net.core.utils import trans
 
 
 class Presets:

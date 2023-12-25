@@ -18,7 +18,7 @@ import ssl
 from urllib.request import urlopen, Request
 from packaging.version import parse as parse_version
 
-from .utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Updater:

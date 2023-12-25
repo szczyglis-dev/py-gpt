@@ -15,7 +15,7 @@ import shutil
 import ssl
 from urllib.request import Request, urlopen
 
-from ..base_plugin import BasePlugin
+from pygpt_net.core.plugin.base_plugin import BasePlugin
 
 
 class Plugin(BasePlugin):

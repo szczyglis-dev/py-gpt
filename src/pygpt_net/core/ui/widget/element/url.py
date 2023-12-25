@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
+
 import webbrowser
 
 from PySide6.QtCore import Qt

@@ -13,8 +13,8 @@ import os
 
 from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QLabel
 
-from ..widget.dialog.info import InfoDialog
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.info import InfoDialog
+from pygpt_net.core.utils import trans
 
 
 class Changelog:

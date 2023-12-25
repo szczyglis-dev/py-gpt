@@ -9,32 +9,32 @@
 # Updated Date: 2023.12.23 22:00:00                  #
 # ================================================== #
 
-from .assistant import Assistant
-from .assistant_files import AssistantFiles
-from .assistant_thread import AssistantThread
-from .attachment import Attachment
-from .audio import Audio
-from .camera import Camera
-from .command import Command
-from .confirm import Confirm
-from .ctx import Ctx
-from .debug import Debug
-from .files import Files
-from .image import Image
-from .info import Info
-from .input import Input
-from .lang import Lang
-from .launcher import Launcher
-from .layout import Layout
-from .model import Model
-from .notepad import Notepad
-from .output import Output
-from .plugins import Plugins
-from .presets import Presets
-from .settings import Settings
-from .summarize import Summarize
-from .theme import Theme
-from .ui import UI
+from pygpt_net.core.controller.assistant import Assistant
+from pygpt_net.core.controller.assistant_files import AssistantFiles
+from pygpt_net.core.controller.assistant_thread import AssistantThread
+from pygpt_net.core.controller.attachment import Attachment
+from pygpt_net.core.controller.audio import Audio
+from pygpt_net.core.controller.camera import Camera
+from pygpt_net.core.controller.command import Command
+from pygpt_net.core.controller.confirm import Confirm
+from pygpt_net.core.controller.ctx import Ctx
+from pygpt_net.core.controller.debug import Debug
+from pygpt_net.core.controller.files import Files
+from pygpt_net.core.controller.image import Image
+from pygpt_net.core.controller.info import Info
+from pygpt_net.core.controller.input import Input
+from pygpt_net.core.controller.lang import Lang
+from pygpt_net.core.controller.launcher import Launcher
+from pygpt_net.core.controller.layout import Layout
+from pygpt_net.core.controller.model import Model
+from pygpt_net.core.controller.notepad import Notepad
+from pygpt_net.core.controller.output import Output
+from pygpt_net.core.controller.plugins import Plugins
+from pygpt_net.core.controller.presets import Presets
+from pygpt_net.core.controller.settings import Settings
+from pygpt_net.core.controller.summarize import Summarize
+from pygpt_net.core.controller.theme import Theme
+from pygpt_net.core.controller.ui import UI
 
 
 class Controller:

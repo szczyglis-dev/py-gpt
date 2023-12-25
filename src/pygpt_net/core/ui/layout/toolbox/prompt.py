@@ -12,8 +12,8 @@
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox
 
-from ...widget.option.textarea import OptionTextarea
-from ....utils import trans
+from pygpt_net.core.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.core.utils import trans
 
 
 class Prompt:

@@ -10,7 +10,7 @@
 # ================================================== #
 from datetime import datetime
 
-from ..base_plugin import BasePlugin
+from pygpt_net.core.plugin.base_plugin import BasePlugin
 
 
 class Plugin(BasePlugin):

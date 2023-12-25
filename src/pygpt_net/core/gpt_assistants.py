@@ -13,7 +13,7 @@ import json
 import os
 
 from openai import OpenAI
-from .item.assistant import AssistantItem
+from pygpt_net.core.item.assistant import AssistantItem
 
 
 class GptAssistants:

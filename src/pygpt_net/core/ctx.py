@@ -12,10 +12,10 @@
 import datetime
 import os
 
-from .item.ctx import CtxItem, CtxMeta
-from .tokens import num_tokens_from_context_item
-from .provider.ctx.json_file import JsonFileProvider
-from .utils import trans
+from pygpt_net.core.item.ctx import CtxItem, CtxMeta
+from pygpt_net.core.tokens import num_tokens_from_context_item
+from pygpt_net.core.provider.ctx.json_file import JsonFileProvider
+from pygpt_net.core.utils import trans
 
 
 class Ctx:

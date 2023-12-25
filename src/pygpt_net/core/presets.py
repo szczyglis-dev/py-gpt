@@ -11,8 +11,8 @@
 
 import copy
 
-from .item.preset import PresetItem
-from .provider.preset.json_file import JsonFileProvider
+from pygpt_net.core.item.preset import PresetItem
+from pygpt_net.core.provider.preset.json_file import JsonFileProvider
 
 
 class Presets:

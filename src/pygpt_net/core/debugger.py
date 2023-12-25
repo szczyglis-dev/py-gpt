@@ -20,15 +20,15 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtCore import QtMsgType, qInstallMessageHandler
 
-from .debug.assistants import AssistantsDebug
-from .debug.attachments import AttachmentsDebug
-from .debug.config import ConfigDebug
-from .debug.context import ContextDebug
-from .debug.models import ModelsDebug
-from .debug.plugins import PluginsDebug
-from .debug.presets import PresetsDebug
-from .debug.ui import UIDebug
-from .config import Config
+from pygpt_net.core.debug.assistants import AssistantsDebug
+from pygpt_net.core.debug.attachments import AttachmentsDebug
+from pygpt_net.core.debug.config import ConfigDebug
+from pygpt_net.core.debug.context import ContextDebug
+from pygpt_net.core.debug.models import ModelsDebug
+from pygpt_net.core.debug.plugins import PluginsDebug
+from pygpt_net.core.debug.presets import PresetsDebug
+from pygpt_net.core.debug.ui import UIDebug
+from pygpt_net.core.config import Config
 
 
 class Debug:

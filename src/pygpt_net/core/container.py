@@ -9,30 +9,30 @@
 # Updated Date: 2023.12.23 19:00:00                  #
 # ================================================== #
 
-from .assistants import Assistants
-from .attachments import Attachments
-from .camera import Camera
-from .chain import Chain
-from .command import Command
-from .config import Config
-from .ctx import Ctx
-from .debugger import Debug
-from .dispatcher import Dispatcher
-from .filesystem import Filesystem
-from .gpt import Gpt
-from .gpt_assistants import GptAssistants
-from .history import History
-from .image import Image
-from .info import Info
-from .installer import Installer
-from .models import Models
-from .modes import Modes
-from .notepad import Notepad
-from .platform import Platform
-from .plugins import Plugins
-from .presets import Presets
-from .settings import Settings
-from .updater import Updater
+from pygpt_net.core.assistants import Assistants
+from pygpt_net.core.attachments import Attachments
+from pygpt_net.core.camera import Camera
+from pygpt_net.core.chain import Chain
+from pygpt_net.core.command import Command
+from pygpt_net.core.config import Config
+from pygpt_net.core.ctx import Ctx
+from pygpt_net.core.debugger import Debug
+from pygpt_net.core.dispatcher import Dispatcher
+from pygpt_net.core.filesystem import Filesystem
+from pygpt_net.core.gpt import Gpt
+from pygpt_net.core.gpt_assistants import GptAssistants
+from pygpt_net.core.history import History
+from pygpt_net.core.image import Image
+from pygpt_net.core.info import Info
+from pygpt_net.core.installer import Installer
+from pygpt_net.core.models import Models
+from pygpt_net.core.modes import Modes
+from pygpt_net.core.notepad import Notepad
+from pygpt_net.core.platform import Platform
+from pygpt_net.core.plugins import Plugins
+from pygpt_net.core.presets import Presets
+from pygpt_net.core.settings import Settings
+from pygpt_net.core.updater import Updater
 
 
 class Container:

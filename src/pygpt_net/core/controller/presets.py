@@ -13,8 +13,8 @@ import datetime
 import os
 import re
 
-from ..item.preset import PresetItem
-from ..utils import trans
+from pygpt_net.core.item.preset import PresetItem
+from pygpt_net.core.utils import trans
 
 
 class Presets:

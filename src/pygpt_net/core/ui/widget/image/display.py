@@ -12,7 +12,7 @@
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu, QLabel
 
-from ....utils import trans
+from pygpt_net.core.utils import trans
 
 
 class ImageLabel(QLabel):

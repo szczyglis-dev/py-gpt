@@ -9,8 +9,8 @@
 # Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
-from ..widget.dialog.rename import RenameDialog
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.rename import RenameDialog
+from pygpt_net.core.utils import trans
 
 
 class Rename:

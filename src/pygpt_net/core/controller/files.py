@@ -14,7 +14,7 @@ import os
 from pathlib import PurePath
 from showinfm import show_in_file_manager
 
-from ..utils import trans
+from pygpt_net.core.utils import trans
 
 
 class Files:

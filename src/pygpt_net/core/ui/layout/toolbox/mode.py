@@ -12,8 +12,8 @@
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
 
-from ...widget.lists.base import BaseList
-from ....utils import trans
+from pygpt_net.core.ui.widget.lists.base import BaseList
+from pygpt_net.core.utils import trans
 
 
 class Mode:

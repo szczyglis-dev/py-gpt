@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.22 18:00:00                  #
 # ================================================== #
 
-from ...widget.vision.camera import VideoContainer
+from pygpt_net.core.ui.widget.vision.camera import VideoContainer
 
 
 class Video:

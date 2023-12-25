@@ -15,11 +15,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QSplitter
 
-from .dialogs import Dialogs
-from .layout.chat.main import ChatMain
-from .layout.ctx.main import CtxMain
-from .layout.toolbox.main import ToolboxMain
-from .menu import Menu
+from pygpt_net.core.ui.dialogs import Dialogs
+from pygpt_net.core.ui.layout.chat.main import ChatMain
+from pygpt_net.core.ui.layout.ctx.main import CtxMain
+from pygpt_net.core.ui.layout.toolbox.main import ToolboxMain
+from pygpt_net.core.ui.menu import Menu
 
 
 class UI:

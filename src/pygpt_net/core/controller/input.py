@@ -15,9 +15,9 @@ from PySide6.QtCore import QObject
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
-from ..item.ctx import CtxItem
-from ..dispatcher import Event
-from ..utils import trans
+from pygpt_net.core.item.ctx import CtxItem
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.core.utils import trans
 
 
 class Input:

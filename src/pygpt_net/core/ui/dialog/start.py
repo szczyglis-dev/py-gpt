@@ -15,8 +15,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton
 
-from ..widget.dialog.info import InfoDialog
-from ...utils import trans
+from pygpt_net.core.ui.widget.dialog.info import InfoDialog
+from pygpt_net.core.utils import trans
 
 
 class Start:

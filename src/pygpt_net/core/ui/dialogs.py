@@ -9,21 +9,21 @@
 # Updated Date: 2023.12.22 19:00:00                  #
 # ================================================== #
 
-from .dialog.about import About
-from .dialog.assistant import Assistant
-from .dialog.changelog import Changelog
-from .dialog.debug import Debug
-from .widget.dialog.alert import AlertDialog
-from .widget.dialog.confirm import ConfirmDialog
-from .dialog.editor import Editor
-from .dialog.image import Image
-from .dialog.logger import Logger
-from .dialog.plugins import Plugins
-from .dialog.preset import Preset
-from .dialog.rename import Rename
-from .dialog.settings import Settings
-from .dialog.start import Start
-from .dialog.update import Update
+from pygpt_net.core.ui.dialog.about import About
+from pygpt_net.core.ui.dialog.assistant import Assistant
+from pygpt_net.core.ui.dialog.changelog import Changelog
+from pygpt_net.core.ui.dialog.debug import Debug
+from pygpt_net.core.ui.dialog.editor import Editor
+from pygpt_net.core.ui.dialog.image import Image
+from pygpt_net.core.ui.dialog.logger import Logger
+from pygpt_net.core.ui.dialog.plugins import Plugins
+from pygpt_net.core.ui.dialog.preset import Preset
+from pygpt_net.core.ui.dialog.rename import Rename
+from pygpt_net.core.ui.dialog.settings import Settings
+from pygpt_net.core.ui.dialog.start import Start
+from pygpt_net.core.ui.dialog.update import Update
+from pygpt_net.core.ui.widget.dialog.alert import AlertDialog
+from pygpt_net.core.ui.widget.dialog.confirm import ConfirmDialog
 
 
 class Dialogs:

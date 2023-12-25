@@ -13,8 +13,8 @@ import json
 import os
 import uuid
 
-from .base import BaseProvider
-from ...item.notepad import NotepadItem
+from pygpt_net.core.provider.notepad.base import BaseProvider
+from pygpt_net.core.item.notepad import NotepadItem
 
 
 class JsonFileProvider(BaseProvider):
