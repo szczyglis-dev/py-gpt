@@ -281,6 +281,11 @@ class Input:
 
         :param text: input text
         """
+        if self.generating \
+                and text is not None \
+                and text.strip() == "stop":
+            self.stop()
+
         # dispatch event
         event = Event('user.send', {
             'value': text,

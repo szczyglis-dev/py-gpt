@@ -94,6 +94,15 @@ class Gpt:
 
         # build chat messages
         messages = self.build_chat_messages(prompt)
+        msg_tokens = num_tokens_from_messages(messages, self.window.app.config.get('model'))
+        max_model_tokens = self.window.app.models.get_tokens(self.window.app.config.get('model'))
+
+        # check if max tokens not exceeded
+        if msg_tokens + int(max_tokens) > max_model_tokens:
+            max_tokens = max_model_tokens - msg_tokens - 1
+            if max_tokens < 1:
+                max_tokens = 1
+
         response = client.chat.completions.create(
             messages=messages,
             model=self.window.app.config.get('model'),
@@ -145,9 +154,11 @@ class Gpt:
         # tokens config
         model = self.window.app.config.get('model')
         mode = self.window.app.config.get('mode')
-        used_tokens = self.count_used_tokens(prompt)
+        used_tokens = self.count_used_tokens(prompt)  # threshold and extra included
         max_tokens = self.window.app.config.get('max_total_tokens')
         model_ctx = self.window.app.models.get_num_ctx(model)
+
+        # fit to max model tokens
         if max_tokens > model_ctx:
             max_tokens = model_ctx
 
@@ -171,7 +182,7 @@ class Gpt:
 
         # append messages from context (memory)
         if self.window.app.config.get('use_context'):
-            items = self.window.app.ctx.get_prompt_items(model, used_tokens, max_tokens)
+            items = self.window.app.ctx.get_prompt_items(model, mode, used_tokens, max_tokens)
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -243,9 +254,12 @@ class Gpt:
 
         # tokens config
         model = self.window.app.config.get('model')
+        mode = self.window.app.config.get('mode')
         used_tokens = self.count_used_tokens(prompt)
         max_tokens = self.window.app.config.get('max_total_tokens')
         model_ctx = self.window.app.models.get_num_ctx(model)
+
+        # fit to max model tokens
         if max_tokens > model_ctx:
             max_tokens = model_ctx
 
@@ -256,7 +270,7 @@ class Gpt:
             message += self.system_prompt
 
         if self.window.app.config.get('use_context'):
-            items = self.window.app.ctx.get_prompt_items(model, used_tokens, max_tokens)
+            items = self.window.app.ctx.get_prompt_items(model, mode, used_tokens, max_tokens)
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -364,7 +378,7 @@ class Gpt:
         model_tokens = self.window.app.models.get_tokens(self.window.app.config.get('model'))
         max_tokens = self.window.app.config.get('max_output_tokens')
         if max_tokens > model_tokens:
-            max_tokens = model_tokens
+            max_tokens = model_tokens  # max output tokens
 
         # minimum 1 token is required
         if max_tokens < 1:

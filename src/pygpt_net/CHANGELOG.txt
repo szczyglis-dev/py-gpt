@@ -1,3 +1,9 @@
+2.0.51 (2023-12-25)
+
+- Added auto-content truncate before tokens limit exceeded
+- Added dynamic max tokens switching
+- Fixed real-time tokens calculation
+
 2.0.50 (2023-12-25)
 
 - Fixed async logging

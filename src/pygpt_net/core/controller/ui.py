@@ -119,9 +119,17 @@ class UI:
         # used tokens
         used_tokens = prompt_tokens + input_tokens
 
+        # check real model max
+        max_to_calc = max_total_tokens
+        model_ctx = self.window.app.models.get_num_ctx(model)
+        if max_to_calc > model_ctx:
+            max_to_calc = model_ctx
+
+        to_check = max_to_calc - self.window.app.config.get('context_threshold')
+
         # context tokens
         ctx_len_all = len(self.window.app.ctx.items)
-        ctx_len, ctx_tokens = self.window.app.ctx.count_prompt_items(model, mode, used_tokens, max_total_tokens)
+        ctx_len, ctx_tokens = self.window.app.ctx.count_prompt_items(model, mode, used_tokens, to_check)
 
         # zero if context not used
         if not self.window.app.config.get('use_context'):
@@ -140,7 +148,7 @@ class UI:
         parsed_total = str(int(total_tokens))
         parsed_total = parsed_total.replace("000000", "M").replace("000", "k")
 
-        parsed_max_total = str(int(max_total_tokens))
+        parsed_max_total = str(int(max_to_calc))
         parsed_max_total = parsed_max_total.replace("000000", "M").replace("000", "k")
 
         string = "{} + {} + {} + {} = {} / {}".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,

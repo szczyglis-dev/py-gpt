@@ -442,11 +442,12 @@ class Ctx:
 
         return i, context_tokens
 
-    def get_prompt_items(self, model, used_tokens=100, max_tokens=1000):
+    def get_prompt_items(self, model, mode="chat", used_tokens=100, max_tokens=1000):
         """
         Return ctx items to add to prompt
 
         :param model: model
+        :param mode: mode
         :param used_tokens: used tokens
         :param max_tokens: max tokens
         :return: context items list
@@ -456,7 +457,7 @@ class Ctx:
         # loop on items from end to start
         tokens = used_tokens
         for item in reversed(self.items):
-            tokens += num_tokens_from_context_item(item, model)
+            tokens += num_tokens_from_context_item(item, mode, model)
             if tokens > max_tokens:
                 break
             items.append(item)

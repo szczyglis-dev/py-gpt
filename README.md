@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.50** | build: **2023.12.25** | Python: **3.9+**
+Release: **2.0.51** | build: **2023.12.25** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1337,6 +1337,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.51 (2023-12-25)
+
+- Added auto-content truncate before tokens limit exceeded
+- Added dynamic max tokens switching
+- Fixed real-time tokens calculation
 
 ## 2.0.50 (2023-12-25)
 

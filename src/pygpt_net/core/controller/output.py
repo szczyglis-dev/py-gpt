@@ -188,41 +188,42 @@ class Output:
 
             # read stream
             try:
-                self.window.log("Reading stream...")  # log
-                for chunk in ctx.stream:
-                    # if force stop then break
-                    if self.window.controller.input.force_stop:
-                        break
+                if ctx.stream is not None:
+                    self.window.log("Reading stream...")  # log
+                    for chunk in ctx.stream:
+                        # if force stop then break
+                        if self.window.controller.input.force_stop:
+                            break
 
-                    response = None
-                    if mode == "chat" or mode == "vision" or mode == "assistant":
-                        if chunk.choices[0].delta.content is not None:
-                            response = chunk.choices[0].delta.content
-                    elif mode == "completion":
-                        if chunk.choices[0].text is not None:
-                            response = chunk.choices[0].text
+                        response = None
+                        if mode == "chat" or mode == "vision" or mode == "assistant":
+                            if chunk.choices[0].delta.content is not None:
+                                response = chunk.choices[0].delta.content
+                        elif mode == "completion":
+                            if chunk.choices[0].text is not None:
+                                response = chunk.choices[0].text
 
-                    # langchain can provide different modes itself
-                    elif mode == "langchain":
-                        if submode == 'chat':
-                            # if chat model response is object
-                            if chunk.content is not None:
-                                response = chunk.content
-                        elif submode == 'completion':
-                            # if completion response is string
-                            if chunk is not None:
-                                response = chunk
+                        # langchain can provide different modes itself
+                        elif mode == "langchain":
+                            if submode == 'chat':
+                                # if chat model response is object
+                                if chunk.content is not None:
+                                    response = chunk.content
+                            elif submode == 'completion':
+                                # if completion response is string
+                                if chunk is not None:
+                                    response = chunk
 
-                    if response is not None:
-                        # prevent empty begin
-                        if begin and response == "":
-                            continue
-                        output += response
-                        output_tokens += 1
-                        self.append_chunk(ctx, response, begin)
-                        QApplication.processEvents()  # process events to update UI
-                        self.window.controller.ui.update_tokens()  # update UI
-                        begin = False
+                        if response is not None:
+                            # prevent empty begin
+                            if begin and response == "":
+                                continue
+                            output += response
+                            output_tokens += 1
+                            self.append_chunk(ctx, response, begin)
+                            QApplication.processEvents()  # process events to update UI
+                            self.window.controller.ui.update_tokens()  # update UI
+                            begin = False
 
             except Exception as e:
                 self.window.app.debug.log(e)

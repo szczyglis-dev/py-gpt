@@ -86,7 +86,6 @@ class JsonFileProvider(BaseProvider):
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 data = json.load(f)
-                print("Loaded default app config: {}".format(path))
         except Exception as e:
             print("FATAL ERROR: {}".format(e))
         return data
