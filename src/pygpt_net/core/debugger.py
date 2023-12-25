@@ -102,8 +102,17 @@ class Debug:
         qInstallMessageHandler(qt_message_handler)
 
         def handle_exception(exc_type, value, tb):
-            logging.error("Uncaught exception:", exc_info=(exc_type, value, tb))
-            traceback.print_exception(exc_type, value, tb)
+            """
+            Handle uncaught exception
+            """
+            if not hasattr(logging, '_is_handling_exception'):
+                # prevent recursion when logging raises an exception
+                logging._is_handling_exception = True
+                logging.error("Uncaught exception:", exc_info=(exc_type, value, tb))
+                traceback.print_exception(exc_type, value, tb)
+                del logging._is_handling_exception
+            else:
+                traceback.print_exception(exc_type, value, tb)
 
         sys.excepthook = handle_exception
 
