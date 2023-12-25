@@ -28,10 +28,6 @@ class Launcher:
 
     def setup(self):
         """Setup launcher"""
-        # show welcome API KEY dialog (disable for langchain mode)
-        if self.window.app.config.get('mode') != 'langchain' and \
-                (self.window.app.config.get('api_key') is None or self.window.app.config.get('api_key') == ''):
-            self.show_api_monit()
 
         self.window.app.gpt.init()
         self.window.app.image.init()
