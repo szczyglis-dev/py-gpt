@@ -11,6 +11,7 @@
 
 import os
 import sys
+import time
 
 from PySide6.QtCore import QTimer, Signal, Slot
 from PySide6.QtGui import QScreen, QIcon
@@ -178,7 +179,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Saving presets...")
         self.app.presets.save_all()
         print("Exiting...")
-        event.accept()  # let the window close
 
 
 class Launcher:
@@ -226,9 +226,6 @@ class Launcher:
             sys.exit(self.app.exec())
         except SystemExit:
             print("Closing...")
-        except Exception as e:
-            print("Fatal error, exiting...")
-            self.window.app.debug.log(e)
 
 
 def run(plugins=None, llms=None):

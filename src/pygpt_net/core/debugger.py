@@ -18,7 +18,6 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtCore import QtMsgType, qInstallMessageHandler
 
 from pygpt_net.debug.assistants import AssistantsDebug
 from pygpt_net.debug.attachments import AttachmentsDebug
@@ -29,6 +28,14 @@ from pygpt_net.debug.plugins import PluginsDebug
 from pygpt_net.debug.presets import PresetsDebug
 from pygpt_net.debug.ui import UIDebug
 from pygpt_net.config import Config
+
+
+class CustomQtMsgType:
+    QtDebugMsg = logging.DEBUG
+    QtInfoMsg = logging.INFO
+    QtWarningMsg = logging.WARNING
+    QtCriticalMsg = logging.ERROR
+    QtFatalMsg = logging.CRITICAL
 
 
 class Debug:
@@ -83,34 +90,15 @@ class Debug:
             filemode='a'
         )
 
-        def qt_message_handler(mode, context, message):
-            if mode == QtMsgType.QtDebugMsg:
-                msg_type = 'DEBUG'
-            elif mode == QtMsgType.QtInfoMsg:
-                msg_type = 'INFO'
-            elif mode == QtMsgType.QtWarningMsg:
-                msg_type = 'WARNING'
-            elif mode == QtMsgType.QtCriticalMsg:
-                msg_type = 'CRITICAL'
-            elif mode == QtMsgType.QtFatalMsg:
-                msg_type = 'FATAL'
-            else:
-                msg_type = 'UNKNOWN'
-
-            logging.log(getattr(logging, msg_type), f"{msg_type}: {message} (in {context.file}:{context.line})")
-
-        qInstallMessageHandler(qt_message_handler)
-
         def handle_exception(exc_type, value, tb):
             """
             Handle uncaught exception
             """
             if not hasattr(logging, '_is_handling_exception'):
-                # prevent recursion when logging raises an exception
                 logging._is_handling_exception = True
                 logging.error("Uncaught exception:", exc_info=(exc_type, value, tb))
                 traceback.print_exception(exc_type, value, tb)
-                del logging._is_handling_exception
+                del logging._is_handling_exception  # remove flag when done
             else:
                 traceback.print_exception(exc_type, value, tb)
 
