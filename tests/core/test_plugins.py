@@ -17,7 +17,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from pygpt_net.config import Config
 from pygpt_net.core.plugins import Plugins
-from pygpt_net.core.plugin.base_plugin import BasePlugin
+from pygpt_net.plugin.base_plugin import BasePlugin
 
 
 @pytest.fixture
