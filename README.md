@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.51** | build: **2023.12.25** | Python: **3.9+**
+Release: **2.0.52** | build: **2023.12.25** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1175,6 +1175,10 @@ Config -> Settings...
 
 - `Layout density`: Adjusts layout elements density. "Apply changes" required to take effect. Default: 0. 
 
+- `DPI scaling`: Enable/disable DPI scaling. Restart of app required. Default: true. 
+
+- `DPI factor`: DPI factor. Restart of app required. Default: 1.0. 
+
 - `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
 
 - `Max Total Tokens`: Defines the maximum token count that the application can send to the model, 
@@ -1337,6 +1341,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.52 (2023-12-25)
+
+- Added DPI option in settings: enable/disable and scale factor
+- Fixed font-size change with mouse scroll on notepad window
 
 ## 2.0.51 (2023-12-25)
 

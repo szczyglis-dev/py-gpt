@@ -263,7 +263,8 @@ class Config:
         if self.provider in self.providers:
             try:
                 self.data = self.providers[self.provider].load(all)
-                self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+                if self.data is not None:
+                    self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             except Exception as e:
                 if self.window is not None:
                     self.window.app.debug.log(e)
@@ -278,8 +279,9 @@ class Config:
         if self.provider in self.providers:
             try:
                 self.data_base = self.providers[self.provider].load_base()
-                self.data_base = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-                self.initialized_base = True
+                if self.data_base is not None:
+                    self.data_base = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+                    self.initialized_base = True
             except Exception as e:
                 if self.window is not None:
                     self.window.app.debug.log(e)

@@ -89,6 +89,28 @@
         "step": 1,
         "advanced": false
     },
+    "layout.dpi.scaling": {
+        "type": "bool",
+        "slider": false,
+        "label": "layout.dpi.scaling",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "layout.dpi.factor": {
+        "type": "float",
+        "slider": true,
+        "label": "layout.dpi.factor",
+        "value": 1.0,
+        "min": 1.0,
+        "max": 3.0,
+        "multiplier": 100,
+        "step": 1,
+        "advanced": false
+    },
     "max_output_tokens": {
         "type": "int",
         "slider": true,

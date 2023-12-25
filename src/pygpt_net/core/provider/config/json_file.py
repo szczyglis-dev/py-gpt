@@ -60,7 +60,7 @@ class JsonFileProvider(BaseProvider):
         data = {}
         path = os.path.join(self.path, self.config_file)
         if not os.path.exists(path):
-            print("FATAL ERROR: {} not found!".format(path))
+            print("User config: {} not found.".format(path))
             return None
         try:
             with open(path, 'r', encoding="utf-8") as f:
@@ -394,6 +394,15 @@ class JsonFileProvider(BaseProvider):
                 print("Migrating config from < 2.0.47...")
                 if 'notepad.num' not in data:
                     data['notepad.num'] = 5
+                updated = True
+
+            # < 2.0.52
+            if old < parse_version("2.0.52"):
+                print("Migrating config from < 2.0.52...")
+                if 'layout.dpi.scaling' not in data:
+                    data['layout.dpi.scaling'] = True
+                if 'layout.dpi.factor' not in data:
+                    data['layout.dpi.factor'] = 1.0
                 updated = True
 
         # update file

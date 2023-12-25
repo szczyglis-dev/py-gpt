@@ -1,3 +1,8 @@
+2.0.52 (2023-12-25)
+
+- Added DPI option in settings: enable/disable and scale factor
+- Fixed font-size change with mouse scroll on notepad window
+
 2.0.51 (2023-12-25)
 
 - Added auto-content truncate before tokens limit exceeded

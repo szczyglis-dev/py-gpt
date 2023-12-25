@@ -152,10 +152,9 @@ class Theme:
         # notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                id = 'notepad' + str(i)
-                if id in self.window.ui.nodes:
-                    self.window.ui.nodes[id].setStyleSheet(self.get_style('chat_output'))
+            for id in range(1, num_notepads + 1):
+                if id in self.window.ui.notepad:
+                    self.window.ui.notepad[id].setStyleSheet(self.get_style('chat_output'))
 
         # apply to syntax highlighter
         if all:
@@ -179,9 +178,9 @@ class Theme:
         elif element == "text_bold":
             return "font-weight: bold;"
         elif element == "text_small":
-            return "font-size: 9px;"
+            return "font-size: 0.5rem;"
         elif element == "text_faded":
-            return "font-size: 9px; color: #999;"
+            return "font-size: 0.5rem; color: #999;"
 
     def apply_syntax_highlighter(self, theme):
         """Apply syntax highlight"""

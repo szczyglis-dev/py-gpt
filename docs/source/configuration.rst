@@ -20,6 +20,8 @@ The following basic options can be modified directly within the application:
 * ``Font Size (ctx list)`` Adjusts the font size in contexts list.
 * ``Font Size (toolbox)`` Adjusts the font size in toolbox on right.
 * ``Layout density`` Adjusts layout elements density. "Apply changes" required to take effect. Default: 0.
+* ``DPI scaling`` Enable/disable DPI scaling. Restart of app required. Default: true.
+* ``DPI factor`` DPI factor. Restart of app required. Default: 1.0. 
 * ``Max Output Tokens`` Determines the maximum number of tokens the model can generate for a single response.
 * ``Max Total Tokens`` Defines the maximum token count that the application can send to the model, including the conversation context. To prevent reaching the model capacity, this setting helps manage the size of the context included in messages.
 * ``Context Threshold`` Sets the number of tokens reserved for the model to respond to the next prompt. This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.

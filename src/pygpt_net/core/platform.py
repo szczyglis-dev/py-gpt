@@ -14,6 +14,8 @@ import os
 
 from PySide6 import QtCore, QtWidgets
 
+from .config import Config
+
 
 class Platform:
 
@@ -27,18 +29,37 @@ class Platform:
         self.snap_name = 'pygpt'
 
     @staticmethod
-    def prepare(force_dpi=True):
+    def prepare():
         """Pre-initialize application"""
-        # set DPI environment variables
-        if force_dpi:
-            os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
-            os.environ['QT_SCALE_FACTOR'] = '1'
+        dpi_scaling = True
+        dpi_factor = '1'
+
+        try:
+            config = Config()
+            config.load_config(False)
+            if config.has('layout.dpi.scaling'):
+                dpi_scaling = config.get('layout.dpi.scaling')
+            if config.has('layout.dpi.factor'):
+                dpi_factor = str(config.get('layout.dpi.factor'))
+        except Exception as e:
+            pass
+
+        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = dpi_factor
+        os.environ['QT_SCALE_FACTOR'] = dpi_factor
+
+        if not dpi_scaling:
             if hasattr(QtCore.Qt, 'AA_DisableHighDpiScaling'):
                 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_DisableHighDpiScaling, True)
             if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
                 QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, False)
-            if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-                QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+        else:
+            if hasattr(QtCore.Qt, 'AA_DisableHighDpiScaling'):
+                QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_DisableHighDpiScaling, False)
+            if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+                QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+        if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
     def init(self):
         """Initialize platform"""

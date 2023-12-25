@@ -72,8 +72,8 @@ class Container:
 
     def init(self):
         """Initialize all components"""
-        self.platform.init()
         self.config.init(all=True)
+        self.platform.init()
 
     def patch(self):
         """Patch version"""
