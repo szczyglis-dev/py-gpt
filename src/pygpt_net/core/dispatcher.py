@@ -17,7 +17,6 @@ class Dispatcher:
         :param window: Window instance
         """
         self.window = window
-        self.signals = {}
 
     def dispatch(self, event, all=False, is_async=False):
         """
@@ -44,7 +43,6 @@ class Dispatcher:
         if id in self.window.app.plugins.plugins:
             try:
                 self.window.app.plugins.plugins[id].is_async = is_async
-                self.window.app.plugins.plugins[id].signals = dict(self.signals)
                 self.window.app.plugins.plugins[id].handle(event)
             except AttributeError:
                 pass

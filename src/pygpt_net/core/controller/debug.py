@@ -23,12 +23,17 @@ class Debug:
         self.window = window
         self.is_logger = False
 
-    def log(self, data):
+    def log(self, data, window=True):
         """
         Log text
 
         :param data: text to log
+        :param window: true if log to all plugins (enabled or not)
         """
+        if not window:
+            print(str(data))
+            return
+
         if not self.is_logger or data is None or data.strip() == '':
             return
 

@@ -67,7 +67,7 @@ class ChatInput(QTextEdit):
         """
         super(ChatInput, self).keyPressEvent(event)
         self.window.controller.ui.update_tokens()
-        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+        if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
             mode = self.window.app.config.get('send_mode')
             if mode > 0:  # Enter or Shift + Enter
                 if mode == 2:  # Shift + Enter

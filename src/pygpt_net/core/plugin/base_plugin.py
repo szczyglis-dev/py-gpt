@@ -10,6 +10,8 @@
 # ================================================== #
 from ..utils import trans
 
+from PySide6.QtCore import QCoreApplication, QThread
+
 
 class BasePlugin:
     def __init__(self):
@@ -21,7 +23,7 @@ class BasePlugin:
         self.options = {}
         self.initial_options = {}
         self.window = None
-        self.signals = {}
+        self.parent = None
         self.enabled = False
         self.use_locale = False
         self.is_async = False
@@ -163,9 +165,7 @@ class BasePlugin:
 
         :param data: data to send
         """
-        if 'debug' in self.signals and self.signals['debug'] is not None:
-            # TODO: fix debug signal
-            pass
-            # self.signals['debug'].emit(data)
-        elif not self.is_async:
-            self.window.log(data)
+        if QCoreApplication.instance().thread() == QThread.currentThread():
+            self.window.log(data, True)
+        else:
+            self.window.log(data, False)

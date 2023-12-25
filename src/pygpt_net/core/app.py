@@ -81,13 +81,14 @@ class MainWindow(QMainWindow, QtStyleTools):
         # setup global signals
         self.statusChanged.connect(self.update_status)
 
-    def log(self, data):
+    def log(self, data, window=True):
         """
         Log data to logger and console
 
         :param data: content to log
+        :param window: log to window
         """
-        self.controller.debug.log(data)
+        self.controller.debug.log(data, window)
 
     def dispatch(self, event, all=False):
         """

@@ -96,8 +96,6 @@ class CommandThread(QObject):
         """Run thread"""
         print("Starting command thread...")
         try:
-            # attach debug log signal
-            self.window.app.dispatcher.signals["debug"] = self.debug
             # dispatch event
             for id in self.window.app.plugins.plugins:
                 if self.window.controller.plugins.is_enabled(id):
