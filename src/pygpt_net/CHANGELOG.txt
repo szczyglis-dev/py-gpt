@@ -1,3 +1,7 @@
+2.0.55 (2023-12-25)
+
+- Fixed max model ctx tokens 
+
 2.0.54 (2023-12-25)
 
 - Updater new version check moved to post-setup

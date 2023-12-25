@@ -95,7 +95,7 @@ class Gpt:
         # build chat messages
         messages = self.build_chat_messages(prompt)
         msg_tokens = num_tokens_from_messages(messages, self.window.app.config.get('model'))
-        max_model_tokens = self.window.app.models.get_tokens(self.window.app.config.get('model'))
+        max_model_tokens = self.window.app.models.get_num_ctx(self.window.app.config.get('model'))
 
         # check if max tokens not exceeded
         if msg_tokens + int(max_tokens) > max_model_tokens:

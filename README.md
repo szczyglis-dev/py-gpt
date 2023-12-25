@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.54** | build: **2023.12.25** | Python: **3.9+**
+Release: **2.0.55** | build: **2023.12.25** | Python: **3.9+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1341,6 +1341,10 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.55 (2023-12-25)
+
+- Fixed max model ctx tokens 
 
 ## 2.0.54 (2023-12-25)
 
