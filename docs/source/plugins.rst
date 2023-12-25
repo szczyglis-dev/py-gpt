@@ -483,7 +483,7 @@ To register custom LLMs wrappers:
 
    # my_launcher.py
 
-   from pygpt_net.core.app import run
+   from pygpt_net.app import run
    from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
    from my_llms import MyCustomLLM
 

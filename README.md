@@ -505,12 +505,12 @@ These wrappers are loaded into the application during startup using `launcher.ad
 ```python
 # app.py
 
-from .llm.OpenAI import OpenAILLM
-from .llm.AzureOpenAI import AzureOpenAILLM
-from .llm.Anthropic import AnthropicLLM
-from .llm.HuggingFace import HuggingFaceLLM
-from .llm.Llama2 import Llama2LLM
-from .llm.Ollama import OllamaLLM
+from pygpt_net.llm.OpenAI import OpenAILLM
+from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
+from pygpt_net.llm.Anthropic import AnthropicLLM
+from pygpt_net.llm.HuggingFace import HuggingFaceLLM
+from pygpt_net.llm.Llama2 import Llama2LLM
+from pygpt_net.llm.Ollama import OllamaLLM
 
 def run(plugins=None, llms=None):
     """Runs the app."""
@@ -549,7 +549,7 @@ To register custom LLM wrappers:
 ```python
 # my_launcher.py
 
-from pygpt_net.core.app import run
+from pygpt_net.app import run
 from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
 from my_llms import MyCustomLLM
 
@@ -1050,7 +1050,7 @@ To register custom LLMs wrappers:
 ```python
 # my_launcher.py
 
-from pygpt_net.core.app import run
+from pygpt_net.app import run
 from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
 from my_llms import MyCustomLLM
 
@@ -1340,6 +1340,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.56 (2023-12-25)
+
+- Reorganized project's structure
+- Relative imports changed to absolute imports
+- Updated core paths
 
 ## 2.0.55 (2023-12-25)
 

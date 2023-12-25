@@ -1,3 +1,9 @@
+2.0.56 (2023-12-25)
+
+- Reorganized project's structure
+- Relative imports changed to absolute imports
+- Updated core paths
+
 2.0.55 (2023-12-25)
 
 - Fixed max model ctx tokens 
