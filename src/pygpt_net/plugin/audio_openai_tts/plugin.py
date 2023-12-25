@@ -13,7 +13,7 @@ import os
 import threading
 import pygame
 
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Slot, Signal
 from openai import OpenAI
 
 from pygpt_net.plugin.base_plugin import BasePlugin
@@ -122,6 +122,8 @@ class Plugin(BasePlugin):
                     voice = 'alloy'
 
                 self.tts = TTS(self, client, model, path, voice, text)
+                self.tts.status_signal.connect(self.handle_status)
+                self.tts.error_signal.connect(self.handle_error)
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
@@ -174,8 +176,28 @@ class Plugin(BasePlugin):
             self.playback = None
             self.audio = None
 
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread debug log
+        :param data
+        """
+        self.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, error):
+        """
+        Handle thread error
+        :param error
+        """
+        self.window.app.debug.log(error)
+
 
 class TTS(QObject):
+    # setup signals
+    status_signal = Signal(object)
+    error_signal = Signal(object)
+
     def __init__(self, plugin, client, model, path, voice, text):
         """
         Text to speech
@@ -197,8 +219,6 @@ class TTS(QObject):
     def run(self):
         """Run TTS thread"""
         self.stop()
-        # self.plugin.set_status('...')
-        # self.plugin.hide_stop_button()
         try:
             response = self.client.audio.speech.create(
                 model=self.model,
@@ -206,20 +226,16 @@ class TTS(QObject):
                 input=self.text
             )
             response.stream_to_file(self.path)
-            # self.plugin.set_status('Saying...')
-            # self.plugin.show_stop_button()
             pygame.mixer.init()
             self.plugin.playback = pygame.mixer.Sound(self.path)
             self.plugin.playback.play()
-            self.plugin.set_status('')
-            # self.plugin.hide_stop_button()
+            self.status_signal.emit('')
         except Exception as e:
-            self.plugin.window.app.error.log(e)
+            self.error_signal.emit(e)
 
     def stop(self):
         """Stop TTS thread"""
-        self.plugin.set_status('')
-        # self.plugin.hide_stop_button()
+        self.status_signal.emit('')
         if self.plugin.playback is not None:
             self.plugin.playback.stop()
             self.plugin.playback = None

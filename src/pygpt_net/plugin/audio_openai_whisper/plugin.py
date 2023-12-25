@@ -315,6 +315,8 @@ class Plugin(BasePlugin):
         listener.destroyed.connect(self.handle_destroy)
         listener.started.connect(self.handle_started)
         listener.stopped.connect(self.handle_stop)
+        listener.status_signal.connect(self.handle_status)
+        listener.error_signal.connect(self.handle_error)
 
         self.thread = threading.Thread(target=listener.run)
         self.thread.start()
@@ -409,6 +411,22 @@ class Plugin(BasePlugin):
             self.window.controller.input.send(text)
             self.set_status('')
 
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread debug log
+        :param data
+        """
+        self.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, error):
+        """
+        Handle thread error
+        :param error
+        """
+        self.window.app.debug.log(error)
+
     @Slot()
     def handle_destroy(self):
         """
@@ -439,6 +457,9 @@ class Plugin(BasePlugin):
 
 
 class AudioInputThread(QObject):
+    # setup signals
+    status_signal = Signal(object)
+    error_signal = Signal(object)
     finished = Signal(object)
     destroyed = Signal()
     started = Signal()
@@ -465,16 +486,16 @@ class AudioInputThread(QObject):
             path = os.path.join(self.plugin.window.app.config.path, 'input.wav')
 
             self.started.emit()
-            self.plugin.set_status('')
+            self.status_signal.emit('')
 
             with sr.Microphone() as source:
                 while self.plugin.listening and not self.plugin.window.is_closing:
-                    self.plugin.set_status('')
+                    self.status_signal.emit('')
 
                     if self.plugin.stop:
                         self.plugin.stop = False
                         self.plugin.listening = False
-                        self.plugin.set_status('Stop.')
+                        self.status_signal.emit('Stop.')
                         self.stopped.emit()
                         break
 
@@ -514,11 +535,11 @@ class AudioInputThread(QObject):
                         if self.plugin.can_listen():
                             if self.plugin.get_option_value('magic_word'):
                                 if self.plugin.magic_word_detected:
-                                    self.plugin.set_status(trans('audio.speak.now'))
+                                    self.status_signal.emit(trans('audio.speak.now'))
                                 else:
-                                    self.plugin.set_status(trans('audio.magic_word.please'))
+                                    self.status_signal.emit(trans('audio.magic_word.please'))
                             else:
-                                self.plugin.set_status(trans('audio.speak.now'))
+                                self.status_signal.emit(trans('audio.speak.now'))
 
                         min_energy = self.plugin.get_option_value('min_energy')
                         ambient_noise_energy = min_energy * recognizer.energy_threshold
@@ -541,7 +562,7 @@ class AudioInputThread(QObject):
                             # check RMS / energy
                             rms = audioop.rms(raw_data, 2)
                             if min_energy > 0:
-                                self.plugin.window.set_status("{}: {} / {} (x{})".
+                                self.status_signal.emit("{}: {} / {} (x{})".
                                                               format(trans('audio.speak.energy'),
                                                                      rms, int(ambient_noise_energy), min_energy))
                             if rms < ambient_noise_energy:
@@ -553,7 +574,7 @@ class AudioInputThread(QObject):
 
                             # transcribe
                             with open(path, "rb") as audio_file:
-                                self.plugin.set_status(trans('audio.speak.wait'))
+                                self.status_signal.emit(trans('audio.speak.wait'))
                                 transcript = client.audio.transcriptions.create(
                                     model=self.plugin.get_option_value('model'),
                                     file=audio_file,
@@ -585,7 +606,7 @@ class AudioInputThread(QObject):
                         if not self.plugin.get_option_value('continuous_listen') or is_stop_word:
                             self.plugin.listening = False
                             self.stopped.emit()
-                            self.plugin.set_status('')  # clear status
+                            self.status_signal.emit('')  # clear status
                             break
                     except Exception as e:
                         print("Speech recognition error: {}".format(str(e)))
@@ -593,6 +614,6 @@ class AudioInputThread(QObject):
             self.destroyed.emit()
 
         except Exception as e:
+            self.error_signal.emit(e)
             self.destroyed.emit()
             print("Audio input thread error: {}".format(str(e)))
-            self.plugin.window.app.error.log(e)

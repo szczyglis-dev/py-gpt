@@ -13,7 +13,7 @@ import os
 import threading
 
 import requests
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Signal, Slot
 import pygame
 
 from pygpt_net.plugin.base_plugin import BasePlugin
@@ -132,6 +132,8 @@ class Plugin(BasePlugin):
                 elif lang == "en":
                     voice = self.get_option_value("voice_en")
                 self.tts = TTS(self, api_key, region, voice, text, path)
+                self.tts.status_signal.connect(self.handle_status)
+                self.tts.error_signal.connect(self.handle_error)
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
@@ -165,6 +167,22 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.output'].set_status('Stopped')
         self.window.ui.plugin_addon['audio.output'].stop_audio()
 
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread debug log
+        :param data
+        """
+        self.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, error):
+        """
+        Handle thread error
+        :param error
+        """
+        self.window.app.debug.log(error)
+
     def stop_audio(self):
         """
         Stop TTS thread and stop playing the audio
@@ -180,6 +198,9 @@ class Plugin(BasePlugin):
 
 
 class TTS(QObject):
+    # setup signals
+    status_signal = Signal(object)
+    error_signal = Signal(object)
 
     def __init__(self, plugin, subscription_key, region, voice, text, path):
         """
@@ -201,8 +222,6 @@ class TTS(QObject):
     def run(self):
         """Run TTS thread"""
         self.stop()
-        # self.plugin.set_status('...')
-        # self.plugin.hide_stop_button()
         url = f"https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v1"
         headers = {
             "Ocp-Apim-Subscription-Key": self.subscription_key,
@@ -213,26 +232,20 @@ class TTS(QObject):
                f"xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
         response = requests.post(url, headers=headers, data=body.encode('utf-8'))
         if response.status_code == 200:
-            # self.plugin.set_status('Saying...')
-            # self.plugin.show_stop_button()
             with open(self.path, "wb") as file:
                 file.write(response.content)
-
             pygame.mixer.init()
             self.plugin.playback = pygame.mixer.Sound(self.path)
             self.plugin.playback.play()
-
-            self.plugin.set_status('')
-            # self.plugin.hide_stop_button()
         else:
-            self.plugin.set_status('')
-            # self.plugin.hide_stop_button()
             error_msg = f"Error: {response.status_code} - {response.text}"
-            self.plugin.window.app.error.log(error_msg)
+            self.error_signal.emit(error_msg)
+
+        self.status_signal.emit('')
 
     def stop(self):
         """Stop TTS thread"""
-        self.plugin.set_status('')
+        self.status_signal.emit('')
         # self.plugin.hide_stop_button()
         if self.plugin.playback is not None:
             self.plugin.playback.stop()

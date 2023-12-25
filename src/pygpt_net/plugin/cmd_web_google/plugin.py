@@ -185,11 +185,27 @@ class Plugin(BasePlugin):
         for item in cmds:
             try:
                 if item["cmd"] in self.allowed_cmds:
-
                     ctx.reply = True
 
                     # prepare request item for result
                     request_item = {"cmd": item["cmd"]}
+
+                    # check API keys
+                    key = self.get_option_value("google_api_key")
+                    cx = self.get_option_value("google_api_cx")
+
+                    if key is None or cx is None or key == "" or cx == "":
+                        err = "Google API key or CX is not set. Please set them in plugin settings."
+                        self.log(err)
+                        self.window.set_status(err)
+                        msg = "Tell the user that the Google API key is not configured in the plugin settings, " \
+                              "and to set the API key in the settings in order to use the internet search plugin."
+                        data = {
+                            'msg_to_user': msg,
+                        }
+                        response = {"request": request_item, "result": data}
+                        ctx.results.append(response)
+                        return
 
                     if item["cmd"] == "web_search":
                         page = 1

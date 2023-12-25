@@ -1343,10 +1343,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## 2.0.56 (2023-12-25)
 
-- Reorganized project's structure
+- Reorganized project structure
 - Relative imports changed to absolute imports
 - Updated core paths
-- Fixed recursion problem in errors logger
+- Fixed plugin response hanging
+- Fixed recursion problem in error logger
 - Fixed platform module name
 
 ## 2.0.55 (2023-12-25)

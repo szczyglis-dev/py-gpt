@@ -29,6 +29,27 @@ class Command:
 
     def dispatch(self, event):
         """
+        Dispatch cmd execute event (command execution)
+
+        :param event: event object
+        """
+        self.dispatch_sync(event)
+
+    def dispatch_sync(self, event):
+        """
+        Dispatch async event (command execution)
+
+        :param event: event object
+        """
+        for id in self.window.app.plugins.plugins:
+            if self.window.controller.plugins.is_enabled(id):
+                if event.stop or self.window.controller.command.is_stop():
+                    break
+                self.window.app.dispatcher.apply(id, event, is_async=False)
+        self.handle_finished(event)
+
+    def dispatch_async(self, event):
+        """
         Dispatch async event (command execution)
 
         :param event: event object
@@ -66,6 +87,7 @@ class Command:
         :param event: event object
         """
         ctx = event.ctx
+        self.window.set_status("")  # Clear status
         if ctx.reply:
             self.window.controller.input.send(json.dumps(ctx.results), force=True)
         self.thread_started = False
@@ -102,7 +124,6 @@ class CommandThread(QObject):
                     if self.event.stop or self.window.controller.command.is_stop():
                         break
                     self.window.app.dispatcher.apply(id, self.event, is_async=True)
-            self.window.set_status("")  # Clear status
             self.finished.emit(self.event)
         except Exception as e:
             print("Command thread error: " + str(e))
