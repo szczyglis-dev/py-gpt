@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 22:00:00                  #
+# Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from pygpt_net.core.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem
 
 
 class Chain:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 22:00:00                  #
+# Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
 import base64
@@ -21,7 +21,7 @@ from pygpt_net.core.tokens import (
     num_tokens_completion,
     num_tokens_only,
 )
-from pygpt_net.core.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem
 
 
 class Gpt:

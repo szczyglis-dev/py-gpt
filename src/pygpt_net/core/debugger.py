@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 22:00:00                  #
+# Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
 import os
@@ -20,15 +20,15 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtCore import QtMsgType, qInstallMessageHandler
 
-from pygpt_net.core.debug.assistants import AssistantsDebug
-from pygpt_net.core.debug.attachments import AttachmentsDebug
-from pygpt_net.core.debug.config import ConfigDebug
-from pygpt_net.core.debug.context import ContextDebug
-from pygpt_net.core.debug.models import ModelsDebug
-from pygpt_net.core.debug.plugins import PluginsDebug
-from pygpt_net.core.debug.presets import PresetsDebug
-from pygpt_net.core.debug.ui import UIDebug
-from pygpt_net.core.config import Config
+from pygpt_net.debug.assistants import AssistantsDebug
+from pygpt_net.debug.attachments import AttachmentsDebug
+from pygpt_net.debug.config import ConfigDebug
+from pygpt_net.debug.context import ContextDebug
+from pygpt_net.debug.models import ModelsDebug
+from pygpt_net.debug.plugins import PluginsDebug
+from pygpt_net.debug.presets import PresetsDebug
+from pygpt_net.debug.ui import UIDebug
+from pygpt_net.config import Config
 
 
 class Debug:

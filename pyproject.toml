@@ -44,4 +44,4 @@ requires-python = ">=3.10"
 Homepage = "https://github.com/szczyglis-dev/py-gpt"
 
 [project.scripts]
-pygpt = "pygpt_net.core.app:run"
+pygpt = "pygpt_net.app:run"

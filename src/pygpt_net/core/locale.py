@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 22:00:00                  #
+# Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
 import json
@@ -14,7 +14,7 @@ import os
 import configparser
 import io
 
-from pygpt_net.core.config import Config
+from pygpt_net.config import Config
 
 
 class Locale:
