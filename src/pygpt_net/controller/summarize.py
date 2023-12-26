@@ -44,7 +44,7 @@ class Summarize:
         :param window: Window instance
         :param updated_signal: WorkerSignals: updated signal
         """
-        title = window.core.gpt.prepare_ctx_name(ctx)
+        title = window.core.gpt.summarizer.summary_ctx(ctx)
         if title:
             updated_signal.emit(id, title)
 

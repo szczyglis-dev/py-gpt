@@ -13,6 +13,7 @@ from openai import OpenAI
 
 from .chat import Chat
 from .completion import Completion
+from .summarizer import Summarizer
 from .vision import Vision
 from pygpt_net.item.ctx import CtxItem
 
@@ -27,6 +28,7 @@ class Gpt:
         self.window = window
         self.chat = Chat(window)
         self.completion = Completion(window)
+        self.summarizer = Summarizer(window)
         self.vision = Vision(window)
         self.ai_name = None
         self.user_name = None
@@ -169,43 +171,6 @@ class Gpt:
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error in GPT custom call: " + str(e))
-
-    def prepare_ctx_name(self, ctx):
-        """
-        Summarize conversation begin
-
-        :param ctx: context item (CtxItem)
-        :return: response text (generated summary)
-        :rtype: str
-        """
-        # default values
-        model = 'gpt-3.5-turbo-1106'
-        sys_prompt = "You are an expert in conversation summarization"
-        text = "Summarize topic of this conversation in one sentence. Use best keywords to describe it. " \
-               "Summary must be in the same language as the conversation and it will be used for conversation title " \
-               "so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\n"
-        text += "User: " + str(ctx.input) + "\nAI Assistant: " + str(ctx.output)
-
-        # custom values
-        if self.window.core.config.get('ctx.auto_summary.system') is not None \
-                and self.window.core.config.get('ctx.auto_summary.system') != "":
-            sys_prompt = self.window.core.config.get('ctx.auto_summary.system')
-        if self.window.core.config.get('ctx.auto_summary.prompt') is not None \
-                and self.window.core.config.get('ctx.auto_summary.prompt') != "":
-            text = self.window.core.config.get('ctx.auto_summary.prompt'). \
-                replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
-        if self.window.core.config.get('ctx.auto_summary.model') is not None \
-                and self.window.core.config.get('ctx.auto_summary.model') != "":
-            model = self.window.core.config.get('ctx.auto_summary.model')
-
-        # quick call OpenAI API
-        response = self.quick_call(text, sys_prompt, False, 500, model)
-        if response is not None:
-            return response
-
-    def clear(self):
-        """Clear context (memory)"""
-        self.window.core.ctx.clear()
 
     def stop(self):
         """Stop OpenAI API"""
