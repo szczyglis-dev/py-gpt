@@ -522,8 +522,12 @@ class Input:
                 cur.insertBlock()
         self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
 
-
     def log(self, data):
+        """
+        Log data to debug
+
+        :param data: Data to log
+        """
         self.window.controller.debug.log(data, True)
 
 
