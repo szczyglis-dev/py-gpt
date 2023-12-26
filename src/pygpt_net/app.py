@@ -13,7 +13,7 @@ import os
 import sys
 import time
 
-from PySide6.QtCore import QTimer, Signal, Slot
+from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
 from PySide6.QtGui import QScreen, QIcon
 from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
@@ -78,6 +78,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         # set window title
         self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
                             format(self.meta['version'], self.meta['build']))
+
+        self.threadpool = QThreadPool()
+        print("Multithreading: max %d threads" % self.threadpool.maxThreadCount())
 
         # setup global signals
         self.statusChanged.connect(self.update_status)
@@ -166,7 +169,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.is_closing = True
         print("Closing...")
         print("Sending terminate signal to plugins...")
-        self.controller.plugins.destroy()
+        #self.controller.plugins.destroy()
         print("Saving notepad...")
         self.controller.notepad.save_all()
         print("Saving layout state...")

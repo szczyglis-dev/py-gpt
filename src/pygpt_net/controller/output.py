@@ -221,8 +221,8 @@ class Output:
                             output += response
                             output_tokens += 1
                             self.append_chunk(ctx, response, begin)
-                            QApplication.processEvents()  # process events to update UI
                             self.window.controller.ui.update_tokens()  # update UI
+                            QApplication.processEvents()  # process events to update UI
                             begin = False
 
             except Exception as e:

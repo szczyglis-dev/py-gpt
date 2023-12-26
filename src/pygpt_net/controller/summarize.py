@@ -9,9 +9,13 @@
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
-import threading
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, Signal
+from pygpt_net.core.worker import Worker
+
+
+class WorkerSignals(QObject):
+    updated = Signal(str, str)
 
 
 class Summarize:
@@ -29,62 +33,46 @@ class Summarize:
         """
         Summarize context
 
+        :param id: CtxMeta ID
         :param ctx: CtxItem
         """
-        self.start_thread(id, ctx)
+        self.start_worker(id, ctx)
 
-    def start_thread(self, id, ctx):
+    def summarizer(self, id, ctx, window, updated_signal):
         """
-        Handle thread start
+        Summarize worker callback
 
+        :param id: CtxMeta ID
+        :param ctx: CtxItem
+        :param window: Window instance
+        :param updated_signal: WorkerSignals: updated signal
+        """
+        title = window.app.gpt.prepare_ctx_name(ctx)
+        if title:
+            updated_signal.emit(id, title)
+
+    def start_worker(self, id, ctx):
+        """
+        Handle worker thread
+
+        :param id: CtxMeta ID
         :param ctx: CtxItem
         """
-        summarizer = SummarizeThread(window=self.window, id=id, ctx=ctx)
-        summarizer.updated.connect(self.handle_update)
-        summarizer.destroyed.connect(self.handle_destroy)
+        worker = Worker(self.summarizer)
+        worker.signals = WorkerSignals()
+        worker.signals.updated.connect(self.handle_update)
+        worker.kwargs['id'] = id
+        worker.kwargs['ctx'] = ctx
+        worker.kwargs['window'] = self.window
+        worker.kwargs['updated_signal'] = worker.signals.updated
+        self.window.threadpool.start(worker)
 
-        self.thread = threading.Thread(target=summarizer.run)
-        self.thread.start()
-        self.thread_started = True
-
-    @Slot(str, str)
     def handle_update(self, id, title):
         """
-        Handle thread name update
-        :param id: ctx id
-        :param title: generated title
+        Handle update signal
+
+        :param id: CtxMeta ID
+        :param title: CtxMeta title
         """
         self.window.controller.ctx.update_name(id, title)
-        self.thread_started = False
 
-    @Slot()
-    def handle_destroy(self):
-        """Handle thread destroy"""
-        self.thread_started = False
-
-
-class SummarizeThread(QObject):
-    updated = Signal(object, object)
-    destroyed = Signal()
-
-    def __init__(self, window=None, id=None, ctx=None):
-        """
-        Run summarize thread
-
-        :param window: Window instance
-        :param ctx: CtxItem
-        """
-        super().__init__()
-        self.window = window
-        self.id = id
-        self.ctx = ctx
-
-    def run(self):
-        """Run thread"""
-        try:
-            title = self.window.app.gpt.prepare_ctx_name(self.ctx)
-            if title is not None and title != "":
-                self.updated.emit(self.id, title)
-        except Exception as e:
-            self.window.app.debug.log(e)
-        self.destroyed.emit()
