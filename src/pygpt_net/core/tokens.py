@@ -293,6 +293,31 @@ class Tokens:
         return input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
                sum_tokens, max_current, threshold
 
+    def from_user(self, system_prompt, input_prompt):
+        """
+        Count per-user used tokens
+
+        :param system_prompt: system prompt
+        :param input_prompt: input prompt
+        :return: used tokens
+        :rtype: int
+        """
+        model = self.window.core.config.get('model')
+        mode = self.window.core.config.get('mode')
+        tokens = 0
+        if mode == "chat" or mode == "vision":
+            tokens += self.window.core.tokens.from_prompt(system_prompt, "", model)  # system prompt
+            tokens += self.window.core.tokens.from_text("system", model)
+            tokens += self.window.core.tokens.from_prompt(input_prompt, "", model)  # input prompt
+            tokens += self.window.core.tokens.from_text("user", model)
+        else:
+            # rest of modes
+            tokens += self.window.core.tokens.from_text(system_prompt, model)  # system prompt
+            tokens += self.window.core.tokens.from_text(input_prompt, model)  # input prompt
+        tokens += self.window.core.config.get('context_threshold')  # context threshold (reserved for output)
+        tokens += self.window.core.tokens.get_extra(model)  # extra tokens (required for output)
+        return tokens
+
     @staticmethod
     def get_config(model):
         """

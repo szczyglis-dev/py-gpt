@@ -59,7 +59,7 @@ class Gpt:
         :return: response or stream chunks
         """
         # build prompt message
-        message = self.build_completion(prompt)
+        message = self.build_completion(prompt, self.system_prompt)
 
         # prepare stop word if user_name is set
         stop = None
@@ -92,7 +92,7 @@ class Gpt:
         client = self.get_client()
 
         # build chat messages
-        messages = self.build_chat_messages(prompt)
+        messages = self.build_chat_messages(prompt, self.system_prompt)
         msg_tokens = self.window.core.tokens.from_messages(messages, self.window.core.config.get('model'))
         max_model_tokens = self.window.core.models.get_num_ctx(self.window.core.config.get('model'))
 
@@ -127,7 +127,7 @@ class Gpt:
         client = self.get_client()
 
         # build chat messages
-        messages = self.build_chat_messages(prompt)
+        messages = self.build_chat_messages(prompt, self.system_prompt)
         response = client.chat.completions.create(
             messages=messages,
             model=self.window.core.config.get('model'),
@@ -140,11 +140,11 @@ class Gpt:
         """Reset input tokens counter"""
         self.input_tokens = 0
 
-    def build_chat_messages(self, prompt, system_prompt=None):
+    def build_chat_messages(self, input_prompt, system_prompt=None):
         """
         Build chat messages dict
 
-        :param prompt: prompt
+        :param input_prompt: prompt (user input)
         :param system_prompt: system prompt (optional)
         :return: messages dictionary
         """
@@ -153,7 +153,8 @@ class Gpt:
         # tokens config
         model = self.window.core.config.get('model')
         mode = self.window.core.config.get('mode')
-        used_tokens = self.count_used_tokens(prompt)  # threshold and extra included
+        
+        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
         model_ctx = self.window.core.models.get_num_ctx(model)
 
@@ -172,12 +173,9 @@ class Gpt:
         # input tokens: reset
         self.reset_tokens()
 
-        # append initial (system) message
+        # append system prompt
         if system_prompt is not None and system_prompt != "":
             messages.append({"role": "system", "content": system_prompt})
-        else:
-            if self.system_prompt is not None and self.system_prompt != "":
-                messages.append({"role": "system", "content": self.system_prompt})
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
@@ -201,9 +199,9 @@ class Gpt:
 
         # append current prompt
         if mode == "chat":
-            messages.append({"role": "user", "content": str(prompt)})
+            messages.append({"role": "user", "content": str(input_prompt)})
         elif mode == "vision":
-            content = self.build_vision_content(prompt, append_attachments=True)
+            content = self.build_vision_content(input_prompt, append_attachments=True)
             messages.append({"role": "user", "content": content})
 
         # input tokens: update
@@ -211,27 +209,27 @@ class Gpt:
 
         return messages
 
-    def build_vision_content(self, text, append_attachments=False):
+    def build_vision_content(self, input_prompt, append_attachments=False):
         """
         Build vision content
 
-        :param text: text prompt
-        :param append_attachments: append attachments
+        :param input_prompt: prompt (user input)
+        :param append_attachments: True if append local attachments
         :return: Dictionary with content
         :rtype: dict
         """
-        content = [{"type": "text", "text": str(text)}]
+        content = [{"type": "text", "text": str(input_prompt)}]
 
         # extract URLs from prompt
-        urls = self.extract_urls(text)
+        urls = self.extract_urls(input_prompt)
         if len(urls) > 0:
             for url in urls:
                 content.append({"type": "image_url", "image_url": {"url": url}})
 
         # local images
         if append_attachments:
-            for uuid in self.attachments:
-                attachment = self.attachments[uuid]
+            for id in self.attachments:
+                attachment = self.attachments[id]
                 if os.path.exists(attachment.path):
                     # check if it's an image
                     if self.is_image(attachment.path):
@@ -241,11 +239,12 @@ class Gpt:
 
         return content
 
-    def build_completion(self, prompt):
+    def build_completion(self, input_prompt, system_prompt=None):
         """
         Build completion string
 
-        :param prompt: prompt (current)
+        :param input_prompt: prompt (user input)
+        :param system_prompt: system prompt (optional)
         :return: message string (parsed with context)
         :rtype: str
         """
@@ -254,19 +253,20 @@ class Gpt:
         # tokens config
         model = self.window.core.config.get('model')
         mode = self.window.core.config.get('mode')
-        used_tokens = self.count_used_tokens(prompt)
+
+        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)
         max_tokens = self.window.core.config.get('max_total_tokens')
         model_ctx = self.window.core.models.get_num_ctx(model)
 
-        # fit to max model tokens
+        # fit to max model ctx tokens
         if max_tokens > model_ctx:
             max_tokens = model_ctx
 
         # input tokens: reset
         self.reset_tokens()
 
-        if self.system_prompt is not None and self.system_prompt != "":
-            message += self.system_prompt
+        if system_prompt is not None and system_prompt != "":
+            message += system_prompt
 
         if self.window.core.config.get('use_context'):
             items = self.window.core.ctx.get_prompt_items(model, mode, used_tokens, max_tokens)
@@ -290,39 +290,15 @@ class Gpt:
                 and self.ai_name is not None \
                 and self.user_name != "" \
                 and self.ai_name != "":
-            message += "\n" + self.user_name + ": " + str(prompt)
+            message += "\n" + self.user_name + ": " + str(input_prompt)
             message += "\n" + self.ai_name + ":"
         else:
-            message += "\n" + str(prompt)
+            message += "\n" + str(input_prompt)
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_text(message, model)
 
         return message
-
-    def count_used_tokens(self, input_text):
-        """
-        Count used tokens
-
-        :param input_text: input text
-        :return: used tokens
-        :rtype: int
-        """
-        model = self.window.core.config.get('model')
-        mode = self.window.core.config.get('mode')
-        tokens = 0
-        if mode == "chat" or mode == "vision":
-            tokens += self.window.core.tokens.from_prompt(self.system_prompt, "", model)  # init (system) prompt
-            tokens += self.window.core.tokens.from_text("system", model)
-            tokens += self.window.core.tokens.from_prompt(input_text, "", model)  # current input
-            tokens += self.window.core.tokens.from_text("user", model)
-        else:
-            # rest of modes
-            tokens += self.window.core.tokens.from_text(self.system_prompt, model)  # init (system) prompt
-            tokens += self.window.core.tokens.from_text(input_text, model)  # current input
-        tokens += self.window.core.config.get('context_threshold')  # context threshold (reserved for next output)
-        tokens += self.window.core.tokens.get_extra(model)  # extra tokens (required for output)
-        return tokens
 
     def quick_call(self, prompt, sys_prompt, append_context=False,
                    max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):
