@@ -47,31 +47,6 @@ class UI:
         self.window.controller.model.update_presets()
         self.window.controller.assistant.update_assistants()
 
-    def build_final_system_prompt(self, prompt):
-        # tmp dispatch event: system.prompt
-        event = Event('system.prompt', {
-            'value': prompt,
-            'silent': True,
-        })
-        self.window.core.dispatcher.dispatch(event)
-        prompt = event.data['value']
-
-        if self.window.core.config.get('cmd'):
-            # cmd prompt
-            prompt += self.window.core.command.get_prompt()
-
-            # cmd syntax tokens
-            data = {
-                'prompt': prompt,
-                'syntax': [],
-            }
-            # tmp dispatch event: cmd.syntax
-            event = Event('cmd.syntax', data)
-            self.window.core.dispatcher.dispatch(event)
-            prompt = self.window.core.command.append_syntax(event.data)
-
-        return prompt
-
     def update_tokens(self):
         """Update tokens counters"""
         model = self.window.core.config.get('model')
@@ -87,7 +62,7 @@ class UI:
         if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
             prompt_tokens = self.window.core.tokens.from_prompt(system_prompt, "", model)
             prompt_tokens += self.window.core.tokens.from_text("system", model)
 
@@ -98,7 +73,7 @@ class UI:
         elif mode == "completion":
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
             prompt_tokens = self.window.core.tokens.from_text(system_prompt, model)
 
             # input tokens
