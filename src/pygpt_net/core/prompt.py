@@ -15,7 +15,7 @@ from pygpt_net.core.dispatcher import Event
 class Prompt:
     def __init__(self, window=None):
         """
-        Commands handler
+        Prompt handler
 
         :param window: Window instance
         """
