@@ -10,7 +10,6 @@
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
-from pygpt_net.core.tokens import num_tokens_prompt, num_tokens_only, num_tokens_extra
 from pygpt_net.utils import trans
 
 
@@ -80,7 +79,7 @@ class UI:
         user_name = self.window.core.config.get('user_name')
         ai_name = self.window.core.config.get('ai_name')
         max_total_tokens = self.window.core.config.get('max_total_tokens')
-        extra_tokens = num_tokens_extra(model)
+        extra_tokens = self.window.core.tokens.get_extra(model)
 
         prompt_tokens = 0
         input_tokens = 0
@@ -89,18 +88,18 @@ class UI:
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
-            prompt_tokens = num_tokens_prompt(system_prompt, "", model)
-            prompt_tokens += num_tokens_only("system", model)
+            prompt_tokens = self.window.core.tokens.from_prompt(system_prompt, "", model)
+            prompt_tokens += self.window.core.tokens.from_text("system", model)
 
             # input tokens
             input_text = str(self.window.ui.nodes['input'].toPlainText().strip())
-            input_tokens = num_tokens_prompt(input_text, "", model)
-            input_tokens += num_tokens_only("user", model)
+            input_tokens = self.window.core.tokens.from_prompt(input_text, "", model)
+            input_tokens += self.window.core.tokens.from_text("user", model)
         elif mode == "completion":
             # prompt tokens (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.build_final_system_prompt(system_prompt)  # add addons
-            prompt_tokens = num_tokens_only(system_prompt, model)
+            prompt_tokens = self.window.core.tokens.from_text(system_prompt, model)
 
             # input tokens
             input_text = str(self.window.ui.nodes['input'].toPlainText().strip())
@@ -113,7 +112,7 @@ class UI:
                 message += "\n" + ai_name + ":"
             else:
                 message += "\n" + str(input_text)
-            input_tokens = num_tokens_only(message, model)
+            input_tokens = self.window.core.tokens.from_text(message, model)
             extra_tokens = 0  # no extra tokens in completion mode
 
         # used tokens

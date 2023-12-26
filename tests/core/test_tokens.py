@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from pygpt_net.config import Config
 from pygpt_net.core.ctx import Ctx
-from pygpt_net.core.tokens import *
+from pygpt_net.core.tokens import Tokens
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -36,56 +36,46 @@ def mock_get(key):
         return 200
 
 
-def test_num_tokens_from_string():
+def test_from_str():
     """
-    Test num_tokens_from_string
+    Test from_str
     """
     text = "This is a test"
-    num_tokens_from_string = MagicMock(return_value=4)
-    assert num_tokens_from_string(text, 'gpt-3.5') == 4
+    from_str = MagicMock(return_value=4)
+    assert from_str(text, 'gpt-3.5') == 4
 
 
-def test_num_tokens_extra():
+def test_get_extra():
     """
-    Test num_tokens_extra
+    Test get_extra
     """
     model = "gpt-4-0613"
-    assert num_tokens_extra() == 3
+    assert get_extra() == 3
 
 
-def test_num_tokens_prompt():
+def test_from_prompt():
     """
-    Test num_tokens_prompt
+    Test from_prompt
     """
     text = "This is a test"
     input_name = "test"
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.num_tokens_from_string', return_value=8):
-        assert num_tokens_prompt(text, input_name, model) == 12
+    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+        assert from_prompt(text, input_name, model) == 12
 
 
-def test_num_tokens_completion():
+def test_from_text():
     """
-    Test num_tokens_completion
-    """
-    text = "This is a test"
-    model = "gpt-3.5-turbo-0613"
-    with patch('pygpt_net.core.tokens.num_tokens_from_string', return_value=8):
-        assert num_tokens_completion(text, model) == 8
-
-
-def test_num_tokens_only():
-    """
-    Test num_tokens_only
+    Test from_text
     """
     text = "This is a test"
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.num_tokens_from_string', return_value=8):
-        assert num_tokens_only(text, model) == 8
+    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+        assert from_text(text, model) == 8
 
-def test_num_tokens_from_messages():
+def test_from_messages():
     """
-    Test num_tokens_from_messages
+    Test from_messages
     """
     messages = [
         {
@@ -98,13 +88,13 @@ def test_num_tokens_from_messages():
         }
     ]
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.num_tokens_from_string', return_value=8):
-        assert num_tokens_from_messages(messages, model) == 43
+    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+        assert from_messages(messages, model) == 43
 
 
-def test_num_tokens_from_context_item():
+def test_from_ctx():
     """
-    Test num_tokens_from_context_item
+    Test from_ctx
     """
     item = CtxItem()
     item.input = "This is a test"
@@ -118,13 +108,13 @@ def test_num_tokens_from_context_item():
     item.output_timestamp = 2
 
     model = "gpt-4-0613"
-    with patch('pygpt_net.core.tokens.num_tokens_from_string', return_value=8):
-        assert num_tokens_from_context_item(item, 'chat', model) == 56
+    with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
+        assert from_ctx(item, 'chat', model) == 56
 
 
-def test_get_tokens_values():
+def test_get_config():
     """
-    Test get_tokens_values
+    Test get_config
     """
     model = "gpt-4-0613"
-    assert get_tokens_values(model) == ('gpt-4-0613', 3, 1)
+    assert get_config(model) == ('gpt-4-0613', 3, 1)

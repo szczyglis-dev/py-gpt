@@ -31,6 +31,7 @@ from pygpt_net.core.platforms import Platforms
 from pygpt_net.core.plugins import Plugins
 from pygpt_net.core.presets import Presets
 from pygpt_net.core.settings import Settings
+from pygpt_net.core.tokens import Tokens
 from pygpt_net.installer import Installer
 from pygpt_net.updater import Updater
 
@@ -68,6 +69,7 @@ class Container:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
+        self.tokens = Tokens(window)
         self.updater = Updater(window)
 
     def init(self):

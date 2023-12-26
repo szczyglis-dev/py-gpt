@@ -13,7 +13,6 @@ import datetime
 import os
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
-from pygpt_net.core.tokens import num_tokens_from_context_item
 from pygpt_net.provider.ctx.json_file import JsonFileProvider
 from pygpt_net.utils import trans
 
@@ -433,7 +432,7 @@ class Ctx:
         tokens = used_tokens
         context_tokens = 0
         for item in reversed(self.items):
-            num = num_tokens_from_context_item(item, mode, model)  # get num tokens for input and output
+            num = self.window.core.tokens.from_ctx(item, mode, model)  # get num tokens for input and output
             tokens += num
             if tokens > max_tokens:
                 break
@@ -457,7 +456,7 @@ class Ctx:
         # loop on items from end to start
         tokens = used_tokens
         for item in reversed(self.items):
-            tokens += num_tokens_from_context_item(item, mode, model)
+            tokens += self.window.core.tokens.from_ctx(item, mode, model)
             if tokens > max_tokens:
                 break
             items.append(item)

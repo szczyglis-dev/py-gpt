@@ -14,13 +14,7 @@ import os
 import re
 
 from openai import OpenAI
-from pygpt_net.core.tokens import (
-    num_tokens_prompt,
-    num_tokens_extra,
-    num_tokens_from_messages,
-    num_tokens_completion,
-    num_tokens_only,
-)
+
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -99,7 +93,7 @@ class Gpt:
 
         # build chat messages
         messages = self.build_chat_messages(prompt)
-        msg_tokens = num_tokens_from_messages(messages, self.window.core.config.get('model'))
+        msg_tokens = self.window.core.tokens.from_messages(messages, self.window.core.config.get('model'))
         max_model_tokens = self.window.core.models.get_num_ctx(self.window.core.config.get('model'))
 
         # check if max tokens not exceeded
@@ -213,7 +207,7 @@ class Gpt:
             messages.append({"role": "user", "content": content})
 
         # input tokens: update
-        self.input_tokens += num_tokens_from_messages(messages, model)
+        self.input_tokens += self.window.core.tokens.from_messages(messages, model)
 
         return messages
 
@@ -302,7 +296,7 @@ class Gpt:
             message += "\n" + str(prompt)
 
         # input tokens: update
-        self.input_tokens += num_tokens_completion(message, model)
+        self.input_tokens += self.window.core.tokens.from_text(message, model)
 
         return message
 
@@ -318,16 +312,16 @@ class Gpt:
         mode = self.window.core.config.get('mode')
         tokens = 0
         if mode == "chat" or mode == "vision":
-            tokens += num_tokens_prompt(self.system_prompt, "", model)  # init (system) prompt
-            tokens += num_tokens_only("system", model)
-            tokens += num_tokens_prompt(input_text, "", model)  # current input
-            tokens += num_tokens_only("user", model)
+            tokens += self.window.core.tokens.from_prompt(self.system_prompt, "", model)  # init (system) prompt
+            tokens += self.window.core.tokens.from_text("system", model)
+            tokens += self.window.core.tokens.from_prompt(input_text, "", model)  # current input
+            tokens += self.window.core.tokens.from_text("user", model)
         else:
             # rest of modes
-            tokens += num_tokens_only(self.system_prompt, model)  # init (system) prompt
-            tokens += num_tokens_only(input_text, model)  # current input
+            tokens += self.window.core.tokens.from_text(self.system_prompt, model)  # init (system) prompt
+            tokens += self.window.core.tokens.from_text(input_text, model)  # current input
         tokens += self.window.core.config.get('context_threshold')  # context threshold (reserved for next output)
-        tokens += num_tokens_extra(model)  # extra tokens (required for output)
+        tokens += self.window.core.tokens.get_extra(model)  # extra tokens (required for output)
         return tokens
 
     def quick_call(self, prompt, sys_prompt, append_context=False,
