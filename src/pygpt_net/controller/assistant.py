@@ -259,7 +259,7 @@ class Assistant:
         assistant = self.window.core.assistants.create()
         self.assign_data(assistant)
         try:
-            return self.window.core.gpt_assistants.create(assistant)
+            return self.window.core.gpt.assistants.create(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
@@ -270,7 +270,7 @@ class Assistant:
         """
         self.assign_data(assistant)
         try:
-            return self.window.core.gpt_assistants.update(assistant)
+            return self.window.core.gpt.assistants.update(assistant)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
@@ -289,7 +289,7 @@ class Assistant:
         try:
             # import assistants
             items = self.window.core.assistants.get_all()
-            self.window.core.gpt_assistants.import_assistants(items)
+            self.window.core.gpt.assistants.import_assistants(items)
             self.window.core.assistants.items = items
             self.window.core.assistants.save()
 
@@ -384,7 +384,7 @@ class Assistant:
 
                     # delete in API
                     try:
-                        self.window.core.gpt_assistants.delete(id)
+                        self.window.core.gpt.assistants.delete(id)
                     except Exception as e:
                         self.window.ui.dialogs.alert(str(e))
 

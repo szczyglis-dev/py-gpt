@@ -20,7 +20,6 @@ from pygpt_net.core.debugging import Debug
 from pygpt_net.core.dispatcher import Dispatcher
 from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.core.gpt import Gpt
-from pygpt_net.core.gpt_assistants import GptAssistants
 from pygpt_net.core.history import History
 from pygpt_net.core.image import Image
 from pygpt_net.core.info import Info
@@ -58,7 +57,6 @@ class Container:
         self.dispatcher = Dispatcher(window)
         self.filesystem = Filesystem(window)
         self.gpt = Gpt(window)
-        self.gpt_assistants = GptAssistants(window)
         self.history = History(window)
         self.image = Image(window)
         self.info = Info(window)

@@ -11,6 +11,7 @@
 
 from openai import OpenAI
 
+from .assistants import Assistants
 from .chat import Chat
 from .completion import Completion
 from .summarizer import Summarizer
@@ -26,6 +27,7 @@ class Gpt:
         :param window: Window instance
         """
         self.window = window
+        self.assistants = Assistants(window)
         self.chat = Chat(window)
         self.completion = Completion(window)
         self.summarizer = Summarizer(window)
@@ -89,10 +91,10 @@ class Gpt:
                                         attachments=self.attachments)
             used_tokens = self.vision.get_used_tokens()
         elif mode == "assistant":
-            response = self.window.core.gpt_assistants.msg_send(self.thread_id, prompt)
+            response = self.window.core.gpt.assistants.msg_send(self.thread_id, prompt)
             if response is not None:
                 ctx.msg_id = response.id
-                run = self.window.core.gpt_assistants.run_create(self.thread_id, self.assistant_id,
+                run = self.window.core.gpt.assistants.run_create(self.thread_id, self.assistant_id,
                                                                  self.system_prompt)
                 if run is not None:
                     ctx.run_id = run.id

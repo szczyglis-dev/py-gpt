@@ -16,7 +16,7 @@ from openai import OpenAI
 from pygpt_net.item.assistant import AssistantItem
 
 
-class GptAssistants:
+class Assistants:
     def __init__(self, window=None):
         """
         GPT Assistants API Wrapper

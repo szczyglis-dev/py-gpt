@@ -66,7 +66,7 @@ class AssistantFiles:
         :param assistant: assistant
         """
         try:
-            files = self.window.core.gpt_assistants.file_list(assistant.id)
+            files = self.window.core.gpt.assistants.file_list(assistant.id)
             self.window.core.assistants.import_files(assistant, files)
             self.window.core.assistants.save()
             self.update()
@@ -192,7 +192,7 @@ class AssistantFiles:
             assistant = self.window.core.assistants.get_by_id(id)
             for file_id in list(assistant.files):
                 try:
-                    self.window.core.gpt_assistants.file_delete(id, file_id)
+                    self.window.core.gpt.assistants.file_delete(id, file_id)
                     assistant.delete_file(file_id)
                 except Exception as e:
                     self.window.ui.dialogs.alert(str(e))
@@ -232,7 +232,7 @@ class AssistantFiles:
 
         # delete file in API
         try:
-            self.window.core.gpt_assistants.file_delete(id, file_id)
+            self.window.core.gpt.assistants.file_delete(id, file_id)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
@@ -293,7 +293,7 @@ class AssistantFiles:
                     continue
 
                 # upload local attachment file and get new ID (file_id)
-                new_id = self.window.core.gpt_assistants.file_upload(assistant_id, attachment.path)
+                new_id = self.window.core.gpt.assistants.file_upload(assistant_id, attachment.path)
                 if new_id is not None:
                     # mark as already uploaded
                     attachment.send = True

@@ -36,7 +36,7 @@ class AssistantThread:
         :return: thread id
         :rtype: str
         """
-        thread_id = self.window.core.gpt_assistants.thread_create()
+        thread_id = self.window.core.gpt.assistants.thread_create()
         self.window.core.config.set('assistant_thread', thread_id)
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
@@ -47,7 +47,7 @@ class AssistantThread:
 
         :param ctx: CtxItem
         """
-        data = self.window.core.gpt_assistants.msg_list(ctx.thread)
+        data = self.window.core.gpt.assistants.msg_list(ctx.thread)
         for msg in data:
             if msg.role == "assistant":
                 ctx.set_output(msg.content[0].text.value)
@@ -140,7 +140,7 @@ class AssistantRunThread(QObject):
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant_thread.force_stop:
-                status = self.window.core.gpt_assistants.run_status(self.ctx.thread, self.ctx.run_id)
+                status = self.window.core.gpt.assistants.run_status(self.ctx.thread, self.ctx.run_id)
                 self.updated.emit(status, self.ctx)
                 # finished or failed
                 if status in self.stop_reasons:
