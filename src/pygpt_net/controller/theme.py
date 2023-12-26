@@ -178,9 +178,11 @@ class Theme:
         elif element == "text_bold":
             return "font-weight: bold;"
         elif element == "text_small":
-            return "font-size: 0.5rem;"
+            return ""
+            # return "font-size: 8px;"  <-- too small on big screens
         elif element == "text_faded":
-            return "font-size: 0.5rem; color: #999;"
+            return "color: #999;"
+            # return "font-size: 8px; color: #999;"  <-- too small on big screens
 
     def apply_syntax_highlighter(self, theme):
         """Apply syntax highlight"""

@@ -76,7 +76,7 @@ class Config:
         """
         Return app data path
 
-        :return: app data path
+        :return: app root path
         :rtype: str
         """
         if __file__.endswith('.pyc'):  # if compiled with pyinstaller
