@@ -198,31 +198,32 @@ class Theme:
 
     def get_themes_list(self):
         """
-        Return list of themes
+        Return a list of themes
 
         :return: list of themes
         :rtype: list
         """
-        return ['dark_amber',
-                'dark_blue',
-                'dark_cyan',
-                'dark_lightgreen',
-                'dark_pink',
-                'dark_purple',
-                'dark_red',
-                'dark_teal',
-                'dark_yellow',
-                'light_amber',
-                'light_blue',
-                'light_cyan',
-                'light_cyan_500',
-                'light_lightgreen',
-                'light_pink',
-                'light_purple',
-                'light_red',
-                'light_teal',
-                'light_yellow'
-                ]
+        return [
+            'dark_amber',
+            'dark_blue',
+            'dark_cyan',
+            'dark_lightgreen',
+            'dark_pink',
+            'dark_purple',
+            'dark_red',
+            'dark_teal',
+            'dark_yellow',
+            'light_amber',
+            'light_blue',
+            'light_cyan',
+            'light_cyan_500',
+            'light_lightgreen',
+            'light_pink',
+            'light_purple',
+            'light_red',
+            'light_teal',
+            'light_yellow'
+        ]
 
     def trans_theme(self, theme):
         """
@@ -232,8 +233,10 @@ class Theme:
         :return: translated theme name
         :rtype: str
         """
-        return theme.replace('_', ' ').title().replace('Dark ', trans('theme.dark') + ': ').replace('Light ', trans(
-            'theme.light') + ': ')
+        return theme\
+            .replace('_', ' ').title()\
+            .replace('Dark ', trans('theme.dark') + ': ')\
+            .replace('Light ', trans('theme.light') + ': ')
 
     def setup(self):
         """Setup theme"""
