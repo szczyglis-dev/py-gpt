@@ -66,7 +66,7 @@ class Theme:
         self.update()
 
     def reload(self):
-        """Reload theme"""
+        """Reload current theme"""
         self.toggle(self.window.core.config.get('theme'))
 
     def get_css(self, name):
