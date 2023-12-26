@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 03:00:00                  #
 # ================================================== #
 
 import os
 import sys
-import time
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
 from PySide6.QtGui import QScreen, QIcon
@@ -79,8 +78,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
                             format(self.meta['version'], self.meta['build']))
 
-        self.threadpool = QThreadPool()
-        print("Multithreading: max %d threads" % self.threadpool.maxThreadCount())
+        self.threadpool = QThreadPool()  # max -> self.threadpool.maxThreadCount()
 
         # setup global signals
         self.statusChanged.connect(self.update_status)
