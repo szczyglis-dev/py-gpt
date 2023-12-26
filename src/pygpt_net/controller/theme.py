@@ -25,7 +25,7 @@ class Theme:
         :param window: Window instance
         """
         self.window = window
-        self.css = {}
+        self.css = {}  # external custom rules
 
     def setup(self):
         """Setup theme"""
