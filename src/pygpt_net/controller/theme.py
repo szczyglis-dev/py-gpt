@@ -219,12 +219,12 @@ class Theme:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def apply_window(self, theme='dark_teal.xml', custom_css=None):
+    def apply_window(self, theme='dark_teal.xml', custom=None):
         """
         Update material theme and apply custom CSS
 
         :param theme: material theme filename (e.g. dark_teal.xml)
-        :param custom_css: custom CSS file
+        :param custom: custom CSS filename
         """
         inverse = False
         if theme.startswith('light'):
@@ -236,13 +236,13 @@ class Theme:
         self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
 
         # append custom CSS
-        if custom_css is not None:
+        if custom is not None:
             stylesheet = self.window.styleSheet()
             # check for override in user directory
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', custom_css)
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', custom)
             if not os.path.exists(path):
                 # check in app directory
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom_css)
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom)
             if os.path.exists(path):
                 with open(path) as file:
                     self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
