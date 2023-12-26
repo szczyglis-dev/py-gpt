@@ -235,23 +235,23 @@ class Tokens:
         extra_tokens = self.window.core.tokens.get_extra(model)
 
         if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
-            # system prompt tokens (without extra tokens)
+            # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
             system_tokens = self.window.core.tokens.from_prompt(system_prompt, "", model)
             system_tokens += self.window.core.tokens.from_text("system", model)
 
-            # input prompt tokens
+            # input prompt
             input_prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
             input_tokens = self.window.core.tokens.from_prompt(input_prompt, "", model)
             input_tokens += self.window.core.tokens.from_text("user", model)
         elif mode == "completion":
-            # system prompt tokens (without extra tokens)
+            # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
             system_tokens = self.window.core.tokens.from_text(system_prompt, model)
 
-            # input prompt tokens
+            # input prompt
             input_prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
             message = ""
             if user_name is not None \
