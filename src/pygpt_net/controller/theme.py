@@ -54,7 +54,7 @@ class Theme:
 
     def toggle(self, name):
         """
-        Toggle theme
+        Toggle theme by name
 
         :param name: theme name
         """
@@ -198,16 +198,18 @@ class Theme:
         """Load syntax highlighter CSS from json file"""
         theme = self.window.core.config.get('theme')
 
-        # user area
-        path = os.path.join(self.window.core.config.get_user_path(), 'css', 'highlighter.' + theme + '.json')
-        if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', 'highlighter.json')
+        base_name = 'highlighter'
 
-        # app area
+        # check in user directory first
+        path = os.path.join(self.window.core.config.get_user_path(), 'css', base_name + '.' + theme + '.json')
         if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'highlighter.' + theme + '.json')
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', base_name + '.json')
+
+        # check in app directory
+        if not os.path.exists(path):
+            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', base_name + '.' + theme + '.json')
             if not os.path.exists(path):
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'highlighter.json')
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', base_name + '.json')
 
         if os.path.exists(path):
             try:
