@@ -44,7 +44,7 @@ class Theme:
         # apply current theme to nodes
         self.reload()
 
-    def update(self):
+    def update_menu(self):
         """Update theme menu"""
         for theme in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][theme].setChecked(False)
@@ -61,9 +61,9 @@ class Theme:
         self.window.core.config.set('theme', name)
         self.window.core.config.save()
         self.load_highlighter()
-        self.apply()
-        self.set_theme(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
-        self.update()
+        self.apply_nodes()
+        self.apply_window(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
+        self.update_menu()
 
     def reload(self):
         """Reload current theme"""
@@ -100,7 +100,7 @@ class Theme:
         elif type == 'ctx.list':
             self.window.ui.nodes[key].setStyleSheet(self.get_style('ctx.list'))
 
-    def apply(self, all=True):
+    def apply_nodes(self, all=True):
         """
         Apply theme nodes
 
@@ -219,7 +219,7 @@ class Theme:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def set_theme(self, theme='dark_teal.xml', custom_css=None):
+    def apply_window(self, theme='dark_teal.xml', custom_css=None):
         """
         Update material theme and apply custom CSS
 

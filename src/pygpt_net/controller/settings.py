@@ -107,7 +107,7 @@ class Settings:
 
     def update_font_size(self):
         """Update font size"""
-        self.window.controller.theme.apply(False)
+        self.window.controller.theme.apply_nodes(False)
 
     def toggle_settings(self, id):
         """
