@@ -247,7 +247,7 @@ class Theme:
 
     def get_custom_css(self, name):
         """
-        Return custom css filename for theme
+        Return custom css filename for specified theme
 
         :param name: theme name
         :return: custom css filename (e.g. style.dark.css)
