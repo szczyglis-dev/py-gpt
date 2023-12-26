@@ -10,9 +10,13 @@
 # ================================================== #
 
 import json
-import threading
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, Signal
+from pygpt_net.core.worker import Worker
+
+
+class WorkerSignals(QObject):
+    finished = Signal(object)
 
 
 class Command:
@@ -23,8 +27,6 @@ class Command:
         :param window: Window instance
         """
         self.window = window
-        self.thread = None
-        self.thread_started = False
         self.force_stop = False
 
     def dispatch(self, event):
@@ -34,6 +36,7 @@ class Command:
         :param event: event object
         """
         self.dispatch_sync(event)
+        # self.dispatch_async(event)  # TODO: async execution
 
     def dispatch_sync(self, event):
         """
@@ -54,14 +57,28 @@ class Command:
 
         :param event: event object
         """
-        worker = CommandThread(window=self.window, event=event)
-        worker.finished.connect(self.handle_finished)
-        worker.destroyed.connect(self.handle_destroy)
-        worker.debug.connect(self.handle_debug)
+        worker = Worker(self.worker)
+        worker.signals = WorkerSignals()
+        worker.signals.finished.connect(self.handle_finished)
+        worker.kwargs['event'] = event
+        worker.kwargs['window'] = self.window
+        worker.kwargs['finished_signal'] = worker.signals.finished
+        self.window.threadpool.start(worker)
 
-        self.thread = threading.Thread(target=worker.run)
-        self.thread.start()
-        self.thread_started = True
+    def worker(self, event, window, finished_signal):
+        """
+        Command worker callback
+
+        :param event: event object
+        :param window: Window instance
+        :param finished_signal: WorkerSignals: finished signal
+        """
+        for id in window.app.plugins.plugins:
+            if window.controller.plugins.is_enabled(id):
+                if event.stop or window.controller.command.is_stop():
+                    break
+                window.app.dispatcher.apply(id, event, is_async=True)
+        finished_signal.emit(event)
 
     def is_stop(self):
         """
@@ -72,7 +89,6 @@ class Command:
         """
         return self.force_stop
 
-    @Slot(object)
     def handle_debug(self, data):
         """
         Handle thread debug log
@@ -80,7 +96,6 @@ class Command:
         """
         self.window.log(str(data))
 
-    @Slot(object)
     def handle_finished(self, event):
         """
         Handle thread command execution finish
@@ -90,43 +105,4 @@ class Command:
         self.window.set_status("")  # Clear status
         if ctx.reply:
             self.window.controller.input.send(json.dumps(ctx.results), force=True)
-        self.thread_started = False
 
-    @Slot()
-    def handle_destroy(self):
-        """Handle thread destroy"""
-        self.thread_started = False
-
-
-class CommandThread(QObject):
-    finished = Signal(object)
-    debug = Signal(object)
-    destroyed = Signal()
-
-    def __init__(self, window=None, event=None):
-        """
-        Run command dispatch thread
-
-        :param window: Window instance
-        :param event: event object
-        """
-        super().__init__()
-        self.window = window
-        self.event = event
-
-    def run(self):
-        """Run thread"""
-        print("Starting command thread...")
-        try:
-            # dispatch event
-            for id in self.window.app.plugins.plugins:
-                if self.window.controller.plugins.is_enabled(id):
-                    if self.event.stop or self.window.controller.command.is_stop():
-                        break
-                    self.window.app.dispatcher.apply(id, self.event, is_async=True)
-            self.finished.emit(self.event)
-        except Exception as e:
-            print("Command thread error: " + str(e))
-            self.window.app.debug.log(e)
-        self.destroyed.emit()
-        print("Command thread finished work.")
