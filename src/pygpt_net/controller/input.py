@@ -113,11 +113,11 @@ class Input:
             try:
                 # it uploads only new attachments (not uploaded before to remote)
                 attachments = self.window.core.attachments.get_all(mode)
-                c = self.window.controller.assistant_files.count_upload_attachments(attachments)
+                c = self.window.controller.assistant.files.count_upload_attachments(attachments)
                 if c > 0:
                     is_upload = True
                     self.window.set_status(trans('status.uploading'))
-                    num_uploaded = self.window.controller.assistant_files.upload_attachments(mode, attachments)
+                    num_uploaded = self.window.controller.assistant.files.upload_attachments(mode, attachments)
                     self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
                 # show uploaded status
                 if is_upload and num_uploaded > 0:
@@ -131,7 +131,7 @@ class Input:
                 try:
                     self.window.set_status(trans('status.starting'))
                     self.window.core.config.set('assistant_thread',
-                                           self.window.controller.assistant_thread.create_thread())
+                                           self.window.controller.assistant.threads.create_thread())
                 except Exception as e:
                     self.window.core.debug.log(e)
                     self.window.ui.dialogs.alert(str(e))
@@ -242,7 +242,7 @@ class Input:
                         self.window.core.ctx.append_run(ctx.run_id)
 
                         # handle assistant run
-                        self.window.controller.assistant_thread.handle_run(ctx)
+                        self.window.controller.assistant.threads.handle_run(ctx)
 
                 if ctx is not None:
                     self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
@@ -345,7 +345,7 @@ class Input:
                     self.window.controller.camera.capture_frame(False)
 
         # unlock Assistant run thread if locked
-        self.window.controller.assistant_thread.force_stop = False
+        self.window.controller.assistant.threads.force_stop = False
         self.force_stop = False
         self.window.set_status(trans('status.sending'))
 
@@ -487,7 +487,7 @@ class Input:
         Stop input
         """
         event = Event('audio.input.toggle', {"value": False})
-        self.window.controller.assistant_thread.force_stop = True
+        self.window.controller.assistant.threads.force_stop = True
         self.window.core.dispatcher.dispatch(event)  # stop audio input
         self.force_stop = True
         self.window.core.gpt.stop()

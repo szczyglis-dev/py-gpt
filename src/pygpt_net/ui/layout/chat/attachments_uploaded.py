@@ -65,9 +65,9 @@ class AttachmentsUploaded:
         self.window.ui.nodes['attachments_uploaded.btn.clear'] = QPushButton(trans('attachments_uploaded.btn.clear'))
 
         self.window.ui.nodes['attachments_uploaded.btn.sync'].clicked.connect(
-            lambda: self.window.controller.assistant_files.sync_files())
+            lambda: self.window.controller.assistant.files.sync_files())
         self.window.ui.nodes['attachments_uploaded.btn.clear'].clicked.connect(
-            lambda: self.window.controller.assistant_files.clear_files())
+            lambda: self.window.controller.assistant.files.clear_files())
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])

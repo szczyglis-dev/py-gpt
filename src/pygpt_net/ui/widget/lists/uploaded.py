@@ -53,7 +53,7 @@ class UploadedFileList(BaseList):
 
         :param val: click event
         """
-        self.window.controller.assistant_files.select_file(val.row())
+        self.window.controller.assistant.files.select_file(val.row())
 
     def dblclick(self, val):
         """
@@ -61,7 +61,7 @@ class UploadedFileList(BaseList):
 
         :param val: double click event
         """
-        self.window.controller.assistant_files.select_file(val.row())
+        self.window.controller.assistant.files.select_file(val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -90,7 +90,7 @@ class UploadedFileList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant_files.select_file(item.row())
+            self.window.controller.assistant.files.select_file(item.row())
             menu.exec_(event.globalPos())
 
     def action_rename(self, event):
@@ -102,7 +102,7 @@ class UploadedFileList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant_files.rename_file(idx)
+            self.window.controller.assistant.files.rename_file(idx)
 
     def action_download(self, event):
         """
@@ -113,7 +113,7 @@ class UploadedFileList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant_files.download_file(idx)
+            self.window.controller.assistant.files.download_file(idx)
 
     def action_delete(self, event):
         """
@@ -124,4 +124,4 @@ class UploadedFileList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant_files.delete_file(idx)
+            self.window.controller.assistant.files.delete_file(idx)

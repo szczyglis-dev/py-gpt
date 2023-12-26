@@ -250,7 +250,7 @@ class Lang:
         # tabs
         mode = self.window.core.config.get('mode')
         self.window.controller.attachment.update_tab_label(mode)
-        self.window.controller.assistant_files.update_tab_label()
+        self.window.controller.assistant.files.update_tab_label()
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
 
         # theme menu

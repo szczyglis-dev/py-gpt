@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.assistant import Assistant
-from pygpt_net.controller.assistant_files import AssistantFiles
-from pygpt_net.controller.assistant_thread import AssistantThread
 from pygpt_net.controller.attachment import Attachment
 from pygpt_net.controller.audio import Audio
 from pygpt_net.controller.camera import Camera
@@ -46,8 +44,6 @@ class Controller:
         """
         self.window = window
         self.assistant = Assistant(window)
-        self.assistant_files = AssistantFiles(window)
-        self.assistant_thread = AssistantThread(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
         self.camera = Camera(window)

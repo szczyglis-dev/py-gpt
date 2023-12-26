@@ -39,7 +39,7 @@ class AssistantList(BaseList):
 
         :param val: double click event
         """
-        self.window.controller.assistant.edit(val.row())
+        self.window.controller.assistant.editor.edit(val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -75,7 +75,7 @@ class AssistantList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.assistant.edit(idx)
+            self.window.controller.assistant.editor.edit(idx)
 
     def action_delete(self, event):
         """

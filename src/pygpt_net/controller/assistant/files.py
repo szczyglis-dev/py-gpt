@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 import os
@@ -14,10 +14,10 @@ import os
 from pygpt_net.utils import trans
 
 
-class AssistantFiles:
+class Files:
     def __init__(self, window=None):
         """
-        Assistants controller
+        Assistants files controller
 
         :param window: Window instance
         """

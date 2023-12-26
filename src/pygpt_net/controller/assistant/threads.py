@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 import threading
@@ -17,10 +17,10 @@ from PySide6.QtCore import QObject, Signal, Slot
 from pygpt_net.utils import trans
 
 
-class AssistantThread:
+class Threads:
     def __init__(self, window=None):
         """
-        Assistant thread  controller
+        Assistant threads controller
 
         :param window: Window instance
         """
@@ -51,7 +51,7 @@ class AssistantThread:
         for msg in data:
             if msg.role == "assistant":
                 ctx.set_output(msg.content[0].text.value)
-                self.window.controller.assistant_files.handle_message_files(msg)
+                self.window.controller.assistant.files.handle_message_files(msg)
                 self.window.controller.output.handle_response(ctx, 'assistant', False)
                 self.window.controller.output.handle_commands(ctx)
                 break
@@ -139,7 +139,7 @@ class AssistantRunThread(QObject):
             self.started.emit()
             while self.check \
                     and not self.window.is_closing \
-                    and not self.window.controller.assistant_thread.force_stop:
+                    and not self.window.controller.assistant.threads.force_stop:
                 status = self.window.core.gpt.assistants.run_status(self.ctx.thread, self.ctx.run_id)
                 self.updated.emit(status, self.ctx)
                 # finished or failed

@@ -51,7 +51,7 @@ class Assistants:
         # new
         self.window.ui.nodes['assistants.new'] = QPushButton(trans('assistant.new'))
         self.window.ui.nodes['assistants.new'].clicked.connect(
-            lambda: self.window.controller.assistant.edit())
+            lambda: self.window.controller.assistant.editor.edit())
 
         # import
         self.window.ui.nodes['assistants.import'] = QPushButton(trans('assistant.import'))
