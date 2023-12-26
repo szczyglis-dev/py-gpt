@@ -53,7 +53,7 @@ class AttachmentList(BaseList):
 
         :param val: click event
         """
-        mode = self.window.app.config.get('mode')
+        mode = self.window.core.config.get('mode')
         self.window.controller.attachment.select(mode, val.row())
 
     def dblclick(self, val):
@@ -62,7 +62,7 @@ class AttachmentList(BaseList):
 
         :param val: double click event
         """
-        mode = self.window.app.config.get('mode')
+        mode = self.window.core.config.get('mode')
         self.window.controller.attachment.select(mode, val.row())
 
     def contextMenuEvent(self, event):
@@ -92,7 +92,7 @@ class AttachmentList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
             self.window.controller.attachment.select(mode, item.row())
             menu.exec_(event.globalPos())
 
@@ -105,7 +105,7 @@ class AttachmentList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
             self.window.controller.attachment.open_dir(mode, idx)
 
     def action_rename(self, event):
@@ -117,7 +117,7 @@ class AttachmentList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
             self.window.controller.attachment.rename(mode, idx)
 
     def action_delete(self, event):

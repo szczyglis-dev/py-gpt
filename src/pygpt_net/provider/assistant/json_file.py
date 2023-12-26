@@ -51,7 +51,7 @@ class JsonFileProvider(BaseProvider):
     def load(self):
         """Load assistants from file"""
         items = {}
-        path = os.path.join(self.window.app.config.path, self.config_file)
+        path = os.path.join(self.window.core.config.path, self.config_file)
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -66,7 +66,7 @@ class JsonFileProvider(BaseProvider):
                         self.deserialize(item, assistant)
                         items[id] = assistant
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             items = {}
 
         return items
@@ -77,7 +77,7 @@ class JsonFileProvider(BaseProvider):
         """
         try:
             # update assistants
-            path = os.path.join(self.window.app.config.path, self.config_file)
+            path = os.path.join(self.window.core.config.path, self.config_file)
             data = {}
             ary = {}
 
@@ -86,14 +86,14 @@ class JsonFileProvider(BaseProvider):
                 assistant = items[id]
                 ary[id] = self.serialize(assistant)
 
-            data['__meta__'] = self.window.app.config.append_meta()
+            data['__meta__'] = self.window.core.config.append_meta()
             data['items'] = ary
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Error while saving assistants: {}".format(str(e)))
 
     def remove(self, id):

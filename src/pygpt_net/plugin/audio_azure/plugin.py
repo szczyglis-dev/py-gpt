@@ -122,10 +122,10 @@ class Plugin(BasePlugin):
             return
 
         text = ctx.output
-        path = os.path.join(self.window.app.config.path, 'output.mp3')
+        path = os.path.join(self.window.core.config.path, 'output.mp3')
         try:
             if text is not None and len(text) > 0:
-                lang = self.window.app.config.get('lang')
+                lang = self.window.core.config.get('lang')
                 voice = None
                 if lang == "pl":
                     voice = self.get_option_value("voice_pl")
@@ -137,7 +137,7 @@ class Plugin(BasePlugin):
                 self.thread = threading.Thread(target=self.tts.run)
                 self.thread.start()
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def set_status(self, status):
         """
@@ -181,7 +181,7 @@ class Plugin(BasePlugin):
         Handle thread error
         :param error
         """
-        self.window.app.debug.log(error)
+        self.window.core.debug.log(error)
 
     def stop_audio(self):
         """

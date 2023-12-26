@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.56** | build: **2023.12.25** | Python: **3.10+**
+Release: **2.0.57** | build: **2023.12.26** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1340,6 +1340,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.57 (2023-12-26)
+
+- Added threadpool for async workers handling
+- Fixed segmentation fault error on app exit
+- Refactored class names
 
 ## 2.0.56 (2023-12-25)
 

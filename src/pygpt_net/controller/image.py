@@ -33,7 +33,7 @@ class Image:
 
     def setup(self):
         """Setup images"""
-        if self.window.app.config.get('img_raw'):
+        if self.window.core.config.get('img_raw'):
             self.window.ui.config_option['img_raw'].setChecked(True)
         else:
             self.window.ui.config_option['img_raw'].setChecked(False)
@@ -57,19 +57,19 @@ class Image:
 
         # create ctx item
         ctx = CtxItem()
-        ctx.set_input(text, self.window.app.config.get('user_name'))
+        ctx.set_input(text, self.window.core.config.get('user_name'))
 
         # dispatch event
         event = Event('ctx.before')
         event.ctx = ctx
-        self.window.app.dispatcher.dispatch(event)
+        self.window.core.dispatcher.dispatch(event)
 
-        self.window.app.ctx.add(ctx)
+        self.window.core.ctx.add(ctx)
         self.window.controller.output.append_input(ctx)
 
         # call DALL-E API and generate images
         try:
-            paths, prompt = self.window.app.image.generate(text, self.window.app.config.get('model'), num_of_images)
+            paths, prompt = self.window.core.image.generate(text, self.window.core.config.get('model'), num_of_images)
             string = ""
             i = 1
             for path in paths:
@@ -77,7 +77,7 @@ class Image:
                 i += 1
             self.open_images(paths)
 
-            if not self.window.app.config.get('img_raw'):
+            if not self.window.core.config.get('img_raw'):
                 string += "\nPrompt: "
                 string += prompt
 
@@ -86,13 +86,13 @@ class Image:
             # dispatch event
             event = Event('ctx.after')
             event.ctx = ctx
-            self.window.app.dispatcher.dispatch(event)
+            self.window.core.dispatcher.dispatch(event)
 
             self.window.controller.output.append_output(ctx)
-            self.window.app.ctx.store()
+            self.window.core.ctx.store()
             self.window.set_status("OK.")
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
 
@@ -158,7 +158,7 @@ class Image:
                 shutil.copyfile(path, save_path[0])
                 self.window.set_status(trans('status.img.saved'))
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def img_action_delete(self, path, force=False):
         """
@@ -178,21 +178,21 @@ class Image:
                 if self.window.ui.nodes['dialog.image.pixmap'][i].path == path:
                     self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def enable_raw(self):
         """
         Enable help for images
         """
-        self.window.app.config.set('img_raw', True)
-        self.window.app.config.save()
+        self.window.core.config.set('img_raw', True)
+        self.window.core.config.save()
 
     def disable_raw(self):
         """
         Disable help for images
         """
-        self.window.app.config.set('img_raw', False)
-        self.window.app.config.save()
+        self.window.core.config.set('img_raw', False)
+        self.window.core.config.save()
 
     def toggle_raw(self, state):
         """

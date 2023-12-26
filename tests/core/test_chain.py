@@ -22,10 +22,10 @@ from pygpt_net.item.model import ModelItem
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.config = MagicMock(spec=Config)
-    window.app.config.path = 'test_path'
-    window.app.models = MagicMock()
+    window.core = MagicMock()
+    window.core.config = MagicMock(spec=Config)
+    window.core.config.path = 'test_path'
+    window.core.models = MagicMock()
     return window
 
 
@@ -44,8 +44,8 @@ def test_build_chat_messages(mock_window):
 
     chain = Chain(mock_window)
     chain.system_prompt = 'test_system_prompt'
-    chain.window.app.config.get.return_value = True
-    chain.window.app.ctx.get_all_items.return_value = items
+    chain.window.core.config.get.return_value = True
+    chain.window.core.ctx.get_all_items.return_value = items
 
     messages = chain.build_chat_messages('test_prompt')
     assert len(messages) == 4
@@ -73,8 +73,8 @@ def test_build_completion(mock_window):
 
     chain = Chain(mock_window)
     chain.system_prompt = 'test_system_prompt'
-    chain.window.app.config.get.return_value = True
-    chain.window.app.ctx.get_all_items.return_value = items
+    chain.window.core.config.get.return_value = True
+    chain.window.core.ctx.get_all_items.return_value = items
 
     message = chain.build_completion('test_prompt')
     assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
@@ -101,8 +101,8 @@ def test_build_completion_with_names(mock_window):
     chain.system_prompt = 'test_system_prompt'
     chain.user_name = 'User'
     chain.ai_name = 'AI'
-    chain.window.app.config.get.return_value = True
-    chain.window.app.ctx.get_all_items.return_value = items
+    chain.window.core.config.get.return_value = True
+    chain.window.core.ctx.get_all_items.return_value = items
 
     message = chain.build_completion('test_prompt')
     assert message == 'test_system_prompt\nUser: user message\nAI: AI message\nUser: test_prompt\nAI:'
@@ -116,7 +116,7 @@ def test_chat(mock_window):
     model.name = 'test'
     model.langchain = {'provider': 'test'}
 
-    mock_window.app.models.get.return_value = model
+    mock_window.core.models.get.return_value = model
     chain = Chain(mock_window)
     chain.build_chat_messages = MagicMock()
     chain.build_chat_messages.return_value = 'test_messages'
@@ -129,7 +129,7 @@ def test_chat(mock_window):
     assert response == 'test_response'
     chain.build_chat_messages.assert_called_once_with('test_prompt')
     chain.llms['test'].chat.assert_called_once_with(
-        mock_window.app.config.all(), model.langchain, False
+        mock_window.core.config.all(), model.langchain, False
     )
     mock_chat_instance.invoke.assert_called_once_with('test_messages')
 
@@ -142,7 +142,7 @@ def test_completion(mock_window):
     model.name = 'test'
     model.langchain = {'provider': 'test'}
 
-    mock_window.app.models.get.return_value = model
+    mock_window.core.models.get.return_value = model
     chain = Chain(mock_window)
     chain.build_completion = MagicMock()
     chain.build_completion.return_value = 'test_messages'
@@ -155,7 +155,7 @@ def test_completion(mock_window):
     assert response == 'test_response'
     chain.build_completion.assert_called_once_with('test_prompt')
     chain.llms['test'].completion.assert_called_once_with(
-        mock_window.app.config.all(), model.langchain, False
+        mock_window.core.config.all(), model.langchain, False
     )
     mock_chat_instance.invoke.assert_called_once_with('test_messages')
 
@@ -174,7 +174,7 @@ def test_call(mock_window):
         'mode': ['chat', 'completion']
     }
 
-    mock_window.app.models.get.return_value = model
+    mock_window.core.models.get.return_value = model
     chain = Chain(mock_window)
     chain.chat = MagicMock()
     chain.chat.content = MagicMock()

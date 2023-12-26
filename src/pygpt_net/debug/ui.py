@@ -22,15 +22,15 @@ class UIDebug:
 
     def update_section(self, items, name):
         """Update debug window."""
-        self.window.app.debug.add(self.id, 'ui.' + name, '')
+        self.window.core.debug.add(self.id, 'ui.' + name, '')
 
         for key in sorted(dict(items).keys()):
             prefix = " -- ".format(key)
-            self.window.app.debug.add(self.id, prefix, str(key))
+            self.window.core.debug.add(self.id, prefix, str(key))
 
     def update(self):
         """Update debug window."""
-        self.window.app.debug.begin(self.id)
+        self.window.core.debug.begin(self.id)
 
         self.update_section(self.window.ui.config_option, 'config_option')
         self.update_section(self.window.ui.debug, 'debug')
@@ -47,4 +47,4 @@ class UIDebug:
         self.update_section(self.window.ui.splitters, 'splitters')
         self.update_section(self.window.ui.tabs, 'tabs')
 
-        self.window.app.debug.end(self.id)
+        self.window.core.debug.end(self.id)

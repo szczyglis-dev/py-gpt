@@ -85,7 +85,7 @@ class Files:
         parts = PurePath(path).parts
         path_os = os.path.join(*parts)  # fix for windows \\ path separators
         if os.path.exists(path_os):
-            if not self.window.app.platforms.is_snap():
+            if not self.window.core.platforms.is_snap():
                 show_in_file_manager(path_os, select)
             else:
                 # show alert info only if running in snap

@@ -61,7 +61,7 @@ class WebSearch:
             self.plugin.debug("Plugin: cmd_web_google:google_search [urls]: {}".format(urls))  # log
             return urls
         except Exception as e:
-            self.plugin.window.app.debug.log(e)
+            self.plugin.window.core.debug.log(e)
             self.plugin.debug("Plugin: cmd_web_google:google_search: error: {}".format(e))  # log
             self.plugin.window.ui.dialogs.alert("Google Search Error: " + str(e))
             self.plugin.log("Error in Google Search: " + str(e))
@@ -91,7 +91,7 @@ class WebSearch:
                 self.plugin.debug("Plugin: cmd_web_google:query_wiki [content]: {}".format(text))  # log
                 return text
             except Exception as e:
-                self.plugin.window.app.debug.log(e)
+                self.plugin.window.core.debug.log(e)
                 self.plugin.debug("Plugin: cmd_web_google:query_wiki [error]: {}".format(e))  # log
                 print("Error in query_wiki 1: " + str(e))
 
@@ -137,7 +137,7 @@ class WebSearch:
             self.plugin.debug("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
             return text
         except Exception as e:
-            self.plugin.window.app.debug.log(e)
+            self.plugin.window.core.debug.log(e)
             self.plugin.debug("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
             self.plugin.log("Error in query_web: " + str(e))
 
@@ -186,7 +186,7 @@ class WebSearch:
             self.plugin.debug("Plugin: cmd_web_google:get_summarized_text "
                                    "(chunk, max_tokens): {}, {}".
                                    format(chunk, max_tokens))  # log
-            response = self.plugin.window.app.gpt.quick_call(chunk, sys_prompt, False, max_tokens, model)
+            response = self.plugin.window.core.gpt.quick_call(chunk, sys_prompt, False, max_tokens, model)
             if response is not None and response != "":
                 summary += response
 

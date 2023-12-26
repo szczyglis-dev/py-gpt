@@ -24,10 +24,10 @@ from pygpt_net.item.ctx import CtxItem
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.models = MagicMock()
-    window.app.config = MagicMock(spec=Config)
-    window.app.config.path = 'test_path'
+    window.core = MagicMock()
+    window.core.models = MagicMock()
+    window.core.config = MagicMock(spec=Config)
+    window.core.config.path = 'test_path'
     return window
 
 
@@ -49,10 +49,10 @@ def test_completion(mock_window):
     Test completion
     """
     gpt = Gpt(mock_window)
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx.return_value = 2048
-    gpt.window.app.ctx.get_prompt_items.return_value = []
-    gpt.window.app.ctx.get_model_ctx.return_value = 2048
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx.return_value = 2048
+    gpt.window.core.ctx.get_prompt_items.return_value = []
+    gpt.window.core.ctx.get_model_ctx.return_value = 2048
     gpt.build_chat_messages = MagicMock(return_value=[])
 
     client = MagicMock(return_value='test_response')
@@ -62,7 +62,7 @@ def test_completion(mock_window):
     client.completions.create.return_value = mock_response
     gpt.get_client = MagicMock(return_value=client)
 
-    gpt.window.app.ctx.add_item = MagicMock()
+    gpt.window.core.ctx.add_item = MagicMock()
     response = gpt.completion('test_prompt', 10)
     assert response.choices[0].text == 'test_response'
 
@@ -72,10 +72,10 @@ def test_chat(mock_window):
     Test chat
     """
     gpt = Gpt(mock_window)
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx.return_value = 2048
-    gpt.window.app.ctx.get_prompt_items.return_value = []
-    gpt.window.app.ctx.get_model_ctx.return_value = 2048
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx.return_value = 2048
+    gpt.window.core.ctx.get_prompt_items.return_value = []
+    gpt.window.core.ctx.get_model_ctx.return_value = 2048
     gpt.build_chat_messages = MagicMock(return_value=[])
 
     client = MagicMock(return_value='test_response')
@@ -85,7 +85,7 @@ def test_chat(mock_window):
     client.chat.completions.create.return_value = mock_response
     gpt.get_client = MagicMock(return_value=client)
 
-    gpt.window.app.ctx.add_item = MagicMock()
+    gpt.window.core.ctx.add_item = MagicMock()
     response = gpt.chat('test_prompt', 10)
     assert response.choices[0].message.content == 'test_response'
 
@@ -95,10 +95,10 @@ def test_vision(mock_window):
     Test vision
     """
     gpt = Gpt(mock_window)
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx.return_value = 2048
-    gpt.window.app.ctx.get_prompt_items.return_value = []
-    gpt.window.app.ctx.get_model_ctx.return_value = 2048
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx.return_value = 2048
+    gpt.window.core.ctx.get_prompt_items.return_value = []
+    gpt.window.core.ctx.get_model_ctx.return_value = 2048
     gpt.build_chat_messages = MagicMock(return_value=[])
 
     client = MagicMock(return_value='test_response')
@@ -108,7 +108,7 @@ def test_vision(mock_window):
     client.chat.completions.create.return_value = mock_response
     gpt.get_client = MagicMock(return_value=client)
 
-    gpt.window.app.ctx.add_item = MagicMock()
+    gpt.window.core.ctx.add_item = MagicMock()
     response = gpt.vision('test_prompt', 10)
     assert response.choices[0].message.content == 'test_response'
 
@@ -139,10 +139,10 @@ def test_build_chat_messages(mock_window):
     gpt = Gpt(mock_window)
     gpt.system_prompt = 'test_system_prompt'
     gpt.count_used_tokens = MagicMock(return_value=4)
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx = MagicMock(return_value=2048)
-    gpt.window.app.ctx.get_prompt_items.return_value = items
-    gpt.window.app.ctx.get_model_ctx.return_value = 2048
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx = MagicMock(return_value=2048)
+    gpt.window.core.ctx.get_prompt_items.return_value = items
+    gpt.window.core.ctx.get_model_ctx.return_value = 2048
 
     messages = gpt.build_chat_messages('test_prompt')
     assert len(messages) == 4
@@ -168,9 +168,9 @@ def test_build_completion(mock_window):
     gpt = Gpt(mock_window)
     gpt.system_prompt = 'test_system_prompt'
     gpt.count_used_tokens = MagicMock(return_value=4)
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx = MagicMock(return_value=2048)
-    gpt.window.app.ctx.get_prompt_items.return_value = items
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx = MagicMock(return_value=2048)
+    gpt.window.core.ctx.get_prompt_items.return_value = items
 
     message = gpt.build_completion('test_prompt')
     assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
@@ -197,9 +197,9 @@ def test_build_completion_with_names(mock_window):
     gpt.system_prompt = 'test_system_prompt'
     gpt.user_name = 'User'
     gpt.ai_name = 'AI'
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx = MagicMock(return_value=2048)
-    gpt.window.app.ctx.get_prompt_items.return_value = items
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx = MagicMock(return_value=2048)
+    gpt.window.core.ctx.get_prompt_items.return_value = items
 
     message = gpt.build_completion('test_prompt')
     assert message == 'test_system_prompt\nUser: user message\nAI: AI message\nUser: test_prompt\nAI:'
@@ -232,8 +232,8 @@ def test_count_used_tokens(mock_window):
     Test count used tokens
     """
     gpt = Gpt(mock_window)
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx = MagicMock(return_value=2048)
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx = MagicMock(return_value=2048)
     tokens = gpt.count_used_tokens('test_text')
     assert tokens == 209
     tokens = gpt.count_used_tokens('test_text test_texttest_texttest_texttest_texttest_texttest_text')
@@ -255,7 +255,7 @@ def test_quick_call(mock_window):
     gpt = Gpt(mock_window)
     gpt.get_client = MagicMock(return_value=client)
     gpt.build_chat_messages = MagicMock(return_value='test_messages')
-    gpt.window.app.config.get.side_effect = mock_get
+    gpt.window.core.config.get.side_effect = mock_get
     response = gpt.quick_call('test_prompt', 'test_system_prompt')
     assert response == 'test_response'
 
@@ -266,9 +266,9 @@ def test_prepare_ctx_name(mock_window):
     """
     gpt = Gpt(mock_window)
     gpt.quick_call = MagicMock(return_value='test_response')
-    gpt.window.app.config.get.side_effect = mock_get
-    gpt.window.app.models.get_num_ctx = MagicMock(return_value=2048)
-    gpt.window.app.ctx.get_prompt_items = MagicMock(return_value=[])
+    gpt.window.core.config.get.side_effect = mock_get
+    gpt.window.core.models.get_num_ctx = MagicMock(return_value=2048)
+    gpt.window.core.ctx.get_prompt_items = MagicMock(return_value=[])
     response = gpt.prepare_ctx_name(CtxItem())
     assert response == 'test_response'
 

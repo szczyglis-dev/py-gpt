@@ -26,7 +26,7 @@ class Dispatcher:
         :param all: true if dispatch to all plugins (enabled or not)
         :param is_async: true if async event
         """
-        for id in self.window.app.plugins.plugins:
+        for id in self.window.core.plugins.plugins:
             if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop:
                     break
@@ -40,10 +40,10 @@ class Dispatcher:
         :param event: event object
         :param is_async: true if async event
         """
-        if id in self.window.app.plugins.plugins:
+        if id in self.window.core.plugins.plugins:
             try:
-                self.window.app.plugins.plugins[id].is_async = is_async
-                self.window.app.plugins.plugins[id].handle(event)
+                self.window.core.plugins.plugins[id].is_async = is_async
+                self.window.core.plugins.plugins[id].handle(event)
             except AttributeError:
                 pass
 

@@ -67,13 +67,13 @@ class Settings:
         """
         Load settings options
         """
-        self.options = self.window.app.config.get_options()
+        self.options = self.window.core.config.get_options()
         self.initialized = True
 
     def load_user_settings(self):
         """Load user config (from user home dir)"""
         # replace config with user base config
-        self.window.app.config.load_config()
+        self.window.core.config.load_config()
 
     def load_app_settings(self):
         """Load base app config (from app root dir)"""
@@ -81,19 +81,19 @@ class Settings:
         persist_options = self.get_persist_options()
         persist_values = {}
         for option in persist_options:
-            if self.window.app.config.has(option):
-                persist_values[option] = self.window.app.config.get(option)
+            if self.window.core.config.has(option):
+                persist_values[option] = self.window.core.config.get(option)
 
         # save current config backup
-        self.window.app.config.save('config.backup.json')
+        self.window.core.config.save('config.backup.json')
 
         # replace config with app base config
-        self.window.app.config.from_base_config()
+        self.window.core.config.from_base_config()
 
         # restore persisted values
         for option in persist_options:
             if option in persist_values:
-                self.window.app.config.set(option, persist_values[option])
+                self.window.core.config.set(option, persist_values[option])
 
     def load_default_editor(self):
         """Load defaults from file"""
@@ -108,7 +108,7 @@ class Settings:
         :param file: file name
         """
         # load file
-        path = os.path.join(self.window.app.config.path, file)
+        path = os.path.join(self.window.core.config.path, file)
         self.window.ui.paths['config'].setText(path)
         self.window.ui.dialog['config.editor'].file = file
         try:
@@ -116,7 +116,7 @@ class Settings:
                 txt = f.read()
                 self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             self.window.set_status("Error loading file: {}".format(e))
 
     def save_editor(self):
@@ -131,11 +131,11 @@ class Settings:
             return
 
         file = self.window.ui.dialog['config.editor'].file
-        path = os.path.join(self.window.app.config.path, file)
+        path = os.path.join(self.window.core.config.path, file)
 
         # make backup of current file:
         backup_file = file + '.backup'
-        backup_path = os.path.join(self.window.app.config.path, backup_file)
+        backup_path = os.path.join(self.window.core.config.path, backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
             self.window.set_status("Created backup file: {}".format(backup_file))
@@ -147,5 +147,5 @@ class Settings:
             self.window.set_status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             self.window.set_status("Error saving file: {}".format(path))

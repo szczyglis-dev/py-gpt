@@ -23,9 +23,9 @@ from pygpt_net.item.ctx import CtxItem
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.config = MagicMock(spec=Config)
-    window.app.config.path = 'test_path'
+    window.core = MagicMock()
+    window.core.config = MagicMock(spec=Config)
+    window.core.config.path = 'test_path'
     return window
 
 

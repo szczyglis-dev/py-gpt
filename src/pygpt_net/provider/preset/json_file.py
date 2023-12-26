@@ -31,13 +31,13 @@ class JsonFileProvider(BaseProvider):
         Install provider data
         """
         # install presets
-        presets_dir = os.path.join(self.window.app.config.path, self.config_dir)
+        presets_dir = os.path.join(self.window.core.config.path, self.config_dir)
         if not os.path.exists(presets_dir):
-            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_dir)
+            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_dir)
             shutil.copytree(src, presets_dir)
         else:
             # copy missing presets
-            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_dir)
+            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_dir)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(presets_dir, file)
@@ -49,20 +49,20 @@ class JsonFileProvider(BaseProvider):
         Load presets from JSON file
         """
         items = {}
-        path = os.path.join(self.window.app.config.path, self.config_dir)
+        path = os.path.join(self.window.core.config.path, self.config_dir)
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
         try:
             for filename in os.listdir(path):
                 if filename.endswith(".json"):
-                    path = os.path.join(self.window.app.config.path, self.config_dir, filename)
+                    path = os.path.join(self.window.core.config.path, self.config_dir, filename)
                     with open(path, 'r', encoding="utf-8") as f:
                         preset = PresetItem()
                         self.deserialize(json.load(f), preset)
                         items[filename[:-5]] = preset
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
         return items
 
@@ -72,15 +72,15 @@ class JsonFileProvider(BaseProvider):
 
         :param item: PresetItem
         """
-        path = os.path.join(self.window.app.config.path, self.config_dir, id + '.json')
+        path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
         data = self.serialize(item)
-        data['__meta__'] = self.window.app.config.append_meta()
+        data['__meta__'] = self.window.core.config.append_meta()
         dump = json.dumps(data, indent=4)
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def save_all(self, items):
         """
@@ -89,17 +89,17 @@ class JsonFileProvider(BaseProvider):
         :param items: items dict
         """
         for id in items:
-            path = os.path.join(self.window.app.config.path, self.config_dir, id + '.json')
+            path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
 
             # serialize
             data = self.serialize(items[id])
-            data['__meta__'] = self.window.app.config.append_meta()
+            data['__meta__'] = self.window.core.config.append_meta()
             dump = json.dumps(data, indent=4)
             try:
                 with open(path, 'w', encoding="utf-8") as f:
                     f.write(dump)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def remove(self, id):
         """
@@ -107,12 +107,12 @@ class JsonFileProvider(BaseProvider):
 
         :param id: preset id
         """
-        path = os.path.join(self.window.app.config.path, self.config_dir, id + '.json')
+        path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
         if os.path.exists(path):
             try:
                 os.remove(path)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def truncate(self):
         pass
@@ -126,8 +126,8 @@ class JsonFileProvider(BaseProvider):
         :rtype: bool
         """
         migrated = False
-        for k in self.window.app.presets.items:
-            data = self.window.app.presets.items[k]
+        for k in self.window.core.presets.items:
+            data = self.window.core.presets.items[k]
             updated = False
 
             # get version of preset
@@ -138,13 +138,13 @@ class JsonFileProvider(BaseProvider):
                 # < 2.0.0
                 if old < parse_version("2.0.0"):
                     print("Migrating presets dir from < 2.0.0...")
-                    self.window.app.updater.patch_file('presets', True)  # force replace file
+                    self.window.core.updater.patch_file('presets', True)  # force replace file
 
                 # < 2.0.53
                 if old < parse_version("2.0.53") and k == 'current.assistant':
                     print("Migrating preset file from < 2.0.53...")
-                    dst = os.path.join(self.window.app.config.path, 'presets', 'current.assistant.json')
-                    src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', 'presets',
+                    dst = os.path.join(self.window.core.config.path, 'presets', 'current.assistant.json')
+                    src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', 'presets',
                                        'current.assistant.json')
                     shutil.copyfile(src, dst)
                     updated = True
@@ -152,8 +152,8 @@ class JsonFileProvider(BaseProvider):
 
             # update file
             if updated:
-                self.window.app.presets.load()  # reload presets from patched files
-                self.window.app.presets.save(k)  # re-save presets
+                self.window.core.presets.load()  # reload presets from patched files
+                self.window.core.presets.save(k)  # re-save presets
                 migrated = True
                 print("Preset {} patched to version {}.".format(k, version))
 

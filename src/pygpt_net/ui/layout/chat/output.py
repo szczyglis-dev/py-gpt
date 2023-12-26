@@ -47,7 +47,7 @@ class Output:
         self.window.ui.nodes['output_highlighter'] = MarkdownHighlighter(self.window.ui.nodes['output'])
 
         # file explorer
-        path = os.path.join(self.window.app.config.path, 'output')
+        path = os.path.join(self.window.core.config.path, 'output')
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path)
 
         # notepads

@@ -56,8 +56,8 @@ class Chain:
                 messages.append(SystemMessage(content=self.system_prompt))
 
         # append messages from context (memory)
-        if self.window.app.config.get('use_context'):
-            items = self.window.app.ctx.get_all_items()
+        if self.window.core.config.get('use_context'):
+            items = self.window.core.ctx.get_all_items()
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -83,8 +83,8 @@ class Chain:
         if self.system_prompt is not None and self.system_prompt != "":
             message += self.system_prompt
 
-        if self.window.app.config.get('use_context'):
-            items = self.window.app.ctx.get_all_items()
+        if self.window.core.config.get('use_context'):
+            items = self.window.core.ctx.get_all_items()
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -121,14 +121,14 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        config = self.window.app.models.get(self.window.app.config.get('model'))
+        config = self.window.core.models.get(self.window.core.config.get('model'))
         if 'provider' in config.langchain:
             provider = config.langchain['provider']
             if provider in self.llms:
                 try:
-                    llm = self.llms[provider].chat(self.window.app.config.all(), config.langchain, stream_mode)
+                    llm = self.llms[provider].chat(self.window.core.config.all(), config.langchain, stream_mode)
                 except Exception as e:
-                    self.window.app.debug.log(e)
+                    self.window.core.debug.log(e)
 
         # if no LLM here then raise exception
         if llm is None:
@@ -149,14 +149,14 @@ class Chain:
         :return: LLM response
         """
         llm = None
-        config = self.window.app.models.get(self.window.app.config.get('model'))
+        config = self.window.core.models.get(self.window.core.config.get('model'))
         if 'provider' in config.langchain:
             provider = config.langchain['provider']
             if provider in self.llms:
                 try:
-                    llm = self.llms[provider].completion(self.window.app.config.all(), config.langchain, stream_mode)
+                    llm = self.llms[provider].completion(self.window.core.config.all(), config.langchain, stream_mode)
                 except Exception as e:
-                    self.window.app.debug.log(e)
+                    self.window.core.debug.log(e)
         if llm is None:
             raise Exception("Invalid LLM")
 
@@ -176,7 +176,7 @@ class Chain:
         :return: context (CtxItem)
         :rtype: CtxItem
         """
-        config = self.window.app.models.get(self.window.app.config.get('model'))
+        config = self.window.core.models.get(self.window.core.config.get('model'))
         response = None
         mode = 'chat'
 
@@ -194,19 +194,19 @@ class Chain:
                 response = self.completion(text, stream_mode)
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             raise e  # re-raise to window
 
         # async mode (stream)
         if stream_mode:
             # store context (memory)
             if ctx is None:
-                ctx = CtxItem(self.window.app.config.get('mode'))
+                ctx = CtxItem(self.window.core.config.get('mode'))
                 ctx.set_input(text, self.user_name)
 
             ctx.stream = response
             ctx.set_output("", self.ai_name)
-            self.window.app.ctx.add(ctx)
+            self.window.core.ctx.add(ctx)
             return ctx
 
         if response is None:
@@ -221,10 +221,10 @@ class Chain:
 
         # store context (memory)
         if ctx is None:
-            ctx = CtxItem(self.window.app.config.get('mode'))
+            ctx = CtxItem(self.window.core.config.get('mode'))
             ctx.set_input(text, self.user_name)
 
         ctx.set_output(output, self.ai_name)
-        self.window.app.ctx.add(ctx)
+        self.window.core.ctx.add(ctx)
 
         return ctx

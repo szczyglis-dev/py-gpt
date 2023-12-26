@@ -30,24 +30,24 @@ class Attachment:
     def setup(self):
         """Setup attachments"""
         # send clear
-        if self.window.app.config.has('attachments_send_clear') and self.window.app.config.get('attachments_send_clear'):
+        if self.window.core.config.has('attachments_send_clear') and self.window.core.config.get('attachments_send_clear'):
             self.window.ui.nodes['attachments.send_clear'].setChecked(True)
         else:
             self.window.ui.nodes['attachments.send_clear'].setChecked(False)
 
         #  capture clear
-        if self.window.app.config.has('attachments_capture_clear') and self.window.app.config.get('attachments_capture_clear'):
+        if self.window.core.config.has('attachments_capture_clear') and self.window.core.config.get('attachments_capture_clear'):
             self.window.ui.nodes['attachments.capture_clear'].setChecked(True)
         else:
             self.window.ui.nodes['attachments.capture_clear'].setChecked(False)
 
-        self.window.app.attachments.load()
+        self.window.core.attachments.load()
         self.update()
 
     def update(self):
         """Update attachments list"""
-        mode = self.window.app.config.get('mode')
-        items = self.window.app.attachments.get_all(mode)
+        mode = self.window.core.config.get('mode')
+        items = self.window.core.attachments.get_all(mode)
         self.window.ui.chat.input.attachments.update(items)
         self.update_tab_label(mode)
 
@@ -57,7 +57,7 @@ class Attachment:
 
         :param mode: mode
         """
-        num_files = self.window.app.attachments.count(mode)
+        num_files = self.window.core.attachments.count(mode)
         suffix = ''
         if num_files > 0:
             suffix = f' ({num_files})'
@@ -70,7 +70,7 @@ class Attachment:
         :param mode: mode
         :param idx: index
         """
-        self.window.app.attachments.current = self.window.app.attachments.get_id_by_idx(mode, idx)
+        self.window.core.attachments.current = self.window.core.attachments.get_id_by_idx(mode, idx)
 
     def selection_change(self):
         """
@@ -86,17 +86,17 @@ class Attachment:
         :param idx: index of attachment
         :param force: force delete
         """
-        mode = self.window.app.config.get('mode')
+        mode = self.window.core.config.get('mode')
         if not force:
             self.window.ui.dialogs.confirm('attachments.delete', idx, trans('attachments.delete.confirm'))
             return
 
-        file_id = self.window.app.attachments.get_id_by_idx(mode, idx)
-        self.window.app.attachments.delete(mode, file_id)
+        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
+        self.window.core.attachments.delete(mode, file_id)
 
         # clear current if current == deleted
-        if self.window.app.attachments.current == file_id:
-            self.window.app.attachments.current = None
+        if self.window.core.attachments.current == file_id:
+            self.window.core.attachments.current = None
 
         self.update()
 
@@ -109,10 +109,10 @@ class Attachment:
         """
 
         # get attachment ID by index
-        file_id = self.window.app.attachments.get_id_by_idx(mode, idx)
+        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
 
         # get attachment object by ID
-        data = self.window.app.attachments.get_by_id(mode, file_id)
+        data = self.window.core.attachments.get_by_id(mode, file_id)
         if data is None:
             return
 
@@ -131,12 +131,12 @@ class Attachment:
         :param name: name
         """
         # rename filename in attachments
-        mode = self.window.app.config.get('mode')
-        self.window.app.attachments.rename_file(mode, file_id, name)
+        mode = self.window.core.config.get('mode')
+        self.window.core.attachments.rename_file(mode, file_id, name)
 
         # rename filename in assistant data if mode = assistant
-        if self.window.app.config.get('mode') == 'assistant':
-            assistant_id = self.window.app.config.get('assistant')
+        if self.window.core.config.get('mode') == 'assistant':
+            assistant_id = self.window.core.config.get('assistant')
             if assistant_id is not None:
                 self.window.controller.assistant_files.update_file_name(file_id, name)
 
@@ -151,7 +151,7 @@ class Attachment:
         :param mode: mode
         :param attachment: attachment object
         """
-        self.window.app.attachments.add(mode, attachment)
+        self.window.core.attachments.add(mode, attachment)
         self.update()
 
     def clear(self, force=False):
@@ -165,21 +165,21 @@ class Attachment:
             return
 
         # delete all from attachments for current mode
-        mode = self.window.app.config.get('mode')
-        self.window.app.attachments.delete_all(mode)
+        mode = self.window.core.config.get('mode')
+        self.window.core.attachments.delete_all(mode)
 
         if mode == 'assistant':
             # delete all from assistant data
-            assistant_id = self.window.app.config.get('assistant')
+            assistant_id = self.window.core.config.get('assistant')
             if assistant_id is not None:
-                assistant = self.window.app.assistants.get_by_id(assistant_id)
+                assistant = self.window.core.assistants.get_by_id(assistant_id)
                 if assistant is not None:
                     self.window.controller.assistant_files.clear_attachments(assistant)
         self.update()
 
     def open_add(self):
         """Open add attachment file dialog"""
-        mode = self.window.app.config.get('mode')
+        mode = self.window.core.config.get('mode')
         dialog = QFileDialog(self.window)
         dialog.setFileMode(QFileDialog.ExistingFiles)
         if dialog.exec():
@@ -187,17 +187,17 @@ class Attachment:
             for path in files:
                 # build attachment object
                 basename = os.path.basename(path)
-                attachment = self.window.app.attachments.new(mode, basename, path, False)
+                attachment = self.window.core.attachments.new(mode, basename, path, False)
                 # append attachment to assistant if current mode = assistant
                 if mode == 'assistant':
-                    assistant_id = self.window.app.config.get('assistant')
+                    assistant_id = self.window.core.config.get('assistant')
                     if assistant_id is not None:
-                        assistant = self.window.app.assistants.get_by_id(assistant_id)
+                        assistant = self.window.core.assistants.get_by_id(assistant_id)
                         if assistant is not None:
                             self.window.controller.assistant_files.append_attachment(assistant, attachment)
 
             # save attachments and update attachments list
-            self.window.app.attachments.save()
+            self.window.core.attachments.save()
             self.update()
 
     def open_dir(self, mode, idx):
@@ -208,8 +208,8 @@ class Attachment:
         :param idx: index
         """
         # TODO: check dict/obj
-        file_id = self.window.app.attachments.get_id_by_idx(mode, idx)
-        data = self.window.app.attachments.get_by_id(mode, file_id)
+        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
+        data = self.window.core.attachments.get_by_id(mode, file_id)
         if data.path is not None and data.path != '' and os.path.exists(data.path):
             self.window.controller.files.open_in_file_manager(data.path)
 
@@ -223,7 +223,7 @@ class Attachment:
         if assistant is None:
             return
         # restore attachments from assistant
-        self.window.app.attachments.from_attachments(mode, assistant.attachments)
+        self.window.core.attachments.from_attachments(mode, assistant.attachments)
 
     def has_attachments(self, mode):
         """
@@ -233,7 +233,7 @@ class Attachment:
         :return: true if has attachments
         :rtype: bool
         """
-        return self.window.app.attachments.has(mode)
+        return self.window.core.attachments.has(mode)
 
     def download(self, file_id):
         """
@@ -245,25 +245,25 @@ class Attachment:
         """
         try:
             # get file info from assistant API
-            data = self.window.app.gpt_assistants.file_info(file_id)
+            data = self.window.core.gpt_assistants.file_info(file_id)
             if data is None:
                 return
 
             # prepare path to download file
             data.filename = os.path.basename(data.filename)
-            path = os.path.join(self.window.app.config.path, 'output', data.filename)
+            path = os.path.join(self.window.core.config.path, 'output', data.filename)
 
             # check if file exists, if yes, append timestamp prefix
             if os.path.exists(path):
                 # append timestamp prefix to filename
                 filename = f'{datetime.now().strftime("%Y%m%d%H%M%S")}_{data.filename}'
-                path = os.path.join(self.window.app.config.path, 'output', filename)
+                path = os.path.join(self.window.core.config.path, 'output', filename)
 
             # download file
-            self.window.app.gpt_assistants.file_download(file_id, path)
+            self.window.core.gpt_assistants.file_download(file_id, path)
             return path  # return path to downloaded file
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
     def toggle_send_clear(self, value):
@@ -272,7 +272,7 @@ class Attachment:
 
         :param value: value of the checkbox
         """
-        self.window.app.config.set('attachments_send_clear', value)
+        self.window.core.config.set('attachments_send_clear', value)
 
     def toggle_capture_clear(self, value):
         """
@@ -280,7 +280,7 @@ class Attachment:
 
         :param value: value of the checkbox
         """
-        self.window.app.config.set('attachments_capture_clear', value)
+        self.window.core.config.set('attachments_capture_clear', value)
 
     def is_capture_clear(self):
         """
@@ -289,9 +289,9 @@ class Attachment:
         :return: true if capture clear is enabled
         :rtype: bool
         """
-        if not self.window.app.config.has('attachments_capture_clear'):
-            self.window.app.config.set('attachments_capture_clear', False)
-        return self.window.app.config.get('attachments_capture_clear')
+        if not self.window.core.config.has('attachments_capture_clear'):
+            self.window.core.config.set('attachments_capture_clear', False)
+        return self.window.core.config.get('attachments_capture_clear')
 
     def is_send_clear(self):
         """
@@ -300,6 +300,6 @@ class Attachment:
         :return: true if send clear is enabled
         :rtype: bool
         """
-        if not self.window.app.config.has('attachments_send_clear'):
-            self.window.app.config.set('attachments_send_clear', False)
-        return self.window.app.config.get('attachments_send_clear')
+        if not self.window.core.config.has('attachments_send_clear'):
+            self.window.core.config.set('attachments_send_clear', False)
+        return self.window.core.config.get('attachments_send_clear')

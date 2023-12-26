@@ -28,7 +28,7 @@ class Audio:
     def toggle_input(self, state, btn=True):
         """Toggle audio/voice"""
         event = Event('audio.input.toggle', {"value": state})
-        self.window.app.dispatcher.dispatch(event)
+        self.window.core.dispatcher.dispatch(event)
 
     def toggle_output(self):
         """Toggle audio/voice"""
@@ -41,35 +41,35 @@ class Audio:
         """Enable audio/voice"""
         self.window.controller.plugins.enable('audio_azure')
         if self.window.controller.plugins.is_enabled('audio_azure') \
-                and (self.window.app.plugins.plugins['audio_azure'].options['azure_api_key'] is None
-                     or self.window.app.plugins.plugins['audio_azure'].options['azure_api_key'] == ''):
+                and (self.window.core.plugins.plugins['audio_azure'].options['azure_api_key'] is None
+                     or self.window.core.plugins.plugins['audio_azure'].options['azure_api_key'] == ''):
             self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugins settings.")
             self.window.controller.plugins.disable('audio_azure')
-        self.window.app.config.save()
+        self.window.core.config.save()
         self.update()
 
     def disable_output(self):
         """Disable audio/voice"""
         self.window.controller.plugins.disable('audio_azure')
-        self.window.app.config.save()
+        self.window.core.config.save()
         self.update()
 
     def disable_input(self, update=True):
         """Disable audio/voice"""
         self.window.controller.plugins.disable('audio_openai_whisper')
-        self.window.app.config.save()
+        self.window.core.config.save()
         if update:
             self.update()
 
     def stop_input(self):
         """Stop audio/voice"""
         event = Event('audio.input.stop', {"value": True})
-        self.window.app.dispatcher.dispatch(event, True)
+        self.window.core.dispatcher.dispatch(event, True)
 
     def stop_output(self):
         """Stop audio/voice"""
         event = Event('audio.output.stop', {"value": True})
-        self.window.app.dispatcher.dispatch(event, True)
+        self.window.core.dispatcher.dispatch(event, True)
 
     def update(self):
         """Update UI and listeners"""

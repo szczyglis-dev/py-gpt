@@ -29,18 +29,18 @@ class Theme:
 
     def load_css(self):
         """Load CSS"""
-        theme = self.window.app.config.get('theme')
+        theme = self.window.core.config.get('theme')
 
         # user area
-        path = os.path.join(self.window.app.config.get_user_path(), 'css', 'highlighter.' + theme + '.json')
+        path = os.path.join(self.window.core.config.get_user_path(), 'css', 'highlighter.' + theme + '.json')
         if not os.path.exists(path):
-            path = os.path.join(self.window.app.config.get_user_path(), 'css', 'highlighter.json')
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', 'highlighter.json')
 
         # app area
         if not os.path.exists(path):
-            path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', 'highlighter.' + theme + '.json')
+            path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', 'highlighter.' + theme + '.json')
             if not os.path.exists(path):
-                path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', 'highlighter.json')
+                path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', 'highlighter.json')
 
         if os.path.exists(path):
             try:
@@ -48,7 +48,7 @@ class Theme:
                     self.css['highlighter'] = json.load(f)
                     f.close()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def get_css(self, name):
         """
@@ -79,25 +79,25 @@ class Theme:
                 tmp_css = 'style.dark.css'
             if tmp_css is not None:
                 # check for override in user directory
-                path = os.path.join(self.window.app.config.get_user_path(), 'css', tmp_css)
+                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp_css)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', tmp_css)
                 if os.path.exists(path):
                     custom_css = tmp_css
 
                 # per theme name
                 tmp_css = name + '.css'
                 # check for override in user directory
-                path = os.path.join(self.window.app.config.get_user_path(), 'css', tmp_css)
+                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp_css)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', tmp_css)
                 if os.path.exists(path):
                     custom_css = tmp_css
 
-        self.window.app.config.set('theme', name)
-        self.window.app.config.save()
+        self.window.core.config.set('theme', name)
+        self.window.core.config.save()
         self.load_css()
         self.apply()
         self.set_theme(name + '.xml', custom_css)  # style.css = additional custom stylesheet
@@ -107,7 +107,7 @@ class Theme:
         """Apply common theme"""
         if key in self.window.ui.nodes:
             self.window.ui.nodes[key].setStyleSheet('font-size: {}px;'
-                                                    .format(self.window.app.config.get('font_size.toolbox')))  # 12px
+                                                    .format(self.window.core.config.get('font_size.toolbox')))  # 12px
 
     def apply(self, all=True):
         """Apply theme"""
@@ -158,7 +158,7 @@ class Theme:
 
         # apply to syntax highlighter
         if all:
-            self.apply_syntax_highlighter(self.window.app.config.get('theme'))
+            self.apply_syntax_highlighter(self.window.core.config.get('theme'))
 
     def get_style(self, element):
         """
@@ -170,11 +170,11 @@ class Theme:
         """
         # get theme element style
         if element == "chat_output":
-            return 'font-size: {}px;'.format(self.window.app.config.get('font_size'))
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size'))
         elif element == "chat_input":
-            return 'font-size: {}px;'.format(self.window.app.config.get('font_size.input'))
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.input'))
         elif element == "ctx.list":
-            return 'font-size: {}px;'.format(self.window.app.config.get('font_size.ctx'))
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.ctx'))
         elif element == "text_bold":
             return "font-weight: bold;"
         elif element == "text_small":
@@ -190,7 +190,7 @@ class Theme:
         """Update theme menu"""
         for theme in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][theme].setChecked(False)
-        current = self.window.app.config.get('theme')
+        current = self.window.core.config.get('theme')
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
 
@@ -248,12 +248,12 @@ class Theme:
             self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
         # apply theme
-        theme = self.window.app.config.get('theme')
+        theme = self.window.core.config.get('theme')
         self.toggle(theme)
 
     def reload(self):
         """Reload theme"""
-        theme = self.window.app.config.get('theme')
+        theme = self.window.core.config.get('theme')
         self.toggle(theme)
 
     def set_theme(self, theme='dark_teal.xml', custom_css=None):
@@ -267,7 +267,7 @@ class Theme:
         if theme.startswith('light'):
             inverse = True
         extra = {
-            'density_scale': self.window.app.config.get('layout.density'),
+            'density_scale': self.window.core.config.get('layout.density'),
             'pyside6': True,
         }
         self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
@@ -276,10 +276,10 @@ class Theme:
         if custom_css is not None:
             stylesheet = self.window.styleSheet()
             # check for override in user directory
-            path = os.path.join(self.window.app.config.get_user_path(), 'css', custom_css)
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', custom_css)
             if not os.path.exists(path):
                 # check in app directory
-                path = os.path.join(self.window.app.config.get_root_path(), 'data', 'css', custom_css)
+                path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', custom_css)
             if os.path.exists(path):
                 with open(path) as file:
                     self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))

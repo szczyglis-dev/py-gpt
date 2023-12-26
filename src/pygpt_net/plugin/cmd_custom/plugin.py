@@ -152,7 +152,7 @@ class Plugin(BasePlugin):
 
                         # append system placeholders
                         command = command.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
-                        command = command.replace("{_home}", self.window.app.config.path)
+                        command = command.replace("{_home}", self.window.core.config.path)
                         command = command.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
                         command = command.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
                         command = command.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -192,7 +192,7 @@ class Plugin(BasePlugin):
                         msg = "Error: {}".format(e)
                         ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
                         ctx.reply = True
-                        self.window.app.debug.log(e)
+                        self.window.core.debug.log(e)
                         self.log(msg)
 
         # update status

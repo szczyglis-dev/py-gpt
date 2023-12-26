@@ -26,7 +26,7 @@ class Lang:
     def setup(self):
         """Setup language handler"""
         # get files from locale directory
-        langs = self.window.app.config.get_available_langs()
+        langs = self.window.core.config.get_available_langs()
         for lang in langs:
             self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
             self.window.ui.menu['lang'][lang].triggered.connect(
@@ -40,7 +40,7 @@ class Lang:
         for lang in self.window.ui.menu['lang']:
             self.window.ui.menu['lang'][lang].setChecked(False)
 
-        lang = self.window.app.config.get('lang')
+        lang = self.window.core.config.get('lang')
         if lang in self.window.ui.menu['lang']:
             self.window.ui.menu['lang'][lang].setChecked(True)
 
@@ -50,8 +50,8 @@ class Lang:
 
         :param id: language to toggle
         """
-        self.window.app.config.set('lang', id)
-        self.window.app.config.save()
+        self.window.core.config.set('lang', id)
+        self.window.core.config.save()
         trans('', True)  # force reload translations
 
         self.update()
@@ -132,7 +132,7 @@ class Lang:
         self.window.ui.nodes['vision.capture.label'].setText(trans('vision.capture.options.title'))
 
         # capture label
-        if not self.window.app.config.get('vision.capture.auto'):
+        if not self.window.core.config.get('vision.capture.auto'):
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
         else:
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
@@ -248,7 +248,7 @@ class Lang:
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
 
         # tabs
-        mode = self.window.app.config.get('mode')
+        mode = self.window.core.config.get('mode')
         self.window.controller.attachment.update_tab_label(mode)
         self.window.controller.assistant_files.update_tab_label()
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
@@ -266,7 +266,7 @@ class Lang:
             self.toggle_plugins()
         except Exception as e:
             print("Error updating plugin locales", e)
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')  # clear status
@@ -276,9 +276,9 @@ class Lang:
         Toggle plugins locale
         """
         # reload all domains (plugin locale files)
-        ids = self.window.app.plugins.plugins.keys()
+        ids = self.window.core.plugins.plugins.keys()
         for id in ids:
-            plugin = self.window.app.plugins.plugins[id]
+            plugin = self.window.core.plugins.plugins[id]
             if not plugin.use_locale:
                 continue
             domain = 'plugin.{}'.format(id)
@@ -286,7 +286,7 @@ class Lang:
 
         # apply to settings
         for id in ids:
-            plugin = self.window.app.plugins.plugins[id]
+            plugin = self.window.core.plugins.plugins[id]
             if not plugin.use_locale:
                 continue
             domain = 'plugin.{}'.format(id)
@@ -337,7 +337,7 @@ class Lang:
 
         # update settings dialog list
         idx = self.window.ui.tabs['plugin.settings'].currentIndex()
-        self.window.plugin_settings.update_list('plugin.list', self.window.app.plugins.plugins)
+        self.window.plugin_settings.update_list('plugin.list', self.window.core.plugins.plugins)
         self.window.controller.plugins.set_plugin_by_tab(idx)
 
     def update_settings_dialogs(self):

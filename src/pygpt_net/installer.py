@@ -28,42 +28,42 @@ class Installer:
         """
         try:
             # create user config directory
-            path = Path(self.window.app.config.path)
+            path = Path(self.window.core.config.path)
             path.mkdir(parents=True, exist_ok=True)
 
             # install config
-            self.window.app.config.install()
+            self.window.core.config.install()
 
             # install models
-            self.window.app.models.install()
+            self.window.core.models.install()
 
             # install presets
-            self.window.app.presets.install()
+            self.window.core.presets.install()
 
             # install history
-            self.window.app.history.install()
+            self.window.core.history.install()
 
             # install context
-            self.window.app.ctx.install()
+            self.window.core.ctx.install()
 
             # install notepad
-            self.window.app.notepad.install()
+            self.window.core.notepad.install()
 
             # install attachments
-            self.window.app.attachments.install()
+            self.window.core.attachments.install()
 
             # install assistants
-            self.window.app.assistants.install()
+            self.window.core.assistants.install()
 
             # install images
-            self.window.app.image.install()
+            self.window.core.image.install()
 
             # install filesystem
-            self.window.app.filesystem.install()
+            self.window.core.filesystem.install()
 
             # install vision capture
-            self.window.app.camera.install()
+            self.window.core.camera.install()
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Error installing config files:", e)

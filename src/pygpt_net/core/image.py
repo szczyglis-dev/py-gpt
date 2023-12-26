@@ -32,7 +32,7 @@ class Image:
 
     def install(self):
         """Install provider data"""
-        img_dir = os.path.join(self.window.app.config.path, self.DIRNAME)
+        img_dir = os.path.join(self.window.core.config.path, self.DIRNAME)
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
 
@@ -52,8 +52,8 @@ class Image:
         '''
         # get custom prompt from config if exists
         if allow_custom:
-            if self.window.app.config.has('img_prompt'):
-                prompt = self.window.app.config.get('img_prompt')
+            if self.window.core.config.has('img_prompt'):
+                prompt = self.window.core.config.get('img_prompt')
                 if prompt is not None and prompt != '':
                     cmd = prompt
         return cmd
@@ -65,8 +65,8 @@ class Image:
         :return: OpenAI client
         """
         return OpenAI(
-            api_key=self.window.app.config.get('api_key'),
-            organization=self.window.app.config.get('organization_key'),
+            api_key=self.window.core.config.get('api_key'),
+            organization=self.window.core.config.get('organization_key'),
         )
 
     def generate(self, prompt, model="dall-e-3", num=1):
@@ -79,18 +79,18 @@ class Image:
         :return: images paths list
         :rtype: list
         """
-        if not self.window.app.config.get('img_raw'):
+        if not self.window.core.config.get('img_raw'):
             system_cmd = self.get_prompt()
             max_tokens = 200
             temperature = 1.0
             try:
                 # call GPT for generate best image generate prompt
-                response = self.window.app.gpt.quick_call(prompt, system_cmd, False, max_tokens,
-                                                          self.window.app.config.get('img_prompt_model'), temperature)
+                response = self.window.core.gpt.quick_call(prompt, system_cmd, False, max_tokens,
+                                                          self.window.core.config.get('img_prompt_model'), temperature)
                 if response is not None and response != "":
                     prompt = response
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
                 print("Image prompt generate by model error: " + str(e))
 
         print("Generating image from: '{}'".format(prompt))
@@ -99,7 +99,7 @@ class Image:
             model=model,
             prompt=prompt,
             n=num,
-            size=self.window.app.config.get('img_resolution'),
+            size=self.window.core.config.get('img_resolution'),
         )
 
         # generate and download images
@@ -113,7 +113,7 @@ class Image:
             # generate filename
             name = self.make_safe_filename(prompt) + "-" + datetime.date.today().strftime(
                 "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
-            path = os.path.join(self.window.app.config.path, self.DIRNAME, name)
+            path = os.path.join(self.window.core.config.path, self.DIRNAME, name)
 
             print("Downloading... [" + str(i + 1) + " of " + str(num) + "] to: " + path)
             # save image
@@ -135,7 +135,7 @@ class Image:
                 file.write(image)
             return True
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Image save error: " + str(e))
             return False
 

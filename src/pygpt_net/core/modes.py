@@ -77,7 +77,7 @@ class Modes:
             try:
                 self.items = self.providers[self.provider].load()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
                 self.items = {}
 
     def save(self):
@@ -88,4 +88,4 @@ class Modes:
             try:
                 self.providers[self.provider].save(self.items)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)

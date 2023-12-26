@@ -23,9 +23,9 @@ from pygpt_net.plugin.base_plugin import BasePlugin
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.config = MagicMock(spec=Config)
-    window.app.config.path = 'test'
+    window.core = MagicMock()
+    window.core.config = MagicMock(spec=Config)
+    window.core.config.path = 'test'
     return window
 
 
@@ -49,8 +49,8 @@ def test_is_registered(mock_window):
     Test is registered
     """
     plugins = Plugins(mock_window)
-    plugins.window.app.config.get = mock_get
-    plugins.window.app.config.has = mock_has
+    plugins.window.core.config.get = mock_get
+    plugins.window.core.config.has = mock_has
     plugin = BasePlugin()
     plugin.id = 'test'
     plugins.register(plugin)
@@ -63,8 +63,8 @@ def test_register(mock_window):
     Test register
     """
     plugins = Plugins(mock_window)
-    plugins.window.app.config.get = mock_get
-    plugins.window.app.config.has = mock_has
+    plugins.window.core.config.get = mock_get
+    plugins.window.core.config.has = mock_has
     plugin = BasePlugin()
     plugin.id = 'test'
     plugins.register(plugin)
@@ -77,8 +77,8 @@ def test_restore_options(mock_window):
     Test restore options
     """
     plugins = Plugins(mock_window)
-    plugins.window.app.config.get = mock_get
-    plugins.window.app.config.has = mock_has
+    plugins.window.core.config.get = mock_get
+    plugins.window.core.config.has = mock_has
     plugin = BasePlugin()
     plugin.id = 'test'
     plugins.register(plugin)

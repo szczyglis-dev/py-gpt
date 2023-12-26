@@ -32,7 +32,7 @@ class Changelog:
 
         txt = ''
         try:
-            with open(os.path.join(self.window.app.config.get_root_path(),
+            with open(os.path.join(self.window.core.config.get_root_path(),
                                    "CHANGELOG.txt"), "r") as f:
                 txt = f.read()
                 f.close()

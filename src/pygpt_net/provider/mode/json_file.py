@@ -30,7 +30,7 @@ class JsonFileProvider(BaseProvider):
 
         :return: version
         """
-        path = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_file)
+        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
         with open(path, 'r', encoding="utf-8") as file:
             data = json.load(file)
             if data == "" or data is None:
@@ -43,7 +43,7 @@ class JsonFileProvider(BaseProvider):
         Load modes config from JSON file
         """
         items = {}
-        path = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_file)
+        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
@@ -61,7 +61,7 @@ class JsonFileProvider(BaseProvider):
                     items[id] = model
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
         return items
 
@@ -71,7 +71,7 @@ class JsonFileProvider(BaseProvider):
 
         :param items: models dict
         """
-        path = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_file)
+        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
         try:
             data = {}
             ary = {}
@@ -81,14 +81,14 @@ class JsonFileProvider(BaseProvider):
                 model = items[id]
                 ary[id] = self.serialize(model)
 
-            data['__meta__'] = self.window.app.config.append_meta()
+            data['__meta__'] = self.window.core.config.append_meta()
             data['items'] = ary
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def remove(self, id):
         pass

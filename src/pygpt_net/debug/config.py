@@ -24,13 +24,13 @@ class ConfigDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.app.debug.begin(self.id)
+        self.window.core.debug.begin(self.id)
 
-        path = os.path.join(self.window.app.config.path, '', 'config.json')
-        self.window.app.debug.add(self.id, 'Config File', str(path))
+        path = os.path.join(self.window.core.config.path, '', 'config.json')
+        self.window.core.debug.add(self.id, 'Config File', str(path))
 
         # config data
-        for key in self.window.app.config.all():
-            self.window.app.debug.add(self.id, key, str(self.window.app.config.get(key)))
+        for key in self.window.core.config.all():
+            self.window.core.debug.add(self.id, key, str(self.window.core.config.get(key)))
 
-        self.window.app.debug.end(self.id)
+        self.window.core.debug.end(self.id)

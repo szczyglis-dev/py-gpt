@@ -52,4 +52,4 @@ class EditorDialog(QDialog):
         """
         Cleanup on close
         """
-        self.window.app.settings.active[self.id] = False
+        self.window.core.settings.active[self.id] = False

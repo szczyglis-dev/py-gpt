@@ -24,9 +24,9 @@ from pygpt_net.core.image import Image
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.config = MagicMock(spec=Config)
-    window.app.config.path = 'test'
+    window.core = MagicMock()
+    window.core.config = MagicMock(spec=Config)
+    window.core.config.path = 'test'
     return window
 
 
@@ -50,8 +50,8 @@ def test_get_prompt(mock_window):
     Test get prompt
     """
     img = Image(window=mock_window)
-    img.window.app.config.get = mock_get
-    img.window.app.config.has = mock_has
+    img.window.core.config.get = mock_get
+    img.window.core.config.has = mock_has
     assert img.get_prompt(True) == 'test'
 
 
@@ -78,8 +78,8 @@ def test_generate(mock_window):
 
     img.get_client = MagicMock(return_value=client)
     img.save_image = MagicMock(return_value=True)
-    img.window.app.config.get = mock_get
-    img.window.app.config.has = mock_has
+    img.window.core.config.get = mock_get
+    img.window.core.config.has = mock_has
     assert img.generate('test') == (['test.png'], 'test')
 
 

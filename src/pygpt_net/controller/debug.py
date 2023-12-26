@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
+
 from datetime import datetime
 
 from PySide6.QtGui import QTextCursor
@@ -77,13 +78,13 @@ class Debug:
 
         :param id: window to toggle
         """
-        if id in self.window.app.debug.active and self.window.app.debug.active[id]:
+        if id in self.window.core.debug.active and self.window.core.debug.active[id]:
             self.window.ui.dialogs.close('debug.' + id)
-            self.window.app.debug.active[id] = False
+            self.window.core.debug.active[id] = False
         else:
             self.window.ui.dialogs.open('debug.' + id)
-            self.window.app.debug.active[id] = True
-            self.window.app.debug.update(True)
+            self.window.core.debug.active[id] = True
+            self.window.core.debug.update(True)
 
         self.log('debug.' + id + ' toggled')
 
@@ -92,8 +93,8 @@ class Debug:
 
     def update_menu(self):
         """Update debug menu"""
-        for id in self.window.app.debug.ids:
-            if id in self.window.app.debug.active and self.window.app.debug.active[id]:
+        for id in self.window.core.debug.ids:
+            if id in self.window.core.debug.active and self.window.core.debug.active[id]:
                 self.window.ui.menu['debug.' + id].setChecked(True)
             else:
                 self.window.ui.menu['debug.' + id].setChecked(False)

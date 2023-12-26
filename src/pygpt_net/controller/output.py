@@ -29,7 +29,7 @@ class Output:
 
     def setup(self):
         """Setup output"""
-        self.window.ui.nodes['output.timestamp'].setChecked(self.window.app.config.get('output_timestamp'))
+        self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
     def clear(self):
         """
@@ -41,7 +41,7 @@ class Output:
         """
         Append context to output
         """
-        for item in self.window.app.ctx.items:
+        for item in self.window.core.ctx.items:
             self.append_context_item(item)
 
     def append_context_item(self, item):
@@ -61,7 +61,7 @@ class Output:
         """
         if item.input is None or item.input == "":
             return
-        if self.window.app.config.get('output_timestamp') and item.input_timestamp is not None:
+        if self.window.core.config.get('output_timestamp') and item.input_timestamp is not None:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
@@ -79,7 +79,7 @@ class Output:
         """
         if item.output is None or item.output == "":
             return
-        if self.window.app.config.get('output_timestamp') and item.output_timestamp is not None:
+        if self.window.core.config.get('output_timestamp') and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -99,7 +99,7 @@ class Output:
         """
         if text_chunk is None or text_chunk == "":
             return
-        if begin and self.window.app.config.get('output_timestamp') and item.output_timestamp is not None:
+        if begin and self.window.core.config.get('output_timestamp') and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -132,8 +132,8 @@ class Output:
 
         :param value: value of the checkbox
         """
-        self.window.app.config.set('output_timestamp', value)
-        self.window.app.config.save()
+        self.window.core.config.set('output_timestamp', value)
+        self.window.core.config.save()
         self.window.controller.ctx.refresh()
 
     def handle_ctx_name(self, ctx):
@@ -143,8 +143,8 @@ class Output:
         :param ctx: CtxItem
         """
         if ctx is not None:
-            if not self.window.app.ctx.is_initialized():
-                id = self.window.app.ctx.current
+            if not self.window.core.ctx.is_initialized():
+                id = self.window.core.ctx.current
                 self.window.controller.summarize.summarize_ctx(id, ctx)
 
     def handle_commands(self, ctx):
@@ -153,8 +153,8 @@ class Output:
 
         :param ctx: CtxItem
         """
-        if ctx is not None and self.window.app.config.get('cmd'):
-            cmds = self.window.app.command.extract_cmds(ctx.output)
+        if ctx is not None and self.window.core.config.get('cmd'):
+            cmds = self.window.core.command.extract_cmds(ctx.output)
             if len(cmds) > 0:
                 self.window.controller.debug.log("Executing commands...")
                 self.window.set_status(trans('status.cmd.wait'))
@@ -177,7 +177,7 @@ class Output:
 
             # get submode for langchain
             if mode == "langchain":
-                config = self.window.app.models.get(self.window.app.config.get('model'))
+                config = self.window.core.models.get(self.window.core.config.get('model'))
                 submode = 'chat'
                 # get available modes for langchain
                 if 'mode' in config.langchain:
@@ -226,7 +226,7 @@ class Output:
                             begin = False
 
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
                 # debug
                 # self.window.controller.debug.log("Stream error: {}".format(e))  # log
                 # print("Error in stream: " + str(e))
@@ -248,11 +248,11 @@ class Output:
             # dispatch event
             event = Event('ctx.after')
             event.ctx = ctx
-            self.window.app.dispatcher.dispatch(event)
+            self.window.core.dispatcher.dispatch(event)
 
         # log
         if ctx is not None:
-            self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".format(self.window.app.ctx.dump(ctx)))
+            self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".format(self.window.core.ctx.dump(ctx)))
             self.window.controller.debug.log("Appending output to chat window...")
 
             # only append output if not in async stream mode, TODO: plugin output add
@@ -268,17 +268,17 @@ class Output:
         :param ctx: CtxItem
         """
         # save context
-        mode = self.window.app.config.get('mode')
-        self.window.app.ctx.post_update(mode)  # post update context, store last mode, etc.
-        self.window.app.ctx.store()
+        mode = self.window.core.config.get('mode')
+        self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
+        self.window.core.ctx.store()
         self.window.controller.ctx.update_ctx()  # update current ctx info
         self.window.set_status(
             trans('status.tokens') + ": {} + {} = {}".
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
         # store history (output)
-        if self.window.app.config.get('store_history'):
-            self.window.app.history.append(ctx, "output")
+        if self.window.core.config.get('store_history'):
+            self.window.core.history.append(ctx, "output")
 
     def speech_selected_text(self, text):
         """
@@ -295,4 +295,4 @@ class Output:
             all = True
             event = Event('audio.read_text')  # to all plugins (even if disabled)
         event.ctx = ctx
-        self.window.app.dispatcher.dispatch(event, all)
+        self.window.core.dispatcher.dispatch(event, all)

@@ -106,7 +106,7 @@ class Footer:
         :return: QPushButton
         :rtype: QPushButton
         """
-        path = os.path.abspath(os.path.join(self.window.app.config.get_root_path(), 'data', 'logo.png'))
+        path = os.path.abspath(os.path.join(self.window.core.config.get_root_path(), 'data', 'logo.png'))
 
         button = QPushButton()
         button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)

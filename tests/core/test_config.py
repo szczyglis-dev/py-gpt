@@ -24,7 +24,7 @@ def mock_window():
     window = MagicMock(spec=QMainWindow)
     window.config = MagicMock(spec=Config)
     window.config.path = 'test_path'
-    window.app = MagicMock()
+    window.core = MagicMock()
     return window
 
 

@@ -60,7 +60,7 @@ class About:
         id = 'about'
 
         logo_label = QLabel()
-        path = os.path.abspath(os.path.join(self.window.app.config.get_root_path(), 'data', 'logo.png'))
+        path = os.path.abspath(os.path.join(self.window.core.config.get_root_path(), 'data', 'logo.png'))
         pixmap = QPixmap(path)
         logo_label.setPixmap(pixmap)
 

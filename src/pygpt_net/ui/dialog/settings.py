@@ -35,7 +35,7 @@ class Settings:
         """Setup settings dialog"""
 
         id = "settings"
-        path = self.window.app.config.path
+        path = self.window.core.config.path
 
         # buttons
         self.window.ui.nodes['settings.btn.defaults.user'] = QPushButton(trans("dialog.settings.btn.defaults.user"))

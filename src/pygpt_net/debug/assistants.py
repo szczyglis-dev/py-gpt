@@ -22,22 +22,22 @@ class AssistantsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.app.debug.begin(self.id)
+        self.window.core.debug.begin(self.id)
 
         # assistants
-        assistants = self.window.app.assistants.get_all()
+        assistants = self.window.core.assistants.get_all()
         for key in assistants:
             prefix = "[{}] ".format(key)
             assistant = assistants[key]
-            self.window.app.debug.add(self.id, prefix + 'ID', str(key))
-            self.window.app.debug.add(self.id, 'id', str(assistant.id))
-            self.window.app.debug.add(self.id, 'name', str(assistant.name))
-            self.window.app.debug.add(self.id, 'description', str(assistant.description))
-            self.window.app.debug.add(self.id, 'model', str(assistant.model))
-            self.window.app.debug.add(self.id, 'instructions', str(assistant.instructions))
-            self.window.app.debug.add(self.id, 'meta', str(assistant.meta))
-            self.window.app.debug.add(self.id, 'tools', str(assistant.tools))
-            self.window.app.debug.add(self.id, 'files', str(assistant.files))
-            self.window.app.debug.add(self.id, 'tools[function]', str(assistant.tools['function']))
+            self.window.core.debug.add(self.id, prefix + 'ID', str(key))
+            self.window.core.debug.add(self.id, 'id', str(assistant.id))
+            self.window.core.debug.add(self.id, 'name', str(assistant.name))
+            self.window.core.debug.add(self.id, 'description', str(assistant.description))
+            self.window.core.debug.add(self.id, 'model', str(assistant.model))
+            self.window.core.debug.add(self.id, 'instructions', str(assistant.instructions))
+            self.window.core.debug.add(self.id, 'meta', str(assistant.meta))
+            self.window.core.debug.add(self.id, 'tools', str(assistant.tools))
+            self.window.core.debug.add(self.id, 'files', str(assistant.files))
+            self.window.core.debug.add(self.id, 'tools[function]', str(assistant.tools['function']))
 
-        self.window.app.debug.end(self.id)
+        self.window.core.debug.end(self.id)

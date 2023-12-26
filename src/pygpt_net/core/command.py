@@ -55,8 +55,8 @@ class Command:
 
         # get custom prompt from config if exists
         if allow_custom:
-            if self.window.app.config.has('cmd.prompt'):
-                prompt = self.window.app.config.get('cmd.prompt')
+            if self.window.core.config.has('cmd.prompt'):
+                prompt = self.window.core.config.get('cmd.prompt')
                 if prompt is not None and prompt != '':
                     cmd = prompt
 

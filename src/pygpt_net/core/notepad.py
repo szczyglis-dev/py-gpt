@@ -45,7 +45,7 @@ class Notepad:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -53,7 +53,7 @@ class Notepad:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def get_by_id(self, id):
         """
@@ -103,7 +103,7 @@ class Notepad:
                 self.save(id)
                 return True
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def update(self, notepad):
         """
@@ -131,7 +131,7 @@ class Notepad:
             try:
                 self.items[id] = self.providers[self.provider].load(id)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def load_all(self):
         """Load all notepads"""
@@ -139,7 +139,7 @@ class Notepad:
             try:
                 self.items = self.providers[self.provider].load_all()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def save(self, id):
         """
@@ -157,7 +157,7 @@ class Notepad:
                 self.providers[self.provider].save(self.items[id])
                 return True
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
         return False
 
     def save_all(self):
@@ -168,4 +168,4 @@ class Notepad:
             try:
                 self.providers[self.provider].save_all(self.items)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)

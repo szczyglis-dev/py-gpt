@@ -21,9 +21,9 @@ from pygpt_net.item.ctx import CtxItem, CtxMeta
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.config = MagicMock(spec=Config)
-    window.app.config.path = 'test_path'
+    window.core = MagicMock()
+    window.core.config = MagicMock(spec=Config)
+    window.core.config.path = 'test_path'
     return window
 
 
@@ -38,7 +38,7 @@ def test_update(mock_window):
     Test update context data
     """
     ctx = Ctx(mock_window)
-    ctx.window.app.config.get.side_effect = mock_get
+    ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 'test_ctx'
     ctx.mode = 'test_mode'
 
@@ -60,7 +60,7 @@ def test_post_update(mock_window):
     Test post update context data
     """
     ctx = Ctx(mock_window)
-    ctx.window.app.config.get.side_effect = mock_get
+    ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 'test_ctx'
     ctx.mode = 'test_mode'
 
@@ -104,7 +104,7 @@ def test_new(mock_window):
     """
     ctx = Ctx(mock_window)
     ctx.create_id = MagicMock(return_value='test_id')
-    ctx.window.app.config.get.side_effect = mock_get
+    ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 'test_ctx'
     ctx.mode = 'test_mode'
 

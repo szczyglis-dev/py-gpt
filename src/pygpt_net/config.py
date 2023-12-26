@@ -61,7 +61,7 @@ class Config:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -69,7 +69,7 @@ class Config:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def get_root_path(self):
         """
@@ -103,8 +103,8 @@ class Config:
             # if app initialization
             if all:
                 v = self.get_version()
-                os = self.window.app.platforms.get_os()
-                architecture = self.window.app.platforms.get_architecture()
+                os = self.window.core.platforms.get_os()
+                architecture = self.window.core.platforms.get_architecture()
                 print("")
                 print("PyGPT v{} ({}, {})".format(v, os, architecture))
                 print("Author: Marcin Szczyglinski")
@@ -115,7 +115,7 @@ class Config:
                 print("Initializing...")
 
                 # install all
-                self.window.app.installer.install()
+                self.window.core.installer.install()
 
             self.load(all)
             self.initialized = True
@@ -135,7 +135,7 @@ class Config:
                 return result.group(1)
         except Exception as e:
             if self.window is not None:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
             else:
                 print("Error loading version file: {}".format(e))
 
@@ -151,7 +151,7 @@ class Config:
                 return self.providers[self.provider].get_options()
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.debug.log(e)
+                    self.window.core.debug.log(e)
                 else:
                     print("Error loading settings options: {}".format(e))
         return {}
@@ -250,9 +250,9 @@ class Config:
         self.load_config(all)
 
         if all:
-            self.window.app.modes.load()
-            self.window.app.models.load()
-            self.window.app.presets.load()
+            self.window.core.modes.load()
+            self.window.core.models.load()
+            self.window.core.presets.load()
 
     def load_config(self, all=True):
         """
@@ -267,7 +267,7 @@ class Config:
                     self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.debug.log(e)
+                    self.window.core.debug.log(e)
                 else:
                     print("Error loading config: {}".format(e))
                 self.data = {}
@@ -284,7 +284,7 @@ class Config:
                     self.initialized_base = True
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.debug.log(e)
+                    self.window.core.debug.log(e)
                 else:
                     print("Error loading config: {}".format(e))
                 self.data_base = {}
@@ -322,6 +322,6 @@ class Config:
                 self.providers[self.provider].save(self.data, filename)
             except Exception as e:
                 if self.window is not None:
-                    self.window.app.debug.log(e)
+                    self.window.core.debug.log(e)
                 else:
                     print("Error saving config: {}".format(e))

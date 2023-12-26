@@ -243,7 +243,7 @@ class Plugin(BasePlugin):
                 response = {"request": item, "result": "Error: {}".format(e)}
                 ctx.results.append(response)
                 ctx.reply = True
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
                 self.log("Error: {}".format(e))
 
         if msg is not None:

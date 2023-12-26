@@ -69,8 +69,8 @@ class Plugins:
         self.window.ui.tabs['plugin.settings'] = QTabWidget()
 
         # build plugin settings tabs
-        for id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[id]
+        for id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[id]
 
             """
             options["iterations"] = {
@@ -230,8 +230,8 @@ class Plugins:
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
 
         data = {}
-        for plugin_id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[plugin_id]
+        for plugin_id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[plugin_id]
             data[plugin_id] = plugin
         self.update_list(id, data)
 

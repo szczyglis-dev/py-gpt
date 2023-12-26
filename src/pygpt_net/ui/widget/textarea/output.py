@@ -26,7 +26,7 @@ class ChatOutput(QTextBrowser):
         self.window = window
         self.setReadOnly(True)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
-        self.value = self.window.app.config.data['font_size']
+        self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
 
@@ -76,8 +76,8 @@ class ChatOutput(QTextBrowser):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.app.config.data['font_size'] = self.value
-            self.window.app.config.save()
+            self.window.core.config.data['font_size'] = self.value
+            self.window.core.config.save()
             self.window.controller.settings.update_font_size()
             event.accept()
         else:

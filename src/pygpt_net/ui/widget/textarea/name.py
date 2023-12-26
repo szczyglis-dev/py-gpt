@@ -33,4 +33,4 @@ class NameInput(QLineEdit):
         """
         super(NameInput, self).keyPressEvent(event)
         self.window.controller.ui.update_tokens()
-        self.window.controller.presets.update_field(self.id, self.text(), self.window.app.config.get('preset'), True)
+        self.window.controller.presets.update_field(self.id, self.text(), self.window.core.config.get('preset'), True)

@@ -1,3 +1,9 @@
+2.0.57 (2023-12-26)
+
+- Added threadpool for async workers handling
+- Fixed segmentation fault error on app exit
+- Refactored class names
+
 2.0.56 (2023-12-25)
 
 - Reorganized project structure

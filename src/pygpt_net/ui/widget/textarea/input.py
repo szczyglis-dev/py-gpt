@@ -27,7 +27,7 @@ class ChatInput(QTextEdit):
         self.window = window
         self.setAcceptRichText(False)
         self.setFocus()
-        self.value = self.window.app.config.data['font_size.input']
+        self.value = self.window.core.config.data['font_size.input']
         self.max_font_size = 42
         self.min_font_size = 8
 
@@ -68,7 +68,7 @@ class ChatInput(QTextEdit):
         super(ChatInput, self).keyPressEvent(event)
         self.window.controller.ui.update_tokens()
         if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-            mode = self.window.app.config.get('send_mode')
+            mode = self.window.core.config.get('send_mode')
             if mode > 0:  # Enter or Shift + Enter
                 if mode == 2:  # Shift + Enter
                     modifiers = QApplication.keyboardModifiers()
@@ -91,8 +91,8 @@ class ChatInput(QTextEdit):
                 if self.value > self.min_font_size:
                     self.value -= 1
 
-            self.window.app.config.data['font_size.input'] = self.value
-            self.window.app.config.save()
+            self.window.core.config.data['font_size.input'] = self.value
+            self.window.core.config.save()
             self.window.controller.settings.update_font_size()
             event.accept()
         else:

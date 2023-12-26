@@ -148,7 +148,7 @@ class Plugin(BasePlugin):
         :param request_item: request item
         :return: result
         """
-        path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
         # check if file exists
         if not os.path.isfile(path):
             msg = "File not found: {}".format(item["params"]['filename'])
@@ -230,7 +230,7 @@ class Plugin(BasePlugin):
         :return: docker volumes
         :rtype: dict
         """
-        path = os.path.join(self.window.app.config.path, 'output')
+        path = os.path.join(self.window.core.config.path, 'output')
         mapping = {}
         mapping[path] = {
             "bind": "/data",
@@ -276,7 +276,7 @@ class Plugin(BasePlugin):
         """
         msg = "Saving Python file: {}".format(item["params"]['filename'])
         self.log(msg, sandbox=True)
-        path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -315,7 +315,7 @@ class Plugin(BasePlugin):
         """
         msg = "Executing Python file: {}".format(item["params"]['filename'])
         self.log(msg)
-        path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
 
         # check if file exists
         if not os.path.isfile(path):
@@ -343,7 +343,7 @@ class Plugin(BasePlugin):
         # write code to file
         msg = "Saving Python file: {}".format(item["params"]['filename'])
         self.log(msg)
-        path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -399,7 +399,7 @@ class Plugin(BasePlugin):
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
 
                     # code_execute (generate and execute)
                     elif item["cmd"] == "code_execute" and self.is_cmd_allowed("code_execute"):
@@ -411,7 +411,7 @@ class Plugin(BasePlugin):
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
 
                     # sys_exec
                     elif item["cmd"] == "sys_exec" and self.is_cmd_allowed("sys_exec"):
@@ -423,7 +423,7 @@ class Plugin(BasePlugin):
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
                             self.log("Error: {}".format(e))
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error: {}".format(e)})
                 ctx.reply = True  # send result message

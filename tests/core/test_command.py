@@ -22,8 +22,8 @@ from pygpt_net.core.command import Command
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
-    window.app = MagicMock()
-    window.app.config = MagicMock(spec=Config)
+    window.core = MagicMock()
+    window.core.config = MagicMock(spec=Config)
     return window
 
 

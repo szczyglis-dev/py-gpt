@@ -28,8 +28,8 @@ class Notepad:
         """
         Load all notepads contents
         """
-        self.window.app.notepad.load_all()
-        items = self.window.app.notepad.get_all()
+        self.window.core.notepad.load_all()
+        items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if len(items) == 0:
             if num_notepads > 0:
@@ -53,24 +53,24 @@ class Notepad:
 
         :param id: notepad id
         """
-        item = self.window.app.notepad.get_by_id(id)
+        item = self.window.core.notepad.get_by_id(id)
         if item is None:
             item = NotepadItem()
             item.id = id
-            self.window.app.notepad.items[id] = item
+            self.window.core.notepad.items[id] = item
 
         if id in self.window.ui.notepad:
             prev_content = item.content
             item.content = self.window.ui.notepad[id].toPlainText()
             if prev_content != item.content:  # update only if content changed
-                self.window.app.notepad.update(item)
+                self.window.core.notepad.update(item)
             self.update()
 
     def save_all(self):
         """
         Save all notepads contents
         """
-        items = self.window.app.notepad.get_all()
+        items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:
             for id in range(1, num_notepads + 1):
@@ -80,7 +80,7 @@ class Notepad:
 
                     # update only if content changed
                     if prev_content != items[id].content:
-                        self.window.app.notepad.update(items[id])
+                        self.window.core.notepad.update(items[id])
             self.update()
 
     def setup(self):
@@ -111,7 +111,7 @@ class Notepad:
         :return: number of notepads
         :rtype: int
         """
-        return self.window.app.config.get('notepad.num') or self.default_num_notepads
+        return self.window.core.config.get('notepad.num') or self.default_num_notepads
 
     def update(self):
         """Update notepads UI"""

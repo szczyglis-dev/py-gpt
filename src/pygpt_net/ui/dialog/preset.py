@@ -32,7 +32,7 @@ class Preset:
         """Setup preset editor dialog"""
 
         id = "preset.presets"
-        path = self.window.app.config.path
+        path = self.window.core.config.path
 
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))

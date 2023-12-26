@@ -43,7 +43,7 @@ class Updater:
             self.patch_attachments(version)
             self.patch_notepad(version)
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Failed to patch config data!")
 
     def patch_config(self, version):
@@ -52,7 +52,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.config.patch(version):
+        if self.window.core.config.patch(version):
             print("Migrated config. [OK]")
 
     def patch_models(self, version):
@@ -61,7 +61,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.models.patch(version):
+        if self.window.core.models.patch(version):
             print("Migrated models. [OK]")
 
     def patch_presets(self, version):
@@ -70,7 +70,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.presets.patch(version):
+        if self.window.core.presets.patch(version):
             print("Migrated presets. [OK]")
 
     def patch_ctx(self, version):
@@ -79,7 +79,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.ctx.patch(version):
+        if self.window.core.ctx.patch(version):
             print("Migrated ctx. [OK]")
 
     def patch_assistants(self, version):
@@ -88,7 +88,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.assistants.patch(version):
+        if self.window.core.assistants.patch(version):
             print("Migrated assistants. [OK]")
 
     def patch_attachments(self, version):
@@ -97,7 +97,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.attachments.patch(version):
+        if self.window.core.attachments.patch(version):
             print("Migrated attachments. [OK]")
 
     def patch_notepad(self, version):
@@ -106,7 +106,7 @@ class Updater:
 
         :param version: current app version
         """
-        if self.window.app.notepad.patch(version):
+        if self.window.core.notepad.patch(version):
             print("Migrated notepad. [OK]")
 
     def patch_dir(self, dirname="", force=False):
@@ -118,8 +118,8 @@ class Updater:
         """
         try:
             # directory
-            dst_dir = os.path.join(self.window.app.config.path, dirname)
-            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', dirname)
+            dst_dir = os.path.join(self.window.core.config.path, dirname)
+            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', dirname)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(dst_dir, file)
@@ -127,7 +127,7 @@ class Updater:
                     shutil.copyfile(src_file, dst_file)
                     print("Patched file: {}.".format(dst_file))
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def patch_file(self, filename="", force=False):
         """
@@ -138,13 +138,13 @@ class Updater:
         """
         try:
             # file
-            dst = os.path.join(self.window.app.config.path, filename)
+            dst = os.path.join(self.window.core.config.path, filename)
             if not os.path.exists(dst) or force:
-                src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', filename)
+                src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', filename)
                 shutil.copyfile(src, dst)
                 print("Patched file: {}.".format(dst))
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def get_app_version(self):
         """
@@ -192,7 +192,7 @@ class Updater:
                 print("No updates available.")
             return False
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Failed to check for updates")
         return False
 
@@ -223,8 +223,8 @@ class Updater:
         :return: true if updated
         :rtype: bool
         """
-        base = self.window.app.config.get_base()
-        data = self.window.app.config.all()
+        base = self.window.core.config.get_base()
+        data = self.window.core.config.all()
         updated = False
 
         # check for any missing keys
@@ -236,7 +236,7 @@ class Updater:
         # update file
         if updated:
             data = dict(sorted(data.items()))
-            self.window.app.config.data = data
-            self.window.app.config.save()
+            self.window.core.config.data = data
+            self.window.core.config.save()
 
         return updated

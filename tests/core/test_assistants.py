@@ -320,7 +320,7 @@ def test_import_filenames(mock_window):
     app = MagicMock()
     app.gpt_assistants = MagicMock()
     app.gpt_assistants.file_info = MagicMock(return_value=fake_file_info)
-    assistants.window.app = app
+    assistants.window.core = app
     filename = assistants.import_filenames('some_id')
 
     assert filename == 'fake.txt'

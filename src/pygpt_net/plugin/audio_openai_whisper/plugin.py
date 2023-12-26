@@ -425,7 +425,7 @@ class Plugin(BasePlugin):
         Handle thread error
         :param error
         """
-        self.window.app.debug.log(error)
+        self.window.core.debug.log(error)
 
     @Slot()
     def handle_destroy(self):
@@ -478,12 +478,12 @@ class AudioInputThread(QObject):
                 return
 
             client = OpenAI(
-                api_key=self.plugin.window.app.config.get('api_key'),
-                organization=self.plugin.window.app.config.get('organization_key'),
+                api_key=self.plugin.window.core.config.get('api_key'),
+                organization=self.plugin.window.core.config.get('organization_key'),
             )
 
             print("Starting audio listener....")
-            path = os.path.join(self.plugin.window.app.config.path, 'input.wav')
+            path = os.path.join(self.plugin.window.core.config.path, 'input.wav')
 
             self.started.emit()
             self.status_signal.emit('')

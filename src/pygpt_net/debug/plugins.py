@@ -22,23 +22,23 @@ class PluginsDebug:
 
     def update(self):
         """Update debug window."""
-        self.window.app.debug.begin(self.id)
+        self.window.core.debug.begin(self.id)
 
         # presets
-        for key in self.window.app.plugins.plugins:
+        for key in self.window.core.plugins.plugins:
             prefix = "[{}] ".format(key)
-            plugin = self.window.app.plugins.plugins[key]
-            self.window.app.debug.add(self.id, prefix + 'ID', str(key))
+            plugin = self.window.core.plugins.plugins[key]
+            self.window.core.debug.add(self.id, prefix + 'ID', str(key))
 
             if plugin.name is not None:
-                self.window.app.debug.add(self.id, prefix + 'name', str(plugin.name))
+                self.window.core.debug.add(self.id, prefix + 'name', str(plugin.name))
 
             if plugin.description is not None:
-                self.window.app.debug.add(self.id, prefix + 'description', str(plugin.description))
+                self.window.core.debug.add(self.id, prefix + 'description', str(plugin.description))
 
             if plugin.options is not None:
                 for key in plugin.options:
                     opt_prefix = prefix + '[options]' + "[{}] ".format(key)
-                    self.window.app.debug.add(self.id, opt_prefix, str(plugin.options[key]))
+                    self.window.core.debug.add(self.id, opt_prefix, str(plugin.options[key]))
 
-        self.window.app.debug.end(self.id)
+        self.window.core.debug.end(self.id)

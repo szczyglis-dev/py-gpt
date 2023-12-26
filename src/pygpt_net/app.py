@@ -20,7 +20,7 @@ from logging import ERROR, WARNING, INFO, DEBUG
 
 from pygpt_net.container import Container
 from pygpt_net.controller.main import Controller
-from pygpt_net.core.debugger import Debug
+from pygpt_net.core.debugging import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui.main import UI
 from pygpt_net.utils import get_app_meta
@@ -62,9 +62,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.meta = get_app_meta()
 
         # setup service container
-        self.app = Container(self)
-        self.app.init()
-        self.app.patch()  # patch version if needed
+        self.core = Container(self)
+        self.core.init()
+        self.core.patch()  # patch version if needed
 
         # setup controllers
         self.controller = Controller(self)
@@ -89,7 +89,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param plugin: plugin instance
         """
-        self.app.plugins.register(plugin)
+        self.core.plugins.register(plugin)
 
     def add_llm(self, llm):
         """
@@ -97,7 +97,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param llm: LLM wrapper instance
         """
-        self.app.chain.register(llm.id, llm)
+        self.core.chain.register(llm.id, llm)
 
     def setup(self):
         """Setup app"""
@@ -118,7 +118,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def post_update(self):
         """Called on post-update (slow)"""
-        self.app.debug.update()
+        self.core.debug.update()
 
     def update(self):
         """Called on every update"""
@@ -159,9 +159,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.timer.stop()
         self.post_timer.stop()
         print("Saving config...")
-        self.app.config.save()
+        self.core.config.save()
         print("Saving presets...")
-        self.app.presets.save_all()
+        self.core.presets.save_all()
         print("Exiting...")
         event.accept()
 
@@ -178,7 +178,7 @@ class Launcher:
 
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
-        self.app.setWindowIcon(QIcon(os.path.join(self.window.app.config.get_root_path(), 'data', 'icon.ico')))
+        self.app.setWindowIcon(QIcon(os.path.join(self.window.core.config.get_root_path(), 'data', 'icon.ico')))
         self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin=None):

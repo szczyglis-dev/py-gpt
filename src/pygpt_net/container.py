@@ -16,7 +16,7 @@ from pygpt_net.core.camera import Camera
 from pygpt_net.core.chain import Chain
 from pygpt_net.core.command import Command
 from pygpt_net.core.ctx import Ctx
-from pygpt_net.core.debugger import Debug
+from pygpt_net.core.debugging import Debug
 from pygpt_net.core.dispatcher import Dispatcher
 from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.core.gpt import Gpt

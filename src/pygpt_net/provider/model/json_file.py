@@ -30,9 +30,9 @@ class JsonFileProvider(BaseProvider):
         """
         Install provider data files
         """
-        dst = os.path.join(self.window.app.config.path, self.config_file)
+        dst = os.path.join(self.window.core.config.path, self.config_file)
         if not os.path.exists(dst):
-            src = os.path.join(self.window.app.config.get_root_path(), 'data', 'config', self.config_file)
+            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
 
     def get_version(self):
@@ -41,7 +41,7 @@ class JsonFileProvider(BaseProvider):
 
         :return: version
         """
-        path = os.path.join(self.window.app.config.path, self.config_file)
+        path = os.path.join(self.window.core.config.path, self.config_file)
         with open(path, 'r', encoding="utf-8") as file:
             data = json.load(file)
             if data == "" or data is None:
@@ -54,7 +54,7 @@ class JsonFileProvider(BaseProvider):
         Load models config from JSON file
         """
         items = {}
-        path = os.path.join(self.window.app.config.path, self.config_file)
+        path = os.path.join(self.window.core.config.path, self.config_file)
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
@@ -88,7 +88,7 @@ class JsonFileProvider(BaseProvider):
                 print("Loaded models: {}".format(path))
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
         return items
 
@@ -98,7 +98,7 @@ class JsonFileProvider(BaseProvider):
 
         :param items: models dict
         """
-        path = os.path.join(self.window.app.config.path, self.config_file)
+        path = os.path.join(self.window.core.config.path, self.config_file)
         try:
             data = {}
             ary = {}
@@ -108,14 +108,14 @@ class JsonFileProvider(BaseProvider):
                 model = items[id]
                 ary[id] = self.serialize(model)
 
-            data['__meta__'] = self.window.app.config.append_meta()
+            data['__meta__'] = self.window.core.config.append_meta()
             data['items'] = ary
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def remove(self, id):
         pass
@@ -131,11 +131,11 @@ class JsonFileProvider(BaseProvider):
         :return: true if updated
         :rtype: bool
         """
-        data = self.window.app.models.items
+        data = self.window.core.models.items
         updated = False
 
         # get version of models config
-        current = self.window.app.models.get_version()
+        current = self.window.core.models.get_version()
         old = parse_version(current)
 
         # check if models file is older than current app version
@@ -150,16 +150,16 @@ class JsonFileProvider(BaseProvider):
             # < 2.0.1
             if old < parse_version("2.0.1"):
                 print("Migrating models from < 2.0.1...")
-                self.window.app.updater.patch_file('models.json', True)  # force replace file
-                self.window.app.models.load()
-                data = self.window.app.models.items
+                self.window.core.updater.patch_file('models.json', True)  # force replace file
+                self.window.core.models.load()
+                data = self.window.core.models.items
                 updated = True
 
         # update file
         if updated:
             data = dict(sorted(data.items()))
-            self.window.app.models.items = data
-            self.window.app.models.save()
+            self.window.core.models.items = data
+            self.window.core.models.save()
 
         return updated
 

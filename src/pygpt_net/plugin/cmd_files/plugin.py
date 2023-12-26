@@ -224,7 +224,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Saving file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
                             data = item["params"]['data']
                             with open(path, 'w', encoding="utf-8") as file:
                                 file.write(data)
@@ -233,7 +233,7 @@ class Plugin(BasePlugin):
                                 self.log("File saved: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # append to file
@@ -241,7 +241,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Appending file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
                             data = item["params"]['data']
                             with open(path, 'a', encoding="utf-8") as file:
                                 file.write(data)
@@ -250,7 +250,7 @@ class Plugin(BasePlugin):
                                 self.log("File appended: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # read file
@@ -258,7 +258,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Reading file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
                             if os.path.exists(path):
                                 with open(path, 'r', encoding="utf-8") as file:
                                     data = file.read()
@@ -270,7 +270,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # delete file
@@ -278,7 +278,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Deleting file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['filename'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
                             if os.path.exists(path):
                                 os.remove(path)
                                 ctx.results.append({"request": request_item, "result": "OK"})
@@ -288,7 +288,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # list files
@@ -296,7 +296,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Listing directory: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 files = os.listdir(path)
                                 ctx.results.append({"request": request_item, "result": files})
@@ -307,7 +307,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # mkdir
@@ -315,7 +315,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Creating directory: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if not os.path.exists(path):
                                 os.makedirs(path)
                                 ctx.results.append({"request": request_item, "result": "OK"})
@@ -325,7 +325,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory already exists: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # rmdir
@@ -333,7 +333,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Deleting directory: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 shutil.rmtree(path)
                                 ctx.results.append({"request": request_item, "result": "OK"})
@@ -343,13 +343,13 @@ class Plugin(BasePlugin):
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # download
                     elif item["cmd"] == "download_file" and self.is_cmd_allowed("download_file"):
                         try:
-                            dst = os.path.join(self.window.app.config.path, 'output', item["params"]['dst'])
+                            dst = os.path.join(self.window.core.config.path, 'output', item["params"]['dst'])
                             msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
                             self.log(msg)
 
@@ -368,7 +368,7 @@ class Plugin(BasePlugin):
                                     shutil.copyfileobj(response, out_file)
                             else:
                                 # Handle local file paths
-                                src = os.path.join(self.window.app.config.path, 'output', item["params"]['src'])
+                                src = os.path.join(self.window.core.config.path, 'output', item["params"]['src'])
 
                                 # Copy local file
                                 with open(src, 'rb') as in_file, open(dst, 'wb') as out_file:
@@ -379,7 +379,7 @@ class Plugin(BasePlugin):
                             self.log("File downloaded: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # copy file
@@ -387,14 +387,14 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Copying file: {} into {}".format(item["params"]['src'], item["params"]['dst'])
                             self.log(msg)
-                            dst = os.path.join(self.window.app.config.path, 'output', item["params"]['dst'])
-                            src = os.path.join(self.window.app.config.path, 'output', item["params"]['src'])
+                            dst = os.path.join(self.window.core.config.path, 'output', item["params"]['dst'])
+                            src = os.path.join(self.window.core.config.path, 'output', item["params"]['src'])
                             shutil.copyfile(src, dst)
                             ctx.results.append({"request": request_item, "result": "OK"})
                             self.log("File copied: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # copy dir
@@ -402,14 +402,14 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Copying directory: {} into {}".format(item["params"]['src'], item["params"]['dst'])
                             self.log(msg)
-                            dst = os.path.join(self.window.app.config.path, 'output', item["params"]['dst'])
-                            src = os.path.join(self.window.app.config.path, 'output', item["params"]['src'])
+                            dst = os.path.join(self.window.core.config.path, 'output', item["params"]['dst'])
+                            src = os.path.join(self.window.core.config.path, 'output', item["params"]['src'])
                             shutil.copytree(src, dst)
                             ctx.results.append({"request": request_item, "result": "OK"})
                             self.log("Directory copied: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # move
@@ -417,14 +417,14 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Moving: {} into {}".format(item["params"]['src'], item["params"]['dst'])
                             self.log(msg)
-                            dst = os.path.join(self.window.app.config.path, 'output', item["params"]['dst'])
-                            src = os.path.join(self.window.app.config.path, 'output', item["params"]['src'])
+                            dst = os.path.join(self.window.core.config.path, 'output', item["params"]['dst'])
+                            src = os.path.join(self.window.core.config.path, 'output', item["params"]['src'])
                             shutil.move(src, dst)
                             ctx.results.append({"request": request_item, "result": "OK"})
                             self.log("Moved: {} into {}".format(src, dst))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # is dir
@@ -432,7 +432,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Checking if directory exists: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.isdir(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
                                 self.log("Directory exists: {}".format(path))
@@ -441,7 +441,7 @@ class Plugin(BasePlugin):
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # is file
@@ -449,7 +449,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Checking if file exists: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.isfile(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
                                 self.log("File exists: {}".format(path))
@@ -458,7 +458,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # file exists
@@ -466,7 +466,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Checking if path exists: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 ctx.results.append({"request": request_item, "result": "OK"})
                                 self.log("Path exists: {}".format(path))
@@ -475,7 +475,7 @@ class Plugin(BasePlugin):
                                 self.log("Path not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # file size
@@ -483,7 +483,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Checking file size: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 ctx.results.append({"request": request_item, "result": os.path.getsize(path)})
                                 self.log("File size: {}".format(os.path.getsize(path)))
@@ -492,7 +492,7 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
 
                     # file info
@@ -500,7 +500,7 @@ class Plugin(BasePlugin):
                         try:
                             msg = "Checking file info: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.window.app.config.path, 'output', item["params"]['path'])
+                            path = os.path.join(self.window.core.config.path, 'output', item["params"]['path'])
                             if os.path.exists(path):
                                 data = {
                                     "size": os.path.getsize(path),
@@ -521,12 +521,12 @@ class Plugin(BasePlugin):
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
                             ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.window.app.debug.log(e)
+                            self.window.core.debug.log(e)
                             self.log("Error: {}".format(e))
             except Exception as e:
                 ctx.results.append({"request": item, "result": "Error: {}".format(e)})
                 ctx.reply = True
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
                 self.log("Error: {}".format(e))
 
         if msg is not None:

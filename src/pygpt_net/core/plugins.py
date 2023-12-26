@@ -51,13 +51,13 @@ class Plugins:
             self.plugins[id].initial_options = copy.deepcopy(plugin.options)
 
         try:
-            plugins = self.window.app.config.get('plugins')
+            plugins = self.window.core.config.get('plugins')
             if id in plugins:
                 for key in plugins[id]:
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = plugins[id][key]
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print('Error while loading plugin options: {}'.format(id))
 
     def unregister(self, id):
@@ -144,5 +144,5 @@ class Plugins:
         for id in self.plugins:
             domain = 'plugin.' + id
             for lang in langs:
-                path = os.path.join(self.window.app.config.get_root_path(), 'data', 'locale', domain + '.' + lang + '.ini')
+                path = os.path.join(self.window.core.config.get_root_path(), 'data', 'locale', domain + '.' + lang + '.ini')
                 self.dump_locale(self.plugins[id], path)

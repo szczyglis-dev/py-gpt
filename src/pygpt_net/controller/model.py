@@ -36,20 +36,20 @@ class Model:
             # check if mode change is not locked
             if self.mode_change_locked():
                 return
-            mode = self.window.app.modes.get_by_idx(value)
+            mode = self.window.core.modes.get_by_idx(value)
             self.set_mode(mode)
             return
         elif id == 'prompt.model':
             # check if model change is not locked
             if self.model_change_locked():
                 return
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
             self.set_model_by_idx(mode, value)
         elif id == 'preset.presets':
             # check if preset change is not locked
             if self.preset_change_locked():
                 return
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
             self.set_preset_by_idx(mode, value)
 
         # update all layout
@@ -63,13 +63,13 @@ class Model:
         """
         # if ctx loaded with assistant then switch to this assistant
         if mode == "assistant":
-            if self.window.app.ctx.current is not None \
-                    and self.window.app.ctx.assistant is not None:
-                self.window.controller.assistant.select_by_id(self.window.app.ctx.assistant)
+            if self.window.core.ctx.current is not None \
+                    and self.window.core.ctx.assistant is not None:
+                self.window.controller.assistant.select_by_id(self.window.core.ctx.assistant)
 
-        self.window.app.config.set('mode', mode)
-        self.window.app.config.set('model', "")
-        self.window.app.config.set('preset', "")
+        self.window.core.config.set('mode', mode)
+        self.window.core.config.set('model', "")
+        self.window.core.config.set('preset', "")
         self.window.controller.attachment.update()
         self.window.controller.ctx.update_ctx()
 
@@ -97,9 +97,9 @@ class Model:
         :param mode: mode name
         :param idx: model index
         """
-        model = self.window.app.models.get_by_idx(idx, mode)
-        self.window.app.config.set('model', model)
-        self.window.app.config.data['current_model'][mode] = model
+        model = self.window.core.models.get_by_idx(idx, mode)
+        self.window.core.config.set('model', model)
+        self.window.core.config.data['current_model'][mode] = model
 
     def set_model(self, mode, model):
         """
@@ -108,8 +108,8 @@ class Model:
         :param mode: mode name
         :param model: model name
         """
-        self.window.app.config.set('model', model)
-        self.window.app.config.data['current_model'][mode] = model
+        self.window.core.config.set('model', model)
+        self.window.core.config.data['current_model'][mode] = model
 
     def set_preset_by_idx(self, mode, idx):
         """
@@ -118,9 +118,9 @@ class Model:
         :param mode: mode name
         :param idx: preset index
         """
-        preset = self.window.app.presets.get_by_idx(idx, mode)
-        self.window.app.config.data['preset'] = preset
-        self.window.app.config.data['current_preset'][mode] = preset
+        preset = self.window.core.presets.get_by_idx(idx, mode)
+        self.window.core.config.data['preset'] = preset
+        self.window.core.config.data['current_preset'][mode] = preset
 
     def set_preset(self, mode, preset):
         """
@@ -129,24 +129,24 @@ class Model:
         :param mode: mode name
         :param preset: preset name
         """
-        if not self.window.app.presets.has(mode, preset):
+        if not self.window.core.presets.has(mode, preset):
             return False
-        self.window.app.config.data['preset'] = preset
-        self.window.app.config.data['current_preset'][mode] = preset
+        self.window.core.config.data['preset'] = preset
+        self.window.core.config.data['current_preset'][mode] = preset
 
     def select_mode_by_current(self):
         """Select mode by current"""
-        mode = self.window.app.config.get('mode')
-        items = self.window.app.modes.get_all()
+        mode = self.window.core.config.get('mode')
+        items = self.window.core.modes.get_all()
         idx = list(items.keys()).index(mode)
         current = self.window.ui.models['prompt.mode'].index(idx, 0)
         self.window.ui.nodes['prompt.mode'].setCurrentIndex(current)
 
     def select_model_by_current(self):
         """Select model by current"""
-        mode = self.window.app.config.get('mode')
-        model = self.window.app.config.get('model')
-        items = self.window.app.models.get_by_mode(mode)
+        mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
+        items = self.window.core.models.get_by_mode(mode)
         if model in items:
             idx = list(items.keys()).index(model)
             current = self.window.ui.models['prompt.model'].index(idx, 0)
@@ -154,9 +154,9 @@ class Model:
 
     def select_preset_by_current(self):
         """Select preset by current"""
-        mode = self.window.app.config.get('mode')
-        preset = self.window.app.config.get('preset')
-        items = self.window.app.presets.get_by_mode(mode)
+        mode = self.window.core.config.get('mode')
+        preset = self.window.core.config.get('preset')
+        items = self.window.core.presets.get_by_mode(mode)
         if preset in items:
             idx = list(items.keys()).index(preset)
             current = self.window.ui.models['preset.presets'].index(idx, 0)
@@ -171,84 +171,84 @@ class Model:
 
     def select_default_mode(self):
         """Set default mode"""
-        mode = self.window.app.config.get('mode')
+        mode = self.window.core.config.get('mode')
         if mode is None or mode == "":
-            self.window.app.config.set('mode', self.window.app.modes.get_default())
+            self.window.core.config.set('mode', self.window.core.modes.get_default())
 
     def select_default_model(self):
         """Set default model"""
-        model = self.window.app.config.get('model')
+        model = self.window.core.config.get('model')
         if model is None or model == "":
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
 
             # set previous selected model
-            current_models = self.window.app.config.get('current_model')
+            current_models = self.window.core.config.get('current_model')
             if mode in current_models and \
                     current_models[mode] is not None and \
                     current_models[mode] != "" and \
-                    current_models[mode] in self.window.app.models.get_by_mode(mode):
-                self.window.app.config.set('model', current_models[mode])
+                    current_models[mode] in self.window.core.models.get_by_mode(mode):
+                self.window.core.config.set('model', current_models[mode])
             else:
                 # or set default model
-                self.window.app.config.set('model', self.window.app.models.get_default(mode))
+                self.window.core.config.set('model', self.window.core.models.get_default(mode))
 
     def select_default_preset(self):
         """Set default preset"""
-        preset = self.window.app.config.get('preset')
+        preset = self.window.core.config.get('preset')
         if preset is None or preset == "":
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
 
             # set previous selected preset
-            current_presets = self.window.app.config.get('current_preset')
+            current_presets = self.window.core.config.get('current_preset')
             if mode in current_presets and \
                     current_presets[mode] is not None and \
                     current_presets[mode] != "" and \
-                    current_presets[mode] in self.window.app.presets.get_by_mode(mode):
-                self.window.app.config.set('preset', current_presets[mode])
+                    current_presets[mode] in self.window.core.presets.get_by_mode(mode):
+                self.window.core.config.set('preset', current_presets[mode])
             else:
                 # or set default preset
-                self.window.app.config.set('preset', self.window.app.presets.get_default(mode))
+                self.window.core.config.set('preset', self.window.core.presets.get_default(mode))
 
     def update_preset_data(self):
         """Update preset data"""
-        id = self.window.app.config.get('preset')
+        id = self.window.core.config.get('preset')
         if id is None or id == "":
             self.reset_preset_data()  # clear preset fields
             self.reset_current_data()
             return
 
-        if id not in self.window.app.presets.items:
-            self.window.app.config.set('preset', "")  # clear preset if not found
+        if id not in self.window.core.presets.items:
+            self.window.core.config.set('preset', "")  # clear preset if not found
             self.reset_preset_data()  # clear preset fields
             self.reset_current_data()
             return
 
         # update preset fields
-        data = self.window.app.presets.items[id]
+        data = self.window.core.presets.items[id]
         self.window.ui.nodes['preset.prompt'].setPlainText(data.prompt)
         self.window.ui.nodes['preset.ai_name'].setText(data.ai_name)
         self.window.ui.nodes['preset.user_name'].setText(data.user_name)
 
         # update current data
-        self.window.app.config.set('prompt', data.prompt)
-        self.window.app.config.set('ai_name', data.ai_name)
-        self.window.app.config.set('user_name', data.user_name)
+        self.window.core.config.set('prompt', data.prompt)
+        self.window.core.config.set('ai_name', data.ai_name)
+        self.window.core.config.set('user_name', data.user_name)
 
     def update_list_modes(self):
         """Update modes list"""
-        items = self.window.app.modes.get_all()
+        items = self.window.core.modes.get_all()
         self.window.ui.toolbox.mode.update(items)
 
     def update_list_models(self):
         """Update models list"""
-        mode = self.window.app.config.get('mode')
-        items = self.window.app.models.get_by_mode(mode)
+        mode = self.window.core.config.get('mode')
+        items = self.window.core.models.get_by_mode(mode)
         self.window.ui.toolbox.model.update(items)
 
     def update_list_presets(self):
         """Update presets list"""
-        mode = self.window.app.config.get('mode')
-        items = self.window.app.presets.get_by_mode(mode)
+        mode = self.window.core.config.get('mode')
+        items = self.window.core.presets.get_by_mode(mode)
         self.window.ui.toolbox.presets.update(items)
 
     def update_current_temperature(self, temperature=None):
@@ -258,36 +258,36 @@ class Model:
         :param temperature: temperature (float)
         """
         if temperature is None:
-            if self.window.app.config.get('preset') is None or self.window.app.config.get('preset') == "":
+            if self.window.core.config.get('preset') is None or self.window.core.config.get('preset') == "":
                 temperature = 1.0  # default temperature
             else:
-                id = self.window.app.config.get('preset')
-                if id in self.window.app.presets.items:
-                    temperature = float(self.window.app.presets.items[id].temperature)
+                id = self.window.core.config.get('preset')
+                if id in self.window.core.presets.items:
+                    temperature = float(self.window.core.presets.items[id].temperature)
         self.window.controller.settings.apply("current_temperature", temperature)
 
     def update_current_preset(self):
         """Update current mode, model and preset"""
-        mode = self.window.app.config.get('mode')
-        id = self.window.app.config.get('preset')
+        mode = self.window.core.config.get('mode')
+        id = self.window.core.config.get('preset')
         if id is not None and id != "":
-            if id in self.window.app.presets.items:
-                preset = self.window.app.presets.items[id]
-                self.window.app.config.set('user_name', preset.user_name)
-                self.window.app.config.set('ai_name', preset.ai_name)
-                self.window.app.config.set('prompt', preset.prompt)
-                self.window.app.config.set('temperature', preset.temperature)
+            if id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[id]
+                self.window.core.config.set('user_name', preset.user_name)
+                self.window.core.config.set('ai_name', preset.ai_name)
+                self.window.core.config.set('prompt', preset.prompt)
+                self.window.core.config.set('temperature', preset.temperature)
                 return
 
-        self.window.app.config.set('user_name', None)
-        self.window.app.config.set('ai_name', None)
-        self.window.app.config.set('temperature', 1.0)
+        self.window.core.config.set('user_name', None)
+        self.window.core.config.set('ai_name', None)
+        self.window.core.config.set('temperature', 1.0)
 
         # set default prompt if mode is chat
         if mode == 'chat':
-            self.window.app.config.set('prompt', self.window.app.config.get('default_prompt'))
+            self.window.core.config.set('prompt', self.window.core.config.get('default_prompt'))
         else:
-            self.window.app.config.set('prompt', None)
+            self.window.core.config.set('prompt', None)
 
     def update_mode(self):
         """Update mode"""
@@ -318,9 +318,9 @@ class Model:
 
     def reset_current_data(self):
         """Reset current data"""
-        self.window.app.config.set('prompt', None)
-        self.window.app.config.set('ai_name', None)
-        self.window.app.config.set('user_name', None)
+        self.window.core.config.set('prompt', None)
+        self.window.core.config.set('ai_name', None)
+        self.window.core.config.set('user_name', None)
 
     def mode_change_locked(self):
         """

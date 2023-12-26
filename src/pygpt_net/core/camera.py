@@ -29,7 +29,7 @@ class Camera:
 
     def install(self):
         """Install provider data"""
-        img_dir = os.path.join(self.window.app.config.path, 'capture')
+        img_dir = os.path.join(self.window.core.config.path, 'capture')
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
 
@@ -58,11 +58,11 @@ class CameraThread(QObject):
         """
         try:
             # get params from global config
-            self.capture = cv2.VideoCapture(self.window.app.config.get('vision.capture.idx'))
-            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.app.config.get('vision.capture.width'))
-            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.app.config.get('vision.capture.height'))
+            self.capture = cv2.VideoCapture(self.window.core.config.get('vision.capture.idx'))
+            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.core.config.get('vision.capture.width'))
+            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.core.config.get('vision.capture.height'))
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Camera thread setup exception", e)
             self.finished.emit(e)
 
@@ -89,7 +89,7 @@ class CameraThread(QObject):
                 frame = cv2.flip(frame, 1)
                 self.window.controller.camera.frame = frame  # update frame
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Camera thread capture exception", e)
 
         # release camera

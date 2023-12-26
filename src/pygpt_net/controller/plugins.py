@@ -41,8 +41,8 @@ class Plugins:
         """
         Set up plugins ui
         """
-        for id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[id]
+        for id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[id]
             try:
                 plugin.setup_ui()  # setup UI
             except AttributeError:
@@ -51,7 +51,7 @@ class Plugins:
         self.handle_enabled_types()
 
         # tmp dump locales
-        # self.window.app.plugins.dump_plugin_locales()
+        # self.window.core.plugins.dump_plugin_locales()
 
     def setup_settings(self):
         """Set up plugins settings"""
@@ -63,11 +63,11 @@ class Plugins:
 
     def setup_menu(self):
         """Set up plugins menu"""
-        for id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[id]
+        for id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[id]
             if id in self.window.ui.menu['plugins']:
                 continue
-            default_name = self.window.app.plugins.plugins[id].name
+            default_name = self.window.core.plugins.plugins[id].name
             trans_key = 'plugin.' + id
             name = trans(trans_key)
             if name == trans_key:
@@ -95,8 +95,8 @@ class Plugins:
         """
         Destroy plugins workers
         """
-        for id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[id]
+        for id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[id]
             try:
                 plugin.destroy()  # destroy plugin workers
             except AttributeError:
@@ -125,12 +125,12 @@ class Plugins:
 
         # select first plugin on list if no plugin selected yet
         if selected_plugin is None:
-            if len(self.window.app.plugins.plugins) > 0:
-                selected_plugin = list(self.window.app.plugins.plugins.keys())[0]
+            if len(self.window.core.plugins.plugins) > 0:
+                selected_plugin = list(self.window.core.plugins.plugins.keys())[0]
 
         # assign plugin options to config dialog fields
-        for id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[id]
+        for id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[id]
             options = plugin.setup()  # get plugin options
             self.current_plugin = id
 
@@ -156,13 +156,13 @@ class Plugins:
     def save_settings(self):
         """Save plugins settings"""
         selected_plugin = self.current_plugin
-        for id in self.window.app.plugins.plugins:
-            plugin = self.window.app.plugins.plugins[id]
+        for id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[id]
             options = plugin.setup()  # get plugin options
 
             # add plugin to config if not exists
-            if id not in self.window.app.config.get('plugins'):
-                self.window.app.config.data['plugins'][id] = {}
+            if id not in self.window.core.config.get('plugins'):
+                self.window.core.config.data['plugins'][id] = {}
 
             self.current_plugin = id
             # update config with new values
@@ -192,16 +192,16 @@ class Plugins:
                     value = self.window.ui.plugin_option[id][key].box.isChecked()
                 elif option['type'] == 'dict':
                     value = self.window.ui.plugin_option[id][key].model.items
-                self.window.app.plugins.plugins[id].options[key]['value'] = value
-                self.window.app.config.data['plugins'][id][key] = value
+                self.window.core.plugins.plugins[id].options[key]['value'] = value
+                self.window.core.config.data['plugins'][id][key] = value
 
             # update config if option not exists
-            for key in list(self.window.app.config.data['plugins'].keys()):
-                if key not in self.window.app.plugins.plugins:
-                    self.window.app.config.data['plugins'].pop(key)
+            for key in list(self.window.core.config.data['plugins'].keys()):
+                if key not in self.window.core.plugins.plugins:
+                    self.window.core.config.data['plugins'].pop(key)
 
         # save config
-        self.window.app.config.save()
+        self.window.core.config.save()
         self.close_settings()
         self.current_plugin = selected_plugin
 
@@ -238,7 +238,7 @@ class Plugins:
             return
 
         # restore default options
-        self.window.app.plugins.restore_options(self.current_plugin)
+        self.window.core.plugins.restore_options(self.current_plugin)
 
         # reload settings window
         self.init_settings()
@@ -250,7 +250,7 @@ class Plugins:
 
         :param id: plugin id
         """
-        self.window.app.plugins.unregister(id)
+        self.window.core.plugins.unregister(id)
         if id in self.enabled:
             self.enabled.pop(id)
 
@@ -260,18 +260,18 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.window.app.plugins.is_registered(id):
+        if self.window.core.plugins.is_registered(id):
             self.enabled[id] = True
-            self.window.app.plugins.plugins[id].enabled = True
+            self.window.core.plugins.plugins[id].enabled = True
 
             # dispatch event
             event = Event('enable', {
                 'value': id,
             })
-            self.window.app.dispatcher.dispatch(event)
+            self.window.core.dispatcher.dispatch(event)
 
-            self.window.app.config.data['plugins_enabled'][id] = True
-            self.window.app.config.save()
+            self.window.core.config.data['plugins_enabled'][id] = True
+            self.window.core.config.save()
 
             # update audio menu
             # TODO: by type loop
@@ -287,18 +287,18 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.window.app.plugins.is_registered(id):
+        if self.window.core.plugins.is_registered(id):
             self.enabled[id] = False
-            self.window.app.plugins.plugins[id].enabled = False
+            self.window.core.plugins.plugins[id].enabled = False
 
             # dispatch event
             event = Event('disable', {
                 'value': id,
             })
-            self.window.app.dispatcher.dispatch(event)
+            self.window.core.dispatcher.dispatch(event)
 
-            self.window.app.config.data['plugins_enabled'][id] = False
-            self.window.app.config.save()
+            self.window.core.config.data['plugins_enabled'][id] = False
+            self.window.core.config.save()
 
             # update audio menu
             if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
@@ -315,7 +315,7 @@ class Plugins:
         :return: true if enabled
         :rtype: bool
         """
-        if self.window.app.plugins.is_registered(id):
+        if self.window.core.plugins.is_registered(id):
             if id in self.enabled:
                 return self.enabled[id]
         return False
@@ -326,7 +326,7 @@ class Plugins:
 
         :param id: plugin id
         """
-        if self.window.app.plugins.is_registered(id):
+        if self.window.core.plugins.is_registered(id):
             if self.is_enabled(id):
                 self.disable(id)
             else:
@@ -342,8 +342,8 @@ class Plugins:
         :param idx: tab index
         """
         plugin_idx = 0
-        for id in self.window.app.plugins.plugins:
-            if self.window.app.plugins.plugins[id].options:
+        for id in self.window.core.plugins.plugins:
+            if self.window.core.plugins.plugins[id].options:
                 if plugin_idx == idx:
                     self.current_plugin = id
                     break
@@ -359,7 +359,7 @@ class Plugins:
         """
         plugin_idx = None
         i = 0
-        for id in self.window.app.plugins.plugins:
+        for id in self.window.core.plugins.plugins:
             if id == plugin_id:
                 plugin_idx = i
                 break
@@ -369,15 +369,15 @@ class Plugins:
     def update_info(self):
         """Update plugins info"""
         enabled_list = []
-        for id in self.window.app.plugins.plugins:
+        for id in self.window.core.plugins.plugins:
             if self.is_enabled(id):
-                enabled_list.append(self.window.app.plugins.plugins[id].name)
+                enabled_list.append(self.window.core.plugins.plugins[id].name)
         tooltip = " + ".join(enabled_list)
 
         count_str = ""
         c = 0
-        if len(self.window.app.plugins.plugins) > 0:
-            for id in self.window.app.plugins.plugins:
+        if len(self.window.core.plugins.plugins) > 0:
+            for id in self.window.core.plugins.plugins:
                 if self.is_enabled(id):
                     c += 1
 
@@ -390,8 +390,8 @@ class Plugins:
         """
         Load plugins config
         """
-        for id in self.window.app.config.get('plugins_enabled'):
-            if self.window.app.config.data['plugins_enabled'][id]:
+        for id in self.window.core.config.get('plugins_enabled'):
+            if self.window.core.config.data['plugins_enabled'][id]:
                 self.enable(id)
 
     def config_toggle(self, id, value):
@@ -510,7 +510,7 @@ class Plugins:
         :return: option value
         :rtype: any
         """
-        return self.window.app.plugins.plugins[id].options[key]
+        return self.window.core.plugins.plugins[id].options[key]
 
     def is_type_enabled(self, type):
         """
@@ -520,8 +520,8 @@ class Plugins:
         :rtype: bool
         """
         enabled = False
-        for id in self.window.app.plugins.plugins:
-            if type in self.window.app.plugins.plugins[id].type and self.is_enabled(id):
+        for id in self.window.core.plugins.plugins:
+            if type in self.window.core.plugins.plugins[id].type and self.is_enabled(id):
                 enabled = True
                 break
         return enabled
@@ -530,7 +530,7 @@ class Plugins:
         """
         Handle plugin type
         """
-        for type in self.window.app.plugins.allowed_types:
+        for type in self.window.core.plugins.allowed_types:
             if type == 'audio.input':
                 if self.is_type_enabled(type):
                     self.window.ui.plugin_addon['audio.input'].setVisible(True)

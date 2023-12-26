@@ -133,7 +133,7 @@ class JsonFileProvider(BaseProvider):
         :return: true if migrated
         :rtype: bool
         """
-        data = self.window.app.config.all()
+        data = self.window.core.config.all()
         current = "0.0.0"
         updated = False
         is_old = False
@@ -303,9 +303,9 @@ class JsonFileProvider(BaseProvider):
             if old < parse_version("2.0.25"):
                 print("Migrating config from < 2.0.25...")
                 if 'cmd.prompt' not in data:
-                    data['cmd.prompt'] = self.window.app.config.get_base('cmd.prompt')
+                    data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')
                 if 'img_prompt' not in data:
-                    data['img_prompt'] = self.window.app.config.get_base('img_prompt')
+                    data['img_prompt'] = self.window.core.config.get_base('img_prompt')
                 if 'vision.capture.quality' not in data:
                     data['vision.capture.quality'] = 85
                 if 'attachments_capture_clear' not in data:
@@ -339,7 +339,7 @@ class JsonFileProvider(BaseProvider):
                                           "paragraphs, trying to find the most " \
                                           "important content that can help answer the " \
                                           "following question: {query}"
-                data['cmd.prompt'] = self.window.app.config.get_base('cmd.prompt')  # fix
+                data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # fix
                 updated = True
 
             # < 2.0.30
@@ -409,13 +409,13 @@ class JsonFileProvider(BaseProvider):
         migrated = False
         if updated:
             data = dict(sorted(data.items()))
-            self.window.app.config.data = data
-            self.window.app.config.save()
+            self.window.core.config.data = data
+            self.window.core.config.save()
             migrated = True
 
         # check for any missing config keys if versions mismatch
         if is_old:
-            if self.window.app.updater.post_check_config():
+            if self.window.core.updater.post_check_config():
                 migrated = True
 
         return migrated

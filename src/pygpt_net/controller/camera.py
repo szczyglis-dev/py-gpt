@@ -130,20 +130,20 @@ class Camera:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
-            path = os.path.join(self.window.app.config.path, 'capture', name + '.jpg')
+            path = os.path.join(self.window.core.config.path, 'capture', name + '.jpg')
 
             # capture frame
-            compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.app.config.get('vision.capture.quality'))]
+            compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.core.config.get('vision.capture.quality'))]
             frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
             cv2.imwrite(path, frame, compression_params)
-            mode = self.window.app.config.get('mode')
+            mode = self.window.core.config.get('mode')
 
             # make attachment
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
             title = trans('vision.capture.name.prefix') + ' ' + name
             title = title.replace('cap-', '').replace('_', ' ')
-            self.window.app.attachments.new(mode, title, path, False)
-            self.window.app.attachments.save()
+            self.window.core.attachments.new(mode, title, path, False)
+            self.window.core.attachments.save()
             self.window.controller.attachment.update()
 
             # show last capture time in status
@@ -156,7 +156,7 @@ class Camera:
             return True
         except Exception as e:
             print("Frame capture exception", e)
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             self.window.statusChanged.emit(trans('vision.capture.error'))
         return False
 
@@ -182,11 +182,11 @@ class Camera:
         """
         Enable capture
         """
-        if self.window.app.config.get('mode') != 'vision':
+        if self.window.core.config.get('mode') != 'vision':
             return
 
         self.is_capture = True
-        self.window.app.config.set('vision.capture.enabled', True)
+        self.window.core.config.set('vision.capture.enabled', True)
         self.window.ui.nodes['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
@@ -195,11 +195,11 @@ class Camera:
         """
         Disable capture
         """
-        if self.window.app.config.get('mode') != 'vision':
+        if self.window.core.config.get('mode') != 'vision':
             return
 
         self.is_capture = False
-        self.window.app.config.set('vision.capture.enabled', False)
+        self.window.core.config.set('vision.capture.enabled', False)
         self.window.ui.nodes['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
@@ -221,14 +221,14 @@ class Camera:
         """
         Enable capture
         """
-        if self.window.app.config.data['mode'] != 'vision':
+        if self.window.core.config.data['mode'] != 'vision':
             return
 
         self.auto = True
-        self.window.app.config.set('vision.capture.auto', True)
+        self.window.core.config.set('vision.capture.auto', True)
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
-        if not self.window.app.config.get('vision.capture.enabled'):
+        if not self.window.core.config.get('vision.capture.enabled'):
             self.enable_capture()
             self.window.ui.nodes['vision.capture.enable'].setChecked(True)
 
@@ -236,11 +236,11 @@ class Camera:
         """
         Disable capture
         """
-        if self.window.app.config.get('mode') != 'vision':
+        if self.window.core.config.get('mode') != 'vision':
             return
 
         self.auto = False
-        self.window.app.config.set('vision.capture.auto', False)
+        self.window.core.config.set('vision.capture.auto', False)
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
 
     def toggle_auto(self, state):
@@ -278,14 +278,14 @@ class Camera:
         """
         Update layout checkboxes
         """
-        if self.window.app.config.get('vision.capture.enabled'):
+        if self.window.core.config.get('vision.capture.enabled'):
             self.is_capture = True
             self.window.ui.nodes['vision.capture.enable'].setChecked(True)
         else:
             self.is_capture = False
             self.window.ui.nodes['vision.capture.enable'].setChecked(False)
 
-        if self.window.app.config.get('vision.capture.auto'):
+        if self.window.core.config.get('vision.capture.auto'):
             self.auto = True
             self.window.ui.nodes['vision.capture.auto'].setChecked(True)
         else:
@@ -293,7 +293,7 @@ class Camera:
             self.window.ui.nodes['vision.capture.auto'].setChecked(False)
 
         # update label
-        if not self.window.app.config.get('vision.capture.auto'):
+        if not self.window.core.config.get('vision.capture.auto'):
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
         else:
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))

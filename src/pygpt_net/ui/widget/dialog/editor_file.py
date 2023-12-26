@@ -49,6 +49,6 @@ class EditorFileDialog(QDialog):
         """
         Cleanup on close
         """
-        self.window.app.settings.active['editor'] = False
+        self.window.core.settings.active['editor'] = False
         self.window.controller.settings.close('editor')
         self.window.controller.settings.update()

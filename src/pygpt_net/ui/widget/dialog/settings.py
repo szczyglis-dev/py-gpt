@@ -50,6 +50,6 @@ class SettingsDialog(QDialog):
         """
         Cleanup on close
         """
-        self.window.app.settings.active[self.id] = False
+        self.window.core.settings.active[self.id] = False
         self.window.controller.settings.close(self.id)
         self.window.controller.settings.update()

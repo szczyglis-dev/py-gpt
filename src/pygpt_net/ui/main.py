@@ -87,7 +87,7 @@ class UI:
 
     def setup_font(self):
         """Setup UI font"""
-        path = os.path.join(self.window.app.config.get_root_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
+        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:
             print("Error loading font file {}".format(path))

@@ -49,7 +49,7 @@ class JsonFileProvider(BaseProvider):
 
     def load_all(self):
         """Load notepads from file"""
-        path = os.path.join(self.window.app.config.path, self.config_file)
+        path = os.path.join(self.window.core.config.path, self.config_file)
         items = {}
         try:
             if os.path.exists(path):
@@ -83,14 +83,14 @@ class JsonFileProvider(BaseProvider):
                             id = notepad.id
                             items[id] = notepad
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             items = {}
 
         return items
 
     def load(self, id):
         """Load notepad from file"""
-        path = os.path.join(self.window.app.config.path, self.config_file)
+        path = os.path.join(self.window.core.config.path, self.config_file)
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
@@ -106,7 +106,7 @@ class JsonFileProvider(BaseProvider):
                             self.deserialize(item, notepad)
                             return notepad
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def save(self, notepad):
         """
@@ -119,7 +119,7 @@ class JsonFileProvider(BaseProvider):
             self.save_all(items)
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
     def save_all(self, items):
@@ -128,7 +128,7 @@ class JsonFileProvider(BaseProvider):
         """
         try:
             # update notepads
-            path = os.path.join(self.window.app.config.path, self.config_file)
+            path = os.path.join(self.window.core.config.path, self.config_file)
             data = {}
             ary = {}
 
@@ -137,14 +137,14 @@ class JsonFileProvider(BaseProvider):
                 notepad = items[id]
                 ary[id] = self.serialize(notepad)
 
-            data['__meta__'] = self.window.app.config.append_meta()
+            data['__meta__'] = self.window.core.config.append_meta()
             data['items'] = ary
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
 
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
     def remove(self, id):
@@ -160,14 +160,14 @@ class JsonFileProvider(BaseProvider):
 
     def truncate(self):
         """Delete all"""
-        path = os.path.join(self.window.app.config.path, self.config_file)
-        data = {'__meta__': self.window.app.config.append_meta(), 'items': {}}
+        path = os.path.join(self.window.core.config.path, self.config_file)
+        data = {'__meta__': self.window.core.config.append_meta(), 'items': {}}
         try:
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
         except Exception as e:
-            self.window.app.debug.log(e)
+            self.window.core.debug.log(e)
 
     def patch(self, version):
         """

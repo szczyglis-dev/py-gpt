@@ -39,7 +39,7 @@ class Dialogs:
         """Setup dialogs"""
         # setup debug dialogs
         debug = Debug(self.window)
-        for id in self.window.app.debug.ids:
+        for id in self.window.core.debug.ids:
             debug.setup(id)
 
         # setup info dialogs

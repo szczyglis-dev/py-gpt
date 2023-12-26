@@ -32,7 +32,7 @@ class Assistant:
     def setup(self):
         """Setups assistant editor dialog"""
         id = "assistants"
-        path = self.window.app.config.path
+        path = self.window.core.config.path
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.save())

@@ -43,7 +43,7 @@ class Models:
             try:
                 self.providers[self.provider].install()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def patch(self, app_version):
         """Patch provider data"""
@@ -51,7 +51,7 @@ class Models:
             try:
                 self.providers[self.provider].patch(app_version)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def get(self, model):
         """
@@ -139,7 +139,7 @@ class Models:
                 self.items = self.providers[self.provider].load()
                 self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
                 self.items = {}
 
     def save(self):
@@ -148,7 +148,7 @@ class Models:
             try:
                 self.providers[self.provider].save(self.items)
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)
 
     def get_version(self):
         """Get config version"""
@@ -156,4 +156,4 @@ class Models:
             try:
                 return self.providers[self.provider].get_version()
             except Exception as e:
-                self.window.app.debug.log(e)
+                self.window.core.debug.log(e)

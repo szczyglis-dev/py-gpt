@@ -48,7 +48,7 @@ class Settings:
         self.load_config_options()
 
         # store copy of loaded config data
-        self.before_config = copy.deepcopy(self.window.app.config.all())
+        self.before_config = copy.deepcopy(self.window.core.config.all())
 
     def load_config_options(self, initialize=True):
         """
@@ -56,7 +56,7 @@ class Settings:
 
         :param initialize: True if marks settings as initialized
         """
-        self.options = self.window.app.settings.get_options()
+        self.options = self.window.core.settings.get_options()
         if initialize:
             self.initialized = True
 
@@ -73,28 +73,28 @@ class Settings:
                     continue
                 type = self.options[option]['type']
                 if type == 'text':
-                    self.window.app.config.set(option, self.window.ui.config_option[option].text())
+                    self.window.core.config.set(option, self.window.ui.config_option[option].text())
                 elif type == 'textarea':
-                    self.window.app.config.set(option, self.window.ui.config_option[option].toPlainText())
+                    self.window.core.config.set(option, self.window.ui.config_option[option].toPlainText())
 
         info = trans('info.settings.saved')
-        self.window.app.config.save()
+        self.window.core.config.save()
         self.window.set_status(info)
         self.update_font_size()
         self.window.controller.ui.update()
 
         # update layout if needed
-        if self.before_config['layout.density'] != self.window.app.config.get('layout.density'):
+        if self.before_config['layout.density'] != self.window.core.config.get('layout.density'):
             self.window.controller.theme.reload()
 
-        self.before_config = copy.deepcopy(self.window.app.config.all())
+        self.before_config = copy.deepcopy(self.window.core.config.all())
         self.close_window(id)
 
     def save_all(self):
         """Save all settings"""
         info = trans('info.settings.all.saved')
-        self.window.app.config.save()
-        self.window.app.presets.save_all()
+        self.window.core.config.save()
+        self.window.core.presets.save_all()
         self.window.controller.notepad.save_all()
         self.window.ui.dialogs.alert(info)
         self.window.set_status(info)
@@ -115,15 +115,15 @@ class Settings:
 
         :param id: settings id
         """
-        if id in self.window.app.settings.active and self.window.app.settings.active[id]:
+        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
             self.close_window(id)
         else:
             self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
             self.init(id)
-            self.window.app.settings.active[id] = True
+            self.window.core.settings.active[id] = True
 
             # if no API key, focus on API key input
-            if self.window.app.config.get('api_key') is None or self.window.app.config.get('api_key') == '':
+            if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
                 self.window.ui.config_option['api_key'].setFocus()
 
         # update menu
@@ -137,17 +137,17 @@ class Settings:
         """
         id = 'editor'
         current_file = self.window.ui.dialog['config.editor'].file
-        if id in self.window.app.settings.active and self.window.app.settings.active[id]:
+        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
             if current_file == file:
                 self.window.ui.dialogs.close('config.' + id)
-                self.window.app.settings.active[id] = False
+                self.window.core.settings.active[id] = False
             else:
-                self.window.app.settings.load_editor(file)  # load file to editor
+                self.window.core.settings.load_editor(file)  # load file to editor
                 self.window.ui.dialog['config.editor'].file = file
         else:
-            self.window.app.settings.load_editor(file)  # load file to editor
+            self.window.core.settings.load_editor(file)  # load file to editor
             self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
-            self.window.app.settings.active[id] = True
+            self.window.core.settings.active[id] = True
 
         # update menu
         self.update()
@@ -158,9 +158,9 @@ class Settings:
 
         :param id: settings window id
         """
-        if id in self.window.app.settings.active and self.window.app.settings.active[id]:
+        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
             self.window.ui.dialogs.close('config.' + id)
-            self.window.app.settings.active[id] = False
+            self.window.core.settings.active[id] = False
 
     def close(self, id):
         """
@@ -181,10 +181,10 @@ class Settings:
 
     def update_menu(self):
         """Update menu"""
-        for id in self.window.app.settings.ids:
+        for id in self.window.core.settings.ids:
             key = 'config.' + id
             if key in self.window.ui.menu:
-                if id in self.window.app.settings.active and self.window.app.settings.active[id]:
+                if id in self.window.core.settings.active and self.window.core.settings.active[id]:
                     self.window.ui.menu['config.' + id].setChecked(True)
                 else:
                     self.window.ui.menu['config.' + id].setChecked(False)
@@ -203,11 +203,11 @@ class Settings:
 
                 # apply initial settings from current config
                 if type == 'int' or type == 'float':
-                    self.apply(option, self.window.app.config.get(option))
+                    self.apply(option, self.window.core.config.get(option))
                 elif type == 'bool':
-                    self.toggle(option, self.window.app.config.get(option))
+                    self.toggle(option, self.window.core.config.get(option))
                 elif type == 'text' or type == 'textarea':
-                    self.change(option, self.window.app.config.get(option))
+                    self.change(option, self.window.core.config.get(option))
 
     def toggle(self, id, value, section=None):
         """
@@ -231,7 +231,7 @@ class Settings:
         if id in self.options:
             if 'type' in self.options[id]:
                 if self.options[id]['type'] == 'bool':
-                    self.window.app.config.set(id, value)
+                    self.window.core.config.set(id, value)
 
                 # call vision checkboxes events
                 if id == "vision.capture.enabled":
@@ -272,17 +272,17 @@ class Settings:
                         value = option['min']
                     elif value > option['max']:
                         value = option['max']
-                    self.window.app.config.set(id, value)
+                    self.window.core.config.set(id, value)
                 # integers
                 elif option['type'] == 'int':
                     if value < option['min']:
                         value = option['min']
                     elif value > option['max']:
                         value = option['max']
-                    self.window.app.config.set(id, round(int(value), 0))
+                    self.window.core.config.set(id, round(int(value), 0))
                 # text
                 else:
-                    self.window.app.config.set(id, value)
+                    self.window.core.config.set(id, value)
 
         # update font size in real time
         if id.startswith('font_size'):
@@ -384,7 +384,7 @@ class Settings:
 
         # update current preset temperature if changed global temperature
         if id == 'current_temperature':
-            preset = self.window.app.config.get('preset')  # current preset
+            preset = self.window.core.config.get('preset')  # current preset
             is_current = True
             if section == 'preset.editor':
                 preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
@@ -394,10 +394,10 @@ class Settings:
         else:
             if option_type != 'int' and id not in self.integer_values:
                 # any float
-                self.window.app.config.set(id, float(input_value))
+                self.window.core.config.set(id, float(input_value))
             else:
                 # any integer
-                self.window.app.config.set(id, round(int(input_value), 0))
+                self.window.core.config.set(id, round(int(input_value), 0))
 
         # update from slider
         if type == 'slider':
@@ -453,10 +453,10 @@ class Settings:
 
     def open_config_dir(self):
         """Open user config directory"""
-        if os.path.exists(self.window.app.config.path):
-            self.window.controller.files.open_in_file_manager(self.window.app.config.path, True)
+        if os.path.exists(self.window.core.config.path):
+            self.window.controller.files.open_in_file_manager(self.window.core.config.path, True)
         else:
-            self.window.set_status('Config directory not exists: {}'.format(self.window.app.config.path))
+            self.window.set_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
     def load_defaults_user(self, force=False):
         """
@@ -469,7 +469,7 @@ class Settings:
             return
 
         # load default user config
-        self.window.app.settings.load_user_settings()
+        self.window.core.settings.load_user_settings()
 
         # re-init settings
         self.window.controller.settings.init('settings')
@@ -486,7 +486,7 @@ class Settings:
             return
 
         # load default user config
-        self.window.app.settings.load_app_settings()
+        self.window.core.settings.load_app_settings()
 
         # re-init settings
         self.window.controller.settings.init('settings')
