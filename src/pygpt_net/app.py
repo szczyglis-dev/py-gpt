@@ -43,7 +43,7 @@ from pygpt_net.llm.Ollama import OllamaLLM
 from pygpt_net.llm.OpenAI import OpenAILLM
 
 
-Debug.init(DEBUG)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
+Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
 
 class MainWindow(QMainWindow, QtStyleTools):

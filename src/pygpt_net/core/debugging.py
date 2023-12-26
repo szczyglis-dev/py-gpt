@@ -105,35 +105,40 @@ class Debug:
 
         sys.excepthook = handle_exception
 
-    def log(self, error):
+    def log(self, message=None, level=logging.ERROR):
         """
-        Handle error
+        Handle logging
 
-        :param error: error object
+        :param message: message to log
+        :param level: logging level
         """
-        logger = logging.getLogger()
-        # if error is only string then log and print it
-        if not isinstance(error, Exception):
-            print("Error: {}".format(str(error)))
-            data = f"MSG: {error}\n"
-            print(data)
-            logger.error(data)
+        if message is None:
             return
 
-        etype, value, tb = sys.exc_info()
-        traceback_details = traceback.extract_tb(tb)
-        if len(traceback_details) >= 4:
-            last_calls = traceback_details[-4:]
-        else:
-            last_calls = traceback_details
-        formatted_traceback = ''.join(traceback.format_list(last_calls))
-        data = f"Type: {etype.__name__}, MSG: " \
-               f"{value}\n" \
-               f"Traceback:\n{formatted_traceback}"
+        logger = logging.getLogger()
 
-        logger.error(data)
-        print("Error: {}".format(str(error)))
-        print(data)
+        try:
+            # string message
+            if isinstance(message, str):
+                print("Log: {}".format(message))
+                logger.log(level, message)
+            # exception message
+            elif isinstance(message, Exception):
+                etype, value, tb = sys.exc_info()
+                traceback_details = traceback.extract_tb(tb)
+                if len(traceback_details) >= 4:
+                    last_calls = traceback_details[-4:]
+                else:
+                    last_calls = traceback_details
+                formatted_traceback = ''.join(traceback.format_list(last_calls))
+                data = f"Type: {etype.__name__}, Message: " \
+                       f"{value}\n" \
+                       f"Traceback:\n{formatted_traceback}"
+                logger.error(data)
+                logger.log(level, "Exception: {}".format(str(message)), exc_info=True)
+                print(data)
+        except Exception as e:
+            pass
 
     def update(self, all=False):
         """
