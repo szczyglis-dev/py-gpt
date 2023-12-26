@@ -9,7 +9,6 @@
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
 
@@ -48,86 +47,24 @@ class UI:
         self.window.controller.assistant.update_assistants()
 
     def update_tokens(self):
-        """Update tokens counters"""
-        model = self.window.core.config.get('model')
-        mode = self.window.core.config.get('mode')
-        user_name = self.window.core.config.get('user_name')
-        ai_name = self.window.core.config.get('ai_name')
-        max_total_tokens = self.window.core.config.get('max_total_tokens')
-        extra_tokens = self.window.core.tokens.get_extra(model)
+        """Update real-time tokens counters"""
+        input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
+        sum_tokens, max_current, threshold = self.window.core.tokens.get_current()
 
-        prompt_tokens = 0
-        input_tokens = 0
+        # ctx tokens
+        ctx_string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
+        self.window.ui.nodes['prompt.context'].setText(ctx_string)
 
-        if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
-            # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
-            prompt_tokens = self.window.core.tokens.from_prompt(system_prompt, "", model)
-            prompt_tokens += self.window.core.tokens.from_text("system", model)
+        # input tokens
+        parsed_sum = str(int(sum_tokens))
+        parsed_sum = parsed_sum.replace("000000", "M").replace("000", "k")
 
-            # input tokens
-            input_text = str(self.window.ui.nodes['input'].toPlainText().strip())
-            input_tokens = self.window.core.tokens.from_prompt(input_text, "", model)
-            input_tokens += self.window.core.tokens.from_text("user", model)
-        elif mode == "completion":
-            # prompt tokens (without extra tokens)
-            system_prompt = str(self.window.core.config.get('prompt')).strip()
-            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
-            prompt_tokens = self.window.core.tokens.from_text(system_prompt, model)
+        parsed_max_current = str(int(max_current))
+        parsed_max_current = parsed_max_current.replace("000000", "M").replace("000", "k")
 
-            # input tokens
-            input_text = str(self.window.ui.nodes['input'].toPlainText().strip())
-            message = ""
-            if user_name is not None \
-                    and ai_name is not None \
-                    and user_name != "" \
-                    and ai_name != "":
-                message += "\n" + user_name + ": " + str(input_text)
-                message += "\n" + ai_name + ":"
-            else:
-                message += "\n" + str(input_text)
-            input_tokens = self.window.core.tokens.from_text(message, model)
-            extra_tokens = 0  # no extra tokens in completion mode
-
-        # used tokens
-        used_tokens = prompt_tokens + input_tokens
-
-        # check real model max
-        max_to_calc = max_total_tokens
-        model_ctx = self.window.core.models.get_num_ctx(model)
-        if max_to_calc > model_ctx:
-            max_to_calc = model_ctx
-
-        to_check = max_to_calc - self.window.core.config.get('context_threshold')
-
-        # context tokens
-        ctx_len_all = len(self.window.core.ctx.items)
-        ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model, mode, used_tokens, to_check)
-
-        # zero if context not used
-        if not self.window.core.config.get('use_context'):
-            ctx_tokens = 0
-            ctx_len = 0
-
-        # total tokens
-        total_tokens = prompt_tokens + input_tokens + ctx_tokens + extra_tokens
-
-        # update counters
-        string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
-        self.window.ui.nodes['prompt.context'].setText(string)
-
-        # threshold = str(int(self.window.core.config.get('context_threshold')))
-
-        parsed_total = str(int(total_tokens))
-        parsed_total = parsed_total.replace("000000", "M").replace("000", "k")
-
-        parsed_max_total = str(int(max_to_calc))
-        parsed_max_total = parsed_max_total.replace("000000", "M").replace("000", "k")
-
-        string = "{} + {} + {} + {} = {} / {}".format(input_tokens, prompt_tokens, ctx_tokens, extra_tokens,
-                                                      parsed_total, parsed_max_total)
-        self.window.ui.nodes['input.counter'].setText(string)
+        input_string = "{} + {} + {} + {} = {} / {}".format(input_tokens, system_tokens, ctx_tokens, extra_tokens,
+                                                      parsed_sum, parsed_max_current)
+        self.window.ui.nodes['input.counter'].setText(input_string)
 
     def update_active(self):
         """Update mode, model, preset and rest of the toolbox"""

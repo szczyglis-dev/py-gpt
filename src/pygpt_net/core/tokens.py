@@ -216,6 +216,77 @@ class Tokens:
 
         return num
 
+    def get_current(self):
+        """Update tokens counters"""
+        model = self.window.core.config.get('model')
+        mode = self.window.core.config.get('mode')
+        user_name = self.window.core.config.get('user_name')
+        ai_name = self.window.core.config.get('ai_name')
+
+        system_tokens = 0
+        input_tokens = 0
+        max_total_tokens = self.window.core.config.get('max_total_tokens')
+        extra_tokens = self.window.core.tokens.get_extra(model)
+
+        if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
+            # system prompt tokens (without extra tokens)
+            system_prompt = str(self.window.core.config.get('prompt')).strip()
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
+            system_tokens = self.window.core.tokens.from_prompt(system_prompt, "", model)
+            system_tokens += self.window.core.tokens.from_text("system", model)
+
+            # input prompt tokens
+            input_prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
+            input_tokens = self.window.core.tokens.from_prompt(input_prompt, "", model)
+            input_tokens += self.window.core.tokens.from_text("user", model)
+        elif mode == "completion":
+            # system prompt tokens (without extra tokens)
+            system_prompt = str(self.window.core.config.get('prompt')).strip()
+            system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
+            system_tokens = self.window.core.tokens.from_text(system_prompt, model)
+
+            # input prompt tokens
+            input_prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
+            message = ""
+            if user_name is not None \
+                    and ai_name is not None \
+                    and user_name != "" \
+                    and ai_name != "":
+                message += "\n" + user_name + ": " + str(input_prompt)
+                message += "\n" + ai_name + ":"
+            else:
+                message += "\n" + str(input_prompt)
+            input_tokens = self.window.core.tokens.from_text(message, model)
+            extra_tokens = 0  # no extra tokens in completion mode
+
+        # used tokens
+        used_tokens = system_tokens + input_tokens
+
+        # check model max allowed ctx tokens
+        max_current = max_total_tokens
+        model_ctx = self.window.core.models.get_num_ctx(model)
+        if max_current > model_ctx:
+            max_current = model_ctx
+
+        # context threshold (reserved for output)
+        threshold = self.window.core.config.get('context_threshold')
+        max_to_check = max_current - threshold
+
+        # context tokens
+        ctx_len_all = len(self.window.core.ctx.items)
+        ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model, mode, used_tokens, max_to_check)
+
+        # empty ctx tokens if context is not used
+        if not self.window.core.config.get('use_context'):
+            ctx_tokens = 0
+            ctx_len = 0
+
+        # sum of input tokens
+        sum_tokens = system_tokens + input_tokens + ctx_tokens + extra_tokens
+
+        return input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
+               sum_tokens, max_current, threshold
+
     @staticmethod
     def get_config(model):
         """
