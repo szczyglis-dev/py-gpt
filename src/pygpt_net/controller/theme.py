@@ -224,7 +224,7 @@ class Theme:
         Update material theme and apply custom CSS
 
         :param theme: material theme filename (e.g. dark_teal.xml)
-        :param custom: custom CSS filename
+        :param custom: additional custom CSS filename
         """
         inverse = False
         if theme.startswith('light'):
