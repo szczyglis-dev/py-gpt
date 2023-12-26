@@ -27,8 +27,175 @@ class Theme:
         self.window = window
         self.css = {}
 
-    def load_css(self):
-        """Load CSS"""
+    def setup(self):
+        """Setup theme"""
+        # load highlighter CSS rules
+        self.load_highlighter()
+
+        # setup themes menu
+        themes = self.get_themes_list()
+        for theme in themes:
+            name = self.trans_theme(theme)
+            self.window.ui.menu['theme'][theme] = QAction(name, self.window, checkable=True)
+            self.window.ui.menu['theme'][theme].triggered.connect(
+                lambda checked=None, theme=theme: self.window.controller.theme.toggle(theme))
+            self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
+
+        # apply current theme to nodes
+        self.reload()
+
+    def update(self):
+        """Update theme menu"""
+        for theme in self.window.ui.menu['theme']:
+            self.window.ui.menu['theme'][theme].setChecked(False)
+        current = self.window.core.config.get('theme')
+        if current in self.window.ui.menu['theme']:
+            self.window.ui.menu['theme'][current].setChecked(True)
+
+    def toggle(self, name):
+        """
+        Toggle theme
+
+        :param name: theme name
+        """
+        self.window.core.config.set('theme', name)
+        self.window.core.config.save()
+        self.load_highlighter()
+        self.apply()
+        self.set_theme(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
+        self.update()
+
+    def reload(self):
+        """Reload theme"""
+        self.toggle(self.window.core.config.get('theme'))
+
+    def get_css(self, name):
+        """
+        Return CSS rules
+
+        :param name: css name
+        :return: css rules
+        :rtype: dict
+        """
+        if name in self.css:
+            return self.css[name]
+        return {}
+
+    def apply_node(self, key, type):
+        """
+        Apply stylesheet to node
+
+        :param key: node key
+        :param type: stylesheet type
+        """
+        if key not in self.window.ui.nodes:
+            return
+
+        if type == 'toolbox':
+            self.window.ui.nodes[key].setStyleSheet(self.get_style('toolbox'))
+        elif type == 'chat_output':
+            self.window.ui.nodes[key].setStyleSheet(self.get_style('chat_output'))
+        elif type == 'chat_input':
+            self.window.ui.nodes[key].setStyleSheet(self.get_style('chat_input'))
+        elif type == 'ctx.list':
+            self.window.ui.nodes[key].setStyleSheet(self.get_style('ctx.list'))
+
+    def apply(self, all=True):
+        """
+        Apply theme nodes
+
+        :param all: apply also to highlighter
+        """
+        nodes = {
+            'chat_input': [
+                'input',
+            ],
+            'chat_output': [
+                'output',
+            ],
+            'ctx.list': [
+                'ctx.list',
+            ],
+            'toolbox': [
+                'assistants',
+                'assistants.new',
+                'assistants.import',
+                'assistants.label',
+                'cmd.enabled',
+                'dalle.options',
+                'img_variants.label',
+                'preset.clear',
+                'preset.presets',
+                'preset.presets.label',
+                'preset.presets.new',
+                'preset.prompt',
+                'preset.prompt.label',
+                'preset.temperature.label',
+                'preset.use',
+                'prompt.label',
+                'prompt.mode',
+                'prompt.mode.label',
+                'prompt.model',
+                'prompt.model.label',
+                'temperature.label',
+                'toolbox.prompt.label',
+                'toolbox.preset.ai_name.label',
+                'toolbox.preset.user_name.label',
+                'vision.capture.auto',
+                'vision.capture.enable',
+                'vision.capture.label',
+                'vision.capture.options',
+            ],
+        }
+
+        # apply to nodes
+        for type in nodes:
+            for key in nodes[type]:
+                self.apply_node(key, type)
+
+        # apply to notepads
+        num_notepads = self.window.controller.notepad.get_num_notepads()
+        if num_notepads > 0:
+            for id in range(1, num_notepads + 1):
+                if id in self.window.ui.notepad:
+                    self.window.ui.notepad[id].setStyleSheet(self.get_style('chat_output'))
+
+        # apply CSS to syntax highlighter
+        if all:
+            self.apply_highlighter()
+
+    def get_style(self, element):
+        """
+        Return CSS style for element
+
+        :param element: type of element
+        :return: CSS style for element
+        :rtype: str
+        """
+        # get theme element style
+        if element == "chat_output":
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size'))
+        elif element == "chat_input":
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.input'))
+        elif element == "ctx.list":
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.ctx'))
+        elif element == "toolbox":
+            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.toolbox'))
+        elif element == "text_bold":
+            return "font-weight: bold;"
+        elif element == "text_small":
+            return ""
+            # return "font-size: 8px;"  <-- too small on big screens
+        elif element == "text_faded":
+            return "color: #999;"
+            # return "font-size: 8px; color: #999;"  <-- too small on big screens
+
+    def apply_highlighter(self):
+        """Apply CSS to syntax highlight"""
+        self.window.ui.nodes['output_highlighter'].setTheme(self.get_css('highlighter'))
+
+    def load_highlighter(self):
+        """Load syntax highlighter CSS from json file"""
         theme = self.window.core.config.get('theme')
 
         # user area
@@ -50,23 +217,41 @@ class Theme:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def get_css(self, name):
+    def set_theme(self, theme='dark_teal.xml', custom_css=None):
         """
-        Return CSS rules
+        Update material theme and apply custom CSS
 
-        :param name: css name
-        :return: css rules
-        :rtype: dict
+        :param theme: material theme filename (e.g. dark_teal.xml)
+        :param custom_css: custom CSS file
         """
-        if name in self.css:
-            return self.css[name]
-        return {}
+        inverse = False
+        if theme.startswith('light'):
+            inverse = True
+        extra = {
+            'density_scale': self.window.core.config.get('layout.density'),
+            'pyside6': True,
+        }
+        self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
 
-    def toggle(self, name):
+        # append custom CSS
+        if custom_css is not None:
+            stylesheet = self.window.styleSheet()
+            # check for override in user directory
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', custom_css)
+            if not os.path.exists(path):
+                # check in app directory
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom_css)
+            if os.path.exists(path):
+                with open(path) as file:
+                    self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
+
+    def get_custom_css(self, name):
         """
-        Toggle theme
+        Return custom css filename for theme
 
         :param name: theme name
+        :return: custom css filename (e.g. style.dark.css)
+        :rtype: str
         """
         # check per theme style css
         custom_css = 'style.css'
@@ -96,105 +281,20 @@ class Theme:
                 if os.path.exists(path):
                     custom_css = tmp_css
 
-        self.window.core.config.set('theme', name)
-        self.window.core.config.save()
-        self.load_css()
-        self.apply()
-        self.set_theme(name + '.xml', custom_css)  # style.css = additional custom stylesheet
-        self.update()
+        return custom_css
 
-    def apply_common(self, key):
-        """Apply common theme"""
-        if key in self.window.ui.nodes:
-            self.window.ui.nodes[key].setStyleSheet('font-size: {}px;'
-                                                    .format(self.window.core.config.get('font_size.toolbox')))  # 12px
-
-    def apply(self, all=True):
-        """Apply theme"""
-        common_nodes = [
-            'assistants',
-            'assistants.new',
-            'assistants.import',
-            'assistants.label',
-            'cmd.enabled',
-            'dalle.options',
-            'img_variants.label',
-            'preset.clear',
-            'preset.presets',
-            'preset.presets.label',
-            'preset.presets.new',
-            'preset.prompt',
-            'preset.prompt.label',
-            'preset.temperature.label',
-            'preset.use',
-            'prompt.label',
-            'prompt.mode',
-            'prompt.mode.label',
-            'prompt.model',
-            'prompt.model.label',
-            'temperature.label',
-            'toolbox.prompt.label',
-            'toolbox.preset.ai_name.label',
-            'toolbox.preset.user_name.label',
-            'vision.capture.auto',
-            'vision.capture.enable',
-            'vision.capture.label',
-            'vision.capture.options',
-        ]
-        for node in common_nodes:
-            self.apply_common(node)
-
-        # windows
-        self.window.ui.nodes['output'].setStyleSheet(self.get_style('chat_output'))
-        self.window.ui.nodes['input'].setStyleSheet(self.get_style('chat_input'))
-        self.window.ui.nodes['ctx.list'].setStyleSheet(self.get_style('ctx.list'))
-
-        # notepads
-        num_notepads = self.window.controller.notepad.get_num_notepads()
-        if num_notepads > 0:
-            for id in range(1, num_notepads + 1):
-                if id in self.window.ui.notepad:
-                    self.window.ui.notepad[id].setStyleSheet(self.get_style('chat_output'))
-
-        # apply to syntax highlighter
-        if all:
-            self.apply_syntax_highlighter(self.window.core.config.get('theme'))
-
-    def get_style(self, element):
+    def trans_theme(self, theme):
         """
-        Return style for element
+        Translate theme name
 
-        :param element: element name
-        :return: style for element
+        :param theme: theme name
+        :return: translated theme name
         :rtype: str
         """
-        # get theme element style
-        if element == "chat_output":
-            return 'font-size: {}px;'.format(self.window.core.config.get('font_size'))
-        elif element == "chat_input":
-            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.input'))
-        elif element == "ctx.list":
-            return 'font-size: {}px;'.format(self.window.core.config.get('font_size.ctx'))
-        elif element == "text_bold":
-            return "font-weight: bold;"
-        elif element == "text_small":
-            return ""
-            # return "font-size: 8px;"  <-- too small on big screens
-        elif element == "text_faded":
-            return "color: #999;"
-            # return "font-size: 8px; color: #999;"  <-- too small on big screens
-
-    def apply_syntax_highlighter(self, theme):
-        """Apply syntax highlight"""
-        self.window.ui.nodes['output_highlighter'].setTheme(self.get_css('highlighter'))
-
-    def update(self):
-        """Update theme menu"""
-        for theme in self.window.ui.menu['theme']:
-            self.window.ui.menu['theme'][theme].setChecked(False)
-        current = self.window.core.config.get('theme')
-        if current in self.window.ui.menu['theme']:
-            self.window.ui.menu['theme'][current].setChecked(True)
+        return theme \
+            .replace('_', ' ').title() \
+            .replace('Dark ', trans('theme.dark') + ': ') \
+            .replace('Light ', trans('theme.light') + ': ')
 
     def get_themes_list(self):
         """
@@ -224,67 +324,3 @@ class Theme:
             'light_teal',
             'light_yellow'
         ]
-
-    def trans_theme(self, theme):
-        """
-        Translate theme name
-
-        :param theme: theme name
-        :return: translated theme name
-        :rtype: str
-        """
-        return theme\
-            .replace('_', ' ').title()\
-            .replace('Dark ', trans('theme.dark') + ': ')\
-            .replace('Light ', trans('theme.light') + ': ')
-
-    def setup(self):
-        """Setup theme"""
-        # load css files
-        self.load_css()
-
-        # setup menu
-        themes = self.get_themes_list()
-        for theme in themes:
-            name = self.trans_theme(theme)
-            self.window.ui.menu['theme'][theme] = QAction(name, self.window, checkable=True)
-            self.window.ui.menu['theme'][theme].triggered.connect(
-                lambda checked=None, theme=theme: self.window.controller.theme.toggle(theme))
-            self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
-
-        # apply theme
-        theme = self.window.core.config.get('theme')
-        self.toggle(theme)
-
-    def reload(self):
-        """Reload theme"""
-        theme = self.window.core.config.get('theme')
-        self.toggle(theme)
-
-    def set_theme(self, theme='dark_teal.xml', custom_css=None):
-        """
-        Update material theme and apply custom CSS
-
-        :param theme: material theme name
-        :param custom_css: custom CSS file
-        """
-        inverse = False
-        if theme.startswith('light'):
-            inverse = True
-        extra = {
-            'density_scale': self.window.core.config.get('layout.density'),
-            'pyside6': True,
-        }
-        self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
-
-        # append custom CSS
-        if custom_css is not None:
-            stylesheet = self.window.styleSheet()
-            # check for override in user directory
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', custom_css)
-            if not os.path.exists(path):
-                # check in app directory
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom_css)
-            if os.path.exists(path):
-                with open(path) as file:
-                    self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
