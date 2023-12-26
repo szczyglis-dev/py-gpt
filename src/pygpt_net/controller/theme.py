@@ -102,7 +102,7 @@ class Theme:
 
     def apply_nodes(self, all=True):
         """
-        Apply theme nodes
+        Apply stylesheets to nodes
 
         :param all: apply also to highlighter
         """
