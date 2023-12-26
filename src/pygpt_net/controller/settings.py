@@ -224,7 +224,7 @@ class Settings:
 
         # dialog: plugin
         elif id.startswith('plugin.'):
-            self.window.controller.plugins.config_toggle(id, value)
+            self.window.controller.plugins.settings.config_toggle(id, value)
             return
 
         # dialog: settings, apply boolean values to config
@@ -259,7 +259,7 @@ class Settings:
 
         # dialog: plugin
         elif id.startswith('plugin.'):
-            self.window.controller.plugins.config_change(id, value)
+            self.window.controller.plugins.settings.config_change(id, value)
             return
 
         # update config value
@@ -308,7 +308,7 @@ class Settings:
 
         # dialog: plugin
         elif id.startswith('plugin.'):
-            self.window.controller.plugins.config_slider(id, value, type)
+            self.window.controller.plugins.settings.config_slider(id, value, type)
             return
 
         # dialog: settings or global settings

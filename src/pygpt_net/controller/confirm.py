@@ -61,9 +61,9 @@ class Confirm:
         elif type == 'settings.dict.delete':
             self.window.controller.settings.delete_item(parent_object, id, True)
         elif type == 'plugin.settings.defaults.user':
-            self.window.controller.plugins.load_defaults_user(True)
+            self.window.controller.plugins.settings.load_defaults_user(True)
         elif type == 'plugin.settings.defaults.app':
-            self.window.controller.plugins.load_defaults_app(True)
+            self.window.controller.plugins.settings.load_defaults_app(True)
 
         self.window.ui.dialog['confirm'].close()
 

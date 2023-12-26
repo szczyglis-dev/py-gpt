@@ -64,7 +64,7 @@ class Menu:
                                                           trans("menu.plugins.settings"), self.window)
 
         self.window.ui.menu['plugins.settings'].triggered.connect(
-            lambda: self.window.controller.plugins.toggle_settings())
+            lambda: self.window.controller.plugins.settings.toggle_settings())
 
         self.window.ui.menu['plugins'] = {}
         self.window.ui.menu['menu.plugins'] = self.window.menuBar().addMenu(trans("menu.plugins"))

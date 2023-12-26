@@ -48,11 +48,11 @@ class Plugins:
             QPushButton(trans("dialog.plugin.settings.btn.save"))
 
         self.window.ui.nodes['plugin.settings.btn.defaults.user'].clicked.connect(
-            lambda: self.window.controller.plugins.load_defaults_user())
+            lambda: self.window.controller.plugins.settings.load_defaults_user())
         self.window.ui.nodes['plugin.settings.btn.defaults.app'].clicked.connect(
-            lambda: self.window.controller.plugins.load_defaults_app())
+            lambda: self.window.controller.plugins.settings.load_defaults_app())
         self.window.ui.nodes['plugin.settings.btn.save'].clicked.connect(
-            lambda: self.window.controller.plugins.save_settings())
+            lambda: self.window.controller.plugins.settings.save_settings())
 
         # set enter key to save button
         self.window.ui.nodes['plugin.settings.btn.defaults.user'].setAutoDefault(False)
