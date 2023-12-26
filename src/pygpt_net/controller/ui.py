@@ -47,7 +47,7 @@ class UI:
         self.window.controller.assistant.update_assistants()
 
     def update_tokens(self):
-        """Update real-time tokens counters"""
+        """Update tokens counter in real-time"""
         input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
         sum_tokens, max_current, threshold = self.window.core.tokens.get_current()
 
