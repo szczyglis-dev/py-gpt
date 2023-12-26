@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -119,7 +119,7 @@ class Updater:
         try:
             # directory
             dst_dir = os.path.join(self.window.core.config.path, dirname)
-            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', dirname)
+            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', dirname)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(dst_dir, file)
@@ -140,7 +140,7 @@ class Updater:
             # file
             dst = os.path.join(self.window.core.config.path, filename)
             if not os.path.exists(dst) or force:
-                src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', filename)
+                src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', filename)
                 shutil.copyfile(src, dst)
                 print("Patched file: {}.".format(dst))
         except Exception as e:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import json
@@ -30,7 +30,7 @@ class JsonFileProvider(BaseProvider):
 
         :return: version
         """
-        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
         with open(path, 'r', encoding="utf-8") as file:
             data = json.load(file)
             if data == "" or data is None:
@@ -43,7 +43,7 @@ class JsonFileProvider(BaseProvider):
         Load modes config from JSON file
         """
         items = {}
-        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
@@ -71,7 +71,7 @@ class JsonFileProvider(BaseProvider):
 
         :param items: models dict
         """
-        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
         try:
             data = {}
             ary = {}

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import json
@@ -60,7 +60,7 @@ class Locale:
         path = os.path.join(self.config.get_user_path(), 'locale', locale_id + '.' + lang + '.ini')
         if not os.path.exists(path):
             # if not check if file exists in app data dir
-            path = os.path.join(self.config.get_root_path(), 'data', 'locale', locale_id + '.' + lang + '.ini')
+            path = os.path.join(self.config.get_app_path(), 'data', 'locale', locale_id + '.' + lang + '.ini')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None

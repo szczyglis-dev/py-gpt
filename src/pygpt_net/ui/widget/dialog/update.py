@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import os
@@ -46,7 +46,7 @@ class UpdateDialog(QDialog):
 
         logo_label = QLabel()
         path = os.path.abspath(
-            os.path.join(self.window.core.config.get_root_path(), 'data', 'logo.png'))
+            os.path.join(self.window.core.config.get_app_path(), 'data', 'logo.png'))
         pixmap = QPixmap(path)
         logo_label.setPixmap(pixmap)
 

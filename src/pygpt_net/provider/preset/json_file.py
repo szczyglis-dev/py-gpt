@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import json
@@ -33,11 +33,11 @@ class JsonFileProvider(BaseProvider):
         # install presets
         presets_dir = os.path.join(self.window.core.config.path, self.config_dir)
         if not os.path.exists(presets_dir):
-            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_dir)
+            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_dir)
             shutil.copytree(src, presets_dir)
         else:
             # copy missing presets
-            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_dir)
+            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_dir)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(presets_dir, file)
@@ -144,7 +144,7 @@ class JsonFileProvider(BaseProvider):
                 if old < parse_version("2.0.53") and k == 'current.assistant':
                     print("Migrating preset file from < 2.0.53...")
                     dst = os.path.join(self.window.core.config.path, 'presets', 'current.assistant.json')
-                    src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', 'presets',
+                    src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
                                        'current.assistant.json')
                     shutil.copyfile(src, dst)
                     updated = True

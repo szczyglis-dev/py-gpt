@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import os
@@ -49,7 +49,7 @@ def test_get_available_langs(mock_window):
     Test get available languages
     """
     config = Config(mock_window)
-    config.get_root_path = MagicMock(return_value='test_path')
+    config.get_app_path = MagicMock(return_value='test_path')
     config.get_user_path = MagicMock(return_value='test_path')
     os.path.exists = MagicMock(return_value=True)
     os.listdir = MagicMock(return_value=['locale.en.ini', 'locale.de.ini', 'locale.fr.ini'])

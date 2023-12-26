@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.23 22:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import os
@@ -87,7 +87,7 @@ class UI:
 
     def setup_font(self):
         """Setup UI font"""
-        path = os.path.join(self.window.core.config.get_root_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:
             print("Error loading font file {}".format(path))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 03:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import os
@@ -178,7 +178,7 @@ class Launcher:
 
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
-        self.app.setWindowIcon(QIcon(os.path.join(self.window.core.config.get_root_path(), 'data', 'icon.ico')))
+        self.app.setWindowIcon(QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico')))
         self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin=None):

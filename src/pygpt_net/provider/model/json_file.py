@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import json
@@ -32,7 +32,7 @@ class JsonFileProvider(BaseProvider):
         """
         dst = os.path.join(self.window.core.config.path, self.config_file)
         if not os.path.exists(dst):
-            src = os.path.join(self.window.core.config.get_root_path(), 'data', 'config', self.config_file)
+            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
 
     def get_version(self):

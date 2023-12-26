@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
+
 import copy
 import datetime
 import os
@@ -51,7 +52,7 @@ class Config:
         """
         self.providers[provider.id] = provider
         self.providers[provider.id].path = self.get_user_path()
-        self.providers[provider.id].path_app = self.get_root_path()
+        self.providers[provider.id].path_app = self.get_app_path()
         self.providers[provider.id].meta = self.append_meta()
         self.providers[provider.id].window = self.window
 
@@ -71,7 +72,7 @@ class Config:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def get_root_path(self):
+    def get_app_path(self):
         """
         Return app data path
 
@@ -127,7 +128,7 @@ class Config:
         :return: version string
         :rtype: str
         """
-        path = os.path.abspath(os.path.join(self.get_root_path(), '__init__.py'))
+        path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 data = f.read()
@@ -206,7 +207,7 @@ class Config:
         :rtype: list
         """
         langs = []
-        path = os.path.join(self.get_root_path(), 'data', 'locale')
+        path = os.path.join(self.get_app_path(), 'data', 'locale')
         if os.path.exists(path):
             for file in os.listdir(path):
                 if file.startswith('locale.') and file.endswith(".ini"):

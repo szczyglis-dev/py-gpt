@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 16:00:00                  #
 # ================================================== #
 
 import json
@@ -38,9 +38,9 @@ class Theme:
 
         # app area
         if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', 'highlighter.' + theme + '.json')
+            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'highlighter.' + theme + '.json')
             if not os.path.exists(path):
-                path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', 'highlighter.json')
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', 'highlighter.json')
 
         if os.path.exists(path):
             try:
@@ -82,7 +82,7 @@ class Theme:
                 path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp_css)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp_css)
                 if os.path.exists(path):
                     custom_css = tmp_css
 
@@ -92,7 +92,7 @@ class Theme:
                 path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp_css)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp_css)
                 if os.path.exists(path):
                     custom_css = tmp_css
 
@@ -279,7 +279,7 @@ class Theme:
             path = os.path.join(self.window.core.config.get_user_path(), 'css', custom_css)
             if not os.path.exists(path):
                 # check in app directory
-                path = os.path.join(self.window.core.config.get_root_path(), 'data', 'css', custom_css)
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom_css)
             if os.path.exists(path):
                 with open(path) as file:
                     self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
