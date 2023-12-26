@@ -256,34 +256,34 @@ class Theme:
         :rtype: str
         """
         # check per theme style css
-        custom_css = 'style.css'
-        if custom_css is not None:
+        filename = 'style.css'
+        if filename is not None:
             # per theme mode (light / dark)
-            tmp_css = None
+            tmp = None
             if name.startswith('light_'):
-                tmp_css = 'style.light.css'
+                tmp = 'style.light.css'
             elif name.startswith('dark_'):
-                tmp_css = 'style.dark.css'
-            if tmp_css is not None:
+                tmp = 'style.dark.css'
+            if tmp is not None:
                 # check for override in user directory
-                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp_css)
+                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp)
                 if os.path.exists(path):
-                    custom_css = tmp_css
+                    filename = tmp
 
                 # per theme name
-                tmp_css = name + '.css'
+                tmp = name + '.css'
                 # check for override in user directory
-                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp_css)
+                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp)
                 if not os.path.exists(path):
                     # check in app directory
-                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp_css)
+                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp)
                 if os.path.exists(path):
-                    custom_css = tmp_css
+                    filename = tmp
 
-        return custom_css
+        return filename
 
     def trans_theme(self, theme):
         """
