@@ -26,8 +26,6 @@ class Summarize:
         :param window: Window instance
         """
         self.window = window
-        self.thread = None
-        self.thread_started = False
 
     def summarize_ctx(self, id, ctx):
         """
