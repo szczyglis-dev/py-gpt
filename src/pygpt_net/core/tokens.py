@@ -24,7 +24,7 @@ class Tokens:
     @staticmethod
     def from_str(string, model="gpt-4"):
         """
-        Returns number of tokens from string
+        Return number of tokens from string
 
         :param string: string
         :param model: model name
@@ -217,7 +217,13 @@ class Tokens:
         return num
 
     def get_current(self):
-        """Update tokens counters"""
+        """
+        Return current number of used tokens
+
+        :return: A tuple of (input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
+               sum_tokens, max_current, threshold)
+        :rtype: tuple
+        """
         model = self.window.core.config.get('model')
         mode = self.window.core.config.get('mode')
         user_name = self.window.core.config.get('user_name')
