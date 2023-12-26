@@ -137,6 +137,10 @@ class Debug:
                 logger.error(data)
                 logger.log(level, "Exception: {}".format(str(message)), exc_info=True)
                 print(data)
+            else:
+                # any other messages
+                print("Log: {}".format(message))
+                logger.log(level, message)
         except Exception as e:
             pass
 
