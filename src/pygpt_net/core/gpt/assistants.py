@@ -12,7 +12,6 @@
 import json
 import os
 
-from openai import OpenAI
 from pygpt_net.item.assistant import AssistantItem
 
 
@@ -26,18 +25,6 @@ class Assistants:
         self.window = window
         self.file_ids = []  # file ids
 
-    def get_client(self):
-        """
-        Return OpenAI client
-
-        :return: OpenAI client
-        :rtype: OpenAI
-        """
-        return OpenAI(
-            api_key=self.window.core.config.get('api_key'),
-            organization=self.window.core.config.get('organization_key'),
-        )
-
     def thread_create(self):
         """
         Create thread
@@ -45,7 +32,7 @@ class Assistants:
         :return: thread ID
         :rtype: str
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         thread = client.beta.threads.create()
         if thread is not None:
             return thread.id
@@ -58,7 +45,7 @@ class Assistants:
         :return: thread ID
         :rtype: str
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         response = client.beta.threads.delete(id)
         if response is not None:
             return response.id
@@ -71,7 +58,7 @@ class Assistants:
         :param text: message text
         :return: message
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         additional_args = {}
         ids = []
         for file_id in self.file_ids:  # append file ids from attachments
@@ -96,7 +83,7 @@ class Assistants:
         :return: messages
         :rtype: list
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         thread_messages = client.beta.threads.messages.list(thread_id)
         return thread_messages.data
 
@@ -107,7 +94,7 @@ class Assistants:
         :param file_id: file ID
         :return: file info
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         return client.files.retrieve(file_id)
 
     def file_download(self, file_id, path):
@@ -117,7 +104,7 @@ class Assistants:
         :param file_id: file ID
         :param path: path to save file
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         content = client.files.retrieve_content(file_id)
         with open(path, 'wb', ) as f:
             f.write(content.encode())
@@ -132,7 +119,7 @@ class Assistants:
         :param instructions: instructions
         :return: Run
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         additional_args = {}
         if instructions is not None and instructions != "":
             additional_args['instructions'] = instructions
@@ -155,7 +142,7 @@ class Assistants:
         :param run_id: Run ID
         :return: Run status
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         run = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
             run_id=run_id
@@ -173,7 +160,7 @@ class Assistants:
         :return: file ID
         :rtype: str
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
 
         if not os.path.exists(path):
             return None
@@ -203,7 +190,7 @@ class Assistants:
         :return: file ID
         :rtype: str
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         deleted_file = client.beta.assistants.files.delete(
             assistant_id=assistant_id,
             file_id=file_id
@@ -220,7 +207,7 @@ class Assistants:
         :return: files list
         :rtype: list
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         assistant_files = client.beta.assistants.files.list(
             assistant_id=assistant_id,
             limit=100
@@ -236,7 +223,7 @@ class Assistants:
         :return: assistant object
         :rtype: Assistant
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         tools = self.get_tools(assistant)
         result = client.beta.assistants.create(
             instructions=assistant.instructions,
@@ -257,7 +244,7 @@ class Assistants:
         :return: assistant object
         :rtype: Assistant
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         tools = self.get_tools(assistant)
         result = client.beta.assistants.update(
             assistant.id,
@@ -279,7 +266,7 @@ class Assistants:
         :return: assistant ID
         :rtype: str
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         response = client.beta.assistants.delete(id)
         if response is not None:
             return response.id
@@ -293,7 +280,7 @@ class Assistants:
         :return: files list
         :rtype: list
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         return client.beta.assistants.files.list(
             assistant_id=id,
             limit=limit,
@@ -309,7 +296,7 @@ class Assistants:
         :return: items dict
         :rtype: dict
         """
-        client = self.get_client()
+        client = self.window.core.gpt.get_client()
         assistants = client.beta.assistants.list(
             order=order,
             limit=limit,
