@@ -233,6 +233,10 @@ class Input:
                     self.log("Calling OpenAI API...")  # log
                     ctx = self.window.core.gpt.call(text, ctx, stream_mode)
 
+                    # store context
+                    if ctx is not None:
+                        self.window.core.ctx.add(ctx)
+
                     if mode == 'assistant':
                         # get run ID and save it in ctx
                         self.window.core.ctx.append_run(ctx.run_id)

@@ -216,9 +216,11 @@ class Tokens:
 
         return num
 
-    def get_current(self):
+    def get_current(self, input_prompt):
         """
         Return current number of used tokens
+
+        :param input_prompt: input prompt
 
         :return: A tuple of (input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
                sum_tokens, max_current, threshold)
@@ -232,27 +234,25 @@ class Tokens:
         system_tokens = 0
         input_tokens = 0
         max_total_tokens = self.window.core.config.get('max_total_tokens')
-        extra_tokens = self.window.core.tokens.get_extra(model)
+        extra_tokens = self.get_extra(model)
 
         if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
-            system_tokens = self.window.core.tokens.from_prompt(system_prompt, "", model)
-            system_tokens += self.window.core.tokens.from_text("system", model)
+            system_tokens = self.from_prompt(system_prompt, "", model)
+            system_tokens += self.from_text("system", model)
 
             # input prompt
-            input_prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
-            input_tokens = self.window.core.tokens.from_prompt(input_prompt, "", model)
-            input_tokens += self.window.core.tokens.from_text("user", model)
+            input_tokens = self.from_prompt(input_prompt, "", model)
+            input_tokens += self.from_text("user", model)
         elif mode == "completion":
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
-            system_tokens = self.window.core.tokens.from_text(system_prompt, model)
+            system_tokens = self.from_text(system_prompt, model)
 
             # input prompt
-            input_prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
             message = ""
             if user_name is not None \
                     and ai_name is not None \
@@ -262,7 +262,7 @@ class Tokens:
                 message += "\n" + ai_name + ":"
             else:
                 message += "\n" + str(input_prompt)
-            input_tokens = self.window.core.tokens.from_text(message, model)
+            input_tokens = self.from_text(message, model)
             extra_tokens = 0  # no extra tokens in completion mode
 
         # used tokens
@@ -306,16 +306,16 @@ class Tokens:
         mode = self.window.core.config.get('mode')
         tokens = 0
         if mode == "chat" or mode == "vision":
-            tokens += self.window.core.tokens.from_prompt(system_prompt, "", model)  # system prompt
-            tokens += self.window.core.tokens.from_text("system", model)
-            tokens += self.window.core.tokens.from_prompt(input_prompt, "", model)  # input prompt
-            tokens += self.window.core.tokens.from_text("user", model)
+            tokens += self.from_prompt(system_prompt, "", model)  # system prompt
+            tokens += self.from_text("system", model)
+            tokens += self.from_prompt(input_prompt, "", model)  # input prompt
+            tokens += self.from_text("user", model)
         else:
             # rest of modes
-            tokens += self.window.core.tokens.from_text(system_prompt, model)  # system prompt
-            tokens += self.window.core.tokens.from_text(input_prompt, model)  # input prompt
+            tokens += self.from_text(system_prompt, model)  # system prompt
+            tokens += self.from_text(input_prompt, model)  # input prompt
         tokens += self.window.core.config.get('context_threshold')  # context threshold (reserved for output)
-        tokens += self.window.core.tokens.get_extra(model)  # extra tokens (required for output)
+        tokens += self.get_extra(model)  # extra tokens (required for output)
         return tokens
 
     @staticmethod

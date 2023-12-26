@@ -28,8 +28,6 @@ class Launcher:
 
     def setup(self):
         """Setup launcher"""
-
-        self.window.core.gpt.init()
         self.window.core.image.init()
         self.window.controller.settings.update_font_size()
 

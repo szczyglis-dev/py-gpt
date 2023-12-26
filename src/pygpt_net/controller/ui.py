@@ -48,8 +48,9 @@ class UI:
 
     def update_tokens(self):
         """Update tokens counter in real-time"""
+        prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
         input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
-        sum_tokens, max_current, threshold = self.window.core.tokens.get_current()
+        sum_tokens, max_current, threshold = self.window.core.tokens.get_current(prompt)
 
         # ctx tokens
         ctx_string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
