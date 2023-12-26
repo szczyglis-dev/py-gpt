@@ -85,7 +85,7 @@ class Plugin(BasePlugin):
         :rtype: str
         """
         if not silent:
-            self.debug("Plugin: real_time:on_system_prompt [before]: {}".format(prompt))  # log
+            self.debug("Plugin: real_time:on_system_prompt [before]: " + str(prompt))  # log
 
         if self.get_option_value("hour") or self.get_option_value("date"):
             if self.get_option_value("hour") and self.get_option_value("date"):
@@ -96,5 +96,5 @@ class Plugin(BasePlugin):
                 prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d'))
 
         if not silent:
-            self.debug("Plugin: real_time:on_system_prompt [after]: {}".format(prompt))  # log
+            self.debug("Plugin: real_time:on_system_prompt [after]: " + str(prompt))  # log
         return prompt

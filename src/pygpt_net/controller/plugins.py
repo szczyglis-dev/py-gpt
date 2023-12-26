@@ -268,7 +268,7 @@ class Plugins:
             event = Event('enable', {
                 'value': id,
             })
-            self.window.dispatch(event)
+            self.window.app.dispatcher.dispatch(event)
 
             self.window.app.config.data['plugins_enabled'][id] = True
             self.window.app.config.save()
@@ -295,7 +295,7 @@ class Plugins:
             event = Event('disable', {
                 'value': id,
             })
-            self.window.dispatch(event)
+            self.window.app.dispatcher.dispatch(event)
 
             self.window.app.config.data['plugins_enabled'][id] = False
             self.window.app.config.save()

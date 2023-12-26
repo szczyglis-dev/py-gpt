@@ -94,9 +94,10 @@ class Debug:
             """
             Handle uncaught exception
             """
+            logger = logging.getLogger()
             if not hasattr(logging, '_is_handling_exception'):
                 logging._is_handling_exception = True
-                logging.error("Uncaught exception:", exc_info=(exc_type, value, tb))
+                logger.error("Uncaught exception:", exc_info=(exc_type, value, tb))
                 traceback.print_exception(exc_type, value, tb)
                 del logging._is_handling_exception  # remove flag when done
             else:
@@ -110,12 +111,13 @@ class Debug:
 
         :param error: error object
         """
+        logger = logging.getLogger()
         # if error is only string then log and print it
         if not isinstance(error, Exception):
             print("Error: {}".format(str(error)))
             data = f"MSG: {error}\n"
             print(data)
-            logging.error(data)
+            logger.error(data)
             return
 
         etype, value, tb = sys.exc_info()
@@ -129,7 +131,7 @@ class Debug:
                f"{value}\n" \
                f"Traceback:\n{formatted_traceback}"
 
-        logging.error(data)
+        logger.error(data)
         print("Error: {}".format(str(error)))
         print(data)
 

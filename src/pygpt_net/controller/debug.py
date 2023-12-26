@@ -85,7 +85,7 @@ class Debug:
             self.window.app.debug.active[id] = True
             self.window.app.debug.update(True)
 
-        self.window.log('debug.' + id + ' toggled')
+        self.log('debug.' + id + ' toggled')
 
         # update menu
         self.update()

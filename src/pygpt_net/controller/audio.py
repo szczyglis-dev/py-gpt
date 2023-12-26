@@ -28,7 +28,7 @@ class Audio:
     def toggle_input(self, state, btn=True):
         """Toggle audio/voice"""
         event = Event('audio.input.toggle', {"value": state})
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
 
     def toggle_output(self):
         """Toggle audio/voice"""
@@ -64,12 +64,12 @@ class Audio:
     def stop_input(self):
         """Stop audio/voice"""
         event = Event('audio.input.stop', {"value": True})
-        self.window.dispatch(event, True)
+        self.window.app.dispatcher.dispatch(event, True)
 
     def stop_output(self):
         """Stop audio/voice"""
         event = Event('audio.output.stop', {"value": True})
-        self.window.dispatch(event, True)
+        self.window.app.dispatcher.dispatch(event, True)
 
     def update(self):
         """Update UI and listeners"""

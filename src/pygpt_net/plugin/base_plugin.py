@@ -11,8 +11,6 @@
 
 from pygpt_net.utils import trans
 
-from PySide6.QtCore import QCoreApplication, QThread
-
 
 class BasePlugin:
     def __init__(self):
@@ -166,7 +164,4 @@ class BasePlugin:
 
         :param data: data to send
         """
-        if QCoreApplication.instance().thread() == QThread.currentThread():
-            self.window.log(data, True)
-        else:
-            self.window.log(data, False)
+        self.window.controller.debug.log(data, True)

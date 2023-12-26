@@ -309,19 +309,21 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def update_name(self, id, name):
+    def update_name(self, id, name, close=True):
         """
         Update ctx name
 
         :param id: context id
         :param name: context name
+        :param close: close dialog
         """
         if id not in self.window.app.ctx.meta:
             return
         self.window.app.ctx.meta[id].name = name
         self.window.app.ctx.set_initialized()
         self.window.app.ctx.save(id)
-        self.window.ui.dialog['rename'].close()
+        if close:
+            self.window.ui.dialog['rename'].close()
         self.update()
 
     def dismiss_rename(self):

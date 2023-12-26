@@ -81,24 +81,24 @@ class Input:
         self.window.set_status(trans('status.sending'))
 
         # prepare names
-        self.window.log("User name: {}".format(self.window.app.config.get('user_name')))  # log
-        self.window.log("AI name: {}".format(self.window.app.config.get('ai_name')))  # log
+        self.log("User name: {}".format(self.window.app.config.get('user_name')))  # log
+        self.log("AI name: {}".format(self.window.app.config.get('ai_name')))  # log
 
         # dispatch events
         event = Event('user.name', {
             'value': self.window.app.config.get('user_name'),
         })
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
         user_name = event.data['value']
 
         event = Event('ai.name', {
             'value': self.window.app.config.get('ai_name'),
         })
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
         ai_name = event.data['value']
 
-        self.window.log("User name [after plugin: user_name]: {}".format(self.window.app.config.get('user_name')))  # log
-        self.window.log("AI name [after plugin: ai_name]: {}".format(self.window.app.config.get('ai_name')))  # log
+        self.log("User name [after plugin: user_name]: {}".format(self.window.app.config.get('user_name')))  # log
+        self.log("AI name [after plugin: ai_name]: {}".format(self.window.app.config.get('ai_name')))  # log
 
         # get mode
         mode = self.window.app.config.get('mode')
@@ -153,16 +153,16 @@ class Input:
             self.window.app.gpt.thread_id = ctx.thread
 
         # log
-        self.window.log("Context: input: {}".format(self.window.app.ctx.dump(ctx)))
+        self.log("Context: input: {}".format(self.window.app.ctx.dump(ctx)))
 
         # dispatch event
         event = Event('ctx.before')
         event.ctx = ctx
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
 
         # log
-        self.window.log("Context: input [after plugin: ctx.before]: {}".format(self.window.app.ctx.dump(ctx)))
-        self.window.log("System: {}".format(self.window.app.gpt.system_prompt))
+        self.log("Context: input [after plugin: ctx.before]: {}".format(self.window.app.ctx.dump(ctx)))
+        self.log("System: {}".format(self.window.app.gpt.system_prompt))
 
         # apply cfg, plugins
         self.window.app.gpt.user_name = ctx.input_name
@@ -177,7 +177,9 @@ class Input:
         event = Event('system.prompt', {
             'value': sys_prompt,
         })
-        self.window.dispatch(event)
+
+        self.window.app.dispatcher.dispatch(event)
+
         sys_prompt = event.data['value']
 
         # if commands enabled: append commands prompt
@@ -189,7 +191,7 @@ class Input:
             }
             # dispatch event
             event = Event('cmd.syntax', data)
-            self.window.dispatch(event)
+            self.window.app.dispatcher.dispatch(event)
             sys_prompt = self.window.app.command.append_syntax(event.data)
             self.window.app.gpt.system_prompt = sys_prompt
 
@@ -198,10 +200,10 @@ class Input:
         self.window.app.chain.system_prompt = sys_prompt
 
         # log
-        self.window.log("System [after plugin: system.prompt]: {}".format(self.window.app.gpt.system_prompt))
-        self.window.log("User name: {}".format(self.window.app.gpt.user_name))
-        self.window.log("AI name: {}".format(self.window.app.gpt.ai_name))
-        self.window.log("Appending input to chat window...")
+        self.log("System [after plugin: system.prompt]: {}".format(self.window.app.gpt.system_prompt))
+        self.log("User name: {}".format(self.window.app.gpt.user_name))
+        self.log("AI name: {}".format(self.window.app.gpt.ai_name))
+        self.log("Appending input to chat window...")
 
         # append input to chat window
         self.window.controller.output.append_input(ctx)
@@ -225,10 +227,10 @@ class Input:
                 self.lock_input()
 
                 if mode == "langchain":
-                    self.window.log("Calling LangChain...")  # log
+                    self.log("Calling LangChain...")  # log
                     ctx = self.window.app.chain.call(text, ctx, stream_mode)
                 else:
-                    self.window.log("Calling OpenAI API...")  # log
+                    self.log("Calling OpenAI API...")  # log
                     ctx = self.window.app.gpt.call(text, ctx, stream_mode)
 
                     if mode == 'assistant':
@@ -239,15 +241,15 @@ class Input:
                         self.window.controller.assistant_thread.handle_run(ctx)
 
                 if ctx is not None:
-                    self.window.log("Context: output: {}".format(self.window.app.ctx.dump(ctx)))  # log
+                    self.log("Context: output: {}".format(self.window.app.ctx.dump(ctx)))  # log
                 else:
                     # error in call if ctx is None
-                    self.window.log("Context: output: None")
+                    self.log("Context: output: None")
                     self.window.ui.dialogs.alert(trans('status.error'))
                     self.window.set_status(trans('status.error'))
 
             except Exception as e:
-                self.window.log("GPT output error: {}".format(e))  # log
+                self.log("GPT output error: {}".format(e))  # log
                 print("Error in send text (GPT call): " + str(e))
                 self.window.app.debug.log(e)
                 self.window.ui.dialogs.alert(str(e))
@@ -258,7 +260,7 @@ class Input:
                 self.window.controller.output.handle_response(ctx, mode, stream_mode)
 
         except Exception as e:
-            self.window.log("Output error: {}".format(e))  # log
+            self.log("Output error: {}".format(e))  # log
             print("Error sending text: " + str(e))
             self.window.app.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
@@ -290,7 +292,7 @@ class Input:
         event = Event('user.send', {
             'value': text,
         })
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
         text = event.data['value']
         self.send(text)
 
@@ -347,16 +349,16 @@ class Input:
         if text is None:
             text = self.window.ui.nodes['input'].toPlainText().strip()
 
-        self.window.log("Input text: {}".format(text))  # log
+        self.log("Input text: {}".format(text))  # log
 
         # dispatch event
         event = Event('input.before', {
             'value': text,
         })
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
         text = event.data['value']
 
-        self.window.log("Input text [after plugin: input.before]: {}".format(text))  # log
+        self.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
         # allow empty input only for vision mode
         if len(text.strip()) > 0 \
@@ -374,15 +376,11 @@ class Input:
                     self.generating = False
                     return
 
-            # init api key if defined later
-            self.window.app.gpt.init()
-            self.window.app.image.init()
-
             # prepare context, create new ctx if there is no contexts yet (first run)
             if len(self.window.app.ctx.meta) == 0:
                 self.window.app.ctx.new()
                 self.window.controller.ctx.update()
-                self.window.log("New context created...")  # log
+                self.log("New context created...")  # log
             else:
                 # check if current context is allowed for this mode, if now then create new
                 self.window.controller.ctx.handle_allowed(mode)
@@ -406,24 +404,20 @@ class Input:
             self.window.controller.attachment.update()
 
         if ctx is not None:
-            self.window.log("Context: output: {}".format(self.window.app.ctx.dump(ctx)))  # log
+            self.log("Context: output: {}".format(self.window.app.ctx.dump(ctx)))  # log
 
             # dispatch event
             event = Event('ctx.end')
             event.ctx = ctx
-            self.window.dispatch(event)
+            self.window.app.dispatcher.dispatch(event)
 
-            self.window.log("Context: output [after plugin: ctx.end]: {}".
+            self.log("Context: output [after plugin: ctx.end]: {}".
                             format(self.window.app.ctx.dump(ctx)))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 
             # from v.2.0.41: reply from commands in now handled in async thread!
             # if ctx.reply:
             #   self.send(json.dumps(ctx.results))
-
-            self.generating = False
-            self.window.controller.ui.update()  # update UI
-            return
 
         self.generating = False  # unlock as not generating
         self.window.controller.ui.update()  # update UI
@@ -490,7 +484,7 @@ class Input:
         """
         event = Event('audio.input.toggle', {"value": False})
         self.window.controller.assistant_thread.force_stop = True
-        self.window.dispatch(event)  # stop audio input
+        self.window.app.dispatcher.dispatch(event)  # stop audio input
         self.force_stop = True
         self.window.app.gpt.stop()
         self.unlock_input()
@@ -527,6 +521,10 @@ class Input:
             if sep:  # New line if LF
                 cur.insertBlock()
         self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
+
+
+    def log(self, data):
+        self.window.controller.debug.log(data, True)
 
 
 class SendThread(QObject):

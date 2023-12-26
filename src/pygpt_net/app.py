@@ -43,7 +43,7 @@ from pygpt_net.llm.Ollama import OllamaLLM
 from pygpt_net.llm.OpenAI import OpenAILLM
 
 
-Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
+Debug.init(DEBUG)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -53,8 +53,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         """Main window"""
         super().__init__()
         self.timer = None
-        self.timer_interval = 30
+        self.post_timer = None
+        self.threadpool = None
         self.is_closing = False
+        self.timer_interval = 30
 
         # load version info
         self.meta = get_app_meta()
@@ -78,28 +80,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
                             format(self.meta['version'], self.meta['build']))
 
-        self.threadpool = QThreadPool()  # max -> self.threadpool.maxThreadCount()
-
         # setup global signals
         self.statusChanged.connect(self.update_status)
-
-    def log(self, data, window=True):
-        """
-        Log data to logger and console
-
-        :param data: content to log
-        :param window: log to window
-        """
-        self.controller.debug.log(data, window)
-
-    def dispatch(self, event, all=False):
-        """
-        Dispatch event to plugins and other listeners
-
-        :param event: event object
-        :param all: dispatch to all listeners (plugins, etc.)
-        """
-        self.app.dispatcher.dispatch(event, all)
 
     def add_plugin(self, plugin):
         """
@@ -122,16 +104,17 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.setup()
         self.controller.plugins.setup()
         self.controller.post_setup()
+
+    def post_setup(self):
+        """Called after setup"""
+        self.threadpool = QThreadPool()  # max -> self.threadpool.maxThreadCount()
+        self.controller.layout.post_setup()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)
         self.timer.start(self.timer_interval)
         self.post_timer = QTimer()
         self.post_timer.timeout.connect(self.post_update)
         self.post_timer.start(1000)
-
-    def post_setup(self):
-        """Called after setup"""
-        self.controller.layout.post_setup()
 
     def post_update(self):
         """Called on post-update (slow)"""
@@ -167,7 +150,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.is_closing = True
         print("Closing...")
         print("Sending terminate signal to plugins...")
-        #self.controller.plugins.destroy()
+        self.controller.plugins.destroy()
         print("Saving notepad...")
         self.controller.notepad.save_all()
         print("Saving layout state...")
@@ -180,6 +163,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Saving presets...")
         self.app.presets.save_all()
         print("Exiting...")
+        event.accept()
 
 
 class Launcher:
@@ -216,17 +200,14 @@ class Launcher:
     def run(self):
         """Run app"""
         margin = 50
-        try:
-            self.window.setup()
-            available_geometry = self.window.screen().availableGeometry()
-            pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
-            self.window.resize(available_geometry.width() - margin, available_geometry.height() - margin)
-            self.window.show()
-            self.window.move(pos)
-            self.window.post_setup()
-            sys.exit(self.app.exec())
-        except SystemExit:
-            print("Closing...")
+        self.window.setup()
+        available_geometry = self.window.screen().availableGeometry()
+        pos = QScreen.availableGeometry(QApplication.primaryScreen()).topLeft()
+        self.window.resize(available_geometry.width() - margin, available_geometry.height() - margin)
+        self.window.show()
+        self.window.move(pos)
+        self.window.post_setup()
+        sys.exit(self.app.exec())
 
 
 def run(plugins=None, llms=None):

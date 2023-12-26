@@ -156,7 +156,7 @@ class Output:
         if ctx is not None and self.window.app.config.get('cmd'):
             cmds = self.window.app.command.extract_cmds(ctx.output)
             if len(cmds) > 0:
-                self.window.log("Executing commands...")
+                self.window.controller.debug.log("Executing commands...")
                 self.window.set_status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)
 
@@ -189,7 +189,7 @@ class Output:
             # read stream
             try:
                 if ctx.stream is not None:
-                    self.window.log("Reading stream...")  # log
+                    self.window.controller.debug.log("Reading stream...")  # log
                     for chunk in ctx.stream:
                         # if force stop then break
                         if self.window.controller.input.force_stop:
@@ -228,13 +228,13 @@ class Output:
             except Exception as e:
                 self.window.app.debug.log(e)
                 # debug
-                # self.window.log("Stream error: {}".format(e))  # log
+                # self.window.controller.debug.log("Stream error: {}".format(e))  # log
                 # print("Error in stream: " + str(e))
                 # self.window.ui.dialogs.alert(str(e))
                 pass
 
             self.append("\n")  # append EOL
-            self.window.log("End of stream.")  # log
+            self.window.controller.debug.log("End of stream.")  # log
 
             # update ctx
             if ctx is not None:
@@ -248,12 +248,12 @@ class Output:
             # dispatch event
             event = Event('ctx.after')
             event.ctx = ctx
-            self.window.dispatch(event)
+            self.window.app.dispatcher.dispatch(event)
 
         # log
         if ctx is not None:
-            self.window.log("Context: output [after plugin: ctx.after]: {}".format(self.window.app.ctx.dump(ctx)))
-            self.window.log("Appending output to chat window...")
+            self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".format(self.window.app.ctx.dump(ctx)))
+            self.window.controller.debug.log("Appending output to chat window...")
 
             # only append output if not in async stream mode, TODO: plugin output add
             if not stream_mode:
@@ -295,4 +295,4 @@ class Output:
             all = True
             event = Event('audio.read_text')  # to all plugins (even if disabled)
         event.ctx = ctx
-        self.window.dispatch(event, all)
+        self.window.app.dispatcher.dispatch(event, all)

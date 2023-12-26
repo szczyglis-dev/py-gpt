@@ -54,7 +54,7 @@ class UI:
             'value': prompt,
             'silent': True,
         })
-        self.window.dispatch(event)
+        self.window.app.dispatcher.dispatch(event)
         prompt = event.data['value']
 
         if self.window.app.config.get('cmd'):
@@ -68,7 +68,7 @@ class UI:
             }
             # tmp dispatch event: cmd.syntax
             event = Event('cmd.syntax', data)
-            self.window.dispatch(event)
+            self.window.app.dispatcher.dispatch(event)
             prompt = self.window.app.command.append_syntax(event.data)
 
         return prompt
