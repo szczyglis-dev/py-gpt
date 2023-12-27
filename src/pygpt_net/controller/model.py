@@ -37,6 +37,16 @@ class Model:
         # update all layout
         self.window.controller.ui.update()
 
+    def set(self, mode, model):
+        """
+        Set model
+
+        :param mode: mode name
+        :param model: model name
+        """
+        self.window.core.config.set('model', model)
+        self.window.core.config.data['current_model'][mode] = model
+
     def set_by_idx(self, mode, idx):
         """
         Set model by index
@@ -45,16 +55,6 @@ class Model:
         :param idx: model index
         """
         model = self.window.core.models.get_by_idx(idx, mode)
-        self.window.core.config.set('model', model)
-        self.window.core.config.data['current_model'][mode] = model
-
-    def set_model(self, mode, model):
-        """
-        Set model
-
-        :param mode: mode name
-        :param model: model name
-        """
         self.window.core.config.set('model', model)
         self.window.core.config.data['current_model'][mode] = model
 

@@ -35,9 +35,9 @@ class Mode:
         if self.change_locked():
             return
         mode = self.window.core.modes.get_by_idx(idx)
-        self.set_mode(mode)
+        self.set(mode)
 
-    def set_mode(self, mode):
+    def set(self, mode):
         """
         Set mode
 

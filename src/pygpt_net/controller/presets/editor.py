@@ -200,20 +200,20 @@ class Editor:
 
         # save file
         self.window.core.presets.save(id)
-        self.window.controller.presets.update_presets()
+        self.window.controller.presets.update_all()
 
         # close dialog
         self.window.ui.dialogs.close('editor.preset.presets')
         self.window.set_status(trans('status.preset.saved'))
 
         # switch to editing preset
-        self.window.controller.presets.set_preset(mode, id)
+        self.window.controller.presets.set(mode, id)
 
         # sort by name
         self.window.core.presets.sort_by_name()
 
         # update list
-        self.window.controller.presets.update_presets()
+        self.window.controller.presets.update_all()
 
     def assign_data(self, id):
         """
