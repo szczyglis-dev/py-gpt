@@ -286,7 +286,7 @@ class Assistants:
             limit=limit,
         )
 
-    def import_assistants(self, items, order="asc", limit=100):
+    def import_api(self, items, order="asc", limit=100):
         """
         Import assistants from API
 

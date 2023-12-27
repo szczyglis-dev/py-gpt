@@ -122,7 +122,7 @@ class Editor:
 
         # update in API
         if not created:
-            self.window.controller.assistant.assistant_update(assistant)
+            self.window.controller.assistant.update_data(assistant)
 
         # save file
         self.window.core.assistants.save()

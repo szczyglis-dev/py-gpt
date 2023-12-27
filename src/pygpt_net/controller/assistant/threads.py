@@ -41,7 +41,7 @@ class Threads:
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
 
-    def handle_run_messages(self, ctx):
+    def handle_messages(self, ctx):
         """
         Handle run messages
 
@@ -51,7 +51,7 @@ class Threads:
         for msg in data:
             if msg.role == "assistant":
                 ctx.set_output(msg.content[0].text.value)
-                self.window.controller.assistant.files.handle_message_files(msg)
+                self.window.controller.assistant.files.handle_received(msg)
                 self.window.controller.output.handle_response(ctx, 'assistant', False)
                 self.window.controller.output.handle_commands(ctx)
                 break
@@ -84,7 +84,7 @@ class Threads:
             self.window.controller.input.unlock_input()  # unlock input
         if status == "completed":
             self.force_stop = False
-            self.handle_run_messages(ctx)
+            self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
         elif status == "failed":
             self.force_stop = False

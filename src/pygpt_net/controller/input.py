@@ -113,11 +113,11 @@ class Input:
             try:
                 # it uploads only new attachments (not uploaded before to remote)
                 attachments = self.window.core.attachments.get_all(mode)
-                c = self.window.controller.assistant.files.count_upload_attachments(attachments)
+                c = self.window.controller.assistant.files.count_upload(attachments)
                 if c > 0:
                     is_upload = True
                     self.window.set_status(trans('status.uploading'))
-                    num_uploaded = self.window.controller.assistant.files.upload_attachments(mode, attachments)
+                    num_uploaded = self.window.controller.assistant.files.upload(mode, attachments)
                     self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
                 # show uploaded status
                 if is_upload and num_uploaded > 0:

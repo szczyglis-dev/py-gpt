@@ -43,7 +43,7 @@ class Assistant:
         """
         if update_list:
             self.update_list()
-        self.window.controller.assistant.files.update_uploaded()
+        self.window.controller.assistant.files.update_list()
         self.select_current()
 
     def update_list(self):
@@ -125,7 +125,7 @@ class Assistant:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def assistant_update(self, assistant):
+    def update_data(self, assistant):
         """
         Update assistant
         """
@@ -136,7 +136,7 @@ class Assistant:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def import_assistants(self, force=False):
+    def import_api(self, force=False):
         """
         Import all remote assistants from API
 
@@ -150,7 +150,7 @@ class Assistant:
         try:
             # import assistants
             items = self.window.core.assistants.get_all()
-            self.window.core.gpt.assistants.import_assistants(items)
+            self.window.core.gpt.assistants.import_api(items)
             self.window.core.assistants.items = items
             self.window.core.assistants.save()
 

@@ -49,9 +49,9 @@ class Attachment:
         mode = self.window.core.config.get('mode')
         items = self.window.core.attachments.get_all(mode)
         self.window.ui.chat.input.attachments.update(items)
-        self.update_tab_label(mode)
+        self.update_tab(mode)
 
-    def update_tab_label(self, mode):
+    def update_tab(self, mode):
         """
         Update tab label
 
@@ -138,7 +138,7 @@ class Attachment:
         if self.window.core.config.get('mode') == 'assistant':
             assistant_id = self.window.core.config.get('assistant')
             if assistant_id is not None:
-                self.window.controller.assistant.files.update_file_name(file_id, name)
+                self.window.controller.assistant.files.update_name(file_id, name)
 
         # close rename dialog and update attachments list
         self.window.ui.dialog['rename'].close()
@@ -194,7 +194,7 @@ class Attachment:
                     if assistant_id is not None:
                         assistant = self.window.core.assistants.get_by_id(assistant_id)
                         if assistant is not None:
-                            self.window.controller.assistant.files.append_attachment(assistant, attachment)
+                            self.window.controller.assistant.files.append(assistant, attachment)
 
             # save attachments and update attachments list
             self.window.core.attachments.save()

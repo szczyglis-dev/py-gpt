@@ -27,9 +27,9 @@ class Files:
         """
         Update assistants files list
         """
-        self.update_uploaded()
+        self.update_list()
 
-    def select_file(self, idx):
+    def select(self, idx):
         """
         Select file
 
@@ -44,7 +44,7 @@ class Files:
         self.window.core.assistants.current_file = \
             self.window.core.assistants.get_file_id_by_idx(assistant, idx)
 
-    def count_upload_attachments(self, attachments):
+    def count_upload(self, attachments):
         """
         Count attachments for upload
 
@@ -61,7 +61,7 @@ class Files:
 
     def import_files(self, assistant):
         """
-        Import assistant files
+        Import assistant files from API
 
         :param assistant: assistant
         """
@@ -76,7 +76,7 @@ class Files:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def download_file(self, idx):
+    def download(self, idx):
         """
         Download file
 
@@ -95,7 +95,7 @@ class Files:
         # download file
         self.window.controller.attachment.download(file_id)
 
-    def sync_files(self, force=False):
+    def sync(self, force=False):
         """
         Sync files with API
 
@@ -118,7 +118,7 @@ class Files:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def rename_file(self, idx):
+    def rename(self, idx):
         """
         Rename file
 
@@ -146,7 +146,15 @@ class Files:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def update_file_name(self, file_id, name):
+    def rename_close(self):
+        """
+        Close rename dialog
+        """
+        # close rename dialog and update attachments list
+        self.window.ui.dialog['rename'].close()
+        self.update()
+
+    def update_name(self, file_id, name):
         """
         Rename uploaded remote file name
 
@@ -155,22 +163,14 @@ class Files:
         """
         id = self.window.core.config.get('assistant')
         if id is None or id == "":
-            self.close_rename_file()
+            self.rename_close()
             return
         assistant = self.window.core.assistants.get_by_id(id)
         if assistant is None:
-            self.close_rename_file()
+            self.rename_close()
             return
         self.window.core.assistants.rename_file(assistant, file_id, name)
-        self.close_rename_file()
-
-    def close_rename_file(self):
-        """
-        Close rename dialog
-        """
-        # close rename dialog and update attachments list
-        self.window.ui.dialog['rename'].close()
-        self.update()
+        self.rename_close()
 
     def clear_files(self, force=False):
         """
@@ -207,7 +207,7 @@ class Files:
             self.window.core.assistants.save()
             self.update()
 
-    def delete_file(self, idx, force=False):
+    def delete(self, idx, force=False):
         """
         Delete file
 
@@ -264,7 +264,7 @@ class Files:
         self.window.core.assistants.save()
         self.update()
 
-    def upload_attachments(self, mode, attachments):
+    def upload(self, mode, attachments):
         """
         Upload attachments to assistant
 
@@ -322,22 +322,22 @@ class Files:
 
         # update uploaded list
         if num > 0:
-            self.update_uploaded()  # update uploaded list UI
+            self.update_list()  # update uploaded list UI
 
         return num
 
-    def append_attachment(self, assistant, attachment):
+    def append(self, assistant, attachment):
         """
         Append attachment to assistant
 
-        :param attachment: attachment
         :param assistant: assistant object
+        :param attachment: attachment object
         """
         # get current chosen assistant
         assistant.add_attachment(attachment)  # append attachment
         self.window.core.assistants.save()  # save assistants
 
-    def update_uploaded(self):
+    def update_list(self):
         """Update uploaded files list"""
         assistant_id = self.window.core.config.get('assistant')
         if assistant_id is None or assistant_id == "":
@@ -345,9 +345,9 @@ class Files:
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         items = assistant.files
         self.window.ui.chat.input.attachments_uploaded.update(items)
-        self.update_tab_label()
+        self.update_tab()
 
-    def update_tab_label(self):
+    def update_tab(self):
         """
         Update tab label (attachments uploaded)
         """
@@ -366,9 +366,9 @@ class Files:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
-    def handle_message_files(self, msg):
+    def handle_received(self, msg):
         """
-        Handle (download) message files
+        Handle (download) received message files
 
         :param msg: message
         """

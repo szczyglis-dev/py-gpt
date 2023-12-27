@@ -56,7 +56,7 @@ class Assistants:
         # import
         self.window.ui.nodes['assistants.import'] = QPushButton(trans('assistant.import'))
         self.window.ui.nodes['assistants.import'].clicked.connect(
-            lambda: self.window.controller.assistant.import_assistants())
+            lambda: self.window.controller.assistant.import_api())
 
         # label
         self.window.ui.nodes['assistants.label'] = QLabel(trans("toolbox.assistants.label"))
