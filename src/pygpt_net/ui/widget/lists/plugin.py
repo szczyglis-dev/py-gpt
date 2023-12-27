@@ -37,4 +37,4 @@ class PluginList(BaseList):
 
         :param val: double click event
         """
-        self.window.controller.presets.edit(val.row())
+        self.window.controller.presets.editor.edit(val.row())

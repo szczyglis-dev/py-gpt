@@ -34,7 +34,7 @@ class OptionInputInline(QLineEdit):
         :param event: key event
         """
         super(OptionInputInline, self).keyPressEvent(event)
-        self.window.controller.settings.apply(self.id, self.text(), 'input', self.section)
+        self.window.controller.settings.editor.apply(self.id, self.text(), 'input', self.section)
 
 
 class OptionInput(QLineEdit):
@@ -63,4 +63,4 @@ class OptionInput(QLineEdit):
         if not self.autoupdate:
             return
         self.window.controller.ui.update()
-        self.window.controller.settings.change(self.id, self.text(), self.section)
+        self.window.controller.settings.editor.change(self.id, self.text(), self.section)

@@ -6,18 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 import datetime
 import os
-import re
 
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.utils import trans
 
 
-class Presets:
+class Editor:
     def __init__(self, window=None):
         """
         Presets controller
@@ -141,18 +140,6 @@ class Presets:
         # set focus to name field
         self.window.ui.config_option['preset.name'].setFocus()
 
-    def make_preset_filename(self, name):
-        """
-        Make preset filename from name
-
-        :param name: preset name
-        :return: preset filename
-        :rtype: str
-        """
-        filename = name.lower()
-        filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
-        return filename
-
     def save(self, force=False):
         """
         Save preset
@@ -174,7 +161,7 @@ class Presets:
                 self.window.set_status(trans('status.preset.empty_id'))
                 return
             # generate new filename
-            id = self.make_preset_filename(name)
+            id = self.window.controller.presets.make_preset_filename(name)
             # check if not exists
             path = os.path.join(self.window.core.config.path, 'presets', id + '.json')
             if os.path.exists(path) and not force:
@@ -183,7 +170,7 @@ class Presets:
             is_created = True
 
         # validate filename
-        id = self.validate_filename(id)
+        id = self.window.controller.presets.validate_filename(id)
         if id not in self.window.core.presets.items:
             self.window.core.presets.items[id] = PresetItem()
         elif not force:
@@ -253,74 +240,6 @@ class Presets:
         self.window.core.presets.items[id].assistant = self.window.ui.config_option[
             'preset.assistant'].box.isChecked()
 
-    def duplicate(self, idx=None):
-        """
-        Duplicate preset
-
-        :param idx: preset index (row index)
-        """
-        if idx is not None:
-            mode = self.window.core.config.get('mode')
-            preset = self.window.core.presets.get_by_idx(idx, mode)
-            if preset is not None and preset != "":
-                if preset in self.window.core.presets.items:
-                    new_id = self.window.core.presets.duplicate(preset)
-                    self.window.core.config.set('preset', new_id)
-                    self.window.controller.model.update_presets()
-                    idx = self.window.core.presets.get_idx_by_id(mode, new_id)
-                    self.edit(idx)
-                    self.window.set_status(trans('status.preset.duplicated'))
-
-    def clear(self, force=False):
-        """
-        Clear preset data
-
-        :param force: force clear data
-        """
-        preset = self.window.core.config.get('preset')
-
-        if not force:
-            self.window.ui.dialogs.confirm('preset_clear', '', trans('confirm.preset.clear'))
-            return
-
-        self.window.core.config.set('prompt', "")
-        self.window.core.config.set('ai_name', "")
-        self.window.core.config.set('user_name', "")
-        self.window.core.config.set('temperature', 1.0)
-
-        if preset is not None and preset != "":
-            if preset in self.window.core.presets.items:
-                self.window.core.presets.items[preset].ai_name = ""
-                self.window.core.presets.items[preset].user_name = ""
-                self.window.core.presets.items[preset].prompt = ""
-                self.window.core.presets.items[preset].temperature = 1.0
-                self.window.controller.model.update_presets()
-
-        self.window.set_status(trans('status.preset.cleared'))
-
-    def delete(self, idx=None, force=False):
-        """
-        Delete preset
-
-        :param idx: preset index (row index)
-        :param force: force delete without confirmation
-        """
-        if idx is not None:
-            mode = self.window.core.config.get('mode')
-            preset = self.window.core.presets.get_by_idx(idx, mode)
-            if preset is not None and preset != "":
-                if preset in self.window.core.presets.items:
-                    # if exists then show confirmation dialog
-                    if not force:
-                        self.window.ui.dialogs.confirm('preset_delete', idx, trans('confirm.preset.delete'))
-                        return
-
-                    if preset == self.window.core.config.get('preset'):
-                        self.window.core.config.set('preset', None)
-                    self.window.core.presets.remove(preset, True)
-                    self.window.controller.model.update_presets()
-                    self.window.set_status(trans('status.preset.deleted'))
-
     def from_current(self):
         """Load from current prompt"""
         self.config_change('preset.ai_name', self.window.core.config.get('ai_name'), 'preset.editor')
@@ -329,21 +248,6 @@ class Presets:
         self.config_change('preset.prompt', self.window.core.config.get('prompt'), 'preset.editor')
         self.config_slider('preset.temperature', self.window.core.config.get('temperature'), '',
                            'preset.editor')
-
-    def use(self):
-        """Copy preset prompt to input"""
-        self.window.controller.input.append(self.window.ui.nodes['preset.prompt'].toPlainText())
-
-    def validate_filename(self, value):
-        """
-        Validate filename
-
-        :param value: filename
-        :return: sanitized filename
-        :rtype: str
-        """
-        # strip not allowed characters
-        return re.sub(r'[^\w\s-]', '', value)
 
     def config_toggle(self, id, value, section=None):
         """
@@ -371,7 +275,7 @@ class Presets:
         """
         # validate filename
         if id == 'preset.filename':
-            value = self.validate_filename(value)
+            value = self.window.controller.presets.validate_filename(value)
             self.window.ui.config_option[id].setText(value)
 
         preset = self.window.core.config.get('preset')  # current preset

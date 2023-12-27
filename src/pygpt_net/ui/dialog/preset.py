@@ -37,9 +37,9 @@ class Preset:
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
         self.window.ui.nodes['preset.btn.current'].clicked.connect(
-            lambda: self.window.controller.presets.from_current())
+            lambda: self.window.controller.presets.editor.from_current())
         self.window.ui.nodes['preset.btn.save'].clicked.connect(
-            lambda: self.window.controller.presets.save())
+            lambda: self.window.controller.presets.editor.save())
 
         self.window.ui.nodes['preset.btn.current'].setAutoDefault(False)
         self.window.ui.nodes['preset.btn.save'].setAutoDefault(True)

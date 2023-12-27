@@ -27,7 +27,7 @@ class Confirm:
         :param parent_object: dialog parent object
         """
         if type == 'preset_exists':
-            self.window.controller.presets.save(True)
+            self.window.controller.presets.editor.save(True)
         elif type == 'preset_delete':
             self.window.controller.presets.delete(id, True)
         elif type == 'preset_clear':
@@ -55,11 +55,11 @@ class Confirm:
         elif type == 'assistant_import_files':
             self.window.controller.assistant.files.sync_files(True)
         elif type == 'settings.defaults.user':
-            self.window.controller.settings.load_defaults_user(True)
+            self.window.controller.settings.editor.load_defaults_user(True)
         elif type == 'settings.defaults.app':
-            self.window.controller.settings.load_defaults_app(True)
+            self.window.controller.settings.editor.load_defaults_app(True)
         elif type == 'settings.dict.delete':
-            self.window.controller.settings.delete_item(parent_object, id, True)
+            self.window.controller.settings.editor.delete_item(parent_object, id, True)
         elif type == 'plugin.settings.defaults.user':
             self.window.controller.plugins.settings.load_defaults_user(True)
         elif type == 'plugin.settings.defaults.app':

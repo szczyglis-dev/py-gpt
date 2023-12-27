@@ -36,7 +36,7 @@ class CollapsedGroup(QWidget):
         self.box.setStyleSheet("font-weight: bold;")
         self.box.setChecked(value)
         self.box.stateChanged.connect(
-            lambda: self.window.controller.settings.toggle_collapsed(self.id, self.box.isChecked(), self.section))
+            lambda: self.window.controller.settings.editor.toggle_collapsed(self.id, self.box.isChecked(), self.section))
 
         # options layout
         self.options = QVBoxLayout()

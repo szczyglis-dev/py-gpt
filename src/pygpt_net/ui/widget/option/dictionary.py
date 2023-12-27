@@ -94,7 +94,7 @@ class OptionDict(QWidget):
         if index.isValid():
             # remove item
             idx = index.row()
-            self.window.controller.settings.delete_item(self, idx)
+            self.window.controller.settings.editor.delete_item(self, idx)
 
     def delete_item_execute(self, idx):
         """

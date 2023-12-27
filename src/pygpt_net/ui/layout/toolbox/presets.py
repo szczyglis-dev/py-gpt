@@ -55,7 +55,7 @@ class Presets:
         """
         self.window.ui.nodes['preset.presets.new'] = QPushButton(trans('preset.new'))
         self.window.ui.nodes['preset.presets.new'].clicked.connect(
-            lambda: self.window.controller.presets.edit())
+            lambda: self.window.controller.presets.editor.edit())
 
         self.window.ui.nodes['preset.presets.label'] = QLabel(trans("toolbox.presets.label"))
         self.window.ui.nodes['preset.presets.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))

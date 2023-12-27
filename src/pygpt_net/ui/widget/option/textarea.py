@@ -38,6 +38,6 @@ class OptionTextarea(QTextEdit):
         super(OptionTextarea, self).keyPressEvent(event)
         if not self.autoupdate:
             return
-        self.window.controller.settings.change(self.id, self.toPlainText(), self.section)
+        self.window.controller.settings.editor.change(self.id, self.toPlainText(), self.section)
         if self.update_ui:
             self.window.controller.ui.update()

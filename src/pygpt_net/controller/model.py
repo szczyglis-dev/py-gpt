@@ -264,7 +264,7 @@ class Model:
                 id = self.window.core.config.get('preset')
                 if id in self.window.core.presets.items:
                     temperature = float(self.window.core.presets.items[id].temperature)
-        self.window.controller.settings.apply("current_temperature", temperature)
+        self.window.controller.settings.editor.apply("current_temperature", temperature)
 
     def update_current_preset(self):
         """Update current mode, model and preset"""

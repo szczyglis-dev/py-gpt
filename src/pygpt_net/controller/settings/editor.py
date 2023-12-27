@@ -6,16 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
-import os
 import copy
 
 from pygpt_net.utils import trans
 
 
-class Settings:
+class Editor:
     def __init__(self, window=None):
         """
         Settings controller
@@ -38,10 +37,28 @@ class Settings:
                 'multiplier': 100,
             }
         }
-        self.width = 500
-        self.height = 600
         self.before_config = {}
         self.initialized = False
+
+    def init(self, id):
+        """
+        Initialize settings
+
+        :param id: settings window id
+        """
+        if id == 'settings':
+            for option in self.options:
+                if 'type' not in self.options[option]:
+                    continue
+                type = self.options[option]['type']
+
+                # apply initial settings from current config
+                if type == 'int' or type == 'float':
+                    self.apply(option, self.window.core.config.get(option))
+                elif type == 'bool':
+                    self.toggle(option, self.window.core.config.get(option))
+                elif type == 'text' or type == 'textarea':
+                    self.change(option, self.window.core.config.get(option))
 
     def load(self):
         """Load settings options from config file"""
@@ -80,7 +97,7 @@ class Settings:
         info = trans('info.settings.saved')
         self.window.core.config.save()
         self.window.set_status(info)
-        self.update_font_size()
+        self.window.controller.settings.update_font_size()
         self.window.controller.ui.update()
 
         # update layout if needed
@@ -88,126 +105,7 @@ class Settings:
             self.window.controller.theme.reload()
 
         self.before_config = copy.deepcopy(self.window.core.config.all())
-        self.close_window(id)
-
-    def save_all(self):
-        """Save all settings"""
-        info = trans('info.settings.all.saved')
-        self.window.core.config.save()
-        self.window.core.presets.save_all()
-        self.window.controller.notepad.save_all()
-        self.window.ui.dialogs.alert(info)
-        self.window.set_status(info)
-        self.window.controller.ui.update()
-
-    def start_settings(self):
-        """Open settings at first launch (no API key)"""
-        self.toggle_settings('settings')
-        self.window.ui.dialogs.close('info.start')
-
-    def update_font_size(self):
-        """Update font size"""
-        self.window.controller.theme.apply_nodes(False)
-
-    def toggle_settings(self, id):
-        """
-        Toggle settings
-
-        :param id: settings id
-        """
-        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
-            self.close_window(id)
-        else:
-            self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
-            self.init(id)
-            self.window.core.settings.active[id] = True
-
-            # if no API key, focus on API key input
-            if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-                self.window.ui.config_option['api_key'].setFocus()
-
-        # update menu
-        self.update()
-
-    def toggle_editor(self, file=None):
-        """
-        Toggle editor
-
-        :param file: JSON file to load
-        """
-        id = 'editor'
-        current_file = self.window.ui.dialog['config.editor'].file
-        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
-            if current_file == file:
-                self.window.ui.dialogs.close('config.' + id)
-                self.window.core.settings.active[id] = False
-            else:
-                self.window.core.settings.load_editor(file)  # load file to editor
-                self.window.ui.dialog['config.editor'].file = file
-        else:
-            self.window.core.settings.load_editor(file)  # load file to editor
-            self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
-            self.window.core.settings.active[id] = True
-
-        # update menu
-        self.update()
-
-    def close_window(self, id):
-        """
-        Close window
-
-        :param id: settings window id
-        """
-        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
-            self.window.ui.dialogs.close('config.' + id)
-            self.window.core.settings.active[id] = False
-
-    def close(self, id):
-        """
-        Close menu
-
-        :param id: settings window id
-        """
-        if id in self.window.ui.menu:
-            self.window.ui.menu[id].setChecked(False)
-
-        allowed_settings = ['settings']
-        if id in allowed_settings and id in self.window.ui.menu:
-            self.window.ui.menu[id].setChecked(False)
-
-    def update(self):
-        """Update settings"""
-        self.update_menu()
-
-    def update_menu(self):
-        """Update menu"""
-        for id in self.window.core.settings.ids:
-            key = 'config.' + id
-            if key in self.window.ui.menu:
-                if id in self.window.core.settings.active and self.window.core.settings.active[id]:
-                    self.window.ui.menu['config.' + id].setChecked(True)
-                else:
-                    self.window.ui.menu['config.' + id].setChecked(False)
-
-    def init(self, id):
-        """
-        Initialize settings
-
-        :param id: settings window id
-        """
-        if id == 'settings':
-            for option in self.options:
-                if 'type' not in self.options[option]:
-                    continue
-                type = self.options[option]['type']
-
-                # apply initial settings from current config
-                if type == 'int' or type == 'float':
-                    self.apply(option, self.window.core.config.get(option))
-                elif type == 'bool':
-                    self.toggle(option, self.window.core.config.get(option))
-                elif type == 'text' or type == 'textarea':
-                    self.change(option, self.window.core.config.get(option))
+        self.window.controller.settings.close_window(id)
 
     def toggle(self, id, value, section=None):
         """
@@ -219,7 +117,7 @@ class Settings:
         """
         # dialog: preset
         if id.startswith('preset.'):
-            self.window.controller.presets.config_toggle(id, value, section)
+            self.window.controller.presets.editor.config_toggle(id, value, section)
             return
 
         # dialog: plugin
@@ -254,7 +152,7 @@ class Settings:
 
         # dialog: preset
         if id.startswith('preset.'):
-            self.window.controller.presets.config_change(id, value, section)
+            self.window.controller.presets.editor.config_change(id, value, section)
             return
 
         # dialog: plugin
@@ -286,7 +184,7 @@ class Settings:
 
         # update font size in real time
         if id.startswith('font_size'):
-            self.update_font_size()
+            self.window.controller.settings.update_font_size()
 
         txt = '{}'.format(value)
         self.window.ui.config_option[id].setText(txt)
@@ -303,7 +201,7 @@ class Settings:
 
         # dialog: preset
         if id.startswith('preset.'):
-            self.window.controller.presets.config_slider(id, value, type, section)
+            self.window.controller.presets.editor.config_slider(id, value, type, section)
             return
 
         # dialog: plugin
@@ -389,8 +287,8 @@ class Settings:
             if section == 'preset.editor':
                 preset = self.window.ui.config_option['preset.filename'].text()  # editing preset
                 is_current = False
-            self.window.controller.presets.update_field(id, input_value, preset, is_current)
-            self.window.controller.presets.update_field('preset.temperature', input_value, True)
+            self.window.controller.presets.editor.update_field(id, input_value, preset, is_current)
+            self.window.controller.presets.editor.update_field('preset.temperature', input_value, True)
         else:
             if option_type != 'int' and id not in self.integer_values:
                 # any float
@@ -432,7 +330,7 @@ class Settings:
 
         # update from raw value
         if id.startswith('font_size'):
-            self.update_font_size()  # update font size in real time
+            self.window.controller.settings.update_font_size()  # update font size in real time
 
         # update current
         if id == "temperature":
@@ -450,13 +348,6 @@ class Settings:
             return
 
         self.window.ui.groups[id].collapse(value)
-
-    def open_config_dir(self):
-        """Open user config directory"""
-        if os.path.exists(self.window.core.config.path):
-            self.window.controller.files.open_in_file_manager(self.window.core.config.path, True)
-        else:
-            self.window.set_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
     def load_defaults_user(self, force=False):
         """

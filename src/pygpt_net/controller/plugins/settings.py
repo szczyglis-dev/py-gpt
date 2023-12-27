@@ -23,7 +23,6 @@ class Settings:
         self.config_dialog = False
         self.config_initialized = False
         self.current_plugin = None
-        self.enabled = {}
 
     def setup_settings(self):
         """Set up plugins settings"""

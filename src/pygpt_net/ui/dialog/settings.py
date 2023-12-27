@@ -42,11 +42,11 @@ class Settings:
         self.window.ui.nodes['settings.btn.defaults.app'] = QPushButton(trans("dialog.settings.btn.defaults.app"))
         self.window.ui.nodes['settings.btn.save'] = QPushButton(trans("dialog.settings.btn.save"))
         self.window.ui.nodes['settings.btn.defaults.user'].clicked.connect(
-            lambda: self.window.controller.settings.load_defaults_user())
+            lambda: self.window.controller.settings.editor.load_defaults_user())
         self.window.ui.nodes['settings.btn.defaults.app'].clicked.connect(
-            lambda: self.window.controller.settings.load_defaults_app())
+            lambda: self.window.controller.settings.editor.load_defaults_app())
         self.window.ui.nodes['settings.btn.save'].clicked.connect(
-            lambda: self.window.controller.settings.save(id))
+            lambda: self.window.controller.settings.editor.save(id))
 
         # set enter key to save button
         self.window.ui.nodes['settings.btn.defaults.user'].setAutoDefault(False)
@@ -66,7 +66,7 @@ class Settings:
         advanced_options = []
 
         # get settings options config
-        settings_options = self.window.controller.settings.get_options()
+        settings_options = self.window.controller.settings.editor.get_options()
         for key in settings_options:
             if 'advanced' in settings_options[key] and settings_options[key]['advanced']:
                 advanced_options.append(key)

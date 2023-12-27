@@ -31,7 +31,7 @@ class PluginSettingsDialog(QDialog):
 
         :param event: close event
         """
-        self.window.controller.plugins.config_dialog = False
+        self.window.controller.plugins.settings.config_dialog = False
         self.window.controller.plugins.update()
 
     def keyPressEvent(self, event):
@@ -50,5 +50,5 @@ class PluginSettingsDialog(QDialog):
         """
         Cleanup on close
         """
-        self.window.controller.plugins.config_dialog = False
+        self.window.controller.plugins.settings.config_dialog = False
         self.window.controller.plugins.update()

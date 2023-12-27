@@ -36,7 +36,7 @@ class PresetList(BaseList):
 
         :param val: double click event
         """
-        self.window.controller.presets.edit(val.row())
+        self.window.controller.presets.editor.edit(val.row())
 
     def contextMenuEvent(self, event):
         """
@@ -77,7 +77,7 @@ class PresetList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.presets.edit(idx)
+            self.window.controller.presets.editor.edit(idx)
 
     def action_duplicate(self, event):
         """

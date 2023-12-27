@@ -56,7 +56,7 @@ class OptionSlider(QWidget):
         self.slider.setSingleStep(step)
         self.slider.setValue(value)
         self.slider.valueChanged.connect(
-            lambda: self.window.controller.settings.apply(self.id, self.slider.value(), 'slider', self.section))
+            lambda: self.window.controller.settings.editor.apply(self.id, self.slider.value(), 'slider', self.section))
 
         if max_width:
             self.slider.setMaximumWidth(240)

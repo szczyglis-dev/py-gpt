@@ -345,12 +345,12 @@ class Lang:
         Update settings dialogs
         """
         # load settings options if not loaded yet
-        if not self.window.controller.settings.initialized:
-            self.window.controller.settings.load_config_options(False)
+        if not self.window.controller.settings.editor.initialized:
+            self.window.controller.settings.editor.load_config_options(False)
 
         # update settings options labels
-        for id in self.window.controller.settings.options:
-            option = self.window.controller.settings.options[id]
+        for id in self.window.controller.settings.editor.options:
+            option = self.window.controller.settings.editor.options[id]
             option_label = 'settings.{}.label'.format(id)
             trans_key = 'settings.{}'.format(option['label'])
             if option['type'] == 'bool':

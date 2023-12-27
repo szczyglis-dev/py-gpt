@@ -33,7 +33,7 @@ class OptionCheckbox(QWidget):
         self.box = QCheckBox(title, self.window)
         self.box.setChecked(value)
         self.box.stateChanged.connect(
-            lambda: self.window.controller.settings.toggle(self.id, self.box.isChecked(), self.section))
+            lambda: self.window.controller.settings.editor.toggle(self.id, self.box.isChecked(), self.section))
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)

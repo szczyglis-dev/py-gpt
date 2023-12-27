@@ -25,9 +25,6 @@ class Plugins:
         """
         self.window = window
         self.settings = Settings(window)
-        self.config_dialog = False
-        self.config_initialized = False
-        self.current_plugin = None
         self.enabled = {}
 
     def setup(self):
@@ -197,7 +194,7 @@ class Plugins:
         for id in self.window.core.plugins.plugins:
             if self.window.core.plugins.plugins[id].options:
                 if plugin_idx == idx:
-                    self.current_plugin = id
+                    self.settings.current_plugin = id
                     break
                 plugin_idx += 1
         current = self.window.ui.models['plugin.list'].index(idx, 0)
