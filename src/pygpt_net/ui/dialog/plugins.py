@@ -220,7 +220,7 @@ class Plugins:
             self.window.ui.tabs['plugin.settings'].addTab(area_widget, name_txt)
 
         self.window.ui.tabs['plugin.settings'].currentChanged.connect(
-            lambda: self.window.controller.plugins.set_plugin_by_tab(
+            lambda: self.window.controller.plugins.set_by_tab(
                 self.window.ui.tabs['plugin.settings'].currentIndex()))
 
         # plugins list
@@ -254,7 +254,7 @@ class Plugins:
         if idx is not None:
             try:
                 self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
-                self.window.controller.plugins.set_plugin_by_tab(idx)
+                self.window.controller.plugins.set_by_tab(idx)
             except:
                 print('Can\'t restore plugin settings tab: {}'.format(idx))
 

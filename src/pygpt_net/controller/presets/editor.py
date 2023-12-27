@@ -19,44 +19,11 @@ from pygpt_net.utils import trans
 class Editor:
     def __init__(self, window=None):
         """
-        Presets controller
+        Presets editor controller
 
         :param window: Window instance
         """
         self.window = window
-
-    def update_field(self, id, value, preset=None, current=False):
-        """
-        Update preset field from editor
-
-        :param id: field id
-        :param value: field value
-        :param preset: preset name (ID / filename)
-        :param current: if true, updates current preset
-        """
-        if preset is not None and preset != "":
-            if preset in self.window.core.presets.items:
-                if id == 'preset.ai_name':
-                    self.window.core.presets.items[preset].ai_name = value
-                elif id == 'preset.user_name':
-                    self.window.core.presets.items[preset].user_name = value
-                elif id == 'preset.prompt':
-                    self.window.core.presets.items[preset].prompt = value
-                elif id == 'preset.temperature' or id == 'current_temperature':
-                    self.window.core.presets.items[preset].temperature = float(value)
-
-        # update current data
-        if current:
-            if id == 'preset.ai_name':
-                self.window.core.config.set('ai_name', value)
-            elif id == 'preset.user_name':
-                self.window.core.config.set('user_name', value)
-            elif id == 'preset.prompt':
-                self.window.core.config.set('prompt', value)
-            elif id == 'preset.temperature' or id == 'current_temperature':
-                self.window.core.config.set('temperature', float(value))
-
-        self.window.controller.ui.update_tokens()
 
     def edit(self, idx=None):
         """
@@ -69,10 +36,10 @@ class Editor:
             mode = self.window.core.config.get('mode')
             preset = self.window.core.presets.get_by_idx(idx, mode)
 
-        self.init_editor(preset)
+        self.init(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx)
 
-    def init_editor(self, id=None):
+    def init(self, id=None):
         """
         Initialize preset editor
 
@@ -248,6 +215,39 @@ class Editor:
         self.config_change('preset.prompt', self.window.core.config.get('prompt'), 'preset.editor')
         self.config_slider('preset.temperature', self.window.core.config.get('temperature'), '',
                            'preset.editor')
+
+    def update_field(self, id, value, preset=None, current=False):
+        """
+        Update preset field from editor
+
+        :param id: field id
+        :param value: field value
+        :param preset: preset name (ID / filename)
+        :param current: if true, updates current preset
+        """
+        if preset is not None and preset != "":
+            if preset in self.window.core.presets.items:
+                if id == 'preset.ai_name':
+                    self.window.core.presets.items[preset].ai_name = value
+                elif id == 'preset.user_name':
+                    self.window.core.presets.items[preset].user_name = value
+                elif id == 'preset.prompt':
+                    self.window.core.presets.items[preset].prompt = value
+                elif id == 'preset.temperature' or id == 'current_temperature':
+                    self.window.core.presets.items[preset].temperature = float(value)
+
+        # update current data
+        if current:
+            if id == 'preset.ai_name':
+                self.window.core.config.set('ai_name', value)
+            elif id == 'preset.user_name':
+                self.window.core.config.set('user_name', value)
+            elif id == 'preset.prompt':
+                self.window.core.config.set('prompt', value)
+            elif id == 'preset.temperature' or id == 'current_temperature':
+                self.window.core.config.set('temperature', float(value))
+
+        self.window.controller.ui.update_tokens()
 
     def config_toggle(self, id, value, section=None):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -184,7 +184,7 @@ class Plugins:
         self.handle_enabled_types()
         self.window.controller.ui.update_tokens()  # refresh tokens
 
-    def set_plugin_by_tab(self, idx):
+    def set_by_tab(self, idx):
         """
         Set current plugin by tab index
 
@@ -200,7 +200,7 @@ class Plugins:
         current = self.window.ui.models['plugin.list'].index(idx, 0)
         self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
 
-    def get_plugin_tab_idx(self, plugin_id):
+    def get_tab_idx(self, plugin_id):
         """
         Get plugin tab index
 

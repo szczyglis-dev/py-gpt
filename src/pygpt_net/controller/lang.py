@@ -301,7 +301,7 @@ class Lang:
                 self.window.ui.nodes[desc_key].setText(desc_txt)
 
             # update tab name
-            tab_idx = self.window.controller.plugins.get_plugin_tab_idx(id)
+            tab_idx = self.window.controller.plugins.get_tab_idx(id)
             # update tab name
             if tab_idx is not None:
                 self.window.ui.tabs['plugin.settings'].setTabText(tab_idx, name_txt)
@@ -338,7 +338,7 @@ class Lang:
         # update settings dialog list
         idx = self.window.ui.tabs['plugin.settings'].currentIndex()
         self.window.plugin_settings.update_list('plugin.list', self.window.core.plugins.plugins)
-        self.window.controller.plugins.set_plugin_by_tab(idx)
+        self.window.controller.plugins.set_by_tab(idx)
 
     def update_settings_dialogs(self):
         """

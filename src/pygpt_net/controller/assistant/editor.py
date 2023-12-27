@@ -21,7 +21,20 @@ class Editor:
         """
         self.window = window
 
-    def init_editor(self, id=None):
+    def edit(self, idx=None):
+        """
+        Open assistant editor
+
+        :param idx: assistant index (row index)
+        """
+        id = None
+        if idx is not None:
+            id = self.window.core.assistants.get_by_idx(idx)
+
+        self.init(id)
+        self.window.ui.dialogs.open_editor('editor.assistants', idx)
+
+    def init(self, id=None):
         """
         Initialize assistant editor
 
@@ -78,19 +91,6 @@ class Editor:
         # set focus to name field
         self.window.ui.config_option['assistant.name'].setFocus()
 
-    def edit(self, idx=None):
-        """
-        Open assistant editor
-
-        :param idx: assistant index (row index)
-        """
-        id = None
-        if idx is not None:
-            id = self.window.core.assistants.get_by_idx(idx)
-
-        self.init_editor(id)
-        self.window.ui.dialogs.open_editor('editor.assistants', idx)
-
     def save(self):
         """
         Save assistant
@@ -126,7 +126,7 @@ class Editor:
 
         # save file
         self.window.core.assistants.save()
-        self.window.controller.assistant.update_assistants()
+        self.window.controller.assistant.refresh()
         self.window.controller.assistant.update()
 
         self.window.ui.dialogs.close('editor.assistants')

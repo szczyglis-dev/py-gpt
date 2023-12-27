@@ -29,7 +29,7 @@ class PluginList(BaseList):
     def click(self, val):
         idx = val.row()
         self.window.ui.tabs['plugin.settings'].setCurrentIndex(idx)
-        self.window.controller.plugins.set_plugin_by_tab(idx)
+        self.window.controller.plugins.set_by_tab(idx)
 
     def dblclick(self, val):
         """

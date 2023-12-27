@@ -85,7 +85,7 @@ class Mode:
         self.select_default()
         self.window.controller.model.select_default()
         self.window.controller.presets.select_default()
-        self.window.controller.assistant.select_default_assistant()
+        self.window.controller.assistant.select_default()
 
     def select_default(self):
         """Set default mode"""

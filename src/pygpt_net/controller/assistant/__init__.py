@@ -44,23 +44,16 @@ class Assistant:
         if update_list:
             self.update_list()
         self.window.controller.assistant.files.update_uploaded()
-        self.select_assistant_by_current()
+        self.select_current()
 
     def update_list(self):
         """Update assistants list"""
         items = self.window.core.assistants.get_all()
         self.window.ui.toolbox.assistants.update(items)
 
-    def assistant_change_locked(self):
-        """
-        Check if assistant change is locked
-
-        :return: true if locked
-        :rtype: bool
-        """
-        if self.window.controller.input.generating:
-            return True
-        return False
+    def refresh(self):
+        """Update assistants"""
+        self.select_default()
 
     def select(self, idx):
         """
@@ -69,7 +62,7 @@ class Assistant:
         :param idx: idx on the list
         """
         # check if change is not locked
-        if self.assistant_change_locked():
+        if self.change_locked():
             return
 
         # mark assistant as selected
@@ -98,11 +91,11 @@ class Assistant:
                 if model in self.window.core.models.items:
                     self.window.core.config.set('model', model)
                     self.window.core.config.data['current_model'][mode] = model
-                    self.update_assistants()
+                    self.refresh()
 
         self.window.controller.ctx.update_ctx()  # update current ctx info
 
-    def select_assistant_by_current(self):
+    def select_current(self):
         """Select assistant by current"""
         assistant_id = self.window.core.config.get('assistant')
         items = self.window.core.assistants.get_all()
@@ -111,7 +104,7 @@ class Assistant:
             current = self.window.ui.models['assistants'].index(idx, 0)
             self.window.ui.nodes['assistants'].setCurrentIndex(current)
 
-    def select_default_assistant(self):
+    def select_default(self):
         """Set default assistant"""
         assistant = self.window.core.config.get('assistant')
         if assistant is None or assistant == "":
@@ -119,10 +112,6 @@ class Assistant:
             if mode == 'assistant':
                 self.window.core.config.set('assistant', self.window.core.assistants.get_default_assistant())
                 self.update()
-
-    def update_assistants(self):
-        """Update assistants"""
-        self.select_default_assistant()
 
     def create(self):
         """
@@ -233,3 +222,14 @@ class Assistant:
     def goto_online(self):
         """Opens Assistants page"""
         webbrowser.open('https://platform.openai.com/assistants')
+
+    def change_locked(self):
+        """
+        Check if assistant change is locked
+
+        :return: true if locked
+        :rtype: bool
+        """
+        if self.window.controller.input.generating:
+            return True
+        return False

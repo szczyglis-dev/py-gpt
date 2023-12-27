@@ -73,7 +73,7 @@ class Assistants:
 
         # list
         self.window.ui.nodes[self.id] = AssistantList(self.window, self.id)
-        self.window.ui.nodes[self.id].selection_locked = self.window.controller.assistant.assistant_change_locked
+        self.window.ui.nodes[self.id].selection_locked = self.window.controller.assistant.change_locked
         self.window.ui.nodes[self.id].setMinimumWidth(40)
 
         # rows

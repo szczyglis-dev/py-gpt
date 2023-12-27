@@ -44,7 +44,7 @@ class UI:
         self.window.controller.mode.update_mode()
         self.window.controller.model.update()
         self.window.controller.presets.update_all()
-        self.window.controller.assistant.update_assistants()
+        self.window.controller.assistant.refresh()
 
     def update_tokens(self):
         """Update tokens counter in real-time"""
