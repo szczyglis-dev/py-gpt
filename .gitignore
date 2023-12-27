@@ -15,6 +15,7 @@ build/
 develop-eggs/
 dist/
 downloads/
+tmp/
 mp4/
 eggs/
 .eggs/
