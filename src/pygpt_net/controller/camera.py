@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -41,6 +41,30 @@ class Camera:
         """
         if self.is_capture and not self.thread_started:
             self.start()
+
+    def setup_ui(self):
+        """
+        Update layout checkboxes
+        """
+        if self.window.core.config.get('vision.capture.enabled'):
+            self.is_capture = True
+            self.window.ui.nodes['vision.capture.enable'].setChecked(True)
+        else:
+            self.is_capture = False
+            self.window.ui.nodes['vision.capture.enable'].setChecked(False)
+
+        if self.window.core.config.get('vision.capture.auto'):
+            self.auto = True
+            self.window.ui.nodes['vision.capture.auto'].setChecked(True)
+        else:
+            self.auto = False
+            self.window.ui.nodes['vision.capture.auto'].setChecked(False)
+
+        # update label
+        if not self.window.core.config.get('vision.capture.auto'):
+            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
+        else:
+            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
     def start(self):
         """
@@ -77,12 +101,6 @@ class Camera:
         self.thread_started = False
         self.thread = None
         self.hide_camera(False)
-
-    def blank_screen(self):
-        """
-        Make and set blank screen
-        """
-        self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))
 
     def update(self):
         """
@@ -274,26 +292,8 @@ class Camera:
         """
         return self.auto
 
-    def setup_settings(self):
+    def blank_screen(self):
         """
-        Update layout checkboxes
+        Make and set blank screen
         """
-        if self.window.core.config.get('vision.capture.enabled'):
-            self.is_capture = True
-            self.window.ui.nodes['vision.capture.enable'].setChecked(True)
-        else:
-            self.is_capture = False
-            self.window.ui.nodes['vision.capture.enable'].setChecked(False)
-
-        if self.window.core.config.get('vision.capture.auto'):
-            self.auto = True
-            self.window.ui.nodes['vision.capture.auto'].setChecked(True)
-        else:
-            self.auto = False
-            self.window.ui.nodes['vision.capture.auto'].setChecked(False)
-
-        # update label
-        if not self.window.core.config.get('vision.capture.auto'):
-            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
-        else:
-            self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
+        self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))

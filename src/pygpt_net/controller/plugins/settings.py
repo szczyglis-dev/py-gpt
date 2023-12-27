@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -15,7 +15,7 @@ from pygpt_net.utils import trans
 class Settings:
     def __init__(self, window=None):
         """
-        Plugins controller
+        Plugin settings controller
 
         :param window: Window instance
         """
@@ -24,33 +24,33 @@ class Settings:
         self.config_initialized = False
         self.current_plugin = None
 
-    def setup_settings(self):
-        """Set up plugins settings"""
+    def setup(self):
+        """Set up plugin settings"""
         idx = None
         # restore previous selected or restored tab on dialog create
         if 'plugin.settings' in self.window.ui.tabs:
             idx = self.window.ui.tabs['plugin.settings'].currentIndex()
         self.window.plugin_settings.setup(idx)  # widget dialog Plugins
 
-    def toggle_settings(self):
-        """Toggle plugins settings dialog"""
+    def toggle_editor(self):
+        """Toggle plugin settings dialog"""
         if self.config_dialog:
-            self.close_settings()
+            self.close()
         else:
-            self.open_settings()
+            self.open()
 
-    def open_settings(self):
-        """Open plugins settings dialog"""
+    def open(self):
+        """Open plugin settings dialog"""
         if not self.config_initialized:
-            self.setup_settings()
+            self.setup()
             self.config_initialized = True
         if not self.config_dialog:
-            self.init_settings()
+            self.init()
             self.window.ui.dialogs.open('plugin_settings', width=800, height=500)
             self.config_dialog = True
 
-    def init_settings(self):
-        """Initialize plugins settings options"""
+    def init(self):
+        """Initialize plugin settings options"""
         selected_plugin = self.current_plugin
 
         # select first plugin on list if no plugin selected yet
@@ -83,8 +83,8 @@ class Settings:
         self.current_plugin = selected_plugin  # restore selected plugin
         self.window.controller.layout.restore_plugin_settings()  # restore plugin settings layout
 
-    def save_settings(self):
-        """Save plugins settings"""
+    def save(self):
+        """Save plugin settings"""
         selected_plugin = self.current_plugin
         for id in self.window.core.plugins.plugins:
             plugin = self.window.core.plugins.plugins[id]
@@ -132,18 +132,18 @@ class Settings:
 
         # save config
         self.window.core.config.save()
-        self.close_settings()
+        self.close()
         self.current_plugin = selected_plugin
 
-    def close_settings(self):
-        """Close plugins settings dialog"""
+    def close(self):
+        """Close plugin settings dialog"""
         if self.config_dialog:
             self.window.ui.dialogs.close('plugin_settings')
             self.config_dialog = False
 
     def load_defaults_user(self, force=False):
         """
-        Load plugins settings user defaults
+        Load plugin settings user defaults
 
         :param force: force load defaults
         """
@@ -153,12 +153,12 @@ class Settings:
             return
 
         # reload settings window
-        self.init_settings()
+        self.init()
         # self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
 
     def load_defaults_app(self, force=False):
         """
-        Load plugins settings app defaults
+        Load plugin settings app defaults
 
         :param force: force load defaults
         """
@@ -171,7 +171,7 @@ class Settings:
         self.window.core.plugins.restore_options(self.current_plugin)
 
         # reload settings window
-        self.init_settings()
+        self.init()
         self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.app.result'))
 
     def config_toggle(self, id, value):
@@ -287,6 +287,7 @@ class Settings:
         Get plugin option
 
         :param id: option id
+        :param key: option key
         :return: option value
         :rtype: any
         """

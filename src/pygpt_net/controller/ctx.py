@@ -176,7 +176,7 @@ class Ctx:
             # switch preset to ctx preset
             if preset is not None:
                 self.window.controller.presets.set(mode, preset)
-                self.window.controller.presets.update_all()  # update presets only
+                self.window.controller.presets.refresh()  # update presets only
 
             # if ctx mode == assistant then switch assistant to ctx assistant
             if mode == 'assistant':

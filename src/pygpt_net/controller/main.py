@@ -91,12 +91,12 @@ class Controller:
         self.audio.setup()
         self.attachment.setup()
         self.notepad.setup()
-        self.camera.setup_settings()
+        self.camera.setup_ui()
         self.image.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
-        self.plugins.settings.setup_settings()
+        self.plugins.settings.setup()
         self.launcher.post_setup()
 
     def update(self):

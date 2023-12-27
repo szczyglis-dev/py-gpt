@@ -52,7 +52,7 @@ class Plugins:
         self.window.ui.nodes['plugin.settings.btn.defaults.app'].clicked.connect(
             lambda: self.window.controller.plugins.settings.load_defaults_app())
         self.window.ui.nodes['plugin.settings.btn.save'].clicked.connect(
-            lambda: self.window.controller.plugins.settings.save_settings())
+            lambda: self.window.controller.plugins.settings.save())
 
         # set enter key to save button
         self.window.ui.nodes['plugin.settings.btn.defaults.user'].setAutoDefault(False)

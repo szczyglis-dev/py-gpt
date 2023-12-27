@@ -43,7 +43,7 @@ class UI:
         """Update toolbox"""
         self.window.controller.mode.update_mode()
         self.window.controller.model.update()
-        self.window.controller.presets.update_all()
+        self.window.controller.presets.refresh()
         self.window.controller.assistant.refresh()
 
     def update_tokens(self):

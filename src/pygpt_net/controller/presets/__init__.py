@@ -142,8 +142,8 @@ class Presets:
         else:
             self.window.core.config.set('prompt', None)
 
-    def update_all(self):
-        """Update presets"""
+    def refresh(self):
+        """Refresh presets"""
         self.select_default()
         self.update_current()
         self.update_data()
@@ -188,7 +188,7 @@ class Presets:
                 if preset in self.window.core.presets.items:
                     new_id = self.window.core.presets.duplicate(preset)
                     self.window.core.config.set('preset', new_id)
-                    self.update_all()
+                    self.refresh()
                     idx = self.window.core.presets.get_idx_by_id(mode, new_id)
                     self.editor.edit(idx)
                     self.window.set_status(trans('status.preset.duplicated'))
@@ -216,7 +216,7 @@ class Presets:
                 self.window.core.presets.items[preset].user_name = ""
                 self.window.core.presets.items[preset].prompt = ""
                 self.window.core.presets.items[preset].temperature = 1.0
-                self.update_all()
+                self.refresh()
 
         self.window.set_status(trans('status.preset.cleared'))
 
@@ -240,7 +240,7 @@ class Presets:
                     if preset == self.window.core.config.get('preset'):
                         self.window.core.config.set('preset', None)
                     self.window.core.presets.remove(preset, True)
-                    self.update_all()
+                    self.refresh()
                     self.window.set_status(trans('status.preset.deleted'))
 
     def validate_filename(self, value):

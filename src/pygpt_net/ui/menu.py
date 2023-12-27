@@ -64,7 +64,7 @@ class Menu:
                                                           trans("menu.plugins.settings"), self.window)
 
         self.window.ui.menu['plugins.settings'].triggered.connect(
-            lambda: self.window.controller.plugins.settings.toggle_settings())
+            lambda: self.window.controller.plugins.settings.toggle_editor())
 
         self.window.ui.menu['plugins'] = {}
         self.window.ui.menu['menu.plugins'] = self.window.menuBar().addMenu(trans("menu.plugins"))
@@ -106,13 +106,13 @@ class Menu:
                                                      trans("menu.config.save"), self.window)
 
         self.window.ui.menu['config.settings'].triggered.connect(
-            lambda: self.window.controller.settings.toggle_settings('settings'))
+            lambda: self.window.controller.settings.toggle_editor('settings'))
 
         self.window.ui.menu['config.edit.config'].triggered.connect(
-            lambda: self.window.controller.settings.toggle_editor('config.json'))
+            lambda: self.window.controller.settings.toggle_file_editor('config.json'))
 
         self.window.ui.menu['config.edit.models'].triggered.connect(
-            lambda: self.window.controller.settings.toggle_editor('models.json'))
+            lambda: self.window.controller.settings.toggle_file_editor('models.json'))
 
         self.window.ui.menu['config.open_dir'].triggered.connect(
             lambda: self.window.controller.settings.open_config_dir())

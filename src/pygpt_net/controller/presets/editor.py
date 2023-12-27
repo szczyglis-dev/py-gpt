@@ -167,7 +167,7 @@ class Editor:
 
         # save file
         self.window.core.presets.save(id)
-        self.window.controller.presets.update_all()
+        self.window.controller.presets.refresh()
 
         # close dialog
         self.window.ui.dialogs.close('editor.preset.presets')
@@ -180,7 +180,7 @@ class Editor:
         self.window.core.presets.sort_by_name()
 
         # update list
-        self.window.controller.presets.update_all()
+        self.window.controller.presets.refresh()
 
     def assign_data(self, id):
         """

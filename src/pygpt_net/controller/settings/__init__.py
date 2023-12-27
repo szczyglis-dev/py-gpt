@@ -57,10 +57,10 @@ class Settings:
 
     def start_settings(self):
         """Open settings at first launch (no API key)"""
-        self.toggle_settings('settings')
+        self.toggle_editor('settings')
         self.window.ui.dialogs.close('info.start')
 
-    def toggle_settings(self, id):
+    def toggle_editor(self, id):
         """
         Toggle settings
 
@@ -79,9 +79,9 @@ class Settings:
         # update menu
         self.update()
 
-    def toggle_editor(self, file=None):
+    def toggle_file_editor(self, file=None):
         """
-        Toggle editor
+        Toggle file editor
 
         :param file: JSON file to load
         """
