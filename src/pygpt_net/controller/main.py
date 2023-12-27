@@ -24,6 +24,7 @@ from pygpt_net.controller.input import Input
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
+from pygpt_net.controller.mode import Mode
 from pygpt_net.controller.model import Model
 from pygpt_net.controller.notepad import Notepad
 from pygpt_net.controller.output import Output
@@ -58,6 +59,7 @@ class Controller:
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
+        self.mode = Mode(window)
         self.model = Model(window)
         self.notepad = Notepad(window)
         self.output = Output(window)
@@ -79,7 +81,7 @@ class Controller:
 
         # setup controllers
         self.lang.setup()
-        self.model.setup()
+        self.mode.setup()
         self.assistant.setup()
         self.input.setup()
         self.output.setup()
@@ -94,7 +96,6 @@ class Controller:
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
-        # setup plugins settings
         self.plugins.settings.setup_settings()
         self.launcher.post_setup()
 

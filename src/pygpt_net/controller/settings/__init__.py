@@ -41,14 +41,24 @@ class Settings:
         self.window.set_status(info)
         self.window.controller.ui.update()
 
+    def update(self):
+        """Update settings"""
+        self.update_menu()
+
+    def update_menu(self):
+        """Update menu"""
+        for id in self.window.core.settings.ids:
+            key = 'config.' + id
+            if key in self.window.ui.menu:
+                if id in self.window.core.settings.active and self.window.core.settings.active[id]:
+                    self.window.ui.menu['config.' + id].setChecked(True)
+                else:
+                    self.window.ui.menu['config.' + id].setChecked(False)
+
     def start_settings(self):
         """Open settings at first launch (no API key)"""
         self.toggle_settings('settings')
         self.window.ui.dialogs.close('info.start')
-
-    def update_font_size(self):
-        """Update font size"""
-        self.window.controller.theme.apply_nodes(False)
 
     def toggle_settings(self, id):
         """
@@ -115,23 +125,13 @@ class Settings:
         if id in allowed_settings and id in self.window.ui.menu:
             self.window.ui.menu[id].setChecked(False)
 
-    def update(self):
-        """Update settings"""
-        self.update_menu()
-
-    def update_menu(self):
-        """Update menu"""
-        for id in self.window.core.settings.ids:
-            key = 'config.' + id
-            if key in self.window.ui.menu:
-                if id in self.window.core.settings.active and self.window.core.settings.active[id]:
-                    self.window.ui.menu['config.' + id].setChecked(True)
-                else:
-                    self.window.ui.menu['config.' + id].setChecked(False)
-
     def open_config_dir(self):
         """Open user config directory"""
         if os.path.exists(self.window.core.config.path):
             self.window.controller.files.open_in_file_manager(self.window.core.config.path, True)
         else:
             self.window.set_status('Config directory not exists: {}'.format(self.window.core.config.path))
+
+    def update_font_size(self):
+        """Update font size"""
+        self.window.controller.theme.apply_nodes(False)

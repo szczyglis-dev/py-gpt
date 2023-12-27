@@ -10,9 +10,9 @@
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QSplitter, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
 
-from pygpt_net.ui.widget.lists.base import BaseList
+from pygpt_net.ui.widget.lists.model import ModelList
 from pygpt_net.utils import trans
 
 
@@ -49,8 +49,8 @@ class Model:
 
         self.window.ui.nodes[label_key] = QLabel(trans("toolbox.model.label"))
         self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
-        self.window.ui.nodes[self.id] = BaseList(self.window, self.id)
-        self.window.ui.nodes[self.id].selection_locked = self.window.controller.model.model_change_locked
+        self.window.ui.nodes[self.id] = ModelList(self.window, self.id)
+        self.window.ui.nodes[self.id].selection_locked = self.window.controller.model.change_locked
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])

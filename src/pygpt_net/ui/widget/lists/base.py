@@ -35,7 +35,7 @@ class BaseList(QTreeView):
         self.header().hide()
 
     def click(self, val):
-        self.window.controller.model.select(self.id, val.row())
+        self.window.controller.mode.select(self.id, val.row())
         self.selection = self.selectionModel().selection()
 
     def lockSelection(self, selected=None, deselected=None):

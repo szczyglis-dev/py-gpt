@@ -161,7 +161,7 @@ class Editor:
                 self.window.set_status(trans('status.preset.empty_id'))
                 return
             # generate new filename
-            id = self.window.controller.presets.make_preset_filename(name)
+            id = self.window.controller.presets.make_filename(name)
             # check if not exists
             path = os.path.join(self.window.core.config.path, 'presets', id + '.json')
             if os.path.exists(path) and not force:
@@ -200,20 +200,20 @@ class Editor:
 
         # save file
         self.window.core.presets.save(id)
-        self.window.controller.model.update_presets()
+        self.window.controller.presets.update_presets()
 
         # close dialog
         self.window.ui.dialogs.close('editor.preset.presets')
         self.window.set_status(trans('status.preset.saved'))
 
         # switch to editing preset
-        self.window.controller.model.set_preset(mode, id)
+        self.window.controller.presets.set_preset(mode, id)
 
         # sort by name
         self.window.core.presets.sort_by_name()
 
         # update list
-        self.window.controller.model.update_presets()
+        self.window.controller.presets.update_presets()
 
     def assign_data(self, id):
         """

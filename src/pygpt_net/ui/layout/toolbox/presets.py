@@ -69,7 +69,7 @@ class Presets:
         header_widget.setLayout(header)
 
         self.window.ui.nodes[self.id] = PresetList(self.window, self.id)
-        self.window.ui.nodes[self.id].selection_locked = self.window.controller.model.preset_change_locked
+        self.window.ui.nodes[self.id].selection_locked = self.window.controller.presets.preset_change_locked
 
         layout = QVBoxLayout()
         layout.addWidget(header_widget)

@@ -41,9 +41,9 @@ class UI:
 
     def update_toolbox(self):
         """Update toolbox"""
-        self.window.controller.model.update_mode()
-        self.window.controller.model.update_models()
-        self.window.controller.model.update_presets()
+        self.window.controller.mode.update_mode()
+        self.window.controller.model.update()
+        self.window.controller.presets.update_presets()
         self.window.controller.assistant.update_assistants()
 
     def update_tokens(self):

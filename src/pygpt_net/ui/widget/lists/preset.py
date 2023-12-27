@@ -30,6 +30,10 @@ class PresetList(BaseList):
 
         self.doubleClicked.connect(self.dblclick)
 
+    def click(self, val):
+        self.window.controller.presets.select(val.row())
+        self.selection = self.selectionModel().selection()
+
     def dblclick(self, val):
         """
         Double click event
@@ -65,7 +69,7 @@ class PresetList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 1:
-            # self.window.controller.model.select(self.id, item.row())
+            # self.window.controller.mode.select(self.id, item.row())
             menu.exec_(event.globalPos())
 
     def action_edit(self, event):

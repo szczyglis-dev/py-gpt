@@ -12,7 +12,7 @@
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
 
-from pygpt_net.ui.widget.lists.base import BaseList
+from pygpt_net.ui.widget.lists.mode import ModeList
 from pygpt_net.utils import trans
 
 
@@ -50,8 +50,8 @@ class Mode:
 
         self.window.ui.nodes[label_key] = QLabel(trans("toolbox.mode.label"))
         self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
-        self.window.ui.nodes[self.id] = BaseList(self.window, self.id)
-        self.window.ui.nodes[self.id].selection_locked = self.window.controller.model.mode_change_locked
+        self.window.ui.nodes[self.id] = ModeList(self.window, self.id)
+        self.window.ui.nodes[self.id].selection_locked = self.window.controller.mode.change_locked
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
