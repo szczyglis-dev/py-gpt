@@ -318,8 +318,8 @@ def test_import_filenames(mock_window):
 
     assistants = Assistants(window=mock_window)
     app = MagicMock()
-    app.gpt_assistants = MagicMock()
-    app.gpt_assistants.file_info = MagicMock(return_value=fake_file_info)
+    app.gpt.assistants = MagicMock()
+    app.gpt.assistants.file_info = MagicMock(return_value=fake_file_info)
     assistants.window.core = app
     filename = assistants.import_filenames('some_id')
 
