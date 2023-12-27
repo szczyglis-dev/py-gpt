@@ -48,10 +48,6 @@ class Vision:
         )
         return response
 
-    def reset_tokens(self):
-        """Reset input tokens counter"""
-        self.input_tokens = 0
-
     def build(self, input_prompt, system_prompt=None, attachments=None):
         """
         Build chat messages dict
@@ -168,6 +164,10 @@ class Vision:
         """
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
+
+    def reset_tokens(self):
+        """Reset input tokens counter"""
+        self.input_tokens = 0
 
     def get_used_tokens(self):
         """Get input tokens counter"""

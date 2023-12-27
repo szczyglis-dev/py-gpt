@@ -62,6 +62,13 @@ class Completion:
         """
         message = ""
 
+        # tokens config
+        model = self.window.core.config.get('model')
+        mode = self.window.core.config.get('mode')
+
+        # input tokens: reset
+        self.reset_tokens()
+
         if system_prompt is not None and system_prompt != "":
             message += system_prompt
 
@@ -92,7 +99,14 @@ class Completion:
         else:
             message += "\n" + str(input_prompt)
 
+        # input tokens: update
+        self.input_tokens += self.window.core.tokens.from_text(message, model)
+
         return message
+
+    def reset_tokens(self):
+        """Reset input tokens counter"""
+        self.input_tokens = 0
 
     def get_used_tokens(self):
         """Get input tokens counter"""

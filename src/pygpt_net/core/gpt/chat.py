@@ -57,10 +57,6 @@ class Chat:
         )
         return response
 
-    def reset_tokens(self):
-        """Reset input tokens counter"""
-        self.input_tokens = 0
-
     def build(self, input_prompt, system_prompt=None, ai_name=None, user_name=None):
         """
         Build chat messages dict
@@ -86,7 +82,7 @@ class Chat:
             max_tokens = model_ctx
 
         # input tokens: reset
-        self.input_tokens = 0
+        self.reset_tokens()
 
         # names fallback
         if ai_name is None or ai_name == "":
@@ -117,6 +113,10 @@ class Chat:
         self.input_tokens += self.window.core.tokens.from_messages(messages, model)
 
         return messages
+
+    def reset_tokens(self):
+        """Reset input tokens counter"""
+        self.input_tokens = 0
 
     def get_used_tokens(self):
         """Get input tokens counter"""

@@ -67,6 +67,12 @@ class Chat:
         """
         messages = []
 
+        # tokens config
+        model = self.window.core.config.get('model')
+
+        # input tokens: reset
+        self.reset_tokens()
+
         # append initial (system) message
         if system_prompt is not None and system_prompt != "":
             messages.append(SystemMessage(content=system_prompt))
@@ -84,7 +90,15 @@ class Chat:
 
         # append current prompt
         messages.append(HumanMessage(content=str(input_prompt)))
+
+        # input tokens: update
+        self.input_tokens += self.window.core.tokens.from_messages(messages, model)
+
         return messages
+
+    def reset_tokens(self):
+        """Reset input tokens counter"""
+        self.input_tokens = 0
 
     def get_used_tokens(self):
         """Get input tokens counter"""

@@ -229,6 +229,10 @@ class Input:
                 if mode == "langchain":
                     self.log("Calling LangChain...")  # log
                     ctx = self.window.core.chain.call(text, ctx, stream_mode)
+
+                    # store context
+                    if ctx is not None:
+                        self.window.core.ctx.add(ctx)
                 else:
                     self.log("Calling OpenAI API...")  # log
                     ctx = self.window.core.gpt.call(text, ctx, stream_mode)
