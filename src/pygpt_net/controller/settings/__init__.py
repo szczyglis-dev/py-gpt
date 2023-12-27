@@ -55,11 +55,6 @@ class Settings:
                 else:
                     self.window.ui.menu['config.' + id].setChecked(False)
 
-    def start_settings(self):
-        """Open settings at first launch (no API key)"""
-        self.toggle_editor('settings')
-        self.window.ui.dialogs.close('info.start')
-
     def toggle_editor(self, id):
         """
         Toggle settings
@@ -135,3 +130,8 @@ class Settings:
     def update_font_size(self):
         """Update font size"""
         self.window.controller.theme.apply_nodes(False)
+
+    def welcome_settings(self):
+        """Open settings at first launch (no API key)"""
+        self.toggle_editor('settings')
+        self.window.ui.dialogs.close('info.start')

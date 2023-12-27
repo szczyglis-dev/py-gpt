@@ -33,7 +33,7 @@ class Start:
         id = 'start'
 
         self.window.ui.nodes['start.btn'] = QPushButton(trans('dialog.start.btn'))
-        self.window.ui.nodes['start.btn'].clicked.connect(lambda: self.window.controller.settings.start_settings())
+        self.window.ui.nodes['start.btn'].clicked.connect(lambda: self.window.controller.settings.welcome_settings())
 
         logo_label = QLabel()
         path = os.path.abspath(
