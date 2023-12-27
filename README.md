@@ -98,7 +98,7 @@ sudo snap refresh pygpt
 **Info:** to use camera in Snap version you must connect the camera with interface:
 
 ```commandline
-snap connect pygpt:camera
+sudo snap connect pygpt:camera
 ```
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
@@ -195,6 +195,14 @@ sudo apt install portaudio19-dev
 sudo apt install libasound2
 sudo apt install libasound2-data 
 sudo apt install libasound2-plugins
+```
+
+**Camera access in Snap version:**
+
+To use camera in Vision mode in Snap version you must connect the camera with:
+
+```commandline
+sudo snap connect pygpt:camera
 ```
 
 ## Other requirements
@@ -1344,6 +1352,8 @@ may consume additional tokens that are not displayed in the main window.
 ## 2.0.58 (2023-12-27)
 
 - Code refactor
+- Added stream response mode to Vision mode
+- Added token calculation to Langchain mode
 - Optimizations and small fixes
 
 ## 2.0.57 (2023-12-26)

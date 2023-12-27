@@ -212,10 +212,6 @@ class Input:
         # async or sync mode
         stream_mode = self.window.core.config.get('stream')
 
-        # disable stream mode for vision mode (tmp)
-        if mode == "vision":
-            stream_mode = False
-
         # call the model
         try:
             # set attachments (attachments are separated by mode)

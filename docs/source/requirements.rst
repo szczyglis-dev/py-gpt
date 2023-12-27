@@ -143,6 +143,16 @@ If you have a problems with audio on Linux, then try to install ``portaudio19-de
     sudo apt install libasound2-plugins
 
 
+**Camera access in Snap version:**
+
+To use camera in Vision mode in Snap version you must connect the camera with:
+
+.. code-block:: console
+
+    sudo snap connect pygpt:camera
+
+
+
 Other requirements
 ------------------
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
