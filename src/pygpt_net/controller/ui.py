@@ -27,7 +27,7 @@ class UI:
 
     def update(self):
         """Update all elements"""
-        self.window.controller.layout.scroll_save()
+        # self.window.controller.layout.scroll_save()
 
         # update mode, models and presets lists
         self.update_toolbox()
@@ -41,7 +41,7 @@ class UI:
         # update token counters
         self.update_tokens()
 
-        self.window.controller.layout.scroll_restore()
+        # self.window.controller.layout.scroll_restore()
 
     def update_toolbox(self):
         """Update toolbox"""
