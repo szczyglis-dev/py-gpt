@@ -76,14 +76,14 @@ class DbSqliteProvider(BaseProvider):
             meta.id = self.create_id(meta)  # insert to DB and get ID
         return meta.id
 
-    def get_meta(self):
+    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
         """
         Return dict of ctx meta
 
         :return: dict of ctx meta
         :rtype: dict
         """
-        return self.storage.get_meta()
+        return self.storage.get_meta(search_string)
 
     def load(self, id):
         """

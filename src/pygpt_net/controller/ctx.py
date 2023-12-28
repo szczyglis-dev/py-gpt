@@ -413,6 +413,15 @@ class Ctx:
         # self.select(idx)
         self.window.ui.nodes['ctx.list'].lockSelection()
 
+    def search_string_change(self, text):
+        """
+        Search string change
+
+        :param text: search string
+        """
+        self.window.core.ctx.search_string = text
+        self.update(reload=True, all=False)
+
     def context_change_locked(self):
         """
         Check if ctx change is locked

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.58** | build: **2023.12.27** | Python: **3.10+**
+Release: **2.0.59** | build: **2023.12.28** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1348,6 +1348,14 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.59 (2023-12-28)
+
+- Storage of context has been changed from JSON files to SQLite database (automatic migration included - you will not lose your existing data).
+- Added "Search" functionality for contexts and a search input at the bottom.
+- Updated contexts now automatically land at the top of the list.
+- Added the ability to store more information about each context.
+- Integration of searching, utilizing SQLite, and vector database search coming soon.
 
 ## 2.0.58 (2023-12-27)
 

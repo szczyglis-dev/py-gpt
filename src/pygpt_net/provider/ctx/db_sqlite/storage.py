@@ -34,16 +34,21 @@ class Storage:
         """
         self.window = window
 
-    def get_meta(self):
+    def get_meta(self, search_string=None):
         """
         Return dict with CtxMeta objects, indexed by ID
 
         :return: dict of CtxMeta
         :rtype: dict
         """
-        stmt = text("""
-            SELECT * FROM ctx_meta ORDER BY updated_ts DESC
-        """)
+        if search_string is None or search_string == "":
+            stmt = text("""
+                SELECT * FROM ctx_meta ORDER BY updated_ts DESC
+            """)
+        else:
+            stmt = text("""
+                SELECT * FROM ctx_meta WHERE name LIKE :search_string ORDER BY updated_ts DESC
+            """).bindparams(search_string=f"%{search_string}%")
         items = {}
         db = self.window.core.db.get_db()
         with db.connect() as conn:

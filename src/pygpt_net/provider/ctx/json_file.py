@@ -54,7 +54,7 @@ class JsonFileProvider(BaseProvider):
             meta.id = self.create_id()
         return meta.id
 
-    def get_meta(self):
+    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
         """Load ctx metadata from file"""
         contexts = {}
         path = os.path.join(self.window.core.config.path, 'context.json')

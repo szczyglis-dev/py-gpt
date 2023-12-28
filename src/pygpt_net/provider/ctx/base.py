@@ -46,7 +46,7 @@ class BaseProvider:
     def truncate(self):
         pass
 
-    def get_meta(self):
+    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
         pass
 
     def dump(self, ctx):

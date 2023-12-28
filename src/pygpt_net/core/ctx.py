@@ -41,6 +41,7 @@ class Ctx:
         self.thread = None
         self.last_mode = None
         self.last_model = None
+        self.search_string = None
 
         # register data providers
         self.add_provider(JsonFileProvider())  # json file provider
@@ -569,7 +570,7 @@ class Ctx:
         """Load ctx list from provider"""
         if self.provider in self.providers:
             try:
-                self.meta = self.providers[self.provider].get_meta()
+                self.meta = self.providers[self.provider].get_meta(self.search_string, 'updated_ts', 'DESC')
             except Exception as e:
                 self.window.core.debug.log(e)
                 self.meta = {}

@@ -73,6 +73,7 @@ class Lang:
         # context
         self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))
         self.window.ui.nodes['ctx.new'].setText(trans('ctx.new'))
+        self.window.ui.nodes['ctx.search'].setPlaceholderText(trans('ctx.list.search.placeholder'))
 
         # toolbox
         self.window.ui.nodes['prompt.mode.label'].setText(trans("toolbox.mode.label"))

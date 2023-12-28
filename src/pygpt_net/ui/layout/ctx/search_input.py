@@ -9,43 +9,39 @@
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtGui import QStandardItemModel
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
+from datetime import datetime, timedelta
 
-from pygpt_net.ui.layout.ctx.search_input import SearchInput
-from pygpt_net.ui.layout.ctx.ctx_list import CtxList
-from pygpt_net.ui.layout.ctx.video import Video
+from pygpt_net.ui.widget.lists.context import ContextList
+from pygpt_net.ui.widget.textarea.ctx_search_input import CtxSearchInput
+from pygpt_net.utils import trans
 
 
-class CtxMain:
+class SearchInput:
     def __init__(self, window=None):
         """
-        Context list UI
+        Context search input
 
         :param window: Window instance
         """
         self.window = window
-        self.search_input = SearchInput(window)
-        self.ctx_list = CtxList(window)
-        self.video = Video(window)
 
     def setup(self):
         """
-        Setup layout
+        Setup search input
 
         :return: QWidget
         :rtype: QWidget
         """
-        ctx = self.ctx_list.setup()
-        video = self.video.setup()
-        search_input = self.search_input.setup()
+        self.window.ui.nodes['ctx.search'] = CtxSearchInput(self.window)
 
         layout = QVBoxLayout()
-        layout.addWidget(ctx)
-        layout.addWidget(search_input)
-        layout.addWidget(video)
+        layout.addWidget(self.window.ui.nodes['ctx.search'])
+        layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()
         widget.setLayout(layout)
+        widget.setContentsMargins(0, 0, 0, 0)
 
         return widget
-
