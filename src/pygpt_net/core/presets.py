@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -24,37 +24,16 @@ class Presets:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "json_file"
+        self.provider = JsonFileProvider(window)
         self.items = {}
-
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
 
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def build(self):
         """
@@ -244,11 +223,7 @@ class Presets:
             self.items.pop(id)
 
         if remove_file:
-            if self.provider in self.providers:
-                try:
-                    self.providers[self.provider].remove(id)
-                except Exception as e:
-                    self.window.core.debug.log(e)
+            self.provider.remove(id)
             # self.load_presets()
 
     def sort_by_name(self):
@@ -259,12 +234,7 @@ class Presets:
 
     def load(self):
         """Load presets templates"""
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.items = {}
+        self.items = self.provider.load()
 
         # sort presets
         self.sort_by_name()
@@ -279,16 +249,8 @@ class Presets:
         if id not in self.items:
             return
 
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(id, self.items[id])
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.save(id, self.items[id])
 
     def save_all(self):
         """Save all presets"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save_all(self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.save_all(self.items)
