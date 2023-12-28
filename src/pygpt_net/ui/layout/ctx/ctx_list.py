@@ -96,33 +96,28 @@ class CtxList:
         """
         Convert timestamp to human readable format
 
-        :param timestamp: POSIX timestamp (the number of seconds since January 1, 1970)
+        :param timestamp: timestamp
         :return: string
         :rtype: str
         """
         today = datetime.today().date()
         yesterday = today - timedelta(days=1)
-        one_week_ago = today - timedelta(weeks=1)
-        two_weeks_ago = today - timedelta(weeks=2)
-        three_weeks_ago = today - timedelta(weeks=3)
-        one_month_ago = today - timedelta(days=30)
-
         date = datetime.fromtimestamp(timestamp).date()
+
+        days_ago = (today - date).days
+        weeks_ago = days_ago // 7
 
         if date == today:
             return trans('dt.today')
         elif date == yesterday:
             return trans('dt.yesterday')
-        elif date > one_week_ago:
-            days_ago = (today - date).days
-            return f"{days_ago} " + trans('dt.days_ago')
-        elif date == one_week_ago:
+        elif weeks_ago == 1:
             return trans('dt.week')
-        elif date == two_weeks_ago:
-            return "2 " + trans('dt.weeks')
-        elif date == three_weeks_ago:
-            return "3 " + trans('dt.weeks')
-        elif date >= one_month_ago:
+        elif 1 < weeks_ago < 4:
+            return f"{weeks_ago} " + trans('dt.weeks')
+        elif days_ago < 30:
+            return f"{days_ago} " + trans('dt.days_ago')
+        elif days_ago >= 30:
             return trans('dt.month')
         else:
             return date.strftime("%Y-%m-%d")
