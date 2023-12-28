@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.27 21:00:00                  #
 # ================================================== #
 
 from pathlib import Path
@@ -24,14 +24,14 @@ class Installer:
 
     def install(self):
         """
-        Install all config data and directories
+        Install db, config data and directories
         """
         try:
             # create user config directory
             path = Path(self.window.core.config.path)
             path.mkdir(parents=True, exist_ok=True)
 
-            # install config
+            # install config files and database
             self.window.core.config.install()
 
             # install models

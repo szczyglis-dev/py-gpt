@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.27 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -35,6 +35,9 @@ class Updater:
         try:
             version = self.get_app_version()
 
+            # migrate DB
+            self.migrate_db()
+
             self.patch_config(version)
             self.patch_models(version)
             self.patch_presets(version)
@@ -45,6 +48,14 @@ class Updater:
         except Exception as e:
             self.window.core.debug.log(e)
             print("Failed to patch config data!")
+
+    def migrate_db(self):
+        """Migrate database"""
+        try:
+            self.window.core.db.migrate()
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Failed to migrate database!")
 
     def patch_config(self, version):
         """

@@ -35,7 +35,7 @@ class History:
         :param provider: data provider instance
         """
         self.providers[provider.id] = provider
-        self.providers[provider.id].window = self.window
+        self.providers[provider.id].attach(self.window)
 
     def install(self):
         """Install provider data"""

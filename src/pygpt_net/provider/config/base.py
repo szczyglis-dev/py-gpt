@@ -19,6 +19,9 @@ class BaseProvider:
         self.path_app = None
         self.meta = None
 
+    def attach(self, window):
+        self.window = window
+
     def install(self):
         pass
 

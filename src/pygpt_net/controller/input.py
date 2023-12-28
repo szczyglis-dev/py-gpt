@@ -207,6 +207,9 @@ class Input:
 
         # append input to chat window
         self.window.controller.output.append_input(ctx)
+        # TODO: add ctx here
+        self.window.core.ctx.add(ctx)  # add ctx item
+        self.window.controller.ctx.update(reload=True, all=False)  # update ctx list
         QApplication.processEvents()  # process events to update UI
 
         # async or sync mode
@@ -226,16 +229,16 @@ class Input:
                     self.log("Calling LangChain...")  # log
                     ctx = self.window.core.chain.call(text, ctx, stream_mode)
 
-                    # store context
+                    # update context
                     if ctx is not None:
-                        self.window.core.ctx.add(ctx)
+                        self.window.core.ctx.update_item(ctx)
                 else:
                     self.log("Calling OpenAI API...")  # log
                     ctx = self.window.core.gpt.call(text, ctx, stream_mode)
 
-                    # store context
+                    # update context
                     if ctx is not None:
-                        self.window.core.ctx.add(ctx)
+                        self.window.core.ctx.update_item(ctx)
 
                     if mode == 'assistant':
                         # get run ID and save it in ctx
@@ -273,7 +276,15 @@ class Input:
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
             self.window.controller.output.handle_commands(ctx)
+
+            # update ctx
+            self.window.core.ctx.update_item(ctx)
+
+            # unlock
             self.unlock_input()
+
+            # update ctx list
+            self.window.controller.ctx.update()
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):

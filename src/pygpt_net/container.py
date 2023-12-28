@@ -16,6 +16,7 @@ from pygpt_net.core.camera import Camera
 from pygpt_net.core.chain import Chain
 from pygpt_net.core.command import Command
 from pygpt_net.core.ctx import Ctx
+from pygpt_net.core.db import Database
 from pygpt_net.core.debugging import Debug
 from pygpt_net.core.dispatcher import Dispatcher
 from pygpt_net.core.filesystem import Filesystem
@@ -53,6 +54,7 @@ class Container:
         self.command = Command(window)
         self.config = Config(window)
         self.ctx = Ctx(window)
+        self.db = Database(window)
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
         self.filesystem = Filesystem(window)

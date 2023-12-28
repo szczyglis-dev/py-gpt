@@ -14,6 +14,7 @@ import os
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.provider.ctx.json_file import JsonFileProvider
+from pygpt_net.provider.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
 
 
@@ -26,7 +27,8 @@ class Ctx:
         """
         self.window = window
         self.providers = {}
-        self.provider = "json_file"
+        #self.provider = "json_file"
+        self.provider = "db_sqlite"
         self.meta = {}
         self.items = []
         self.current = None
@@ -40,6 +42,7 @@ class Ctx:
 
         # register data providers
         self.add_provider(JsonFileProvider())  # json file provider
+        self.add_provider(DbSqliteProvider())  # sqlite db provider
 
     def add_provider(self, provider):
         """
@@ -48,7 +51,7 @@ class Ctx:
         :param provider: ctx provider instance
         """
         self.providers[provider.id] = provider
-        self.providers[provider.id].window = self.window
+        self.providers[provider.id].attach(self.window)
 
     def install(self):
         """Install provider data"""
@@ -97,7 +100,6 @@ class Ctx:
         :rtype: CtxMeta
         """
         meta = self.create()  # create new ctx meta
-
         if meta is None:
             self.window.core.debug.log("Error creating new ctx")
             return
@@ -151,8 +153,28 @@ class Ctx:
         """
         self.items.append(item)  # add CtxItem to context items
 
-        # save context to file
-        self.store()
+        # append in provider
+        if self.current is not None and self.current in self.meta:
+            meta = self.meta[self.current]
+            if self.provider in self.providers:
+                try:
+                    result = self.providers[self.provider].append_item(meta, item)
+                    if not result:
+                        self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
+                except Exception as e:
+                    self.window.core.debug.log(e)
+
+    def update_item(self, item):
+        """
+        Update CtxItem in context
+
+        :param item: CtxItem to update
+        """
+        if self.provider in self.providers:
+            try:
+                self.providers[self.provider].update_item(item)
+            except Exception as e:
+                self.window.core.debug.log(e)
 
     def is_empty(self):
         """
@@ -248,13 +270,15 @@ class Ctx:
         if idx < len(self.items):
             return self.items[idx]
 
-    def get_meta(self):
+    def get_meta(self, reload=False):
         """
         Get ctx items sorted descending by date
 
         :return: ctx metas dict
         """
-        return dict(sorted(self.meta.items(), reverse=True))
+        if reload:
+            self.load_meta()
+        return self.meta
 
     def get_id_by_idx(self, idx):
         """

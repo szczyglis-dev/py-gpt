@@ -16,6 +16,9 @@ class BaseProvider:
         self.id = ""
         self.type = "mode"
 
+    def attach(self, window):
+        self.window = window
+
     def create(self, meta):
         pass
 

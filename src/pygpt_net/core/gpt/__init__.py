@@ -91,11 +91,10 @@ class Gpt:
                                         attachments=self.attachments)
             used_tokens = self.vision.get_used_tokens()
         elif mode == "assistant":
-            response = self.window.core.gpt.assistants.msg_send(self.thread_id, prompt)
+            response = self.assistants.msg_send(self.thread_id, prompt)
             if response is not None:
                 ctx.msg_id = response.id
-                run = self.window.core.gpt.assistants.run_create(self.thread_id, self.assistant_id,
-                                                                 self.system_prompt)
+                run = self.assistants.run_create(self.thread_id, self.assistant_id, self.system_prompt)
                 if run is not None:
                     ctx.run_id = run.id
             return ctx  # if assistant then return here

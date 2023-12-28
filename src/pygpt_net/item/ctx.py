@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.27 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -20,8 +20,11 @@ class CtxItem:
 
         :param mode: Mode (completion, chat, img, vision, langchain, assistant)
         """
+        self.id = None
         self.stream = None
         self.results = []
+        self.urls = []
+        self.images = []
         self.reply = False
         self.input = None
         self.output = None
@@ -36,6 +39,8 @@ class CtxItem:
         self.input_tokens = 0
         self.output_tokens = 0
         self.total_tokens = 0
+        self.meta_id = None
+        self.extra = None
 
     def set_input(self, input, name=None):
         """
@@ -79,8 +84,11 @@ class CtxMeta:
         :param id: Context ID
         """
         self.id = id
+        self.uuid = None
         self.name = None
         self.date = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.created = int(time.time())
+        self.updated = int(time.time())
         self.mode = None
         self.last_mode = None
         self.thread = None
@@ -88,4 +96,8 @@ class CtxMeta:
         self.preset = None
         self.run = None
         self.status = None
+        self.extra = None
         self.initialized = False
+        self.deleted = False
+        self.important = False
+        self.archived = False

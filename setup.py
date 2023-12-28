@@ -41,6 +41,7 @@ setup(
         'PySide6-Essentials>=6.4.2',
         'qt-material>=2.14',
         'SpeechRecognition>=3.10.0',
+        'SQLAlchemy>=2.0.23',
         'show-in-file-manager>=1.1.4',
         'tiktoken>=0.3.3',
         'wikipedia>=1.4.0',

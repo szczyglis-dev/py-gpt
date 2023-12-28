@@ -16,6 +16,9 @@ class BaseProvider:
         self.id = ""
         self.type = "assistant"
 
+    def attach(self, window):
+        self.window = window
+
     def install(self):
         pass
 

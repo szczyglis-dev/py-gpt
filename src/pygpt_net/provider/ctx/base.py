@@ -16,17 +16,26 @@ class BaseProvider:
         self.id = ""
         self.type = "ctx"
 
+    def attach(self, window):
+        self.window = window
+
     def install(self):
         pass
 
     def patch(self, version):
         pass
 
+    def append_item(self, meta, item):
+        pass
+
+    def update_item(self, item):
+        pass
+
     def create(self, meta):
         pass
 
     def load(self, id):
-        pass
+        return []
 
     def save(self, id, meta, items):
         pass

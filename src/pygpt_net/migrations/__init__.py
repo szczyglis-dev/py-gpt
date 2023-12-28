@@ -6,24 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.27 21:00:00                  #
 # ================================================== #
 
+from .Version20231227152900 import Version20231227152900  # 2.0.59
 
-class BaseProvider:
-    def __init__(self, window=None):
-        self.window = window
-        self.id = ""
-        self.type = "history"
 
-    def attach(self, window):
-        self.window = window
-
-    def install(self):
+class Migrations:
+    def __init__(self):
         pass
 
-    def append(self, ctx, mode):
-        pass
+    @staticmethod
+    def get_versions():
+        """
+        Return migrations
 
-    def truncate(self):
-        pass
+        :return: list with migrations classes
+        :rtype: list
+        """
+        return [
+            Version20231227152900(),  # 2.0.59
+        ]

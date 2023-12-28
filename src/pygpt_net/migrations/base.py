@@ -6,16 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.27 14:00:00                  #
 # ================================================== #
 
-from pygpt_net.provider.ctx.base import BaseProvider
+class BaseMigration:
+    def __init__(self, window=None):
+        self.window = window
 
-
-class DbSqliteProvider(BaseProvider):
-    def __init__(self):
-        super(DbSqliteProvider, self).__init__()
-        self.id = "db_sqlite"
-        self.type = "ctx"
-
-        # TODO: Implement sqlite provider and search methods
+    def up(self, conn):
+        pass

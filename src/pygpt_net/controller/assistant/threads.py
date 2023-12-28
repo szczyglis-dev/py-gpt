@@ -54,6 +54,12 @@ class Threads:
                 self.window.controller.assistant.files.handle_received(msg)
                 self.window.controller.output.handle_response(ctx, 'assistant', False)
                 self.window.controller.output.handle_commands(ctx)
+
+                # update ctx
+                self.window.core.ctx.update_item(ctx)
+
+                # update ctx list
+                self.window.controller.ctx.update()
                 break
 
     def handle_run(self, ctx):

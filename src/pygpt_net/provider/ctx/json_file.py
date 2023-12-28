@@ -93,6 +93,15 @@ class JsonFileProvider(BaseProvider):
                 data = []
         return data
 
+    def append(self, meta, item):
+        """
+        Append item to ctx
+
+        :param meta: ctx meta (CtxMeta)
+        :param item: ctx item (CtxItem)
+        """
+        return False  # handled after in save() method
+
     def save(self, id, meta, items):
         """
         Dump ctx to json file
@@ -191,7 +200,7 @@ class JsonFileProvider(BaseProvider):
 
     def patch(self, version):
         """
-        Migrate presets to current app version
+        Migrate ctx to current app version
 
         :param version: current app version
         :return: true if migrated

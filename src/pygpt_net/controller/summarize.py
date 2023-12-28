@@ -14,7 +14,7 @@ from pygpt_net.core.worker import Worker
 
 
 class WorkerSignals(QObject):
-    updated = Signal(str, str)
+    updated = Signal(int, str)
 
 
 class Summarize:

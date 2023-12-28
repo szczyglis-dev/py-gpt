@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.27 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -37,6 +37,7 @@ class Config:
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
         self.initialized_base = False
+        self.db_echo = False
         self.data = {}
         self.data_base = {}
         self.version = self.get_version()
@@ -57,7 +58,12 @@ class Config:
         self.providers[provider.id].window = self.window
 
     def install(self):
-        """Install provider data"""
+        """Install database and provider data"""
+        # install database
+        self.window.core.db.echo = self.db_echo
+        self.window.core.db.init()
+
+        # install provider configs
         if self.provider in self.providers:
             try:
                 self.providers[self.provider].install()

@@ -51,7 +51,7 @@ class Ctx:
         # load selected ctx
         self.load(self.window.core.ctx.current)
 
-    def update(self, reload=True):
+    def update(self, reload=True, all=True):
         """
         Update ctx list
 
@@ -59,12 +59,13 @@ class Ctx:
         """
         # reload ctx list items
         if reload:
-            self.reload()
+            self.reload(True)
             self.select_ctx_by_current()  # select on list
 
         # update all
-        self.window.controller.ui.update()
-        self.window.core.debug.update(True)
+        if all:
+            self.window.controller.ui.update()
+            self.window.core.debug.update(True)
 
         # append ctx and thread id (assistants API) to config
         id = self.window.core.ctx.current
@@ -138,9 +139,9 @@ class Ctx:
         self.update_ctx_label(mode, assistant_id)
         self.focus_chat()
 
-    def reload(self):
+    def reload(self, reload=False):
         """Reload current ctx list"""
-        meta = self.window.core.ctx.get_meta()
+        meta = self.window.core.ctx.get_meta(reload)
         self.window.ui.contexts.ctx_list.update('ctx.list', meta)
 
     def refresh(self):
