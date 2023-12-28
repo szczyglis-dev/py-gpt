@@ -50,20 +50,20 @@ class Storage:
             for row in result:
                 notepad = NotepadItem()
                 self.unpack(notepad, row._asdict())
-                items[notepad.id] = notepad
+                items[notepad.idx] = notepad  # by idx, not id
         return items
 
-    def get_by_id(self, id):
+    def get_by_idx(self, idx):
         """
-        Return NotepadItem by ID
+        Return NotepadItem by IDx
 
-        :param id: notepad item ID
+        :param idx: notepad item IDx
         :return: NotepadItem
         :rtype: NotepadItem
         """
         stmt = text("""
-            SELECT * FROM notepad WHERE id = :id LIMIT 1
-        """).bindparams(id=id)
+            SELECT * FROM notepad WHERE idx = :idx LIMIT 1
+        """).bindparams(idx=idx)
         notepad = NotepadItem()
         db = self.window.core.db.get_db()
         with db.connect() as conn:
@@ -84,17 +84,17 @@ class Storage:
             conn.execute(text("DELETE FROM notepad"))
         return True
 
-    def delete_by_id(self, id):
+    def delete_by_idx(self, idx):
         """
-        Delete notepad item by ID
+        Delete notepad item by IDx
 
-        :param id: notepad item ID
+        :param idx: notepad item IDx
         :return: true if deleted
         :rtype: bool
         """
         stmt = text("""
-            DELETE FROM notepad WHERE id = :id
-        """).bindparams(id=id)
+            DELETE FROM notepad WHERE idx = :idx
+        """).bindparams(idx=idx)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(stmt)
@@ -106,11 +106,11 @@ class Storage:
 
         :param notepad: NotepadItem object
         """
-        id = notepad.id
+        idx = int(notepad.idx or 0)
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             ts = int(time.time())
-            sel_stmt = text("SELECT 1 FROM notepad WHERE id = :id").bindparams(id=id)
+            sel_stmt = text("SELECT 1 FROM notepad WHERE idx = :idx").bindparams(idx=idx)
             result = conn.execute(sel_stmt).fetchone()
             if result:
                 stmt = text("""
@@ -173,7 +173,6 @@ class Storage:
         stmt = text("""
                 INSERT INTO notepad 
                 (
-                    id, 
                     idx,
                     uuid,
                     title, 
@@ -184,7 +183,6 @@ class Storage:
                 )
                 VALUES
                 (
-                    :id,
                     :idx,
                     :uuid,
                     :title,
@@ -194,7 +192,6 @@ class Storage:
                     :is_deleted
                 )
             """).bindparams(
-            id=notepad.id,
             idx=int(notepad.idx or 0),
             uuid=notepad.uuid,
             title=notepad.title,

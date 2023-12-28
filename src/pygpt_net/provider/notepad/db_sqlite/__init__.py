@@ -39,13 +39,13 @@ class DbSqliteProvider(BaseProvider):
         :return: true if migrated
         :rtype: bool
         """
-        return
+        # return
         # if old version is 2.0.59 or older and if json file exists
         path = os.path.join(self.window.core.config.path, 'notepad.json')
         if os.path.exists(path):
             self.truncate()
             self.import_from_json()
-            # os.remove(path)
+            os.remove(path)
 
     def create_id(self):
         """
@@ -77,15 +77,15 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_all()
 
-    def load(self, id):
+    def load(self, idx):
         """
         Load notepad from DB
 
-        :param id: notepad ID
+        :param idx: notepad IDx
         :return: notepad
         :rtype: NotepadItem
         """
-        return self.storage.get_by_id(id)
+        return self.storage.get_by_idx(idx)
 
     def save(self, notepad):
         """
@@ -106,8 +106,8 @@ class DbSqliteProvider(BaseProvider):
         :param items: dict of NotepadItem objects
         """
         try:
-            for id in items:
-                notepad = items[id]
+            for idx in items:
+                notepad = items[idx]
                 self.storage.save(notepad)
         except Exception as e:
             self.window.core.debug.log(e)
