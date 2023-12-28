@@ -46,6 +46,7 @@ class CtxItem:
         self.output_tokens = 0
         self.total_tokens = 0
         self.extra = None
+        self.current = False
 
     def set_input(self, input, name=None):
         """

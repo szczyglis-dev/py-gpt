@@ -473,7 +473,7 @@ class Ctx:
 
         return i, context_tokens
 
-    def get_prompt_items(self, model, mode="chat", used_tokens=100, max_tokens=1000, remove_first=True):
+    def get_prompt_items(self, model, mode="chat", used_tokens=100, max_tokens=1000, ignore_current=True):
         """
         Return ctx items to add to prompt
 
@@ -481,17 +481,15 @@ class Ctx:
         :param mode: mode
         :param used_tokens: used tokens
         :param max_tokens: max tokens
-        :param remove_first: remove first item (provided by user)
+        :param ignore_current: ignore current item (provided by user)
         :return: context items list
         :rtype: list
         """
         items = []
         # loop on items from end to start
         tokens = used_tokens
-        first_item = True
         for item in reversed(self.items):
-            if first_item and remove_first:
-                first_item = False
+            if item.current and ignore_current:
                 continue
             tokens += self.window.core.tokens.from_ctx(item, mode, model)
             if tokens > max_tokens:
@@ -502,20 +500,17 @@ class Ctx:
         items.reverse()
         return items
 
-    def get_all_items(self, remove_first=True):
+    def get_all_items(self, ignore_current=True):
         """
         Return all ctx items
 
-        :param remove_first: remove first item (provided by user)
-
+        :param ignore_current: ignore current item (provided by user)
         :return: ctx items list
         :rtype: list
         """
         items = []
-        first_item = True
         for item in reversed(self.items):
-            if first_item and remove_first:
-                first_item = False
+            if item.current and ignore_current:
                 continue
             items.append(item)
 

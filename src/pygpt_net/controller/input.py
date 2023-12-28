@@ -142,11 +142,14 @@ class Input:
 
         # create ctx item
         ctx = CtxItem()
+        ctx.current = True  # mark as current context item
         ctx.mode = mode
         ctx.model = model
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
-        if len(attachments_list) > 0:  # attachments
+
+        # attachments
+        if len(attachments_list) > 0:
             ctx.attachments = attachments_list
 
         # store history (input)
