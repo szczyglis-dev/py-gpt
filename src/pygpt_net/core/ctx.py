@@ -26,9 +26,7 @@ class Ctx:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        #self.provider = "json_file"
-        self.provider = "db_sqlite"
+        self.provider = DbSqliteProvider(window)
         self.meta = {}
         self.items = []
         self.current = None
@@ -42,19 +40,6 @@ class Ctx:
         self.last_mode = None
         self.last_model = None
         self.search_string = None
-
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-        self.add_provider(DbSqliteProvider())  # sqlite db provider
-
-    def add_provider(self, provider):
-        """
-        Add ctx provider
-
-        :param provider: ctx provider instance
-        """
-        self.provider = provider
-        self.provider.attach(self.window)
 
     def install(self):
         """Install provider data"""
