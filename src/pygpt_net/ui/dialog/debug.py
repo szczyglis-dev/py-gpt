@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QTreeView, QGridLayout, QAbstractItemView, QScrollArea
+from PySide6.QtWidgets import QGridLayout, QScrollArea
 
 from pygpt_net.ui.widget.dialog.debug import DebugDialog
+from pygpt_net.ui.widget.lists.debug import DebugList
 
 
 class Debug:
@@ -29,10 +30,7 @@ class Debug:
 
         :param id: debug id
         """
-        self.window.ui.debug[id] = QTreeView()
-        self.window.ui.debug[id].setRootIsDecorated(False)
-        self.window.ui.debug[id].setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.window.ui.debug[id].setWordWrap(True)
+        self.window.ui.debug[id] = DebugList(self.window)
 
         scroll = QScrollArea()
         scroll.setWidget(self.window.ui.debug[id])

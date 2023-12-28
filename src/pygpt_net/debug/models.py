@@ -42,6 +42,9 @@ class ModelsDebug:
             self.window.core.debug.add(self.id, prefix + 'id', str(model.id))
             self.window.core.debug.add(self.id, prefix + 'name', str(model.name))
             self.window.core.debug.add(self.id, prefix + 'mode', str(model.mode))
+            self.window.core.debug.add(self.id, prefix + 'langchain', str(model.langchain))
             self.window.core.debug.add(self.id, prefix + 'tokens', str(model.tokens))
+            self.window.core.debug.add(self.id, prefix + 'ctx', str(model.ctx))
+            self.window.core.debug.add(self.id, prefix + 'default', str(model.default))
 
         self.window.core.debug.end(self.id)

@@ -18,6 +18,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
+from PySide6.QtWidgets import QHeaderView
 
 from pygpt_net.debug.assistants import AssistantsDebug
 from pygpt_net.debug.attachments import AttachmentsDebug
@@ -163,6 +164,12 @@ class Debug:
         :param id: debug id
         """
         self.window.ui.debug[id].setModel(self.models[id])
+
+        # set header
+        self.window.ui.debug[id].header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.window.ui.debug[id].header().setStretchLastSection(False)
+
         if id not in self.counters or self.counters[id] != self.models[id].rowCount():
             self.models[id].removeRows(0, self.models[id].rowCount())
             self.initialized[id] = False
