@@ -1,3 +1,7 @@
+2.0.61 (2023-12-28)
+
+- DALL-E multiple messages in one context fix
+
 2.0.60 (2023-12-28)
 
 - Message append fix

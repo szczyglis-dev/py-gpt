@@ -72,7 +72,13 @@ class Image:
 
         # call DALL-E API and generate images
         try:
-            paths, prompt = self.window.core.image.generate(text, self.window.core.config.get('model'), num_of_images)
+            model = self.window.core.config.get('model')
+            
+            # force one image if dall-e-3
+            if model == 'dall-e-3':
+                num_of_images = 1
+
+            paths, prompt = self.window.core.image.generate(text, model, num_of_images)
             string = ""
             i = 1
             for path in paths:
@@ -95,6 +101,10 @@ class Image:
             # handle ctx name (generate title from summary if not initialized)
             if self.window.core.config.get('ctx.auto_summary'):
                 self.window.controller.output.handle_ctx_name(ctx)
+
+            # store last mode (in text mode this is handled in send_text)
+            mode = self.window.core.config.get('mode')
+            self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
 
             self.window.controller.output.append_output(ctx)
             self.window.core.ctx.store()

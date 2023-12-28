@@ -215,7 +215,7 @@ class Input:
         # append text from input to chat window
         self.window.controller.output.append_input(ctx)
 
-        # add ctx to DB here and only update it after response
+        # add ctx to DB here and only update it after response, MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)!
         self.window.core.ctx.add(ctx)
 
         # update ctx list, but not reload all to prevent focus out on lists

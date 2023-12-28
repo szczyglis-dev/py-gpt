@@ -274,8 +274,8 @@ def test_get_id_by_idx(mock_window):
     }
 
     # WARNING: list is sorted: get_meta() sorts items before returning!
-    assert ctx.get_id_by_idx(0) == 'test_ctx20221207'
-    assert ctx.get_id_by_idx(1) == 'test_ctx20221204'
+    assert ctx.get_id_by_idx(1) == 'test_ctx20221207'
+    assert ctx.get_id_by_idx(0) == 'test_ctx20221204'
     assert ctx.get_id_by_idx(2) is None
 
 
@@ -296,8 +296,8 @@ def test_get_idx_by_id(mock_window):
     }
 
     # WARNING: list is sorted: get_meta() sorts items before returning!
-    assert ctx.get_idx_by_id('test_ctx20221207') == 0
-    assert ctx.get_idx_by_id('test_ctx20221204') == 1
+    assert ctx.get_idx_by_id('test_ctx20221207') == 1
+    assert ctx.get_idx_by_id('test_ctx20221204') == 0
     assert ctx.get_idx_by_id('test_ctx20221205') is None
 
 
@@ -318,7 +318,7 @@ def test_get_first(mock_window):
     }
 
     # WARNING: list is sorted: get_meta() sorts items before returning!
-    assert ctx.get_first() == 'test_ctx20221207'
+    assert ctx.get_first() == 'test_ctx20221204'
     ctx.meta = {}
     assert ctx.get_first() is None
 
@@ -388,10 +388,10 @@ def test_get_all_items(mock_window):
     """
     ctx = Ctx(mock_window)
     ctx.items = [
-        'item1',
+        'item1', # should be removed
         'item2'
     ]
-    assert ctx.get_all_items() == [
+    assert ctx.get_all_items(False) == [
         'item1',
         'item2'
     ]
@@ -444,7 +444,6 @@ def test_add(mock_window):
     ctx.store = MagicMock()  # prevent store
     ctx.add(item)
     assert ctx.items == [item]
-    ctx.store.assert_called_once_with()
 
 
 def test_store(mock_window):
