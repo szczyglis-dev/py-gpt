@@ -39,13 +39,14 @@ class DbSqliteProvider(BaseProvider):
         :return: true if migrated
         :rtype: bool
         """
-        return  # TODO: tmp!!!
+        # return
         # if old version is 2.0.59 or older and if json file exists
         path = os.path.join(self.window.core.config.path, 'context.json')
         if os.path.exists(path):
             self.truncate()
             self.import_from_json()
-            # os.remove(path)
+            # rename context.json to context.json.old:
+            os.rename(path, path + ".old")
 
     def create_id(self, meta):
         """

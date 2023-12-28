@@ -45,7 +45,8 @@ class DbSqliteProvider(BaseProvider):
         if os.path.exists(path):
             self.truncate()
             self.import_from_json()
-            os.remove(path)
+            # rename notepad.json to notepad.json.old:
+            os.rename(path, path + ".old")
 
     def create_id(self):
         """
