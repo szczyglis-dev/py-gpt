@@ -32,15 +32,11 @@ class Output:
         self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
     def clear(self):
-        """
-        Clear output
-        """
+        """Clear output"""
         self.window.ui.nodes['output'].clear()
 
     def append_context(self):
-        """
-        Append context to output
-        """
+        """Append context to output"""
         for item in self.window.core.ctx.items:
             self.append_context_item(item)
 

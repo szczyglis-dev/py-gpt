@@ -27,9 +27,7 @@ class Files:
         self.window = window
 
     def selection_change(self):
-        """
-        Select on list change
-        """
+        """Select on list change"""
         # TODO: implement this
         pass
 

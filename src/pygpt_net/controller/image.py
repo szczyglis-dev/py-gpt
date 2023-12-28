@@ -205,16 +205,12 @@ class Image:
             self.window.core.debug.log(e)
 
     def enable_raw(self):
-        """
-        Enable help for images
-        """
+        """Enable help for images"""
         self.window.core.config.set('img_raw', True)
         self.window.core.config.save()
 
     def disable_raw(self):
-        """
-        Disable help for images
-        """
+        """Disable help for images"""
         self.window.core.config.set('img_raw', False)
         self.window.core.config.save()
 

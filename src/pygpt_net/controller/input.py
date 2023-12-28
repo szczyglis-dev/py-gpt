@@ -493,25 +493,19 @@ class Input:
         self.window.core.config.set('send_mode', value)
 
     def lock_input(self):
-        """
-        Lock input
-        """
+        """Lock input"""
         self.locked = True
         self.window.ui.nodes['input.send_btn'].setEnabled(False)
         self.window.ui.nodes['input.stop_btn'].setVisible(True)
 
     def unlock_input(self):
-        """
-        Unlock input
-        """
+        """Unlock input"""
         self.locked = False
         self.window.ui.nodes['input.send_btn'].setEnabled(True)
         self.window.ui.nodes['input.stop_btn'].setVisible(False)
 
     def stop(self):
-        """
-        Stop input
-        """
+        """Stop input"""
         event = Event('audio.input.toggle', {"value": False})
         self.window.controller.assistant.threads.force_stop = True
         self.window.core.dispatcher.dispatch(event)  # stop audio input

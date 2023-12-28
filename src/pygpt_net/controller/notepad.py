@@ -25,9 +25,7 @@ class Notepad:
         self.default_num_notepads = 5
 
     def load(self):
-        """
-        Load all notepads contents
-        """
+        """Load all notepads contents"""
         self.window.core.notepad.load_all()
         items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
@@ -67,9 +65,7 @@ class Notepad:
             self.update()
 
     def save_all(self):
-        """
-        Save all notepads contents
-        """
+        """Save all notepads contents"""
         items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:

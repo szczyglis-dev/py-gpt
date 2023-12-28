@@ -273,9 +273,7 @@ class Lang:
         self.window.set_status('')  # clear status
 
     def toggle_plugins(self):
-        """
-        Toggle plugins locale
-        """
+        """Toggle plugins locale"""
         # reload all domains (plugin locale files)
         ids = self.window.core.plugins.plugins.keys()
         for id in ids:
@@ -342,9 +340,7 @@ class Lang:
         self.window.controller.plugins.set_by_tab(idx)
 
     def update_settings_dialogs(self):
-        """
-        Update settings dialogs
-        """
+        """Update settings dialogs"""
         # load settings options if not loaded yet
         if not self.window.controller.settings.editor.initialized:
             self.window.controller.settings.editor.load_config_options(False)
