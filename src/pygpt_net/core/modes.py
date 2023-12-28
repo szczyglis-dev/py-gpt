@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.provider.mode.json_file import JsonFileProvider
@@ -16,27 +16,14 @@ class Modes:
 
     def __init__(self, window=None):
         """
-        Config handler
+        Modes handler
 
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "json_file"
+        self.provider = JsonFileProvider(window)
         self.initialized = False
         self.items = {}
-
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
 
     def get_by_idx(self, idx):
         """
@@ -73,19 +60,10 @@ class Modes:
         """
         Load modes
         """
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.items = {}
+        self.items = self.provider.load()
 
     def save(self):
         """
         Save modes
         """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.save(self.items)
