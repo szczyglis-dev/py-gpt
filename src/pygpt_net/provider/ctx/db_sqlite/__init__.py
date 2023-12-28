@@ -110,6 +110,7 @@ class DbSqliteProvider(BaseProvider):
         Update item in ctx
 
         :param item: ctx item (CtxItem)
+        :return: true if updated
         """
         self.storage.update_meta_ts(item.meta_id)
         return self.storage.update_item(item) is not None
