@@ -56,6 +56,7 @@ class Ctx:
         Update ctx list
 
         :param reload: reload ctx list items
+        :param all: update all
         """
         # reload ctx list items
         if reload:
@@ -140,7 +141,11 @@ class Ctx:
         self.focus_chat()
 
     def reload(self, reload=False):
-        """Reload current ctx list"""
+        """
+        Reload current ctx list
+
+        :param reload: reload ctx list items
+        """
         meta = self.window.core.ctx.get_meta(reload)
         self.window.ui.contexts.ctx_list.update('ctx.list', meta)
 
@@ -152,7 +157,7 @@ class Ctx:
         """
         Load ctx data
 
-        :param ctx: context name (id)
+        :param ctx: context ID
         """
         # select ctx
         self.window.core.ctx.select(ctx)
@@ -216,9 +221,7 @@ class Ctx:
         self.update_ctx_label(mode, id)
 
     def update_ctx_label_by_current(self):
-        """
-        Update ctx label from current ctx
-        """
+        """Update ctx label from current ctx"""
         mode = self.window.core.ctx.mode
 
         # if no ctx mode then use current mode
@@ -405,9 +408,7 @@ class Ctx:
         return True
 
     def selection_change(self):
-        """
-        Select ctx on list change
-        """
+        """Select ctx on list change"""
         # TODO: implement this
         # idx = self.window.ui.nodes['ctx.list'].currentIndex().row()
         # self.select(idx)
