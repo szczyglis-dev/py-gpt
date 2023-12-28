@@ -58,12 +58,16 @@ class Theme:
 
         :param name: theme name
         """
+        self.window.controller.ui.store_state()  # store state before theme change
+
         self.window.core.config.set('theme', name)
         self.window.core.config.save()
         self.load_highlighter()
         self.apply_nodes()
         self.apply_window(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
         self.update_menu()
+
+        self.window.controller.ui.restore_state()  # restore state after theme change
 
     def reload(self):
         """Reload current theme"""
