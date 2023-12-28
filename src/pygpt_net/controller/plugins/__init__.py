@@ -117,8 +117,7 @@ class Plugins:
             self.window.core.config.save()
 
             # update audio menu
-            # TODO: by type loop
-            if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
+            if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
                 self.window.controller.audio.update()
 
         self.update_info()
@@ -144,7 +143,7 @@ class Plugins:
             self.window.core.config.save()
 
             # update audio menu
-            if id == 'audio_azure' or id == 'audio_openai_tts' or id == 'audio_openai_whisper':
+            if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
                 self.window.controller.audio.update()
 
         self.update_info()
@@ -234,6 +233,18 @@ class Plugins:
         for id in self.window.core.config.get('plugins_enabled'):
             if self.window.core.config.data['plugins_enabled'][id]:
                 self.enable(id)
+
+    def has_type(self, id, type):
+        """
+        Check if plugin has type
+        :param id: plugin ID
+        :param type: type to check
+        :return:
+        """
+        if self.window.core.plugins.is_registered(id):
+            if type in self.window.core.plugins.plugins[id].type:
+                return True
+        return False
 
     def is_type_enabled(self, type):
         """
