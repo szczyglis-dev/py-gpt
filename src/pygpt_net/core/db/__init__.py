@@ -155,21 +155,21 @@ class Database:
         :param conn: database connection
         """
         ts = int(time.time())
-        sel_stmt = text("SELECT 1 FROM config WHERE config_key = :key").bindparams(key=key)
-        result = conn.execute(sel_stmt).fetchone()
+        stmt = text("SELECT 1 FROM config WHERE config_key = :key").bindparams(key=key)
+        result = conn.execute(stmt).fetchone()
 
         if result:
-            upd_stmt = text("""
+            stmt = text("""
                 UPDATE config
                 SET config_value = :value, updated_ts = :updated_ts
                 WHERE config_key = :key
             """).bindparams(key=key, value=value, updated_ts=ts)
         else:
-            upd_stmt = text("""
+            stmt = text("""
                 INSERT INTO config (config_key, config_value, created_ts, updated_ts) 
                 VALUES (:key, :value, :created_ts, :updated_ts)
             """).bindparams(key=key, value=value, created_ts=ts, updated_ts=ts)
 
-        conn.execute(upd_stmt)
+        conn.execute(stmt)
 
 

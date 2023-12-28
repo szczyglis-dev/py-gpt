@@ -23,6 +23,7 @@ class Vision:
         """
         self.window = window
         self.attachments = {}
+        self.urls = []
         self.input_tokens = 0
 
     def send(self, prompt, max_tokens, stream_mode=False, system_prompt=None, attachments=None):
@@ -115,11 +116,15 @@ class Vision:
         """
         content = [{"type": "text", "text": str(input_prompt)}]
 
+        self.attachments = {}
+        self.urls = []
+
         # extract URLs from prompt
         urls = self.extract_urls(input_prompt)
         if len(urls) > 0:
             for url in urls:
                 content.append({"type": "image_url", "image_url": {"url": url}})
+                self.urls.append(url)
 
         # local images (attachments)
         if attachments is not None and len(attachments) > 0:
@@ -131,6 +136,7 @@ class Vision:
                         base64_image = self.encode_image(attachment.path)
                         content.append(
                             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
+                        self.attachments[id] = attachment.path
 
         return content
 
@@ -168,6 +174,14 @@ class Vision:
     def reset_tokens(self):
         """Reset input tokens counter"""
         self.input_tokens = 0
+
+    def get_attachments(self):
+        """Get attachments"""
+        return self.attachments
+
+    def get_urls(self):
+        """Get urls"""
+        return self.urls
 
     def get_used_tokens(self):
         """Get input tokens counter"""

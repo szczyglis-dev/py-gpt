@@ -371,6 +371,8 @@ class Files:
         Handle (download) received message files
 
         :param msg: message
+        :return: downloaded files paths
+        :rtype: list
         """
         num_downloaded = 0
         paths = []
@@ -383,3 +385,4 @@ class Files:
             # show alert with downloaded files
             msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
             self.window.ui.dialogs.alert(msg)
+        return paths

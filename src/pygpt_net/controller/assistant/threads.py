@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
-
+import json
 import threading
 import time
 
@@ -51,7 +51,9 @@ class Threads:
         for msg in data:
             if msg.role == "assistant":
                 ctx.set_output(msg.content[0].text.value)
-                self.window.controller.assistant.files.handle_received(msg)
+                paths = self.window.controller.assistant.files.handle_received(msg)
+                if paths:
+                    ctx.files = json.dumps(paths)  # append files to ctx
                 self.window.controller.output.handle_response(ctx, 'assistant', False)
                 self.window.controller.output.handle_commands(ctx)
 

@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
-
+import json
 import os
 import shutil
 import webbrowser
@@ -81,6 +81,7 @@ class Image:
                 string += "\nPrompt: "
                 string += prompt
 
+            ctx.images = json.dumps(paths)  # save images paths
             ctx.set_output(string.strip())
 
             # dispatch event

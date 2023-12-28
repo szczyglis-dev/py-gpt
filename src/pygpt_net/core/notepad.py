@@ -13,6 +13,7 @@ import datetime
 
 from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.provider.notepad.json_file import JsonFileProvider
+from pygpt_net.provider.notepad.db_sqlite import DbSqliteProvider
 
 
 class Notepad:
@@ -24,11 +25,12 @@ class Notepad:
         """
         self.window = window
         self.providers = {}
-        self.provider = "json_file"
+        self.provider = "db_sqlite"
         self.items = {}
 
         # register data providers
         self.add_provider(JsonFileProvider())  # json file provider
+        self.add_provider(DbSqliteProvider())  # sqlite database provider
 
     def add_provider(self, provider):
         """

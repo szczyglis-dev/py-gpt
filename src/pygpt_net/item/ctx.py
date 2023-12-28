@@ -21,14 +21,20 @@ class CtxItem:
         :param mode: Mode (completion, chat, img, vision, langchain, assistant)
         """
         self.id = None
+        self.meta_id = None
+        self.external_id = None
         self.stream = None
+        self.cmds = []
         self.results = []
         self.urls = []
         self.images = []
+        self.files = []
+        self.attachments = []
         self.reply = False
         self.input = None
         self.output = None
         self.mode = mode
+        self.model = None
         self.thread = None
         self.msg_id = None
         self.run_id = None
@@ -39,7 +45,6 @@ class CtxItem:
         self.input_tokens = 0
         self.output_tokens = 0
         self.total_tokens = 0
-        self.meta_id = None
         self.extra = None
 
     def set_input(self, input, name=None):
@@ -84,13 +89,16 @@ class CtxMeta:
         :param id: Context ID
         """
         self.id = id
+        self.external_id = None
         self.uuid = None
         self.name = None
         self.date = datetime.datetime.now().strftime("%Y-%m-%d")
         self.created = int(time.time())
         self.updated = int(time.time())
         self.mode = None
+        self.model = None
         self.last_mode = None
+        self.last_model = None
         self.thread = None
         self.assistant = None
         self.preset = None

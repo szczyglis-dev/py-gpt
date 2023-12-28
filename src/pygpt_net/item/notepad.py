@@ -9,15 +9,17 @@
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
 
-import datetime
+import time
 
 
 class NotepadItem:
     def __init__(self):
         self.id = 0
+        self.uuid = None
+        self.idx = 0
         self.title = ""
         self.content = ""
-
-        dt = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        self.created_at = dt
-        self.updated_at = dt
+        self.deleted = False
+        ts = int(time.time())
+        self.created = ts
+        self.updated = ts

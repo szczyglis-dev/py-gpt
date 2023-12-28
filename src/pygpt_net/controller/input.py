@@ -102,11 +102,14 @@ class Input:
 
         # get mode
         mode = self.window.core.config.get('mode')
+        model = self.window.core.config.get('model')
 
         # clear
         self.window.core.gpt.assistants.file_ids = []  # file ids
 
         # upload new attachments if assistant mode
+        attachments_list = {}
+
         if mode == 'assistant':
             is_upload = False
             num_uploaded = 0
@@ -119,6 +122,7 @@ class Input:
                     self.window.set_status(trans('status.uploading'))
                     num_uploaded = self.window.controller.assistant.files.upload(mode, attachments)
                     self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
+                    attachments_list = self.window.core.gpt.attachments.make_json_list(attachments)
                 # show uploaded status
                 if is_upload and num_uploaded > 0:
                     self.window.set_status(trans('status.uploaded'))
@@ -139,8 +143,11 @@ class Input:
         # create ctx item
         ctx = CtxItem()
         ctx.mode = mode
+        ctx.model = model
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
+        if len(attachments_list) > 0:  # attachments
+            ctx.attachments = attachments_list
 
         # store history (input)
         if self.window.core.config.get('store_history'):
@@ -432,7 +439,7 @@ class Input:
             self.window.core.dispatcher.dispatch(event)
 
             self.log("Context: output [after plugin: ctx.end]: {}".
-                            format(self.window.core.ctx.dump(ctx)))  # log
+                     format(self.window.core.ctx.dump(ctx)))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 
             # from v.2.0.41: reply from commands in now handled in async thread!

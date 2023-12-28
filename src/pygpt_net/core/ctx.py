@@ -34,11 +34,13 @@ class Ctx:
         self.current = None
         self.assistant = None
         self.mode = None
+        self.model = None
         self.preset = None
         self.run = None
         self.status = None
         self.thread = None
         self.last_mode = None
+        self.last_model = None
 
         # register data providers
         self.add_provider(JsonFileProvider())  # json file provider
@@ -109,6 +111,7 @@ class Ctx:
         self.thread = None
         self.assistant = None
         self.mode = self.window.core.config.get('mode')
+        self.model = self.window.core.config.get('model')
         self.preset = self.window.core.config.get('preset')
         self.items = []
         self.save(meta.id)
@@ -126,7 +129,9 @@ class Ctx:
         meta.name = "{}".format(trans('ctx.new.prefix'))
         meta.date = datetime.datetime.now().strftime("%Y-%m-%d")
         meta.mode = self.window.core.config.get('mode')
+        meta.model = self.window.core.config.get('model')
         meta.last_mode = self.window.core.config.get('mode')
+        meta.last_model = self.window.core.config.get('model')
         meta.initialized = False
         return meta
 
@@ -213,9 +218,11 @@ class Ctx:
         # update current
         self.assistant = self.window.core.config.get('assistant')  # update assistant
         self.preset = self.window.core.config.get('preset')  # update preset
+        model = self.window.core.config.get('model')  # get current model
 
         # update current meta
         self.meta[self.current].last_mode = mode
+        self.meta[self.current].last_model = model
         self.meta[self.current].preset = self.preset
 
         # if assistant then update assistant

@@ -132,9 +132,12 @@ class Storage:
         stmt = text("""
             UPDATE ctx_meta 
             SET
+                external_id = :external_id,
                 name = :name,
                 mode = :mode,
+                model = :model,
                 last_mode = :last_mode,
+                last_model = :last_model,
                 thread_id = :thread_id,
                 assistant_id = :assistant_id,
                 preset_id = :preset_id,
@@ -148,9 +151,12 @@ class Storage:
             WHERE id = :id
         """).bindparams(
             id=meta.id,
+            external_id=meta.external_id,
             name=meta.name,
             mode=meta.mode,
+            model=meta.model,
             last_mode=meta.last_mode,
+            last_model=meta.last_model,
             thread_id=meta.thread,
             assistant_id=meta.assistant,
             preset_id=meta.preset,
@@ -198,16 +204,18 @@ class Storage:
         :rtype: int
         """
         db = self.window.core.db.get_db()
-        ts = int(time.time())
         stmt = text("""
             INSERT INTO ctx_meta 
             (
                 uuid,
+                external_id,
                 created_ts,
                 updated_ts,
                 name,
                 mode,
+                model,
                 last_mode,
+                last_model,
                 thread_id,
                 assistant_id,
                 preset_id,
@@ -222,11 +230,14 @@ class Storage:
             VALUES 
             (
                 :uuid,
+                :external_id,
                 :created_ts,
                 :updated_ts,
                 :name,
                 :mode,
+                :model,
                 :last_mode,
+                :last_model,
                 :thread_id,
                 :assistant_id,
                 :preset_id,
@@ -240,11 +251,14 @@ class Storage:
             )
         """).bindparams(
             uuid=meta.uuid,
-            created_ts=ts,
-            updated_ts=ts,
+            external_id=meta.external_id,
+            created_ts=int(meta.created or 0),
+            updated_ts=int(meta.updated or 0),
             name=meta.name,
             mode=meta.mode,
+            model=meta.model,
             last_mode=meta.last_mode,
+            last_model=meta.last_model,
             thread_id=meta.thread,
             assistant_id=meta.assistant,
             preset_id=meta.preset,
@@ -275,6 +289,7 @@ class Storage:
             INSERT INTO ctx_item 
             (
                 meta_id,
+                external_id,
                 input,
                 output,
                 input_name,
@@ -282,12 +297,16 @@ class Storage:
                 input_ts,
                 output_ts,
                 mode,
+                model,
                 thread_id,
                 msg_id,
                 run_id,
+                cmds_json,
                 results_json,
                 urls_json,
                 images_json,
+                files_json,
+                attachments_json,
                 extra,
                 input_tokens,
                 output_tokens,
@@ -296,6 +315,7 @@ class Storage:
             VALUES 
             (
                 :meta_id,
+                :external_id,
                 :input,
                 :output,
                 :input_name,
@@ -303,12 +323,16 @@ class Storage:
                 :input_ts,
                 :output_ts,
                 :mode,
+                :model,
                 :thread_id,
                 :msg_id,
                 :run_id,
+                :cmds_json,
                 :results_json,
                 :urls_json,
                 :images_json,
+                :files_json,
+                :attachments_json,
                 :extra,
                 :input_tokens,
                 :output_tokens,
@@ -316,6 +340,7 @@ class Storage:
             )
         """).bindparams(
             meta_id=int(meta.id),
+            external_id=item.external_id,
             input=item.input,
             output=item.output,
             input_name=item.input_name,
@@ -323,12 +348,16 @@ class Storage:
             input_ts=int(item.input_timestamp or 0),
             output_ts=int(item.output_timestamp or 0),
             mode=item.mode,
+            model=item.model,
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
+            cmds_json=self.pack_item_value(item.cmds),
             results_json=self.pack_item_value(item.results),
             urls_json=self.pack_item_value(item.urls),
             images_json=self.pack_item_value(item.images),
+            files_json=self.pack_item_value(item.files),
+            attachments_json=self.pack_item_value(item.attachments),
             extra=self.pack_item_value(item.extra),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
@@ -358,12 +387,16 @@ class Storage:
                 input_ts = :input_ts,
                 output_ts = :output_ts,
                 mode = :mode,
+                model = :model,
                 thread_id = :thread_id,
                 msg_id = :msg_id,
                 run_id = :run_id,
+                cmds_json = :cmds_json,
                 results_json = :results_json,
                 urls_json = :urls_json,
                 images_json = :images_json,
+                files_json = :files_json,
+                attachments_json = :attachments_json,
                 extra = :extra,
                 input_tokens = :input_tokens,
                 output_tokens = :output_tokens,
@@ -378,12 +411,16 @@ class Storage:
             input_ts=int(item.input_timestamp or 0),
             output_ts=int(item.output_timestamp or 0),
             mode=item.mode,
+            model=item.model,
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
+            cmds_json=self.pack_item_value(item.cmds),
             results_json=self.pack_item_value(item.results),
             urls_json=self.pack_item_value(item.urls),
             images_json=self.pack_item_value(item.images),
+            files_json=self.pack_item_value(item.files),
+            attachments_json=self.pack_item_value(item.attachments),
             extra=self.pack_item_value(item.extra),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
@@ -431,6 +468,7 @@ class Storage:
         """
         item.id = int(row['id'])
         item.meta_id = int(row['meta_id'])
+        item.external_id = row['external_id']
         item.input = row['input']
         item.output = row['output']
         item.input_name = row['input_name']
@@ -438,12 +476,16 @@ class Storage:
         item.input_timestamp = int(row['input_ts'] or 0)
         item.output_timestamp = int(row['output_ts'] or 0)
         item.mode = row['mode']
+        item.model = row['model']
         item.thread = row['thread_id']
         item.msg_id = row['msg_id']
         item.run_id = row['run_id']
+        item.cmds = self.unpack_item_value(row['cmds_json'])
         item.results = self.unpack_item_value(row['results_json'])
         item.urls = self.unpack_item_value(row['urls_json'])
         item.images = self.unpack_item_value(row['images_json'])
+        item.files = self.unpack_item_value(row['files_json'])
+        item.attachments = self.unpack_item_value(row['attachments_json'])
         item.extra = self.unpack_item_value(row['extra'])
         item.input_tokens = int(row['input_tokens'] or 0)
         item.output_tokens = int(row['output_tokens'] or 0)
@@ -460,12 +502,15 @@ class Storage:
         :rtype: CtxMeta
         """
         meta.id = int(row['id'])
+        meta.external_id = row['external_id']
         meta.uuid = row['uuid']
         meta.created = int(row['created_ts'])
         meta.updated = int(row['updated_ts'])
         meta.name = row['name']
         meta.mode = row['mode']
+        meta.model = row['model']
         meta.last_mode = row['last_mode']
+        meta.last_model = row['last_model']
         meta.thread = row['thread_id']
         meta.assistant = row['assistant_id']
         meta.preset = row['preset_id']

@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
+import json
 
 from openai import OpenAI
 
@@ -90,6 +91,15 @@ class Gpt:
             response = self.vision.send(prompt, max_tokens, stream_mode, system_prompt=self.system_prompt,
                                         attachments=self.attachments)
             used_tokens = self.vision.get_used_tokens()
+            images = self.vision.get_attachments()
+            urls = self.vision.get_urls()
+
+            # store sent images in ctx
+            if len(images) > 0:
+                ctx.images = json.dumps(images)
+            if len(urls) > 0:
+                ctx.urls = json.dumps(urls)
+
         elif mode == "assistant":
             response = self.assistants.msg_send(self.thread_id, prompt)
             if response is not None:

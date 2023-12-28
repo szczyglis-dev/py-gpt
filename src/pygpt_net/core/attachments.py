@@ -302,6 +302,23 @@ class Attachments:
         data.name = name
         self.save()
 
+    def make_json_list(self, atatchments):
+        """
+        Make json list
+
+        :param atatchments: attachments
+        :return: json list
+        :rtype: dict
+        """
+        result = {}
+        for id in atatchments:
+            attachment = atatchments[id]
+            result[id] = {
+                'name': attachment.name,
+                'path': attachment.path
+            }
+        return result
+
     def from_files(self, mode, files):
         """
         Load attachments from assistant files

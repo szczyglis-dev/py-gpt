@@ -45,7 +45,7 @@ class DbSqliteProvider(BaseProvider):
         if os.path.exists(path):
             self.truncate()
             self.import_from_json()
-            # TODO: remove old json file
+            # os.remove(path)
 
     def create_id(self, meta):
         """
@@ -201,4 +201,4 @@ class DbSqliteProvider(BaseProvider):
         meta.id = None  # reset old meta ID to allow creating new
         self.create(meta)  # create new meta and get its new ID
         for item in items:
-            self.append_item(meta, item)  # append items to new meta
+            self.storage.insert_item(meta, item)  # append items to new meta

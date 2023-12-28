@@ -23,12 +23,15 @@ class Version20231227152900(BaseMigration):
         conn.execute(text("""
         CREATE TABLE IF NOT EXISTS ctx_meta (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            external_id TEXT,
             uuid TEXT,
             created_ts INTEGER,
             updated_ts INTEGER,
             name TEXT,
             mode TEXT,
+            model TEXT,
             last_mode TEXT,
+            last_model TEXT,
             thread_id TEXT,
             assistant_id TEXT,
             preset_id TEXT,
@@ -44,6 +47,7 @@ class Version20231227152900(BaseMigration):
         conn.execute(text("""
         CREATE TABLE IF NOT EXISTS ctx_item (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            external_id TEXT,
             meta_id INTEGER,
             input TEXT,
             output TEXT,
@@ -52,12 +56,16 @@ class Version20231227152900(BaseMigration):
             input_ts INTEGER,
             output_ts INTEGER,
             mode TEXT,
+            model TEXT,
             thread_id TEXT,
             msg_id TEXT,
             run_id TEXT,
+            cmds_json TEXT,
             results_json TEXT,
             urls_json TEXT,
             images_json TEXT,
+            files_json TEXT,
+            attachments_json TEXT,
             extra TEXT,
             input_tokens INTEGER,
             output_tokens INTEGER,
@@ -65,3 +73,15 @@ class Version20231227152900(BaseMigration):
             FOREIGN KEY(meta_id) REFERENCES ctx_meta(id) ON DELETE SET NULL
         );
         """))
+
+        conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS notepad (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            idx INTEGER,
+            uuid TEXT,
+            created_ts INTEGER,
+            updated_ts INTEGER,
+            title TEXT,
+            content TEXT,
+            is_deleted BOOLEAN NOT NULL CHECK (is_deleted IN (0, 1))
+        );"""))

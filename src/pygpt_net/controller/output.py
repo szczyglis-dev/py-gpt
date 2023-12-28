@@ -156,6 +156,7 @@ class Output:
         if ctx is not None and self.window.core.config.get('cmd'):
             cmds = self.window.core.command.extract_cmds(ctx.output)
             if len(cmds) > 0:
+                ctx.cmds = cmds  # append to ctx
                 self.window.controller.debug.log("Executing commands...")
                 self.window.set_status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)
