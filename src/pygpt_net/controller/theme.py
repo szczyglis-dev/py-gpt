@@ -172,6 +172,7 @@ class Theme:
         :return: CSS style for element
         :rtype: str
         """
+        theme = self.window.core.config.get('theme')
         # get theme element style
         if element == "chat_output":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size'))
@@ -187,7 +188,10 @@ class Theme:
             return ""
             # return "font-size: 8px;"  <-- too small on big screens
         elif element == "text_faded":
-            return "color: #999;"
+            if theme.startswith('light'):
+                return "color: #515151;"
+            else:
+                return "color: #999;"
             # return "font-size: 8px; color: #999;"  <-- too small on big screens
 
     def apply_highlighter(self):

@@ -128,8 +128,9 @@ class Input:
         """
         # header (input label + input counter)
         self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
-        self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
         self.window.ui.nodes['input.counter'] = QLabel("")
+        self.window.ui.nodes['input.counter'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
         self.window.ui.nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
 
         # plugin audio input addon

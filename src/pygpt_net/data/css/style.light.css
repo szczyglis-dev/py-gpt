@@ -1,22 +1,48 @@
 * {{ 
   font-family: 'Lato' !important; 
 }}
+QWidget {{
+    background-color: #e7e7e7;
+}}
 
+QListView, 
+QTreeView {{
+  color: #000;
+  background-color: #fff;
+  border: 1px solid #c0c0c0;
+}}
+QListView::item:selected, 
+QTreeView::item:selected,
+QListView::item:selected:focus, 
+QTreeView::item:selected:focus {{
+  color: #fff;
+  selection-color: {QTMATERIAL_PRIMARYTEXTCOLOR};
+}}
+
+QTabBar::tab:selected {{
+  color: #000 !important;
+}}
+QTabBar::tab:top:selected,
+QTabBar::tab:top:hover {{
+  color: #000;
+}}
 
 QPushButton {{
   color: #3e3e3e;
   text-transform: none;
   background-color: {QTMATERIAL_SECONDARYCOLOR};
+  border: 1px solid #c0c0c0;
 }}
-
 
 QLineEdit {{
   color: #000000; 
-  border: 1px solid #5c5c5c;
+  border: 1px solid #c0c0c0;
+  background-color: #fff;
 }}
 QTextEdit {{
   color: #000000; 
-  border: 1px solid #5c5c5c;
+  border: 1px solid #c0c0c0;
+  background-color: #fff;
 }}
 
 QCheckBox::indicator:checked {{
@@ -32,7 +58,9 @@ QRadioButton::indicator:checked {{
 QRadioButton::indicator:unchecked {{
   background-color: {QTMATERIAL_SECONDARYCOLOR}; 
 }}
-
+QMenu {{ 
+  background-color: #fff; 
+}} 
 QMenu::indicator:checked {{ 
   background-color: {QTMATERIAL_PRIMARYCOLOR}; 
 }} 
