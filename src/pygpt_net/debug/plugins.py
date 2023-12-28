@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 
@@ -28,6 +28,8 @@ class PluginsDebug:
         for key in self.window.core.plugins.plugins:
             prefix = "[{}] ".format(key)
             plugin = self.window.core.plugins.plugins[key]
+            self.window.core.debug.add(self.id, '----', '')
+            self.window.core.debug.add(self.id, str(key), '')
             self.window.core.debug.add(self.id, prefix + 'ID', str(key))
 
             if plugin.name is not None:

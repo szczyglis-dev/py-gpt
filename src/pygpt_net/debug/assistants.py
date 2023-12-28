@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 
@@ -29,7 +29,8 @@ class AssistantsDebug:
         for key in assistants:
             prefix = "[{}] ".format(key)
             assistant = assistants[key]
-            self.window.core.debug.add(self.id, prefix + 'ID', str(key))
+            self.window.core.debug.add(self.id, '----', '')
+            self.window.core.debug.add(self.id, str(key), '')
             self.window.core.debug.add(self.id, 'id', str(assistant.id))
             self.window.core.debug.add(self.id, 'name', str(assistant.name))
             self.window.core.debug.add(self.id, 'description', str(assistant.description))

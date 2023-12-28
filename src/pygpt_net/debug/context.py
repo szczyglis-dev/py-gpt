@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 class ContextDebug:
@@ -41,6 +41,7 @@ class ContextDebug:
             if self.window.core.ctx.current in self.window.core.ctx.meta:
                 current = self.window.core.ctx.meta[self.window.core.ctx.current]
             if current is not None:
+                self.window.core.debug.add(self.id, '----', '')
                 self.window.core.debug.add(self.id, '*** (current) id', str(current.id))
                 self.window.core.debug.add(self.id, '*** (current) external_id', str(current.external_id))
                 self.window.core.debug.add(self.id, '*** (current) uuid', str(current.uuid))
