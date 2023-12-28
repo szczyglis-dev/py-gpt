@@ -49,5 +49,5 @@ class LoggerDialog(QDialog):
         Cleanup on close
         """
         self.window.controller.debug.is_logger = False
-        self.window.controller.debug.logger_close()
+        self.window.controller.debug.close_logger()
         self.window.controller.debug.update()

@@ -154,7 +154,7 @@ class Menu:
         self.window.ui.menu['debug.assistants'].triggered.connect(
             lambda: self.window.controller.debug.toggle('assistants'))
         self.window.ui.menu['debug.logger'].triggered.connect(
-            lambda: self.window.controller.debug.logger_toggle())
+            lambda: self.window.controller.debug.toggle_logger())
         self.window.ui.menu['debug.ui'].triggered.connect(
             lambda: self.window.controller.debug.toggle('ui'))
 

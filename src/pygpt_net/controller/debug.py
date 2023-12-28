@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -23,6 +23,23 @@ class Debug:
         """
         self.window = window
         self.is_logger = False
+
+    def update(self):
+        """Update debug"""
+        self.update_menu()
+
+    def update_menu(self):
+        """Update debug menu"""
+        for id in self.window.core.debug.ids:
+            if id in self.window.core.debug.active and self.window.core.debug.active[id]:
+                self.window.ui.menu['debug.' + id].setChecked(True)
+            else:
+                self.window.ui.menu['debug.' + id].setChecked(False)
+
+        if self.is_logger:
+            self.window.ui.menu['debug.logger'].setChecked(True)
+        else:
+            self.window.ui.menu['debug.logger'].setChecked(False)
 
     def log(self, data, window=True):
         """
@@ -49,34 +66,34 @@ class Debug:
         # set cursor to end
         self.window.logger.moveCursor(QTextCursor.End)
 
-    def logger_close(self):
-        """Close logger"""
-        self.window.ui.dialogs.close('logger')
-        self.is_logger = False
-        self.update()
-
-    def logger_open(self):
-        """Open logger"""
+    def open_logger(self):
+        """Open logger dialog"""
         self.window.ui.dialogs.open('logger')
         self.is_logger = True
         self.update()
 
-    def logger_toggle(self):
-        """Toggle logger"""
-        if self.is_logger:
-            self.logger_close()
-        else:
-            self.logger_open()
+    def close_logger(self):
+        """Close logger dialog"""
+        self.window.ui.dialogs.close('logger')
+        self.is_logger = False
+        self.update()
 
-    def logger_clear(self):
-        """Clear logger"""
+    def toggle_logger(self):
+        """Toggle logger dialog"""
+        if self.is_logger:
+            self.close_logger()
+        else:
+            self.open_logger()
+
+    def clear_logger(self):
+        """Clear logger dialog"""
         self.window.logger.clear()
 
     def toggle(self, id):
         """
         Toggle debug window
 
-        :param id: window to toggle
+        :param id: debug window to toggle
         """
         if id in self.window.core.debug.active and self.window.core.debug.active[id]:
             self.window.ui.dialogs.close('debug.' + id)
@@ -90,20 +107,3 @@ class Debug:
 
         # update menu
         self.update()
-
-    def update_menu(self):
-        """Update debug menu"""
-        for id in self.window.core.debug.ids:
-            if id in self.window.core.debug.active and self.window.core.debug.active[id]:
-                self.window.ui.menu['debug.' + id].setChecked(True)
-            else:
-                self.window.ui.menu['debug.' + id].setChecked(False)
-
-        if self.is_logger:
-            self.window.ui.menu['debug.logger'].setChecked(True)
-        else:
-            self.window.ui.menu['debug.logger'].setChecked(False)
-
-    def update(self):
-        """Update debug"""
-        self.update_menu()

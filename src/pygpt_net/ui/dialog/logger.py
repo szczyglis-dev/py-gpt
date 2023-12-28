@@ -31,7 +31,7 @@ class Logger:
 
         self.window.ui.nodes['logger.btn.clear'] = QPushButton(trans("dialog.logger.btn.clear"))
         self.window.ui.nodes['logger.btn.clear'].clicked.connect(
-            lambda: self.window.controller.debug.logger_clear())
+            lambda: self.window.controller.debug.clear_logger())
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.window.ui.nodes['logger.btn.clear'])
