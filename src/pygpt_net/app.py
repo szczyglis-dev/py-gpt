@@ -19,10 +19,10 @@ from qt_material import QtStyleTools
 from logging import ERROR, WARNING, INFO, DEBUG
 
 from pygpt_net.container import Container
-from pygpt_net.controller.main import Controller
+from pygpt_net.controller import Controller
 from pygpt_net.core.debugging import Debug
 from pygpt_net.core.platforms import Platforms
-from pygpt_net.ui.main import UI
+from pygpt_net.ui import UI
 from pygpt_net.utils import get_app_meta
 
 from pygpt_net.plugin.audio_azure.plugin import Plugin as AudioAzurePlugin

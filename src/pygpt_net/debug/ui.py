@@ -21,7 +21,7 @@ class UIDebug:
         self.id = 'ui'
 
     def update_section(self, items, name):
-        """Update debug window."""
+        """Update debug items"""
         self.window.core.debug.add(self.id, 'ui.' + name, '')
 
         for key in sorted(dict(items).keys()):
@@ -29,7 +29,7 @@ class UIDebug:
             self.window.core.debug.add(self.id, prefix, str(key))
 
     def update(self):
-        """Update debug window."""
+        """Update debug window"""
         self.window.core.debug.begin(self.id)
 
         self.update_section(self.window.ui.config_option, 'config_option')
