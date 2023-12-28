@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QSplitter, QSizePolicy
+from PySide6.QtWidgets import QSplitter
 
 from pygpt_net.ui.dialogs import Dialogs
 from pygpt_net.ui.layout.chat.main import ChatMain
@@ -68,14 +68,13 @@ class UI:
 
         # set width
         self.parts['ctx'].setMinimumWidth(200)
-        self.parts['toolbox'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         # horizontal splitter
         self.splitters['main'] = QSplitter(Qt.Horizontal)
         self.splitters['main'].addWidget(self.parts['ctx'])  # contexts
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
         self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
-        self.splitters['main'].setSizes([100, 850, 50])
+        self.splitters['main'].setSizes([1, 8, 1])
 
         # menus
         self.menus.setup()

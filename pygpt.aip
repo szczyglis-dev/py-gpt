@@ -16,10 +16,10 @@
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="MSIFASTINSTALL" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="Manufacturer" Value="Marcin Szczygliński"/>
-    <ROW Property="ProductCode" Value="1033:{E08AB81D-2987-4DD3-8D16-28C7DBD40BBA} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{F1A34FDA-E65C-4A8D-B0E0-EA876124E1DB} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="PyGPT - Desktop AI Assistant"/>
-    <ROW Property="ProductVersion" Value="2.0.62"/>
+    <ROW Property="ProductVersion" Value="2.0.63"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{44CE15C0-8565-4286-B83E-CBA48A4D51F1}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -40,8 +40,8 @@
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
     <ROW Directory="Windows_Dir" Directory_Parent="APPDIR" DefaultDir="Windows"/>
-    <ROW Directory="__pycache___1_Dir" Directory_Parent="source_Dir" DefaultDir="__PYCA~1|__pycache__"/>
-    <ROW Directory="__pycache___2_Dir" Directory_Parent="resources_Dir" DefaultDir="__PYCA~1|__pycache__"/>
+    <ROW Directory="__pycache___3_Dir" Directory_Parent="source_Dir" DefaultDir="__PYCA~1|__pycache__"/>
+    <ROW Directory="__pycache___4_Dir" Directory_Parent="resources_Dir" DefaultDir="__PYCA~1|__pycache__"/>
     <ROW Directory="__pycache___Dir" Directory_Parent="logo_Dir" DefaultDir="__PYCA~1|__pycache__"/>
     <ROW Directory="acousticmodel_Dir" Directory_Parent="enUS_Dir" DefaultDir="ACOUST~1|acoustic-model"/>
     <ROW Directory="aiohttp_Dir" Directory_Parent="Windows_Dir" DefaultDir="aiohttp"/>
@@ -50,22 +50,22 @@
     <ROW Directory="bindings_Dir" Directory_Parent="hazmat_Dir" DefaultDir="bindings"/>
     <ROW Directory="certifi_Dir" Directory_Parent="Windows_Dir" DefaultDir="certifi"/>
     <ROW Directory="charset_normalizer_Dir" Directory_Parent="Windows_Dir" DefaultDir="CHARSE~1|charset_normalizer"/>
-    <ROW Directory="config_Dir" Directory_Parent="data_1_Dir" DefaultDir="config"/>
+    <ROW Directory="config_Dir" Directory_Parent="data_2_Dir" DefaultDir="config"/>
     <ROW Directory="core_Dir" Directory_Parent="numpy_Dir" DefaultDir="core"/>
     <ROW Directory="cryptography40.0.1.distinfo_Dir" Directory_Parent="Windows_Dir" DefaultDir="CRYPTO~1.DIS|cryptography-40.0.1.dist-info"/>
     <ROW Directory="cryptography_Dir" Directory_Parent="Windows_Dir" DefaultDir="CRYPTO~1|cryptography"/>
-    <ROW Directory="css_Dir" Directory_Parent="data_1_Dir" DefaultDir="css"/>
+    <ROW Directory="css_Dir" Directory_Parent="data_2_Dir" DefaultDir="css"/>
     <ROW Directory="cv2_Dir" Directory_Parent="Windows_Dir" DefaultDir="cv2"/>
     <ROW Directory="cyextension_Dir" Directory_Parent="sqlalchemy_Dir" DefaultDir="CYEXTE~1|cyextension"/>
-    <ROW Directory="data_1_Dir" Directory_Parent="Windows_Dir" DefaultDir="data"/>
+    <ROW Directory="data_2_Dir" Directory_Parent="Windows_Dir" DefaultDir="data"/>
     <ROW Directory="data_Dir" Directory_Parent="cv2_Dir" DefaultDir="data"/>
     <ROW Directory="default_Dir" Directory_Parent="themes_Dir" DefaultDir="default"/>
     <ROW Directory="docker7.0.0.distinfo_Dir" Directory_Parent="Windows_Dir" DefaultDir="DOCKER~1.DIS|docker-7.0.0.dist-info"/>
     <ROW Directory="docutils_Dir" Directory_Parent="Windows_Dir" DefaultDir="docutils"/>
     <ROW Directory="enUS_Dir" Directory_Parent="pocketsphinxdata_Dir" DefaultDir="en-US"/>
     <ROW Directory="fft_Dir" Directory_Parent="numpy_Dir" DefaultDir="fft"/>
-    <ROW Directory="fonts_1_Dir" Directory_Parent="qt_material_Dir" DefaultDir="fonts"/>
-    <ROW Directory="fonts_Dir" Directory_Parent="data_1_Dir" DefaultDir="fonts"/>
+    <ROW Directory="fonts_2_Dir" Directory_Parent="qt_material_Dir" DefaultDir="fonts"/>
+    <ROW Directory="fonts_Dir" Directory_Parent="data_2_Dir" DefaultDir="fonts"/>
     <ROW Directory="frozenlist_Dir" Directory_Parent="Windows_Dir" DefaultDir="FROZEN~1|frozenlist"/>
     <ROW Directory="gapi_Dir" Directory_Parent="cv2_Dir" DefaultDir="gapi"/>
     <ROW Directory="generic_Dir" Directory_Parent="plugins_Dir" DefaultDir="generic"/>
@@ -79,10 +79,10 @@
     <ROW Directory="include_Dir" Directory_Parent="rst_Dir" DefaultDir="include"/>
     <ROW Directory="langchain0.0.346.distinfo_Dir" Directory_Parent="Windows_Dir" DefaultDir="LANGCH~1.DIS|langchain-0.0.346.dist-info"/>
     <ROW Directory="latex2e_Dir" Directory_Parent="writers_Dir" DefaultDir="latex2e"/>
-    <ROW Directory="licenses_1_Dir" Directory_Parent="pydantic2.5.2.distinfo_Dir" DefaultDir="licenses"/>
+    <ROW Directory="licenses_2_Dir" Directory_Parent="pydantic2.5.2.distinfo_Dir" DefaultDir="licenses"/>
     <ROW Directory="licenses_Dir" Directory_Parent="openai1.3.7.distinfo_Dir" DefaultDir="licenses"/>
     <ROW Directory="linalg_Dir" Directory_Parent="numpy_Dir" DefaultDir="linalg"/>
-    <ROW Directory="locale_Dir" Directory_Parent="data_1_Dir" DefaultDir="locale"/>
+    <ROW Directory="locale_Dir" Directory_Parent="data_2_Dir" DefaultDir="locale"/>
     <ROW Directory="logo_Dir" Directory_Parent="resources_Dir" DefaultDir="logo"/>
     <ROW Directory="markupsafe_Dir" Directory_Parent="Windows_Dir" DefaultDir="MARKUP~1|markupsafe"/>
     <ROW Directory="mat_wrapper_Dir" Directory_Parent="cv2_Dir" DefaultDir="MAT_WR~1|mat_wrapper"/>
@@ -111,7 +111,7 @@
     <ROW Directory="random_Dir" Directory_Parent="numpy_Dir" DefaultDir="random"/>
     <ROW Directory="regex_Dir" Directory_Parent="Windows_Dir" DefaultDir="regex"/>
     <ROW Directory="resources_Dir" Directory_Parent="qt_material_Dir" DefaultDir="RESOUR~1|resources"/>
-    <ROW Directory="roboto_Dir" Directory_Parent="fonts_1_Dir" DefaultDir="roboto"/>
+    <ROW Directory="roboto_Dir" Directory_Parent="fonts_2_Dir" DefaultDir="roboto"/>
     <ROW Directory="rst_Dir" Directory_Parent="parsers_Dir" DefaultDir="rst"/>
     <ROW Directory="s5_html_Dir" Directory_Parent="writers_Dir" DefaultDir="s5_html"/>
     <ROW Directory="setuptools65.5.0.distinfo_Dir" Directory_Parent="Windows_Dir" DefaultDir="SETUPT~1.DIS|setuptools-65.5.0.dist-info"/>
@@ -124,7 +124,7 @@
     <ROW Directory="speech_recognition_Dir" Directory_Parent="Windows_Dir" DefaultDir="SPEECH~1|speech_recognition"/>
     <ROW Directory="sqlalchemy_Dir" Directory_Parent="Windows_Dir" DefaultDir="SQLALC~1|sqlalchemy"/>
     <ROW Directory="styles_Dir" Directory_Parent="plugins_Dir" DefaultDir="styles"/>
-    <ROW Directory="themes_1_Dir" Directory_Parent="qt_material_Dir" DefaultDir="themes"/>
+    <ROW Directory="themes_2_Dir" Directory_Parent="qt_material_Dir" DefaultDir="themes"/>
     <ROW Directory="themes_Dir" Directory_Parent="s5_html_Dir" DefaultDir="themes"/>
     <ROW Directory="tiktoken_Dir" Directory_Parent="Windows_Dir" DefaultDir="tiktoken"/>
     <ROW Directory="tls_Dir" Directory_Parent="plugins_Dir" DefaultDir="tls"/>
@@ -139,164 +139,162 @@
     <ROW Directory="yarl_Dir" Directory_Parent="Windows_Dir" DefaultDir="yarl"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
-    <ROW Component="APPDIR" ComponentId="{81323519-997A-42BE-9D9A-46BE8AECD63F}" Directory_="APPDIR" Attributes="0"/>
-    <ROW Component="INSTALLER" ComponentId="{D7ABA9B4-F274-48D7-B920-665B4148FAA4}" Directory_="cryptography40.0.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER" Type="0"/>
-    <ROW Component="INSTALLER_1" ComponentId="{7E2B9FF5-8EAD-4653-99EA-930F1FC9C905}" Directory_="docker7.0.0.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_1" Type="0"/>
-    <ROW Component="INSTALLER_2" ComponentId="{0F0B457D-A3D4-4B69-921D-E29B2AC5F499}" Directory_="importlib_metadata6.3.0.distinf_Dir" Attributes="0" KeyPath="INSTALLER_2" Type="0"/>
-    <ROW Component="INSTALLER_3" ComponentId="{96B9D150-D2EE-43C4-9B48-F5E4EDB6B728}" Directory_="pydantic2.5.2.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_5" Type="0"/>
-    <ROW Component="LICENSE" ComponentId="{043E15D8-FBA7-4C4E-A193-095A489BAC56}" Directory_="licenses_Dir" Attributes="0" KeyPath="LICENSE_4" Type="0"/>
-    <ROW Component="LICENSE_1" ComponentId="{0A3D5F16-7D7C-4313-81FD-A59504D46494}" Directory_="licenses_1_Dir" Attributes="0" KeyPath="LICENSE_5" Type="0"/>
-    <ROW Component="LatoBlack.ttf" ComponentId="{A445AC71-6289-4655-966A-41F9E4B17F01}" Directory_="Lato_Dir" Attributes="0" Type="0"/>
-    <ROW Component="MSVCP140.dll" ComponentId="{BAFD37EA-6642-42D6-A3D9-147D09C5562D}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140.dll"/>
-    <ROW Component="MSVCP140_1.dll" ComponentId="{2F0EB44F-82AA-474B-BAA0-A4F730393BDE}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_1.dll"/>
-    <ROW Component="MSVCP140_2.dll" ComponentId="{97D1825C-0E8F-43B6-8DF8-1BA3AA4828A0}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_2.dll"/>
-    <ROW Component="ProductInformation" ComponentId="{99E290C4-7945-4F06-BB55-FA960AC43193}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="Qt6Core.dll" ComponentId="{B6B17BF1-12B2-44F0-A48E-19A1C6552BA8}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Core.dll"/>
-    <ROW Component="Qt6Gui.dll" ComponentId="{4B0165B9-5C7E-4FC8-AF47-211BEEAA936B}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Gui.dll"/>
-    <ROW Component="Qt6Network.dll" ComponentId="{F237417C-2E70-4015-9DFA-4575FCAE9F23}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Network.dll"/>
-    <ROW Component="Qt6OpenGL.dll" ComponentId="{373BB54E-1EB4-44F0-99E3-4066EDF77B36}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGL.dll"/>
-    <ROW Component="Qt6OpenGLWidgets.dll" ComponentId="{B11F963D-1DAA-41D9-9ECE-52676BFF9E5E}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGLWidgets.dll"/>
-    <ROW Component="Qt6Pdf.dll" ComponentId="{5FCDAB22-2E3B-4A3E-BB80-F5B8FD5C590D}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Pdf.dll"/>
-    <ROW Component="Qt6Qml.dll" ComponentId="{C00B22B5-85E1-45FC-9BAD-CDC3EADAE2A1}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Qml.dll"/>
-    <ROW Component="Qt6QmlModels.dll" ComponentId="{3CCB89BE-1AFB-4398-AB6C-2775084A3A91}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6QmlModels.dll"/>
-    <ROW Component="Qt6Quick.dll" ComponentId="{E2067C66-3CFC-4269-B1D1-C2AFB43B25E2}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Quick.dll"/>
-    <ROW Component="Qt6Svg.dll" ComponentId="{A02B8E80-AA61-4557-ADCC-1F52DEDD0375}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Svg.dll"/>
-    <ROW Component="Qt6UiTools.dll" ComponentId="{6A381AB2-EFA5-479D-9B63-2A1979C01BEF}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6UiTools.dll"/>
-    <ROW Component="Qt6VirtualKeyboard.dll" ComponentId="{7E36EB0D-1761-402F-8F9A-1C8E006E96D7}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6VirtualKeyboard.dll"/>
-    <ROW Component="Qt6Widgets.dll" ComponentId="{26CB4270-B1A9-4A8C-AFE8-7FCFBE2CFFEB}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Widgets.dll"/>
-    <ROW Component="QtCore.pyd" ComponentId="{628C6726-6D90-437A-95AD-B848810E0D29}" Directory_="PySide6_Dir" Attributes="256" KeyPath="QtCore.pyd" Type="0"/>
-    <ROW Component="README.txt" ComponentId="{247476F8-9AE1-4745-804C-92D470A39BC2}" Directory_="themes_Dir" Attributes="0" KeyPath="README.txt_1" Type="0"/>
-    <ROW Component="RobotoBlack.ttf" ComponentId="{1A1F2CDE-3A5C-46DA-A0AD-875340573CFC}" Directory_="roboto_Dir" Attributes="0" Type="0"/>
-    <ROW Component="SDL2.dll" ComponentId="{5F56D1BF-6E33-4878-96FD-EBB137D51475}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2.dll"/>
-    <ROW Component="SDL2.dll_1" ComponentId="{4B6DEBE1-83B2-4034-B575-A78923CC1B71}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2.dll_1"/>
-    <ROW Component="SDL2_image.dll" ComponentId="{1801FF15-231B-4599-8542-C30D616AF279}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2_image.dll"/>
-    <ROW Component="SDL2_mixer.dll" ComponentId="{714B3B8B-7A25-422D-A3E8-2D60C28A10BA}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2_mixer.dll"/>
-    <ROW Component="SDL2_ttf.dll" ComponentId="{CD449BF1-A774-4299-BB82-4472F6BB3A9C}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2_ttf.dll"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{DE03A353-30F7-4C8C-B17D-9D88506EBEA9}" Directory_="SHORTCUTDIR" Attributes="0"/>
-    <ROW Component="Shiboken.pyd" ComponentId="{425971D5-31FE-4238-BAFC-A488A6F86A96}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="Shiboken.pyd" Type="0"/>
-    <ROW Component="VCRUNTIME140.dll" ComponentId="{4AB61232-A549-44D9-8D34-E8F0C7E34C75}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll"/>
-    <ROW Component="VCRUNTIME140_1.dll" ComponentId="{BC01F86A-1782-4BE1-A2C8-B1657DB75E51}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll"/>
-    <ROW Component="VCRUNTIME140_1.dll_1" ComponentId="{CC2375FF-079F-4C1D-A9EF-0BC6EBFF64CA}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_1"/>
-    <ROW Component="__init__.cpython310.pyc" ComponentId="{165A29C4-66B5-447D-80CC-588158A20794}" Directory_="__pycache___Dir" Attributes="0" KeyPath="__init__.cpython310.pyc" Type="0"/>
-    <ROW Component="__init__.cpython310.pyc_1" ComponentId="{EC2A2BA2-D9B8-403C-9DAB-C58DAF070C49}" Directory_="__pycache___1_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_1" Type="0"/>
-    <ROW Component="__init__.py" ComponentId="{9B70CF3A-DEEE-4AF3-A6B2-22D7C7FC028E}" Directory_="data_Dir" Attributes="0" KeyPath="__init__.py" Type="0"/>
-    <ROW Component="__init__.py_1" ComponentId="{F837E0E3-313F-4D4B-A0E2-23222A0542A7}" Directory_="gapi_Dir" Attributes="0" KeyPath="__init__.py_1" Type="0"/>
-    <ROW Component="__init__.py_2" ComponentId="{86BAB7A0-AECD-4B82-85D9-3C32E5B5BE5D}" Directory_="mat_wrapper_Dir" Attributes="0" KeyPath="__init__.py_2" Type="0"/>
-    <ROW Component="__init__.py_3" ComponentId="{C89A3F0B-F296-45F6-A091-EA319B5E5925}" Directory_="typing_Dir" Attributes="0" KeyPath="__init__.py_4" Type="0"/>
-    <ROW Component="__init__.py_4" ComponentId="{1B579928-3408-4899-9364-03411B42ACD0}" Directory_="utils_Dir" Attributes="0" KeyPath="__init__.py_5" Type="0"/>
-    <ROW Component="_frozenlist.cp310win_amd64.pyd" ComponentId="{C5EE6640-7B31-42A3-9A92-5A5C54560644}" Directory_="frozenlist_Dir" Attributes="256" KeyPath="_frozenlist.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_greenlet.cp310win_amd64.pyd" ComponentId="{3E7D2816-2686-4054-9F17-EF0540AB5440}" Directory_="greenlet_Dir" Attributes="256" KeyPath="_greenlet.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_helpers.cp310win_amd64.pyd" ComponentId="{F101B011-6CC6-42BD-A32F-9F43A92565B5}" Directory_="aiohttp_Dir" Attributes="256" KeyPath="_helpers.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_multiarray_tests.cp310win_amd64.pyd" ComponentId="{0A8020D3-D0A3-496E-B5DA-751EEC04FE63}" Directory_="core_Dir" Attributes="256" KeyPath="_multiarray_tests.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_multidict.cp310win_amd64.pyd" ComponentId="{45780C01-BEFA-491C-AC72-87A793A5F3BE}" Directory_="multidict_Dir" Attributes="256" KeyPath="_multidict.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_pocketfft_internal.cp310win_amd64.pyd" ComponentId="{C4D6D749-CCCC-4E73-9A5F-3F89B47C50BD}" Directory_="fft_Dir" Attributes="256" KeyPath="_pocketfft_internal.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_portaudio.cp310win_amd64.pyd" ComponentId="{CB947D4B-56A1-4D94-A747-5DAAA7872FE8}" Directory_="pyaudio_Dir" Attributes="256" KeyPath="_portaudio.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_pydantic_core.cp310win_amd64.pyd" ComponentId="{29C72F2B-492A-47CD-8BED-C009B8D3A0C8}" Directory_="pydantic_core_Dir" Attributes="256" KeyPath="_pydantic_core.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_quoting_c.cp310win_amd64.pyd" ComponentId="{BB9516E7-1740-404C-AC57-4F17DF061992}" Directory_="yarl_Dir" Attributes="256" KeyPath="_quoting_c.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_regex.cp310win_amd64.pyd" ComponentId="{E7F1A0F8-BE99-4B8B-9977-B54216E302A2}" Directory_="regex_Dir" Attributes="256" KeyPath="_regex.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_rust.pyd" ComponentId="{65C701C0-2474-4BCA-BEA0-6706890BE185}" Directory_="bindings_Dir" Attributes="256" KeyPath="_rust.pyd" Type="0"/>
-    <ROW Component="_speedups.cp310win_amd64.pyd" ComponentId="{CEE020A7-DB69-416D-802E-D4007FD1C3BD}" Directory_="markupsafe_Dir" Attributes="256" KeyPath="_speedups.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_tiktoken.cp310win_amd64.pyd" ComponentId="{7529B263-7FCE-45B6-8B35-74D3F770814F}" Directory_="tiktoken_Dir" Attributes="256" KeyPath="_tiktoken.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_umath_linalg.cp310win_amd64.pyd" ComponentId="{7FAE4661-CB7B-48C4-8DE0-56B48FF8D63C}" Directory_="linalg_Dir" Attributes="256" KeyPath="_umath_linalg.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_yaml.cp310win_amd64.pyd" ComponentId="{5B7D1BF2-BC7D-407B-B183-5AC3D85B7C56}" Directory_="yaml_Dir" Attributes="256" KeyPath="_yaml.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="base.cp310win_amd64.pyd" ComponentId="{EBF1DF45-CC8C-499C-89DA-F626A1F448D5}" Directory_="pygame_Dir" Attributes="256" KeyPath="base.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="base.svg" ComponentId="{7D2020A4-4519-47F8-91A4-5F8568E2EA3A}" Directory_="source_Dir" Attributes="0" KeyPath="base.svg" Type="0"/>
-    <ROW Component="base_library.zip" ComponentId="{356119B5-4A9E-4866-87D3-B6FBF8952995}" Directory_="Windows_Dir" Attributes="0" KeyPath="base_library.zip" Type="0"/>
-    <ROW Component="batman_and_joker.json" ComponentId="{A79C59EE-A42F-41D8-99A3-B17BEFED32B2}" Directory_="presets_Dir" Attributes="0" KeyPath="batman_and_joker.json" Type="0"/>
-    <ROW Component="bit_generator.cp310win_amd64.pyd" ComponentId="{CBD22FE4-A740-4A6F-837E-747BF1C04545}" Directory_="random_Dir" Attributes="256" KeyPath="bit_generator.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="cacert.pem" ComponentId="{0A47C45F-AB39-41ED-9497-5AD365ED6868}" Directory_="certifi_Dir" Attributes="0" KeyPath="cacert.pem" Type="0"/>
-    <ROW Component="collections.cp310win_amd64.pyd" ComponentId="{5143A8BF-CBEF-48C3-8A42-15F557AAB5B8}" Directory_="cyextension_Dir" Attributes="256" KeyPath="collections.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="config.json" ComponentId="{BCF1F74F-B299-4067-BA90-649B0613182B}" Directory_="config_Dir" Attributes="0" KeyPath="config.json" Type="0"/>
-    <ROW Component="config3.py" ComponentId="{AF491125-8E3E-4DDE-B6A6-A5AEB52C70BE}" Directory_="cv2_Dir" Attributes="0" KeyPath="config3.py" Type="0"/>
-    <ROW Component="dark_amber.xml" ComponentId="{D62610B8-CCAC-457A-A984-8625584984D4}" Directory_="themes_1_Dir" Attributes="0" KeyPath="dark_amber.xml" Type="0"/>
-    <ROW Component="default.tex" ComponentId="{3B272282-CD7A-4D94-9290-1DCAC0922369}" Directory_="latex2e_Dir" Attributes="0" KeyPath="default.tex" Type="0"/>
-    <ROW Component="dock_theme.ui" ComponentId="{38CD9B56-6354-44E7-B0D0-0A8ACE440448}" Directory_="qt_material_Dir" Attributes="0" KeyPath="dock_theme.ui" Type="0"/>
-    <ROW Component="entry_points.txt" ComponentId="{AEDCB720-1C59-4156-AD9D-71AC36378B9C}" Directory_="langchain0.0.346.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt" Type="0"/>
-    <ROW Component="entry_points.txt_1" ComponentId="{6F56D444-6295-460B-8A0D-0D9603603C76}" Directory_="openai1.3.7.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_1" Type="0"/>
-    <ROW Component="entry_points.txt_2" ComponentId="{506C0359-A6A3-4376-95BC-9B475B79899D}" Directory_="setuptools65.5.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_2" Type="0"/>
-    <ROW Component="entry_points.txt_3" ComponentId="{0B8129DB-70C3-4D12-ACC3-9AEE04E1597F}" Directory_="show_in_file_manager1.1.4.disti_Dir" Attributes="0" KeyPath="entry_points.txt_3" Type="0"/>
-    <ROW Component="entry_points.txt_4" ComponentId="{B9C57744-7887-4C7C-8EDF-E72064345FCB}" Directory_="wheel0.42.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_4" Type="0"/>
-    <ROW Component="feat.params" ComponentId="{006B01B4-6EE7-43EC-844D-DCE67642066E}" Directory_="acousticmodel_Dir" Attributes="0" KeyPath="feat.params" Type="0"/>
-    <ROW Component="flaclinuxx86" ComponentId="{8AF0251F-8600-4897-91D8-5DC8C21058F5}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flaclinuxx86" Type="0"/>
-    <ROW Component="flacwin32.exe" ComponentId="{C4E06460-3F43-4280-8649-8E471603DB48}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flacwin32.exe"/>
-    <ROW Component="framing.css" ComponentId="{5EB54DC1-8AF5-4490-BE7F-4F26565FD452}" Directory_="bigblack_Dir" Attributes="0" KeyPath="framing.css" Type="0"/>
-    <ROW Component="framing.css_1" ComponentId="{824CBA30-CD0D-48A5-B100-73D16610DEF6}" Directory_="bigwhite_Dir" Attributes="0" KeyPath="framing.css_1" Type="0"/>
-    <ROW Component="framing.css_2" ComponentId="{CE779694-665F-44FA-BBFB-F335071BD087}" Directory_="default_Dir" Attributes="0" KeyPath="framing.css_2" Type="0"/>
-    <ROW Component="framing.css_3" ComponentId="{FF3E7765-A93D-4DFE-9B71-819F5136D9AA}" Directory_="mediumwhite_Dir" Attributes="0" KeyPath="framing.css_3" Type="0"/>
-    <ROW Component="framing.css_4" ComponentId="{1561BBE9-90E8-474E-BC42-91F88732B4D5}" Directory_="smallwhite_Dir" Attributes="0" KeyPath="framing.css_4" Type="0"/>
-    <ROW Component="freetype.dll" ComponentId="{797CBE74-2B64-4383-B4E8-6508945F5982}" Directory_="Windows_Dir" Attributes="256" KeyPath="freetype.dll"/>
-    <ROW Component="generate.cpython310.pyc" ComponentId="{D90108F9-5408-44AD-8CD4-2DAD6D42E4DB}" Directory_="__pycache___2_Dir" Attributes="0" KeyPath="generate.cpython310.pyc" Type="0"/>
-    <ROW Component="generate.py" ComponentId="{58539008-4A18-46F5-8CE5-3EE14903ECC6}" Directory_="resources_Dir" Attributes="0" KeyPath="generate.py" Type="0"/>
-    <ROW Component="highlighter.dark_amber.json" ComponentId="{54481D5D-3533-49E8-B260-3682C9AF55CD}" Directory_="css_Dir" Attributes="0" KeyPath="highlighter.dark_amber.json" Type="0"/>
-    <ROW Component="html4css1.css" ComponentId="{F2498C9F-49A2-4195-9732-ADF36B3F5CF5}" Directory_="html4css1_Dir" Attributes="0" KeyPath="html4css1.css" Type="0"/>
-    <ROW Component="isoamsa.txt" ComponentId="{0A4B5F16-4EF4-4580-A412-F39EF63A09CC}" Directory_="include_Dir" Attributes="0" KeyPath="isoamsa.txt" Type="0"/>
-    <ROW Component="languagemodel.lm.bin" ComponentId="{CA2C3357-2779-41C7-A7FC-35EA95D4A306}" Directory_="enUS_Dir" Attributes="0" KeyPath="languagemodel.lm.bin" Type="0"/>
-    <ROW Component="libcrypto1_1.dll" ComponentId="{9E02A4BE-BD46-4AC5-A63B-B003CE550D04}" Directory_="Windows_Dir" Attributes="256" KeyPath="libcrypto1_1.dll"/>
-    <ROW Component="libffi7.dll" ComponentId="{1512F17E-882F-40CC-AB72-8B9C92F57DE2}" Directory_="Windows_Dir" Attributes="256" KeyPath="libffi7.dll"/>
-    <ROW Component="libjpeg9.dll" ComponentId="{EEB60ED3-D4B7-4E3E-A33B-616A286C032A}" Directory_="Windows_Dir" Attributes="256" KeyPath="libjpeg9.dll"/>
-    <ROW Component="libmodplug1.dll" ComponentId="{2FC8B7DB-B02B-45B9-9BE3-4954D7694237}" Directory_="Windows_Dir" Attributes="256" KeyPath="libmodplug1.dll"/>
-    <ROW Component="libogg0.dll" ComponentId="{5C051557-E7EC-4379-825C-EBB16C056E45}" Directory_="Windows_Dir" Attributes="256" KeyPath="libogg0.dll"/>
-    <ROW Component="libogg0.dll_1" ComponentId="{27879CEF-A9F0-44DD-99A9-B362D63EC617}" Directory_="pygame_Dir" Attributes="256" KeyPath="libogg0.dll_1"/>
-    <ROW Component="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373ff76" ComponentId="{570030FD-46A2-4D27-BCDD-26F2FD640E84}" Directory_="numpy.libs_Dir" Attributes="256" KeyPath="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373f"/>
-    <ROW Component="libopus0.dll" ComponentId="{0458D33F-D913-4AF6-A53A-DC87458B4735}" Directory_="Windows_Dir" Attributes="256" KeyPath="libopus0.dll"/>
-    <ROW Component="libopus0.dll_1" ComponentId="{9F7FA910-47C1-4510-9485-7A65EBCBA96B}" Directory_="pygame_Dir" Attributes="256" KeyPath="libopus0.dll_1"/>
-    <ROW Component="libopusfile0.dll" ComponentId="{1D5E79E9-5298-48A1-92F8-5D7192F8B533}" Directory_="Windows_Dir" Attributes="256" KeyPath="libopusfile0.dll"/>
-    <ROW Component="libpng1616.dll" ComponentId="{568419AF-703B-4D5B-BC07-C17BB7F3B52E}" Directory_="Windows_Dir" Attributes="256" KeyPath="libpng1616.dll"/>
-    <ROW Component="libssl1_1.dll" ComponentId="{6D8B6AC5-5CC0-45E6-AFCF-A55B8A2E8703}" Directory_="Windows_Dir" Attributes="256" KeyPath="libssl1_1.dll"/>
-    <ROW Component="libtiff5.dll" ComponentId="{80DD802C-5E8F-4107-A225-7B9BEDEBA401}" Directory_="Windows_Dir" Attributes="256" KeyPath="libtiff5.dll"/>
-    <ROW Component="libwebp7.dll" ComponentId="{18930291-816C-4EDC-AF2F-73F63012CEFA}" Directory_="Windows_Dir" Attributes="256" KeyPath="libwebp7.dll"/>
-    <ROW Component="locale.en.ini" ComponentId="{8B80D152-0EC0-4F74-8AFD-B2AF44517D6A}" Directory_="locale_Dir" Attributes="0" KeyPath="locale.en.ini" Type="0"/>
-    <ROW Component="logo.png" ComponentId="{254D35BE-C6A5-4AF4-984C-A8CA603B9A83}" Directory_="data_1_Dir" Attributes="0" KeyPath="logo.png" Type="0"/>
-    <ROW Component="logo.svg" ComponentId="{FF9053B3-49CE-4C5B-BE85-F70397BB1D1C}" Directory_="logo_Dir" Attributes="0" KeyPath="logo.svg" Type="0"/>
-    <ROW Component="math.css" ComponentId="{E923E725-A387-4773-8C01-57A1F3A8FE89}" Directory_="html5_polyglot_Dir" Attributes="0" KeyPath="math.css" Type="0"/>
-    <ROW Component="md.cp310win_amd64.pyd" ComponentId="{BA0027F8-342F-42A1-9874-5EB4117C72D6}" Directory_="charset_normalizer_Dir" Attributes="256" KeyPath="md.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="mfc140u.dll" ComponentId="{89D5890A-4A60-4FBF-A2D1-42DF1ADCDAFD}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="mfc140u.dll"/>
-    <ROW Component="msvcp100.dll" ComponentId="{D60EB773-70BC-4536-B367-459A7F76F88A}" Directory_="Windows_Dir" Attributes="256" KeyPath="msvcp100.dll"/>
-    <ROW Component="msvcr100.dll" ComponentId="{65DB7246-6578-4A33-83B9-D2BDCCED3FDC}" Directory_="Windows_Dir" Attributes="256" KeyPath="msvcr100.dll"/>
-    <ROW Component="opencv_videoio_ffmpeg481_64.dll" ComponentId="{5393B1A9-A04C-433D-BDAE-A813DB15A508}" Directory_="cv2_Dir" Attributes="256" KeyPath="opencv_videoio_ffmpeg481_64.dll"/>
-    <ROW Component="opengl32sw.dll" ComponentId="{1FF5DC52-E77E-4BF6-AB90-F2E14CDE16E6}" Directory_="PySide6_Dir" Attributes="256" KeyPath="opengl32sw.dll"/>
-    <ROW Component="pep.css" ComponentId="{86D6B503-EBAF-4334-89F4-3215D8E74982}" Directory_="pep_html_Dir" Attributes="0" KeyPath="pep.css" Type="0"/>
-    <ROW Component="portmidi.dll" ComponentId="{3ADE5758-D77F-4288-8DBF-034A3E8299A7}" Directory_="Windows_Dir" Attributes="256" KeyPath="portmidi.dll"/>
-    <ROW Component="pretty.css" ComponentId="{172A8D06-3ECB-4E7F-A036-163DD8FC2BD5}" Directory_="mediumblack_Dir" Attributes="0" KeyPath="pretty.css_3" Type="0"/>
-    <ROW Component="pretty.css_1" ComponentId="{3649B9E5-93F2-4209-B65B-7F5CC34B7DE9}" Directory_="smallblack_Dir" Attributes="0" KeyPath="pretty.css_5" Type="0"/>
-    <ROW Component="pygpt.exe" ComponentId="{A342A49A-2CB7-4696-B6A5-B9138C3B59FD}" Directory_="Windows_Dir" Attributes="256" KeyPath="pygpt.exe"/>
-    <ROW Component="pyside6.abi3.dll" ComponentId="{6B7054BF-D388-4820-ACF3-2647B424CBAF}" Directory_="PySide6_Dir" Attributes="256" KeyPath="pyside6.abi3.dll"/>
-    <ROW Component="python3.dll" ComponentId="{5D85E99D-43DF-4A2D-AFD2-55AFA430A6C6}" Directory_="Windows_Dir" Attributes="256" KeyPath="python3.dll"/>
-    <ROW Component="python310.dll" ComponentId="{97E4FCC6-2120-46DB-A682-F32CC04D4E95}" Directory_="Windows_Dir" Attributes="256" KeyPath="python310.dll"/>
-    <ROW Component="pythoncom310.dll" ComponentId="{CBCB5542-5018-4882-B7EB-AFD92FDA1EA3}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pythoncom310.dll"/>
-    <ROW Component="pywintypes310.dll" ComponentId="{FD2B80A7-4EA6-487D-B64C-38F854623521}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pywintypes310.dll"/>
-    <ROW Component="qcertonlybackend.dll" ComponentId="{461324CD-4D7A-41D7-B7A8-74B8CFB12694}" Directory_="tls_Dir" Attributes="256" KeyPath="qcertonlybackend.dll"/>
-    <ROW Component="qdirect2d.dll" ComponentId="{336911EE-C239-48A3-B9C6-A83FF5FFF517}" Directory_="platforms_Dir" Attributes="256" KeyPath="qdirect2d.dll"/>
-    <ROW Component="qgif.dll" ComponentId="{9DC55403-C066-435C-883A-8A3FCF02B013}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qgif.dll"/>
-    <ROW Component="qicns.dll" ComponentId="{11A5D022-B21F-43A5-848D-1E1DD3D11E90}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qicns.dll"/>
-    <ROW Component="qico.dll" ComponentId="{53EBCD12-538A-4BB8-B324-62D2F073445E}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qico.dll"/>
-    <ROW Component="qjpeg.dll" ComponentId="{C1A0EBCE-0E07-49B2-A59C-0484EA0188A0}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qjpeg.dll"/>
-    <ROW Component="qminimal.dll" ComponentId="{31D8CB36-4F39-4306-AF85-50BE10CEAC32}" Directory_="platforms_Dir" Attributes="256" KeyPath="qminimal.dll"/>
-    <ROW Component="qnetworklistmanager.dll" ComponentId="{861F8713-E678-48E2-946D-4812F5A8F21E}" Directory_="networkinformation_Dir" Attributes="256" KeyPath="qnetworklistmanager.dll"/>
-    <ROW Component="qoffscreen.dll" ComponentId="{77EE859C-67B8-4C2D-A245-E24838207425}" Directory_="platforms_Dir" Attributes="256" KeyPath="qoffscreen.dll"/>
-    <ROW Component="qopensslbackend.dll" ComponentId="{669DDC17-0739-489F-A0D0-A006D5BA0B9C}" Directory_="tls_Dir" Attributes="256" KeyPath="qopensslbackend.dll"/>
-    <ROW Component="qpdf.dll" ComponentId="{070DB29E-92AA-45A8-9202-EF4D06D727E7}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qpdf.dll"/>
-    <ROW Component="qschannelbackend.dll" ComponentId="{E87111DD-1948-4F27-8D1D-7AF725C69989}" Directory_="tls_Dir" Attributes="256" KeyPath="qschannelbackend.dll"/>
-    <ROW Component="qsvg.dll" ComponentId="{7ADEEDC8-503E-4E86-A821-63BF191C1ACC}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qsvg.dll"/>
-    <ROW Component="qsvgicon.dll" ComponentId="{8E02EC4E-16D1-4D50-B516-CC10CC5A1713}" Directory_="iconengines_Dir" Attributes="256" KeyPath="qsvgicon.dll"/>
-    <ROW Component="qtbase_ar.qm" ComponentId="{F043CCA4-91A3-4E7B-A7D9-6C3CB3B50AEB}" Directory_="translations_Dir" Attributes="0" KeyPath="qtbase_ar.qm" Type="0"/>
-    <ROW Component="qtga.dll" ComponentId="{E4819491-4933-4DB7-84CB-14977D8A3BC8}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtga.dll"/>
-    <ROW Component="qtiff.dll" ComponentId="{247A5919-C892-434F-8307-860BD20EDD32}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtiff.dll"/>
-    <ROW Component="qtuiotouchplugin.dll" ComponentId="{D041A1F7-ED37-4E1B-BCF8-A4EA02CD4C8C}" Directory_="generic_Dir" Attributes="256" KeyPath="qtuiotouchplugin.dll"/>
-    <ROW Component="qtvirtualkeyboardplugin.dll" ComponentId="{98B2477A-CA76-4A2F-860E-857D587DEA65}" Directory_="platforminputcontexts_Dir" Attributes="256" KeyPath="qtvirtualkeyboardplugin.dll"/>
-    <ROW Component="qwbmp.dll" ComponentId="{FE7DCF81-4A65-4FCB-9E63-919EEFAA7892}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwbmp.dll"/>
-    <ROW Component="qwebp.dll" ComponentId="{AEE858FD-C401-43FB-9883-C9523F9DA3EF}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwebp.dll"/>
-    <ROW Component="qwindows.dll" ComponentId="{EF6067C6-5458-44A0-ACCF-599876EA81CB}" Directory_="platforms_Dir" Attributes="256" KeyPath="qwindows.dll"/>
-    <ROW Component="qwindowsvistastyle.dll" ComponentId="{3D08040C-8655-4ED5-82C4-C8328DF26973}" Directory_="styles_Dir" Attributes="256" KeyPath="qwindowsvistastyle.dll"/>
-    <ROW Component="shell.pyd" ComponentId="{AB009DE3-FF6C-4F48-9E89-DCB56E3FAA2A}" Directory_="shell_Dir" Attributes="256" KeyPath="shell.pyd" Type="0"/>
-    <ROW Component="shiboken6.abi3.dll" ComponentId="{22CD67CB-E303-49A2-A1CE-1C0EB87BD4FF}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="shiboken6.abi3.dll"/>
-    <ROW Component="sqlite3.dll" ComponentId="{A150C2B5-7E97-427B-9315-F42DB035E1C1}" Directory_="Windows_Dir" Attributes="256" KeyPath="sqlite3.dll"/>
-    <ROW Component="styles.odt" ComponentId="{0307295B-A8A8-4496-906E-F7FF6C232E74}" Directory_="odf_odt_Dir" Attributes="0" KeyPath="styles.odt" Type="0"/>
-    <ROW Component="version.py" ComponentId="{8E065196-0321-4EE4-B88E-362C710E1E6D}" Directory_="misc_Dir" Attributes="0" KeyPath="version.py" Type="0"/>
-    <ROW Component="win32api.pyd" ComponentId="{2A4C1B26-D5E7-4395-B5D2-A427891150E6}" Directory_="win32_Dir" Attributes="256" KeyPath="win32api.pyd" Type="0"/>
-    <ROW Component="win32ui.pyd" ComponentId="{1D76A818-11DB-4F88-9C9C-624FBB65AB9B}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="win32ui.pyd" Type="0"/>
-    <ROW Component="zlib1.dll" ComponentId="{90F73A09-049C-4DA2-A4A7-762B76108B93}" Directory_="pygame_Dir" Attributes="256" KeyPath="zlib1.dll"/>
-    <ROW Component="zlib1.dll_1" ComponentId="{F36E978A-5BE1-487E-9BBC-6C5176AC7BD9}" Directory_="Windows_Dir" Attributes="256" KeyPath="zlib1.dll_1"/>
+    <ROW Component="APPDIR" ComponentId="{0E752F9F-9F9C-4149-A636-A4FF62D0307C}" Directory_="APPDIR" Attributes="0"/>
+    <ROW Component="INSTALLER" ComponentId="{341D73A2-8753-4039-83DC-59920DAD0166}" Directory_="cryptography40.0.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER" Type="0"/>
+    <ROW Component="INSTALLER_4" ComponentId="{9B9F6FCE-86A8-4709-AB37-C252BC0014EA}" Directory_="docker7.0.0.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_9" Type="0"/>
+    <ROW Component="INSTALLER_5" ComponentId="{E9AF271A-E8F3-4D09-A231-B7F0F4897EC1}" Directory_="importlib_metadata6.3.0.distinf_Dir" Attributes="0" KeyPath="INSTALLER_10" Type="0"/>
+    <ROW Component="INSTALLER_6" ComponentId="{B6AE284C-FCAA-433E-B755-F315B95F3400}" Directory_="pydantic2.5.2.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_13" Type="0"/>
+    <ROW Component="LICENSE" ComponentId="{82D9F0B1-32EC-4440-87C9-85BC68D84EF4}" Directory_="licenses_Dir" Attributes="0" KeyPath="LICENSE_11" Type="0"/>
+    <ROW Component="LICENSE_2" ComponentId="{8AE91771-09F0-4EA5-BC2F-0DAE9F569934}" Directory_="licenses_2_Dir" Attributes="0" KeyPath="LICENSE_12" Type="0"/>
+    <ROW Component="LatoBlack.ttf" ComponentId="{BEE1DB0C-13F3-45F9-929F-323C702C1C7B}" Directory_="Lato_Dir" Attributes="0" Type="0"/>
+    <ROW Component="MSVCP140.dll" ComponentId="{010425F8-F378-4CB0-9F8D-75FF80C073F2}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140.dll"/>
+    <ROW Component="MSVCP140_1.dll" ComponentId="{88191C5B-00B8-4FE2-8568-6887BFB03D7E}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_1.dll"/>
+    <ROW Component="MSVCP140_2.dll" ComponentId="{482ACD58-BDD3-4AD7-9C9C-548A8C503C18}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_2.dll"/>
+    <ROW Component="ProductInformation" ComponentId="{E257D356-D726-4816-B58B-D5427A1F3DF3}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="Qt6Core.dll" ComponentId="{84BD546B-1A5E-4F6D-9CCB-7FA247B21224}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Core.dll"/>
+    <ROW Component="Qt6Gui.dll" ComponentId="{E2B868A0-EBCE-4A95-80EC-623166AE2673}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Gui.dll"/>
+    <ROW Component="Qt6Network.dll" ComponentId="{BB3725B1-194A-4B56-94DC-D39EAAAE0A18}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Network.dll"/>
+    <ROW Component="Qt6OpenGL.dll" ComponentId="{BA274AFC-7DC9-4302-A74C-198135E241BC}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGL.dll"/>
+    <ROW Component="Qt6OpenGLWidgets.dll" ComponentId="{C5401E0A-B288-4797-8F79-EA9733802D89}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGLWidgets.dll"/>
+    <ROW Component="Qt6Pdf.dll" ComponentId="{7D164730-7345-4F6D-9760-888521CD835D}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Pdf.dll"/>
+    <ROW Component="Qt6Qml.dll" ComponentId="{1E1E736B-8E24-4753-ADE3-6112827519C0}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Qml.dll"/>
+    <ROW Component="Qt6QmlModels.dll" ComponentId="{F4B1CF2F-BF31-4760-B962-1A8A58252CC6}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6QmlModels.dll"/>
+    <ROW Component="Qt6Quick.dll" ComponentId="{DB297DD4-F421-4850-AABB-50C21D7F7D02}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Quick.dll"/>
+    <ROW Component="Qt6Svg.dll" ComponentId="{C2673065-FCAD-4BA8-9672-FF46687B9E3B}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Svg.dll"/>
+    <ROW Component="Qt6UiTools.dll" ComponentId="{6F7FF7F2-91C2-48EE-ABC0-FF4957A83B91}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6UiTools.dll"/>
+    <ROW Component="Qt6VirtualKeyboard.dll" ComponentId="{C1522DB2-FFC7-4A29-9BC4-D501BF0762F0}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6VirtualKeyboard.dll"/>
+    <ROW Component="Qt6Widgets.dll" ComponentId="{64F03DB7-AC31-49B9-9B72-145002530207}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Widgets.dll"/>
+    <ROW Component="QtCore.pyd" ComponentId="{44C57FA0-308E-453C-A71D-DD5E00C81F87}" Directory_="PySide6_Dir" Attributes="256" KeyPath="QtCore.pyd" Type="0"/>
+    <ROW Component="README.txt" ComponentId="{D9A5E777-5EEA-4F68-8028-537B28FB862D}" Directory_="themes_Dir" Attributes="0" KeyPath="README.txt_2" Type="0"/>
+    <ROW Component="RobotoBlack.ttf" ComponentId="{8E11417A-84A6-4D86-9ECC-F0C7030D5AD9}" Directory_="roboto_Dir" Attributes="0" Type="0"/>
+    <ROW Component="SDL2.dll" ComponentId="{CDCDA851-776D-44F7-959E-60112B7B4446}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2.dll"/>
+    <ROW Component="SDL2.dll_1" ComponentId="{D804BAE4-AB9A-482C-BC75-BACBFCE02B31}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2.dll_1"/>
+    <ROW Component="SDL2_image.dll" ComponentId="{07AF951A-0B66-45D6-9A33-4F1EC65009A8}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2_image.dll"/>
+    <ROW Component="SDL2_mixer.dll" ComponentId="{85F4678E-F975-423D-970D-7E0A6E965B73}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2_mixer.dll"/>
+    <ROW Component="SDL2_ttf.dll" ComponentId="{0A65F941-8BFC-44D1-A6C4-3F423DA33369}" Directory_="Windows_Dir" Attributes="256" KeyPath="SDL2_ttf.dll"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{869BB4FC-69A5-429D-A92E-A40E4609D975}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="Shiboken.pyd" ComponentId="{AE9828BD-B20E-449B-BDEC-2CAEE12DF1B2}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="Shiboken.pyd" Type="0"/>
+    <ROW Component="VCRUNTIME140.dll" ComponentId="{B3FE376D-8915-448B-BBEA-2EF619AAB58E}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll"/>
+    <ROW Component="VCRUNTIME140_1.dll" ComponentId="{9F89C176-7085-46B2-8FE1-D237017E40BB}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll"/>
+    <ROW Component="VCRUNTIME140_1.dll_2" ComponentId="{060695B3-BF91-4641-92C5-27CBC5E4D02A}" Directory_="Windows_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_2"/>
+    <ROW Component="__init__.cpython310.pyc" ComponentId="{2A057664-0697-4B59-8E4C-B62F23A40EE7}" Directory_="__pycache___Dir" Attributes="0" KeyPath="__init__.cpython310.pyc" Type="0"/>
+    <ROW Component="__init__.cpython310.pyc_2" ComponentId="{5FD0AC43-F50A-43B9-8999-637EE9949F55}" Directory_="__pycache___3_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_3" Type="0"/>
+    <ROW Component="__init__.py" ComponentId="{908B7803-EB48-4EC4-A7AA-E28F0128BCBD}" Directory_="data_Dir" Attributes="0" KeyPath="__init__.py" Type="0"/>
+    <ROW Component="__init__.py_5" ComponentId="{C426092E-A88E-4A9C-A5BB-F9CEE81FDD2A}" Directory_="gapi_Dir" Attributes="0" KeyPath="__init__.py_11" Type="0"/>
+    <ROW Component="__init__.py_6" ComponentId="{06D08508-1EC3-496D-9BF4-6F46AF1E6687}" Directory_="mat_wrapper_Dir" Attributes="0" KeyPath="__init__.py_12" Type="0"/>
+    <ROW Component="__init__.py_7" ComponentId="{B1915D56-8801-4DE1-843C-167196FE701C}" Directory_="typing_Dir" Attributes="0" KeyPath="__init__.py_14" Type="0"/>
+    <ROW Component="__init__.py_8" ComponentId="{6AA2671C-A664-4DC1-A490-CCF7414C23BE}" Directory_="utils_Dir" Attributes="0" KeyPath="__init__.py_15" Type="0"/>
+    <ROW Component="_frozenlist.cp310win_amd64.pyd" ComponentId="{C5EF40AF-C5FE-4667-93CB-89BEAFA83138}" Directory_="frozenlist_Dir" Attributes="256" KeyPath="_frozenlist.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_greenlet.cp310win_amd64.pyd" ComponentId="{8E1C179B-4F9E-4BEF-ABFD-5FB96B2BB67C}" Directory_="greenlet_Dir" Attributes="256" KeyPath="_greenlet.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_helpers.cp310win_amd64.pyd" ComponentId="{E704776D-86E1-40C7-8B30-19E003153E4D}" Directory_="aiohttp_Dir" Attributes="256" KeyPath="_helpers.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_multiarray_tests.cp310win_amd64.pyd" ComponentId="{0916C199-68C4-42FD-9186-A32D93DC6C07}" Directory_="core_Dir" Attributes="256" KeyPath="_multiarray_tests.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_multidict.cp310win_amd64.pyd" ComponentId="{7C690191-14CB-4F26-82D7-9B02485E8C14}" Directory_="multidict_Dir" Attributes="256" KeyPath="_multidict.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_pocketfft_internal.cp310win_amd64.pyd" ComponentId="{9D6F36C2-6E92-46F3-86D1-E8CA484B99F4}" Directory_="fft_Dir" Attributes="256" KeyPath="_pocketfft_internal.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_portaudio.cp310win_amd64.pyd" ComponentId="{21209050-1E10-4CC6-B1FF-F39BAF1686CD}" Directory_="pyaudio_Dir" Attributes="256" KeyPath="_portaudio.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_pydantic_core.cp310win_amd64.pyd" ComponentId="{79B7C051-6789-4700-AC56-DD0FBD4F2A48}" Directory_="pydantic_core_Dir" Attributes="256" KeyPath="_pydantic_core.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_quoting_c.cp310win_amd64.pyd" ComponentId="{BB6310A8-CD69-4218-A0C7-F056EFA0847B}" Directory_="yarl_Dir" Attributes="256" KeyPath="_quoting_c.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_regex.cp310win_amd64.pyd" ComponentId="{019366D5-D970-42CC-BC49-5570287847C7}" Directory_="regex_Dir" Attributes="256" KeyPath="_regex.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_rust.pyd" ComponentId="{FAE227D9-E3BA-4C85-B86D-34B5C4A4DCC3}" Directory_="bindings_Dir" Attributes="256" KeyPath="_rust.pyd" Type="0"/>
+    <ROW Component="_speedups.cp310win_amd64.pyd" ComponentId="{B58C1265-27B0-4482-9144-BAC52E511B1D}" Directory_="markupsafe_Dir" Attributes="256" KeyPath="_speedups.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_tiktoken.cp310win_amd64.pyd" ComponentId="{972BDFF8-C273-46AD-B18A-6D8BB6538ACA}" Directory_="tiktoken_Dir" Attributes="256" KeyPath="_tiktoken.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_umath_linalg.cp310win_amd64.pyd" ComponentId="{1ED3F339-3F10-42EA-91B8-73B23A7C9F13}" Directory_="linalg_Dir" Attributes="256" KeyPath="_umath_linalg.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_yaml.cp310win_amd64.pyd" ComponentId="{AB0EB63B-90C1-43D2-867D-7681D266A454}" Directory_="yaml_Dir" Attributes="256" KeyPath="_yaml.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="base.cp310win_amd64.pyd" ComponentId="{59B96998-8AD4-47D6-B372-D35E198DC9F3}" Directory_="pygame_Dir" Attributes="256" KeyPath="base.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="base.svg" ComponentId="{B6016569-BCFF-4230-85F0-056F0982CFDF}" Directory_="source_Dir" Attributes="0" KeyPath="base.svg" Type="0"/>
+    <ROW Component="base_library.zip" ComponentId="{DF6718A5-DE8D-466A-84A9-2F4D98F1A144}" Directory_="Windows_Dir" Attributes="0" KeyPath="base_library.zip" Type="0"/>
+    <ROW Component="batman_and_joker.json" ComponentId="{A05124CC-EBE5-4C8C-BC27-2C6B545C6154}" Directory_="presets_Dir" Attributes="0" KeyPath="batman_and_joker.json" Type="0"/>
+    <ROW Component="bit_generator.cp310win_amd64.pyd" ComponentId="{7F351C92-3AF6-44DE-899A-38196A5BEBC1}" Directory_="random_Dir" Attributes="256" KeyPath="bit_generator.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="cacert.pem" ComponentId="{2A7239D3-FFF0-4515-A0AC-A256A48C8BEF}" Directory_="certifi_Dir" Attributes="0" KeyPath="cacert.pem" Type="0"/>
+    <ROW Component="collections.cp310win_amd64.pyd" ComponentId="{0B81564E-230B-40B1-BC04-11B9A437AE9D}" Directory_="cyextension_Dir" Attributes="256" KeyPath="collections.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="config.json" ComponentId="{7D7EFC22-9595-4C58-A05A-CF5BAF63C9FD}" Directory_="config_Dir" Attributes="0" KeyPath="config.json" Type="0"/>
+    <ROW Component="config3.py" ComponentId="{E9CF3996-3B86-4673-8BA0-B5A4C4315F55}" Directory_="cv2_Dir" Attributes="0" KeyPath="config3.py" Type="0"/>
+    <ROW Component="dark_amber.xml" ComponentId="{44C08F70-5EA8-4B01-8C3A-0AEF7F483865}" Directory_="themes_2_Dir" Attributes="0" KeyPath="dark_amber.xml" Type="0"/>
+    <ROW Component="default.tex" ComponentId="{A9B166C8-A93A-4164-B539-F94A3265BFE7}" Directory_="latex2e_Dir" Attributes="0" KeyPath="default.tex" Type="0"/>
+    <ROW Component="dock_theme.ui" ComponentId="{C00B6693-E376-444E-8C9F-358E580CBB5F}" Directory_="qt_material_Dir" Attributes="0" KeyPath="dock_theme.ui" Type="0"/>
+    <ROW Component="entry_points.txt" ComponentId="{1FABB73D-6045-469F-A9E3-0E5E14ACCD91}" Directory_="langchain0.0.346.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt" Type="0"/>
+    <ROW Component="entry_points.txt_5" ComponentId="{EABE08FC-B6AC-466B-B897-95DFB9424BF7}" Directory_="openai1.3.7.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_5" Type="0"/>
+    <ROW Component="entry_points.txt_6" ComponentId="{8106431A-8975-409A-986E-4EFE5283C307}" Directory_="setuptools65.5.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_6" Type="0"/>
+    <ROW Component="entry_points.txt_7" ComponentId="{87D5C084-050E-4C80-9C4F-F217B71951A1}" Directory_="show_in_file_manager1.1.4.disti_Dir" Attributes="0" KeyPath="entry_points.txt_7" Type="0"/>
+    <ROW Component="entry_points.txt_8" ComponentId="{3E0013B5-EC71-4DE6-9F88-4E0AF02F38BC}" Directory_="wheel0.42.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_8" Type="0"/>
+    <ROW Component="feat.params" ComponentId="{C2BD0FF1-5DBF-4C54-9077-3FEA7337317E}" Directory_="acousticmodel_Dir" Attributes="0" KeyPath="feat.params" Type="0"/>
+    <ROW Component="flaclinuxx86" ComponentId="{322A0127-3C21-44F1-812F-1FFEA58B1489}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flaclinuxx86" Type="0"/>
+    <ROW Component="flacwin32.exe" ComponentId="{A439D74C-A156-4D6E-B9E7-F7390DEA9327}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flacwin32.exe"/>
+    <ROW Component="framing.css" ComponentId="{181AE531-5F94-44D5-B578-DCE366F70E5B}" Directory_="bigblack_Dir" Attributes="0" KeyPath="framing.css" Type="0"/>
+    <ROW Component="framing.css_5" ComponentId="{9D3B0620-9506-4E5A-86A6-8772B3CE8778}" Directory_="bigwhite_Dir" Attributes="0" KeyPath="framing.css_5" Type="0"/>
+    <ROW Component="framing.css_6" ComponentId="{20F8C10C-DD1B-49E0-B29D-A5C42CEDD242}" Directory_="default_Dir" Attributes="0" KeyPath="framing.css_6" Type="0"/>
+    <ROW Component="framing.css_7" ComponentId="{64481EC8-74EC-4B6B-AD16-A1BCCA64B970}" Directory_="mediumwhite_Dir" Attributes="0" KeyPath="framing.css_7" Type="0"/>
+    <ROW Component="framing.css_8" ComponentId="{CE88DE04-F1E4-4D94-A0E1-3A78A3366F80}" Directory_="smallwhite_Dir" Attributes="0" KeyPath="framing.css_8" Type="0"/>
+    <ROW Component="freetype.dll" ComponentId="{7D956D3F-690E-4EAA-8A08-3F42CA079A39}" Directory_="Windows_Dir" Attributes="256" KeyPath="freetype.dll"/>
+    <ROW Component="generate.cpython310.pyc" ComponentId="{0C3282B0-3561-4527-933C-1FA21C508CD8}" Directory_="__pycache___4_Dir" Attributes="0" KeyPath="generate.cpython310.pyc" Type="0"/>
+    <ROW Component="generate.py" ComponentId="{A8A923F9-ECC6-43C8-9555-2581E95E0611}" Directory_="resources_Dir" Attributes="0" KeyPath="generate.py" Type="0"/>
+    <ROW Component="highlighter.dark_amber.json" ComponentId="{DF85AC4D-BD4D-4876-9419-646AF37B5897}" Directory_="css_Dir" Attributes="0" KeyPath="highlighter.dark_amber.json" Type="0"/>
+    <ROW Component="html4css1.css" ComponentId="{DF5BEBDC-63A9-44AC-90CF-E021BF805C23}" Directory_="html4css1_Dir" Attributes="0" KeyPath="html4css1.css" Type="0"/>
+    <ROW Component="isoamsa.txt" ComponentId="{CF22EF3F-9A26-434E-B30F-BCD78D8127A4}" Directory_="include_Dir" Attributes="0" KeyPath="isoamsa.txt" Type="0"/>
+    <ROW Component="languagemodel.lm.bin" ComponentId="{0562466A-1F8E-44BA-B5C9-18D0F6E8B575}" Directory_="enUS_Dir" Attributes="0" KeyPath="languagemodel.lm.bin" Type="0"/>
+    <ROW Component="libcrypto1_1.dll" ComponentId="{0B3F783E-2B2A-4437-BA69-DD801A06B31E}" Directory_="Windows_Dir" Attributes="256" KeyPath="libcrypto1_1.dll"/>
+    <ROW Component="libffi7.dll" ComponentId="{618328E8-2C12-462D-B4D3-BD35CAA2FBFF}" Directory_="Windows_Dir" Attributes="256" KeyPath="libffi7.dll"/>
+    <ROW Component="libjpeg9.dll" ComponentId="{A0A16EDF-636A-4F5B-9738-E23030C9DA4D}" Directory_="Windows_Dir" Attributes="256" KeyPath="libjpeg9.dll"/>
+    <ROW Component="libmodplug1.dll" ComponentId="{D180B4C6-76DA-484A-A6C6-0C71624EA7F9}" Directory_="Windows_Dir" Attributes="256" KeyPath="libmodplug1.dll"/>
+    <ROW Component="libogg0.dll" ComponentId="{07E6FF7C-1906-4D16-9F4A-93D04B6C0F3C}" Directory_="Windows_Dir" Attributes="256" KeyPath="libogg0.dll"/>
+    <ROW Component="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373ff76" ComponentId="{02726E12-6BDB-420A-9DCA-9722DDBFC555}" Directory_="numpy.libs_Dir" Attributes="256" KeyPath="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373f"/>
+    <ROW Component="libopus0.dll" ComponentId="{CCACB9C4-D83E-45E9-A13E-D57A4064FE48}" Directory_="Windows_Dir" Attributes="256" KeyPath="libopus0.dll"/>
+    <ROW Component="libopusfile0.dll" ComponentId="{D6D38666-D439-4E0D-8687-08ED5A2DA7B7}" Directory_="Windows_Dir" Attributes="256" KeyPath="libopusfile0.dll"/>
+    <ROW Component="libpng1616.dll" ComponentId="{8882EF32-BCC6-4F70-A1A2-CE98C1136DFD}" Directory_="Windows_Dir" Attributes="256" KeyPath="libpng1616.dll"/>
+    <ROW Component="libssl1_1.dll" ComponentId="{D4DD56A8-5200-4068-9362-A86467C0372F}" Directory_="Windows_Dir" Attributes="256" KeyPath="libssl1_1.dll"/>
+    <ROW Component="libtiff5.dll" ComponentId="{68618965-76AD-4E0B-AD38-5A7406F19221}" Directory_="Windows_Dir" Attributes="256" KeyPath="libtiff5.dll"/>
+    <ROW Component="libwebp7.dll" ComponentId="{E0CE5059-A3F5-40DE-8141-9E3FCBDB9F25}" Directory_="Windows_Dir" Attributes="256" KeyPath="libwebp7.dll"/>
+    <ROW Component="locale.en.ini" ComponentId="{D3177334-C08E-4590-A79C-B1F64E07C176}" Directory_="locale_Dir" Attributes="0" KeyPath="locale.en.ini" Type="0"/>
+    <ROW Component="logo.png" ComponentId="{48AC406B-856F-4039-A756-49ECCAE66CB4}" Directory_="data_2_Dir" Attributes="0" KeyPath="logo.png" Type="0"/>
+    <ROW Component="logo.svg" ComponentId="{9846DD4A-A270-4689-B36D-800D735610A1}" Directory_="logo_Dir" Attributes="0" KeyPath="logo.svg" Type="0"/>
+    <ROW Component="math.css" ComponentId="{2AEFFF38-5071-453B-A542-2EC8FC0AC51F}" Directory_="html5_polyglot_Dir" Attributes="0" KeyPath="math.css" Type="0"/>
+    <ROW Component="md.cp310win_amd64.pyd" ComponentId="{F50219B7-BCB0-4401-9554-9DE6EFA10669}" Directory_="charset_normalizer_Dir" Attributes="256" KeyPath="md.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="mfc140u.dll" ComponentId="{E08C0342-3A32-4C1C-BDC6-FCB04F61B20D}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="mfc140u.dll"/>
+    <ROW Component="msvcp100.dll" ComponentId="{318D91FF-F626-434A-BBBD-A35229A601A5}" Directory_="Windows_Dir" Attributes="256" KeyPath="msvcp100.dll"/>
+    <ROW Component="msvcr100.dll" ComponentId="{50CDEA9A-A570-4EF6-8218-2E972106B10B}" Directory_="Windows_Dir" Attributes="256" KeyPath="msvcr100.dll"/>
+    <ROW Component="opencv_videoio_ffmpeg481_64.dll" ComponentId="{71C79BC1-966D-419E-945A-4AA331FEC63E}" Directory_="cv2_Dir" Attributes="256" KeyPath="opencv_videoio_ffmpeg481_64.dll"/>
+    <ROW Component="opengl32sw.dll" ComponentId="{4DF2E1D1-A47F-489A-AD44-AD6C0DD0BE9F}" Directory_="PySide6_Dir" Attributes="256" KeyPath="opengl32sw.dll"/>
+    <ROW Component="pep.css" ComponentId="{B8D28E3C-34C5-423F-9976-B012EE28E381}" Directory_="pep_html_Dir" Attributes="0" KeyPath="pep.css" Type="0"/>
+    <ROW Component="portmidi.dll" ComponentId="{EBE8278E-B429-4F7F-820F-5A6BCDBBB060}" Directory_="Windows_Dir" Attributes="256" KeyPath="portmidi.dll"/>
+    <ROW Component="pretty.css" ComponentId="{D3413162-7C1B-4A0D-A555-44DFDD9BE229}" Directory_="mediumblack_Dir" Attributes="0" KeyPath="pretty.css_9" Type="0"/>
+    <ROW Component="pretty.css_2" ComponentId="{8F46C650-50D0-428A-9AE1-A7421AA4856A}" Directory_="smallblack_Dir" Attributes="0" KeyPath="pretty.css_11" Type="0"/>
+    <ROW Component="pygpt.exe" ComponentId="{E6E86A8D-9BBA-41A3-B0C3-98B94C929E2D}" Directory_="Windows_Dir" Attributes="256" KeyPath="pygpt.exe"/>
+    <ROW Component="pyside6.abi3.dll" ComponentId="{D5A803D7-700B-4FBE-9E1A-7CB65F7F9936}" Directory_="PySide6_Dir" Attributes="256" KeyPath="pyside6.abi3.dll"/>
+    <ROW Component="python3.dll" ComponentId="{52243733-D8BD-4CB2-86E7-9BD52C2CA67F}" Directory_="Windows_Dir" Attributes="256" KeyPath="python3.dll"/>
+    <ROW Component="python310.dll" ComponentId="{A84D710B-1311-43F4-A0EE-A0557E4A5480}" Directory_="Windows_Dir" Attributes="256" KeyPath="python310.dll"/>
+    <ROW Component="pythoncom310.dll" ComponentId="{02A54D09-7974-4590-BA5B-71FD34C25F15}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pythoncom310.dll"/>
+    <ROW Component="pywintypes310.dll" ComponentId="{76F96166-4B0A-45F6-A736-6281A9E51D86}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pywintypes310.dll"/>
+    <ROW Component="qcertonlybackend.dll" ComponentId="{102AA61C-29F3-4945-933D-21340C0B9E89}" Directory_="tls_Dir" Attributes="256" KeyPath="qcertonlybackend.dll"/>
+    <ROW Component="qdirect2d.dll" ComponentId="{8A6915C1-0A00-4CA9-BD0C-CC9A8F969685}" Directory_="platforms_Dir" Attributes="256" KeyPath="qdirect2d.dll"/>
+    <ROW Component="qgif.dll" ComponentId="{3A0F8943-6734-4C98-8A65-558EA5527FD4}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qgif.dll"/>
+    <ROW Component="qicns.dll" ComponentId="{975A9460-483F-477F-9A2D-00334474ADCE}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qicns.dll"/>
+    <ROW Component="qico.dll" ComponentId="{0D53BC40-E894-4C0C-A27F-12193A49FB07}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qico.dll"/>
+    <ROW Component="qjpeg.dll" ComponentId="{6745A895-6225-4138-B409-9FF32C6808BB}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qjpeg.dll"/>
+    <ROW Component="qminimal.dll" ComponentId="{46B6AF1D-399B-4A16-A11A-8BA63187E1EE}" Directory_="platforms_Dir" Attributes="256" KeyPath="qminimal.dll"/>
+    <ROW Component="qnetworklistmanager.dll" ComponentId="{85F64926-683B-4C45-99BB-6BD07C2CCC58}" Directory_="networkinformation_Dir" Attributes="256" KeyPath="qnetworklistmanager.dll"/>
+    <ROW Component="qoffscreen.dll" ComponentId="{F094C681-FC16-4E7D-9680-C8969B34790B}" Directory_="platforms_Dir" Attributes="256" KeyPath="qoffscreen.dll"/>
+    <ROW Component="qopensslbackend.dll" ComponentId="{9BF0FDF7-C6B0-4BC4-87FF-4FC09DBFE3A1}" Directory_="tls_Dir" Attributes="256" KeyPath="qopensslbackend.dll"/>
+    <ROW Component="qpdf.dll" ComponentId="{8F503151-2173-4F4C-8FBA-24C1C4FD5D41}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qpdf.dll"/>
+    <ROW Component="qschannelbackend.dll" ComponentId="{385A513D-ECDD-486F-BF63-9ED7A5046B30}" Directory_="tls_Dir" Attributes="256" KeyPath="qschannelbackend.dll"/>
+    <ROW Component="qsvg.dll" ComponentId="{C6511222-9BE9-4293-A36C-23833F9135FE}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qsvg.dll"/>
+    <ROW Component="qsvgicon.dll" ComponentId="{077A6474-6E6D-4901-BAAA-CCCF52C000E7}" Directory_="iconengines_Dir" Attributes="256" KeyPath="qsvgicon.dll"/>
+    <ROW Component="qtbase_ar.qm" ComponentId="{A2749174-D276-48D8-B382-007D483561E3}" Directory_="translations_Dir" Attributes="0" KeyPath="qtbase_ar.qm" Type="0"/>
+    <ROW Component="qtga.dll" ComponentId="{891651EF-322D-4800-B7CA-56867579B11F}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtga.dll"/>
+    <ROW Component="qtiff.dll" ComponentId="{8B1C6B19-46D1-46EE-A013-375BFF6B04A1}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtiff.dll"/>
+    <ROW Component="qtuiotouchplugin.dll" ComponentId="{40152FB3-C127-4254-AE02-C814D86385F2}" Directory_="generic_Dir" Attributes="256" KeyPath="qtuiotouchplugin.dll"/>
+    <ROW Component="qtvirtualkeyboardplugin.dll" ComponentId="{D02DDBB0-2220-4E0C-9DD7-095F84009034}" Directory_="platforminputcontexts_Dir" Attributes="256" KeyPath="qtvirtualkeyboardplugin.dll"/>
+    <ROW Component="qwbmp.dll" ComponentId="{EB825A5C-44FF-4FC3-B8AF-1C4845B276D0}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwbmp.dll"/>
+    <ROW Component="qwebp.dll" ComponentId="{56D6605A-8E14-486B-B5E8-1B66085773AE}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwebp.dll"/>
+    <ROW Component="qwindows.dll" ComponentId="{F319F104-FC74-4650-BCC9-17C6271778A1}" Directory_="platforms_Dir" Attributes="256" KeyPath="qwindows.dll"/>
+    <ROW Component="qwindowsvistastyle.dll" ComponentId="{7C4A24BC-9A94-4689-8278-8BF8A89F419F}" Directory_="styles_Dir" Attributes="256" KeyPath="qwindowsvistastyle.dll"/>
+    <ROW Component="shell.pyd" ComponentId="{C512C45C-39FE-4733-AEED-AE56AC724017}" Directory_="shell_Dir" Attributes="256" KeyPath="shell.pyd" Type="0"/>
+    <ROW Component="shiboken6.abi3.dll" ComponentId="{DDA82414-F14A-4454-A462-BAF91D37E404}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="shiboken6.abi3.dll"/>
+    <ROW Component="sqlite3.dll" ComponentId="{80465628-2A7F-4041-BE4C-19D81B1B4256}" Directory_="Windows_Dir" Attributes="256" KeyPath="sqlite3.dll"/>
+    <ROW Component="styles.odt" ComponentId="{9943802A-DAD7-447A-80A0-9A72C61ADF6D}" Directory_="odf_odt_Dir" Attributes="0" KeyPath="styles.odt" Type="0"/>
+    <ROW Component="version.py" ComponentId="{C6417BD1-CAB2-453D-9C09-1A124296D451}" Directory_="misc_Dir" Attributes="0" KeyPath="version.py" Type="0"/>
+    <ROW Component="win32api.pyd" ComponentId="{BD08CB55-BF3B-47F5-9F89-ABB1EA915DC1}" Directory_="win32_Dir" Attributes="256" KeyPath="win32api.pyd" Type="0"/>
+    <ROW Component="win32ui.pyd" ComponentId="{10AF33AB-B96D-4E3D-90CB-1AE66C383BC4}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="win32ui.pyd" Type="0"/>
+    <ROW Component="zlib1.dll" ComponentId="{1D7DF934-73AE-438B-B7D5-39D6545730AD}" Directory_="pygame_Dir" Attributes="256" KeyPath="zlib1.dll"/>
+    <ROW Component="zlib1.dll_2" ComponentId="{5C706EF1-F189-4A26-AF26-BE833A95F0F8}" Directory_="Windows_Dir" Attributes="256" KeyPath="zlib1.dll_2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
@@ -328,16 +326,16 @@
     <ROW File="config.py" Component_="config3.py" FileName="config.py" Attributes="0" SourcePath="dist\Windows\cv2\config.py" SelfReg="false"/>
     <ROW File="cv2.pyd" Component_="config3.py" FileName="cv2.pyd" Attributes="0" SourcePath="dist\Windows\cv2\cv2.pyd" SelfReg="false"/>
     <ROW File="__init__.py" Component_="__init__.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\data\__init__.py" SelfReg="false"/>
-    <ROW File="__init__.py_1" Component_="__init__.py_1" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\gapi\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_11" Component_="__init__.py_5" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\gapi\__init__.py" SelfReg="false"/>
     <ROW File="load_config_py3.py" Component_="config3.py" FileName="LOAD_C~1.PY|load_config_py3.py" Attributes="0" SourcePath="dist\Windows\cv2\load_config_py3.py" SelfReg="false"/>
-    <ROW File="__init__.py_2" Component_="__init__.py_2" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\mat_wrapper\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_12" Component_="__init__.py_6" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\mat_wrapper\__init__.py" SelfReg="false"/>
     <ROW File="version.py" Component_="version.py" FileName="version.py" Attributes="0" SourcePath="dist\Windows\cv2\misc\version.py" SelfReg="false"/>
-    <ROW File="__init__.py_3" Component_="version.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\misc\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_13" Component_="version.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\misc\__init__.py" SelfReg="false"/>
     <ROW File="opencv_videoio_ffmpeg481_64.dll" Component_="opencv_videoio_ffmpeg481_64.dll" FileName="OPENCV~1.DLL|opencv_videoio_ffmpeg481_64.dll" Attributes="0" SourcePath="dist\Windows\cv2\opencv_videoio_ffmpeg481_64.dll" SelfReg="false"/>
-    <ROW File="__init__.py_4" Component_="__init__.py_3" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\typing\__init__.py" SelfReg="false"/>
-    <ROW File="__init__.py_5" Component_="__init__.py_4" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\utils\__init__.py" SelfReg="false"/>
-    <ROW File="version.py_1" Component_="config3.py" FileName="version.py" Attributes="0" SourcePath="dist\Windows\cv2\version.py" SelfReg="false"/>
-    <ROW File="__init__.py_6" Component_="config3.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_14" Component_="__init__.py_7" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\typing\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_15" Component_="__init__.py_8" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\utils\__init__.py" SelfReg="false"/>
+    <ROW File="version.py_2" Component_="config3.py" FileName="version.py" Attributes="0" SourcePath="dist\Windows\cv2\version.py" SelfReg="false"/>
+    <ROW File="__init__.py_16" Component_="config3.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\cv2\__init__.py" SelfReg="false"/>
     <ROW File="config.json" Component_="config.json" FileName="CONFIG~1.JSO|config.json" Attributes="0" SourcePath="dist\Windows\data\config\config.json" SelfReg="false"/>
     <ROW File="models.json" Component_="config.json" FileName="MODELS~1.JSO|models.json" Attributes="0" SourcePath="dist\Windows\data\config\models.json" SelfReg="false"/>
     <ROW File="modes.json" Component_="config.json" FileName="MODES~1.JSO|modes.json" Attributes="0" SourcePath="dist\Windows\data\config\modes.json" SelfReg="false"/>
@@ -371,6 +369,7 @@
     <ROW File="highlighter.light_teal.json" Component_="highlighter.dark_amber.json" FileName="HIGHL~19.JSO|highlighter.light_teal.json" Attributes="0" SourcePath="dist\Windows\data\css\highlighter.light_teal.json" SelfReg="false"/>
     <ROW File="highlighter.light_yellow.json" Component_="highlighter.dark_amber.json" FileName="HIGHL~20.JSO|highlighter.light_yellow.json" Attributes="0" SourcePath="dist\Windows\data\css\highlighter.light_yellow.json" SelfReg="false"/>
     <ROW File="style.css" Component_="highlighter.dark_amber.json" FileName="style.css" Attributes="0" SourcePath="dist\Windows\data\css\style.css" SelfReg="false"/>
+    <ROW File="style.dark.css" Component_="highlighter.dark_amber.json" FileName="STYLED~1.CSS|style.dark.css" Attributes="0" SourcePath="dist\Windows\data\css\style.dark.css" SelfReg="false"/>
     <ROW File="style.light.css" Component_="highlighter.dark_amber.json" FileName="STYLEL~1.CSS|style.light.css" Attributes="0" SourcePath="dist\Windows\data\css\style.light.css" SelfReg="false"/>
     <ROW File="LatoBlack.ttf" Component_="LatoBlack.ttf" FileName="LATO-B~1.TTF|Lato-Black.ttf" Attributes="0" SourcePath="dist\Windows\data\fonts\Lato\Lato-Black.ttf" SelfReg="false"/>
     <ROW File="LatoBlackItalic.ttf" Component_="LatoBlack.ttf" FileName="LATO-B~2.TTF|Lato-BlackItalic.ttf" Attributes="0" SourcePath="dist\Windows\data\fonts\Lato\Lato-BlackItalic.ttf" SelfReg="false"/>
@@ -404,13 +403,13 @@
     <ROW File="plugin.self_loop.en.ini" Component_="locale.en.ini" FileName="PLUGI~17.INI|plugin.self_loop.en.ini" Attributes="0" SourcePath="dist\Windows\data\locale\plugin.self_loop.en.ini" SelfReg="false"/>
     <ROW File="plugin.self_loop.pl.ini" Component_="locale.en.ini" FileName="PLUGI~18.INI|plugin.self_loop.pl.ini" Attributes="0" SourcePath="dist\Windows\data\locale\plugin.self_loop.pl.ini" SelfReg="false"/>
     <ROW File="logo.png" Component_="logo.png" FileName="logo.png" Attributes="0" SourcePath="dist\Windows\data\logo.png" SelfReg="false"/>
-    <ROW File="INSTALLER_1" Component_="INSTALLER_1" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_1" Component_="INSTALLER_1" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_1" Component_="INSTALLER_1" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_1" Component_="INSTALLER_1" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_1" Component_="INSTALLER_1" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="top_level.txt_1" Component_="INSTALLER_1" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\top_level.txt" SelfReg="false"/>
-    <ROW File="WHEEL_1" Component_="INSTALLER_1" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="INSTALLER_9" Component_="INSTALLER_4" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_8" Component_="INSTALLER_4" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_9" Component_="INSTALLER_4" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_9" Component_="INSTALLER_4" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_8" Component_="INSTALLER_4" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="top_level.txt_5" Component_="INSTALLER_4" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\top_level.txt" SelfReg="false"/>
+    <ROW File="WHEEL_9" Component_="INSTALLER_4" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\docker-7.0.0.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="isoamsa.txt" Component_="isoamsa.txt" FileName="isoamsa.txt" Attributes="0" SourcePath="dist\Windows\docutils\parsers\rst\include\isoamsa.txt" SelfReg="false"/>
     <ROW File="isoamsb.txt" Component_="isoamsa.txt" FileName="isoamsb.txt" Attributes="0" SourcePath="dist\Windows\docutils\parsers\rst\include\isoamsb.txt" SelfReg="false"/>
     <ROW File="isoamsc.txt" Component_="isoamsa.txt" FileName="isoamsc.txt" Attributes="0" SourcePath="dist\Windows\docutils\parsers\rst\include\isoamsc.txt" SelfReg="false"/>
@@ -451,7 +450,7 @@
     <ROW File="minimal.css" Component_="math.css" FileName="minimal.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\html5_polyglot\minimal.css" SelfReg="false"/>
     <ROW File="plain.css" Component_="math.css" FileName="plain.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\html5_polyglot\plain.css" SelfReg="false"/>
     <ROW File="responsive.css" Component_="math.css" FileName="RESPON~1.CSS|responsive.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\html5_polyglot\responsive.css" SelfReg="false"/>
-    <ROW File="template.txt_1" Component_="math.css" FileName="template.txt" Attributes="0" SourcePath="dist\Windows\docutils\writers\html5_polyglot\template.txt" SelfReg="false"/>
+    <ROW File="template.txt_3" Component_="math.css" FileName="template.txt" Attributes="0" SourcePath="dist\Windows\docutils\writers\html5_polyglot\template.txt" SelfReg="false"/>
     <ROW File="tuftig.css" Component_="math.css" FileName="tuftig.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\html5_polyglot\tuftig.css" SelfReg="false"/>
     <ROW File="default.tex" Component_="default.tex" FileName="default.tex" Attributes="0" SourcePath="dist\Windows\docutils\writers\latex2e\default.tex" SelfReg="false"/>
     <ROW File="docutils.sty" Component_="default.tex" FileName="docutils.sty" Attributes="0" SourcePath="dist\Windows\docutils\writers\latex2e\docutils.sty" SelfReg="false"/>
@@ -460,46 +459,46 @@
     <ROW File="xelatex.tex" Component_="default.tex" FileName="xelatex.tex" Attributes="0" SourcePath="dist\Windows\docutils\writers\latex2e\xelatex.tex" SelfReg="false"/>
     <ROW File="styles.odt" Component_="styles.odt" FileName="styles.odt" Attributes="0" SourcePath="dist\Windows\docutils\writers\odf_odt\styles.odt" SelfReg="false"/>
     <ROW File="pep.css" Component_="pep.css" FileName="pep.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\pep_html\pep.css" SelfReg="false"/>
-    <ROW File="template.txt_2" Component_="pep.css" FileName="template.txt" Attributes="0" SourcePath="dist\Windows\docutils\writers\pep_html\template.txt" SelfReg="false"/>
+    <ROW File="template.txt_4" Component_="pep.css" FileName="template.txt" Attributes="0" SourcePath="dist\Windows\docutils\writers\pep_html\template.txt" SelfReg="false"/>
     <ROW File="framing.css" Component_="framing.css" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-black\framing.css" SelfReg="false"/>
     <ROW File="pretty.css" Component_="framing.css" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-black\pretty.css" SelfReg="false"/>
     <ROW File="__base__" Component_="framing.css" FileName="__base__" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-black\__base__" SelfReg="false"/>
-    <ROW File="framing.css_1" Component_="framing.css_1" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-white\framing.css" SelfReg="false"/>
-    <ROW File="pretty.css_1" Component_="framing.css_1" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-white\pretty.css" SelfReg="false"/>
-    <ROW File="framing.css_2" Component_="framing.css_2" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\framing.css" SelfReg="false"/>
-    <ROW File="opera.css" Component_="framing.css_2" FileName="opera.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\opera.css" SelfReg="false"/>
-    <ROW File="outline.css" Component_="framing.css_2" FileName="outline.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\outline.css" SelfReg="false"/>
-    <ROW File="pretty.css_2" Component_="framing.css_2" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\pretty.css" SelfReg="false"/>
-    <ROW File="print.css" Component_="framing.css_2" FileName="print.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\print.css" SelfReg="false"/>
-    <ROW File="s5core.css" Component_="framing.css_2" FileName="s5-core.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\s5-core.css" SelfReg="false"/>
-    <ROW File="slides.css" Component_="framing.css_2" FileName="slides.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\slides.css" SelfReg="false"/>
-    <ROW File="slides.js" Component_="framing.css_2" FileName="slides.js" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\slides.js" SelfReg="false"/>
-    <ROW File="pretty.css_3" Component_="pretty.css" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-black\pretty.css" SelfReg="false"/>
-    <ROW File="__base___1" Component_="pretty.css" FileName="__base__" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-black\__base__" SelfReg="false"/>
-    <ROW File="framing.css_3" Component_="framing.css_3" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-white\framing.css" SelfReg="false"/>
-    <ROW File="pretty.css_4" Component_="framing.css_3" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-white\pretty.css" SelfReg="false"/>
-    <ROW File="README.txt_1" Component_="README.txt" FileName="README.txt" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\README.txt" SelfReg="false"/>
-    <ROW File="pretty.css_5" Component_="pretty.css_1" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-black\pretty.css" SelfReg="false"/>
-    <ROW File="__base___2" Component_="pretty.css_1" FileName="__base__" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-black\__base__" SelfReg="false"/>
-    <ROW File="framing.css_4" Component_="framing.css_4" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-white\framing.css" SelfReg="false"/>
-    <ROW File="pretty.css_6" Component_="framing.css_4" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-white\pretty.css" SelfReg="false"/>
+    <ROW File="framing.css_5" Component_="framing.css_5" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-white\framing.css" SelfReg="false"/>
+    <ROW File="pretty.css_7" Component_="framing.css_5" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\big-white\pretty.css" SelfReg="false"/>
+    <ROW File="framing.css_6" Component_="framing.css_6" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\framing.css" SelfReg="false"/>
+    <ROW File="opera.css" Component_="framing.css_6" FileName="opera.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\opera.css" SelfReg="false"/>
+    <ROW File="outline.css" Component_="framing.css_6" FileName="outline.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\outline.css" SelfReg="false"/>
+    <ROW File="pretty.css_8" Component_="framing.css_6" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\pretty.css" SelfReg="false"/>
+    <ROW File="print.css" Component_="framing.css_6" FileName="print.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\print.css" SelfReg="false"/>
+    <ROW File="s5core.css" Component_="framing.css_6" FileName="s5-core.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\s5-core.css" SelfReg="false"/>
+    <ROW File="slides.css" Component_="framing.css_6" FileName="slides.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\slides.css" SelfReg="false"/>
+    <ROW File="slides.js" Component_="framing.css_6" FileName="slides.js" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\default\slides.js" SelfReg="false"/>
+    <ROW File="pretty.css_9" Component_="pretty.css" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-black\pretty.css" SelfReg="false"/>
+    <ROW File="__base___3" Component_="pretty.css" FileName="__base__" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-black\__base__" SelfReg="false"/>
+    <ROW File="framing.css_7" Component_="framing.css_7" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-white\framing.css" SelfReg="false"/>
+    <ROW File="pretty.css_10" Component_="framing.css_7" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\medium-white\pretty.css" SelfReg="false"/>
+    <ROW File="README.txt_2" Component_="README.txt" FileName="README.txt" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\README.txt" SelfReg="false"/>
+    <ROW File="pretty.css_11" Component_="pretty.css_2" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-black\pretty.css" SelfReg="false"/>
+    <ROW File="__base___4" Component_="pretty.css_2" FileName="__base__" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-black\__base__" SelfReg="false"/>
+    <ROW File="framing.css_8" Component_="framing.css_8" FileName="framing.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-white\framing.css" SelfReg="false"/>
+    <ROW File="pretty.css_12" Component_="framing.css_8" FileName="pretty.css" Attributes="0" SourcePath="dist\Windows\docutils\writers\s5_html\themes\small-white\pretty.css" SelfReg="false"/>
     <ROW File="freetype.dll" Component_="freetype.dll" FileName="freetype.dll" Attributes="0" SourcePath="dist\Windows\freetype.dll" SelfReg="false"/>
     <ROW File="_frozenlist.cp310win_amd64.pyd" Component_="_frozenlist.cp310win_amd64.pyd" FileName="_FROZE~1.PYD|_frozenlist.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\frozenlist\_frozenlist.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="_greenlet.cp310win_amd64.pyd" Component_="_greenlet.cp310win_amd64.pyd" FileName="_GREEN~1.PYD|_greenlet.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\greenlet\_greenlet.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="INSTALLER_2" Component_="INSTALLER_2" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_2" Component_="INSTALLER_2" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_2" Component_="INSTALLER_2" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_2" Component_="INSTALLER_2" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_2" Component_="INSTALLER_2" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="top_level.txt_2" Component_="INSTALLER_2" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\top_level.txt" SelfReg="false"/>
-    <ROW File="WHEEL_2" Component_="INSTALLER_2" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="INSTALLER_10" Component_="INSTALLER_5" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_9" Component_="INSTALLER_5" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_10" Component_="INSTALLER_5" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_10" Component_="INSTALLER_5" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_9" Component_="INSTALLER_5" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="top_level.txt_6" Component_="INSTALLER_5" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\top_level.txt" SelfReg="false"/>
+    <ROW File="WHEEL_10" Component_="INSTALLER_5" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\importlib_metadata-6.3.0.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="entry_points.txt" Component_="entry_points.txt" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\entry_points.txt" SelfReg="false"/>
-    <ROW File="INSTALLER_3" Component_="entry_points.txt" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_3" Component_="entry_points.txt" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_3" Component_="entry_points.txt" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_3" Component_="entry_points.txt" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_3" Component_="entry_points.txt" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="WHEEL_3" Component_="entry_points.txt" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="INSTALLER_11" Component_="entry_points.txt" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_10" Component_="entry_points.txt" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_11" Component_="entry_points.txt" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_11" Component_="entry_points.txt" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_10" Component_="entry_points.txt" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="WHEEL_11" Component_="entry_points.txt" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\langchain-0.0.346.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="libcrypto1_1.dll" Component_="libcrypto1_1.dll" FileName="LIBCRY~1.DLL|libcrypto-1_1.dll" Attributes="0" SourcePath="dist\Windows\libcrypto-1_1.dll" SelfReg="false"/>
     <ROW File="libffi7.dll" Component_="libffi7.dll" FileName="libffi-7.dll" Attributes="0" SourcePath="dist\Windows\libffi-7.dll" SelfReg="false"/>
     <ROW File="libjpeg9.dll" Component_="libjpeg9.dll" FileName="LIBJPE~1.DLL|libjpeg-9.dll" Attributes="0" SourcePath="dist\Windows\libjpeg-9.dll" SelfReg="false"/>
@@ -529,21 +528,21 @@
     <ROW File="_philox.cp310win_amd64.pyd" Component_="bit_generator.cp310win_amd64.pyd" FileName="_PHILO~1.PYD|_philox.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\numpy\random\_philox.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="_sfc64.cp310win_amd64.pyd" Component_="bit_generator.cp310win_amd64.pyd" FileName="_SFC64~1.PYD|_sfc64.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\numpy\random\_sfc64.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373f" Component_="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373ff76" FileName="LIBOPE~1.DLL|libopenblas64__v0.3.23-293-gc2f4bdbb-gcc_10_3_0-2bde3a66a51006b2b53eb373ff767a3f.dll" Attributes="0" SourcePath="dist\Windows\numpy.libs\libopenblas64__v0.3.23-293-gc2f4bdbb-gcc_10_3_0-2bde3a66a51006b2b53eb373ff767a3f.dll" SelfReg="false"/>
-    <ROW File="entry_points.txt_1" Component_="entry_points.txt_1" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\entry_points.txt" SelfReg="false"/>
-    <ROW File="INSTALLER_4" Component_="entry_points.txt_1" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_4" Component_="LICENSE" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\licenses\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_4" Component_="entry_points.txt_1" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_4" Component_="entry_points.txt_1" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_4" Component_="entry_points.txt_1" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="WHEEL_4" Component_="entry_points.txt_1" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="entry_points.txt_5" Component_="entry_points.txt_5" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\entry_points.txt" SelfReg="false"/>
+    <ROW File="INSTALLER_12" Component_="entry_points.txt_5" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_11" Component_="LICENSE" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\licenses\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_12" Component_="entry_points.txt_5" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_12" Component_="entry_points.txt_5" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_11" Component_="entry_points.txt_5" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="WHEEL_12" Component_="entry_points.txt_5" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\openai-1.3.7.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="portmidi.dll" Component_="portmidi.dll" FileName="portmidi.dll" Attributes="0" SourcePath="dist\Windows\portmidi.dll" SelfReg="false"/>
     <ROW File="_portaudio.cp310win_amd64.pyd" Component_="_portaudio.cp310win_amd64.pyd" FileName="_PORTA~1.PYD|_portaudio.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pyaudio\_portaudio.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="INSTALLER_5" Component_="INSTALLER_3" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_5" Component_="LICENSE_1" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\licenses\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_5" Component_="INSTALLER_3" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_5" Component_="INSTALLER_3" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_5" Component_="INSTALLER_3" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="WHEEL_5" Component_="INSTALLER_3" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="INSTALLER_13" Component_="INSTALLER_6" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_12" Component_="LICENSE_2" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\licenses\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_13" Component_="INSTALLER_6" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_13" Component_="INSTALLER_6" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_12" Component_="INSTALLER_6" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="WHEEL_13" Component_="INSTALLER_6" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\pydantic-2.5.2.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="_pydantic_core.cp310win_amd64.pyd" Component_="_pydantic_core.cp310win_amd64.pyd" FileName="_PYDAN~1.PYD|_pydantic_core.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pydantic_core\_pydantic_core.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="pyexpat.pyd" Component_="base_library.zip" FileName="pyexpat.pyd" Attributes="0" SourcePath="dist\Windows\pyexpat.pyd" SelfReg="false"/>
     <ROW File="base.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="BASECP~1.PYD|base.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\base.cp310-win_amd64.pyd" SelfReg="false"/>
@@ -559,8 +558,6 @@
     <ROW File="imageext.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="IMAGEE~1.PYD|imageext.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\imageext.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="joystick.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="JOYSTI~1.PYD|joystick.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\joystick.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="key.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="KEYCP3~1.PYD|key.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\key.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="libogg0.dll_1" Component_="libogg0.dll_1" FileName="libogg-0.dll" Attributes="0" SourcePath="dist\Windows\pygame\libogg-0.dll" SelfReg="false"/>
-    <ROW File="libopus0.dll_1" Component_="libopus0.dll_1" FileName="LIBOPU~1.DLL|libopus-0.dll" Attributes="0" SourcePath="dist\Windows\pygame\libopus-0.dll" SelfReg="false"/>
     <ROW File="mask.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="MASKCP~1.PYD|mask.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\mask.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="math.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="MATHCP~1.PYD|math.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\math.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="mixer.cp310win_amd64.pyd" Component_="base.cp310win_amd64.pyd" FileName="MIXERC~1.PYD|mixer.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\pygame\mixer.cp310-win_amd64.pyd" SelfReg="false"/>
@@ -742,7 +739,7 @@
     <ROW File="generate.py" Component_="generate.py" FileName="generate.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\generate.py" SelfReg="false"/>
     <ROW File="logo.svg" Component_="logo.svg" FileName="logo.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\logo.svg" SelfReg="false"/>
     <ROW File="logo_frame.svg" Component_="logo.svg" FileName="LOGO_F~1.SVG|logo_frame.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\logo_frame.svg" SelfReg="false"/>
-    <ROW File="__init__.py_7" Component_="logo.svg" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_17" Component_="logo.svg" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\__init__.py" SelfReg="false"/>
     <ROW File="__init__.cpython310.pyc" Component_="__init__.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\logo\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
     <ROW File="base.svg" Component_="base.svg" FileName="base.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\base.svg" SelfReg="false"/>
     <ROW File="branchclosed.svg" Component_="base.svg" FileName="BRANCH~1.SVG|branch-closed.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\branch-closed.svg" SelfReg="false"/>
@@ -781,11 +778,11 @@
     <ROW File="uparrow.svg" Component_="base.svg" FileName="uparrow.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\uparrow.svg" SelfReg="false"/>
     <ROW File="uparrow2.svg" Component_="base.svg" FileName="uparrow2.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\uparrow2.svg" SelfReg="false"/>
     <ROW File="vline.svg" Component_="base.svg" FileName="vline.svg" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\vline.svg" SelfReg="false"/>
-    <ROW File="__init__.py_8" Component_="base.svg" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\__init__.py" SelfReg="false"/>
-    <ROW File="__init__.cpython310.pyc_1" Component_="__init__.cpython310.pyc_1" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
-    <ROW File="__init__.py_9" Component_="generate.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_18" Component_="base.svg" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.cpython310.pyc_3" Component_="__init__.cpython310.pyc_2" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\source\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
+    <ROW File="__init__.py_19" Component_="generate.py" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__init__.py" SelfReg="false"/>
     <ROW File="generate.cpython310.pyc" Component_="generate.cpython310.pyc" FileName="GENERA~1.PYC|generate.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__pycache__\generate.cpython-310.pyc" SelfReg="false"/>
-    <ROW File="__init__.cpython310.pyc_2" Component_="generate.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
+    <ROW File="__init__.cpython310.pyc_4" Component_="generate.cpython310.pyc" FileName="__INIT~1.PYC|__init__.cpython-310.pyc" Attributes="0" SourcePath="dist\Windows\qt_material\resources\__pycache__\__init__.cpython-310.pyc" SelfReg="false"/>
     <ROW File="dark_amber.xml" Component_="dark_amber.xml" FileName="DARK_A~1.XML|dark_amber.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_amber.xml" SelfReg="false"/>
     <ROW File="dark_blue.xml" Component_="dark_amber.xml" FileName="DARK_B~1.XML|dark_blue.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_blue.xml" SelfReg="false"/>
     <ROW File="dark_cyan.xml" Component_="dark_amber.xml" FileName="DARK_C~1.XML|dark_cyan.xml" Attributes="0" SourcePath="dist\Windows\qt_material\themes\dark_cyan.xml" SelfReg="false"/>
@@ -820,28 +817,28 @@
     <ROW File="SDL2_mixer.dll" Component_="SDL2_mixer.dll" FileName="SDL2_M~1.DLL|SDL2_mixer.dll" Attributes="0" SourcePath="dist\Windows\SDL2_mixer.dll" SelfReg="false"/>
     <ROW File="SDL2_ttf.dll" Component_="SDL2_ttf.dll" FileName="SDL2_ttf.dll" Attributes="0" SourcePath="dist\Windows\SDL2_ttf.dll" SelfReg="false"/>
     <ROW File="select.pyd" Component_="base_library.zip" FileName="select.pyd" Attributes="0" SourcePath="dist\Windows\select.pyd" SelfReg="false"/>
-    <ROW File="entry_points.txt_2" Component_="entry_points.txt_2" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\entry_points.txt" SelfReg="false"/>
-    <ROW File="INSTALLER_6" Component_="entry_points.txt_2" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_6" Component_="entry_points.txt_2" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_6" Component_="entry_points.txt_2" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_6" Component_="entry_points.txt_2" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_6" Component_="entry_points.txt_2" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="top_level.txt_3" Component_="entry_points.txt_2" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\top_level.txt" SelfReg="false"/>
-    <ROW File="WHEEL_6" Component_="entry_points.txt_2" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="entry_points.txt_6" Component_="entry_points.txt_6" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\entry_points.txt" SelfReg="false"/>
+    <ROW File="INSTALLER_14" Component_="entry_points.txt_6" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_13" Component_="entry_points.txt_6" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_14" Component_="entry_points.txt_6" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_14" Component_="entry_points.txt_6" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_13" Component_="entry_points.txt_6" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="top_level.txt_7" Component_="entry_points.txt_6" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\top_level.txt" SelfReg="false"/>
+    <ROW File="WHEEL_14" Component_="entry_points.txt_6" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\setuptools-65.5.0.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="MSVCP140.dll" Component_="MSVCP140.dll" FileName="MSVCP140.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\MSVCP140.dll" SelfReg="false"/>
     <ROW File="MSVCP140_1.dll" Component_="MSVCP140_1.dll" FileName="MSVCP1~1.DLL|MSVCP140_1.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\MSVCP140_1.dll" SelfReg="false"/>
     <ROW File="MSVCP140_2.dll" Component_="MSVCP140_2.dll" FileName="MSVCP1~2.DLL|MSVCP140_2.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\MSVCP140_2.dll" SelfReg="false"/>
     <ROW File="Shiboken.pyd" Component_="Shiboken.pyd" FileName="Shiboken.pyd" Attributes="0" SourcePath="dist\Windows\shiboken6\Shiboken.pyd" SelfReg="false"/>
     <ROW File="shiboken6.abi3.dll" Component_="shiboken6.abi3.dll" FileName="SHIBOK~1.DLL|shiboken6.abi3.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\shiboken6.abi3.dll" SelfReg="false"/>
     <ROW File="VCRUNTIME140_1.dll" Component_="VCRUNTIME140_1.dll" FileName="VCRUNT~1.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="dist\Windows\shiboken6\VCRUNTIME140_1.dll" SelfReg="false"/>
-    <ROW File="entry_points.txt_3" Component_="entry_points.txt_3" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\entry_points.txt" SelfReg="false"/>
-    <ROW File="INSTALLER_7" Component_="entry_points.txt_3" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE_7" Component_="entry_points.txt_3" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\LICENSE" SelfReg="false"/>
-    <ROW File="METADATA_7" Component_="entry_points.txt_3" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_7" Component_="entry_points.txt_3" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="REQUESTED_7" Component_="entry_points.txt_3" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\REQUESTED" SelfReg="false"/>
-    <ROW File="top_level.txt_4" Component_="entry_points.txt_3" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\top_level.txt" SelfReg="false"/>
-    <ROW File="WHEEL_7" Component_="entry_points.txt_3" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="entry_points.txt_7" Component_="entry_points.txt_7" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\entry_points.txt" SelfReg="false"/>
+    <ROW File="INSTALLER_15" Component_="entry_points.txt_7" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE_14" Component_="entry_points.txt_7" FileName="LICENSE" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\LICENSE" SelfReg="false"/>
+    <ROW File="METADATA_15" Component_="entry_points.txt_7" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_15" Component_="entry_points.txt_7" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="REQUESTED_14" Component_="entry_points.txt_7" FileName="REQUES~1|REQUESTED" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\REQUESTED" SelfReg="false"/>
+    <ROW File="top_level.txt_8" Component_="entry_points.txt_7" FileName="TOP_LE~1.TXT|top_level.txt" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\top_level.txt" SelfReg="false"/>
+    <ROW File="WHEEL_15" Component_="entry_points.txt_7" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\show_in_file_manager-1.1.4.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="flaclinuxx86" Component_="flaclinuxx86" FileName="FLAC-L~1|flac-linux-x86" Attributes="0" SourcePath="dist\Windows\speech_recognition\flac-linux-x86" SelfReg="false"/>
     <ROW File="flaclinuxx86_64" Component_="flaclinuxx86" FileName="FLAC-L~2|flac-linux-x86_64" Attributes="0" SourcePath="dist\Windows\speech_recognition\flac-linux-x86_64" SelfReg="false"/>
     <ROW File="flacmac" Component_="flaclinuxx86" FileName="flac-mac" Attributes="0" SourcePath="dist\Windows\speech_recognition\flac-mac" SelfReg="false"/>
@@ -866,13 +863,13 @@
     <ROW File="_tiktoken.cp310win_amd64.pyd" Component_="_tiktoken.cp310win_amd64.pyd" FileName="_TIKTO~1.PYD|_tiktoken.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\tiktoken\_tiktoken.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="unicodedata.pyd" Component_="base_library.zip" FileName="UNICOD~1.PYD|unicodedata.pyd" Attributes="0" SourcePath="dist\Windows\unicodedata.pyd" SelfReg="false"/>
     <ROW File="VCRUNTIME140.dll" Component_="VCRUNTIME140.dll" FileName="VCRUNT~1.DLL|VCRUNTIME140.dll" Attributes="0" SourcePath="dist\Windows\VCRUNTIME140.dll" SelfReg="false"/>
-    <ROW File="VCRUNTIME140_1.dll_1" Component_="VCRUNTIME140_1.dll_1" FileName="VCRUNT~2.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="dist\Windows\VCRUNTIME140_1.dll" SelfReg="false"/>
-    <ROW File="entry_points.txt_4" Component_="entry_points.txt_4" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\entry_points.txt" SelfReg="false"/>
-    <ROW File="INSTALLER_8" Component_="entry_points.txt_4" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\INSTALLER" SelfReg="false"/>
-    <ROW File="LICENSE.txt_1" Component_="entry_points.txt_4" FileName="LICENSE.txt" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\LICENSE.txt" SelfReg="false"/>
-    <ROW File="METADATA_8" Component_="entry_points.txt_4" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\METADATA" SelfReg="false"/>
-    <ROW File="RECORD_8" Component_="entry_points.txt_4" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\RECORD" SelfReg="false"/>
-    <ROW File="WHEEL_8" Component_="entry_points.txt_4" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\WHEEL" SelfReg="false"/>
+    <ROW File="VCRUNTIME140_1.dll_2" Component_="VCRUNTIME140_1.dll_2" FileName="VCRUNT~2.DLL|VCRUNTIME140_1.dll" Attributes="0" SourcePath="dist\Windows\VCRUNTIME140_1.dll" SelfReg="false"/>
+    <ROW File="entry_points.txt_8" Component_="entry_points.txt_8" FileName="ENTRY_~1.TXT|entry_points.txt" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\entry_points.txt" SelfReg="false"/>
+    <ROW File="INSTALLER_16" Component_="entry_points.txt_8" FileName="INSTAL~1|INSTALLER" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\INSTALLER" SelfReg="false"/>
+    <ROW File="LICENSE.txt_2" Component_="entry_points.txt_8" FileName="LICENSE.txt" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\LICENSE.txt" SelfReg="false"/>
+    <ROW File="METADATA_16" Component_="entry_points.txt_8" FileName="METADATA" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\METADATA" SelfReg="false"/>
+    <ROW File="RECORD_16" Component_="entry_points.txt_8" FileName="RECORD" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\RECORD" SelfReg="false"/>
+    <ROW File="WHEEL_16" Component_="entry_points.txt_8" FileName="WHEEL" Attributes="0" SourcePath="dist\Windows\wheel-0.42.0.dist-info\WHEEL" SelfReg="false"/>
     <ROW File="win32api.pyd" Component_="win32api.pyd" FileName="win32api.pyd" Attributes="0" SourcePath="dist\Windows\win32\win32api.pyd" SelfReg="false"/>
     <ROW File="win32event.pyd" Component_="win32api.pyd" FileName="WIN32E~1.PYD|win32event.pyd" Attributes="0" SourcePath="dist\Windows\win32\win32event.pyd" SelfReg="false"/>
     <ROW File="win32file.pyd" Component_="win32api.pyd" FileName="WIN32F~1.PYD|win32file.pyd" Attributes="0" SourcePath="dist\Windows\win32\win32file.pyd" SelfReg="false"/>
@@ -883,7 +880,7 @@
     <ROW File="shell.pyd" Component_="shell.pyd" FileName="shell.pyd" Attributes="0" SourcePath="dist\Windows\win32com\shell\shell.pyd" SelfReg="false"/>
     <ROW File="_yaml.cp310win_amd64.pyd" Component_="_yaml.cp310win_amd64.pyd" FileName="_YAMLC~1.PYD|_yaml.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\yaml\_yaml.cp310-win_amd64.pyd" SelfReg="false"/>
     <ROW File="_quoting_c.cp310win_amd64.pyd" Component_="_quoting_c.cp310win_amd64.pyd" FileName="_QUOTI~1.PYD|_quoting_c.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\yarl\_quoting_c.cp310-win_amd64.pyd" SelfReg="false"/>
-    <ROW File="zlib1.dll_1" Component_="zlib1.dll_1" FileName="zlib1.dll" Attributes="0" SourcePath="dist\Windows\zlib1.dll" SelfReg="false"/>
+    <ROW File="zlib1.dll_2" Component_="zlib1.dll_2" FileName="zlib1.dll" Attributes="0" SourcePath="dist\Windows\zlib1.dll" SelfReg="false"/>
     <ROW File="_asyncio.pyd" Component_="base_library.zip" FileName="_asyncio.pyd" Attributes="0" SourcePath="dist\Windows\_asyncio.pyd" SelfReg="false"/>
     <ROW File="_bz2.pyd" Component_="base_library.zip" FileName="_bz2.pyd" Attributes="0" SourcePath="dist\Windows\_bz2.pyd" SelfReg="false"/>
     <ROW File="_cffi_backend.cp310win_amd64.pyd" Component_="base_library.zip" FileName="_CFFI_~1.PYD|_cffi_backend.cp310-win_amd64.pyd" Attributes="0" SourcePath="dist\Windows\_cffi_backend.cp310-win_amd64.pyd" SelfReg="false"/>
@@ -899,13 +896,13 @@
     <ROW File="_sqlite3.pyd" Component_="base_library.zip" FileName="_sqlite3.pyd" Attributes="0" SourcePath="dist\Windows\_sqlite3.pyd" SelfReg="false"/>
     <ROW File="_ssl.pyd" Component_="base_library.zip" FileName="_ssl.pyd" Attributes="0" SourcePath="dist\Windows\_ssl.pyd" SelfReg="false"/>
     <ROW File="_uuid.pyd" Component_="base_library.zip" FileName="_uuid.pyd" Attributes="0" SourcePath="dist\Windows\_uuid.pyd" SelfReg="false"/>
-    <ROW File="__init__.py_10" Component_="base_library.zip" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\__init__.py" SelfReg="false"/>
+    <ROW File="__init__.py_20" Component_="base_library.zip" FileName="__init__.py" Attributes="0" SourcePath="dist\Windows\__init__.py" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder=".." PackageFileName="pygpt-2.0.62" Languages="en" InstallationType="4" ExtUI="true" UseLargeSchema="true"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" PackageFolder=".." PackageFileName="pygpt-2.0.63" Languages="en" InstallationType="4" ExtUI="true" UseLargeSchema="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
     <ROW Path="&lt;AI_DICTS&gt;ui.ail"/>
@@ -998,19 +995,19 @@
     <ROW Feature_="MainFeature" Component_="INSTALLER"/>
     <ROW Feature_="MainFeature" Component_="config3.py"/>
     <ROW Feature_="MainFeature" Component_="__init__.py"/>
-    <ROW Feature_="MainFeature" Component_="__init__.py_1"/>
-    <ROW Feature_="MainFeature" Component_="__init__.py_2"/>
+    <ROW Feature_="MainFeature" Component_="__init__.py_5"/>
+    <ROW Feature_="MainFeature" Component_="__init__.py_6"/>
     <ROW Feature_="MainFeature" Component_="version.py"/>
     <ROW Feature_="MainFeature" Component_="opencv_videoio_ffmpeg481_64.dll"/>
-    <ROW Feature_="MainFeature" Component_="__init__.py_3"/>
-    <ROW Feature_="MainFeature" Component_="__init__.py_4"/>
+    <ROW Feature_="MainFeature" Component_="__init__.py_7"/>
+    <ROW Feature_="MainFeature" Component_="__init__.py_8"/>
     <ROW Feature_="MainFeature" Component_="config.json"/>
     <ROW Feature_="MainFeature" Component_="batman_and_joker.json"/>
     <ROW Feature_="MainFeature" Component_="highlighter.dark_amber.json"/>
     <ROW Feature_="MainFeature" Component_="LatoBlack.ttf"/>
     <ROW Feature_="MainFeature" Component_="locale.en.ini"/>
     <ROW Feature_="MainFeature" Component_="logo.png"/>
-    <ROW Feature_="MainFeature" Component_="INSTALLER_1"/>
+    <ROW Feature_="MainFeature" Component_="INSTALLER_4"/>
     <ROW Feature_="MainFeature" Component_="isoamsa.txt"/>
     <ROW Feature_="MainFeature" Component_="html4css1.css"/>
     <ROW Feature_="MainFeature" Component_="math.css"/>
@@ -1018,17 +1015,17 @@
     <ROW Feature_="MainFeature" Component_="styles.odt"/>
     <ROW Feature_="MainFeature" Component_="pep.css"/>
     <ROW Feature_="MainFeature" Component_="framing.css"/>
-    <ROW Feature_="MainFeature" Component_="framing.css_1"/>
-    <ROW Feature_="MainFeature" Component_="framing.css_2"/>
+    <ROW Feature_="MainFeature" Component_="framing.css_5"/>
+    <ROW Feature_="MainFeature" Component_="framing.css_6"/>
     <ROW Feature_="MainFeature" Component_="pretty.css"/>
-    <ROW Feature_="MainFeature" Component_="framing.css_3"/>
+    <ROW Feature_="MainFeature" Component_="framing.css_7"/>
     <ROW Feature_="MainFeature" Component_="README.txt"/>
-    <ROW Feature_="MainFeature" Component_="pretty.css_1"/>
-    <ROW Feature_="MainFeature" Component_="framing.css_4"/>
+    <ROW Feature_="MainFeature" Component_="pretty.css_2"/>
+    <ROW Feature_="MainFeature" Component_="framing.css_8"/>
     <ROW Feature_="MainFeature" Component_="freetype.dll"/>
     <ROW Feature_="MainFeature" Component_="_frozenlist.cp310win_amd64.pyd"/>
     <ROW Feature_="MainFeature" Component_="_greenlet.cp310win_amd64.pyd"/>
-    <ROW Feature_="MainFeature" Component_="INSTALLER_2"/>
+    <ROW Feature_="MainFeature" Component_="INSTALLER_5"/>
     <ROW Feature_="MainFeature" Component_="entry_points.txt"/>
     <ROW Feature_="MainFeature" Component_="libcrypto1_1.dll"/>
     <ROW Feature_="MainFeature" Component_="libffi7.dll"/>
@@ -1050,16 +1047,14 @@
     <ROW Feature_="MainFeature" Component_="_umath_linalg.cp310win_amd64.pyd"/>
     <ROW Feature_="MainFeature" Component_="bit_generator.cp310win_amd64.pyd"/>
     <ROW Feature_="MainFeature" Component_="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373ff76"/>
-    <ROW Feature_="MainFeature" Component_="entry_points.txt_1"/>
+    <ROW Feature_="MainFeature" Component_="entry_points.txt_5"/>
     <ROW Feature_="MainFeature" Component_="LICENSE"/>
     <ROW Feature_="MainFeature" Component_="portmidi.dll"/>
     <ROW Feature_="MainFeature" Component_="_portaudio.cp310win_amd64.pyd"/>
-    <ROW Feature_="MainFeature" Component_="INSTALLER_3"/>
-    <ROW Feature_="MainFeature" Component_="LICENSE_1"/>
+    <ROW Feature_="MainFeature" Component_="INSTALLER_6"/>
+    <ROW Feature_="MainFeature" Component_="LICENSE_2"/>
     <ROW Feature_="MainFeature" Component_="_pydantic_core.cp310win_amd64.pyd"/>
     <ROW Feature_="MainFeature" Component_="base.cp310win_amd64.pyd"/>
-    <ROW Feature_="MainFeature" Component_="libogg0.dll_1"/>
-    <ROW Feature_="MainFeature" Component_="libopus0.dll_1"/>
     <ROW Feature_="MainFeature" Component_="SDL2.dll"/>
     <ROW Feature_="MainFeature" Component_="zlib1.dll"/>
     <ROW Feature_="MainFeature" Component_="pygpt.exe"/>
@@ -1114,7 +1109,7 @@
     <ROW Feature_="MainFeature" Component_="logo.svg"/>
     <ROW Feature_="MainFeature" Component_="__init__.cpython310.pyc"/>
     <ROW Feature_="MainFeature" Component_="base.svg"/>
-    <ROW Feature_="MainFeature" Component_="__init__.cpython310.pyc_1"/>
+    <ROW Feature_="MainFeature" Component_="__init__.cpython310.pyc_2"/>
     <ROW Feature_="MainFeature" Component_="generate.cpython310.pyc"/>
     <ROW Feature_="MainFeature" Component_="dark_amber.xml"/>
     <ROW Feature_="MainFeature" Component_="_regex.cp310win_amd64.pyd"/>
@@ -1122,14 +1117,14 @@
     <ROW Feature_="MainFeature" Component_="SDL2_image.dll"/>
     <ROW Feature_="MainFeature" Component_="SDL2_mixer.dll"/>
     <ROW Feature_="MainFeature" Component_="SDL2_ttf.dll"/>
-    <ROW Feature_="MainFeature" Component_="entry_points.txt_2"/>
+    <ROW Feature_="MainFeature" Component_="entry_points.txt_6"/>
     <ROW Feature_="MainFeature" Component_="MSVCP140.dll"/>
     <ROW Feature_="MainFeature" Component_="MSVCP140_1.dll"/>
     <ROW Feature_="MainFeature" Component_="MSVCP140_2.dll"/>
     <ROW Feature_="MainFeature" Component_="Shiboken.pyd"/>
     <ROW Feature_="MainFeature" Component_="shiboken6.abi3.dll"/>
     <ROW Feature_="MainFeature" Component_="VCRUNTIME140_1.dll"/>
-    <ROW Feature_="MainFeature" Component_="entry_points.txt_3"/>
+    <ROW Feature_="MainFeature" Component_="entry_points.txt_7"/>
     <ROW Feature_="MainFeature" Component_="flaclinuxx86"/>
     <ROW Feature_="MainFeature" Component_="flacwin32.exe"/>
     <ROW Feature_="MainFeature" Component_="feat.params"/>
@@ -1138,13 +1133,13 @@
     <ROW Feature_="MainFeature" Component_="sqlite3.dll"/>
     <ROW Feature_="MainFeature" Component_="_tiktoken.cp310win_amd64.pyd"/>
     <ROW Feature_="MainFeature" Component_="VCRUNTIME140.dll"/>
-    <ROW Feature_="MainFeature" Component_="VCRUNTIME140_1.dll_1"/>
-    <ROW Feature_="MainFeature" Component_="entry_points.txt_4"/>
+    <ROW Feature_="MainFeature" Component_="VCRUNTIME140_1.dll_2"/>
+    <ROW Feature_="MainFeature" Component_="entry_points.txt_8"/>
     <ROW Feature_="MainFeature" Component_="win32api.pyd"/>
     <ROW Feature_="MainFeature" Component_="shell.pyd"/>
     <ROW Feature_="MainFeature" Component_="_yaml.cp310win_amd64.pyd"/>
     <ROW Feature_="MainFeature" Component_="_quoting_c.cp310win_amd64.pyd"/>
-    <ROW Feature_="MainFeature" Component_="zlib1.dll_1"/>
+    <ROW Feature_="MainFeature" Component_="zlib1.dll_2"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="icon.exe" SourcePath="src\pygpt_net\data\icon.ico" Index="0"/>

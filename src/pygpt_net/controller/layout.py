@@ -108,6 +108,7 @@ class Layout:
     def scroll_save(self):
         """Save scroll state"""
         data = {}
+        data['output'] = self.window.ui.nodes['output'].verticalScrollBar().value()
         # notepads
         for id in self.window.ui.notepad:
             scroll_id = "notepad." + str(id)
@@ -129,6 +130,12 @@ class Layout:
                     except Exception as e:
                         print("Error while restoring scroll state: " + str(e))
                         self.window.core.debug.log(e)
+        if 'output' in data:
+            try:
+                self.window.ui.nodes['output'].verticalScrollBar().setValue(data['output'])
+            except Exception as e:
+                print("Error while restoring scroll state: " + str(e))
+                self.window.core.debug.log(e)
 
     def state_restore(self):
         """Restore window state"""

@@ -67,3 +67,8 @@ QMenu::indicator:checked {{
 QMenu::indicator:unchecked {{ 
   background-color: {QTMATERIAL_SECONDARYCOLOR}; 
 }}
+
+QMainWindow::separator:horizontal,
+QSplitter::handle:vertical {{
+  width: 5px;
+}}

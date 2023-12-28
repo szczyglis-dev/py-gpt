@@ -118,7 +118,6 @@ class Output:
         # tokens info
         self.window.ui.nodes['prompt.context'] = QLabel("")
         self.window.ui.nodes['prompt.context'].setAlignment(Qt.AlignRight)
-        self.window.ui.nodes['prompt.context'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
         self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
 
         # plugin audio output addon
