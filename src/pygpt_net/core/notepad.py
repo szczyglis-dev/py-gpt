@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 17:00:00                  #
 # ================================================== #
 
 import datetime
 
 from pygpt_net.item.notepad import NotepadItem
-from pygpt_net.provider.notepad.json_file import JsonFileProvider
 from pygpt_net.provider.notepad.db_sqlite import DbSqliteProvider
 
 
@@ -24,38 +23,16 @@ class Notepad:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "db_sqlite"
+        self.provider = DbSqliteProvider(window)
         self.items = {}
-
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-        self.add_provider(DbSqliteProvider())  # sqlite database provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
 
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def get_by_id(self, id):
         """
@@ -97,15 +74,11 @@ class Notepad:
         :return: True if success
         :rtype: bool
         """
-        if self.provider in self.providers:
-            try:
-                id = self.providers[self.provider].create(notepad)
-                notepad.id = id
-                self.items[id] = notepad
-                self.save(id)
-                return True
-            except Exception as e:
-                self.window.core.debug.log(e)
+        id = self.provider.create(notepad)
+        notepad.id = id
+        self.items[id] = notepad
+        self.save(id)
+        return True
 
     def update(self, notepad):
         """
@@ -129,19 +102,11 @@ class Notepad:
 
         :param id: notepad id
         """
-        if self.provider in self.providers:
-            try:
-                self.items[id] = self.providers[self.provider].load(id)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.items[id] = self.provider.load(id)
 
     def load_all(self):
         """Load all notepads"""
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load_all()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.items = self.provider.load_all()
 
     def save(self, id):
         """
@@ -154,20 +119,9 @@ class Notepad:
         if id not in self.items:
             return False
 
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.items[id])
-                return True
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.save(self.items[id])
         return False
 
     def save_all(self):
-        """
-        Save all notepads
-        """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save_all(self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        """Save all notepads"""
+        self.provider.save_all(self.items)
