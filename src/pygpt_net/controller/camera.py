@@ -36,16 +36,12 @@ class Camera:
         self.auto = False
 
     def setup(self):
-        """
-        Setup camera
-        """
+        """Setup camera"""
         if self.is_capture and not self.thread_started:
             self.start()
 
     def setup_ui(self):
-        """
-        Update layout checkboxes
-        """
+        """Update layout checkboxes"""
         if self.window.core.config.get('vision.capture.enabled'):
             self.is_capture = True
             self.window.ui.nodes['vision.capture.enable'].setChecked(True)
@@ -67,9 +63,7 @@ class Camera:
             self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
     def start(self):
-        """
-        Start camera thread
-        """
+        """Start camera thread"""
         if self.thread_started:
             return
 
@@ -85,9 +79,7 @@ class Camera:
         self.thread_started = True
 
     def stop_capture(self):
-        """
-        Stop camera capture thread
-        """
+        """Stop camera capture thread"""
         if not self.thread_started:
             return
 
@@ -95,17 +87,13 @@ class Camera:
 
     @Slot()
     def handle_stop(self):
-        """
-        On capture stopped signal
-        """
+        """On capture stopped signal"""
         self.thread_started = False
         self.thread = None
         self.hide_camera(False)
 
     def update(self):
-        """
-        Update camera frame
-        """
+        """Update camera frame"""
         if self.thread is None \
                 or not self.thread_started \
                 or self.frame is None \
@@ -122,9 +110,7 @@ class Camera:
         self.window.ui.nodes['video.preview'].video.setPixmap(scaled_pixmap)
 
     def manual_capture(self):
-        """
-        Capture frame via click on video output
-        """
+        """Capture frame via click on video output"""
         if not self.is_auto():
             if not self.capture_frame(True):
                 self.window.statusChanged.emit(trans("vision.capture.manual.captured.error"))
@@ -179,9 +165,7 @@ class Camera:
         return False
 
     def show_camera(self):
-        """
-        Show camera
-        """
+        """Show camera"""
         if self.is_capture:
             self.window.ui.nodes['video.preview'].setVisible(True)
 
@@ -197,9 +181,7 @@ class Camera:
             self.stop_capture()
 
     def enable_capture(self):
-        """
-        Enable capture
-        """
+        """Enable capture"""
         if self.window.core.config.get('mode') != 'vision':
             return
 
@@ -210,9 +192,7 @@ class Camera:
             self.start()
 
     def disable_capture(self):
-        """
-        Disable capture
-        """
+        """Disable capture"""
         if self.window.core.config.get('mode') != 'vision':
             return
 
@@ -236,9 +216,7 @@ class Camera:
         self.window.set_status('')
 
     def enable_auto(self):
-        """
-        Enable capture
-        """
+        """Enable capture"""
         if self.window.core.config.data['mode'] != 'vision':
             return
 
@@ -251,9 +229,7 @@ class Camera:
             self.window.ui.nodes['vision.capture.enable'].setChecked(True)
 
     def disable_auto(self):
-        """
-        Disable capture
-        """
+        """Disable capture"""
         if self.window.core.config.get('mode') != 'vision':
             return
 
@@ -293,7 +269,5 @@ class Camera:
         return self.auto
 
     def blank_screen(self):
-        """
-        Make and set blank screen
-        """
+        """Make and set blank screen"""
         self.window.ui.nodes['video.preview'].video.setPixmap(QPixmap.fromImage(QImage()))

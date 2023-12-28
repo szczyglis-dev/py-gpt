@@ -84,9 +84,7 @@ class Audio:
         return False
 
     def update_listeners(self):
-        """
-        Update listeners
-        """
+        """Update listeners"""
         is_output = False
         if self.window.controller.plugins.is_enabled('audio_azure'):
             is_output = True

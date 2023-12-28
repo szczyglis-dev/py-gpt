@@ -149,7 +149,6 @@ class Editor:
         :param value: input option value
         :param section: settings section
         """
-
         # dialog: preset
         if id.startswith('preset.'):
             self.window.controller.presets.editor.config_change(id, value, section)
@@ -198,7 +197,6 @@ class Editor:
         :param type: option type (slider, input, None)
         :param section: option section (settings, preset.editor, None)
         """
-
         # dialog: preset
         if id.startswith('preset.'):
             self.window.controller.presets.editor.config_slider(id, value, type, section)

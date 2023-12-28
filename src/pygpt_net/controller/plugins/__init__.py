@@ -28,18 +28,14 @@ class Plugins:
         self.enabled = {}
 
     def setup(self):
-        """
-        Set up plugins
-        """
+        """Set up plugins"""
         self.setup_menu()
         self.setup_ui()
         self.load_config()
         self.update()
 
     def setup_ui(self):
-        """
-        Set up plugins ui
-        """
+        """Set up plugins UI"""
         for id in self.window.core.plugins.plugins:
             plugin = self.window.core.plugins.plugins[id]
             try:
@@ -83,9 +79,7 @@ class Plugins:
         self.handle_enabled_types()
 
     def destroy(self):
-        """
-        Destroy plugins workers
-        """
+        """Destroy plugins workers"""
         for id in self.window.core.plugins.plugins:
             plugin = self.window.core.plugins.plugins[id]
             try:
@@ -236,9 +230,7 @@ class Plugins:
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
 
     def load_config(self):
-        """
-        Load plugins config
-        """
+        """Load plugins config"""
         for id in self.window.core.config.get('plugins_enabled'):
             if self.window.core.config.data['plugins_enabled'][id]:
                 self.enable(id)
@@ -258,9 +250,7 @@ class Plugins:
         return enabled
 
     def handle_enabled_types(self):
-        """
-        Handle plugin type
-        """
+        """Handle plugin type"""
         for type in self.window.core.plugins.allowed_types:
             if type == 'audio.input':
                 if self.is_type_enabled(type):

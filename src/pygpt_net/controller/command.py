@@ -92,6 +92,7 @@ class Command:
     def handle_debug(self, data):
         """
         Handle thread debug log
+
         :param data
         """
         self.window.controller.debug.log(str(data))
@@ -99,6 +100,7 @@ class Command:
     def handle_finished(self, event):
         """
         Handle thread command execution finish
+        
         :param event: event object
         """
         ctx = event.ctx
