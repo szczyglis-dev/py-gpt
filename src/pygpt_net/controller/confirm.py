@@ -79,6 +79,10 @@ class Confirm:
     def accept_rename(self, type, id, name):
         """
         Update name of object
+
+        :param type: dialog type
+        :param id: dialog object id
+        :param name: new name
         """
         if type == 'ctx':
             self.window.controller.ctx.update_name(id, name)

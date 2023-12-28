@@ -100,7 +100,7 @@ class Command:
     def handle_finished(self, event):
         """
         Handle thread command execution finish
-        
+
         :param event: event object
         """
         ctx = event.ctx
