@@ -130,6 +130,7 @@ class Input:
         self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
         self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.ui.nodes['input.counter'] = QLabel("")
+        self.window.ui.nodes['input.counter'].setToolTip("TOKENS: input prompt + system prompt + ctx + extra = sum / max")
 
         # plugin audio input addon
         self.window.ui.plugin_addon['audio.input'] = AudioInput(self.window)

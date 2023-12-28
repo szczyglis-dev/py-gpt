@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
-
+from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
@@ -81,18 +81,22 @@ class CtxList:
         i = 0
         for n in data:
             self.window.ui.models[id].insertRow(i)
-            dt = self.convert_date(data[n].date)
+            dt = self.convert_date(data[n].updated)
+            date_time_str = datetime.fromtimestamp(data[n].updated).strftime("%Y-%m-%d %H:%M:%S")
             name = data[n].name + ' (' + dt + ')'
+            index = self.window.ui.models[id].index(i, 0)
+            tooltip_text = "{}: {}".format(date_time_str, data[n].name)
+            self.window.ui.models[id].setData(index, tooltip_text, QtCore.Qt.ToolTipRole)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1
 
         self.window.ui.nodes[id].restore_selection()
 
-    def convert_date(self, date_str):
+    def convert_date(self, timestamp):
         """
-        Convert date to human readable format
+        Convert timestamp to human readable format
 
-        :param date_str: date string in format YYYY-MM-DD
+        :param timestamp: POSIX timestamp (the number of seconds since January 1, 1970)
         :return: string
         :rtype: str
         """
@@ -103,7 +107,7 @@ class CtxList:
         three_weeks_ago = today - timedelta(weeks=3)
         one_month_ago = today - timedelta(days=30)
 
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        date = datetime.fromtimestamp(timestamp).date()
 
         if date == today:
             return trans('dt.today')
