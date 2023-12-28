@@ -111,7 +111,7 @@ class Input:
             is_upload = False
             num_uploaded = 0
             try:
-                # it uploads only new attachments (not uploaded before to remote)
+                # upload only new attachments (not uploaded yet to remote)
                 attachments = self.window.core.attachments.get_all(mode)
                 c = self.window.controller.assistant.files.count_upload(attachments)
                 if c > 0:
@@ -131,7 +131,7 @@ class Input:
                 try:
                     self.window.set_status(trans('status.starting'))
                     self.window.core.config.set('assistant_thread',
-                                           self.window.controller.assistant.threads.create_thread())
+                                                self.window.controller.assistant.threads.create_thread())
                 except Exception as e:
                     self.window.core.debug.log(e)
                     self.window.ui.dialogs.alert(str(e))
@@ -189,13 +189,13 @@ class Input:
                 'prompt': sys_prompt,
                 'syntax': [],
             }
-            # dispatch event
+            # dispatch cmd syntax event
             event = Event('cmd.syntax', data)
             self.window.core.dispatcher.dispatch(event)
             sys_prompt = self.window.core.command.append_syntax(event.data)
             self.window.core.gpt.system_prompt = sys_prompt
 
-        # set system prompt
+        # append system prompt
         self.window.core.gpt.system_prompt = sys_prompt
         self.window.core.chain.system_prompt = sys_prompt
 
@@ -205,12 +205,17 @@ class Input:
         self.log("AI name: {}".format(self.window.core.gpt.ai_name))
         self.log("Appending input to chat window...")
 
-        # append input to chat window
+        # append text from input to chat window
         self.window.controller.output.append_input(ctx)
-        # TODO: add ctx here
-        self.window.core.ctx.add(ctx)  # add ctx item
-        self.window.controller.ctx.update(reload=True, all=False)  # update ctx list
-        QApplication.processEvents()  # process events to update UI
+
+        # add ctx to DB here and only update it after response
+        self.window.core.ctx.add(ctx)
+
+        # update ctx list, but not reload all to prevent focus out on lists
+        self.window.controller.ctx.update(reload=True, all=False)
+
+        # process events to update UI
+        QApplication.processEvents()
 
         # async or sync mode
         stream_mode = self.window.core.config.get('stream')
@@ -229,14 +234,14 @@ class Input:
                     self.log("Calling LangChain...")  # log
                     ctx = self.window.core.chain.call(text, ctx, stream_mode)
 
-                    # update context
+                    # update context in DB
                     if ctx is not None:
                         self.window.core.ctx.update_item(ctx)
                 else:
                     self.log("Calling OpenAI API...")  # log
                     ctx = self.window.core.gpt.call(text, ctx, stream_mode)
 
-                    # update context
+                    # update context in DB
                     if ctx is not None:
                         self.window.core.ctx.update_item(ctx)
 
@@ -250,7 +255,7 @@ class Input:
                 if ctx is not None:
                     self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
                 else:
-                    # error in call if ctx is None
+                    # there was an error in call if ctx is None here
                     self.log("Context: output: None")
                     self.window.ui.dialogs.alert(trans('status.error'))
                     self.window.set_status(trans('status.error'))
@@ -262,7 +267,7 @@ class Input:
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
 
-            # handle response (if no assistant mode)
+            # handle response (if no assistant mode, assistant response is handled in assistant thread)
             if mode != "assistant":
                 self.window.controller.output.handle_response(ctx, mode, stream_mode)
 
@@ -277,7 +282,7 @@ class Input:
         if mode != "assistant":
             self.window.controller.output.handle_commands(ctx)
 
-            # update ctx
+            # update ctx in DB
             self.window.core.ctx.update_item(ctx)
 
             # unlock
