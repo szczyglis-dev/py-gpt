@@ -246,8 +246,9 @@ class Tokens:
                 system_tokens += self.from_text("system", model)
 
             # input prompt
-            input_tokens = self.from_prompt(input_prompt, "", model)
-            input_tokens += self.from_text("user", model)
+            if input_prompt is not None and input_prompt != "":
+                input_tokens = self.from_prompt(input_prompt, "", model)
+                input_tokens += self.from_text("user", model)
         elif mode == "completion":
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
@@ -255,17 +256,18 @@ class Tokens:
             system_tokens = self.from_text(system_prompt, model)
 
             # input prompt
-            message = ""
-            if user_name is not None \
-                    and ai_name is not None \
-                    and user_name != "" \
-                    and ai_name != "":
-                message += "\n" + user_name + ": " + str(input_prompt)
-                message += "\n" + ai_name + ":"
-            else:
-                message += "\n" + str(input_prompt)
-            input_tokens = self.from_text(message, model)
-            extra_tokens = 0  # no extra tokens in completion mode
+            if input_prompt is not None and input_prompt != "":
+                message = ""
+                if user_name is not None \
+                        and ai_name is not None \
+                        and user_name != "" \
+                        and ai_name != "":
+                    message += "\n" + user_name + ": " + str(input_prompt)
+                    message += "\n" + ai_name + ":"
+                else:
+                    message += "\n" + str(input_prompt)
+                input_tokens = self.from_text(message, model)
+                extra_tokens = 0  # no extra tokens in completion mode
 
         # used tokens
         used_tokens = system_tokens + input_tokens

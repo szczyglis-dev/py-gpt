@@ -32,6 +32,7 @@ class Footer:
         self.window = window
         self.image = Image(window)
         self.vision = Vision(window)
+        self.label_max_height = 20
 
     def setup(self):
         """
@@ -45,18 +46,12 @@ class Footer:
         names_layout.addLayout(self.setup_name_input('preset.ai_name', trans("toolbox.name.ai")))
         names_layout.addLayout(self.setup_name_input('preset.user_name', trans("toolbox.name.user")))
 
-        # bottom
-        self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"))
-        self.window.ui.config_option['current_temperature'] = OptionSlider(self.window, 'current_temperature',
-                                                                           '', 0, 200,
-                                                                           1, 100, False)
-
         # per mode options
         rows = QVBoxLayout()
-        rows.addWidget(self.window.ui.nodes['temperature.label'])
-        rows.addWidget(self.window.ui.config_option['current_temperature'])
+        rows.addWidget(self.setup_temperature())
         rows.addWidget(self.image.setup())
         rows.addWidget(self.vision.setup())
+        rows.setStretchFactor(self.window.ui.nodes['temperature.label'], 1)
 
         # logo
         logo_button = self.setup_logo()
@@ -69,14 +64,38 @@ class Footer:
         bottom.setAlignment(logo_button, Qt.AlignRight | Qt.AlignBottom)
         bottom_widget = QWidget()
         bottom_widget.setLayout(bottom)
+        bottom_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         # layout rows
         layout = QVBoxLayout()
         layout.addLayout(names_layout)
         layout.addWidget(bottom_widget)
+        layout.setAlignment(names_layout, Qt.AlignBottom)
+        layout.setAlignment(bottom_widget, Qt.AlignBottom)
 
         widget = QWidget()
         widget.setLayout(layout)
+
+        widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
+        return widget
+
+    def setup_temperature(self):
+        self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"))
+        self.window.ui.nodes['temperature.label'].setMaximumHeight(self.label_max_height)
+        self.window.ui.config_option['current_temperature'] = OptionSlider(self.window, 'current_temperature',
+                                                                           '', 0, 200,
+                                                                           1, 100, False)
+        self.window.ui.config_option['current_temperature'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes['temperature.label'])
+        layout.addWidget(self.window.ui.config_option['current_temperature'])
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        widget.setMaximumHeight(100)
 
         return widget
 
@@ -92,6 +111,7 @@ class Footer:
         label_key = 'toolbox.' + id + '.label'
         self.window.ui.nodes[label_key] = QLabel(title)
         self.window.ui.nodes[id] = NameInput(self.window, id)
+        self.window.ui.nodes[label_key].setMaximumHeight(self.label_max_height)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
