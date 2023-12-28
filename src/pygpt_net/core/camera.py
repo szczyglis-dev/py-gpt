@@ -53,9 +53,7 @@ class CameraThread(QObject):
         self.frame = None
 
     def setup_camera(self):
-        """
-        Initialize camera
-        """
+        """Initialize camera"""
         try:
             # get params from global config
             self.capture = cv2.VideoCapture(self.window.core.config.get('vision.capture.idx'))
@@ -67,9 +65,7 @@ class CameraThread(QObject):
             self.finished.emit(e)
 
     def run(self):
-        """
-        Frame capture loop
-        """
+        """Frame capture loop"""
         try:
             if not self.initialized:
                 self.setup_camera()
@@ -97,9 +93,7 @@ class CameraThread(QObject):
         self.finished.emit()
 
     def release(self):
-        """
-        Release camera
-        """
+        """Release camera"""
         if self.capture is not None and self.capture.isOpened():
             self.capture.release()
         self.capture = None
