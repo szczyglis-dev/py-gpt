@@ -1356,6 +1356,7 @@ may consume additional tokens that are not displayed in the main window.
 - Fixed date display on context list
 - Added mode display in context tooltips
 - Added "Contexts list records limit" config option in settings
+- Added tokens calculator tooltips
 
 ## 2.0.61 (2023-12-28)
 
