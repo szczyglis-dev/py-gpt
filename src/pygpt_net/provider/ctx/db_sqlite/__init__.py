@@ -39,7 +39,7 @@ class DbSqliteProvider(BaseProvider):
         :return: true if migrated
         :rtype: bool
         """
-        # return  # TODO: tmp!!!
+        return  # TODO: tmp!!!
         # if old version is 2.0.59 or older and if json file exists
         path = os.path.join(self.window.core.config.path, 'context.json')
         if os.path.exists(path):
