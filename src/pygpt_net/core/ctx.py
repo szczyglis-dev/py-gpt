@@ -53,24 +53,16 @@ class Ctx:
 
         :param provider: ctx provider instance
         """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
+        self.provider = provider
+        self.provider.attach(self.window)
 
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def select(self, id):
         """
@@ -143,13 +135,9 @@ class Ctx:
         :return: created ID
         """
         meta = self.build()
-        if self.provider in self.providers:
-            try:
-                id = self.providers[self.provider].create(meta)
-                meta.id = id
-                return meta
-            except Exception as e:
-                self.window.core.debug.log(e)
+        id = self.provider.create(meta)
+        meta.id = id
+        return meta
 
     def add(self, item):
         """
@@ -162,13 +150,9 @@ class Ctx:
         # append in provider
         if self.current is not None and self.current in self.meta:
             meta = self.meta[self.current]
-            if self.provider in self.providers:
-                try:
-                    result = self.providers[self.provider].append_item(meta, item)
-                    if not result:
-                        self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
-                except Exception as e:
-                    self.window.core.debug.log(e)
+            result = self.provider.append_item(meta, item)
+            if not result:
+                self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
 
     def update_item(self, item):
         """
@@ -176,11 +160,7 @@ class Ctx:
 
         :param item: CtxItem to update
         """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].update_item(item)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.update_item(item)
 
     def is_empty(self):
         """
@@ -378,11 +358,7 @@ class Ctx:
         """
         if id in self.meta:
             del self.meta[id]
-            if self.provider in self.providers:
-                try:
-                    self.providers[self.provider].remove(id)
-                except Exception as e:
-                    self.window.core.debug.log(e)
+            self.provider.remove(id)
 
     def truncate(self):
         """Delete all ctx"""
@@ -390,11 +366,7 @@ class Ctx:
         self.meta = {}
 
         # remove all ctx data in provider
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].truncate()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.truncate()
 
         # delete all txt history files from history dir
         path = os.path.join(self.window.core.config.path, 'history')
@@ -574,12 +546,7 @@ class Ctx:
 
     def load_meta(self):
         """Load ctx list from provider"""
-        if self.provider in self.providers:
-            try:
-                self.meta = self.providers[self.provider].get_meta(self.search_string, 'updated_ts', 'DESC')
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.meta = {}
+        self.meta = self.provider.get_meta(self.search_string, 'updated_ts', 'DESC')
 
     def load(self, id):
         """
@@ -589,12 +556,7 @@ class Ctx:
         :return: ctx items
         :rtype: list
         """
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].load(id)
-            except Exception as e:
-                self.window.core.debug.log(e)
-        return []
+        return self.provider.load(id)
 
     def save(self, id):
         """
@@ -605,11 +567,7 @@ class Ctx:
         if not self.window.core.config.get('store_history'):
             return
 
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(id, self.meta[id], self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.save(id, self.meta[id], self.items)
 
     def store(self):
         """Store current ctx"""
@@ -622,8 +580,4 @@ class Ctx:
 
         :param ctx: CtxItem instance
         """
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].dump(ctx)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        return self.provider.dump(ctx)
