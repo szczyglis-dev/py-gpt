@@ -32,8 +32,7 @@ class Config:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "json_file"
+        
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
         self.initialized_base = False
@@ -42,20 +41,10 @@ class Config:
         self.data_base = {}
         self.version = self.get_version()
 
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].path = self.get_user_path()
-        self.providers[provider.id].path_app = self.get_app_path()
-        self.providers[provider.id].meta = self.append_meta()
-        self.providers[provider.id].window = self.window
+        self.provider = JsonFileProvider(window)
+        self.provider.path = self.get_user_path()
+        self.provider.path_app = self.get_app_path()
+        self.provider.meta = self.append_meta()
 
     def install(self):
         """Install database and provider data"""
@@ -64,19 +53,11 @@ class Config:
         self.window.core.db.init()
 
         # install provider configs
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def get_app_path(self):
         """
@@ -153,15 +134,7 @@ class Config:
         :return: settings options
         :rtype: dict
         """
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].get_options()
-            except Exception as e:
-                if self.window is not None:
-                    self.window.core.debug.log(e)
-                else:
-                    print("Error loading settings options: {}".format(e))
-        return {}
+        return self.provider.get_options()
 
     def get(self, key):
         """
@@ -267,34 +240,18 @@ class Config:
 
         :param all: load all configs
         """
-        if self.provider in self.providers:
-            try:
-                self.data = self.providers[self.provider].load(all)
-                if self.data is not None:
-                    self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-            except Exception as e:
-                if self.window is not None:
-                    self.window.core.debug.log(e)
-                else:
-                    print("Error loading config: {}".format(e))
-                self.data = {}
+        self.data = self.provider.load(all)
+        if self.data is not None:
+            self.data = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
 
     def load_base_config(self):
         """
         Load app config from JSON file
         """
-        if self.provider in self.providers:
-            try:
-                self.data_base = self.providers[self.provider].load_base()
-                if self.data_base is not None:
-                    self.data_base = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
-                    self.initialized_base = True
-            except Exception as e:
-                if self.window is not None:
-                    self.window.core.debug.log(e)
-                else:
-                    print("Error loading config: {}".format(e))
-                self.data_base = {}
+        self.data_base = self.provider.load_base()
+        if self.data_base is not None:
+            self.data_base = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+            self.initialized_base = True
 
     def from_base_config(self):
         """
@@ -324,11 +281,4 @@ class Config:
 
         :param filename: filename
         """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.data, filename)
-            except Exception as e:
-                if self.window is not None:
-                    self.window.core.debug.log(e)
-                else:
-                    print("Error saving config: {}".format(e))
+        self.provider.save(self.data, filename)

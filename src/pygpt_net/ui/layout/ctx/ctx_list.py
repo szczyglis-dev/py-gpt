@@ -121,7 +121,7 @@ class CtxList:
             return f"{weeks_ago} " + trans('dt.weeks')
         elif days_ago < 30:
             return f"{days_ago} " + trans('dt.days_ago')
-        elif days_ago >= 30:
+        elif days_ago >= 30 and days_ago < 32:
             return trans('dt.month')
         else:
             return date.strftime("%Y-%m-%d")
