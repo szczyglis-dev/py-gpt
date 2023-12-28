@@ -101,17 +101,13 @@ class Threads:
 
     @Slot()
     def handle_destroy(self):
-        """
-        Handle thread destroy
-        """
+        """Handle thread destroy"""
         self.thread_run_started = False
         self.force_stop = False
 
     @Slot()
     def handle_started(self):
-        """
-        Handle listening started
-        """
+        """Handle listening started"""
         print("Run: assistant is listening status...")
         self.window.statusChanged.emit(trans('assistant.run.listening'))
 

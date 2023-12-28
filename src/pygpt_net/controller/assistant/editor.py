@@ -92,9 +92,7 @@ class Editor:
         self.window.ui.config_option['assistant.name'].setFocus()
 
     def save(self):
-        """
-        Save assistant
-        """
+        """Save assistant"""
         created = False
         id = self.window.ui.config_option['assistant.id'].text()
         name = self.window.ui.config_option['assistant.name'].text()

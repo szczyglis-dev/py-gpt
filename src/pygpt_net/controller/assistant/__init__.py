@@ -114,9 +114,7 @@ class Assistant:
                 self.update()
 
     def create(self):
-        """
-        Create assistant
-        """
+        """Create assistant"""
         assistant = self.window.core.assistants.create()
         self.editor.assign_data(assistant)
         try:
@@ -126,9 +124,7 @@ class Assistant:
             self.window.ui.dialogs.alert(str(e))
 
     def update_data(self, assistant):
-        """
-        Update assistant
-        """
+        """Update assistant"""
         self.editor.assign_data(assistant)
         try:
             return self.window.core.gpt.assistants.update(assistant)
@@ -220,7 +216,7 @@ class Assistant:
                     self.window.set_status(trans('status.assistant.deleted'))
 
     def goto_online(self):
-        """Opens Assistants page"""
+        """Open Assistants page"""
         webbrowser.open('https://platform.openai.com/assistants')
 
     def change_locked(self):

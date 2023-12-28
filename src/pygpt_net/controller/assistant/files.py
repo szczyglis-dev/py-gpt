@@ -24,9 +24,7 @@ class Files:
         self.window = window
 
     def update(self):
-        """
-        Update assistants files list
-        """
+        """Update assistants files list"""
         self.update_list()
 
     def select(self, idx):
@@ -147,9 +145,7 @@ class Files:
         self.update()
 
     def rename_close(self):
-        """
-        Close rename dialog
-        """
+        """Close rename dialog"""
         # close rename dialog and update attachments list
         self.window.ui.dialog['rename'].close()
         self.update()
@@ -348,9 +344,7 @@ class Files:
         self.update_tab()
 
     def update_tab(self):
-        """
-        Update tab label (attachments uploaded)
-        """
+        """Update tab label (attachments uploaded)"""
         assistant_id = self.window.core.config.get('assistant')
         if assistant_id is None or assistant_id == "":
             self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab'))
