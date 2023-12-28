@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.attachment import AttachmentItem
@@ -21,38 +21,17 @@ class Attachments:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "json_file"
+        self.provider = JsonFileProvider(window)
         self.items = {}
         self.current = None
 
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
-
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def select(self, mode, id):
         """
@@ -195,13 +174,9 @@ class Attachments:
         :rtype: AttachmentItem
         """
         attachment = self.build()
-        if self.provider in self.providers:
-            try:
-                id = self.providers[self.provider].create(attachment)
-                attachment.id = id
-                return attachment
-            except Exception as e:
-                self.window.core.debug.log(e)
+        id = self.provider.create(attachment)
+        attachment.id = id
+        return attachment
 
     def add(self, mode, item):
         """
@@ -253,12 +228,7 @@ class Attachments:
         :param mode: mode
         """
         self.clear(mode)
-
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].truncate(mode)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.truncate(mode)
 
     def clear(self, mode):
         """
@@ -302,17 +272,17 @@ class Attachments:
         data.name = name
         self.save()
 
-    def make_json_list(self, atatchments):
+    def make_json_list(self, attachments):
         """
         Make json list
 
-        :param atatchments: attachments
+        :param attachments: attachments
         :return: json list
         :rtype: dict
         """
         result = {}
-        for id in atatchments:
-            attachment = atatchments[id]
+        for id in attachments:
+            attachment = attachments[id]
             result[id] = {
                 'name': attachment.name,
                 'path': attachment.path
@@ -321,7 +291,7 @@ class Attachments:
 
     def from_files(self, mode, files):
         """
-        Load attachments from assistant files
+        Load current from assistant files
 
         :param mode: mode
         :param files: files
@@ -344,7 +314,7 @@ class Attachments:
 
     def from_attachments(self, mode, attachments):
         """
-        Load attachments from attachments
+        Load current from attachments
 
         :param mode: mode
         :param attachments: attachments
@@ -356,19 +326,8 @@ class Attachments:
 
     def load(self):
         """Load attachments"""
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.items = {}
+        self.items = self.provider.load()
 
     def save(self):
-        """
-        Save attachments
-        """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        """Save attachments"""
+        self.provider.save(self.items)
