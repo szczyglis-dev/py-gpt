@@ -15,7 +15,7 @@ import webbrowser
 from pathlib import PurePath
 
 from PySide6 import QtGui, QtCore
-from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFileDialog, QApplication
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
@@ -67,6 +67,9 @@ class Image:
         self.window.core.ctx.add(ctx)
         self.window.controller.output.append_input(ctx)
 
+        # process events to update UI
+        QApplication.processEvents()
+
         # call DALL-E API and generate images
         try:
             paths, prompt = self.window.core.image.generate(text, self.window.core.config.get('model'), num_of_images)
@@ -89,13 +92,23 @@ class Image:
             event.ctx = ctx
             self.window.core.dispatcher.dispatch(event)
 
+            # handle ctx name (generate title from summary if not initialized)
+            if self.window.core.config.get('ctx.auto_summary'):
+                self.window.controller.output.handle_ctx_name(ctx)
+
             self.window.controller.output.append_output(ctx)
             self.window.core.ctx.store()
-            self.window.set_status("OK.")
+            self.window.set_status(trans('status.img.generated'))
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
+
+        # update ctx in DB
+        self.window.core.ctx.update_item(ctx)
+
+        # update ctx list
+        self.window.controller.ctx.update()
 
     def open_images(self, paths):
         """

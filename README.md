@@ -1356,6 +1356,7 @@ may consume additional tokens that are not displayed in the main window.
 - Updated contexts now automatically land at the top of the list.
 - Added the ability to store more information about each context.
 - Integration of searching, utilizing SQLite, and vector database search coming soon.
+- Improved DALL-E image generation.
 
 ## 2.0.58 (2023-12-27)
 
