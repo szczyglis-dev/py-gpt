@@ -1,3 +1,7 @@
+2.0.60 (2023-12-28)
+
+- Message append fix
+
 2.0.59 (2023-12-28)
 
 - Storage of context has been changed from JSON files to SQLite database, automatic migration is included - you will not lose your existing data after update :)

@@ -240,8 +240,10 @@ class Tokens:
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
-            system_tokens = self.from_prompt(system_prompt, "", model)
-            system_tokens += self.from_text("system", model)
+
+            if system_prompt is not None and system_prompt != "":
+                system_tokens = self.from_prompt(system_prompt, "", model)
+                system_tokens += self.from_text("system", model)
 
             # input prompt
             input_tokens = self.from_prompt(input_prompt, "", model)

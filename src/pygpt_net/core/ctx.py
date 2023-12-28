@@ -487,7 +487,11 @@ class Ctx:
         items = []
         # loop on items from end to start
         tokens = used_tokens
+        first_item = True
         for item in reversed(self.items):
+            if first_item:
+                first_item = False
+                continue
             tokens += self.window.core.tokens.from_ctx(item, mode, model)
             if tokens > max_tokens:
                 break
@@ -505,7 +509,11 @@ class Ctx:
         :rtype: list
         """
         items = []
+        first_item = True
         for item in reversed(self.items):
+            if first_item:
+                first_item = False
+                continue
             items.append(item)
 
         # reverse items
