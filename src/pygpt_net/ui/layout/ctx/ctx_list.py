@@ -83,10 +83,13 @@ class CtxList:
         for n in data:
             self.window.ui.models[id].insertRow(i)
             dt = self.convert_date(data[n].updated)
-            date_time_str = datetime.fromtimestamp(data[n].updated).strftime("%Y-%m-%d %H:%M:%S")
+            date_time_str = datetime.fromtimestamp(data[n].updated).strftime("%Y-%m-%d %H:%M")
             name = data[n].name + ' (' + dt + ')'
             index = self.window.ui.models[id].index(i, 0)
-            tooltip_text = "{}: {}".format(date_time_str, data[n].name)
+            mode_str = ''
+            if data[n].last_mode is not None:
+                mode_str = " ({})".format(trans('mode.' + data[n].last_mode))
+            tooltip_text = "{}: {}{}".format(date_time_str, data[n].name, mode_str)
             self.window.ui.models[id].setData(index, tooltip_text, QtCore.Qt.ToolTipRole)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1

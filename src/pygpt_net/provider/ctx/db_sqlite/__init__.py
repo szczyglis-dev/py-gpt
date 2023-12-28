@@ -79,12 +79,21 @@ class DbSqliteProvider(BaseProvider):
 
     def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
         """
-        Return dict of ctx meta
+        Return dict of ctx meta, TODO: add order, limit, offset, etc.
+
+        :param search_string: search string
+        :param order_by: order by column
+        :param order_direction: order direction
+        :param limit: limit
+        :param offset: offset
 
         :return: dict of ctx meta
         :rtype: dict
         """
-        return self.storage.get_meta(search_string)
+        param_limit = 0
+        if limit is not None:
+            param_limit = int(limit)
+        return self.storage.get_meta(search_string, order_by, order_direction, param_limit, offset)
 
     def load(self, id):
         """

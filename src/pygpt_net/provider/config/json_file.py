@@ -405,6 +405,13 @@ class JsonFileProvider(BaseProvider):
                     data['layout.dpi.factor'] = 1.0
                 updated = True
 
+            # < 2.0.62
+            if old < parse_version("2.0.62"):
+                print("Migrating config from < 2.0.62...")
+                if 'ctx.records.limit' not in data:
+                    data['ctx.records.limit'] = 0
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -340,9 +340,9 @@ def test_load_method(mock_window):
             'id2': asst2,
     }
     assistants = Assistants(window=mock_window)
-    assistants.providers = {}
-    assistants.providers['json_file'] = MagicMock()
-    assistants.providers['json_file'].load.return_value = fake_data
+    assistants.provider = {}
+    assistants.provider = MagicMock()
+    assistants.provider.load.return_value = fake_data
     assistants.load()
 
     assert assistants.items['id1'].name == 'Assistant 1'

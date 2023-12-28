@@ -185,6 +185,10 @@ class Editor:
         if id.startswith('font_size'):
             self.window.controller.settings.update_font_size()
 
+        # update ctx limit in real time
+        if id == 'ctx.records.limit':
+            self.window.controller.ctx.update(True, False)
+
         txt = '{}'.format(value)
         self.window.ui.config_option[id].setText(txt)
 
@@ -329,6 +333,10 @@ class Editor:
         # update from raw value
         if id.startswith('font_size'):
             self.window.controller.settings.update_font_size()  # update font size in real time
+
+        # update ctx limit in real time
+        if id == 'ctx.records.limit':
+            self.window.controller.ctx.update(True, False)
 
         # update current
         if id == "temperature":

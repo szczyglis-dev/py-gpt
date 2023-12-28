@@ -25,6 +25,7 @@ The following basic options can be modified directly within the application:
 * ``Max Output Tokens`` Determines the maximum number of tokens the model can generate for a single response.
 * ``Max Total Tokens`` Defines the maximum token count that the application can send to the model, including the conversation context. To prevent reaching the model capacity, this setting helps manage the size of the context included in messages.
 * ``Context Threshold`` Sets the number of tokens reserved for the model to respond to the next prompt. This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
+* ``Limit of last contexts on list to show  (0 = unlimited)`` Limit of last contexts on list, default: 0 (unlimited)
 * ``Use Context`` Toggles the use of conversation context (memory of previous inputs). When turned off, the context won't be saved or factored into conversation responses.
 * ``Store History`` Dictates whether the conversation history and context are saved. When turned off, history won't be written to the disk upon closing the application.
 * ``Store Time in History`` Chooses whether timestamps are added to the .txt files. These files are stored in the *history* directory within the user's work directory.

@@ -118,6 +118,7 @@ class Output:
         # tokens info
         self.window.ui.nodes['prompt.context'] = QLabel("")
         self.window.ui.nodes['prompt.context'].setAlignment(Qt.AlignRight)
+        self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
 
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)

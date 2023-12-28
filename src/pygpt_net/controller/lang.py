@@ -58,6 +58,7 @@ class Lang:
 
         # output
         self.window.ui.nodes['output.timestamp'].setText(trans('output.timestamp'))
+        self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
 
         # output: tabs
         self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
@@ -97,6 +98,7 @@ class Lang:
         self.window.ui.nodes['input.stop_btn'].setText(trans("input.btn.stop"))
         self.window.ui.nodes['input.stream'].setText(trans('input.stream'))
         self.window.ui.nodes['attachments.send_clear'].setText(trans('attachments.send_clear'))
+        self.window.ui.nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
 
         # input: attachments headers
         self.window.ui.models['attachments'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))

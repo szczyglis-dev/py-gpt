@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.61** | build: **2023.12.28** | Python: **3.10+**
+Release: **2.0.62** | build: **2023.12.28** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1195,6 +1195,8 @@ manage the size of the context included in messages.
 - `Context Threshold`: Sets the number of tokens reserved for the model to respond to the next prompt. 
 This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
 
+- `Limit of last contexts on list to show  (0 = unlimited)`: Limit of last contexts on list, default: 0 (unlimited)
+
 - `Use Context`: Toggles the use of conversation context (memory of previous inputs). 
 When turned off, the context won't be saved or factored into conversation responses.
 
@@ -1348,6 +1350,12 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.62 (2023-12-28)
+
+- Fixed date display on context list
+- Added mode display in context tooltips
+- Added "Contexts list records limit" config option in settings
 
 ## 2.0.61 (2023-12-28)
 

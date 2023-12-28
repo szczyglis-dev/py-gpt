@@ -530,7 +530,10 @@ class Ctx:
 
     def load_meta(self):
         """Load ctx list from provider"""
-        self.meta = self.provider.get_meta(self.search_string, 'updated_ts', 'DESC')
+        limit = 0
+        if self.window.core.config.has('ctx.records.limit'):
+            limit = int(self.window.core.config.get('ctx.records.limit') or 0)
+        self.meta = self.provider.get_meta(self.search_string, 'updated_ts', 'DESC', limit)
 
     def load(self, id):
         """

@@ -387,13 +387,15 @@ def test_get_all_items(mock_window):
     Test get_all_items
     """
     ctx = Ctx(mock_window)
+    item1 = CtxItem()
+    item2 = CtxItem()
     ctx.items = [
-        'item1', # should be removed
-        'item2'
+        item1, # should be removed
+        item2
     ]
     assert ctx.get_all_items(False) == [
-        'item1',
-        'item2'
+        item1,
+        item2
     ]
 
 
@@ -401,10 +403,12 @@ def test_clear(mock_window):
     """
     Test clear
     """
+    item1 = CtxItem()
+    item2 = CtxItem()
     ctx = Ctx(mock_window)
     ctx.items = [
-        'item1',
-        'item2'
+        item1,
+        item2
     ]
     ctx.clear()
     assert ctx.items == []
