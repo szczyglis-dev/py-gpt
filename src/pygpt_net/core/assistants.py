@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
-
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.provider.assistant.json_file import JsonFileProvider
@@ -22,38 +21,17 @@ class Assistants:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "json_file"
+        self.provider = JsonFileProvider(window)  # json file provider
         self.current_file = None
         self.items = {}
 
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
-
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def get_by_idx(self, idx):
         """
@@ -279,19 +257,8 @@ class Assistants:
 
     def load(self):
         """Load assistants"""
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.items = {}
+        self.items = self.provider.load()
 
     def save(self):
-        """
-        Save assistants
-        """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        """Save assistants"""
+        self.provider.save(self.items)
