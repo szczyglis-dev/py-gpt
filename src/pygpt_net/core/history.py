@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.provider.history.txt_file import TxtFileProvider
@@ -21,29 +21,12 @@ class History:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "txt_file"
+        self.provider = TxtFileProvider(window)
         self.path = None
-
-        # register data providers
-        self.add_provider(TxtFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
 
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def append(self, ctx, mode):
         """
@@ -52,11 +35,4 @@ class History:
         :param ctx: CtxItem instance
         :param mode: mode (input | output)
         """
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].append(ctx, mode)
-            except Exception as e:
-                if self.window is not None:
-                    self.window.core.debug.log(e)
-                else:
-                    print("Error appending to history: {}".format(e))
+        self.provider.append(ctx, mode)
