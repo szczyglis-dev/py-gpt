@@ -21,37 +21,16 @@ class Models:
         :param window: Window instance
         """
         self.window = window
-        self.providers = {}
-        self.provider = "json_file"
+        self.provider = JsonFileProvider(window)
         self.items = {}
-
-        # register data providers
-        self.add_provider(JsonFileProvider())  # json file provider
-
-    def add_provider(self, provider):
-        """
-        Add data provider
-
-        :param provider: data provider instance
-        """
-        self.providers[provider.id] = provider
-        self.providers[provider.id].attach(self.window)
 
     def install(self):
         """Install provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].install()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.install()
 
     def patch(self, app_version):
         """Patch provider data"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].patch(app_version)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.patch(app_version)
 
     def get(self, model):
         """
@@ -134,26 +113,13 @@ class Models:
         """
         Load models
         """
-        if self.provider in self.providers:
-            try:
-                self.items = self.providers[self.provider].load()
-                self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.items = {}
+        self.items = self.provider.load()
+        self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
 
     def save(self):
         """Save models"""
-        if self.provider in self.providers:
-            try:
-                self.providers[self.provider].save(self.items)
-            except Exception as e:
-                self.window.core.debug.log(e)
+        self.provider.save(self.items)
 
     def get_version(self):
         """Get config version"""
-        if self.provider in self.providers:
-            try:
-                return self.providers[self.provider].get_version()
-            except Exception as e:
-                self.window.core.debug.log(e)
+        return self.provider.get_version()
