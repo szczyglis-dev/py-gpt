@@ -1,6 +1,6 @@
 2.0.59 (2023-12-28)
 
-- Storage of context has been changed from JSON files to SQLite database (automatic migration included - you will not lose your existing data).
+- Storage of context has been changed from JSON files to SQLite database, automatic migration is included - you will not lose your existing data after update :)
 - Added "Search" functionality for contexts and a search input at the bottom.
 - Updated contexts now automatically land at the top of the list.
 - Added the ability to store more information about each context.
