@@ -6,28 +6,25 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 03:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import os.path
 import subprocess
 from datetime import datetime
-from urllib.request import Request, urlopen
-from PySide6.QtCore import QRunnable, Slot, QObject, Signal
+from PySide6.QtCore import Slot
+
+from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
-class WorkerSignals(QObject):
-    finished = Signal(object, object)  # ctx, response
-    log = Signal(object)
-    debug = Signal(object)
-    status = Signal(object)
-    error = Signal(object)
+class WorkerSignals(BaseSignals):
+    pass  # add custom signals here
 
 
-class Worker(QRunnable):
+class Worker(BaseWorker):
     def __init__(self, *args, **kwargs):
         super(Worker, self).__init__()
-        self.signals = WorkerSignals()
+        self.signals = BaseSignals()
         self.args = args
         self.kwargs = kwargs
         self.plugin = None
@@ -39,75 +36,58 @@ class Worker(QRunnable):
         msg = None
         for item in self.cmds:
             for my_cmd in self.plugin.get_option_value("cmds"):
-
-                # prepare request item for result
-                request_item = {"cmd": item["cmd"]}
-
+                request = {"cmd": item["cmd"]}  # prepare request item for result
                 if my_cmd["name"] == item["cmd"]:
                     try:
-                        # prepare command
-                        command = my_cmd["cmd"]
+                        # prepare cmd
+                        cmd = my_cmd["cmd"]
 
                         # append system placeholders
-                        command = command.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
-                        command = command.replace("{_home}", self.plugin.window.core.config.path)
-                        command = command.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
-                        command = command.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
-                        command = command.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        cmd = cmd.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
+                        cmd = cmd.replace("{_home}", self.plugin.window.core.config.path)
+                        cmd = cmd.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
+                        cmd = cmd.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
+                        cmd = cmd.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-                        # append custom params to command placeholders
+                        # append custom params to cmd placeholders
                         if 'params' in my_cmd and my_cmd["params"].strip() != "":
-                            # append params to command placeholders
+                            # append params to cmd placeholders
                             params_list = self.plugin.extract_params(my_cmd["params"])
                             for param in params_list:
                                 if param in item["params"]:
-                                    command = command.replace("{" + param + "}", item["params"][param])
+                                    cmd = cmd.replace("{" + param + "}", item["params"][param])
 
-                        # check if command is not empty
-                        if command is None or command == "":
+                        # check if cmd is not empty
+                        if cmd is None or cmd == "":
                             msg = "Command is empty"
                             continue
 
-                        # execute custom command
-                        msg = "Running custom command: {}".format(command)
-                        self.signals.log.emit(msg)
-                        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
+                        # execute custom cmd
+                        msg = "Running custom cmd: {}".format(cmd)
+                        self.log(msg)
+                        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                                    stderr=subprocess.PIPE)
                         stdout, stderr = process.communicate()
                         result = None
                         if stdout:
                             result = stdout.decode("utf-8")
-                            self.signals.log.emit("STDOUT: {}".format(result))
+                            self.log("STDOUT: {}".format(result))
                         if stderr:
                             result = stderr.decode("utf-8")
-                            self.signals.log.emit("STDERR: {}".format(result))
+                            self.log("STDERR: {}".format(result))
                         if result is None:
                             result = "No result (STDOUT/STDERR empty)"
-                            self.signals.log.emit(result)
-                        response = {"request": request_item, "result": result}
+                            self.log(result)
+                        response = {"request": request, "result": result}
+
                     except Exception as e:
                         msg = "Error: {}".format(e)
-                        response = {"request": request_item, "result": "Error {}".format(e)}
-                        self.signals.error.emit(e)
-                        self.signals.log.emit(msg)
-                    self.signals.finished.emit(self.ctx, response)
+                        response = {"request": request, "result": "Error {}".format(e)}
+                        self.error(e)
+                        self.log(msg)
+                    self.response(response)
 
         # update status
         if msg is not None:
-            self.signals.log.emit(msg)
-            self.signals.status.emit(msg)
-
-    def finish(self, ctx, response):
-        self.signals.finished.emit(ctx, response)
-
-    def error(self, err):
-        self.signals.error.emit(err)
-
-    def status(self, msg):
-        self.signals.status.emit(msg)
-
-    def debug(self, msg):
-        self.signals.debug.emit(msg)
-
-    def log(self, msg):
-        self.signals.log.emit(msg)
+            self.log(msg)
+            self.status(msg)
