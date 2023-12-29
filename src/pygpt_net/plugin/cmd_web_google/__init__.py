@@ -229,8 +229,7 @@ class Plugin(BasePlugin):
         :param cmds: commands dict
         """
         for item in cmds:
-            # prepare request item for result
-            request_item = {"cmd": item["cmd"]}
+            request = {"cmd": item["cmd"]}
             err = "Google API key or CX is not set. Please set credentials in plugin settings."
             self.log(err)
             self.window.set_status(err)
@@ -239,7 +238,7 @@ class Plugin(BasePlugin):
             data = {
                 'msg_to_user': msg,
             }
-            response = {"request": request_item, "result": data}
+            response = {"request": request, "result": data}
             ctx.results.append(response)
             ctx.reply = True
             return
