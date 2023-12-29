@@ -30,10 +30,7 @@ class Plugin(BasePlugin):
         self.allowed_models = ['tts-1', 'tts-1-hd']
         self.input_text = None
         self.window = None
-        self.thread = None
-        self.tts = None
         self.playback = None
-        self.audio = None
         self.order = 1
         self.use_locale = True
         self.init_options()
@@ -177,16 +174,11 @@ class Plugin(BasePlugin):
 
     def stop_audio(self):
         """
-        Stop TTS thread and stop playing the audio
+        Stop playing the audio
         """
-        if self.tts is not None:
-            self.tts.stop()
-        if self.thread is not None:
-            self.thread.stop()
         if self.playback is not None:
             self.playback.stop()
             self.playback = None
-            self.audio = None
 
     @Slot(object)
     def handle_status(self, data):
@@ -217,7 +209,4 @@ class Plugin(BasePlugin):
         """
         Handle thread playback stop
         """
-        if self.playback is not None:
-            self.playback.stop()
-            self.playback = None
-            self.audio = None
+        self.stop_audio()

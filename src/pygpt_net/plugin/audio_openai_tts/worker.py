@@ -53,7 +53,7 @@ class Worker(QRunnable):
             self.signals.error.emit(e)
 
     def stop(self):
-        """Stop TTS thread"""
+        """Stop audio playback"""
         self.signals.status.emit('')
         self.signals.stop.emit()
 

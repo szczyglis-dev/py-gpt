@@ -10,12 +10,9 @@
 # ================================================== #
 
 import os
-import threading
+from PySide6.QtCore import Slot
 
-import requests
-from PySide6.QtCore import QObject, Signal, Slot
-import pygame
-
+from .worker import Worker
 from pygpt_net.plugin.base import BasePlugin
 
 
@@ -28,13 +25,9 @@ class Plugin(BasePlugin):
         self.description = "Enables audio/voice output (speech synthesis) using Microsoft Azure API"
         self.input_text = None
         self.window = None
-        self.thread = None
-        self.tts = None
         self.playback = None
-        self.audio = None
         self.order = 9999
         self.use_locale = True
-        self.tts = None
         self.init_options()
 
     def init_options(self):
@@ -131,11 +124,25 @@ class Plugin(BasePlugin):
                     voice = self.get_option_value("voice_pl")
                 elif lang == "en":
                     voice = self.get_option_value("voice_en")
-                self.tts = TTS(self, api_key, region, voice, text, path)
-                self.tts.status_signal.connect(self.handle_status)
-                self.tts.error_signal.connect(self.handle_error)
-                self.thread = threading.Thread(target=self.tts.run)
-                self.thread.start()
+
+                # worker
+                worker = Worker()
+                worker.plugin = self
+                worker.api_key = api_key
+                worker.region = region
+                worker.voice = voice
+                worker.text = text
+                worker.path = path
+
+                # signals
+                worker.signals.playback.connect(self.handle_playback)
+                worker.signals.stop.connect(self.handle_stop)
+                worker.signals.status.connect(self.handle_status)
+                worker.signals.error.connect(self.handle_error)
+
+                # start
+                self.window.threadpool.start(worker)
+
         except Exception as e:
             self.window.core.debug.log(e)
 
@@ -167,10 +174,18 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.output'].set_status('Stopped')
         self.window.ui.plugin_addon['audio.output'].stop_audio()
 
+    def stop_audio(self):
+        """
+        Stop playing the audio
+        """
+        if self.playback is not None:
+            self.playback.stop()
+            self.playback = None
+
     @Slot(object)
     def handle_status(self, data):
         """
-        Handle thread debug log
+        Handle thread status msg
         :param data
         """
         self.set_status(str(data))
@@ -183,71 +198,17 @@ class Plugin(BasePlugin):
         """
         self.window.core.debug.log(error)
 
-    def stop_audio(self):
+    @Slot(object)
+    def handle_playback(self, playback):
         """
-        Stop TTS thread and stop playing the audio
+        Handle thread playback object
+        :param playback
         """
-        if self.tts is not None:
-            self.tts.stop()
-        if self.thread is not None:
-            self.thread.stop()
-        if self.playback is not None:
-            self.playback.stop()
-            self.playback = None
-            self.audio = None
+        self.playback = playback
 
-
-class TTS(QObject):
-    # setup signals
-    status_signal = Signal(object)
-    error_signal = Signal(object)
-
-    def __init__(self, plugin, subscription_key, region, voice, text, path):
+    @Slot()
+    def handle_stop(self):
         """
-        Text to speech
-
-        :param subscription_key: Azure API Key
-        :param region: Azure region
-        :param voice: Voice name
-        :param text: Text to speech
+        Handle thread playback stop
         """
-        super().__init__()
-        self.plugin = plugin
-        self.subscription_key = subscription_key
-        self.region = region
-        self.text = text
-        self.voice = voice
-        self.path = path
-
-    def run(self):
-        """Run TTS thread"""
-        self.stop()
-        url = f"https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v1"
-        headers = {
-            "Ocp-Apim-Subscription-Key": self.subscription_key,
-            "Content-Type": "application/ssml+xml",
-            "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3"
-        }
-        body = f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' " \
-               f"xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
-        response = requests.post(url, headers=headers, data=body.encode('utf-8'))
-        if response.status_code == 200:
-            with open(self.path, "wb") as file:
-                file.write(response.content)
-            pygame.mixer.init()
-            self.plugin.playback = pygame.mixer.Sound(self.path)
-            self.plugin.playback.play()
-        else:
-            error_msg = f"Error: {response.status_code} - {response.text}"
-            self.error_signal.emit(error_msg)
-
-        self.status_signal.emit('')
-
-    def stop(self):
-        """Stop TTS thread"""
-        self.status_signal.emit('')
-        # self.plugin.hide_stop_button()
-        if self.plugin.playback is not None:
-            self.plugin.playback.stop()
-            self.plugin.playback = None
-            self.plugin.audio = None
+        self.stop_audio()
