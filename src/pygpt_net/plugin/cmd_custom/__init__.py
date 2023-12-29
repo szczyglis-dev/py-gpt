@@ -9,11 +9,10 @@
 # Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
-import os.path
-import subprocess
-from datetime import datetime
+from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base import BasePlugin
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -90,8 +89,55 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        self.debug('[CMD] ' + str(msg))
-        print('[CMD] ' + str(msg))
+        full_msg = '[CMD] ' + str(msg)
+        self.debug(full_msg)
+        self.window.set_status(full_msg)
+        print(full_msg)
+
+    @Slot(object)
+    def handle_finished(self, ctx, response):
+        """
+        Handle finished response
+        :param ctx: context
+        :param response: response
+        """
+        # dispatcher handle late response
+        ctx.results.append(response)
+        ctx.reply = True
+        self.window.core.dispatcher.reply(ctx)
+
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread status msg
+        :param data: status message
+        """
+        self.window.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, err):
+        """
+        Handle thread error
+        :param err: error object
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert("Code Interpreter Error: " + str(err))
+
+    @Slot(object)
+    def handle_debug(self, msg):
+        """
+        Handle debug message
+        :param msg: message
+        """
+        self.debug(msg)
+
+    @Slot(object)
+    def handle_log(self, msg):
+        """
+        Handle log message
+        :param msg: message
+        """
+        self.log(msg)
 
     def cmd_syntax(self, data):
         """
@@ -138,63 +184,29 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
-        msg = None
+        is_cmd = False
+        my_commands = []
         for item in cmds:
             for my_cmd in self.get_option_value("cmds"):
-
-                # prepare request item for result
-                request_item = {"cmd": item["cmd"]}
-
                 if my_cmd["name"] == item["cmd"]:
-                    try:
-                        # prepare command
-                        command = my_cmd["cmd"]
+                    is_cmd = True
+                    my_commands.append(item)
 
-                        # append system placeholders
-                        command = command.replace("{_file}", os.path.dirname(os.path.realpath(__file__)))
-                        command = command.replace("{_home}", self.window.core.config.path)
-                        command = command.replace("{_date}", datetime.now().strftime("%Y-%m-%d"))
-                        command = command.replace("{_time}", datetime.now().strftime("%H:%M:%S"))
-                        command = command.replace("{_datetime}", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        if not is_cmd:
+            return
 
-                        # append custom params to command placeholders
-                        if 'params' in my_cmd and my_cmd["params"].strip() != "":
-                            # append params to command placeholders
-                            params_list = self.extract_params(my_cmd["params"])
-                            for param in params_list:
-                                if param in item["params"]:
-                                    command = command.replace("{" + param + "}", item["params"][param])
+        # worker
+        worker = Worker()
+        worker.plugin = self
+        worker.cmds = my_commands
+        worker.ctx = ctx
 
-                        # check if command is not empty
-                        if command is None or command == "":
-                            msg = "Command is empty"
-                            continue
+        # signals
+        worker.signals.finished.connect(self.handle_finished)
+        worker.signals.log.connect(self.handle_log)
+        worker.signals.debug.connect(self.handle_debug)
+        worker.signals.status.connect(self.handle_status)
+        worker.signals.error.connect(self.handle_error)
 
-                        # execute custom command
-                        msg = "Running custom command: {}".format(command)
-                        self.log(msg)
-                        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE)
-                        stdout, stderr = process.communicate()
-                        result = None
-                        if stdout:
-                            result = stdout.decode("utf-8")
-                            self.log("STDOUT: {}".format(result))
-                        if stderr:
-                            result = stderr.decode("utf-8")
-                            self.log("STDERR: {}".format(result))
-                        if result is None:
-                            result = "No result (STDOUT/STDERR empty)"
-                            self.log(result)
-                        ctx.results.append({"request": request_item, "result": result})
-                        ctx.reply = True  # send result message
-                    except Exception as e:
-                        msg = "Error: {}".format(e)
-                        ctx.results.append({"request": request_item, "result": "Error {}".format(e)})
-                        ctx.reply = True
-                        self.window.core.debug.log(e)
-                        self.log(msg)
-
-        # update status
-        if msg is not None:
-            self.window.set_status(msg)
+        # start
+        self.window.threadpool.start(worker)
