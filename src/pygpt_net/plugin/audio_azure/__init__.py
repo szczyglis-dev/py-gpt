@@ -28,6 +28,7 @@ class Plugin(BasePlugin):
         self.playback = None
         self.order = 9999
         self.use_locale = True
+        self.output_file = "output.mp3"
         self.init_options()
 
     def init_options(self):
@@ -115,7 +116,7 @@ class Plugin(BasePlugin):
             return
 
         text = ctx.output
-        path = os.path.join(self.window.core.config.path, 'output.mp3')
+        path = os.path.join(self.window.core.config.path, self.output_file)
         try:
             if text is not None and len(text) > 0:
                 lang = self.window.core.config.get('lang')
@@ -137,8 +138,8 @@ class Plugin(BasePlugin):
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
                 worker.signals.stop.connect(self.handle_stop)
-                worker.signals.status.connect(self.handle_status)
-                worker.signals.error.connect(self.handle_error)
+                worker.signals.status.connect(self.handle_status)  # base handler
+                worker.signals.error.connect(self.handle_error)  # base handler
 
                 # start
                 self.window.threadpool.start(worker)
@@ -181,22 +182,6 @@ class Plugin(BasePlugin):
         if self.playback is not None:
             self.playback.stop()
             self.playback = None
-
-    @Slot(object)
-    def handle_status(self, data):
-        """
-        Handle thread status msg
-        :param data
-        """
-        self.set_status(str(data))
-
-    @Slot(object)
-    def handle_error(self, error):
-        """
-        Handle thread error
-        :param error
-        """
-        self.window.core.debug.log(error)
 
     @Slot(object)
     def handle_playback(self, playback):

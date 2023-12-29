@@ -168,51 +168,6 @@ class Plugin(BasePlugin):
         self.window.set_status(full_msg)
         print(full_msg)
 
-    @Slot(object)
-    def handle_finished(self, ctx, response):
-        """
-        Handle finished response
-        :param ctx: context
-        :param response: response
-        """
-        # dispatcher handle late response
-        ctx.results.append(response)
-        ctx.reply = True
-        self.window.core.dispatcher.reply(ctx)
-
-    @Slot(object)
-    def handle_status(self, data):
-        """
-        Handle thread status msg
-        :param data
-        """
-        self.window.set_status(str(data))
-
-    @Slot(object)
-    def handle_error(self, err):
-        """
-        Handle thread error
-        :param err
-        """
-        self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert("Google Search Error: " + str(err))
-
-    @Slot(object)
-    def handle_debug(self, msg):
-        """
-        Handle debug message
-        :param msg: message
-        """
-        self.debug(msg)
-
-    @Slot(object)
-    def handle_log(self, msg):
-        """
-        Handle log message
-        :param msg: message
-        """
-        self.log(msg)
-
     def cmd_syntax(self, data):
         """
         Event: On cmd syntax prepare
@@ -260,7 +215,7 @@ class Plugin(BasePlugin):
         worker.ctx = ctx
         worker.websearch = self.websearch
 
-        # signals
+        # signals (base handlers)
         worker.signals.finished.connect(self.handle_finished)
         worker.signals.log.connect(self.handle_log)
         worker.signals.debug.connect(self.handle_debug)

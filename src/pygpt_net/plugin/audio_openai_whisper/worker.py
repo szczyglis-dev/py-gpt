@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 03:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import time
@@ -49,10 +49,8 @@ class Worker(BaseWorker):
                     self.status('')
 
                     if self.plugin.stop:
-                        self.plugin.stop = False
-                        self.plugin.listening = False
-                        self.status('Stop.')
                         self.stopped()
+                        self.status('Stop.')
                         break
 
                     if not self.plugin.can_listen():
@@ -159,10 +157,10 @@ class Worker(BaseWorker):
                                         is_stop_word = transcript.replace('.', '').strip().lower() in stop_words
 
                         if not self.plugin.get_option_value('continuous_listen') or is_stop_word:
-                            self.plugin.listening = False
                             self.stopped()
                             self.status('')  # clear status
                             break
+
                     except Exception as e:
                         print("Speech recognition error: {}".format(str(e)))
 

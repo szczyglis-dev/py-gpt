@@ -12,7 +12,6 @@
 import os
 
 from PySide6.QtCore import Slot
-from openai import OpenAI
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.utils import trans
@@ -38,6 +37,7 @@ class Plugin(BasePlugin):
         self.empty_phrases = ['Thank you for watching']  # phrases to ignore (fix for empty phrases)
         self.order = 1
         self.use_locale = True
+        self.input_file = "input.wav"
         self.init_options()
 
     def init_options(self):
@@ -276,17 +276,11 @@ class Plugin(BasePlugin):
         if self.thread_started:
             return
 
-        client = OpenAI(
-            api_key=self.window.core.config.get('api_key'),
-            organization=self.window.core.config.get('organization_key'),
-        )
-        path = os.path.join(self.window.core.config.path, 'input.wav')
-
         # worker
         worker = Worker()
         worker.plugin = self
-        worker.client = client
-        worker.path = path
+        worker.client = self.window.core.gpt.get_client()
+        worker.path = os.path.join(self.window.core.config.path, self.input_file)
 
         # signals
         worker.signals.finished.connect(self.handle_input)
@@ -323,12 +317,12 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.input'].set_status(status)
 
     @Slot(object, object)
-    def handle_input(self, ctx, text):
+    def handle_input(self, text, ctx=None):
         """
         Insert text to input and send
 
-        :param ctx: CtxItem
         :param text: text
+        :param ctx: CtxItem
         """
         if text is None or text.strip() == '':
             return
@@ -393,23 +387,16 @@ class Plugin(BasePlugin):
     @Slot(object)
     def handle_status(self, data):
         """
-        Handle thread debug log
+        Handle thread status msg signal
         :param data
         """
         self.set_status(str(data))
-
-    @Slot(object)
-    def handle_error(self, error):
-        """
-        Handle thread error
-        :param error
-        """
-        self.window.core.debug.log(error)
+        self.window.set_status(str(data))
 
     @Slot()
     def handle_destroy(self):
         """
-        Insert text to input and send
+        Handle listener destroyed
         """
         self.thread_started = False
         self.set_status('')
@@ -425,10 +412,11 @@ class Plugin(BasePlugin):
     @Slot()
     def handle_stop(self):
         """
-        Stop listening
+        Handle stop listening
         """
         self.thread_started = False
         self.listening = False
+        self.stop = False
         self.window.set_status("")
         self.set_status('')
         # print("Whisper stopped listening...")

@@ -180,11 +180,11 @@ class BasePlugin:
         print(msg)
 
     @Slot(object)
-    def handle_finished(self, ctx, response):
+    def handle_finished(self, response, ctx=None):
         """
         Handle finished response signal
-        :param ctx: context
         :param response: response
+        :param ctx: context (CtxItem)
         """
         # dispatcher handle late response
         if ctx is not None:
@@ -227,7 +227,7 @@ class BasePlugin:
 
 
 class BaseSignals(QObject):
-    finished = Signal(object, object)  # ctx, response
+    finished = Signal(object, object)  # response, ctx
     debug = Signal(object)
     destroyed = Signal()
     error = Signal(object)
@@ -265,7 +265,7 @@ class BaseWorker(QRunnable):
 
     def response(self, response):
         if self.signals is not None and hasattr(self.signals, "finished"):
-            self.signals.finished.emit(self.ctx, response)
+            self.signals.finished.emit(response, self.ctx)
 
     def started(self):
         if self.signals is not None and hasattr(self.signals, "started"):

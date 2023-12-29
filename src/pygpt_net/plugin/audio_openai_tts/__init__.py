@@ -10,12 +10,9 @@
 # ================================================== #
 
 import os
-
 from PySide6.QtCore import Slot
-from openai import OpenAI
 
 from pygpt_net.plugin.base import BasePlugin
-
 from .worker import Worker
 
 
@@ -33,6 +30,7 @@ class Plugin(BasePlugin):
         self.playback = None
         self.order = 1
         self.use_locale = True
+        self.output_file = "output.mp3"
         self.init_options()
 
     def init_options(self):
@@ -105,14 +103,9 @@ class Plugin(BasePlugin):
         text = ctx.output
         try:
             if text is not None and len(text) > 0:
-                client = OpenAI(
-                    api_key=self.window.core.config.get('api_key'),
-                    organization=self.window.core.config.get('organization_key'),
-                )
+                # get config
                 voice = self.get_option_value('voice')
                 model = self.get_option_value('model')
-                path = os.path.join(self.window.core.config.path, 'output.mp3')
-
                 if model not in self.allowed_models:
                     model = 'tts-1'
                 if voice not in self.allowed_voices:
@@ -121,23 +114,23 @@ class Plugin(BasePlugin):
                 # worker
                 worker = Worker()
                 worker.plugin = self
-                worker.client = client
+                worker.client = self.window.core.gpt.get_client()
                 worker.model = model
-                worker.path = path
+                worker.path = os.path.join(self.window.core.config.path, self.output_file)
                 worker.voice = voice
                 worker.text = text
 
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
                 worker.signals.stop.connect(self.handle_stop)
-                worker.signals.status.connect(self.handle_status)
-                worker.signals.error.connect(self.handle_error)
+                worker.signals.status.connect(self.handle_status)  # base handler
+                worker.signals.error.connect(self.handle_error)  # base handler
 
                 # start
                 self.window.threadpool.start(worker)
 
         except Exception as e:
-            self.window.core.debug.log(e)
+            self.debug(e)
 
     def destroy(self):
         """
@@ -180,22 +173,6 @@ class Plugin(BasePlugin):
         if self.playback is not None:
             self.playback.stop()
             self.playback = None
-
-    @Slot(object)
-    def handle_status(self, data):
-        """
-        Handle thread status msg
-        :param data
-        """
-        self.set_status(str(data))
-
-    @Slot(object)
-    def handle_error(self, error):
-        """
-        Handle thread error
-        :param error
-        """
-        self.window.core.debug.log(error)
 
     @Slot(object)
     def handle_playback(self, playback):
