@@ -11,17 +11,16 @@
 
 import pygame
 
-from PySide6.QtCore import QRunnable, Slot, QObject, Signal
+from PySide6.QtCore import Slot, Signal
+from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
-class WorkerSignals(QObject):
+class WorkerSignals(BaseSignals):
     playback = Signal(object)
     stop = Signal()
-    status = Signal(object)
-    error = Signal(object)
 
 
-class Worker(QRunnable):
+class Worker(BaseWorker):
     def __init__(self, *args, **kwargs):
         super(Worker, self).__init__()
         self.signals = WorkerSignals()
@@ -36,7 +35,7 @@ class Worker(QRunnable):
 
     @Slot()
     def run(self):
-        self.stop()  # stop previous playback
+        self.stop_playback()  # stop previous playback
         try:
             response = self.client.audio.speech.create(
                 model=self.model,
@@ -47,14 +46,22 @@ class Worker(QRunnable):
             pygame.mixer.init()
             playback = pygame.mixer.Sound(self.path)
             playback.play()
-            self.signals.playback.emit(playback)  # send playback object to main thread
-            self.signals.status.emit('')
+            self.send(playback)  # send playback object to main thread
+            self.status('')
         except Exception as e:
-            self.signals.error.emit(e)
+            self.error(e)
+
+    def send(self, playback):
+        """Send playback object to main thread"""
+        self.signals.playback.emit(playback)
+
+    def stop_playback(self):
+        """Stop audio playback"""
+        self.status('')
+        self.stop()
 
     def stop(self):
-        """Stop audio playback"""
-        self.signals.status.emit('')
+        """Send stop signal to main thread"""
         self.signals.stop.emit()
 
 

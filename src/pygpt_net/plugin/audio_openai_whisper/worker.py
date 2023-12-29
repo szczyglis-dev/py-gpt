@@ -13,21 +13,17 @@ import time
 import speech_recognition as sr
 import audioop
 
-from PySide6.QtCore import QRunnable, Slot, QObject, Signal
+from PySide6.QtCore import Slot
 
 from pygpt_net.utils import trans
+from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
-class WorkerSignals(QObject):
-    status = Signal(object)
-    error = Signal(object)
-    finished = Signal(object)
-    destroyed = Signal()
-    started = Signal()
-    stopped = Signal()
+class WorkerSignals(BaseSignals):
+    pass  # add custom signals here
 
 
-class Worker(QRunnable):
+class Worker(BaseWorker):
     def __init__(self, *args, **kwargs):
         super(Worker, self).__init__()
         self.signals = WorkerSignals()
@@ -45,18 +41,18 @@ class Worker(QRunnable):
 
             print("Starting audio listener....")
 
-            self.signals.started.emit()
-            self.signals.status.emit('')
+            self.started()
+            self.status('')
 
             with sr.Microphone() as source:
                 while self.plugin.listening and not self.plugin.window.is_closing:
-                    self.signals.status.emit('')
+                    self.status('')
 
                     if self.plugin.stop:
                         self.plugin.stop = False
                         self.plugin.listening = False
-                        self.signals.status.emit('Stop.')
-                        self.signals.stopped.emit()
+                        self.status('Stop.')
+                        self.stopped()
                         break
 
                     if not self.plugin.can_listen():
@@ -95,11 +91,11 @@ class Worker(QRunnable):
                         if self.plugin.can_listen():
                             if self.plugin.get_option_value('magic_word'):
                                 if self.plugin.magic_word_detected:
-                                    self.signals.status.emit(trans('audio.speak.now'))
+                                    self.status(trans('audio.speak.now'))
                                 else:
-                                    self.signals.status.emit(trans('audio.magic_word.please'))
+                                    self.status(trans('audio.magic_word.please'))
                             else:
-                                self.signals.status.emit(trans('audio.speak.now'))
+                                self.status(trans('audio.speak.now'))
 
                         min_energy = self.plugin.get_option_value('min_energy')
                         ambient_noise_energy = min_energy * recognizer.energy_threshold
@@ -122,9 +118,9 @@ class Worker(QRunnable):
                             # check RMS / energy
                             rms = audioop.rms(raw_data, 2)
                             if min_energy > 0:
-                                self.signals.status.emit("{}: {} / {} (x{})".
-                                                         format(trans('audio.speak.energy'),
-                                                                rms, int(ambient_noise_energy), min_energy))
+                                self.status("{}: {} / {} (x{})".
+                                            format(trans('audio.speak.energy'),
+                                                   rms, int(ambient_noise_energy), min_energy))
                             if rms < ambient_noise_energy:
                                 continue
 
@@ -134,7 +130,7 @@ class Worker(QRunnable):
 
                             # transcribe
                             with open(self.path, "rb") as audio_file:
-                                self.signals.status.emit(trans('audio.speak.wait'))
+                                self.status(trans('audio.speak.wait'))
                                 transcript = self.client.audio.transcriptions.create(
                                     model=self.plugin.get_option_value('model'),
                                     file=audio_file,
@@ -155,7 +151,7 @@ class Worker(QRunnable):
                                         continue
 
                                     if self.plugin.can_listen():
-                                        self.signals.finished.emit(transcript)
+                                        self.response(transcript)
 
                                     # stop listening if not continuous mode or stop word detected
                                     stop_words = self.plugin.get_words('stop_words')
@@ -164,15 +160,15 @@ class Worker(QRunnable):
 
                         if not self.plugin.get_option_value('continuous_listen') or is_stop_word:
                             self.plugin.listening = False
-                            self.signals.stopped.emit()
-                            self.signals.status.emit('')  # clear status
+                            self.stopped()
+                            self.status('')  # clear status
                             break
                     except Exception as e:
                         print("Speech recognition error: {}".format(str(e)))
 
-            self.signals.destroyed.emit()
+            self.destroyed()
 
         except Exception as e:
-            self.signals.error.emit(e)
-            self.signals.destroyed.emit()
+            self.error(e)
+            self.destroyed()
             print("Audio input thread error: {}".format(str(e)))

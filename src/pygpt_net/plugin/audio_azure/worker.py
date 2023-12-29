@@ -6,23 +6,23 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 03:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import pygame
 import requests
 
-from PySide6.QtCore import QRunnable, Slot, QObject, Signal
+from PySide6.QtCore import Slot, Signal
+
+from pygpt_net.plugin.base import BaseWorker, BaseSignals
 
 
-class WorkerSignals(QObject):
+class WorkerSignals(BaseSignals):
     playback = Signal(object)
     stop = Signal()
-    status = Signal(object)
-    error = Signal(object)
 
 
-class Worker(QRunnable):
+class Worker(BaseWorker):
     def __init__(self, *args, **kwargs):
         super(Worker, self).__init__()
         self.signals = WorkerSignals()
@@ -37,7 +37,7 @@ class Worker(QRunnable):
 
     @Slot()
     def run(self):
-        self.stop()  # stop previous playback
+        self.stop_playback()  # stop previous playback
         try:
             url = f"https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v1"
             headers = {
@@ -54,18 +54,26 @@ class Worker(QRunnable):
                 pygame.mixer.init()
                 playback = pygame.mixer.Sound(self.path)
                 playback.play()
-                self.signals.playback.emit(playback)  # send playback object to main thread
+                self.send(playback)  # send playback object to main thread
             else:
                 msg = "Error: {} - {}".format(response.status_code, response.text)
-                self.signals.error.emit(msg)
+                self.error(msg)
         except Exception as e:
-            self.signals.error.emit(str(e))
+            self.error(e)
 
-        self.signals.status.emit('')
+        self.status('')
+
+    def send(self, playback):
+        """Send playback object to main thread"""
+        self.signals.playback.emit(playback)
+
+    def stop_playback(self):
+        """Stop audio playback"""
+        self.status('')
+        self.stop()
 
     def stop(self):
-        """Stop audio playback"""
-        self.signals.status.emit('')
+        """Send stop signal to main thread"""
         self.signals.stop.emit()
 
 

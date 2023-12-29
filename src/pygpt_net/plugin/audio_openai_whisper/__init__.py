@@ -322,11 +322,12 @@ class Plugin(BasePlugin):
         """
         self.window.ui.plugin_addon['audio.input'].set_status(status)
 
-    @Slot(str)
-    def handle_input(self, text):
+    @Slot(object, object)
+    def handle_input(self, ctx, text):
         """
         Insert text to input and send
 
+        :param ctx: CtxItem
         :param text: text
         """
         if text is None or text.strip() == '':

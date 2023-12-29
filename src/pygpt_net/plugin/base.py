@@ -151,7 +151,7 @@ class BasePlugin:
     def trans(self, text=None):
         """
         Translate text using plugin domain
-        
+
         :param text: text to translate
         :return: translated text
         :rtype: str
