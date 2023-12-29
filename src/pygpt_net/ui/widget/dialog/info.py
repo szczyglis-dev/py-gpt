@@ -50,5 +50,5 @@ class InfoDialog(QDialog):
         """
         Cleanup on close
         """
-        self.window.core.info.active[self.id] = False
-        self.window.controller.info.update_menu()
+        self.window.controller.dialogs.info.active[self.id] = False
+        self.window.controller.dialogs.info.update_menu()

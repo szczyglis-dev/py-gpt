@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -37,6 +37,6 @@ class RenameInput(QLineEdit):
 
         # save on Enter
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            self.window.controller.confirm.accept_rename(self.window.ui.dialog['rename'].id,
+            self.window.controller.dialogs.confirm.accept_rename(self.window.ui.dialog['rename'].id,
                                                          self.window.ui.dialog['rename'].current,
                                                          self.text())

@@ -65,11 +65,11 @@ class About:
         logo_label.setPixmap(pixmap)
 
         btn_www = QPushButton('WWW')
-        btn_www.clicked.connect(lambda: self.window.controller.info.goto_website())
+        btn_www.clicked.connect(lambda: self.window.controller.dialogs.info.goto_website())
         btn_www.setCursor(Qt.PointingHandCursor)
 
         btn_github = QPushButton('GitHub')
-        btn_github.clicked.connect(lambda: self.window.controller.info.goto_github())
+        btn_github.clicked.connect(lambda: self.window.controller.dialogs.info.goto_github())
         btn_github.setCursor(Qt.PointingHandCursor)
 
         buttons_layout = QHBoxLayout()

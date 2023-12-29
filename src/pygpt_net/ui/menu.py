@@ -201,21 +201,21 @@ class Menu:
                                                      self.window)
 
         self.window.ui.menu['info.about'].triggered.connect(
-            lambda: self.window.controller.info.toggle('about'))
+            lambda: self.window.controller.dialogs.info.toggle('about'))
         self.window.ui.menu['info.changelog'].triggered.connect(
-            lambda: self.window.controller.info.toggle('changelog'))
+            lambda: self.window.controller.dialogs.info.toggle('changelog'))
         self.window.ui.menu['info.updates'].triggered.connect(
             lambda: self.window.controller.launcher.check_updates())
         self.window.ui.menu['info.website'].triggered.connect(
-            lambda: self.window.controller.info.goto_website())
+            lambda: self.window.controller.dialogs.info.goto_website())
         self.window.ui.menu['info.docs'].triggered.connect(
-            lambda: self.window.controller.info.goto_docs())
+            lambda: self.window.controller.dialogs.info.goto_docs())
         self.window.ui.menu['info.pypi'].triggered.connect(
-            lambda: self.window.controller.info.goto_pypi())
+            lambda: self.window.controller.dialogs.info.goto_pypi())
         self.window.ui.menu['info.snap'].triggered.connect(
-            lambda: self.window.controller.info.goto_snap())
+            lambda: self.window.controller.dialogs.info.goto_snap())
         self.window.ui.menu['info.github'].triggered.connect(
-            lambda: self.window.controller.info.goto_github())
+            lambda: self.window.controller.dialogs.info.goto_github())
 
         self.window.ui.menu['menu.about'] = self.window.menuBar().addMenu(trans("menu.info"))
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.about'])

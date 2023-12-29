@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -33,11 +33,11 @@ class ConfirmDialog(QDialog):
 
         btn_yes = QPushButton(trans('dialog.confirm.yes'))
         btn_yes.clicked.connect(
-            lambda: self.window.controller.confirm.accept(self.type, self.id, self.parent_object))
+            lambda: self.window.controller.dialogs.confirm.accept(self.type, self.id, self.parent_object))
 
         btn_no = QPushButton(trans('dialog.confirm.no'))
         btn_no.clicked.connect(
-            lambda: self.window.controller.confirm.dismiss(self.type, self.id))
+            lambda: self.window.controller.dialogs.confirm.dismiss(self.type, self.id))
 
         bottom = QHBoxLayout()
         bottom.addWidget(btn_no)

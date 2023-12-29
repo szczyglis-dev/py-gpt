@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
@@ -32,12 +32,12 @@ class RenameDialog(QDialog):
 
         self.window.ui.nodes['dialog.rename.btn.update'] = QPushButton(trans('dialog.rename.update'))
         self.window.ui.nodes['dialog.rename.btn.update'].clicked.connect(
-            lambda: self.window.controller.confirm.accept_rename(self.id, self.window.ui.dialog['rename'].current,
+            lambda: self.window.controller.dialogs.confirm.accept_rename(self.id, self.window.ui.dialog['rename'].current,
                                                                  self.input.text()))
 
         self.window.ui.nodes['dialog.rename.btn.dismiss'] = QPushButton(trans('dialog.rename.dismiss'))
         self.window.ui.nodes['dialog.rename.btn.dismiss'].clicked.connect(
-            lambda: self.window.controller.confirm.dismiss_rename())
+            lambda: self.window.controller.dialogs.confirm.dismiss_rename())
 
         bottom = QHBoxLayout()
         bottom.addWidget(self.window.ui.nodes['dialog.rename.btn.dismiss'])

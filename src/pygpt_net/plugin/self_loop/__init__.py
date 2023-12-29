@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.18 04:00:00                  #
 # ================================================== #
 
-from pygpt_net.plugin.base_plugin import BasePlugin
+from pygpt_net.plugin.base import BasePlugin
 
 
 class Plugin(BasePlugin):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -15,11 +15,19 @@ import webbrowser
 class Info:
     def __init__(self, window=None):
         """
-        Info controller
+        Info dialogs controller
 
         :param window Window instance
         """
         self.window = window
+
+        # prepare info ids
+        self.ids = ['about', 'changelog']
+        self.active = {}
+
+        # prepare active
+        for id in self.ids:
+            self.active[id] = False
 
     def setup(self):
         pass
@@ -30,12 +38,12 @@ class Info:
 
         :param id: window to toggle
         """
-        if id in self.window.core.info.active and self.window.core.info.active[id]:
+        if id in self.active and self.active[id]:
             self.window.ui.dialogs.close('info.' + id)
-            self.window.core.info.active[id] = False
+            self.active[id] = False
         else:
             self.window.ui.dialogs.open('info.' + id)
-            self.window.core.info.active[id] = True
+            self.active[id] = True
 
         # update menu
         self.update_menu()
@@ -66,8 +74,8 @@ class Info:
 
     def update_menu(self):
         """Update info menu"""
-        for id in self.window.core.info.ids:
-            if id in self.window.core.info.active and self.window.core.info.active[id]:
+        for id in self.ids:
+            if id in self.active and self.active[id]:
                 self.window.ui.menu['info.' + id].setChecked(True)
             else:
                 self.window.ui.menu['info.' + id].setChecked(False)

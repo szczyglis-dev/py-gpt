@@ -14,12 +14,11 @@ from pygpt_net.controller.attachment import Attachment
 from pygpt_net.controller.audio import Audio
 from pygpt_net.controller.camera import Camera
 from pygpt_net.controller.command import Command
-from pygpt_net.controller.confirm import Confirm
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.image import Image
-from pygpt_net.controller.info import Info
+from pygpt_net.controller.dialogs import Dialogs
 from pygpt_net.controller.input import Input
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
@@ -49,12 +48,11 @@ class Controller:
         self.audio = Audio(window)
         self.camera = Camera(window)
         self.command = Command(window)
-        self.confirm = Confirm(window)
         self.ctx = Ctx(window)
         self.debug = Debug(window)
+        self.dialogs = Dialogs(window)
         self.files = Files(window)
         self.image = Image(window)
-        self.info = Info(window)
         self.input = Input(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
@@ -87,7 +85,7 @@ class Controller:
         self.output.setup()
         self.ctx.setup()
         self.ui.update_tokens()
-        self.info.setup()
+        self.dialogs.setup()
         self.audio.setup()
         self.attachment.setup()
         self.notepad.setup()

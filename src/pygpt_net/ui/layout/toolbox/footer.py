@@ -113,6 +113,6 @@ class Footer:
         button.setIcon(QIcon(path))
         button.setIconSize(QSize(100, 28))
         button.setFlat(True)
-        button.clicked.connect(lambda: self.window.controller.info.goto_website())
+        button.clicked.connect(lambda: self.window.controller.dialogs.info.goto_website())
 
         return button

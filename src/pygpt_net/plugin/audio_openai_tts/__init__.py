@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import os
@@ -16,7 +16,7 @@ import pygame
 from PySide6.QtCore import QObject, Slot, Signal
 from openai import OpenAI
 
-from pygpt_net.plugin.base_plugin import BasePlugin
+from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.utils import trans
 
 

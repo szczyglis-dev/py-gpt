@@ -33,12 +33,12 @@ class UpdateDialog(QDialog):
         self.download = QPushButton(trans('update.download'))
         self.download.setCursor(Qt.PointingHandCursor)
         self.download.clicked.connect(
-            lambda: self.window.controller.info.goto_update())
+            lambda: self.window.controller.dialogs.info.goto_update())
 
         self.snap = QPushButton(trans('update.snap'))
         self.snap.setCursor(Qt.PointingHandCursor)
         self.snap.clicked.connect(
-            lambda: self.window.controller.info.goto_snap())
+            lambda: self.window.controller.dialogs.info.goto_snap())
 
         self.changelog = QPlainTextEdit()
         self.changelog.setReadOnly(True)
