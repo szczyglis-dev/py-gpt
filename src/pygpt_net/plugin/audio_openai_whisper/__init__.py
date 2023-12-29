@@ -163,20 +163,6 @@ class Plugin(BasePlugin):
             words = [x.strip() for x in words]  # remove white-spaces
         return words
 
-    def get_prefix_words(self):
-        """
-        Return prefix words
-
-        :return: prefix words
-        :rtype: list
-        """
-        words_str = self.get_option_value('prefix_words')
-        words = []
-        if words_str is not None and len(words_str) > 0 and words_str.strip() != ' ':
-            words = words_str.split(',')
-            words = [x.strip() for x in words] # remove white-spaces
-        return words
-
     def toggle_speech(self, state):
         """
         Toggle speech
@@ -350,7 +336,7 @@ class Plugin(BasePlugin):
             return
 
         # check prefix words
-        prefix_words = self.get_prefix_words()
+        prefix_words = self.get_words('prefix_words')
         if len(prefix_words) > 0:
             for word in prefix_words:
                 check_text = text.lower().strip()
