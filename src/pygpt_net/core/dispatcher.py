@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
+
+import json
+
 
 class Dispatcher:
     def __init__(self, window=None):
@@ -46,6 +49,19 @@ class Dispatcher:
                 self.window.core.plugins.plugins[id].handle(event)
             except AttributeError:
                 pass
+
+    def reply(self, ctx):
+        """
+        Reply to late response (async event)
+
+        :param ctx: context object
+        """
+        if ctx is not None:
+            self.window.set_status("")  # Clear status
+            if ctx.reply:
+                self.window.core.ctx.update_item(ctx)  # update context in db
+                self.window.set_status('...')
+                self.window.controller.input.send(json.dumps(ctx.results), force=True)  # force send result to input
 
 
 class Event:

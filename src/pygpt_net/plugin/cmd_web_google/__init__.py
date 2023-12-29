@@ -9,8 +9,11 @@
 # Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Slot
+
 from pygpt_net.plugin.base import BasePlugin
 from .websearch import WebSearch
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -160,8 +163,55 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        self.debug('[CMD] ' + str(msg))
-        print('[CMD] ' + str(msg))
+        full_msg = '[CMD] ' + str(msg)
+        self.debug(full_msg)
+        self.window.set_status(full_msg)
+        print(full_msg)
+
+    @Slot(object)
+    def handle_finished(self, ctx, response):
+        """
+        Handle finished response
+        :param ctx: context
+        :param response: response
+        """
+        # dispatcher handle late response
+        ctx.results.append(response)
+        ctx.reply = True
+        self.window.core.dispatcher.reply(ctx)
+
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread status msg
+        :param data
+        """
+        self.window.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, err):
+        """
+        Handle thread error
+        :param err
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert("Google Search Error: " + str(err))
+
+    @Slot(object)
+    def handle_debug(self, msg):
+        """
+        Handle debug message
+        :param msg: message
+        """
+        self.debug(msg)
+
+    @Slot(object)
+    def handle_log(self, msg):
+        """
+        Handle log message
+        :param msg: message
+        """
+        self.log(msg)
 
     def cmd_syntax(self, data):
         """
@@ -181,71 +231,64 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
-        msg = None
+        is_cmd = False
+        need_api_key = False
+        my_commands = []
         for item in cmds:
-            try:
-                if item["cmd"] in self.allowed_cmds:
-                    ctx.reply = True
+            if item["cmd"] in self.allowed_cmds:
+                my_commands.append(item)
+                is_cmd = True
+                if item["cmd"] == "web_search":
+                    need_api_key = True
 
-                    # prepare request item for result
-                    request_item = {"cmd": item["cmd"]}
+        if not is_cmd:
+            return
 
-                    # check API keys
-                    key = self.get_option_value("google_api_key")
-                    cx = self.get_option_value("google_api_cx")
+        # check API key
+        key = self.get_option_value("google_api_key")
+        cx = self.get_option_value("google_api_cx")
+        if need_api_key and key is None or cx is None or key == "" or cx == "":
+            self.gen_api_key_response(ctx, cmds)
+            self.window.ui.dialogs.alert("Google API key and CX ID are required for this command to work. "
+                                         "Please go to the plugin settings and enter your API key and CX ID.")
+            return
 
-                    if key is None or cx is None or key == "" or cx == "":
-                        err = "Google API key or CX is not set. Please set them in plugin settings."
-                        self.log(err)
-                        self.window.set_status(err)
-                        msg = "Tell the user that the Google API key is not configured in the plugin settings, " \
-                              "and to set the API key in the settings in order to use the internet search plugin."
-                        data = {
-                            'msg_to_user': msg,
-                        }
-                        response = {"request": request_item, "result": data}
-                        ctx.results.append(response)
-                        return
+        # worker
+        worker = Worker()
+        worker.plugin = self
+        worker.cmds = my_commands
+        worker.ctx = ctx
+        worker.websearch = self.websearch
 
-                    if item["cmd"] == "web_search":
-                        page = 1
-                        if "page" in item["params"]:
-                            page = int(item["params"]["page"])
-                        custom_summarize_prompt = None
-                        if "summarize_prompt" in item["params"]:
-                            custom_summarize_prompt = item["params"]["summarize_prompt"]
-                        msg = "Web search finished: '{}'".format(item["params"]["query"])
-                        result, total_found, current, url = self.websearch.make_query(item["params"]["query"],
-                                                                                      page, custom_summarize_prompt)
-                        data = {
-                            'content': result,
-                            'url': url,
-                            'page': current,
-                            'total_found': total_found,
-                        }
-                        response = {"request": request_item, "result": data}
-                        ctx.results.append(response)
+        # signals
+        worker.signals.finished.connect(self.handle_finished)
+        worker.signals.log.connect(self.handle_log)
+        worker.signals.debug.connect(self.handle_debug)
+        worker.signals.status.connect(self.handle_status)
+        worker.signals.error.connect(self.handle_error)
 
-                    elif item["cmd"] == "web_url_open":
-                        custom_summarize_prompt = None
-                        if "summarize_prompt" in item["params"]:
-                            custom_summarize_prompt = item["params"]["summarize_prompt"]
-                        url = item["params"]["url"]
-                        msg = "Opening Web URL: '{}'".format(item["params"]["url"])
-                        result, url = self.websearch.open_url(url, custom_summarize_prompt)
-                        data = {
-                            'content': result,
-                            'url': url,
-                        }
-                        response = {"request": request_item, "result": data}
-                        ctx.results.append(response)
-            except Exception as e:
-                response = {"request": item, "result": "Error: {}".format(e)}
-                ctx.results.append(response)
-                ctx.reply = True
-                self.window.core.debug.log(e)
-                self.log("Error: {}".format(e))
+        # start
+        self.window.threadpool.start(worker)
 
-        if msg is not None:
-            self.log(msg)
-            self.window.set_status(msg)
+    def gen_api_key_response(self, ctx, cmds):
+        """
+        Generate response for empty API key error
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        """
+        for item in cmds:
+            # prepare request item for result
+            request_item = {"cmd": item["cmd"]}
+            err = "Google API key or CX is not set. Please set credentials in plugin settings."
+            self.log(err)
+            self.window.set_status(err)
+            msg = "Tell the user that the Google API key is not configured in the plugin settings, " \
+                  "and to set the API key in the settings in order to use the internet search plugin."
+            data = {
+                'msg_to_user': msg,
+            }
+            response = {"request": request_item, "result": data}
+            ctx.results.append(response)
+            ctx.reply = True
+            return

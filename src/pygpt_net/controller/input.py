@@ -395,7 +395,7 @@ class Input:
                 or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
 
             # clear input area if clear-on-send enabled
-            if self.window.core.config.get('send_clear'):
+            if self.window.core.config.get('send_clear') and not force:
                 self.window.ui.nodes['input'].clear()
 
             # check API key
