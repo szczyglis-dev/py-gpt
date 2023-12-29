@@ -9,11 +9,11 @@
 # Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
-import os.path
-import subprocess
-import docker
+from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base import BasePlugin
+from .runner import Runner
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -31,6 +31,7 @@ class Plugin(BasePlugin):
         ]
         self.use_locale = True
         self.init_options()
+        self.runner = Runner(self)
 
     def init_options(self):
         """
@@ -115,17 +116,61 @@ class Plugin(BasePlugin):
             return True
         return False
 
-    def log(self, msg, sandbox=False):
+    def log(self, msg):
         """
         Log message to console
 
         :param msg: message to log
         """
-        prefix = '[CMD]'
-        if sandbox:
-            prefix += '[DOCKER]'
-        self.debug(prefix + ' ' + str(msg))
-        print(prefix + ' ' + str(msg))
+        full_msg = '[CMD] ' + str(msg)
+        self.debug(full_msg)
+        self.window.set_status(full_msg)
+        print(full_msg)
+
+    @Slot(object)
+    def handle_finished(self, ctx, response):
+        """
+        Handle finished response
+        :param ctx: context
+        :param response: response
+        """
+        # dispatcher handle late response
+        ctx.results.append(response)
+        ctx.reply = True
+        self.window.core.dispatcher.reply(ctx)
+
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread status msg
+        :param data
+        """
+        self.window.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, err):
+        """
+        Handle thread error
+        :param err
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert("Code Interpreter Error: " + str(err))
+
+    @Slot(object)
+    def handle_debug(self, msg):
+        """
+        Handle debug message
+        :param msg: message
+        """
+        self.debug(msg)
+
+    @Slot(object)
+    def handle_log(self, msg):
+        """
+        Handle log message
+        :param msg: message
+        """
+        self.log(msg)
 
     def cmd_syntax(self, data):
         """
@@ -139,241 +184,6 @@ class Plugin(BasePlugin):
                 if self.has_option(key):
                     data['syntax'].append(str(self.get_option_value(key)))
 
-    def run_cmd_host(self, ctx, item, request_item):
-        """
-        Run command on host machine
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        :return: result
-        """
-        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
-        # check if file exists
-        if not os.path.isfile(path):
-            msg = "File not found: {}".format(item["params"]['filename'])
-            ctx.results.append({"request": request_item, "result": "File not found"})
-            return
-
-        # run code
-        cmd = self.get_option_value('python_cmd_tpl').format(filename=path)
-        self.log("Running command: {}".format(cmd))
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        result = self.handle_result(stdout, stderr)
-        ctx.results.append({"request": request_item, "result": result})
-        return result
-
-    def handle_result(self, stdout, stderr):
-        """
-        Handle result from subprocess
-
-        :param stdout: stdout
-        :param stderr: stderr
-        :return: result
-        """
-        result = None
-        if stdout:
-            result = stdout.decode("utf-8")
-            self.log("STDOUT: {}".format(result))
-        if stderr:
-            result = stderr.decode("utf-8")
-            self.log("STDERR: {}".format(result))
-        if result is None:
-            result = "No result (STDOUT/STDERR empty)"
-            self.log(result)
-        return result
-
-    def handle_result_docker(self, response):
-        """
-        Handle result from docker container
-
-        :param response: response
-        :return: result
-        """
-        result = response.decode('utf-8')
-        self.log("Result: {}".format(result), sandbox=True)
-        return result
-
-    def is_sandbox(self):
-        """
-        Check if sandbox is enabled
-
-        :return: true if sandbox is enabled
-        :rtype: bool
-        """
-        return self.get_option_value('sandbox_docker')
-
-    def get_docker(self):
-        """
-        Get docker client
-
-        :return: docker client
-        :rtype: docker.client.DockerClient
-        """
-        return docker.from_env()
-
-    def get_docker_image(self):
-        """
-        Get docker image
-
-        :return: docker image
-        :rtype: str
-        """
-        return self.get_option_value('sandbox_docker_image')
-
-    def get_volumes(self):
-        """
-        Get docker volumes
-
-        :return: docker volumes
-        :rtype: dict
-        """
-        path = os.path.join(self.window.core.config.path, 'output')
-        mapping = {}
-        mapping[path] = {
-            "bind": "/data",
-            "mode": "rw"
-        }
-        return mapping
-
-    def run_docker(self, cmd):
-        """
-        Run docker container with command and return response
-
-        :param cmd: command to run
-        :return: response
-        """
-        client = self.get_docker()
-        mapping = self.get_volumes()
-        return client.containers.run(self.get_docker_image(), cmd,
-                                     volumes=mapping, working_dir="/data", stdout=True, stderr=True)
-
-    def code_execute_file_sandbox(self, ctx, item, request_item):
-        """
-        Execute code from file in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        """
-        msg = "Executing Python file: {}".format(item["params"]['filename'])
-        self.log(msg, sandbox=True)
-        cmd = self.get_option_value('python_cmd_tpl').format(filename=item["params"]['filename'])
-        self.log("Running command: {}".format(cmd), sandbox=True)
-        response = self.run_docker(cmd)
-        result = self.handle_result_docker(response)
-        ctx.results.append({"request": request_item, "result": result})
-
-    def code_execute_sandbox(self, ctx, item, request_item):
-        """
-        Execute code in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        """
-        msg = "Saving Python file: {}".format(item["params"]['filename'])
-        self.log(msg, sandbox=True)
-        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
-        data = item["params"]['code']
-        with open(path, 'w', encoding="utf-8") as file:
-            file.write(data)
-            file.close()
-        # run code
-        msg = "Executing Python code: {}".format(item["params"]['code'])
-        self.log(msg, sandbox=True)
-        cmd = self.get_option_value('python_cmd_tpl').format(filename=item["params"]['filename'])
-        self.log("Running command: {}".format(cmd), sandbox=True)
-        response = self.run_docker(cmd)
-        result = self.handle_result_docker(response)
-        ctx.results.append({"request": request_item, "result": result})
-
-    def sys_exec_sandbox(self, ctx, item, request_item):
-        """
-        Execute system command in sandbox (docker)
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        """
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg, sandbox=True)
-        self.log("Running command: {}".format(item["params"]['command']), sandbox=True)
-        response = self.run_docker(item["params"]['command'])
-        result = self.handle_result_docker(response)
-        ctx.results.append({"request": request_item, "result": result})
-
-    def code_execute_file_host(self, ctx, item, request_item):
-        """
-        Execute code from file on host machine
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        """
-        msg = "Executing Python file: {}".format(item["params"]['filename'])
-        self.log(msg)
-        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
-
-        # check if file exists
-        if not os.path.isfile(path):
-            msg = "File not found: {}".format(item["params"]['filename'])
-            ctx.results.append({"request": request_item, "result": "File not found"})
-            return
-
-        # run code
-        cmd = self.get_option_value('python_cmd_tpl').format(filename=path)
-        self.log("Running command: {}".format(cmd))
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        result = self.handle_result(stdout, stderr)
-        ctx.results.append({"request": request_item, "result": result})
-
-    def code_execute_host(self, ctx, item, request_item):
-        """
-        Execute code on host machine
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        """
-        # write code to file
-        msg = "Saving Python file: {}".format(item["params"]['filename'])
-        self.log(msg)
-        path = os.path.join(self.window.core.config.path, 'output', item["params"]['filename'])
-        data = item["params"]['code']
-        with open(path, 'w', encoding="utf-8") as file:
-            file.write(data)
-            file.close()
-        # run code
-        cmd = self.get_option_value('python_cmd_tpl').format(filename=path)
-        self.log("Running command: {}".format(cmd))
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        result = self.handle_result(stdout, stderr)
-        ctx.results.append({"request": request_item, "result": result})
-
-    def sys_exec_host(self, ctx, item, request_item):
-        """
-        Execute system command on host
-
-        :param ctx: CtxItem
-        :param item: command item
-        :param request_item: request item
-        """
-        msg = "Executing system command: {}".format(item["params"]['command'])
-        self.log(msg)
-        self.log("Running command: {}".format(item["params"]['command']))
-        process = subprocess.Popen(item["params"]['command'], shell=True, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        result = self.handle_result(stdout, stderr)
-        ctx.results.append({"request": request_item, "result": result})
-
     def cmd(self, ctx, cmds):
         """
         Execute command
@@ -381,53 +191,31 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
-        msg = None
+        is_cmd = False
+        my_commands = []
         for item in cmds:
-            try:
-                if item["cmd"] in self.allowed_cmds:
-                    # prepare request item for result
-                    request_item = {"cmd": item["cmd"]}
-                    ctx.reply = True  # send result message
+            if item["cmd"] in self.allowed_cmds:
+                my_commands.append(item)
+                is_cmd = True
 
-                    # code_execute (from existing file)
-                    if item["cmd"] == "code_execute_file" and self.is_cmd_allowed("code_execute_file"):
-                        try:
-                            if not self.is_sandbox():
-                                self.code_execute_file_host(ctx, item, request_item)
-                            else:
-                                self.code_execute_file_sandbox(ctx, item, request_item)
-                        except Exception as e:
-                            ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.log("Error: {}".format(e))
-                            self.window.core.debug.log(e)
+        if not is_cmd:
+            return
 
-                    # code_execute (generate and execute)
-                    elif item["cmd"] == "code_execute" and self.is_cmd_allowed("code_execute"):
-                        try:
-                            if not self.is_sandbox():
-                                self.code_execute_host(ctx, item, request_item)
-                            else:
-                                self.code_execute_sandbox(ctx, item, request_item)
-                        except Exception as e:
-                            ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.log("Error: {}".format(e))
-                            self.window.core.debug.log(e)
+        # worker
+        worker = Worker()
+        worker.plugin = self
+        worker.cmds = my_commands
+        worker.ctx = ctx
 
-                    # sys_exec
-                    elif item["cmd"] == "sys_exec" and self.is_cmd_allowed("sys_exec"):
-                        try:
-                            if not self.is_sandbox():
-                                self.sys_exec_host(ctx, item, request_item)
-                            else:
-                                self.sys_exec_sandbox(ctx, item, request_item)
-                        except Exception as e:
-                            ctx.results.append({"request": request_item, "result": "Error: {}".format(e)})
-                            self.log("Error: {}".format(e))
-                            self.window.core.debug.log(e)
-            except Exception as e:
-                ctx.results.append({"request": item, "result": "Error: {}".format(e)})
-                ctx.reply = True  # send result message
-                self.log("Error: {}".format(e))
+        # signals
+        worker.signals.finished.connect(self.handle_finished)
+        worker.signals.log.connect(self.handle_log)
+        worker.signals.debug.connect(self.handle_debug)
+        worker.signals.status.connect(self.handle_status)
+        worker.signals.error.connect(self.handle_error)
 
-        if msg is not None:
-            self.window.set_status(msg)
+        # connect signals
+        self.runner.signals = worker.signals
+
+        # start
+        self.window.threadpool.start(worker)
