@@ -17,7 +17,7 @@ class Info:
         """
         Info dialogs controller
 
-        :param window Window instance
+        :param window: Window instance
         """
         self.window = window
 
