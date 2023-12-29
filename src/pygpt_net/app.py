@@ -20,7 +20,7 @@ from logging import ERROR, WARNING, INFO, DEBUG
 
 from pygpt_net.container import Container
 from pygpt_net.controller import Controller
-from pygpt_net.core.debugging import Debug
+from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui import UI
 from pygpt_net.utils import get_app_meta
