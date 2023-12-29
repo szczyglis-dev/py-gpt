@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -18,7 +18,7 @@ import os
 class Plugins:
     def __init__(self, window):
         """
-        Plugins handler
+        Plugins core
 
         :param window: Window instance
         """
@@ -35,6 +35,35 @@ class Plugins:
         :rtype: bool
         """
         return id in self.plugins
+
+    def all(self):
+        """
+        Get all plugins
+
+        :return: plugins dict
+        :rtype: dict
+        """
+        return self.plugins
+
+    def get_ids(self):
+        """
+        Get all plugins ids
+
+        :return: plugins ids
+        :rtype: list
+        """
+        return self.plugins.keys()
+
+    def get(self, id):
+        """
+        Get plugin by id
+
+        :param id: plugin id
+        :return: plugin instance
+        """
+        if self.is_registered(id):
+            return self.plugins[id]
+        return None
 
     def register(self, plugin):
         """
@@ -69,30 +98,73 @@ class Plugins:
         if self.is_registered(id):
             self.plugins.pop(id)
 
+    def enable(self, id):
+        """
+        Enable plugin
+
+        :param id: plugin id
+        """
+        if self.is_registered(id):
+            self.plugins[id].enabled = True
+            self.window.core.config.data['plugins_enabled'][id] = True
+            self.window.core.config.save()
+
+    def disable(self, id):
+        """
+        Disable plugin
+
+        :param id: plugin id
+        """
+        if self.is_registered(id):
+            self.plugins[id].enabled = False
+            self.window.core.config.data['plugins_enabled'][id] = False
+            self.window.core.config.save()
+
+    def destroy(self, id):
+        """
+        Destroy plugin workers (send stop signal)
+
+        :param id: plugin id
+        """
+        if self.is_registered(id):
+            self.plugins[id].destroy()
+
+    def has_options(self, id):
+        """
+        Check if plugin has options
+
+        :param id: plugin id
+        :return: true if has options
+        :rtype: bool
+        """
+        if self.is_registered(id):
+            return hasattr(self.plugins[id], 'options') and len(self.plugins[id].options) > 0
+        return False
+
     def restore_options(self, id):
         """
         Restore options to initial values
 
         :param id: plugin id
         """
-        persisted_options = []
-        persisted_values = {}
+        options = []
+        values = {}
         for key in self.plugins[id].options:
             if 'persist' in self.plugins[id].options[key] and self.plugins[id].options[key]['persist']:
-                persisted_options.append(key)
+                options.append(key)
 
         # store persisted values
-        for key in persisted_options:
-            persisted_values[key] = self.plugins[id].options[key]['value']
+        for key in options:
+            values[key] = self.plugins[id].options[key]['value']
 
         # restore initial values
         if id in self.plugins:
             if hasattr(self.plugins[id], 'initial_options'):
-                self.plugins[id].options = dict(self.plugins[id].initial_options)
+                self.plugins[id].options = copy.deepcopy(self.plugins[id].initial_options)  # copy
 
         # restore persisted values
-        for key in persisted_options:
-            self.plugins[id].options[key]['value'] = persisted_values[key]
+        for key in options:
+            self.plugins[id].options[key]['value'] = values[key]
 
     def dump_locale(self, plugin, path):
         """
@@ -144,5 +216,6 @@ class Plugins:
         for id in self.plugins:
             domain = 'plugin.' + id
             for lang in langs:
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'locale', domain + '.' + lang + '.ini')
+                path = os.path.join(
+                    self.window.core.config.get_app_path(), 'data', 'locale', domain + '.' + lang + '.ini')
                 self.dump_locale(self.plugins[id], path)

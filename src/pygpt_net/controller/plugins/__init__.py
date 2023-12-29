@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -36,12 +36,13 @@ class Plugins:
 
     def setup_ui(self):
         """Set up plugins UI"""
-        for id in self.window.core.plugins.plugins:
-            plugin = self.window.core.plugins.plugins[id]
+        for id in self.window.core.plugins.get_ids():
             try:
-                plugin.setup_ui()  # setup UI
+                # setup UI
+                self.window.core.plugins.get(id).setup_ui()
             except AttributeError:
                 pass
+
         # show/hide UI elements
         self.handle_enabled_types()
 
@@ -50,11 +51,11 @@ class Plugins:
 
     def setup_menu(self):
         """Set up plugins menu"""
-        for id in self.window.core.plugins.plugins:
-            plugin = self.window.core.plugins.plugins[id]
+        for id in self.window.core.plugins.get_ids():
+            plugin = self.window.core.plugins.get(id)
             if id in self.window.ui.menu['plugins']:
                 continue
-            default_name = self.window.core.plugins.plugins[id].name
+            default_name = plugin.name
             trans_key = 'plugin.' + id
             name = trans(trans_key)
             if name == trans_key:
@@ -64,7 +65,7 @@ class Plugins:
                 name = trans('plugin.name', False, domain)
             self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
             self.window.ui.menu['plugins'][id].triggered.connect(
-                lambda checked=None, id=id: self.window.controller.plugins.toggle(id))
+                lambda checked=None, id=id: self.toggle(id))
             self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins'][id])
 
     def update(self):
@@ -80,10 +81,10 @@ class Plugins:
 
     def destroy(self):
         """Destroy plugins workers"""
-        for id in self.window.core.plugins.plugins:
-            plugin = self.window.core.plugins.plugins[id]
+        for id in self.window.core.plugins.get_ids():
             try:
-                plugin.destroy()  # destroy plugin workers
+                # destroy plugin workers
+                self.window.core.plugins.destroy(id)
             except AttributeError:
                 pass
 
@@ -105,16 +106,13 @@ class Plugins:
         """
         if self.window.core.plugins.is_registered(id):
             self.enabled[id] = True
-            self.window.core.plugins.plugins[id].enabled = True
+            self.window.core.plugins.enable(id)
 
             # dispatch event
             event = Event('enable', {
                 'value': id,
             })
             self.window.core.dispatcher.dispatch(event)
-
-            self.window.core.config.data['plugins_enabled'][id] = True
-            self.window.core.config.save()
 
             # update audio menu
             if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
@@ -131,16 +129,13 @@ class Plugins:
         """
         if self.window.core.plugins.is_registered(id):
             self.enabled[id] = False
-            self.window.core.plugins.plugins[id].enabled = False
+            self.window.core.plugins.disable(id)
 
             # dispatch event
             event = Event('disable', {
                 'value': id,
             })
             self.window.core.dispatcher.dispatch(event)
-
-            self.window.core.config.data['plugins_enabled'][id] = False
-            self.window.core.config.save()
 
             # update audio menu
             if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
@@ -184,8 +179,8 @@ class Plugins:
         :param idx: tab index
         """
         plugin_idx = 0
-        for id in self.window.core.plugins.plugins:
-            if self.window.core.plugins.plugins[id].options:
+        for id in self.window.core.plugins.get_ids():
+            if self.window.core.plugins.has_options(id):
                 if plugin_idx == idx:
                     self.settings.current_plugin = id
                     break
@@ -201,7 +196,7 @@ class Plugins:
         """
         plugin_idx = None
         i = 0
-        for id in self.window.core.plugins.plugins:
+        for id in self.window.core.plugins.get_ids():
             if id == plugin_id:
                 plugin_idx = i
                 break
@@ -211,15 +206,15 @@ class Plugins:
     def update_info(self):
         """Update plugins info"""
         enabled_list = []
-        for id in self.window.core.plugins.plugins:
+        for id in self.window.core.plugins.get_ids():
             if self.is_enabled(id):
-                enabled_list.append(self.window.core.plugins.plugins[id].name)
+                enabled_list.append(self.window.core.plugins.get(id).name)
         tooltip = " + ".join(enabled_list)
 
         count_str = ""
         c = 0
-        if len(self.window.core.plugins.plugins) > 0:
-            for id in self.window.core.plugins.plugins:
+        if len(self.window.core.plugins.get_ids()) > 0:
+            for id in self.window.core.plugins.get_ids():
                 if self.is_enabled(id):
                     c += 1
 
@@ -242,7 +237,7 @@ class Plugins:
         :return:
         """
         if self.window.core.plugins.is_registered(id):
-            if type in self.window.core.plugins.plugins[id].type:
+            if type in self.window.core.plugins.get(id).type:
                 return True
         return False
 
@@ -250,12 +245,13 @@ class Plugins:
         """
         Check if plugin type is enabled
 
+        :param type: plugin type
         :return: true if enabled
         :rtype: bool
         """
         enabled = False
-        for id in self.window.core.plugins.plugins:
-            if type in self.window.core.plugins.plugins[id].type and self.is_enabled(id):
+        for id in self.window.core.plugins.get_ids():
+            if type in self.window.core.plugins.get(id).type and self.is_enabled(id):
                 enabled = True
                 break
         return enabled
