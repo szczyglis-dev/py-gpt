@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2023.12.28 21:00:00                  #
+# ================================================== #
+
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItemModel
+from PySide6.QtWidgets import QHeaderView
+
+from pygpt_net.core.debug.assistants import AssistantsDebug
+from pygpt_net.core.debug.attachments import AttachmentsDebug
+from pygpt_net.core.debug.config import ConfigDebug
+from pygpt_net.core.debug.context import ContextDebug
+from pygpt_net.core.debug.models import ModelsDebug
+from pygpt_net.core.debug.plugins import PluginsDebug
+from pygpt_net.core.debug.presets import PresetsDebug
+from pygpt_net.core.debug.ui import UIDebug
+
+
+class Debug:
+    DBG_KEY, DBG_VALUE = range(2)
+
+    def __init__(self, window=None):
+        """
+        Debugger handler
+
+        :param window: Window instance
+        """
+        self.window = window
+
+        # setup workers
+        self.workers = {}
+        self.workers['assistants'] = AssistantsDebug(self.window)
+        self.workers['attachments'] = AttachmentsDebug(self.window)
+        self.workers['config'] = ConfigDebug(self.window)
+        self.workers['context'] = ContextDebug(self.window)
+        self.workers['models'] = ModelsDebug(self.window)
+        self.workers['plugins'] = PluginsDebug(self.window)
+        self.workers['presets'] = PresetsDebug(self.window)
+        self.workers['ui'] = UIDebug(self.window)
+
+        # prepare debug ids
+        self.ids = self.workers.keys()
+        self.models = {}
+        self.initialized = {}
+        self.active = {}
+        self.idx = {}
+        self.counters = {}
+
+        # prepare debug workers data
+        for id in self.ids:
+            self.models[id] = self.create_model(self.window)
+            self.initialized[id] = False
+            self.active[id] = False
+            self.idx[id] = 0
+
+    def begin(self, id):
+        """
+        Begin debug data
+
+        :param id: debug id
+        """
+        self.window.ui.debug[id].setModel(self.models[id])
+
+        # set header
+        self.window.ui.debug[id].header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.window.ui.debug[id].header().setStretchLastSection(False)
+
+        if id not in self.counters or self.counters[id] != self.models[id].rowCount():
+            self.models[id].removeRows(0, self.models[id].rowCount())
+            self.initialized[id] = False
+        self.idx[id] = 0
+
+    def end(self, id):
+        """
+        End debug data
+
+        :param id: debug id
+        """
+        self.counters[id] = self.idx[id]
+        self.initialized[id] = True
+
+    def add(self, id, k, v):
+        """
+        Append debug entry
+
+        :param id: debug id
+        :param k: key
+        :param v: value
+        """
+        if self.initialized[id] is False:
+            idx = self.models[id].rowCount()
+            self.models[id].insertRow(idx)
+            self.models[id].setData(self.models[id].index(idx, self.DBG_KEY), k)
+            self.models[id].setData(self.models[id].index(idx, self.DBG_VALUE), v)
+        else:
+            for idx in range(0, self.models[id].rowCount()):
+                if self.models[id].index(idx, self.DBG_KEY).data() == k:
+                    self.models[id].setData(self.models[id].index(idx, self.DBG_VALUE), v)
+                    self.idx[id] += 1
+                    return
+        self.idx[id] += 1
+
+    def get_ids(self):
+        """
+        Get debug ids
+
+        :return: list of ids
+        :rtype: list
+        """
+        return self.ids
+
+    def get_workers(self):
+        """
+        Get debug workers
+
+        :return: list of workers
+        :rtype: list
+        """
+        return self.workers
+
+    def update_worker(self, id):
+        """
+        Update debug worker
+
+        :param id: debug id
+        """
+        if id in self.workers:
+            self.workers[id].update()
+
+    def is_active(self, id):
+        """
+        Check if debug window is active
+
+        :param id: debug id
+        :return: True if active
+        :rtype: bool
+        """
+        if id not in self.active:
+            return False
+        return self.active[id]
+
+    def show(self, id):
+        """
+        Activate debug window
+
+        :param id: debug id
+        """
+        if id not in self.active:
+            return
+        self.active[id] = True
+        self.window.ui.dialogs.open('debug.' + id)
+
+    def hide(self, id):
+        """
+        Deactivate debug window
+
+        :param id: debug id
+        """
+        if id not in self.active:
+            return
+        self.active[id] = False
+        self.window.ui.dialogs.close('debug.' + id)
+
+    def create_model(self, parent):
+        """
+        Create list model
+
+        :param parent: parent widget
+        :return: model instance
+        :rtype: QStandardItemModel
+        """
+        model = QStandardItemModel(0, 2, parent)
+        model.setHeaderData(self.DBG_KEY, Qt.Horizontal, "Key")
+        model.setHeaderData(self.DBG_VALUE, Qt.Horizontal, "Value")
+        return model

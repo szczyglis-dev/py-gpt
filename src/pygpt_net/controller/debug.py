@@ -30,8 +30,8 @@ class Debug:
 
     def update_menu(self):
         """Update debug menu"""
-        for id in self.window.core.debug.ids:
-            if id in self.window.core.debug.active and self.window.core.debug.active[id]:
+        for id in self.window.controller.dialogs.debug.get_ids():
+            if self.window.controller.dialogs.debug.is_active(id):
                 self.window.ui.menu['debug.' + id].setChecked(True)
             else:
                 self.window.ui.menu['debug.' + id].setChecked(False)
@@ -40,6 +40,19 @@ class Debug:
             self.window.ui.menu['debug.logger'].setChecked(True)
         else:
             self.window.ui.menu['debug.logger'].setChecked(False)
+
+    def on_update(self, all=False):
+        """
+        Update debug windows (only if active)
+
+        :param all: update all debug windows
+        """
+        # not_realtime = ['context']
+        not_realtime = []
+        for id in self.window.controller.dialogs.debug.get_ids():
+            if self.window.controller.dialogs.debug.is_active(id):
+                if all or id not in not_realtime:
+                    self.window.controller.dialogs.debug.update_worker(id)
 
     def log(self, data, window=True):
         """
@@ -95,13 +108,11 @@ class Debug:
 
         :param id: debug window to toggle
         """
-        if id in self.window.core.debug.active and self.window.core.debug.active[id]:
-            self.window.ui.dialogs.close('debug.' + id)
-            self.window.core.debug.active[id] = False
+        if self.window.controller.dialogs.debug.is_active(id):
+            self.window.controller.dialogs.debug.hide(id)
         else:
-            self.window.ui.dialogs.open('debug.' + id)
-            self.window.core.debug.active[id] = True
-            self.window.core.debug.on_update(True)
+            self.window.controller.dialogs.debug.show(id)
+            self.on_update(True)
 
         self.log('debug.' + id + ' toggled')
 

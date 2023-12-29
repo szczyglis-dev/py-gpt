@@ -50,5 +50,5 @@ class DebugDialog(QDialog):
         """
         Cleanup on close
         """
-        self.window.core.debug.active[self.id] = False
+        self.window.controller.dialogs.debug.active[self.id] = False
         self.window.controller.debug.update_menu()

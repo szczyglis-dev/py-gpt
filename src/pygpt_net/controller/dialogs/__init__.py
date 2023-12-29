@@ -11,6 +11,7 @@
 
 
 from .confirm import Confirm
+from .debug import Debug
 from .info import Info
 
 
@@ -23,6 +24,7 @@ class Dialogs:
         """
         self.window = window
         self.confirm = Confirm(window)
+        self.debug = Debug(window)
         self.info = Info(window)
 
     def setup(self):

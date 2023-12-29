@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def post_update(self):
         """Called on post-update (slow)"""
-        self.core.debug.on_update()
+        self.controller.debug.on_update()
 
     def set_status(self, text):
         """
