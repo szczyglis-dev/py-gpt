@@ -92,7 +92,7 @@ class Worker(QRunnable):
                 response = {"request": item, "result": "Error: {}".format(e)}
                 self.signals.finished.emit(self.ctx, response)
                 self.signals.error.emit(e)
-                self.signals.log("Error: {}".format(e))
+                self.signals.log.emit("Error: {}".format(e))
 
         if msg is not None:
             self.signals.log.emit(msg)
