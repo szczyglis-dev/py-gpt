@@ -34,9 +34,7 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
-        """
+        """Initialize options"""
         self.add_option("model", "text", "tts-1",
                         "Model",
                         "Specify model, available models: tts-1, tts-1-hd")
@@ -168,6 +166,7 @@ class Plugin(BasePlugin):
     def handle_playback(self, playback):
         """
         Handle thread playback object
+
         :param playback
         """
         self.playback = playback

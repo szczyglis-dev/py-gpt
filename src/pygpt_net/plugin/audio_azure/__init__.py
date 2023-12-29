@@ -32,9 +32,7 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
-        """
+        """Initialize options"""
         url_api = {
             "API Key": "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech",
         }
@@ -179,6 +177,7 @@ class Plugin(BasePlugin):
     def handle_playback(self, playback):
         """
         Handle thread playback object
+
         :param playback
         """
         self.playback = playback

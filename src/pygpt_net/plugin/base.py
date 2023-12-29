@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 03:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -183,6 +183,7 @@ class BasePlugin:
     def handle_finished(self, response, ctx=None):
         """
         Handle finished response signal
+
         :param response: response
         :param ctx: context (CtxItem)
         """
@@ -196,7 +197,8 @@ class BasePlugin:
     def handle_status(self, data):
         """
         Handle thread status msg signal
-        :param data
+
+        :param data: status message
         """
         self.window.set_status(str(data))
 
@@ -204,7 +206,8 @@ class BasePlugin:
     def handle_error(self, err):
         """
         Handle thread error signal
-        :param err
+
+        :param err: error message
         """
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
@@ -213,7 +216,8 @@ class BasePlugin:
     def handle_debug(self, msg):
         """
         Handle debug message signal
-        :param msg: message
+
+        :param msg: debug message
         """
         self.debug(msg)
 
@@ -221,7 +225,8 @@ class BasePlugin:
     def handle_log(self, msg):
         """
         Handle log message signal
-        :param msg: message
+
+        :param msg: log message
         """
         self.log(msg)
 

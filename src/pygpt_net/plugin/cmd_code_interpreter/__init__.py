@@ -9,8 +9,6 @@
 # Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Slot
-
 from pygpt_net.plugin.base import BasePlugin
 from .runner import Runner
 from .worker import Worker
