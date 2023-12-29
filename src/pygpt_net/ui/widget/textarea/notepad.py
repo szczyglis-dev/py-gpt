@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -24,6 +24,7 @@ class NotepadOutput(QTextEdit):
         """
         super(NotepadOutput, self).__init__(window)
         self.window = window
+        self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
