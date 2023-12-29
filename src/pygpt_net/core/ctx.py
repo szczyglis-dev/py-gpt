@@ -333,6 +333,15 @@ class Ctx:
         """
         return len(self.items)
 
+    def count_meta(self):
+        """
+        Count ctx meta items
+
+        :return: ctx meta count
+        :rtype: int
+        """
+        return len(self.meta)
+
     def all(self):
         """
         Return ctx items

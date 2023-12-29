@@ -27,12 +27,12 @@ class Ctx:
         self.window.core.ctx.load_meta()
 
         # if no context yet then create one
-        if len(self.window.core.ctx.meta) == 0:
+        if self.window.core.ctx.count_meta() == 0:
             self.new()
         else:
             # get last ctx from config
             id = self.window.core.config.get('ctx')
-            if id is not None and id in self.window.core.ctx.meta:
+            if id is not None and self.window.core.ctx.has(id):
                 self.window.core.ctx.current = id
             else:
                 # if no ctx then get first ctx
@@ -149,14 +149,14 @@ class Ctx:
         """Refresh context"""
         self.load(self.window.core.ctx.current)
 
-    def load(self, ctx):
+    def load(self, id):
         """
         Load ctx data
 
-        :param ctx: context ID
+        :param id: context ID
         """
-        # select ctx
-        self.window.core.ctx.select(ctx)
+        # select ctx by id
+        self.window.core.ctx.select(id)
 
         # get current settings stored in ctx
         thread = self.window.core.ctx.thread
@@ -192,7 +192,7 @@ class Ctx:
         # reload ctx list and select current ctx on list
         self.update()
 
-        # update current ctx label
+        # update current ctx label in UI
         self.update_ctx_label(mode, assistant_id)
 
     def update_ctx(self):
