@@ -71,6 +71,7 @@ class Settings:
             # if no API key, focus on API key input
             if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
                 self.window.ui.config_option['api_key'].setFocus()
+
         # update menu
         self.update()
 
@@ -97,16 +98,6 @@ class Settings:
         # update menu
         self.update()
 
-    def close_window(self, id):
-        """
-        Close window
-
-        :param id: settings window id
-        """
-        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
-            self.window.ui.dialogs.close('config.' + id)
-            self.window.core.settings.active[id] = False
-
     def close(self, id):
         """
         Close menu
@@ -120,16 +111,22 @@ class Settings:
         if id in allowed_settings and id in self.window.ui.menu:
             self.window.ui.menu[id].setChecked(False)
 
+    def close_window(self, id):
+        """
+        Close window
+
+        :param id: settings window id
+        """
+        if id in self.window.core.settings.active and self.window.core.settings.active[id]:
+            self.window.ui.dialogs.close('config.' + id)
+            self.window.core.settings.active[id] = False
+
     def open_config_dir(self):
         """Open user config directory"""
         if os.path.exists(self.window.core.config.path):
             self.window.controller.files.open_in_file_manager(self.window.core.config.path, True)
         else:
             self.window.set_status('Config directory not exists: {}'.format(self.window.core.config.path))
-
-    def update_font_size(self):
-        """Update font size"""
-        self.window.controller.theme.apply_nodes(False)
 
     def welcome_settings(self):
         """Open settings at first launch (no API key)"""

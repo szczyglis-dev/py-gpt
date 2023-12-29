@@ -110,7 +110,7 @@ class Debug:
 
     def get_ids(self):
         """
-        Get debug ids
+        Get debug workers ids
 
         :return: list of ids
         :rtype: list

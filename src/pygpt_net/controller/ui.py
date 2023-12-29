@@ -23,20 +23,13 @@ class UI:
 
     def setup(self):
         """Setup UI"""
+        self.update_font_size()
         self.update()
-
-    def store_state(self):
-        """Store UI state"""
-        self.window.controller.layout.scroll_save()
-
-    def restore_state(self):
-        """Restore UI state"""
-        self.window.controller.layout.scroll_restore()
 
     def update(self):
         """Update all elements"""
 
-        # update mode, models and presets lists
+        # update mode, models and presets list
         self.update_toolbox()
 
         # update chat label
@@ -47,6 +40,10 @@ class UI:
 
         # update token counters
         self.update_tokens()
+
+    def update_font_size(self):
+        """Update font size"""
+        self.window.controller.theme.apply_nodes(False)
 
     def update_toolbox(self):
         """Update toolbox"""
@@ -248,6 +245,14 @@ class UI:
 
             # stream checkbox
             self.window.ui.nodes['input.stream'].setVisible(False)
+
+    def store_state(self):
+        """Store UI state"""
+        self.window.controller.layout.scroll_save()
+
+    def restore_state(self):
+        """Restore UI state"""
+        self.window.controller.layout.scroll_restore()
 
     def update_chat_label(self):
         """Update chat label"""

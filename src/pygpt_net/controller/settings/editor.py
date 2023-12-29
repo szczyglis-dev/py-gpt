@@ -97,7 +97,7 @@ class Editor:
         info = trans('info.settings.saved')
         self.window.core.config.save()
         self.window.set_status(info)
-        self.window.controller.settings.update_font_size()
+        self.window.controller.ui.update_font_size()
         self.window.controller.ui.update()
 
         # update layout if needed
@@ -183,7 +183,7 @@ class Editor:
 
         # update font size in real time
         if id.startswith('font_size'):
-            self.window.controller.settings.update_font_size()
+            self.window.controller.ui.update_font_size()
 
         # update ctx limit in real time
         if id == 'ctx.records.limit':
@@ -332,7 +332,7 @@ class Editor:
 
         # update from raw value
         if id.startswith('font_size'):
-            self.window.controller.settings.update_font_size()  # update font size in real time
+            self.window.controller.ui.update_font_size()  # update font size in real time
 
         # update ctx limit in real time
         if id == 'ctx.records.limit':

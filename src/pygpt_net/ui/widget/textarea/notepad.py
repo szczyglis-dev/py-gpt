@@ -90,7 +90,7 @@ class NotepadOutput(QTextEdit):
 
             self.window.core.config.data['font_size'] = self.value
             self.window.core.config.save()
-            self.window.controller.settings.update_font_size()
+            self.window.controller.ui.update_font_size()
             event.accept()
         else:
             super(NotepadOutput, self).wheelEvent(event)

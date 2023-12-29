@@ -26,10 +26,6 @@ class Image:
         """
         self.window = window
 
-    def init(self):
-        """Initialize OpenAI API key"""
-        pass
-
     def install(self):
         """Install provider data"""
         img_dir = os.path.join(self.window.core.config.path, self.DIRNAME)
@@ -86,7 +82,7 @@ class Image:
             try:
                 # call GPT for generate best image generate prompt
                 response = self.window.core.gpt.quick_call(prompt, system_cmd, False, max_tokens,
-                                                          self.window.core.config.get('img_prompt_model'), temperature)
+                                                           self.window.core.config.get('img_prompt_model'), temperature)
                 if response is not None and response != "":
                     prompt = response
             except Exception as e:

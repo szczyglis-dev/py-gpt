@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 class Launcher:
@@ -18,19 +18,6 @@ class Launcher:
         """
         self.window = window
 
-    def show_api_monit(self):
-        """Show empty API KEY monit"""
-        self.window.ui.dialogs.open('info.start')
-
-    def check_updates(self):
-        """Check for updates"""
-        self.window.core.updater.check(True)
-
-    def setup(self):
-        """Setup launcher"""
-        self.window.core.image.init()
-        self.window.controller.settings.update_font_size()
-
     def post_setup(self):
         """Post setup launcher"""
         # show welcome API KEY dialog (disable for langchain mode)
@@ -40,3 +27,11 @@ class Launcher:
 
         # check for updates
         self.window.core.updater.check()
+
+    def show_api_monit(self):
+        """Show empty API KEY monit"""
+        self.window.ui.dialogs.open('info.start')
+
+    def check_updates(self):
+        """Check for updates"""
+        self.window.core.updater.check(True)

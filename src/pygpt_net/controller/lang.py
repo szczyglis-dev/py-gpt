@@ -17,7 +17,7 @@ from pygpt_net.utils import trans
 class Lang:
     def __init__(self, window=None):
         """
-        Language change controller
+        Language switch controller
 
         :param window: Window instance
         """

@@ -70,8 +70,6 @@ class Controller:
 
     def setup(self):
         """Setup controller"""
-        # init
-        self.launcher.setup()
 
         # setup layout
         self.layout.setup()
