@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.26 03:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QObject, Signal, QRunnable
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from pygpt_net.utils import trans
 
@@ -163,21 +163,77 @@ class BasePlugin:
 
     def debug(self, data):
         """
-        Send thread-safe debug message to logger window
+        Send debug message to logger window
 
         :param data: data to send
         """
         self.window.controller.debug.log(data, True)
 
+    def log(self, msg):
+        """
+        Log message to logger and console
+
+        :param msg: message to log
+        """
+        self.debug(msg)
+        self.window.set_status(msg)
+        print(msg)
+
+    @Slot(object)
+    def handle_finished(self, ctx, response):
+        """
+        Handle finished response signal
+        :param ctx: context
+        :param response: response
+        """
+        # dispatcher handle late response
+        if ctx is not None:
+            ctx.results.append(response)
+            ctx.reply = True
+            self.window.core.dispatcher.reply(ctx)
+
+    @Slot(object)
+    def handle_status(self, data):
+        """
+        Handle thread status msg signal
+        :param data
+        """
+        self.window.set_status(str(data))
+
+    @Slot(object)
+    def handle_error(self, err):
+        """
+        Handle thread error signal
+        :param err
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
+
+    @Slot(object)
+    def handle_debug(self, msg):
+        """
+        Handle debug message signal
+        :param msg: message
+        """
+        self.debug(msg)
+
+    @Slot(object)
+    def handle_log(self, msg):
+        """
+        Handle log message signal
+        :param msg: message
+        """
+        self.log(msg)
+
 
 class BaseSignals(QObject):
     finished = Signal(object, object)  # ctx, response
-    log = Signal(object)
     debug = Signal(object)
-    status = Signal(object)
-    error = Signal(object)
     destroyed = Signal()
+    error = Signal(object)
+    log = Signal(object)
     started = Signal()
+    status = Signal(object)
     stopped = Signal()
 
 
@@ -191,26 +247,36 @@ class BaseWorker(QRunnable):
         self.cmds = None
         self.ctx = None
 
-    def response(self, response):
-        self.signals.finished.emit(self.ctx, response)
-
-    def error(self, err):
-        self.signals.error.emit(err)
-
-    def status(self, msg):
-        self.signals.status.emit(msg)
-
     def debug(self, msg):
-        self.signals.debug.emit(msg)
-
-    def log(self, msg):
-        self.signals.log.emit(msg)
-
-    def started(self):
-        self.signals.started.emit()
-
-    def stopped(self):
-        self.signals.stopped.emit()
+        if self.signals is not None and hasattr(self.signals, "debug"):
+            self.signals.debug.emit(msg)
 
     def destroyed(self):
-        self.signals.destroyed.emit()
+        if self.signals is not None and hasattr(self.signals, "destroyed"):
+            self.signals.destroyed.emit()
+
+    def error(self, err):
+        if self.signals is not None and hasattr(self.signals, "error"):
+            self.signals.error.emit(err)
+
+    def log(self, msg):
+        if self.signals is not None and hasattr(self.signals, "log"):
+            self.signals.log.emit(msg)
+
+    def response(self, response):
+        if self.signals is not None and hasattr(self.signals, "finished"):
+            self.signals.finished.emit(self.ctx, response)
+
+    def started(self):
+        if self.signals is not None and hasattr(self.signals, "started"):
+            self.signals.started.emit()
+
+    def status(self, msg):
+        if self.signals is not None and hasattr(self.signals, "status"):
+            self.signals.status.emit(msg)
+
+    def stopped(self):
+        if self.signals is not None and hasattr(self.signals, "stopped"):
+            self.signals.stopped.emit()
+
+

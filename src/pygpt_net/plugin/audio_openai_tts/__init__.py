@@ -51,6 +51,7 @@ class Plugin(BasePlugin):
         Return available config options
 
         :return: config options
+        :rtype: dict
         """
         return self.options
 
