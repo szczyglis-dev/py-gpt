@@ -151,6 +151,7 @@ class BasePlugin:
     def trans(self, text=None):
         """
         Translate text using plugin domain
+        
         :param text: text to translate
         :return: translated text
         :rtype: str
@@ -175,6 +176,9 @@ class BaseSignals(QObject):
     debug = Signal(object)
     status = Signal(object)
     error = Signal(object)
+    destroyed = Signal()
+    started = Signal()
+    stopped = Signal()
 
 
 class BaseWorker(QRunnable):
@@ -201,3 +205,12 @@ class BaseWorker(QRunnable):
 
     def log(self, msg):
         self.signals.log.emit(msg)
+
+    def started(self):
+        self.signals.started.emit()
+
+    def stopped(self):
+        self.signals.stopped.emit()
+
+    def destroyed(self):
+        self.signals.destroyed.emit()
