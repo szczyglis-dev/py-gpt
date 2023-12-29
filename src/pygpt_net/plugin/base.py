@@ -9,6 +9,8 @@
 # Updated Date: 2023.12.26 03:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import QObject, Signal, QRunnable
+
 from pygpt_net.utils import trans
 
 
@@ -165,3 +167,37 @@ class BasePlugin:
         :param data: data to send
         """
         self.window.controller.debug.log(data, True)
+
+
+class BaseSignals(QObject):
+    finished = Signal(object, object)  # ctx, response
+    log = Signal(object)
+    debug = Signal(object)
+    status = Signal(object)
+    error = Signal(object)
+
+
+class BaseWorker(QRunnable):
+    def __init__(self, *args, **kwargs):
+        super(BaseWorker, self).__init__()
+        self.signals = BaseSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.plugin = None
+        self.cmds = None
+        self.ctx = None
+
+    def response(self, response):
+        self.signals.finished.emit(self.ctx, response)
+
+    def error(self, err):
+        self.signals.error.emit(err)
+
+    def status(self, msg):
+        self.signals.status.emit(msg)
+
+    def debug(self, msg):
+        self.signals.debug.emit(msg)
+
+    def log(self, msg):
+        self.signals.log.emit(msg)

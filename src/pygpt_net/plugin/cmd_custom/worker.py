@@ -96,3 +96,18 @@ class Worker(QRunnable):
         if msg is not None:
             self.signals.log.emit(msg)
             self.signals.status.emit(msg)
+
+    def finish(self, ctx, response):
+        self.signals.finished.emit(ctx, response)
+
+    def error(self, err):
+        self.signals.error.emit(err)
+
+    def status(self, msg):
+        self.signals.status.emit(msg)
+
+    def debug(self, msg):
+        self.signals.debug.emit(msg)
+
+    def log(self, msg):
+        self.signals.log.emit(msg)
