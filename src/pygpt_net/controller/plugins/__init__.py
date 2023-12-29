@@ -31,7 +31,7 @@ class Plugins:
         """Set up plugins"""
         self.setup_menu()
         self.setup_ui()
-        self.load_config()
+        self.setup_config()
         self.update()
 
     def setup_ui(self):
@@ -44,7 +44,7 @@ class Plugins:
                 pass
 
         # show/hide UI elements
-        self.handle_enabled_types()
+        self.handle_types()
 
         # tmp dump locales
         # self.window.core.plugins.dump_locales()
@@ -68,6 +68,12 @@ class Plugins:
                 lambda checked=None, id=id: self.toggle(id))
             self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins'][id])
 
+    def setup_config(self):
+        """Enable plugins from config"""
+        for id in self.window.core.config.get('plugins_enabled'):
+            if self.window.core.config.data['plugins_enabled'][id]:
+                self.enable(id)
+
     def update(self):
         """Update plugins menu"""
         for id in self.window.ui.menu['plugins']:
@@ -77,26 +83,7 @@ class Plugins:
             if self.enabled[id]:
                 self.window.ui.menu['plugins'][id].setChecked(True)
 
-        self.handle_enabled_types()
-
-    def destroy(self):
-        """Destroy plugins workers"""
-        for id in self.window.core.plugins.get_ids():
-            try:
-                # destroy plugin workers
-                self.window.core.plugins.destroy(id)
-            except AttributeError:
-                pass
-
-    def unregister(self, id):
-        """
-        Unregister plugin
-
-        :param id: plugin id
-        """
-        self.window.core.plugins.unregister(id)
-        if id in self.enabled:
-            self.enabled.pop(id)
+        self.handle_types()
 
     def enable(self, id):
         """
@@ -169,7 +156,7 @@ class Plugins:
             else:
                 self.enable(id)
 
-        self.handle_enabled_types()
+        self.handle_types()
         self.window.controller.ui.update_tokens()  # refresh tokens
 
     def set_by_tab(self, idx):
@@ -203,31 +190,24 @@ class Plugins:
             i += 1
         return plugin_idx
 
-    def update_info(self):
-        """Update plugins info"""
-        enabled_list = []
+    def unregister(self, id):
+        """
+        Unregister plugin
+
+        :param id: plugin id
+        """
+        self.window.core.plugins.unregister(id)
+        if id in self.enabled:
+            self.enabled.pop(id)
+
+    def destroy(self):
+        """Destroy plugins workers"""
         for id in self.window.core.plugins.get_ids():
-            if self.is_enabled(id):
-                enabled_list.append(self.window.core.plugins.get(id).name)
-        tooltip = " + ".join(enabled_list)
-
-        count_str = ""
-        c = 0
-        if len(self.window.core.plugins.get_ids()) > 0:
-            for id in self.window.core.plugins.get_ids():
-                if self.is_enabled(id):
-                    c += 1
-
-        if c > 0:
-            count_str = "+ " + str(c) + " " + trans('chatbox.plugins')
-        self.window.ui.nodes['chat.plugins'].setText(count_str)
-        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
-
-    def load_config(self):
-        """Load plugins config"""
-        for id in self.window.core.config.get('plugins_enabled'):
-            if self.window.core.config.data['plugins_enabled'][id]:
-                self.enable(id)
+            try:
+                # destroy plugin workers
+                self.window.core.plugins.destroy(id)
+            except AttributeError:
+                pass
 
     def has_type(self, id, type):
         """
@@ -256,7 +236,7 @@ class Plugins:
                 break
         return enabled
 
-    def handle_enabled_types(self):
+    def handle_types(self):
         """Handle plugin type"""
         for type in self.window.core.plugins.allowed_types:
             if type == 'audio.input':
@@ -270,6 +250,26 @@ class Plugins:
                     # self.window.ui.plugin_addon['audio.output'].setVisible(True)
                 else:
                     self.window.ui.plugin_addon['audio.output'].setVisible(False)
+
+    def update_info(self):
+        """Update plugins info"""
+        enabled_list = []
+        for id in self.window.core.plugins.get_ids():
+            if self.is_enabled(id):
+                enabled_list.append(self.window.core.plugins.get(id).name)
+        tooltip = " + ".join(enabled_list)
+
+        count_str = ""
+        c = 0
+        if len(self.window.core.plugins.get_ids()) > 0:
+            for id in self.window.core.plugins.get_ids():
+                if self.is_enabled(id):
+                    c += 1
+
+        if c > 0:
+            count_str = "+ " + str(c) + " " + trans('chatbox.plugins')
+        self.window.ui.nodes['chat.plugins'].setText(count_str)
+        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)  
 
     def apply_cmds(self, ctx, cmds):
         """

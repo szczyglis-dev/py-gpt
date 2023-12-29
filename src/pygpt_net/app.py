@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 import os
@@ -25,15 +25,15 @@ from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui import UI
 from pygpt_net.utils import get_app_meta
 
-from pygpt_net.plugin.audio_azure.plugin import Plugin as AudioAzurePlugin
-from pygpt_net.plugin.audio_openai_tts.plugin import Plugin as AudioOpenAITTSPlugin
-from pygpt_net.plugin.audio_openai_whisper.plugin import Plugin as AudioOpenAIWhisperPlugin
-from pygpt_net.plugin.cmd_code_interpreter.plugin import Plugin as CmdCodeInterpreterPlugin
-from pygpt_net.plugin.cmd_custom.plugin import Plugin as CmdCustomCommandPlugin
-from pygpt_net.plugin.cmd_files.plugin import Plugin as CmdFilesPlugin
-from pygpt_net.plugin.cmd_web_google.plugin import Plugin as CmdWebGooglePlugin
-from pygpt_net.plugin.real_time.plugin import Plugin as RealTimePlugin
-from pygpt_net.plugin.self_loop.plugin import Plugin as SelfLoopPlugin
+from pygpt_net.plugin.audio_azure import Plugin as AudioAzurePlugin
+from pygpt_net.plugin.audio_openai_tts import Plugin as AudioOpenAITTSPlugin
+from pygpt_net.plugin.audio_openai_whisper import Plugin as AudioOpenAIWhisperPlugin
+from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPlugin
+from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
+from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
+from pygpt_net.plugin.cmd_web_google import Plugin as CmdWebGooglePlugin
+from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
+from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
 
 from pygpt_net.llm.Anthropic import AnthropicLLM
 from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
@@ -57,6 +57,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.threadpool = None
         self.is_closing = False
         self.timer_interval = 30
+        self.post_timer_interval = 1000
 
         # load version info
         self.meta = get_app_meta()
@@ -114,15 +115,15 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.timer.start(self.timer_interval)
         self.post_timer = QTimer()
         self.post_timer.timeout.connect(self.post_update)
-        self.post_timer.start(1000)
-
-    def post_update(self):
-        """Called on post-update (slow)"""
-        self.core.debug.update()
+        self.post_timer.start(self.post_timer_interval)
 
     def update(self):
         """Called on every update"""
-        self.controller.update()
+        self.controller.on_update()
+
+    def post_update(self):
+        """Called on post-update (slow)"""
+        self.core.debug.on_update()
 
     def set_status(self, text):
         """

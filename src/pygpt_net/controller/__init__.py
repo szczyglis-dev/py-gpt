@@ -99,7 +99,7 @@ class Controller:
         self.plugins.settings.setup()
         self.launcher.post_setup()
 
-    def update(self):
+    def on_update(self):
         """On app main loop update"""
         self.camera.update()
 

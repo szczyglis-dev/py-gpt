@@ -145,13 +145,14 @@ class Debug:
         except Exception as e:
             pass
 
-    def update(self, all=False):
+    def on_update(self, all=False):
         """
         Update debug windows
 
         :param all: update all debug windows
         """
-        not_realtime = ['context']
+        # not_realtime = ['context']
+        not_realtime = []
         for id in self.workers:
             if id in self.active and self.active[id]:
                 if all or id not in not_realtime:

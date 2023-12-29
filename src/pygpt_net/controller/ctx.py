@@ -66,7 +66,7 @@ class Ctx:
         # update all
         if all:
             self.window.controller.ui.update()
-            self.window.core.debug.update(True)
+            self.window.core.debug.on_update(True)
 
         # append ctx and thread id (assistants API) to config
         id = self.window.core.ctx.current

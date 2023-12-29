@@ -101,7 +101,7 @@ class Debug:
         else:
             self.window.ui.dialogs.open('debug.' + id)
             self.window.core.debug.active[id] = True
-            self.window.core.debug.update(True)
+            self.window.core.debug.on_update(True)
 
         self.log('debug.' + id + ' toggled')
 
