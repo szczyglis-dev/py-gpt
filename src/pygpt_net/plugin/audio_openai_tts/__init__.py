@@ -133,9 +133,7 @@ class Plugin(BasePlugin):
             self.debug(e)
 
     def destroy(self):
-        """
-        Destroy thread
-        """
+        """Destroy thread"""
         pass
 
     def set_status(self, status):
@@ -147,29 +145,21 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.output'].set_status(status)
 
     def show_stop_button(self):
-        """
-        Show stop button
-        """
+        """Show stop button"""
         self.window.ui.plugin_addon['audio.output'].stop.setVisible(True)
 
     def hide_stop_button(self):
-        """
-        Hide stop button
-        """
+        """Hide stop button"""
         self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
 
     def stop_speak(self):
-        """
-        Stop speaking
-        """
+        """Stop speaking"""
         self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
         self.window.ui.plugin_addon['audio.output'].set_status('Stopped')
         self.window.ui.plugin_addon['audio.output'].stop_audio()
 
     def stop_audio(self):
-        """
-        Stop playing the audio
-        """
+        """Stop playing the audio"""
         if self.playback is not None:
             self.playback.stop()
             self.playback = None
@@ -184,7 +174,5 @@ class Plugin(BasePlugin):
 
     @Slot()
     def handle_stop(self):
-        """
-        Handle thread playback stop
-        """
+        """Handle thread playback stop"""
         self.stop_audio()

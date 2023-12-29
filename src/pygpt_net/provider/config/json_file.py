@@ -412,6 +412,13 @@ class JsonFileProvider(BaseProvider):
                     data['ctx.records.limit'] = 0
                 updated = True
 
+            # < 2.0.65
+            if old < parse_version("2.0.65"):
+                print("Migrating config from < 2.0.65...")
+                if 'ctx.search.string' not in data:
+                    data['ctx.search.string'] = ""
+                updated = True
+
         # update file
         migrated = False
         if updated:

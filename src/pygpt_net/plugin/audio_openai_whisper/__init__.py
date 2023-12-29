@@ -261,18 +261,14 @@ class Plugin(BasePlugin):
         self.input_text = text
 
     def destroy(self):
-        """
-        Destroy thread
-        """
+        """Destroy thread"""
         self.waiting = True
         self.listening = False
         self.thread_started = False
         self.set_status('')
 
     def handle_thread(self):
-        """
-        Handle listener thread
-        """
+        """Handle listener thread"""
         if self.thread_started:
             return
 
@@ -388,32 +384,27 @@ class Plugin(BasePlugin):
     def handle_status(self, data):
         """
         Handle thread status msg signal
-        :param data
+
+        :param data: message
         """
         self.set_status(str(data))
         self.window.set_status(str(data))
 
     @Slot()
     def handle_destroy(self):
-        """
-        Handle listener destroyed
-        """
+        """Handle listener destroyed"""
         self.thread_started = False
         self.set_status('')
 
     @Slot()
     def handle_started(self):
-        """
-        Handle listening started
-        """
+        """Handle listening started"""
         pass
         # print("Whisper is listening...")
 
     @Slot()
     def handle_stop(self):
-        """
-        Handle stop listening
-        """
+        """Handle stop listening"""
         self.thread_started = False
         self.listening = False
         self.stop = False

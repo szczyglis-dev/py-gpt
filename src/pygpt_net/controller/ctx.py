@@ -51,6 +51,13 @@ class Ctx:
         # load selected ctx
         self.load(self.window.core.ctx.current)
 
+        # restore search string if exists
+        if self.window.core.config.has("ctx.search.string"):
+            string = self.window.core.config.get("ctx.search.string")
+            if string is not None and string != "":
+                self.window.ui.nodes['ctx.search'].setText(string)
+                self.search_string_change(string)
+
     def update(self, reload=True, all=True):
         """
         Update ctx list
@@ -420,6 +427,7 @@ class Ctx:
         :param text: search string
         """
         self.window.core.ctx.search_string = text
+        self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
 
     def context_change_locked(self):
