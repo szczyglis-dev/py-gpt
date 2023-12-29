@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 17:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -39,6 +39,14 @@ class Ctx:
         self.last_mode = None
         self.last_model = None
         self.search_string = None
+        self.allowed_modes = {
+            'chat': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
+            'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
+            'img': ['img'],
+            'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
+            'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
+            'assistant': ['assistant'],
+        }
 
     def install(self):
         """Install provider data"""
@@ -293,8 +301,8 @@ class Ctx:
         Return ctx meta by id
 
         :param id: ctx id
-        :return: ctx dict
-        :rtype: dict or None
+        :return: ctx meta object
+        :rtype: CtxMeta or None
         """
         if id in self.meta:
             return self.meta[id]
@@ -531,6 +539,56 @@ class Ctx:
         """Remove first item"""
         if len(self.items) > 0:
             self.items.pop(0)
+
+    def is_allowed_for_mode(self, mode, check_assistant=True):
+        """
+        Check if ctx is allowed for this mode
+
+        :param mode: mode name
+        :param check_assistant: True if check also current assistant
+        :return: True if allowed for mode
+        :rtype: bool
+        """
+        # always allow if lock_modes is disabled
+        if not self.window.core.config.get('lock_modes'):
+            return True
+
+        if self.is_empty():
+            return True
+
+        # always allow if no ctx
+        if self.current is None or self.current == '' or not self.has(self.current):
+            return True
+
+        meta = self.get_meta_by_id(self.current)
+
+        # always allow if no last mode
+        if meta.last_mode is None:
+            return True
+
+        # get last used mode from ctx meta
+        prev_mode = meta.last_mode
+        if prev_mode not in self.allowed_modes[mode]:
+            # exception for assistant (if assistant exists in ctx then allow)
+            if mode == 'assistant':
+                if meta.assistant is not None:
+                    # if the same assistant then allow
+                    if meta.assistant == self.window.core.config.get('assistant'):
+                        return True
+                else:
+                    return True  # if no assistant in ctx then allow
+            # if other mode, then always disallow
+            return False
+
+        # check if the same assistant
+        if mode == 'assistant' and check_assistant:
+            # allow if no assistant yet in ctx
+            if meta.assistant is None:
+                return True
+            # disallow if different assistant
+            if meta.assistant != self.window.core.config.get('assistant'):
+                return False
+        return True
 
     def load_meta(self):
         """Load ctx list from provider"""

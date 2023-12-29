@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -211,7 +211,7 @@ class Ctx:
 
         id = None
         # update ctx mode only if current ctx is allowed for this mode
-        if self.is_allowed_for_mode(mode, False):  # do not check assistant match
+        if self.window.core.ctx.is_allowed_for_mode(mode, False):  # do not check assistant match
             self.window.core.ctx.update()
 
             # update current context label
@@ -357,60 +357,9 @@ class Ctx:
         :return: True if allowed
         :rtype: bool
         """
-        if not self.is_allowed_for_mode(mode):
+        if not self.window.core.ctx.is_allowed_for_mode(mode):
             self.new(True)  # force new context
             return False
-        return True
-
-    def is_allowed_for_mode(self, mode, check_assistant=True):
-        """
-        Check if ctx is allowed for this mode
-
-        :param mode: mode name
-        :param check_assistant: True if check also current assistant
-        :return: True if allowed for mode
-        :rtype: bool
-        """
-        # always allow if lock_modes is disabled
-        if not self.window.core.config.get('lock_modes'):
-            return True
-
-        if self.window.core.ctx.is_empty():
-            return True
-
-        # always allow if no ctx
-        id = self.window.core.config.get('ctx')
-        if id is None or id == '' or not self.window.core.ctx.has(id):
-            return True
-
-        meta = self.window.core.ctx.get_meta_by_id(id)
-
-        # always allow if no last mode
-        if meta.last_mode is None:
-            return True
-
-        # get last used mode from ctx meta
-        prev_mode = meta.last_mode
-        if prev_mode not in self.allowed_modes[mode]:
-            # exception for assistant (if assistant exists in ctx then allow)
-            if mode == 'assistant':
-                if meta.assistant is not None:
-                    # if the same assistant then allow
-                    if meta.assistant == self.window.core.config.get('assistant'):
-                        return True
-                else:
-                    return True  # if no assistant in ctx then allow
-            # if other mode, then always disallow
-            return False
-
-        # check if the same assistant
-        if mode == 'assistant' and check_assistant:
-            # allow if no assistant yet in ctx
-            if meta.assistant is None:
-                return True
-            # disallow if different assistant
-            if meta.assistant != self.window.core.config.get('assistant'):
-                return False
         return True
 
     def selection_change(self):

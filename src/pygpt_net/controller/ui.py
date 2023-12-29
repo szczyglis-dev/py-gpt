@@ -271,7 +271,7 @@ class UI:
         :param label: label
         """
         mode = self.window.core.config.get('mode')
-        allowed = self.window.controller.ctx.is_allowed_for_mode(mode)
+        allowed = self.window.core.ctx.is_allowed_for_mode(mode)
         if label is None:
             label = ''
 
