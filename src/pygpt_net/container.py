@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 19:00:00                  #
+# Updated Date: 2023.12.28 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.config import Config
@@ -19,6 +19,7 @@ from pygpt_net.core.ctx import Ctx
 from pygpt_net.core.db import Database
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.dispatcher import Dispatcher
+from pygpt_net.core.installer import Installer
 from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.core.gpt import Gpt
 from pygpt_net.core.history import History
@@ -33,8 +34,7 @@ from pygpt_net.core.presets import Presets
 from pygpt_net.core.prompt import Prompt
 from pygpt_net.core.settings import Settings
 from pygpt_net.core.tokens import Tokens
-from pygpt_net.installer import Installer
-from pygpt_net.updater import Updater
+from pygpt_net.core.updater import Updater
 
 
 class Container:
