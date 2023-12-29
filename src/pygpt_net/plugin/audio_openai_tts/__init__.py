@@ -10,14 +10,13 @@
 # ================================================== #
 
 import os
-import threading
-import pygame
 
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import Slot
 from openai import OpenAI
 
 from pygpt_net.plugin.base import BasePlugin
-from pygpt_net.utils import trans
+
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -121,11 +120,24 @@ class Plugin(BasePlugin):
                 if voice not in self.allowed_voices:
                     voice = 'alloy'
 
-                self.tts = TTS(self, client, model, path, voice, text)
-                self.tts.status_signal.connect(self.handle_status)
-                self.tts.error_signal.connect(self.handle_error)
-                self.thread = threading.Thread(target=self.tts.run)
-                self.thread.start()
+                # worker
+                worker = Worker()
+                worker.plugin = self
+                worker.client = client
+                worker.model = model
+                worker.path = path
+                worker.voice = voice
+                worker.text = text
+
+                # signals
+                worker.signals.playback.connect(self.handle_playback)
+                worker.signals.stop.connect(self.handle_stop)
+                worker.signals.status.connect(self.handle_status)
+                worker.signals.error.connect(self.handle_error)
+
+                # start
+                self.window.threadpool.start(worker)
+
         except Exception as e:
             self.window.core.debug.log(e)
 
@@ -179,7 +191,7 @@ class Plugin(BasePlugin):
     @Slot(object)
     def handle_status(self, data):
         """
-        Handle thread debug log
+        Handle thread status msg
         :param data
         """
         self.set_status(str(data))
@@ -192,51 +204,20 @@ class Plugin(BasePlugin):
         """
         self.window.core.debug.log(error)
 
-
-class TTS(QObject):
-    # setup signals
-    status_signal = Signal(object)
-    error_signal = Signal(object)
-
-    def __init__(self, plugin, client, model, path, voice, text):
+    @Slot(object)
+    def handle_playback(self, playback):
         """
-        Text to speech
-
-        :param plugin: Plugin
-        :param client: OpenAI client
-        :param model: Model name
-        :param voice: Voice name
-        :param text: Text to speech
+        Handle thread playback object
+        :param playback
         """
-        super().__init__()
-        self.plugin = plugin
-        self.client = client
-        self.model = model
-        self.path = path
-        self.text = text
-        self.voice = voice
+        self.playback = playback
 
-    def run(self):
-        """Run TTS thread"""
-        self.stop()
-        try:
-            response = self.client.audio.speech.create(
-                model=self.model,
-                voice=self.voice,
-                input=self.text
-            )
-            response.stream_to_file(self.path)
-            pygame.mixer.init()
-            self.plugin.playback = pygame.mixer.Sound(self.path)
-            self.plugin.playback.play()
-            self.status_signal.emit('')
-        except Exception as e:
-            self.error_signal.emit(e)
-
-    def stop(self):
-        """Stop TTS thread"""
-        self.status_signal.emit('')
-        if self.plugin.playback is not None:
-            self.plugin.playback.stop()
-            self.plugin.playback = None
-            self.plugin.audio = None
+    @Slot()
+    def handle_stop(self):
+        """
+        Handle thread playback stop
+        """
+        if self.playback is not None:
+            self.playback.stop()
+            self.playback = None
+            self.audio = None
