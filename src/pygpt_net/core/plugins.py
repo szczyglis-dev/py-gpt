@@ -208,7 +208,7 @@ class Plugins:
         if id in self.plugins:
             self.dump_locale(self.plugins[id], path)
 
-    def dump_plugin_locales(self):
+    def dump_locales(self):
         """
         Dump all locales
         """

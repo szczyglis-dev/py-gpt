@@ -47,7 +47,7 @@ class Plugins:
         self.handle_enabled_types()
 
         # tmp dump locales
-        # self.window.core.plugins.dump_plugin_locales()
+        # self.window.core.plugins.dump_locales()
 
     def setup_menu(self):
         """Set up plugins menu"""
