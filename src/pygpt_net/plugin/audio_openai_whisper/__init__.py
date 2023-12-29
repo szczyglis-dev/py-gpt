@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 import os
@@ -41,9 +41,7 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
-        """
+        """Initialize options"""
         self.add_option("model", "text", "whisper-1",
                         "Model",
                         "Specify model, default: whisper-1")

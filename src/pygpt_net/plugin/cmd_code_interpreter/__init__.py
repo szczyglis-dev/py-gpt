@@ -34,9 +34,7 @@ class Plugin(BasePlugin):
         self.runner = Runner(self)
 
     def init_options(self):
-        """
-        Initialize options
-        """
+        """Initialize options"""
         # cmd enable/disable
         self.add_option("python_cmd_tpl", "text", 'python3 {filename}',
                         "Python command template",

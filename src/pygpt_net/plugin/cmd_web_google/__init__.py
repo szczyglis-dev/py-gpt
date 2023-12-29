@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -32,9 +32,7 @@ class Plugin(BasePlugin):
         self.websearch = WebSearch(self)
 
     def init_options(self):
-        """
-        Initialize options
-        """
+        """Initialize options"""
         url_api = {
             "API Key": "https://developers.google.com/custom-search/v1/overview",
         }

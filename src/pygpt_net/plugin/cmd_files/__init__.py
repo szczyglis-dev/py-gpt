@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 
@@ -46,9 +46,7 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """
-        Initialize options
-        """
+        """Initialize options"""
         # cmd enable/disable
         self.add_option("cmd_read_file", "bool", True,
                         "Enable: Read file", "Allows `read_file` command execution")
