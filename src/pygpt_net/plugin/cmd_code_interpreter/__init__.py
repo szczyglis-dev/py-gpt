@@ -143,7 +143,7 @@ class Plugin(BasePlugin):
     def handle_status(self, data):
         """
         Handle thread status msg
-        :param data
+        :param data: status message
         """
         self.window.set_status(str(data))
 
@@ -151,7 +151,7 @@ class Plugin(BasePlugin):
     def handle_error(self, err):
         """
         Handle thread error
-        :param err
+        :param err: error object
         """
         self.window.core.debug.log(err)
         self.window.ui.dialogs.alert("Code Interpreter Error: " + str(err))
