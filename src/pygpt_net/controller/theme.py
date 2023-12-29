@@ -103,6 +103,8 @@ class Theme:
             self.window.ui.nodes[key].setStyleSheet(self.get_style('chat_input'))
         elif type == 'ctx.list':
             self.window.ui.nodes[key].setStyleSheet(self.get_style('ctx.list'))
+        elif type == 'text_faded':
+            self.window.ui.nodes[key].setStyleSheet(self.get_style('text_faded'))
 
     def apply_nodes(self, all=True):
         """
@@ -150,6 +152,13 @@ class Theme:
                 'vision.capture.label',
                 'vision.capture.options',
             ],
+            'text_faded': [
+                'input.label',
+                'input.counter',
+                'prompt.context',
+                'chat.label',
+                'chat.model',
+            ],
         }
 
         # apply to nodes
@@ -193,7 +202,7 @@ class Theme:
             # return "font-size: 8px;"  <-- too small on big screens
         elif element == "text_faded":
             if theme.startswith('light'):
-                return "color: #515151;"
+                return "color: #414141;"
             else:
                 return "color: #999;"
             # return "font-size: 8px; color: #999;"  <-- too small on big screens

@@ -1,3 +1,10 @@
+2.0.64 (2023-12-29)
+
+- Commands and plugins execution moved to asynchronous native QT threadpool
+- Improved theme switching
+- Improved debugger window
+- Small fixes and optimizations
+
 2.0.63 (2023-12-28)
 
 - Fixed context append bug

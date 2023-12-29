@@ -132,7 +132,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param text: status text
         """
         msg = str(text)
-        status = msg[:40] + '...' if len(msg) > 40 else msg  # truncate, if needed, to 40 chars
+        status = msg[:80] + '...' if len(msg) > 80 else msg  # truncate, if needed, to 40 chars
         self.ui.nodes['status'].setText(status)
 
     @Slot(str)
