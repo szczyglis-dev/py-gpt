@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
+
 import json
-import threading
 import time
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
 from pygpt_net.utils import trans
 
@@ -70,13 +70,18 @@ class Threads:
 
         :param ctx: CtxItem
         """
-        listener = AssistantRunThread(window=self.window, ctx=ctx)
-        listener.updated.connect(self.handle_status)
-        listener.destroyed.connect(self.handle_destroy)
-        listener.started.connect(self.handle_started)
+        # worker
+        worker = RunWorker()
+        worker.window = self.window
+        worker.ctx = ctx
 
-        self.thread_run = threading.Thread(target=listener.run)
-        self.thread_run.start()
+        # signals
+        worker.signals.updated.connect(self.handle_status)
+        worker.signals.destroyed.connect(self.handle_destroy)
+        worker.signals.started.connect(self.handle_started)
+
+        # start
+        self.window.threadpool.start(worker)
         self.thread_run_started = True
 
     @Slot(str, object)
@@ -112,21 +117,20 @@ class Threads:
         self.window.statusChanged.emit(trans('assistant.run.listening'))
 
 
-class AssistantRunThread(QObject):
+class RunSignals(QObject):
     updated = Signal(object, object)
     destroyed = Signal()
     started = Signal()
 
-    def __init__(self, window=None, ctx=None):
-        """
-        Run assistant run status check thread
 
-        :param window: Window instance
-        :param ctx: CtxItem
-        """
-        super().__init__()
-        self.window = window
-        self.ctx = ctx
+class RunWorker(QRunnable):
+    def __init__(self, *args, **kwargs):
+        super(RunWorker, self).__init__()
+        self.signals = RunSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.window = None
+        self.ctx = None
         self.check = True
         self.stop_reasons = [
             "cancelling",
@@ -137,22 +141,23 @@ class AssistantRunThread(QObject):
             "requires_action",
         ]
 
+    @Slot()
     def run(self):
         """Run thread"""
         try:
-            self.started.emit()
+            self.signals.started.emit()
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant.threads.force_stop:
                 status = self.window.core.gpt.assistants.run_status(self.ctx.thread, self.ctx.run_id)
-                self.updated.emit(status, self.ctx)
+                self.signals.updated.emit(status, self.ctx)
                 # finished or failed
                 if status in self.stop_reasons:
                     self.check = False
-                    self.destroyed.emit()
+                    self.signals.destroyed.emit()
                     break
                 time.sleep(1)
-            self.destroyed.emit()
+            self.signals.destroyed.emit()
         except Exception as e:
             self.window.core.debug.log(e)
-            self.destroyed.emit()
+            self.signals.destroyed.emit()
