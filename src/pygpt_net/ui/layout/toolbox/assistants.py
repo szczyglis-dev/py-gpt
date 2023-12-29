@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
+from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 
@@ -111,6 +112,8 @@ class Assistants:
         for n in data:
             self.window.ui.models[self.id].insertRow(i)
             name = data[n].name
+            index = self.window.ui.models[self.id].index(i, 0)
+            self.window.ui.models[self.id].setData(index, "ID: " + data[n].id, QtCore.Qt.ToolTipRole)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
             i += 1
 

@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
+from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
 
@@ -97,6 +98,8 @@ class AttachmentsUploaded:
             if 'name' not in data[id] or 'path' not in data[id]:
                 continue
             self.window.ui.models[self.id].insertRow(i)
+            index = self.window.ui.models[self.id].index(i, 0)
+            self.window.ui.models[self.id].setData(index, "ID: " + id, QtCore.Qt.ToolTipRole)
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), data[id]['name'])
             self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 1), data[id]['path'])
             i += 1
