@@ -21,16 +21,6 @@ class Ctx:
         """
         self.window = window
 
-        # modes allowed for switch from (key: from, data: to)
-        self.allowed_modes = {
-            'chat': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'img': ['img'],
-            'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'assistant': ['assistant'],
-        }
-
     def setup(self):
         """Setup ctx"""
         # load ctx list
