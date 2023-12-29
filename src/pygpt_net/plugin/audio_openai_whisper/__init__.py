@@ -10,16 +10,13 @@
 # ================================================== #
 
 import os
-import threading
-import time
 
-from PySide6.QtCore import QObject, Signal, Slot
-import speech_recognition as sr
+from PySide6.QtCore import Slot
 from openai import OpenAI
-import audioop
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.utils import trans
+from .worker import Worker
 
 
 class Plugin(BasePlugin):
@@ -33,7 +30,6 @@ class Plugin(BasePlugin):
         self.window = None
         self.speech_enabled = False
         self.thread_started = False
-        self.thread = None
         self.listening = False
         self.waiting = False
         self.stop = False
@@ -152,34 +148,19 @@ class Plugin(BasePlugin):
         """
         pass
 
-    def get_stop_words(self):
+    def get_words(self, key):
         """
-        Return stop words
+        Get and parse words from option string
 
-        :return: stop words
+        :param key: option key
+        :return: words
         :rtype: list
         """
-        words_str = self.get_option_value('stop_words')
+        words_str = self.get_option_value(key)
         words = []
         if words_str is not None and len(words_str) > 0 and words_str.strip() != ' ':
             words = words_str.split(',')
-            # remove white-spaces
-            words = [x.strip() for x in words]
-        return words
-
-    def get_magic_words(self):
-        """
-        Return magic words
-
-        :return: stop words
-        :rtype: list
-        """
-        words_str = self.get_option_value('magic_words')
-        words = []
-        if words_str is not None and len(words_str) > 0 and words_str.strip() != ' ':
-            words = words_str.split(',')
-            # remove white-spaces
-            words = [x.strip() for x in words]
+            words = [x.strip() for x in words]  # remove white-spaces
         return words
 
     def get_prefix_words(self):
@@ -193,8 +174,7 @@ class Plugin(BasePlugin):
         words = []
         if words_str is not None and len(words_str) > 0 and words_str.strip() != ' ':
             words = words_str.split(',')
-            # remove white-spaces
-            words = [x.strip() for x in words]
+            words = [x.strip() for x in words] # remove white-spaces
         return words
 
     def toggle_speech(self, state):
@@ -310,16 +290,28 @@ class Plugin(BasePlugin):
         if self.thread_started:
             return
 
-        listener = AudioInputThread(plugin=self)
-        listener.finished.connect(self.handle_input)
-        listener.destroyed.connect(self.handle_destroy)
-        listener.started.connect(self.handle_started)
-        listener.stopped.connect(self.handle_stop)
-        listener.status_signal.connect(self.handle_status)
-        listener.error_signal.connect(self.handle_error)
+        client = OpenAI(
+            api_key=self.window.core.config.get('api_key'),
+            organization=self.window.core.config.get('organization_key'),
+        )
+        path = os.path.join(self.window.core.config.path, 'input.wav')
 
-        self.thread = threading.Thread(target=listener.run)
-        self.thread.start()
+        # worker
+        worker = Worker()
+        worker.plugin = self
+        worker.client = client
+        worker.path = path
+
+        # signals
+        worker.signals.finished.connect(self.handle_input)
+        worker.signals.destroyed.connect(self.handle_destroy)
+        worker.signals.started.connect(self.handle_started)
+        worker.signals.stopped.connect(self.handle_stop)
+        worker.signals.status.connect(self.handle_status)
+        worker.signals.error.connect(self.handle_error)
+
+        # start
+        self.window.threadpool.start(worker)
         self.thread_started = True
 
     def can_listen(self):
@@ -374,7 +366,7 @@ class Plugin(BasePlugin):
         # check for magic word
         is_magic_word = False
         if self.get_option_value('magic_word'):
-            for word in self.get_magic_words():
+            for word in self.get_words('magic_words'):
                 # prepare magic word
                 check_word = word.lower().replace('.', '')
                 check_text = text.lower()
@@ -454,166 +446,3 @@ class Plugin(BasePlugin):
         self.set_status('')
         # print("Whisper stopped listening...")
         self.toggle_speech(False)
-
-
-class AudioInputThread(QObject):
-    # setup signals
-    status_signal = Signal(object)
-    error_signal = Signal(object)
-    finished = Signal(object)
-    destroyed = Signal()
-    started = Signal()
-    stopped = Signal()
-
-    def __init__(self, plugin=None):
-        """
-        Audio input listener thread
-        """
-        super().__init__()
-        self.plugin = plugin
-
-    def run(self):
-        try:
-            if not self.plugin.listening:
-                return
-
-            client = OpenAI(
-                api_key=self.plugin.window.core.config.get('api_key'),
-                organization=self.plugin.window.core.config.get('organization_key'),
-            )
-
-            print("Starting audio listener....")
-            path = os.path.join(self.plugin.window.core.config.path, 'input.wav')
-
-            self.started.emit()
-            self.status_signal.emit('')
-
-            with sr.Microphone() as source:
-                while self.plugin.listening and not self.plugin.window.is_closing:
-                    self.status_signal.emit('')
-
-                    if self.plugin.stop:
-                        self.plugin.stop = False
-                        self.plugin.listening = False
-                        self.status_signal.emit('Stop.')
-                        self.stopped.emit()
-                        break
-
-                    if not self.plugin.can_listen():
-                        time.sleep(0.5)
-                        continue
-
-                    try:
-                        recognizer = sr.Recognizer()
-
-                        # set recognizer options
-                        recognizer.energy_threshold = self.plugin.get_option_value('recognition_energy_threshold')
-                        recognizer.dynamic_energy_threshold = \
-                            self.plugin.get_option_value('recognition_dynamic_energy_threshold')
-                        recognizer.dynamic_energy_adjustment_damping = \
-                            self.plugin.get_option_value('recognition_dynamic_energy_adjustment_damping')
-                        recognizer.dynamic_energy_adjustment_ratio = \
-                            self.plugin.get_option_value('recognition_dynamic_energy_adjustment_ratio')
-                        recognizer.pause_threshold = self.plugin.get_option_value('recognition_pause_threshold')
-                        adjust_duration = self.plugin.get_option_value('recognition_adjust_for_ambient_noise_duration')
-
-                        # adjust for ambient noise
-                        if self.plugin.get_option_value('adjust_noise'):
-                            recognizer.adjust_for_ambient_noise(source, duration=adjust_duration)
-                            self.plugin.is_first_adjust = False
-
-                        timeout = self.plugin.get_option_value('timeout')
-                        phrase_length = self.plugin.get_option_value('phrase_length')
-
-                        # check for magic word, if no magic word detected, then set to magic word timeout and length
-                        if self.plugin.get_option_value('magic_word'):
-                            if not self.plugin.magic_word_detected:
-                                timeout = self.plugin.get_option_value('magic_word_timeout')
-                                phrase_length = self.plugin.get_option_value('magic_word_phrase_length')
-
-                        # set begin status
-                        if self.plugin.can_listen():
-                            if self.plugin.get_option_value('magic_word'):
-                                if self.plugin.magic_word_detected:
-                                    self.status_signal.emit(trans('audio.speak.now'))
-                                else:
-                                    self.status_signal.emit(trans('audio.magic_word.please'))
-                            else:
-                                self.status_signal.emit(trans('audio.speak.now'))
-
-                        min_energy = self.plugin.get_option_value('min_energy')
-                        ambient_noise_energy = min_energy * recognizer.energy_threshold
-
-                        if timeout > 0 and phrase_length > 0:
-                            audio_data = recognizer.listen(source, timeout, phrase_length)
-                        elif timeout > 0:
-                            audio_data = recognizer.listen(source, timeout)
-                        else:
-                            audio_data = recognizer.listen(source)
-
-                        if not self.plugin.can_listen():
-                            continue
-
-                        # transcript audio
-                        raw_data = audio_data.get_wav_data()
-                        is_stop_word = False
-
-                        if raw_data:
-                            # check RMS / energy
-                            rms = audioop.rms(raw_data, 2)
-                            if min_energy > 0:
-                                self.status_signal.emit("{}: {} / {} (x{})".
-                                                              format(trans('audio.speak.energy'),
-                                                                     rms, int(ambient_noise_energy), min_energy))
-                            if rms < ambient_noise_energy:
-                                continue
-
-                            # save audio file
-                            with open(path, "wb") as audio_file:
-                                audio_file.write(raw_data)
-
-                            # transcribe
-                            with open(path, "rb") as audio_file:
-                                self.status_signal.emit(trans('audio.speak.wait'))
-                                transcript = client.audio.transcriptions.create(
-                                    model=self.plugin.get_option_value('model'),
-                                    file=audio_file,
-                                    response_format="text"
-                                )
-                                # handle transcript
-                                if transcript is not None and transcript.strip() != '':
-                                    # fix if empty phrase
-                                    is_empty_phrase = False
-                                    transcript_check = transcript.strip().lower()
-                                    for phrase in self.plugin.empty_phrases:
-                                        phrase_check = phrase.strip().lower()
-                                        if phrase_check in transcript_check:
-                                            is_empty_phrase = True
-                                            break
-
-                                    if is_empty_phrase:
-                                        continue
-
-                                    if self.plugin.can_listen():
-                                        self.finished.emit(transcript)
-
-                                    # stop listening if not continuous mode or stop word detected
-                                    stop_words = self.plugin.get_stop_words()
-
-                                    if len(stop_words) > 0:
-                                        is_stop_word = transcript.replace('.', '').strip().lower() in stop_words
-
-                        if not self.plugin.get_option_value('continuous_listen') or is_stop_word:
-                            self.plugin.listening = False
-                            self.stopped.emit()
-                            self.status_signal.emit('')  # clear status
-                            break
-                    except Exception as e:
-                        print("Speech recognition error: {}".format(str(e)))
-
-            self.destroyed.emit()
-
-        except Exception as e:
-            self.error_signal.emit(e)
-            self.destroyed.emit()
-            print("Audio input thread error: {}".format(str(e)))
