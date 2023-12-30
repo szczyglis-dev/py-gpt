@@ -99,6 +99,7 @@ class Input:
 
         self.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
+        # check if image captured from camera
         camera_captured = (mode == 'vision' and self.window.controller.attachment.has('vision'))
 
         # allow empty input only for vision mode, otherwise abort
