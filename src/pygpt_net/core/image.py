@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 import requests
-from openai import OpenAI
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 
 class Image:
@@ -54,69 +54,141 @@ class Image:
                     cmd = prompt
         return cmd
 
-    def get_client(self):
+    @Slot(str, object)
+    def handle_finished(self, ctx, paths, prompt):
         """
-        Return OpenAI client
+        Handle finished image generation
 
-        :return: OpenAI client
+        :param ctx: CtxItem
+        :param paths: images paths list
+        :param prompt: prompt used for generate images
         """
-        return OpenAI(
-            api_key=self.window.core.config.get('api_key'),
-            organization=self.window.core.config.get('organization_key'),
-        )
+        self.window.controller.image.handle_response(ctx, paths, prompt)
 
-    def generate(self, prompt, model="dall-e-3", num=1):
+    @Slot()
+    def handle_status(self, msg):
+        """Handle thread status"""
+        self.window.set_status(msg)
+        print(msg)
+
+    @Slot()
+    def handle_error(self, e):
+        """Handle thread error"""
+        self.window.set_status(e)
+        self.window.core.debug.log(e)
+
+    def generate(self, ctx, prompt, model="dall-e-3", num=1):
         """
         Call DALL-E API
 
+        :param ctx: CtxItem
         :param prompt: prompt
         :param model: model name
         :param num: number of variants
         :return: images paths list
         :rtype: list
         """
-        if not self.window.core.config.get('img_raw'):
-            system_cmd = self.get_prompt()
+
+        # worker
+        worker = ImageWorker()
+        worker.window = self.window
+        worker.client = self.window.core.gpt.get_client()
+        worker.ctx = ctx
+        worker.raw = self.window.core.config.get('img_raw')
+        worker.model = model
+        worker.model_prompt = self.window.core.config.get('img_prompt_model')
+        worker.resolution = self.window.core.config.get('img_resolution')
+        worker.dirname = self.DIRNAME
+        worker.input_prompt = prompt
+        worker.system_prompt = self.get_prompt()
+        worker.num = num
+
+        # signals
+        worker.signals.finished.connect(self.handle_finished)
+        worker.signals.status.connect(self.handle_status)
+        worker.signals.error.connect(self.handle_error)
+
+        # start
+        self.window.threadpool.start(worker)
+
+
+class ImageSignals(QObject):
+    finished = Signal(object, object, object)
+    status = Signal(object)
+    error = Signal(object)
+
+
+class ImageWorker(QRunnable):
+    def __init__(self, *args, **kwargs):
+        super(ImageWorker, self).__init__()
+        self.signals = ImageSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.window = None
+        self.client = None
+        self.ctx = None
+        self.raw = False
+        self.model = "dall-e-3"
+        self.resolution = None
+        self.dirname = None
+        self.model_prompt = None
+        self.input_prompt = None
+        self.system_prompt = None
+        self.num = 1
+
+    @Slot()
+    def run(self):
+        if not self.raw:
             max_tokens = 200
             temperature = 1.0
             try:
                 # call GPT for generate best image generate prompt
-                response = self.window.core.gpt.quick_call(prompt, system_cmd, False, max_tokens,
-                                                           self.window.core.config.get('img_prompt_model'), temperature)
+                self.signals.status.emit("Asking for image prompt... please wait...")
+                response = self.window.core.gpt.quick_call(self.input_prompt, self.system_prompt, False, max_tokens,
+                                                           self.model_prompt, temperature)
                 if response is not None and response != "":
-                    prompt = response
+                    self.input_prompt = response
             except Exception as e:
-                self.window.core.debug.log(e)
-                print("Image prompt generate by model error: " + str(e))
+                self.signals.error.emit(e)
+                self.signals.status.emit("Image prompt generate by model error: " + str(e))
 
-        print("Generating image from: '{}'".format(prompt))
-        client = self.get_client()
-        response = client.images.generate(
-            model=model,
-            prompt=prompt,
-            n=num,
-            size=self.window.core.config.get('img_resolution'),
-        )
-
-        # generate and download images
+        self.signals.status.emit("Please wait... generating image from: {}...".format(self.input_prompt))
         paths = []
-        for i in range(num):
-            if i >= len(response.data):
-                break
-            url = response.data[i].url
-            res = requests.get(url)
+        try:
+            # send to API
+            response = self.client.images.generate(
+                model=self.model,
+                prompt=self.input_prompt,
+                n=self.num,
+                size=self.window.core.config.get('img_resolution'),
+            )
 
-            # generate filename
-            name = self.make_safe_filename(prompt) + "-" + datetime.date.today().strftime(
-                "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
-            path = os.path.join(self.window.core.config.path, self.DIRNAME, name)
+            # download images
+            for i in range(self.num):
+                if i >= len(response.data):
+                    break
+                url = response.data[i].url
+                res = requests.get(url)
 
-            print("Downloading... [" + str(i + 1) + " of " + str(num) + "] to: " + path)
-            # save image
-            if self.save_image(path, res.content):
-                paths.append(path)
+                # generate filename
+                name = self.make_safe_filename(self.input_prompt) + "-" + datetime.date.today().strftime(
+                    "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
+                path = os.path.join(self.window.core.config.path, self.dirname, name)
 
-        return paths, prompt
+                msg = "Downloading... [" + str(i + 1) + " of " + str(self.num) + "] to: " + path
+                self.signals.status.emit(msg)
+
+                # save image
+                if self.save_image(path, res.content):
+                    paths.append(path)
+
+            # send finished signal
+            self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+
+        except Exception as e:
+            self.signals.error.emit(e)
+            print("Image generate error: " + str(e))
+            return
 
     def save_image(self, path, image):
         """
@@ -131,7 +203,7 @@ class Image:
                 file.write(image)
             return True
         except Exception as e:
-            self.window.core.debug.log(e)
+            self.signals.error.emit(e)
             print("Image save error: " + str(e))
             return False
 

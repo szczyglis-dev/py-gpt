@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
+
 import json
 import os
 import shutil
 import webbrowser
-from pathlib import PurePath
 
 from PySide6 import QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -40,18 +40,22 @@ class Image:
 
     def send_text(self, text):
         """
-        Send prompt to DALL-E and opens generated image in dialog
+        Send prompt to API and open generated image in dialog
 
-        :param text: prompt to send
+        :param text: prompt for image generation
+        :return: ctx item
+        :rtype: CtxItem
         """
-        try:
-            num_of_images = int(self.window.ui.config_option['img_variants'].input.text())
-        except:
-            num_of_images = 1
-            if num_of_images < 1:
-                num_of_images = 1
-            elif num_of_images > 4:
-                num_of_images = 4
+        num = int(self.window.ui.config_option['img_variants'].input.text() or 1)
+        if num < 1:
+            num = 1
+        elif num > 4:
+            num = 4
+
+        # force one image if dall-e-3 model is used
+        model = self.window.core.config.get('model')
+        if model == 'dall-e-3':
+            num = 1
 
         self.window.set_status(trans('status.sending'))
 
@@ -64,55 +68,63 @@ class Image:
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 
+        # add ctx to DB
         self.window.core.ctx.add(ctx)
         self.window.controller.output.append_input(ctx)
+
+        # handle ctx name (generate title from summary if not initialized)
+        if self.window.core.config.get('ctx.auto_summary'):
+            self.window.controller.output.handle_ctx_name(ctx)
 
         # process events to update UI
         QApplication.processEvents()
 
         # call DALL-E API and generate images
         try:
-            model = self.window.core.config.get('model')
-            
-            # force one image if dall-e-3
-            if model == 'dall-e-3':
-                num_of_images = 1
+            # run async worker
+            self.window.core.image.generate(ctx, text, model, num)
 
-            paths, prompt = self.window.core.image.generate(text, model, num_of_images)
-            string = ""
-            i = 1
-            for path in paths:
-                string += "{}) `{}`".format(i, path) + "\n"
-                i += 1
-            self.open_images(paths)
-
-            if not self.window.core.config.get('img_raw'):
-                string += "\nPrompt: "
-                string += prompt
-
-            ctx.images = json.dumps(paths)  # save images paths
-            ctx.set_output(string.strip())
-
-            # dispatch event
-            event = Event('ctx.after')
-            event.ctx = ctx
-            self.window.core.dispatcher.dispatch(event)
-
-            # handle ctx name (generate title from summary if not initialized)
-            if self.window.core.config.get('ctx.auto_summary'):
-                self.window.controller.output.handle_ctx_name(ctx)
-
-            # store last mode (in text mode this is handled in send_text)
-            mode = self.window.core.config.get('mode')
-            self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
-
-            self.window.controller.output.append_output(ctx)
-            self.window.core.ctx.store()
-            self.window.set_status(trans('status.img.generated'))
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
+
+        return ctx
+
+    def handle_response(self, ctx, paths, prompt):
+        """
+        Handle response from DALL-E API
+
+        :param ctx: ctx item
+        :param paths: list with paths to downloaded images
+        :param prompt: prompt used to generate images
+        """
+        string = ""
+        i = 1
+        for path in paths:
+            string += "{}) `{}`".format(i, path) + "\n"
+            i += 1
+        self.open_images(paths)
+
+        if not self.window.core.config.get('img_raw'):
+            string += "\nPrompt: "
+            string += prompt
+
+        ctx.images = json.dumps(paths)  # save images paths
+        ctx.set_output(string.strip())
+
+        # dispatch event
+        event = Event('ctx.after')
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
+
+        # store last mode (in text mode this is handled in send_text)
+        mode = self.window.core.config.get('mode')
+        self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
+
+        self.window.controller.output.append_output(ctx)
+        self.window.core.ctx.store()
+        self.window.set_status(trans('status.img.generated'))
 
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
