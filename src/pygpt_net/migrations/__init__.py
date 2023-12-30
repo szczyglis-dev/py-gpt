@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 21:00:00                  #
+# Updated Date: 2023.12.30 09:00:00                  #
 # ================================================== #
 
 from .Version20231227152900 import Version20231227152900  # 2.0.59
+from .Version20231230095000 import Version20231230095000  # 2.0.66
 
 
 class Migrations:
@@ -26,4 +27,5 @@ class Migrations:
         """
         return [
             Version20231227152900(),  # 2.0.59
+            Version20231230095000(),  # 2.0.66
         ]

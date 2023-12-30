@@ -92,6 +92,8 @@ class Confirm:
             self.window.controller.assistant.files.update_name(id, name)
         elif type == 'output_file':
             self.window.controller.files.update_name(id, name)
+        elif type == 'notepad':
+            self.window.controller.notepad.update_name(id, name, True)
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""

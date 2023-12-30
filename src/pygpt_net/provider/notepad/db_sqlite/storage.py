@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 21:00:00                  #
+# Updated Date: 2023.12.30 09:00:00                  #
 # ================================================== #
 
 import time
@@ -119,6 +119,7 @@ class Storage:
                                 idx = :idx,
                                 title = :title,
                                 content = :content,
+                                is_initialized = :is_initialized,
                                 updated_ts = :updated_ts
                             WHERE id = :id
                         """).bindparams(
@@ -126,6 +127,7 @@ class Storage:
                     idx=int(notepad.idx or 0),
                     title=notepad.title,
                     content=notepad.content,
+                    is_initialized=int(notepad.initialized),
                     updated_ts=ts
                 )
             else:
@@ -138,7 +140,8 @@ class Storage:
                                 content, 
                                 created_ts, 
                                 updated_ts,
-                                is_deleted
+                                is_deleted,
+                                is_initialized
                             )
                             VALUES
                             (
@@ -148,7 +151,8 @@ class Storage:
                                 :content,
                                 :created_ts,
                                 :updated_ts,
-                                :is_deleted
+                                :is_deleted,
+                                :is_initialized
                             )
                         """).bindparams(
                     idx=notepad.idx,
@@ -157,7 +161,8 @@ class Storage:
                     content=notepad.content,
                     created_ts=ts,
                     updated_ts=ts,
-                    is_deleted=int(notepad.deleted)
+                    is_deleted=int(notepad.deleted),
+                    is_initialized=int(notepad.initialized)
                 )
             conn.execute(stmt)
 
@@ -179,7 +184,8 @@ class Storage:
                     content, 
                     created_ts, 
                     updated_ts,
-                    is_deleted
+                    is_deleted,
+                    is_initialized
                 )
                 VALUES
                 (
@@ -189,7 +195,8 @@ class Storage:
                     :content,
                     :created_ts,
                     :updated_ts,
-                    :is_deleted
+                    :is_deleted,
+                    :is_initialized
                 )
             """).bindparams(
             idx=int(notepad.idx or 0),
@@ -198,7 +205,8 @@ class Storage:
             content=notepad.content,
             created_ts=ts,
             updated_ts=ts,
-            is_deleted=int(notepad.deleted)
+            is_deleted=int(notepad.deleted),
+            is_initialized=int(notepad.initialized)
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -222,4 +230,5 @@ class Storage:
         notepad.title = row['title']
         notepad.content = row['content']
         notepad.deleted = bool(row['is_deleted'])
+        notepad.initialized = bool(row['is_initialized'])
         return notepad

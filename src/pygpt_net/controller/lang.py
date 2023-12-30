@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -70,6 +70,7 @@ class Lang:
             for i in range(0, num_notepads + 1):
                 tab = i + 2
                 self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i+1))
+        self.window.controller.notepad.reload_tab_names()  # <-- reload tab names to restore custom names if present
 
         # context
         self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))
@@ -281,6 +282,7 @@ class Lang:
             print("Error updating plugin locales", e)
             self.window.core.debug.log(e)
 
+        self.window.controller.ctx.update_ctx_label_by_current()
         self.window.controller.ctx.update(True, False)
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.set_status('')  # clear status

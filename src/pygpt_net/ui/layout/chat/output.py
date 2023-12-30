@@ -17,6 +17,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidg
 from pygpt_net.ui.layout.chat.input import Input
 from pygpt_net.ui.layout.chat.markdown import MarkdownHighlighter
 from pygpt_net.ui.widget.audio.output import AudioOutput
+from pygpt_net.ui.widget.tab.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.ui.widget.textarea.notepad import NotepadOutput
 from pygpt_net.ui.widget.filesystem.explorer import FileExplorer
@@ -58,7 +59,7 @@ class Output:
                 self.window.ui.notepad[i].id = i
 
         # tabs
-        self.window.ui.tabs['output'] = QTabWidget()
+        self.window.ui.tabs['output'] = OutputTabs(self.window)
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output'], trans('output.tab.chat'))
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output_files'], trans('output.tab.files'))
 

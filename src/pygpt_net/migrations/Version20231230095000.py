@@ -9,18 +9,17 @@
 # Updated Date: 2023.12.30 09:00:00                  #
 # ================================================== #
 
-import time
+from sqlalchemy import text
+
+from .base import BaseMigration
 
 
-class NotepadItem:
-    def __init__(self):
-        self.id = 0
-        self.uuid = None
-        self.idx = 0
-        self.title = ""
-        self.content = ""
-        self.deleted = False
-        ts = int(time.time())
-        self.created = ts
-        self.updated = ts
-        self.initialized = False
+class Version20231230095000(BaseMigration):
+    def __init__(self, window=None):
+        super(Version20231230095000, self).__init__(window)
+        self.window = window
+
+    def up(self, conn):
+        conn.execute(text("""
+        ALTER TABLE notepad ADD COLUMN is_initialized BOOLEAN NOT NULL DEFAULT 0 CHECK (is_initialized IN (0, 1));
+        """))

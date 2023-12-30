@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 09:00:00                  #
 # ================================================== #
 
 import datetime
 
 from pygpt_net.item.notepad import NotepadItem
+from pygpt_net.utils import trans
 
 
 class Notepad:
@@ -43,7 +44,65 @@ class Notepad:
                     item.id = id
                     items[id] = item
                 if id in self.window.ui.notepad:
-                    self.window.ui.notepad[id].setText(items[id].content)
+                    title = items[id].title
+                    if items[id].initialized and title is not None and len(title) > 0:
+                        self.window.ui.notepad[id].setText(items[id].content)
+                        self.update_name(id, items[id].title, False)
+
+    def reload_tab_names(self):
+        """Reload tab names (after lang change)"""
+        items = self.window.core.notepad.get_all()
+        for id in items:
+            title = items[id].title
+            if items[id].initialized and title is not None and len(title) > 0:
+                self.update_name(id, items[id].title, False)
+
+    def rename(self, idx):
+        """
+        Rename tab
+
+        :param idx: tab index
+        """
+        # get notepad ID
+        id = idx - 1
+
+        # get attachment object by ID
+        item = self.window.core.notepad.get_by_id(id)
+        if item is None:
+            return
+
+        # set dialog and show
+        self.window.ui.dialog['rename'].id = 'notepad'
+        self.window.ui.dialog['rename'].input.setText(item.title)
+        self.window.ui.dialog['rename'].current = id
+        self.window.ui.dialog['rename'].show()
+        self.update()
+
+    def update_name(self, id, name, close=True):
+        """
+        Update notepad title
+
+        :param id: notepad id
+        :param name: notepad name
+        :param close: close dialog
+        """
+        item = self.window.core.notepad.get_by_id(id)
+        if item is None:
+            item = NotepadItem()
+            item.id = id
+            self.window.core.notepad.items[id] = item
+        tab_idx = id + 1
+        if name is None or len(name) == 0:
+            self.window.ui.tabs['output'].setTabText(tab_idx, trans('output.tab.notepad') + " " + str(id))
+            item.title = ""
+            item.initialized = False
+        else:
+            self.window.ui.tabs['output'].setTabText(tab_idx, name)
+            item.title = name
+            item.initialized = True
+        self.window.core.notepad.update(item)
+        if close:
+            self.window.ui.dialog['rename'].close()
 
     def save(self, id):
         """
@@ -108,6 +167,22 @@ class Notepad:
         :rtype: int
         """
         return self.window.core.config.get('notepad.num') or self.default_num_notepads
+
+    def rename_upd(self, id, name):
+        """
+        Rename notepad
+
+        :param id: notepad id
+        :param name: new notepad name
+        """
+        item = self.window.core.notepad.get_by_id(id)
+        if item is None:
+            item = NotepadItem()
+            item.id = id
+            self.window.core.notepad.items[id] = item
+        item.title = name
+        self.window.core.notepad.update(item)
+        self.update()
 
     def update(self):
         """Update notepads UI"""

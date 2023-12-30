@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.65** | build: **2023.12.30** | Python: **3.10+**
+Release: **2.0.66** | build: **2023.12.30** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1350,6 +1350,11 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.66 (2023-12-30)
+
+- Added "Rename" option to Notepad Tabs (via RMB)
+- Improved language switching
 
 ## 2.0.65 (2023-12-30)
 
