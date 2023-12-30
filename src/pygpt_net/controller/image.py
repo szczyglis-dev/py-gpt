@@ -25,7 +25,7 @@ from pygpt_net.utils import trans
 class Image:
     def __init__(self, window=None):
         """
-        Images controller
+        Image controller
 
         :param window: Window instance
         """
@@ -63,7 +63,7 @@ class Image:
         ctx = CtxItem()
         ctx.set_input(text, self.window.core.config.get('user_name'))
 
-        # dispatch event
+        # event: ctx.before
         event = Event('ctx.before')
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
@@ -72,12 +72,12 @@ class Image:
         self.window.core.ctx.add(ctx)
         self.window.controller.chat.render.append_input(ctx)
 
+        # process events to update UI
+        QApplication.processEvents()
+
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
             self.window.controller.ctx.prepare_name(ctx)
-
-        # process events to update UI
-        QApplication.processEvents()
 
         # call DALL-E API and generate images
         try:
@@ -113,7 +113,7 @@ class Image:
         ctx.images = json.dumps(paths)  # save images paths
         ctx.set_output(string.strip())
 
-        # dispatch event
+        # event: ctx.after
         event = Event('ctx.after')
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
@@ -123,14 +123,11 @@ class Image:
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
 
         self.window.controller.chat.render.append_output(ctx)
-        self.window.core.ctx.store()
+        self.window.core.ctx.store()  # save current ctx to DB
         self.window.set_status(trans('status.img.generated'))
 
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
-
-        # update ctx list
-        self.window.controller.ctx.update()
 
     def open_images(self, paths):
         """
