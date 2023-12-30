@@ -37,7 +37,7 @@ class Confirm:
         elif type == 'ctx_delete_all':
             self.window.controller.ctx.delete_history(True)
         elif type == 'img_delete':
-            self.window.controller.image.img_action_delete(id, True)
+            self.window.controller.chat.image.delete(id, True)
         elif type == 'attachments.delete':
             self.window.controller.attachment.delete(id, True)
         elif type == 'attachments_uploaded.delete':

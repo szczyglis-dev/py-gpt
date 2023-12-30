@@ -65,7 +65,7 @@ class Image:
         :param paths: images paths list
         :param prompt: prompt used for generate images
         """
-        self.window.controller.image.handle_response(ctx, paths, prompt)
+        self.window.controller.chat.image.handle_response(ctx, paths, prompt)
 
     @Slot()
     def handle_status(self, msg):

@@ -64,7 +64,7 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.image.img_action_open(self.path)
+        self.window.controller.chat.image.open(self.path)
 
     def action_open_dir(self, event):
         """
@@ -72,7 +72,7 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.image.img_action_open_dir(self.path)
+        self.window.controller.chat.image.open_dir(self.path)
 
     def action_save(self, event):
         """
@@ -80,7 +80,7 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.image.img_action_save(self.path)
+        self.window.controller.chat.image.save(self.path)
 
     def action_delete(self, event):
         """
@@ -88,4 +88,4 @@ class ImageLabel(QLabel):
 
         :param event: mouse event
         """
-        self.window.controller.image.img_action_delete(self.path)
+        self.window.controller.chat.image.delete(self.path)

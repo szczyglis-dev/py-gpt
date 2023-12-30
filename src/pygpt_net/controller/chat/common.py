@@ -23,8 +23,8 @@ class Common:
         self.window = window
 
     def setup(self):
-        """Set up input"""
-        # stream
+        """Set up UI"""
+        # stream mode
         if self.window.core.config.get('stream'):
             self.window.ui.nodes['input.stream'].setChecked(True)
         else:
@@ -57,10 +57,17 @@ class Common:
         else:
             self.window.ui.nodes['cmd.enabled'].setChecked(False)
 
+        # output timestamps
+        self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
+
+        # images generation
+        if self.window.core.config.get('img_raw'):
+            self.window.ui.config_option['img_raw'].setChecked(True)
+        else:
+            self.window.ui.config_option['img_raw'].setChecked(False)
+
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
-
-        self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
     def toggle_stream(self, value):
         """
@@ -142,3 +149,24 @@ class Common:
         self.window.core.config.set('output_timestamp', value)
         self.window.core.config.save()
         self.window.controller.ctx.refresh()
+
+    def img_enable_raw(self):
+        """Enable help for images"""
+        self.window.core.config.set('img_raw', True)
+        self.window.core.config.save()
+
+    def img_disable_raw(self):
+        """Disable help for images"""
+        self.window.core.config.set('img_raw', False)
+        self.window.core.config.save()
+
+    def img_toggle_raw(self, state):
+        """
+        Toggle help for images
+
+        :param state: state of checkbox
+        """
+        if not state:
+            self.img_disable_raw()
+        else:
+            self.img_enable_raw()

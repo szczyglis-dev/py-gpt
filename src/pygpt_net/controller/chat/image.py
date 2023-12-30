@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import json
@@ -31,16 +31,9 @@ class Image:
         """
         self.window = window
 
-    def setup(self):
-        """Setup images"""
-        if self.window.core.config.get('img_raw'):
-            self.window.ui.config_option['img_raw'].setChecked(True)
-        else:
-            self.window.ui.config_option['img_raw'].setChecked(False)
-
-    def send_text(self, text):
+    def send(self, text):
         """
-        Send prompt to API and open generated image in dialog
+        Send prompt for image generate
 
         :param text: prompt for image generation
         :return: ctx item
@@ -159,7 +152,7 @@ class Image:
         self.window.ui.dialog['image'].resize(520, 520)
         self.window.ui.dialog['image'].show()
 
-    def img_action_open(self, path):
+    def open(self, path):
         """
         Open image in default image viewer
 
@@ -167,7 +160,7 @@ class Image:
         """
         webbrowser.open(path)
 
-    def img_action_open_dir(self, path):
+    def open_dir(self, path):
         """
         Open image in default image viewer
 
@@ -176,7 +169,7 @@ class Image:
         if os.path.exists(path):
             self.window.controller.files.open_in_file_manager(path)
 
-    def img_action_save(self, path):
+    def save(self, path):
         """
         Save image
 
@@ -193,7 +186,7 @@ class Image:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def img_action_delete(self, path, force=False):
+    def delete(self, path, force=False):
         """
         Delete image
 
@@ -212,24 +205,3 @@ class Image:
                     self.window.ui.nodes['dialog.image.pixmap'][i].setVisible(False)
         except Exception as e:
             self.window.core.debug.log(e)
-
-    def enable_raw(self):
-        """Enable help for images"""
-        self.window.core.config.set('img_raw', True)
-        self.window.core.config.save()
-
-    def disable_raw(self):
-        """Disable help for images"""
-        self.window.core.config.set('img_raw', False)
-        self.window.core.config.save()
-
-    def toggle_raw(self, state):
-        """
-        Toggle help for images
-
-        :param state: state of checkbox
-        """
-        if not state:
-            self.disable_raw()
-        else:
-            self.enable_raw()

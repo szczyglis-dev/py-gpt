@@ -18,7 +18,6 @@ from pygpt_net.controller.command import Command
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.files import Files
-from pygpt_net.controller.image import Image
 from pygpt_net.controller.dialogs import Dialogs
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
@@ -52,7 +51,6 @@ class Controller:
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
         self.files = Files(window)
-        self.image = Image(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
@@ -85,7 +83,6 @@ class Controller:
         self.attachment.setup()
         self.notepad.setup()
         self.camera.setup_ui()
-        self.image.setup()
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
