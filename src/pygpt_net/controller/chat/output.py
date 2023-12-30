@@ -86,7 +86,7 @@ class Output:
                             output_tokens += 1
                             self.window.controller.chat.render.append_chunk(ctx, response, begin)
                             self.window.controller.ui.update_tokens()  # update UI
-                            QApplication.processEvents()  # process events to update UI
+                            QApplication.processEvents()  # process events to update UI after each chunk
                             begin = False
 
             except Exception as e:

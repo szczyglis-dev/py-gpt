@@ -195,7 +195,6 @@ class Input:
         if mode != "assistant":
             self.window.controller.chat.output.handle_cmd(ctx)
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
-            self.window.controller.ctx.update()  # update ctx list
 
         self.window.controller.chat.common.unlock_input()  # unlock
 
@@ -263,7 +262,6 @@ class Input:
         # unlock Assistant run thread if locked
         self.window.controller.assistant.threads.force_stop = False
         self.force_stop = False
-        self.window.set_status(trans('status.sending'))
 
         # get text from input, TODO: move to user_send?
         if text is None:
@@ -284,10 +282,7 @@ class Input:
 
         # allow empty input only for vision mode, otherwise abort
         if len(text.strip()) == 0 and not is_camera_capture:
-            # reset status if input is empty
-            self.window.statusChanged.emit("")
             self.generating = False  # unlock as not generating
-            self.window.controller.ui.update()  # update UI
             return
 
         # check API key, show monit if not set
@@ -295,6 +290,8 @@ class Input:
             if not self.window.controller.chat.common.check_api_key():
                 self.generating = False
                 return
+
+        self.window.set_status(trans('status.sending'))
 
         # clear input field if clear-on-send is enabled
         if self.window.core.config.get('send_clear') and not force:
@@ -332,7 +329,7 @@ class Input:
 
         self.log("Context: output [after plugin: ctx.end]: {}".
                  format(self.window.core.ctx.dump(ctx)))  # log
-        self.window.controller.ui.update()  # update UI
+        self.window.controller.ui.update_tokens()  # update UI
         self.generating = False  # unlock
 
     def log(self, data):

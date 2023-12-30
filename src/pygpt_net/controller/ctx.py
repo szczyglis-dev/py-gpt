@@ -380,10 +380,8 @@ class Ctx:
 
         :param ctx: CtxItem
         """
-        if ctx is not None:
-            if not self.window.core.ctx.is_initialized():
-                id = self.window.core.ctx.current
-                self.window.controller.summarize.summarize_ctx(id, ctx)
+        if not self.window.core.ctx.is_initialized():
+            self.window.controller.summarize.summarize_ctx(self.window.core.ctx.current, ctx)
 
     def context_change_locked(self):
         """
