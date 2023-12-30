@@ -41,18 +41,18 @@ class Output:
             output = ""
             output_tokens = 0
             begin = True
-            submode = None  # submode for langchain (chat, completion)
+            sub_mode = None  # sub_mode for langchain (chat, completion)
 
-            # get submode for langchain
+            # get sub mode for langchain
             if mode == "langchain":
                 config = self.window.core.models.get(self.window.core.config.get('model'))
-                submode = 'chat'
+                sub_mode = 'chat'
                 # get available modes for langchain
                 if 'mode' in config.langchain:
                     if 'chat' in config.langchain['mode']:
-                        submode = 'chat'
+                        sub_mode = 'chat'
                     elif 'completion' in config.langchain['mode']:
-                        submode = 'completion'
+                        sub_mode = 'completion'
 
             # read stream
             try:
@@ -67,24 +67,24 @@ class Output:
                         if mode == "chat" or mode == "vision" or mode == "assistant":
                             if chunk.choices[0].delta.content is not None:
                                 response = chunk.choices[0].delta.content
+
                         elif mode == "completion":
                             if chunk.choices[0].text is not None:
                                 response = chunk.choices[0].text
 
                         # langchain can provide different modes itself
                         elif mode == "langchain":
-                            if submode == 'chat':
+                            if sub_mode == 'chat':
                                 # if chat model response is object
                                 if chunk.content is not None:
                                     response = chunk.content
-                            elif submode == 'completion':
+                            elif sub_mode == 'completion':
                                 # if completion response is string
                                 if chunk is not None:
                                     response = chunk
 
                         if response is not None:
-                            # prevent empty begin
-                            if begin and response == "":
+                            if begin and response == "":  # prevent empty beginning
                                 continue
                             output += response
                             output_tokens += 1
