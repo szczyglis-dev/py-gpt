@@ -41,7 +41,7 @@ class Output:
             output = ""
             output_tokens = 0
             begin = True
-            sub_mode = None  # sub_mode for langchain (chat, completion)
+            sub_mode = None  # sub mode for langchain (chat, completion)
 
             # get sub mode for langchain
             if mode == "langchain":
