@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import os
@@ -67,6 +67,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.init()
         self.core.patch()  # patch version if needed
 
+        # setup thread pool
+        self.threadpool = QThreadPool()
+
         # setup controllers
         self.controller = Controller(self)
 
@@ -108,7 +111,6 @@ class MainWindow(QMainWindow, QtStyleTools):
 
     def post_setup(self):
         """Called after setup"""
-        self.threadpool = QThreadPool()  # max -> self.threadpool.maxThreadCount()
         self.controller.layout.post_setup()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update)

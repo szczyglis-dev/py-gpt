@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import os
-
 import cv2
+import time
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 
 class Camera:
@@ -34,20 +34,22 @@ class Camera:
             os.mkdir(img_dir)
 
 
-class CameraThread(QObject):
+class CaptureSignals(QObject):
     finished = Signal()
     destroyed = Signal()
     started = Signal()
     stopped = Signal()
+    capture = Signal(object)
+    error = Signal(object)
 
-    def __init__(self, window=None):
-        """
-        Camera capture thread
 
-        :param window: Window instance
-        """
-        super().__init__()
-        self.window = window
+class CaptureWorker(QRunnable):
+    def __init__(self, *args, **kwargs):
+        super(CaptureWorker, self).__init__()
+        self.signals = CaptureSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.window = None
         self.initialized = False
         self.capture = None
         self.frame = None
@@ -60,42 +62,47 @@ class CameraThread(QObject):
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.core.config.get('vision.capture.width'))
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.core.config.get('vision.capture.height'))
         except Exception as e:
-            self.window.core.debug.log(e)
+            self.signals.error.emit(e)
             print("Camera thread setup exception", e)
-            self.finished.emit(e)
+            self.signals.finished.emit(e)
 
+    @Slot()
     def run(self):
         """Frame capture loop"""
+        target_fps = 30
+        fps_interval = 1.0 / target_fps
         try:
             if not self.initialized:
                 self.setup_camera()
-                self.started.emit()
+                self.signals.started.emit()
                 self.initialized = True
-
+            last_frame_time = time.time()
             while True:
                 if self.window.is_closing \
                         or self.capture is None \
                         or not self.capture.isOpened() \
                         or self.window.controller.camera.stop:
                     self.release()  # release camera
-                    self.stopped.emit()
+                    self.signals.stopped.emit()
                     break
                 _, frame = self.capture.read()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame = cv2.flip(frame, 1)
-                self.window.controller.camera.frame = frame  # update frame
+                now = time.time()
+                if now - last_frame_time >= fps_interval:
+                    self.signals.capture.emit(frame)
+                    last_frame_time = now
         except Exception as e:
-            self.window.core.debug.log(e)
+            self.signals.error.emit(e)
             print("Camera thread capture exception", e)
 
         # release camera
         self.release()
-        self.finished.emit()
+        self.signals.finished.emit()
 
     def release(self):
         """Release camera"""
         if self.capture is not None and self.capture.isOpened():
             self.capture.release()
-        self.capture = None
-        self.frame = None
-        self.initialized = False
+            self.capture = None
+            self.frame = None
+            self.initialized = False

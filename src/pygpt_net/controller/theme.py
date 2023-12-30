@@ -42,7 +42,7 @@ class Theme:
             self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
         # apply current theme to nodes
-        self.reload()
+        self.reload(False)
 
     def update_menu(self):
         """Update theme menu"""
@@ -52,13 +52,15 @@ class Theme:
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
 
-    def toggle(self, name):
+    def toggle(self, name, force=True):
         """
         Toggle theme by name
 
         :param name: theme name
+        :param force: force theme change (manual)
         """
-        self.window.controller.ui.store_state()  # store state before theme change
+        if force:
+            self.window.controller.ui.store_state()  # store state before theme change
 
         self.window.core.config.set('theme', name)
         self.window.core.config.save()
@@ -67,11 +69,16 @@ class Theme:
         self.apply_window(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
         self.update_menu()
 
-        self.window.controller.ui.restore_state()  # restore state after theme change
+        if force:
+            self.window.controller.ui.restore_state()  # restore state after theme change
 
-    def reload(self):
-        """Reload current theme"""
-        self.toggle(self.window.core.config.get('theme'))
+    def reload(self, force=True):
+        """
+        Reload current theme
+
+        :param force: force theme change (manual)
+        """
+        self.toggle(self.window.core.config.get('theme'), force)
 
     def get_css(self, name):
         """

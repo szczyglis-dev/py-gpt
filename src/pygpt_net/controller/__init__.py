@@ -94,7 +94,7 @@ class Controller:
 
     def on_update(self):
         """On app main loop update"""
-        self.camera.update()
+        pass
 
     def init(self):
         """Init base settings"""

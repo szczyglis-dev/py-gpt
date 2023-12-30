@@ -11,12 +11,11 @@
 
 import datetime
 import os
-import threading
 import cv2
 from PySide6.QtCore import Slot
 
 from PySide6.QtGui import QImage, QPixmap, Qt
-from pygpt_net.core.camera import CameraThread
+from pygpt_net.core.camera import CaptureWorker
 from pygpt_net.utils import trans
 
 
@@ -28,7 +27,6 @@ class Camera:
         :param window: Window instance
         """
         self.window = window
-        self.thread = None
         self.frame = None
         self.thread_started = False
         self.is_capture = False
@@ -69,13 +67,19 @@ class Camera:
 
         # prepare thread
         self.stop = False
-        thread = CameraThread(window=self.window)
-        thread.finished.connect(self.handle_stop)
-        thread.stopped.connect(self.handle_stop)
 
-        # run thread
-        self.thread = threading.Thread(target=thread.run)
-        self.thread.start()
+        # worker
+        worker = CaptureWorker()
+        worker.window = self.window
+
+        # signals
+        worker.signals.capture.connect(self.handle_capture)
+        worker.signals.finished.connect(self.handle_stop)
+        worker.signals.stopped.connect(self.handle_stop)
+        worker.signals.error.connect(self.handle_error)
+
+        # start
+        self.window.threadpool.start(worker)
         self.thread_started = True
 
     def stop_capture(self):
@@ -85,17 +89,35 @@ class Camera:
 
         self.stop = True
 
+    @Slot(object)
+    def handle_error(self, err):
+        """
+        Handle thread error signal
+
+        :param err: error message
+        """
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert("{}".format(err))
+
+    @Slot(object)
+    def handle_capture(self, frame):
+        """
+        Handle capture frame signal
+
+        :param frame: frame
+        """
+        self.frame = frame
+        self.update()
+
     @Slot()
     def handle_stop(self):
         """On capture stopped signal"""
         self.thread_started = False
-        self.thread = None
         self.hide_camera(False)
 
     def update(self):
         """Update camera frame"""
-        if self.thread is None \
-                or not self.thread_started \
+        if not self.thread_started \
                 or self.frame is None \
                 or not self.is_capture:
             return
@@ -123,7 +145,6 @@ class Camera:
 
         :param switch: true if switch to attachments tab (tmp: disabled)
         """
-
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
             self.window.controller.attachment.clear(True)
@@ -158,6 +179,7 @@ class Camera:
                 pass
                 # self.window.ui.tabs['input'].setCurrentIndex(1)  # 1 = index of attachments tab
             return True
+
         except Exception as e:
             print("Frame capture exception", e)
             self.window.core.debug.log(e)
