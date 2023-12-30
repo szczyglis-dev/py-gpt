@@ -9,6 +9,9 @@
 # Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
+from .input import Input
+from .output import Output
+
 
 class Chat:
     def __init__(self, window=None):
@@ -18,3 +21,10 @@ class Chat:
         :param window: Window instance
         """
         self.window = window
+        self.input = Input(window)
+        self.output = Output(window)
+
+    def setup(self):
+        """Setup"""
+        self.input.setup()
+        self.output.setup()

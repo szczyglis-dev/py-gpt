@@ -13,20 +13,19 @@ from pygpt_net.controller.assistant import Assistant
 from pygpt_net.controller.attachment import Attachment
 from pygpt_net.controller.audio import Audio
 from pygpt_net.controller.camera import Camera
+from pygpt_net.controller.chat import Chat
 from pygpt_net.controller.command import Command
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.image import Image
 from pygpt_net.controller.dialogs import Dialogs
-from pygpt_net.controller.chat.input import Input
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
 from pygpt_net.controller.mode import Mode
 from pygpt_net.controller.model import Model
 from pygpt_net.controller.notepad import Notepad
-from pygpt_net.controller.chat.output import Output
 from pygpt_net.controller.plugins import Plugins
 from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
@@ -47,20 +46,19 @@ class Controller:
         self.attachment = Attachment(window)
         self.audio = Audio(window)
         self.camera = Camera(window)
+        self.chat = Chat(window)
         self.command = Command(window)
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
         self.files = Files(window)
         self.image = Image(window)
-        self.input = Input(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
         self.layout = Layout(window)
         self.mode = Mode(window)
         self.model = Model(window)
         self.notepad = Notepad(window)
-        self.output = Output(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
@@ -79,8 +77,7 @@ class Controller:
         self.lang.setup()
         self.mode.setup()
         self.assistant.setup()
-        self.input.setup()
-        self.output.setup()
+        self.chat.setup()
         self.ctx.setup()
         self.ui.update_tokens()
         self.dialogs.setup()
