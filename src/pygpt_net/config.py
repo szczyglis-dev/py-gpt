@@ -202,10 +202,18 @@ class Config:
                     if lang_id not in langs:
                         langs.append(lang_id)
 
+        # sort by name
+        langs.sort()
+
         # make English first
         if 'en' in langs:
             langs.remove('en')
             langs.insert(0, 'en')
+
+        # make Polish second
+        if 'pl' in langs:
+            langs.remove('pl')
+            langs.insert(1, 'pl')
         return langs
 
     def append_meta(self):

@@ -92,12 +92,14 @@ class CaptureWorker(QRunnable):
                     self.signals.capture.emit(frame)
                     last_frame_time = now
         except Exception as e:
-            self.signals.error.emit(e)
+            if self.signals is not None:
+                self.signals.error.emit(e)
             print("Camera thread capture exception", e)
 
         # release camera
         self.release()
-        self.signals.finished.emit()
+        if self.signals is not None:
+            self.signals.finished.emit()
 
     def release(self):
         """Release camera"""

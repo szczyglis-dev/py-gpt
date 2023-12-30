@@ -118,11 +118,10 @@ class Plugin(BasePlugin):
         try:
             if text is not None and len(text) > 0:
                 lang = self.window.core.config.get('lang')
-                voice = None
-                if lang == "pl":
-                    voice = self.get_option_value("voice_pl")
-                elif lang == "en":
+                if lang == "en":
                     voice = self.get_option_value("voice_en")
+                else:
+                    voice = self.get_option_value("voice_pl")
 
                 # worker
                 worker = Worker()

@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.0.64",
-        "app.version": "2.0.64",
-        "updated_at": "2023-12-29T00:00:00"
+        "version": "2.0.65",
+        "app.version": "2.0.65",
+        "updated_at": "2023-12-30T00:00:00"
     },
     "dall-e-2": {
         "id": "dall-e-2",

@@ -20,6 +20,7 @@ class Layout:
         self.window = window
         # self.splitters = ["main", "main.output", "toolbox", "toolbox.mode", "toolbox.presets"]
         self.splitters = ["main", "main.output", "toolbox", "toolbox.mode"]  # prevent assistants column disappearing
+        self.text_nodes = ["input"]
 
     def setup(self):
         """Setup layout"""
@@ -27,6 +28,7 @@ class Layout:
 
     def post_setup(self):
         """Post setup layout (after window initialization)"""
+        self.text_nodes_restore()
         self.state_restore()
         self.splitters_restore()
         self.tabs_restore()
@@ -39,11 +41,32 @@ class Layout:
 
     def save(self):
         """Save layout state"""
+        self.text_nodes_save()
         self.splitters_save()
         self.tabs_save()
         self.groups_save()
         self.scroll_save()
         self.state_save()
+
+    def text_nodes_restore(self):
+        """Restore nodes text"""
+        if not self.window.core.config.has('layout.text_nodes'):
+            return
+        data = self.window.core.config.get('layout.text_nodes')
+        for id in self.window.ui.nodes:
+            if id in data:
+                try:
+                    self.window.ui.nodes[id].setText(data[id])
+                except Exception as e:
+                    print("Error while restoring field state: " + str(e))
+                    self.window.core.debug.log(e)
+
+    def text_nodes_save(self):
+        """Save nodes text"""
+        data = {}
+        for id in self.text_nodes:
+            data[id] = self.window.ui.nodes[id].toPlainText()
+        self.window.core.config.set('layout.text_nodes', data)
 
     def tabs_save(self):
         """Save tabs state"""

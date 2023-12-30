@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.64** | build: **2023.12.29** | Python: **3.10+**
+Release: **2.0.65** | build: **2023.12.30** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1350,6 +1350,16 @@ may consume additional tokens that are not displayed in the main window.
 ---
 
 # CHANGELOG
+
+## 2.0.65 (2023-12-30)
+
+- Image generation, vision capture and assistants run listeners moved to async threadpool
+- Added saving state of scroll value in chat window
+- Added search string save and restore
+- Added input text save and restore
+- Updated tests and code cleanup
+- Added translations (only main app): DE, ES, FR, IT, UA 
+- Small fixes and optimizations
 
 ## 2.0.64 (2023-12-29)
 

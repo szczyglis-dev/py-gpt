@@ -62,9 +62,11 @@ class Locale:
             # if not check if file exists in app data dir
             path = os.path.join(self.config.get_app_path(), 'data', 'locale', locale_id + '.' + lang + '.ini')
         if not os.path.exists(path):
-            print("FATAL ERROR: {} not found!".format(path))
-            return None
-        # TODO: add home dir override as option
+            # fallback to english
+            path = os.path.join(self.config.get_app_path(), 'data', 'locale', locale_id + '.en.ini')
+            if not os.path.exists(path):
+                print("FATAL ERROR: {} not found!".format(path))
+                return None
         try:
             ini = configparser.ConfigParser()
             data = io.open(path, mode="r", encoding="utf-8")
