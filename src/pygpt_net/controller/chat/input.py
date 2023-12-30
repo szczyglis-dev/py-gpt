@@ -29,16 +29,18 @@ class Input:
         self.thread = None
         self.thread_started = False
 
-    def user_send(self, text=None):
+    def user_send(self):
         """
-        Send from user input (called from UI)
+        Send text from user input (called from UI)
+        """
+        # get text from input
+        text = self.window.ui.nodes['input'].toPlainText().strip()
 
-        :param text: input text
-        """
         if self.generating \
                 and text is not None \
                 and text.strip() == "stop":
-            self.window.controller.chat.common.stop()
+            self.window.controller.chat.common.stop()  # TODO: to chat main
+            self.window.controller.chat.render.clear_input()
             return
 
         # event: user.send
@@ -65,8 +67,8 @@ class Input:
         :param text: input text
         :param force: force send
         """
-        # check if input is not locked, TODO: move to user send
-        if self.locked and not force:
+        # check if input is not locked or empty
+        if (self.locked and not force) or text is None or text.strip() == "":
             return
 
         self.generating = True  # set generating flag
@@ -87,10 +89,6 @@ class Input:
         # unlock Assistant run thread if locked
         self.window.controller.assistant.threads.force_stop = False
         self.force_stop = False
-
-        # get text from input, TODO: move to user_send?
-        if text is None:
-            text = self.window.ui.nodes['input'].toPlainText().strip()
 
         self.log("Input text: {}".format(text))  # log
 
@@ -120,7 +118,7 @@ class Input:
 
         # clear input field if clear-on-send is enabled
         if self.window.core.config.get('send_clear') and not force:
-            self.window.ui.nodes['input'].clear()
+            self.window.controller.chat.render.clear_input()
 
         # prepare ctx, create new ctx meta if there is no ctx yet (first run)
         if self.window.core.ctx.count_meta() == 0:

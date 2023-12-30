@@ -26,6 +26,10 @@ class Render:
         """Clear output"""
         self.get_output_node().clear()
 
+    def clear_input(self):
+        """Clear input"""
+        self.get_input_node().clear()
+
     def append_context(self):
         """Append context to output"""
         for item in self.window.core.ctx.items:
