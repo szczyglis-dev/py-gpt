@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import json
@@ -16,7 +16,8 @@ from unittest.mock import MagicMock, mock_open, patch
 from PySide6.QtWidgets import QMainWindow
 
 from pygpt_net.config import Config
-from pygpt_net.core.assistants import Assistants, AssistantItem
+from pygpt_net.item.assistant import AssistantItem
+from pygpt_net.core.assistants import Assistants
 
 
 @pytest.fixture
@@ -25,6 +26,29 @@ def mock_window():
     window.config = MagicMock(spec=Config)
     window.config.path = 'test_path'
     return window
+
+
+def test_install():
+    """
+    Test install
+    """
+    assistants = Assistants()
+    assistants.provider = MagicMock()
+    assistants.provider.install = MagicMock()
+    assistants.install()
+    assistants.provider.install.assert_called_once_with()
+
+
+def test_patch():
+    """
+    Test patch
+    """
+    assistants = Assistants()
+    assistants.provider = MagicMock()
+    assistants.provider.patch = MagicMock()
+    version = '1.0.0'
+    assistants.patch(version)
+    assistants.provider.patch.assert_called_once_with(version)
 
 
 def test_get_by_idx():
@@ -37,6 +61,7 @@ def test_get_by_idx():
         'assistant2': AssistantItem(),
     }
     assistants.items = items
+    assert assistants.get_by_idx(0) == 'assistant1'
     assert assistants.get_by_idx(1) == 'assistant2'
 
 
@@ -52,6 +77,7 @@ def test_get_by_id():
         'assistant2': a2,
     }
     assistants.items = items
+    assert assistants.get_by_id('assistant1') == a1
     assert assistants.get_by_id('assistant2') == a2
 
 
@@ -91,8 +117,8 @@ def test_has():
         'assistant2': AssistantItem(),
     }
     assistants.items = items
-    assert assistants.has('assistant1') == True
-    assert assistants.has('assistant3') == False
+    assert assistants.has('assistant1') is True
+    assert assistants.has('assistant3') is False
 
 
 def test_create():
@@ -216,6 +242,7 @@ def test_get_file_id_by_idx():
         'file2': {'name': 'file2'},
     }
     assistants.get_by_id = MagicMock(return_value=assistant)
+    assert assistants.get_file_id_by_idx(assistant, 0) == 'file1'
     assert assistants.get_file_id_by_idx(assistant, 1) == 'file2'
 
 
@@ -278,11 +305,17 @@ def test_import_files(mock_window):
         assistant = MagicMock()
         assistant.files = {
             'file1': {'id': 'file1', 'name': 'file1', 'path': ''},
-            'file2': {'id': 'file2', 'name': 'file2', 'path': ''},  # should be removed
+            'file2': {'id': 'file2', 'name': 'file2', 'path': ''},  # this should be removed
         }
         assistants.get_by_id = MagicMock(return_value=assistant)
         assistants.import_files(assistant, files)
-        assert assistant.files == {'file1': {'id': 'file1', 'name': 'file1', 'path': ''}}
+        assert assistant.files == {
+            'file1': {
+                 'id': 'file1',
+                 'name': 'file1',
+                 'path': ''
+            },
+        }
 
 
 def test_import_files_with_remote_name(mock_window):
@@ -301,7 +334,7 @@ def test_import_files_with_remote_name(mock_window):
         assistants = Assistants(window=mock_window)
         assistant = MagicMock()
         assistant.files = {
-            'file1': {'id': 'file1', '': 'file1', 'path': ''},  # should be updated
+            'file1': {'id': 'file1', '': 'file1', 'path': ''},  # this should be updated
             'file2': {'id': 'file2', '': 'file2', 'path': ''},
         }
         assistants.get_by_id = MagicMock(return_value=assistant)
@@ -317,18 +350,19 @@ def test_import_filenames(mock_window):
     fake_file_info.filename = 'fake.txt'
 
     assistants = Assistants(window=mock_window)
-    app = MagicMock()
-    app.gpt.assistants = MagicMock()
-    app.gpt.assistants.file_info = MagicMock(return_value=fake_file_info)
-    assistants.window.core = app
+    core = MagicMock()
+    core.gpt.assistants = MagicMock()
+    core.gpt.assistants.file_info = MagicMock(return_value=fake_file_info)
+    assistants.window.core = core
     filename = assistants.import_filenames('some_id')
 
+    assistants.window.core.gpt.assistants.file_info.assert_called_once_with('some_id')
     assert filename == 'fake.txt'
 
 
-def test_load_method(mock_window):
+def test_load(mock_window):
     """
-    Test load method
+    Test load
     """
     asst1 = AssistantItem()
     asst1.name = 'Assistant 1'
@@ -345,5 +379,24 @@ def test_load_method(mock_window):
     assistants.provider.load.return_value = fake_data
     assistants.load()
 
+    assistants.provider.load.assert_called_once_with()
     assert assistants.items['id1'].name == 'Assistant 1'
     assert assistants.items['id2'].name == 'Assistant 2'
+
+
+def test_save():
+    """
+    Test save
+    """
+    a1 = AssistantItem()
+    a2 = AssistantItem()
+    items = {
+        'assistant1': a1,
+        'assistant2': a2,
+    }
+    assistants = Assistants()
+    assistants.items = items
+    assistants.provider = MagicMock()
+    assistants.provider.patch = MagicMock()
+    assistants.save()
+    assistants.provider.save.assert_called_once_with(items)

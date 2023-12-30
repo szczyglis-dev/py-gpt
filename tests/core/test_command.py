@@ -70,3 +70,22 @@ def test_extract_cmds_with_text():
     json1 = json.loads(cmd1.strip())
     json2 = json.loads(cmd2.strip())
     assert cmd.extract_cmds(response) == [json1, json2]
+
+
+def test_extract_cmd():
+    """
+    Test extract cmd
+    """
+    cmd = Command()
+    cmd1 = '{"cmd": "command1", "params": {"arg1": "some arg"}}   '
+    assert cmd.extract_cmd(cmd1) == json.loads(cmd1.strip())
+
+
+def test_extract_cmd_white_spaces():
+    """
+    Test extract cmd
+    """
+    cmd = Command()
+    cmd1 = '   ' \
+           '{"cmd": "command1", "params": {"arg1": "some arg"}}   '
+    assert cmd.extract_cmd(cmd1) == json.loads(cmd1.strip())
