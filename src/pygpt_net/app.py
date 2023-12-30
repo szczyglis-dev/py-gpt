@@ -78,7 +78,6 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # setup UI
         self.ui = UI(self)
-        self.ui.init()
 
         # set window title
         self.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
