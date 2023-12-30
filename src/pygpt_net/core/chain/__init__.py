@@ -48,8 +48,8 @@ class Chain:
         :param prompt: input text
         :param ctx: context (CtxItem)
         :param stream_mode: stream mode
-        :return: context (CtxItem)
-        :rtype: CtxItem
+        :return: result
+        :rtype: bool
         """
         model_config = self.window.core.models.get(self.window.core.config.get('model'))
         response = None
@@ -79,18 +79,13 @@ class Chain:
 
         # if async mode (stream)
         if stream_mode:
-            # store context (memory)
-            if ctx is None:
-                ctx = CtxItem(self.window.core.config.get('mode'))
-                ctx.set_input(prompt, self.user_name)
-
             ctx.stream = response
             ctx.input_tokens = used_tokens  # get from input tokens calculation
             ctx.set_output("", self.ai_name)
-            return ctx
+            return True
 
         if response is None:
-            return None
+            return False
 
         # get output
         output = None
@@ -100,10 +95,6 @@ class Chain:
             output = response
 
         # store context (memory)
-        if ctx is None:
-            ctx = CtxItem(self.window.core.config.get('mode'))
-            ctx.set_input(prompt, self.user_name)
-
         ctx.set_output(output, self.ai_name)
 
-        return ctx
+        return True

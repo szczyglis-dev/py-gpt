@@ -77,6 +77,8 @@ class Input:
         Send text to GPT
 
         :param text: text to send
+        :return: context item
+        :rtype: CtxItem
         """
         self.window.set_status(trans('status.sending'))
 
@@ -84,61 +86,26 @@ class Input:
         self.log("User name: {}".format(self.window.core.config.get('user_name')))  # log
         self.log("AI name: {}".format(self.window.core.config.get('ai_name')))  # log
 
-        # dispatch events
+        # event: user.name
         event = Event('user.name', {
             'value': self.window.core.config.get('user_name'),
         })
         self.window.core.dispatcher.dispatch(event)
         user_name = event.data['value']
 
+        # event: ai.name
         event = Event('ai.name', {
             'value': self.window.core.config.get('ai_name'),
         })
         self.window.core.dispatcher.dispatch(event)
         ai_name = event.data['value']
 
-        self.log("User name [after plugin: user_name]: {}".format(self.window.core.config.get('user_name')))  # log
-        self.log("AI name [after plugin: ai_name]: {}".format(self.window.core.config.get('ai_name')))  # log
+        self.log("User name [after plugin: user_name]: {}".format(user_name))  # log
+        self.log("AI name [after plugin: ai_name]: {}".format(ai_name))  # log
 
         # get mode
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
-
-        # clear
-        self.window.core.gpt.assistants.file_ids = []  # file ids
-
-        # upload new attachments if assistant mode
-        attachments_list = {}
-
-        if mode == 'assistant':
-            is_upload = False
-            num_uploaded = 0
-            try:
-                # upload only new attachments (not uploaded yet to remote)
-                attachments = self.window.core.attachments.get_all(mode)
-                c = self.window.controller.assistant.files.count_upload(attachments)
-                if c > 0:
-                    is_upload = True
-                    self.window.set_status(trans('status.uploading'))
-                    num_uploaded = self.window.controller.assistant.files.upload(mode, attachments)
-                    self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
-                    attachments_list = self.window.core.gpt.attachments.make_json_list(attachments)
-                # show uploaded status
-                if is_upload and num_uploaded > 0:
-                    self.window.set_status(trans('status.uploaded'))
-            except Exception as e:
-                self.window.core.debug.log(e)
-                self.window.ui.dialogs.alert(str(e))
-
-            # create or get current thread, it is required here
-            if self.window.core.config.get('assistant_thread') is None:
-                try:
-                    self.window.set_status(trans('status.starting'))
-                    self.window.core.config.set('assistant_thread',
-                                                self.window.controller.assistant.threads.create_thread())
-                except Exception as e:
-                    self.window.core.debug.log(e)
-                    self.window.ui.dialogs.alert(str(e))
 
         # create ctx item
         ctx = CtxItem()
@@ -148,7 +115,8 @@ class Input:
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
-        # attachments
+        # upload attachments if provided and assistant mode, TODO: extract assistant thread create
+        attachments_list = self.upload(mode)
         if len(attachments_list) > 0:
             ctx.attachments = attachments_list
 
@@ -159,13 +127,11 @@ class Input:
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
             ctx.thread = self.window.core.config.get('assistant_thread')
-            self.window.core.gpt.assistant_id = self.window.core.config.get('assistant')
-            self.window.core.gpt.thread_id = ctx.thread
 
         # log
         self.log("Context: input: {}".format(self.window.core.ctx.dump(ctx)))
 
-        # dispatch event
+        # event: ctx.before
         event = Event('ctx.before')
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
@@ -174,45 +140,29 @@ class Input:
         self.log("Context: input [after plugin: ctx.before]: {}".format(self.window.core.ctx.dump(ctx)))
         self.log("System: {}".format(self.window.core.gpt.system_prompt))
 
-        # apply cfg, plugins
-        self.window.core.gpt.user_name = ctx.input_name
-        self.window.core.gpt.ai_name = ctx.output_name
-        self.window.core.chain.user_name = ctx.input_name
-        self.window.core.chain.ai_name = ctx.output_name
-
-        # prepare system prompt
+        # event: system.prompt
         sys_prompt = self.window.core.config.get('prompt')
-
-        # dispatch event
         event = Event('system.prompt', {
             'value': sys_prompt,
         })
-
         self.window.core.dispatcher.dispatch(event)
-
         sys_prompt = event.data['value']
 
-        # if commands enabled: append commands prompt
+        # event: cmd.syntax (if commands enabled then append commands prompt)
         if self.window.core.config.get('cmd'):
             sys_prompt += " " + self.window.core.command.get_prompt()
             data = {
                 'prompt': sys_prompt,
                 'syntax': [],
             }
-            # dispatch cmd syntax event
             event = Event('cmd.syntax', data)
             self.window.core.dispatcher.dispatch(event)
             sys_prompt = self.window.core.command.append_syntax(event.data)
-            self.window.core.gpt.system_prompt = sys_prompt
-
-        # append system prompt
-        self.window.core.gpt.system_prompt = sys_prompt
-        self.window.core.chain.system_prompt = sys_prompt
 
         # log
-        self.log("System [after plugin: system.prompt]: {}".format(self.window.core.gpt.system_prompt))
-        self.log("User name: {}".format(self.window.core.gpt.user_name))
-        self.log("AI name: {}".format(self.window.core.gpt.ai_name))
+        self.log("System [after plugin: system.prompt]: {}".format(sys_prompt))
+        self.log("User name: {}".format(ctx.input_name))
+        self.log("AI name: {}".format(ctx.output_name))
         self.log("Appending input to chat window...")
 
         # append text from input to chat window
@@ -230,78 +180,68 @@ class Input:
         # async or sync mode
         stream_mode = self.window.core.config.get('stream')
 
-        # call the model
         try:
-            # set attachments (attachments are separated by mode)
-            self.window.core.gpt.attachments = self.window.core.attachments.get_all(mode)
-
             # make API call
             try:
-                # lock input
-                self.lock_input()
+                self.lock_input()  # lock input
 
                 if mode == "langchain":
                     self.log("Calling LangChain...")  # log
-                    ctx = self.window.core.chain.call(text, ctx, stream_mode)
-
-                    # update context in DB
-                    if ctx is not None:
-                        self.window.core.ctx.update_item(ctx)
+                    self.window.core.chain.system_prompt = sys_prompt
+                    self.window.core.chain.user_name = ctx.input_name
+                    self.window.core.chain.ai_name = ctx.output_name
+                    result = self.window.core.chain.call(text, ctx, stream_mode)
                 else:
                     self.log("Calling OpenAI API...")  # log
-                    ctx = self.window.core.gpt.call(text, ctx, stream_mode)
+                    self.window.core.gpt.system_prompt = sys_prompt
+                    self.window.core.gpt.user_name = ctx.input_name
+                    self.window.core.gpt.ai_name = ctx.output_name
+                    self.window.core.gpt.assistant_id = self.window.core.config.get('assistant')
+                    self.window.core.gpt.thread_id = ctx.thread
+                    self.window.core.gpt.attachments = self.window.core.attachments.get_all(mode)
+                    result = self.window.core.gpt.call(text, ctx, stream_mode)
 
-                    # update context in DB
-                    if ctx is not None:
-                        self.window.core.ctx.update_item(ctx)
+                # update context in DB
+                self.window.core.ctx.update_item(ctx)
 
-                    if mode == 'assistant':
-                        # get run ID and save it in ctx
-                        self.window.core.ctx.append_run(ctx.run_id)
+                if mode == 'assistant':
+                    self.window.core.ctx.append_run(ctx.run_id)  # get run ID and save it in ctx
+                    self.window.controller.assistant.threads.handle_run(ctx)  # handle assistant run
 
-                        # handle assistant run
-                        self.window.controller.assistant.threads.handle_run(ctx)
-
-                if ctx is not None:
+                if result:
                     self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
                 else:
-                    # there was an error in call if ctx is None here
                     self.log("Context: output: None")
                     self.window.ui.dialogs.alert(trans('status.error'))
                     self.window.set_status(trans('status.error'))
 
             except Exception as e:
                 self.log("GPT output error: {}".format(e))  # log
-                print("Error in send text (GPT call): " + str(e))
                 self.window.core.debug.log(e)
                 self.window.ui.dialogs.alert(str(e))
                 self.window.set_status(trans('status.error'))
+                print("Error when calling API: " + str(e))
 
             # handle response (if no assistant mode, assistant response is handled in assistant thread)
             if mode != "assistant":
-                self.window.controller.chat.output.handle_response(ctx, mode, stream_mode)
+                self.window.controller.chat.output.handle(ctx, mode, stream_mode)
 
         except Exception as e:
             self.log("Output error: {}".format(e))  # log
-            print("Error sending text: " + str(e))
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
             self.window.set_status(trans('status.error'))
+            print("Error in sending text: " + str(e))
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
             self.window.controller.chat.output.handle_commands(ctx)
+            self.window.core.ctx.update_item(ctx)  # update ctx in DB
+            self.window.controller.ctx.update()  # update ctx list
 
-            # update ctx in DB
-            self.window.core.ctx.update_item(ctx)
+        self.unlock_input()  # unlock
 
-            # unlock
-            self.unlock_input()
-
-            # update ctx list
-            self.window.controller.ctx.update()
-
-        # handle ctx name (generate title from summary if not initialized)
+        # handle ctx name (generate title from summary if not initialized), TODO: move to ctx controller
         if self.window.core.config.get('ctx.auto_summary'):
             self.window.controller.chat.output.handle_ctx_name(ctx)
 
@@ -318,7 +258,7 @@ class Input:
                 and text.strip() == "stop":
             self.stop()
 
-        # dispatch event
+        # event: user.send
         event = Event('user.send', {
             'value': text,
         })
@@ -333,17 +273,6 @@ class Input:
         :param force: force send
         """
         self.send_execute(text, force)
-
-    def start_thread(self, text):
-        """
-        Handle thread start
-
-        :param text: input text
-        """
-        sender = SendThread(window=self.window, text=text)
-        self.thread = threading.Thread(target=sender.run)
-        self.thread.start()
-        self.thread_started = True
 
     def send_execute(self, text=None, force=False):
         """
@@ -381,7 +310,7 @@ class Input:
 
         self.log("Input text: {}".format(text))  # log
 
-        # dispatch event
+        # event: input.before
         event = Event('input.before', {
             'value': text,
         })
@@ -436,7 +365,7 @@ class Input:
         if ctx is not None:
             self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
 
-            # dispatch event
+            # event: ctx.end
             event = Event('ctx.end')
             event.ctx = ctx
             self.window.core.dispatcher.dispatch(event)
@@ -451,6 +380,44 @@ class Input:
 
         self.generating = False  # unlock as not generating
         self.window.controller.ui.update()  # update UI
+
+    def upload(self, mode):
+        self.window.core.gpt.assistants.file_ids = []  # clear file ids
+        attachments_list = {}
+
+        if mode == 'assistant':
+            is_upload = False
+            num_uploaded = 0
+            try:
+                # upload only new attachments (not uploaded yet to remote)
+                attachments = self.window.core.attachments.get_all(mode)
+                c = self.window.controller.assistant.files.count_upload(attachments)
+                if c > 0:
+                    is_upload = True
+                    self.window.set_status(trans('status.uploading'))
+                    num_uploaded = self.window.controller.assistant.files.upload(mode, attachments)
+                    self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
+                    attachments_list = self.window.core.gpt.attachments.make_json_list(attachments)
+
+                # show uploaded status
+                if is_upload and num_uploaded > 0:
+                    self.window.set_status(trans('status.uploaded'))
+
+            except Exception as e:
+                self.window.core.debug.log(e)
+                self.window.ui.dialogs.alert(str(e))
+
+            # create or get current thread, it is required here, TODO: move to separate method
+            if self.window.core.config.get('assistant_thread') is None:
+                try:
+                    self.window.set_status(trans('status.starting'))
+                    self.window.core.config.set('assistant_thread',
+                                                self.window.controller.assistant.threads.create_thread())
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    self.window.ui.dialogs.alert(str(e))
+
+        return attachments_list
 
     def toggle_stream(self, value):
         """
@@ -553,23 +520,3 @@ class Input:
         :param data: Data to log
         """
         self.window.controller.debug.log(data, True)
-
-
-class SendThread(QObject):
-    def __init__(self, window=None, text=None):
-        """
-        Run summarize thread
-
-        :param window: Window instance
-        :param ctx: CtxItem
-        """
-        super().__init__()
-        self.window = window
-        self.text = text
-
-    def run(self):
-        """Run thread"""
-        try:
-            self.window.controller.chat.input.send_execute(self.text)
-        except Exception as e:
-            self.window.core.debug.log(e)

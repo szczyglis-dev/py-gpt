@@ -59,8 +59,8 @@ class Gpt:
         :param prompt: text input (user prompt)
         :param ctx: context item (CtxItem)
         :param stream_mode: stream mode, default: False
-        :return: context item (CtxItem)
-        :rtype: CtxItem
+        :return: result
+        :rtype: bool
         """
         # prepare max tokens
         mode = self.window.core.config.get('mode')
@@ -107,27 +107,22 @@ class Gpt:
                 run = self.assistants.run_create(self.thread_id, self.assistant_id, self.system_prompt)
                 if run is not None:
                     ctx.run_id = run.id
-            return ctx  # if assistant then return here
+            return True  # if assistant then return here
 
         # if async mode (stream)
         if stream_mode:
-            # store context (memory)
-            if ctx is None:
-                ctx = CtxItem(self.window.core.config.get('mode'))
-                ctx.set_input(prompt, self.user_name)
-
             ctx.stream = response
             ctx.set_output("", self.ai_name)  # set empty output
             ctx.input_tokens = used_tokens  # get from input tokens calculation
-            return ctx
+            return True
 
         if response is None:
-            return None
+            return False
 
         # check for errors
         if "error" in response:
             print("Error in GPT response: " + str(response["error"]))
-            return None
+            return False
 
         # get output text from response
         output = ""
@@ -136,14 +131,10 @@ class Gpt:
         elif mode == "chat" or mode == "vision":
             output = response.choices[0].message.content.strip()
 
-        # store context (memory)
-        if ctx is None:
-            ctx = CtxItem(self.window.core.config.get('mode'))
-            ctx.set_input(prompt, self.user_name)
-
         ctx.set_output(output, self.ai_name)
         ctx.set_tokens(response.usage.prompt_tokens, response.usage.completion_tokens)
-        return ctx
+
+        return True
 
     def quick_call(self, prompt, sys_prompt, append_context=False,
                    max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):

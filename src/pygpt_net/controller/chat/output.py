@@ -28,7 +28,7 @@ class Output:
         """Setup output"""
         self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
-    def handle_response(self, ctx, mode, stream_mode=False):
+    def handle(self, ctx, mode, stream_mode=False):
         """
         Handle response from LLM
 
@@ -64,7 +64,7 @@ class Output:
                             break
 
                         response = None
-                        if mode == "chat" or mode == "vision" or mode == "assistant":
+                        if mode == "chat" or mode == "vision":
                             if chunk.choices[0].delta.content is not None:
                                 response = chunk.choices[0].delta.content
 
@@ -100,30 +100,26 @@ class Output:
             self.window.controller.debug.log("End of stream.")  # log
 
             # update ctx
-            if ctx is not None:
-                ctx.output = output
-                ctx.set_tokens(ctx.input_tokens, output_tokens)
+            ctx.output = output
+            ctx.set_tokens(ctx.input_tokens, output_tokens)
 
             # --- end of stream mode ---
 
         # apply plugins
-        if ctx is not None:
-            # dispatch event
-            event = Event('ctx.after')
-            event.ctx = ctx
-            self.window.core.dispatcher.dispatch(event)
+        event = Event('ctx.after')
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
 
         # log
-        if ctx is not None:
-            self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".
-                                             format(self.window.core.ctx.dump(ctx)))
-            self.window.controller.debug.log("Appending output to chat window...")
+        self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".
+                                         format(self.window.core.ctx.dump(ctx)))
+        self.window.controller.debug.log("Appending output to chat window...")
 
-            # only append output if not in async stream mode, TODO: plugin output add
-            if not stream_mode:
-                self.window.controller.chat.render.append_output(ctx)
+        # only append output if not in async stream mode, TODO: plugin output add
+        if not stream_mode:
+            self.window.controller.chat.render.append_output(ctx)
 
-            self.handle_complete(ctx)
+        self.handle_complete(ctx)
 
     def handle_complete(self, ctx):
         """
