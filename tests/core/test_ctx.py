@@ -90,7 +90,7 @@ def test_select(mock_window):
     ctx.window.core.models.has_model = MagicMock()
     ctx.window.core.models.has_model.return_value = True
 
-    ctx.load = MagicMock()  # prevent load
+    ctx.load = MagicMock()
     ctx.select(2)
     assert ctx.current == 2
     assert ctx.mode == 'test_mode'
@@ -116,7 +116,7 @@ def test_new(mock_window):
     item.id = 4
     item.mode = 'test_mode'
 
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.create = MagicMock(return_value=item)
 
     assert ctx.new() == item
@@ -228,7 +228,7 @@ def test_update(mock_window):
     ctx.meta = {
         6: item,
     }
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.update()
     assert ctx.current == 6
     assert ctx.mode == 'test_mode'
@@ -250,7 +250,7 @@ def test_post_update(mock_window):
     ctx.meta = {
         5: item,
     }
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.post_update('test_mode')
     assert ctx.current == 5
     assert ctx.mode == 'test_mode'
@@ -299,7 +299,7 @@ def test_set_initialized(mock_window):
     ctx.meta = {
         4: item,
     }
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.set_initialized()
     assert ctx.meta[4].initialized is True
     ctx.save.assert_called_once_with(4)
@@ -578,7 +578,7 @@ def test_append_thread(mock_window):
         1: item
     }
 
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.append_thread('test_thread')
     assert ctx.meta[1].thread == 'test_thread'
     ctx.save.assert_called_once_with(1)
@@ -600,7 +600,7 @@ def test_append_run(mock_window):
     ctx.meta = {
         3: item
     }
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.append_run('test_run')
     assert ctx.meta[3].run == 'test_run'
     ctx.save.assert_called_once_with(3)
@@ -622,7 +622,7 @@ def test_append_status(mock_window):
     ctx.meta = {
         2: item
     }
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.append_status('test_status')
     assert ctx.meta[2].status == 'test_status'
     ctx.save.assert_called_once_with(2)
@@ -958,7 +958,7 @@ def test_store(mock_window):
             CtxMeta()
         }
     }
-    ctx.save = MagicMock()  # prevent dump context
+    ctx.save = MagicMock()
     ctx.store()
     ctx.save.assert_called_once_with(7)
 

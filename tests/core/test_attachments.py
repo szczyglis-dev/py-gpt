@@ -25,15 +25,6 @@ def mock_window():
     window.config.path = 'test_path'
     return window
 
-'''
-def test_create_id():
-    """
-    Test create id
-    """
-    attachments = Attachments()
-    assert len(attachments.create_id()) == 36  # uuid length
-'''
-
 
 def test_install():
     """
