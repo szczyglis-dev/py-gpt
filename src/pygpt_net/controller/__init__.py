@@ -26,7 +26,7 @@ from pygpt_net.controller.layout import Layout
 from pygpt_net.controller.mode import Mode
 from pygpt_net.controller.model import Model
 from pygpt_net.controller.notepad import Notepad
-from pygpt_net.controller.output import Output
+from pygpt_net.controller.chat.output import Output
 from pygpt_net.controller.plugins import Plugins
 from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import json
@@ -70,11 +70,11 @@ class Image:
 
         # add ctx to DB
         self.window.core.ctx.add(ctx)
-        self.window.controller.output.append_input(ctx)
+        self.window.controller.chat.output.append_input(ctx)
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.output.handle_ctx_name(ctx)
+            self.window.controller.chat.output.handle_ctx_name(ctx)
 
         # process events to update UI
         QApplication.processEvents()
@@ -122,7 +122,7 @@ class Image:
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
 
-        self.window.controller.output.append_output(ctx)
+        self.window.controller.chat.output.append_output(ctx)
         self.window.core.ctx.store()
         self.window.set_status(trans('status.img.generated'))
 

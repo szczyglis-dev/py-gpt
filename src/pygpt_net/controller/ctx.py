@@ -123,7 +123,7 @@ class Ctx:
         self.window.core.ctx.new()
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
-        self.window.controller.output.clear()
+        self.window.controller.chat.output.clear()
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.input.unlock_input()
@@ -169,8 +169,8 @@ class Ctx:
         self.window.core.config.set('assistant_thread', thread)
 
         # clear before output and append ctx to output
-        self.window.controller.output.clear()
-        self.window.controller.output.append_context()
+        self.window.controller.chat.output.clear()
+        self.window.controller.chat.output.append_context()
 
         # switch mode to ctx mode
         if mode is not None:
@@ -283,7 +283,7 @@ class Ctx:
         # reset current if current ctx deleted
         if self.window.core.ctx.current == id:
             self.window.core.ctx.current = None
-            self.window.controller.output.clear()
+            self.window.controller.chat.output.clear()
         self.update()
 
     def delete_history(self, force=False):

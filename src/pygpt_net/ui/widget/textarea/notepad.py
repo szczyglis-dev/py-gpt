@@ -64,7 +64,7 @@ class NotepadOutput(QTextEdit):
         """
         Read selected text (audio)
         """
-        self.window.controller.output.speech_selected_text(self.textCursor().selectedText())
+        self.window.controller.chat.output.speech_selected_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
         """

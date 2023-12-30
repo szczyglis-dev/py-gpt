@@ -54,8 +54,8 @@ class Threads:
                 paths = self.window.controller.assistant.files.handle_received(msg)
                 if paths:
                     ctx.files = json.dumps(paths)  # append files to ctx
-                self.window.controller.output.handle_response(ctx, 'assistant', False)
-                self.window.controller.output.handle_commands(ctx)
+                self.window.controller.chat.output.handle_response(ctx, 'assistant', False)
+                self.window.controller.chat.output.handle_commands(ctx)
 
                 # update ctx
                 self.window.core.ctx.update_item(ctx)

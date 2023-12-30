@@ -216,7 +216,7 @@ class Input:
         self.log("Appending input to chat window...")
 
         # append text from input to chat window
-        self.window.controller.output.append_input(ctx)
+        self.window.controller.chat.output.append_input(ctx)
 
         # add ctx to DB here and only update it after response, MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)!
         self.window.core.ctx.add(ctx)
@@ -279,7 +279,7 @@ class Input:
 
             # handle response (if no assistant mode, assistant response is handled in assistant thread)
             if mode != "assistant":
-                self.window.controller.output.handle_response(ctx, mode, stream_mode)
+                self.window.controller.chat.output.handle_response(ctx, mode, stream_mode)
 
         except Exception as e:
             self.log("Output error: {}".format(e))  # log
@@ -290,7 +290,7 @@ class Input:
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
-            self.window.controller.output.handle_commands(ctx)
+            self.window.controller.chat.output.handle_commands(ctx)
 
             # update ctx in DB
             self.window.core.ctx.update_item(ctx)
@@ -303,7 +303,7 @@ class Input:
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.output.handle_ctx_name(ctx)
+            self.window.controller.chat.output.handle_ctx_name(ctx)
 
         return ctx
 

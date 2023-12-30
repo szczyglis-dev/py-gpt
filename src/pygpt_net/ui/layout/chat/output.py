@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import os
@@ -112,7 +112,7 @@ class Output:
         # add timestamp checkbox
         self.window.ui.nodes['output.timestamp'] = QCheckBox(trans('output.timestamp'))
         self.window.ui.nodes['output.timestamp'].stateChanged.connect(
-            lambda: self.window.controller.output.toggle_timestamp(
+            lambda: self.window.controller.chat.output.toggle_timestamp(
                 self.window.ui.nodes['output.timestamp'].isChecked()))
 
         # tokens info
