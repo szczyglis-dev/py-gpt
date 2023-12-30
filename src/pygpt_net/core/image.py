@@ -14,6 +14,8 @@ import os
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.utils import trans
+
 
 class Image:
     DIRNAME = "img"
@@ -143,16 +145,16 @@ class ImageWorker(QRunnable):
             temperature = 1.0
             try:
                 # call GPT for generate best image generate prompt
-                self.signals.status.emit("Asking for image prompt... please wait...")
+                self.signals.status.emit(trans('img.status.prompt.wait'))
                 response = self.window.core.gpt.quick_call(self.input_prompt, self.system_prompt, False, max_tokens,
                                                            self.model_prompt, temperature)
                 if response is not None and response != "":
                     self.input_prompt = response
             except Exception as e:
                 self.signals.error.emit(e)
-                self.signals.status.emit("Image prompt generate by model error: " + str(e))
+                self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
 
-        self.signals.status.emit("Please wait... generating image from: {}...".format(self.input_prompt))
+        self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
         paths = []
         try:
             # send to API
@@ -175,7 +177,7 @@ class ImageWorker(QRunnable):
                     "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
                 path = os.path.join(self.window.core.config.path, self.dirname, name)
 
-                msg = "Downloading... [" + str(i + 1) + " of " + str(self.num) + "] to: " + path
+                msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + path
                 self.signals.status.emit(msg)
 
                 # save image
@@ -187,7 +189,7 @@ class ImageWorker(QRunnable):
 
         except Exception as e:
             self.signals.error.emit(e)
-            print("Image generate error: " + str(e))
+            print(trans('img.status.error') + ": " + str(e))
             return
 
     def save_image(self, path, image):
@@ -204,7 +206,7 @@ class ImageWorker(QRunnable):
             return True
         except Exception as e:
             self.signals.error.emit(e)
-            print("Image save error: " + str(e))
+            print(trans('img.status.save.error') + ": " + str(e))
             return False
 
     def make_safe_filename(self, name):
