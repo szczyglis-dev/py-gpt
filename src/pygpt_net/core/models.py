@@ -69,6 +69,18 @@ class Models:
                 items[key] = self.items[key]
         return items
 
+    def has_model(self, mode, model):
+        """
+        Check if model exists for mode
+
+        :param mode: mode name
+        :param model: model name
+        :return: True if model exists for mode
+        :rtype: bool
+        """
+        items = self.get_by_mode(mode)
+        return model in items
+
     def get_default(self, mode):
         """
         Return default model for mode

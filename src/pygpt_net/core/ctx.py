@@ -77,6 +77,12 @@ class Ctx:
             self.assistant = ctx.assistant
             self.preset = ctx.preset
 
+            # restore model if exists in current mode
+            if ctx.last_model is not None and self.window.core.models.has_model(self.mode, ctx.last_model):
+                self.model = ctx.last_model
+            elif ctx.model is not None and self.window.core.models.has_model(self.mode, ctx.model):
+                self.model = ctx.model
+
             self.items = self.load(id)
 
     def new(self):
@@ -191,11 +197,11 @@ class Ctx:
         # update current
         self.assistant = self.window.core.config.get('assistant')  # update assistant
         self.preset = self.window.core.config.get('preset')  # update preset
-        model = self.window.core.config.get('model')  # get current model
+        self.model = self.window.core.config.get('model')  # get current model
 
         # update current meta
         self.meta[self.current].last_mode = mode
-        self.meta[self.current].last_model = model
+        self.meta[self.current].last_model = self.model
         self.meta[self.current].preset = self.preset
 
         # if assistant then update assistant

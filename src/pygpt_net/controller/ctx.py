@@ -161,6 +161,7 @@ class Ctx:
         # get current settings stored in ctx
         thread = self.window.core.ctx.thread
         mode = self.window.core.ctx.mode
+        model = self.window.core.ctx.model
         assistant_id = self.window.core.ctx.assistant
         preset = self.window.core.ctx.preset
 
@@ -188,6 +189,10 @@ class Ctx:
                 else:
                     # if empty ctx assistant then get assistant from current selected
                     assistant_id = self.window.core.config.get('assistant')
+
+            # switch model to ctx model if model is defined in ctx and model is available for this mode
+            if model is not None and self.window.core.models.has_model(mode, model):
+                self.window.controller.model.set(mode, model)
 
         # reload ctx list and select current ctx on list
         self.update()
