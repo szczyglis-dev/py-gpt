@@ -45,8 +45,8 @@ class Notepad:
                     items[id] = item
                 if id in self.window.ui.notepad:
                     title = items[id].title
+                    self.window.ui.notepad[id].setText(items[id].content)
                     if items[id].initialized and title is not None and len(title) > 0:
-                        self.window.ui.notepad[id].setText(items[id].content)
                         self.update_name(id, items[id].title, False)
 
     def reload_tab_names(self):
@@ -128,7 +128,7 @@ class Notepad:
         items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:
-            for id in range(1, num_notepads + 1):
+            for id in range(0, num_notepads + 1):
                 if id in self.window.ui.notepad:
                     prev_content = items[id].content
                     items[id].content = self.window.ui.notepad[id].toPlainText()

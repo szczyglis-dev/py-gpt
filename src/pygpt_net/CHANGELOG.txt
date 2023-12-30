@@ -1,3 +1,7 @@
+2.0.67 (2023-12-30)
+
+- Notepad restore fix
+
 2.0.66 (2023-12-30)
 
 - Added "Rename" option to Notepad Tabs (via RMB)
