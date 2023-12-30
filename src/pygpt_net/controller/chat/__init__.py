@@ -9,13 +9,13 @@
 # Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
-from .common import Common
-from .files import Files
-from .image import Image
-from .input import Input
-from .output import Output
-from .render import Render
-from .text import Text
+from pygpt_net.controller.chat.common import Common
+from pygpt_net.controller.chat.files import Files
+from pygpt_net.controller.chat.image import Image
+from pygpt_net.controller.chat.input import Input
+from pygpt_net.controller.chat.output import Output
+from pygpt_net.controller.chat.render import Render
+from pygpt_net.controller.chat.text import Text
 
 
 class Chat:

@@ -11,7 +11,7 @@
 
 import re
 
-from .editor import Editor
+from pygpt_net.controller.presets.editor import Editor
 from pygpt_net.utils import trans
 
 

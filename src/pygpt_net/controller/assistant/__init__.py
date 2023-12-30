@@ -11,9 +11,9 @@
 
 import webbrowser
 
-from .editor import Editor
-from .files import Files
-from .threads import Threads
+from pygpt_net.controller.assistant.editor import Editor
+from pygpt_net.controller.assistant.files import Files
+from pygpt_net.controller.assistant.threads import Threads
 
 from pygpt_net.utils import trans
 

@@ -10,9 +10,9 @@
 # ================================================== #
 
 
-from .confirm import Confirm
-from .debug import Debug
-from .info import Info
+from pygpt_net.controller.dialogs.confirm import Confirm
+from pygpt_net.controller.dialogs.debug import Debug
+from pygpt_net.controller.dialogs.info import Info
 
 
 class Dialogs:

@@ -9,10 +9,10 @@
 # Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
-from pygpt_net.utils import trans
+from pygpt_net.controller.ctx.common import Common
+from pygpt_net.controller.ctx.summarizer import Summarizer
 
-from .common import Common
-from .summarizer import Summarizer
+from pygpt_net.utils import trans
 
 
 class Ctx:
