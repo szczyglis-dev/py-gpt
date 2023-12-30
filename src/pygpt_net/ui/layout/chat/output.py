@@ -6,18 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 10:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QTabWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget
 
 from pygpt_net.ui.layout.chat.input import Input
 from pygpt_net.ui.layout.chat.markdown import MarkdownHighlighter
 from pygpt_net.ui.widget.audio.output import AudioOutput
-from pygpt_net.ui.widget.tab.output import OutputTabs
+from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.ui.widget.textarea.notepad import NotepadOutput
 from pygpt_net.ui.widget.filesystem.explorer import FileExplorer
