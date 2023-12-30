@@ -1351,7 +1351,36 @@ may consume additional tokens that are not displayed in the main window.
 
 # CHANGELOG
 
-The changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
+## Recent changes:
+
+### 2.0.67 (2023-12-30)
+
+- Notepad restore fix
+
+### 2.0.66 (2023-12-30)
+
+- Added "Rename" option to Notepad Tabs (via RMB)
+- Improved language switching
+
+### 2.0.65 (2023-12-30)
+
+- Image generation, vision capture and assistants run listeners moved to async threadpool
+- Added saving state of scroll value in chat window
+- Added search string save and restore
+- Added input text save and restore
+- Updated tests and code cleanup
+- Added translations (only main app): DE, ES, FR, IT, UA 
+- Small fixes and optimizations
+
+### 2.0.64 (2023-12-29)
+
+- Commands and plugins execution moved to asynchronous native QT threadpool
+- Improved theme switching
+- Improved debugger window
+- Small fixes and optimizations
+
+
+The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
 
 
 # Credits and links
