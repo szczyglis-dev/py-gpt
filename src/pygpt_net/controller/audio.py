@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 
 
 class Audio:
@@ -115,3 +116,20 @@ class Audio:
             self.window.ui.menu['audio.input.whisper'].setChecked(True)
         else:
             self.window.ui.menu['audio.input.whisper'].setChecked(False)
+
+    def read_text(self, text):
+        """
+        Process selected text
+
+        :param text: selected text
+        """
+        ctx = CtxItem()
+        ctx.output = text
+        all = False
+        if self.window.controller.audio.is_output_enabled():
+            event = Event('ctx.after')
+        else:
+            all = True
+            event = Event('audio.read_text')  # to all plugins (even if disabled)
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event, all)

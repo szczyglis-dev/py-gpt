@@ -13,7 +13,6 @@ from datetime import datetime
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
-from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
@@ -276,20 +275,3 @@ class Output:
         # store history (output)
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "output")
-
-    def speech_selected_text(self, text):
-        """
-        Process selected text
-
-        :param text: selected text
-        """
-        ctx = CtxItem()
-        ctx.output = text
-        all = False
-        if self.window.controller.audio.is_output_enabled():
-            event = Event('ctx.after')
-        else:
-            all = True
-            event = Event('audio.read_text')  # to all plugins (even if disabled)
-        event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event, all)
