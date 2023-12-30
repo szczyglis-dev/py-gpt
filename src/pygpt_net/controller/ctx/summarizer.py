@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 03:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal
@@ -17,7 +17,7 @@ class WorkerSignals(QObject):
     updated = Signal(int, str)
 
 
-class Summarize:
+class Summarizer:
     def __init__(self, window=None):
         """
         Summarize  controller
@@ -26,7 +26,7 @@ class Summarize:
         """
         self.window = window
 
-    def summarize_ctx(self, id, ctx):
+    def summarize(self, id, ctx):
         """
         Summarize context
 

@@ -28,7 +28,6 @@ from pygpt_net.controller.notepad import Notepad
 from pygpt_net.controller.plugins import Plugins
 from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
-from pygpt_net.controller.summarize import Summarize
 from pygpt_net.controller.theme import Theme
 from pygpt_net.controller.ui import UI
 
@@ -60,7 +59,6 @@ class Controller:
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
-        self.summarize = Summarize(window)
         self.theme = Theme(window)
         self.ui = UI(window)
 

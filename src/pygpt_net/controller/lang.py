@@ -205,9 +205,6 @@ class Lang:
         self.window.ui.menu['app.clear_history'].setText(trans("menu.file_clear_history"))
         self.window.ui.menu['app.exit'].setText(trans("menu.file.exit"))
 
-        self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
-        self.window.ui.menu['menu.audio'].setTitle(trans("menu.audio"))
-
         self.window.ui.menu['menu.config'].setTitle(trans("menu.config"))
         self.window.ui.menu['config.settings'].setText(trans("menu.config.settings"))
         self.window.ui.menu['config.edit.config'].setText(trans("menu.config.edit.config"))
@@ -216,7 +213,6 @@ class Lang:
         self.window.ui.menu['config.save'].setText(trans("menu.config.save"))
 
         self.window.ui.menu['menu.lang'].setTitle(trans("menu.lang"))
-        self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))
 
         # debug menu
         if 'menu.debug' in self.window.ui.menu:
@@ -230,9 +226,10 @@ class Lang:
             self.window.ui.menu['debug.assistants'].setText(trans("menu.debug.assistants"))
             self.window.ui.menu['debug.ui'].setText(trans("menu.debug.ui"))
 
-        self.window.ui.menu['menu.about'].setTitle(trans("menu.info"))
         self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
         self.window.ui.menu['plugins.settings'].setText(trans("menu.plugins.settings"))
+
+        self.window.ui.menu['menu.about'].setTitle(trans("menu.info"))
         self.window.ui.menu['info.about'].setText(trans("menu.info.about"))
         self.window.ui.menu['info.changelog'].setText(trans("menu.info.changelog"))
         self.window.ui.menu['info.updates'].setText(trans("menu.info.updates"))
@@ -268,6 +265,7 @@ class Lang:
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
 
         # theme menu
+        self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))
         for theme in self.window.ui.menu['theme']:
             name = self.window.controller.theme.trans_theme(theme)
             self.window.ui.menu['theme'][theme].setText(name)
@@ -282,7 +280,7 @@ class Lang:
             print("Error updating plugin locales", e)
             self.window.core.debug.log(e)
 
-        self.window.controller.ctx.update_ctx_label_by_current()
+        self.window.controller.ctx.update_label_by_current()
         self.window.controller.ctx.update(True, False)
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.ui.status('')  # clear status

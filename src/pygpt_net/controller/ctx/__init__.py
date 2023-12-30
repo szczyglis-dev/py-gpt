@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
+from .summarizer import Summarizer
 
 
 class Ctx:
@@ -20,6 +21,7 @@ class Ctx:
         :param window: Window instance
         """
         self.window = window
+        self.summarizer = Summarizer(window)
 
     def setup(self):
         """Setup ctx"""
@@ -58,7 +60,7 @@ class Ctx:
         # reload ctx list items
         if reload:
             self.reload(True)
-            self.select_ctx_by_current()  # select on list
+            self.select_by_current()  # select on list
 
         # update all
         if all:
@@ -70,11 +72,6 @@ class Ctx:
             self.window.core.config.set('ctx', id)
             self.window.core.config.set('assistant_thread', self.window.core.ctx.thread)
             self.window.core.config.save()
-
-    def focus_chat(self):
-        """Focus chat"""
-        # set tab index to 0:
-        self.window.ui.tabs['output'].setCurrentIndex(0)
 
     def select(self, id):
         """
@@ -99,7 +96,7 @@ class Ctx:
         id = self.window.core.ctx.get_id_by_idx(idx)
         self.select(id)
 
-    def select_ctx_by_current(self):
+    def select_by_current(self):
         """Select ctx by current"""
         id = self.window.core.ctx.current
         meta = self.window.core.ctx.get_meta()
@@ -133,8 +130,17 @@ class Ctx:
         assistant_id = None
         if mode == 'assistant':
             assistant_id = self.window.core.config.get('assistant')
-        self.update_ctx_label(mode, assistant_id)
+        self.update_label(mode, assistant_id)
         self.focus_chat()
+
+    def add(self, ctx):
+        """
+        Add ctx item (CtxItem object)
+
+        :param ctx: CtxItem
+        """
+        self.window.core.ctx.add(ctx)
+        self.update()
 
     def reload(self, reload=False):
         """
@@ -198,7 +204,7 @@ class Ctx:
         self.update()
 
         # update current ctx label in UI
-        self.update_ctx_label(mode, assistant_id)
+        self.update_label(mode, assistant_id)
 
     def update_ctx(self):
         """Update current ctx mode if allowed"""
@@ -219,9 +225,9 @@ class Ctx:
                     id = self.window.core.config.get('assistant')
 
         # update ctx label
-        self.update_ctx_label(mode, id)
+        self.update_label(mode, id)
 
-    def update_ctx_label_by_current(self):
+    def update_label_by_current(self):
         """Update ctx label from current ctx"""
         mode = self.window.core.ctx.mode
 
@@ -248,7 +254,7 @@ class Ctx:
         # update ctx label
         self.window.controller.ui.update_ctx_label(label)
 
-    def update_ctx_label(self, mode, assistant_id=None):
+    def update_label(self, mode, assistant_id=None):
         """
         Update ctx label
 
@@ -335,15 +341,6 @@ class Ctx:
         """Dismiss rename dialog"""
         self.window.ui.dialog['rename'].close()
 
-    def add(self, ctx):
-        """
-        Add ctx item (CtxItem object)
-
-        :param ctx: CtxItem
-        """
-        self.window.core.ctx.add(ctx)
-        self.update()
-
     def handle_allowed(self, mode):
         """
         Check if ctx is allowed for this mode, if not then switch to new context
@@ -374,6 +371,11 @@ class Ctx:
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
 
+    def focus_chat(self):
+        """Focus chat"""
+        # set tab index to 0:
+        self.window.ui.tabs['output'].setCurrentIndex(0)
+
     def prepare_name(self, ctx):
         """
         Handle context name (summarize input and output)
@@ -381,7 +383,7 @@ class Ctx:
         :param ctx: CtxItem
         """
         if not self.window.core.ctx.is_initialized():
-            self.window.controller.summarize.summarize_ctx(self.window.core.ctx.current, ctx)
+            self.summarizer.summarize(self.window.core.ctx.current, ctx)
 
     def context_change_locked(self):
         """

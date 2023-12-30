@@ -44,9 +44,9 @@ class Command:
 
         :param event: event object
         """
-        for id in self.window.core.plugins.plugins:
+        for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id):
-                if event.stop or self.window.controller.command.is_stop():
+                if event.stop or self.is_stop():
                     break
                 self.window.core.dispatcher.apply(id, event, is_async=False)
         self.handle_finished(event)
@@ -73,7 +73,7 @@ class Command:
         :param window: Window instance
         :param finished_signal: WorkerSignals: finished signal
         """
-        for id in window.core.plugins.plugins:
+        for id in window.core.plugins.get_ids():
             if window.controller.plugins.is_enabled(id):
                 if event.stop or window.controller.command.is_stop():
                     break
