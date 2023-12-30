@@ -48,7 +48,7 @@ class Render:
         """
         if item.input is None or item.input == "":
             return
-        if self.window.core.config.get('output_timestamp') and item.input_timestamp is not None:
+        if self.is_timestamp_enabled() and item.input_timestamp is not None:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
@@ -66,7 +66,7 @@ class Render:
         """
         if item.output is None or item.output == "":
             return
-        if self.window.core.config.get('output_timestamp') and item.output_timestamp is not None:
+        if self.is_timestamp_enabled() and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -86,7 +86,7 @@ class Render:
         """
         if text_chunk is None or text_chunk == "":
             return
-        if begin and self.window.core.config.get('output_timestamp') and item.output_timestamp is not None:
+        if begin and self.is_timestamp_enabled() and item.output_timestamp is not None:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
@@ -142,6 +142,14 @@ class Render:
             if sep:  # New line if LF
                 cur.insertBlock()
         self.get_input_node().setTextCursor(cur)  # Update visible cursor
+
+    def is_timestamp_enabled(self):
+        """
+        Check if timestamp is enabled
+
+        :return: True if timestamp is enabled
+        """
+        return self.window.core.config.get('output_timestamp')
 
     def get_output_node(self):
         """
