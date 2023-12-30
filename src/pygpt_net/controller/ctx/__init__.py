@@ -10,6 +10,8 @@
 # ================================================== #
 
 from pygpt_net.utils import trans
+
+from .common import Common
 from .summarizer import Summarizer
 
 
@@ -21,6 +23,7 @@ class Ctx:
         :param window: Window instance
         """
         self.window = window
+        self.common = Common(window)
         self.summarizer = Summarizer(window)
 
     def setup(self):
@@ -81,7 +84,7 @@ class Ctx:
         """
         self.window.core.ctx.current = id
         self.load(id)
-        self.focus_chat()
+        self.common.focus_chat()
 
     def select_by_idx(self, idx):
         """
@@ -93,8 +96,7 @@ class Ctx:
         if self.context_change_locked():
             return
 
-        id = self.window.core.ctx.get_id_by_idx(idx)
-        self.select(id)
+        self.select(self.window.core.ctx.get_id_by_idx(idx))
 
     def select_by_current(self):
         """Select ctx by current"""
@@ -130,8 +132,8 @@ class Ctx:
         assistant_id = None
         if mode == 'assistant':
             assistant_id = self.window.core.config.get('assistant')
-        self.update_label(mode, assistant_id)
-        self.focus_chat()
+        self.common.update_label(mode, assistant_id)
+        self.common.focus_chat()
 
     def add(self, ctx):
         """
@@ -148,8 +150,7 @@ class Ctx:
 
         :param reload: reload ctx list items
         """
-        meta = self.window.core.ctx.get_meta(reload)
-        self.window.ui.contexts.ctx_list.update('ctx.list', meta)
+        self.window.ui.contexts.ctx_list.update('ctx.list', self.window.core.ctx.get_meta(reload))
 
     def refresh(self):
         """Refresh context"""
@@ -204,7 +205,7 @@ class Ctx:
         self.update()
 
         # update current ctx label in UI
-        self.update_label(mode, assistant_id)
+        self.common.update_label(mode, assistant_id)
 
     def update_ctx(self):
         """Update current ctx mode if allowed"""
@@ -225,52 +226,7 @@ class Ctx:
                     id = self.window.core.config.get('assistant')
 
         # update ctx label
-        self.update_label(mode, id)
-
-    def update_label_by_current(self):
-        """Update ctx label from current ctx"""
-        mode = self.window.core.ctx.mode
-
-        # if no ctx mode then use current mode
-        if mode is None:
-            mode = self.window.core.config.get('mode')
-
-        label = trans('mode.' + mode)
-
-        # append assistant name to ctx name label
-        if mode == 'assistant':
-            id = self.window.core.ctx.assistant
-            assistant = self.window.core.assistants.get_by_id(id)
-            if assistant is not None:
-                # get ctx assistant
-                label += ' (' + assistant.name + ')'
-            else:
-                # get current assistant
-                id = self.window.core.config.get('assistant')
-                assistant = self.window.core.assistants.get_by_id(id)
-                if assistant is not None:
-                    label += ' (' + assistant.name + ')'
-
-        # update ctx label
-        self.window.controller.ui.update_ctx_label(label)
-
-    def update_label(self, mode, assistant_id=None):
-        """
-        Update ctx label
-
-        :param mode: Mode
-        :param assistant_id: Assistant id
-        """
-        if mode is None:
-            return
-        label = trans('mode.' + mode)
-        if mode == 'assistant' and assistant_id is not None:
-            assistant = self.window.core.assistants.get_by_id(assistant_id)
-            if assistant is not None:
-                label += ' (' + assistant.name + ')'
-
-        # update ctx label
-        self.window.controller.ui.update_ctx_label(label)
+        self.common.update_label(mode, id)
 
     def delete(self, idx, force=False):
         """
@@ -337,10 +293,6 @@ class Ctx:
             self.window.ui.dialog['rename'].close()
         self.update()
 
-    def dismiss_rename(self):
-        """Dismiss rename dialog"""
-        self.window.ui.dialog['rename'].close()
-
     def handle_allowed(self, mode):
         """
         Check if ctx is allowed for this mode, if not then switch to new context
@@ -370,11 +322,6 @@ class Ctx:
         self.window.core.ctx.search_string = text
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
-
-    def focus_chat(self):
-        """Focus chat"""
-        # set tab index to 0:
-        self.window.ui.tabs['output'].setCurrentIndex(0)
 
     def prepare_name(self, ctx):
         """

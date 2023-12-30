@@ -280,7 +280,7 @@ class Lang:
             print("Error updating plugin locales", e)
             self.window.core.debug.log(e)
 
-        self.window.controller.ctx.update_label_by_current()
+        self.window.controller.ctx.common.update_label_by_current()
         self.window.controller.ctx.update(True, False)
         self.window.controller.ui.update()  # update all (toolbox, etc.)
         self.window.ui.status('')  # clear status

@@ -70,7 +70,7 @@ class Mode:
         # assistant
         if mode == "assistant":
             # update ctx label
-            self.window.controller.ctx.update_label_by_current()
+            self.window.controller.ctx.common.update_label_by_current()
 
     def select_current(self):
         """Select mode by current"""
