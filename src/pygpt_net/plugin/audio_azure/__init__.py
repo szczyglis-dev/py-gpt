@@ -50,8 +50,8 @@ class Plugin(BasePlugin):
                         "Specify voice for English language, e.g. en-US-AriaNeural",
                         tooltip="Voice (EN)")
         self.add_option("voice_pl", "text", "pl-PL-AgnieszkaNeural",
-                        "Voice (PL)",
-                        "Specify voice for Polish language, e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
+                        "Voice (non-English)",
+                        "Specify voice for non-English languages, e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
                         tooltip="Voice (PL)")
 
     def setup(self):

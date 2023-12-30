@@ -67,9 +67,9 @@ class Lang:
         # notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
+            for i in range(0, num_notepads + 1):
                 tab = i + 2
-                self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
+                self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i+1))
 
         # context
         self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))
@@ -195,6 +195,9 @@ class Lang:
         self.window.ui.dialog['update'].download.setText(trans('update.download'))
         self.window.ui.dialog['update'].setWindowTitle(trans('update.title'))
 
+        # dialog: image / dall-e
+        self.window.ui.dialog['image'].setWindowTitle(trans("dialog.image.title"))
+
         # menu
         self.window.ui.menu['menu.app'].setTitle(trans("menu.file"))
         self.window.ui.menu['app.ctx.new'].setText(trans("menu.file.new"))
@@ -227,6 +230,8 @@ class Lang:
             self.window.ui.menu['debug.ui'].setText(trans("menu.debug.ui"))
 
         self.window.ui.menu['menu.about'].setTitle(trans("menu.info"))
+        self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
+        self.window.ui.menu['plugins.settings'].setText(trans("menu.plugins.settings"))
         self.window.ui.menu['info.about'].setText(trans("menu.info.about"))
         self.window.ui.menu['info.changelog'].setText(trans("menu.info.changelog"))
         self.window.ui.menu['info.updates'].setText(trans("menu.info.updates"))
@@ -235,6 +240,11 @@ class Lang:
         self.window.ui.menu['info.snap'].setText(trans("menu.info.snap"))
         self.window.ui.menu['info.website'].setText(trans("menu.info.website"))
         self.window.ui.menu['info.github'].setText(trans("menu.info.github"))
+
+        self.window.ui.menu['menu.audio'].setTitle(trans("menu.audio"))
+        self.window.ui.menu['audio.output.azure'].setText(trans('menu.audio.output.azure'))
+        self.window.ui.menu['audio.output.tts'].setText(trans('menu.audio.output.tts'))
+        self.window.ui.menu['audio.input.whisper'].setText(trans('menu.audio.input.whisper'))
 
         # start
         self.window.ui.nodes['start.title'].setText(trans('dialog.start.title.text'))
