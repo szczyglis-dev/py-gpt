@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 20:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -127,7 +127,7 @@ class Output:
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
         self.window.core.ctx.store()
         self.window.controller.ctx.update_ctx()  # update current ctx info
-        self.window.set_status(
+        self.window.ui.status(
             trans('status.tokens') + ": {} + {} = {}".
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
@@ -146,5 +146,5 @@ class Output:
             if len(cmds) > 0:
                 ctx.cmds = cmds  # append to ctx
                 self.window.controller.debug.log("Executing commands...")
-                self.window.set_status(trans('status.cmd.wait'))
+                self.window.ui.status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)

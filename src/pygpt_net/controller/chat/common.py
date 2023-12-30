@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 20:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -130,13 +130,13 @@ class Common:
         self.window.core.gpt.stop()
         self.unlock_input()
         self.window.controller.chat.input.generating = False
-        self.window.set_status(trans('status.stopped'))
+        self.window.ui.status(trans('status.stopped'))
 
     def check_api_key(self):
         result = True
         if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
             self.window.controller.launcher.show_api_monit()
-            self.window.set_status("Missing API KEY!")
+            self.window.ui.status("Missing API KEY!")
             result = False
         return result
 

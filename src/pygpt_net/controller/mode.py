@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -58,7 +58,7 @@ class Mode:
         # update all layout
         self.window.controller.ui.update()
 
-        self.window.set_status(trans('status.started'))
+        self.window.ui.status(trans('status.started'))
 
         # vision camera
         if mode == 'vision':

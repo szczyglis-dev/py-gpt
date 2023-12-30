@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -128,7 +128,7 @@ class Editor:
         self.window.controller.assistant.update()
 
         self.window.ui.dialogs.close('editor.assistants')
-        self.window.set_status(trans('status.assistant.saved'))
+        self.window.ui.status(trans('status.assistant.saved'))
 
         # switch to new assistant
         self.window.controller.assistant.select_by_id(id)

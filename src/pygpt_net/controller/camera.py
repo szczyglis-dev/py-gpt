@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -235,7 +235,7 @@ class Camera:
         else:
             self.disable_capture()
 
-        self.window.set_status('')
+        self.window.ui.status('')
 
     def enable_auto(self):
         """Enable capture"""
@@ -270,7 +270,7 @@ class Camera:
         else:
             self.disable_auto()
 
-        self.window.set_status('')
+        self.window.ui.status('')
 
     def is_enabled(self):
         """

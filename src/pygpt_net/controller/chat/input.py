@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 20:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -113,7 +113,7 @@ class Input:
                 self.generating = False
                 return
 
-        self.window.set_status(trans('status.sending'))
+        self.window.ui.status(trans('status.sending'))
 
         # clear input field if clear-on-send is enabled
         if self.window.core.config.get('send_clear') and not force:

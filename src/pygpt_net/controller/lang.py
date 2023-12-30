@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 09:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -285,7 +285,7 @@ class Lang:
         self.window.controller.ctx.update_ctx_label_by_current()
         self.window.controller.ctx.update(True, False)
         self.window.controller.ui.update()  # update all (toolbox, etc.)
-        self.window.set_status('')  # clear status
+        self.window.ui.status('')  # clear status
 
     def toggle_plugins(self):
         """Toggle plugins locale"""

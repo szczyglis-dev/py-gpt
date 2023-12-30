@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import os
@@ -68,7 +68,7 @@ class Files:
             self.window.core.assistants.import_files(assistant, files)
             self.window.core.assistants.save()
             self.update()
-            self.window.set_status("Imported files: " + str(len(files)))
+            self.window.ui.status("Imported files: " + str(len(files)))
         except Exception as e:
             print("Error importing assistant files")
             self.window.core.debug.log(e)

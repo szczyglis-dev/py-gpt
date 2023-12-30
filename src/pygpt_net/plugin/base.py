@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -176,7 +176,7 @@ class BasePlugin:
         :param msg: message to log
         """
         self.debug(msg)
-        self.window.set_status(msg)
+        self.window.ui.status(msg)
         print(msg)
 
     @Slot(object)
@@ -200,7 +200,7 @@ class BasePlugin:
 
         :param data: status message
         """
-        self.window.set_status(str(data))
+        self.window.ui.status(str(data))
 
     @Slot(object)
     def handle_error(self, err):

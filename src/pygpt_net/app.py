@@ -127,16 +127,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         """Called on post-update (slow)"""
         self.controller.debug.on_update()
 
-    def set_status(self, text):
-        """
-        Update status text
-
-        :param text: status text
-        """
-        msg = str(text)
-        status = msg[:80] + '...' if len(msg) > 80 else msg  # truncate, if needed, to 80 chars
-        self.ui.nodes['status'].setText(status)
-
     @Slot(str)
     def update_status(self, text):
         """
@@ -144,7 +134,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param text: status text
         """
-        self.set_status(text)
+        self.ui.status(text)
 
     def closeEvent(self, event):
         """

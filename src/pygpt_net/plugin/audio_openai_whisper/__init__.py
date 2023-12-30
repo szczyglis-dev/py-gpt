@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import os
@@ -331,7 +331,7 @@ class Plugin(BasePlugin):
                 check_text = text.lower().strip()
                 check_word = word.lower().strip()
                 if not check_text.startswith(check_word):
-                    self.window.set_status(trans('audio.speak.ignoring'))
+                    self.window.ui.status(trans('audio.speak.ignoring'))
                     self.set_status(trans('audio.speak.ignoring'))
                     return
 
@@ -348,7 +348,7 @@ class Plugin(BasePlugin):
                 if check_text.startswith(check_word):
                     is_magic_word = True
                     self.set_status(trans('audio.magic_word.detected'))
-                    self.window.set_status(trans('audio.magic_word.detected'))
+                    self.window.ui.status(trans('audio.magic_word.detected'))
                     break
 
         # if magic word enabled
@@ -362,11 +362,11 @@ class Plugin(BasePlugin):
             # if not previously detected, then abort now
             if not magic_prev_detected:
                 if not is_magic_word:
-                    self.window.set_status(trans('audio.magic_word.invalid'))
+                    self.window.ui.status(trans('audio.magic_word.invalid'))
                 self.window.ui.nodes['input'].setText(text)
                 return
             else:
-                self.window.set_status("")
+                self.window.ui.status("")
 
         # update input text
         self.window.ui.nodes['input'].setText(text)
@@ -374,7 +374,7 @@ class Plugin(BasePlugin):
         # send text
         if self.get_option_value('auto_send'):
             self.set_status('...')
-            self.window.set_status(trans('audio.speak.sending'))
+            self.window.ui.status(trans('audio.speak.sending'))
             self.window.controller.chat.input.send(text)
             self.set_status('')
 
@@ -386,7 +386,7 @@ class Plugin(BasePlugin):
         :param data: message
         """
         self.set_status(str(data))
-        self.window.set_status(str(data))
+        self.window.ui.status(str(data))
 
     @Slot()
     def handle_destroy(self):
@@ -406,7 +406,7 @@ class Plugin(BasePlugin):
         self.thread_started = False
         self.listening = False
         self.stop = False
-        self.window.set_status("")
+        self.window.ui.status("")
         self.set_status('')
         # print("Whisper stopped listening...")
         self.toggle_speech(False)

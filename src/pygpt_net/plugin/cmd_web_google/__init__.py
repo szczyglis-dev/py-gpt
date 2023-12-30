@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -161,7 +161,7 @@ class Plugin(BasePlugin):
         """
         full_msg = '[CMD] ' + str(msg)
         self.debug(full_msg)
-        self.window.set_status(full_msg)
+        self.window.ui.status(full_msg)
         print(full_msg)
 
     def cmd_syntax(self, data):
@@ -232,7 +232,7 @@ class Plugin(BasePlugin):
             request = {"cmd": item["cmd"]}
             err = "Google API key or CX is not set. Please set credentials in plugin settings."
             self.log(err)
-            self.window.set_status(err)
+            self.window.ui.status(err)
             msg = "Tell the user that the Google API key is not configured in the plugin settings, " \
                   "and to set the API key in the settings in order to use the internet search plugin."
             data = {

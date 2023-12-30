@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -70,13 +70,13 @@ class Image:
     @Slot()
     def handle_status(self, msg):
         """Handle thread status"""
-        self.window.set_status(msg)
+        self.window.ui.status(msg)
         print(msg)
 
     @Slot()
     def handle_error(self, e):
         """Handle thread error"""
-        self.window.set_status(e)
+        self.window.ui.status(e)
         self.window.core.debug.log(e)
 
     def generate(self, ctx, prompt, model="dall-e-3", num=1):

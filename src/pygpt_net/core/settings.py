@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import json
@@ -99,7 +99,7 @@ class Settings:
         """Load defaults from file"""
         file = self.window.ui.dialog['config.editor'].file
         self.load_editor(file)
-        self.window.set_status("Loaded defaults from file: {}".format(file))
+        self.window.ui.status("Loaded defaults from file: {}".format(file))
 
     def load_editor(self, file=None):
         """
@@ -117,7 +117,7 @@ class Settings:
                 self.window.ui.editor['config'].setPlainText(txt)
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.set_status("Error loading file: {}".format(e))
+            self.window.ui.status("Error loading file: {}".format(e))
 
     def save_editor(self):
         """Save file to disk"""
@@ -126,7 +126,7 @@ class Settings:
         try:
             json.loads(data)
         except Exception as e:
-            self.window.set_status("This is not a valid JSON: {}".format(e))
+            self.window.ui.status("This is not a valid JSON: {}".format(e))
             self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
             return
 
@@ -138,14 +138,14 @@ class Settings:
         backup_path = os.path.join(self.window.core.config.path, backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
-            self.window.set_status("Created backup file: {}".format(backup_file))
+            self.window.ui.status("Created backup file: {}".format(backup_file))
 
         # save changes to current file:
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(data)
-            self.window.set_status("Saved file: {}".format(path))
+            self.window.ui.status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
         except Exception as e:
             self.window.core.debug.log(e)
-            self.window.set_status("Error saving file: {}".format(path))
+            self.window.ui.status("Error saving file: {}".format(path))

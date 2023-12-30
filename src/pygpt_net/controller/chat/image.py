@@ -50,7 +50,7 @@ class Image:
         if model == 'dall-e-3':
             num = 1
 
-        self.window.set_status(trans('status.sending'))
+        self.window.ui.status(trans('status.sending'))
 
         # create ctx item
         ctx = CtxItem()
@@ -80,7 +80,7 @@ class Image:
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
-            self.window.set_status(trans('status.error'))
+            self.window.ui.status(trans('status.error'))
 
         return ctx
 
@@ -117,7 +117,7 @@ class Image:
 
         self.window.controller.chat.render.append_output(ctx)
         self.window.core.ctx.store()  # save current ctx to DB
-        self.window.set_status(trans('status.img.generated'))
+        self.window.ui.status(trans('status.img.generated'))
 
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
@@ -182,7 +182,7 @@ class Image:
             # copy file
             try:
                 shutil.copyfile(path, save_path[0])
-                self.window.set_status(trans('status.img.saved'))
+                self.window.ui.status(trans('status.img.saved'))
             except Exception as e:
                 self.window.core.debug.log(e)
 

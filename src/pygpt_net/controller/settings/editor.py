@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import copy
@@ -96,7 +96,7 @@ class Editor:
 
         info = trans('info.settings.saved')
         self.window.core.config.save()
-        self.window.set_status(info)
+        self.window.ui.status(info)
         self.window.controller.ui.update_font_size()
         self.window.controller.ui.update()
 

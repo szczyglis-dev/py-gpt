@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -55,7 +55,7 @@ class Assistant:
         # create or get current thread, it is required before conversation start
         if self.window.core.config.get('assistant_thread') is None:
             try:
-                self.window.set_status(trans('status.starting'))
+                self.window.ui.status(trans('status.starting'))
                 self.window.core.config.set('assistant_thread', self.threads.create_thread())
             except Exception as e:
                 self.window.core.debug.log(e)
@@ -165,7 +165,7 @@ class Assistant:
                 assistant = self.window.core.assistants.get_by_id(id)
                 self.window.controller.assistant.files.import_files(assistant)
             # status
-            self.window.set_status("Imported assistants: " + str(len(items)))
+            self.window.ui.status("Imported assistants: " + str(len(items)))
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error importing assistants")
@@ -190,7 +190,7 @@ class Assistant:
                 assistant = self.window.core.assistants.get_by_id(id)
                 assistant.reset()
 
-        self.window.set_status(trans('status.assistant.cleared'))
+        self.window.ui.status(trans('status.assistant.cleared'))
         self.update()
 
     def delete(self, idx=None, force=False):
@@ -223,7 +223,7 @@ class Assistant:
 
                     self.window.core.assistants.delete(id)
                     self.update()
-                    self.window.set_status(trans('status.assistant.deleted'))
+                    self.window.ui.status(trans('status.assistant.deleted'))
 
     def goto_online(self):
         """Open Assistants page"""

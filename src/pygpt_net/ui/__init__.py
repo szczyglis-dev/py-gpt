@@ -85,6 +85,16 @@ class UI:
         # set central widget
         self.window.setCentralWidget(self.window.ui.splitters['main'])
 
+    def status(self, text):
+        """
+        Update status text
+
+        :param text: status text
+        """
+        msg = str(text)
+        status = msg[:80] + '...' if len(msg) > 80 else msg  # truncate, if needed, to 80 chars
+        self.nodes['status'].setText(status)
+
     def setup_font(self):
         """Setup UI font"""
         path = os.path.join(self.window.core.config.get_app_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')

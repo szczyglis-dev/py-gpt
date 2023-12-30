@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -125,7 +125,7 @@ class Editor:
             name = self.window.ui.config_option['preset.name'].text()
             if name is None or name == "":
                 self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
-                self.window.set_status(trans('status.preset.empty_id'))
+                self.window.ui.status(trans('status.preset.empty_id'))
                 return
             # generate new filename
             id = self.window.controller.presets.make_filename(name)
@@ -171,7 +171,7 @@ class Editor:
 
         # close dialog
         self.window.ui.dialogs.close('editor.preset.presets')
-        self.window.set_status(trans('status.preset.saved'))
+        self.window.ui.status(trans('status.preset.saved'))
 
         # switch to editing preset
         self.window.controller.presets.set(mode, id)

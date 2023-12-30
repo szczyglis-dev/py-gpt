@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 20:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -33,7 +33,7 @@ class Text:
         :return: context item
         :rtype: CtxItem
         """
-        self.window.set_status(trans('status.sending'))
+        self.window.ui.status(trans('status.sending'))
 
         # prepare names
         self.log("User name: {}".format(self.window.core.config.get('user_name')))  # log
@@ -168,13 +168,13 @@ class Text:
                 else:
                     self.log("Context: output: None")
                     self.window.ui.dialogs.alert(trans('status.error'))
-                    self.window.set_status(trans('status.error'))
+                    self.window.ui.status(trans('status.error'))
 
             except Exception as e:
                 self.log("GPT output error: {}".format(e))  # log
                 self.window.core.debug.log(e)
                 self.window.ui.dialogs.alert(str(e))
-                self.window.set_status(trans('status.error'))
+                self.window.ui.status(trans('status.error'))
                 print("Error when calling API: " + str(e))
 
             # handle response (if no assistant mode, assistant response is handled in assistant thread)
@@ -185,7 +185,7 @@ class Text:
             self.log("Output error: {}".format(e))  # log
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
-            self.window.set_status(trans('status.error'))
+            self.window.ui.status(trans('status.error'))
             print("Error in sending text: " + str(e))
 
         # if commands enabled: post-execute commands (if no assistant mode)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import re
@@ -191,7 +191,7 @@ class Presets:
                     self.refresh()
                     idx = self.window.core.presets.get_idx_by_id(mode, new_id)
                     self.editor.edit(idx)
-                    self.window.set_status(trans('status.preset.duplicated'))
+                    self.window.ui.status(trans('status.preset.duplicated'))
 
     def clear(self, force=False):
         """
@@ -218,7 +218,7 @@ class Presets:
                 self.window.core.presets.items[preset].temperature = 1.0
                 self.refresh()
 
-        self.window.set_status(trans('status.preset.cleared'))
+        self.window.ui.status(trans('status.preset.cleared'))
 
     def delete(self, idx=None, force=False):
         """
@@ -241,7 +241,7 @@ class Presets:
                         self.window.core.config.set('preset', None)
                     self.window.core.presets.remove(preset, True)
                     self.refresh()
-                    self.window.set_status(trans('status.preset.deleted'))
+                    self.window.ui.status(trans('status.preset.deleted'))
 
     def validate_filename(self, value):
         """

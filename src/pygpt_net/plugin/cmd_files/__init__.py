@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -183,7 +183,7 @@ class Plugin(BasePlugin):
         """
         full_msg = '[CMD] ' + str(msg)
         self.debug(full_msg)
-        self.window.set_status(full_msg)
+        self.window.ui.status(full_msg)
         print(full_msg)
 
     def cmd_syntax(self, data):
