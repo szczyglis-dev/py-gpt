@@ -9,6 +9,7 @@
 # Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
+from .files import Files
 from .input import Input
 from .output import Output
 from .render import Render
@@ -22,6 +23,7 @@ class Chat:
         :param window: Window instance
         """
         self.window = window
+        self.files = Files(window)
         self.input = Input(window)
         self.output = Output(window)
         self.render = Render(window)
