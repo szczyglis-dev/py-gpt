@@ -47,14 +47,4 @@ class Files:
                 self.window.core.debug.log(e)
                 self.window.ui.dialogs.alert(str(e))
 
-            # create or get current thread, it is required here, TODO: move to separate method
-            if self.window.core.config.get('assistant_thread') is None:
-                try:
-                    self.window.set_status(trans('status.starting'))
-                    self.window.core.config.set('assistant_thread',
-                                                self.window.controller.assistant.threads.create_thread())
-                except Exception as e:
-                    self.window.core.debug.log(e)
-                    self.window.ui.dialogs.alert(str(e))
-
         return attachments_list

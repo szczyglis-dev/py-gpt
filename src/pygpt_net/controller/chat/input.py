@@ -84,6 +84,7 @@ class Input:
 
         # store thread id, assistant id and pass to gpt wrapper
         if mode == 'assistant':
+            self.window.controller.assistant.prepare()  # create new thread if not exists
             ctx.thread = self.window.core.config.get('assistant_thread')
 
         # log

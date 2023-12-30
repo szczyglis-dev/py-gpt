@@ -51,6 +51,16 @@ class Assistant:
         items = self.window.core.assistants.get_all()
         self.window.ui.toolbox.assistants.update(items)
 
+    def prepare(self):
+        # create or get current thread, it is required before conversation start
+        if self.window.core.config.get('assistant_thread') is None:
+            try:
+                self.window.set_status(trans('status.starting'))
+                self.window.core.config.set('assistant_thread', self.threads.create_thread())
+            except Exception as e:
+                self.window.core.debug.log(e)
+                self.window.ui.dialogs.alert(str(e))
+
     def refresh(self):
         """Update assistants"""
         self.select_default()
