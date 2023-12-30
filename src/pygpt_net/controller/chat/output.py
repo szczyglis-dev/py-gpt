@@ -123,7 +123,6 @@ class Output:
 
         :param ctx: CtxItem
         """
-        # save context
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
         self.window.core.ctx.store()

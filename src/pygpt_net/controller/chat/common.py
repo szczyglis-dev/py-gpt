@@ -125,6 +125,14 @@ class Common:
         self.window.controller.chat.input.generating = False
         self.window.set_status(trans('status.stopped'))
 
+    def check_api_key(self):
+        result = True
+        if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
+            self.window.controller.launcher.show_api_monit()
+            self.window.set_status("Missing API KEY!")
+            result = False
+        return result
+
     def toggle_timestamp(self, value):
         """
         Toggle timestamp

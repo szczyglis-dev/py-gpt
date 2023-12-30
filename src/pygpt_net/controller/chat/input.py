@@ -207,7 +207,7 @@ class Input:
 
     def user_send(self, text=None):
         """
-        Send real user input
+        Send from user input (called from UI)
 
         :param text: input text
         """
@@ -215,6 +215,7 @@ class Input:
                 and text is not None \
                 and text.strip() == "stop":
             self.window.controller.chat.common.stop()
+            return
 
         # event: user.send
         event = Event('user.send', {
@@ -227,6 +228,7 @@ class Input:
     def send(self, text=None, force=False):
         """
         Send input wrapper
+
         :param text: input text
         :param force: force send
         """
@@ -239,20 +241,21 @@ class Input:
         :param text: input text
         :param force: force send
         """
-        # check if input is not locked
+        # check if input is not locked, TODO: move to user send
         if self.locked and not force:
             return
 
         self.generating = True  # set generating flag
+
         mode = self.window.core.config.get('mode')
         if mode == 'assistant':
             # check if assistant is selected
             if self.window.core.config.get('assistant') is None or self.window.core.config.get('assistant') == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
-                self.generating = False
+                self.generating = False  # unlock
                 return
         elif mode == 'vision':
-            # handle auto-capture mode
+            # capture frame from camera if auto-capture enabled
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
                     self.window.controller.camera.capture_frame(False)
@@ -262,7 +265,7 @@ class Input:
         self.force_stop = False
         self.window.set_status(trans('status.sending'))
 
-        ctx = None
+        # get text from input, TODO: move to user_send?
         if text is None:
             text = self.window.ui.nodes['input'].toPlainText().strip()
 
@@ -277,63 +280,60 @@ class Input:
 
         self.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
-        # allow empty input only for vision mode
-        if len(text.strip()) > 0 \
-                or (mode == 'vision' and self.window.controller.attachment.has_attachments(mode)):
+        is_camera_capture = (mode == 'vision' and self.window.controller.attachment.has_attachments('vision'))
 
-            # clear input area if clear-on-send enabled
-            if self.window.core.config.get('send_clear') and not force:
-                self.window.ui.nodes['input'].clear()
-
-            # check API key
-            if mode != 'langchain':
-                if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-                    self.window.controller.launcher.show_api_monit()
-                    self.window.set_status("Missing API KEY!")
-                    self.generating = False
-                    return
-
-            # prepare context, create new ctx if there is no contexts yet (first run)
-            if len(self.window.core.ctx.meta) == 0:
-                self.window.core.ctx.new()
-                self.window.controller.ctx.update()
-                self.log("New context created...")  # log
-            else:
-                # check if current context is allowed for this mode, if now then create new
-                self.window.controller.ctx.handle_allowed(mode)
-
-            # process events to update UI
-            QApplication.processEvents()
-
-            # send input to API
-            self.generating = True  # mark as generating (lock)
-            if self.window.core.config.get('mode') == 'img':
-                ctx = self.window.controller.image.send_text(text)
-            else:
-                ctx = self.send_text(text)
-        else:
+        # allow empty input only for vision mode, otherwise abort
+        if len(text.strip()) == 0 and not is_camera_capture:
             # reset status if input is empty
             self.window.statusChanged.emit("")
+            self.generating = False  # unlock as not generating
+            self.window.controller.ui.update()  # update UI
+            return
+
+        # check API key, show monit if not set
+        if mode != 'langchain':
+            if not self.window.controller.chat.common.check_api_key():
+                self.generating = False
+                return
+
+        # clear input field if clear-on-send is enabled
+        if self.window.core.config.get('send_clear') and not force:
+            self.window.ui.nodes['input'].clear()
+
+        # prepare ctx, create new ctx meta if there is no ctx yet (first run)
+        if self.window.core.ctx.count_meta() == 0:
+            self.window.core.ctx.new()
+            self.window.controller.ctx.update()
+            self.log("New context created...")  # log
+        else:
+            # check if current ctx is allowed for this mode - if not, then create new ctx
+            self.window.controller.ctx.handle_allowed(mode)
+
+        # update UI
+        QApplication.processEvents()
+
+        # send input to API, return ctx
+        if self.window.core.config.get('mode') == 'img':
+            ctx = self.window.controller.image.send_text(text)  # dall-e mode
+        else:
+            ctx = self.send_text(text)  # text mode, OpenAI or LangChain
 
         # clear attachments after send if enabled
         if self.window.core.config.get('attachments_send_clear'):
             self.window.controller.attachment.clear(True)
             self.window.controller.attachment.update()
 
-        if ctx is not None:
-            self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
+        self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
 
-            # event: ctx.end
-            event = Event('ctx.end')
-            event.ctx = ctx
-            self.window.core.dispatcher.dispatch(event)
+        # event: ctx.end
+        event = Event('ctx.end')
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
 
-            self.log("Context: output [after plugin: ctx.end]: {}".
-                     format(self.window.core.ctx.dump(ctx)))  # log
-            self.window.controller.ui.update_tokens()  # update tokens counters
-
-        self.generating = False  # unlock as not generating
+        self.log("Context: output [after plugin: ctx.end]: {}".
+                 format(self.window.core.ctx.dump(ctx)))  # log
         self.window.controller.ui.update()  # update UI
+        self.generating = False  # unlock
 
     def log(self, data):
         """
