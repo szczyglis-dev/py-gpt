@@ -160,6 +160,7 @@ class Input:
                     result = self.window.core.gpt.call(text, ctx, stream_mode)
 
                 # update context in DB
+                ctx.current = False  # reset current state
                 self.window.core.ctx.update_item(ctx)
 
                 if mode == 'assistant':
@@ -198,7 +199,7 @@ class Input:
 
         self.window.controller.chat.common.unlock_input()  # unlock
 
-        # handle ctx name (generate title from summary if not initialized), TODO: move to ctx controller
+        # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
             self.window.controller.ctx.prepare_name(ctx)
 
