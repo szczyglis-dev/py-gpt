@@ -16,7 +16,7 @@ from PySide6.QtGui import QTextCursor
 class Render:
     def __init__(self, window=None):
         """
-        Output controller
+        Render controller
 
         :param window: Window instance
         """
@@ -112,3 +112,33 @@ class Render:
             if sep:  # New line if LF
                 cur.insertBlock()
         self.window.ui.nodes['output'].setTextCursor(cur)  # Update visible cursor
+
+    def append_text(self, text):
+        """
+        Append text to notepad
+
+        :param text: Text to append
+        """
+        prev_text = self.window.ui.nodes['input'].toPlainText()
+        if prev_text != "":
+            prev_text += "\n\n"
+        new_text = prev_text + text.strip()
+        self.window.ui.nodes['input'].setText(new_text)
+        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
+        cur.movePosition(QTextCursor.End)
+
+    def append_to_input(self, text):
+        """
+        Append text to input
+
+        :param text: text to append
+        """
+        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
+        cur.movePosition(QTextCursor.End)
+        s = str(text) + "\n"
+        while s:
+            head, sep, s = s.partition("\n")  # Split line at LF
+            cur.insertText(head)  # Insert text at cursor
+            if sep:  # New line if LF
+                cur.insertBlock()
+        self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor

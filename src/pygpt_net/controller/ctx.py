@@ -126,7 +126,7 @@ class Ctx:
         self.window.controller.chat.render.clear()
 
         if not force:  # only if real click on new context button
-            self.window.controller.chat.input.unlock_input()
+            self.window.controller.chat.common.unlock_input()
 
         # update context label
         mode = self.window.core.ctx.mode
@@ -373,6 +373,17 @@ class Ctx:
         self.window.core.ctx.search_string = text
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
+
+    def prepare_name(self, ctx):
+        """
+        Handle context name (summarize input and output)
+
+        :param ctx: CtxItem
+        """
+        if ctx is not None:
+            if not self.window.core.ctx.is_initialized():
+                id = self.window.core.ctx.current
+                self.window.controller.summarize.summarize_ctx(id, ctx)
 
     def context_change_locked(self):
         """

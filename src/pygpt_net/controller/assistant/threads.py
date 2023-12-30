@@ -55,7 +55,7 @@ class Threads:
                 if paths:
                     ctx.files = json.dumps(paths)  # append files to ctx
                 self.window.controller.chat.output.handle(ctx, 'assistant', False)
-                self.window.controller.chat.output.handle_commands(ctx)
+                self.window.controller.chat.output.handle_cmd(ctx)
 
                 # update ctx
                 self.window.core.ctx.update_item(ctx)
@@ -94,14 +94,14 @@ class Threads:
         """
         print("Run status: {}".format(status))
         if status != "queued" and status != "in_progress":
-            self.window.controller.chat.input.unlock_input()  # unlock input
+            self.window.controller.chat.common.unlock_input()  # unlock input
         if status == "completed":
             self.force_stop = False
             self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
         elif status == "failed":
             self.force_stop = False
-            self.window.controller.chat.input.unlock_input()
+            self.window.controller.chat.common.unlock_input()
             self.window.statusChanged.emit(trans('assistant.run.failed'))
 
     @Slot()

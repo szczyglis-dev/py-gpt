@@ -45,7 +45,7 @@ class NotepadOutput(QTextEdit):
             # input
             action = copy_to_menu.addAction(trans('text.context_menu.copy_to.input'))
             action.triggered.connect(
-                lambda: self.window.controller.chat.input.append_text(selected_text))
+                lambda: self.window.controller.chat.render.append_text(selected_text))
 
             # notepad
             num_notepads = self.window.controller.notepad.get_num_notepads()

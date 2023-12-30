@@ -42,7 +42,7 @@ class Presets:
 
     def use(self):
         """Copy preset prompt to input"""
-        self.window.controller.chat.input.append(self.window.ui.nodes['preset.prompt'].toPlainText())
+        self.window.controller.chat.render.append_to_input(self.window.ui.nodes['preset.prompt'].toPlainText())
 
     def set(self, mode, preset):
         """

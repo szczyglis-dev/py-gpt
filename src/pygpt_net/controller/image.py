@@ -74,7 +74,7 @@ class Image:
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.chat.output.handle_ctx_name(ctx)
+            self.window.controller.ctx.prepare_name(ctx)
 
         # process events to update UI
         QApplication.processEvents()

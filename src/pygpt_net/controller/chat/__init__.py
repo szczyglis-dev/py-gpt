@@ -9,6 +9,7 @@
 # Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
+from .common import Common
 from .files import Files
 from .input import Input
 from .output import Output
@@ -23,6 +24,7 @@ class Chat:
         :param window: Window instance
         """
         self.window = window
+        self.common = Common(window)
         self.files = Files(window)
         self.input = Input(window)
         self.output = Output(window)
@@ -30,5 +32,4 @@ class Chat:
 
     def setup(self):
         """Setup"""
-        self.input.setup()
-        self.output.setup()
+        self.common.setup()

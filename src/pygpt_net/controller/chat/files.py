@@ -15,7 +15,7 @@ from pygpt_net.utils import trans
 class Files:
     def __init__(self, window=None):
         """
-        Input controller
+        Chat files/attachments controller
 
         :param window: Window instance
         """

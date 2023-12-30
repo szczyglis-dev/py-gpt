@@ -6,13 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 20:00:00                  #
 # ================================================== #
 
-import threading
-
-from PySide6.QtCore import QObject
-from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.item.ctx import CtxItem
@@ -33,44 +29,6 @@ class Input:
         self.generating = False
         self.thread = None
         self.thread_started = False
-
-    def setup(self):
-        """Set up input"""
-        # stream
-        if self.window.core.config.get('stream'):
-            self.window.ui.nodes['input.stream'].setChecked(True)
-        else:
-            self.window.ui.nodes['input.stream'].setChecked(False)
-
-        # send clear
-        if self.window.core.config.get('send_clear'):
-            self.window.ui.nodes['input.send_clear'].setChecked(True)
-        else:
-            self.window.ui.nodes['input.send_clear'].setChecked(False)
-
-        # send with enter/shift/disabled
-        mode = self.window.core.config.get('send_mode')
-        if mode == 2:
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(True)
-            self.window.ui.nodes['input.send_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(False)
-        elif mode == 1:
-            self.window.ui.nodes['input.send_enter'].setChecked(True)
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(False)
-        elif mode == 0:
-            self.window.ui.nodes['input.send_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_shift_enter'].setChecked(False)
-            self.window.ui.nodes['input.send_none'].setChecked(True)
-
-        # cmd enabled
-        if self.window.core.config.get('cmd'):
-            self.window.ui.nodes['cmd.enabled'].setChecked(True)
-        else:
-            self.window.ui.nodes['cmd.enabled'].setChecked(False)
-
-        # set focus to input
-        self.window.ui.nodes['input'].setFocus()
 
     def send_text(self, text):
         """
@@ -183,7 +141,7 @@ class Input:
         try:
             # make API call
             try:
-                self.lock_input()  # lock input
+                self.window.controller.chat.common.lock_input()  # lock input
 
                 if mode == "langchain":
                     self.log("Calling LangChain...")  # log
@@ -235,15 +193,15 @@ class Input:
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":
-            self.window.controller.chat.output.handle_commands(ctx)
+            self.window.controller.chat.output.handle_cmd(ctx)
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
             self.window.controller.ctx.update()  # update ctx list
 
-        self.unlock_input()  # unlock
+        self.window.controller.chat.common.unlock_input()  # unlock
 
         # handle ctx name (generate title from summary if not initialized), TODO: move to ctx controller
         if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.chat.output.handle_ctx_name(ctx)
+            self.window.controller.ctx.prepare_name(ctx)
 
         return ctx
 
@@ -256,7 +214,7 @@ class Input:
         if self.generating \
                 and text is not None \
                 and text.strip() == "stop":
-            self.stop()
+            self.window.controller.chat.common.stop()
 
         # event: user.send
         event = Event('user.send', {
@@ -374,106 +332,8 @@ class Input:
                      format(self.window.core.ctx.dump(ctx)))  # log
             self.window.controller.ui.update_tokens()  # update tokens counters
 
-            # from v.2.0.41: reply from commands in now handled in async thread!
-            # if ctx.reply:
-            #   self.send(json.dumps(ctx.results))
-
         self.generating = False  # unlock as not generating
         self.window.controller.ui.update()  # update UI
-
-    def toggle_stream(self, value):
-        """
-        Toggle stream
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('stream', value)
-
-    def toggle_cmd(self, value):
-        """
-        Toggle cmd enabled
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('cmd', value)
-
-        # stop commands thread if running
-        if not value:
-            self.window.controller.command.force_stop = True
-        else:
-            self.window.controller.command.force_stop = False
-
-        self.window.controller.ui.update_tokens()  # update tokens counters
-
-    def toggle_send_clear(self, value):
-        """
-        Toggle send clear
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('send_clear', value)
-
-    def toggle_send_shift(self, value):
-        """
-        Toggle send with shift
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('send_mode', value)
-
-    def lock_input(self):
-        """Lock input"""
-        self.locked = True
-        self.window.ui.nodes['input.send_btn'].setEnabled(False)
-        self.window.ui.nodes['input.stop_btn'].setVisible(True)
-
-    def unlock_input(self):
-        """Unlock input"""
-        self.locked = False
-        self.window.ui.nodes['input.send_btn'].setEnabled(True)
-        self.window.ui.nodes['input.stop_btn'].setVisible(False)
-
-    def stop(self):
-        """Stop input"""
-        event = Event('audio.input.toggle', {"value": False})
-        self.window.controller.assistant.threads.force_stop = True
-        self.window.core.dispatcher.dispatch(event)  # stop audio input
-        self.force_stop = True
-        self.window.core.gpt.stop()
-        self.unlock_input()
-        self.generating = False
-        self.window.set_status(trans('status.stopped'))
-
-    def append_text(self, text):
-        """
-        Append text to notepad
-
-        :param text: Text to append
-        :param i: Notepad index
-        """
-        prev_text = self.window.ui.nodes['input'].toPlainText()
-        if prev_text != "":
-            prev_text += "\n\n"
-        new_text = prev_text + text.strip()
-        self.window.ui.nodes['input'].setText(new_text)
-        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
-        cur.movePosition(QTextCursor.End)
-
-    def append(self, text):
-        """
-        Append text to input
-
-        :param text: text to append
-        """
-        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
-        cur.movePosition(QTextCursor.End)
-        s = str(text) + "\n"
-        while s:
-            head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)  # Insert text at cursor
-            if sep:  # New line if LF
-                cur.insertBlock()
-        self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
 
     def log(self, data):
         """

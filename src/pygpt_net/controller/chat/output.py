@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -23,10 +23,6 @@ class Output:
         :param window: Window instance
         """
         self.window = window
-
-    def setup(self):
-        """Setup output"""
-        self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
     def handle(self, ctx, mode, stream_mode=False):
         """
@@ -105,7 +101,7 @@ class Output:
 
             # --- end of stream mode ---
 
-        # apply plugins
+        # event: ctx.after
         event = Event('ctx.after')
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
@@ -136,41 +132,20 @@ class Output:
             trans('status.tokens') + ": {} + {} = {}".
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
 
-        # store history (output)
+        # store to history
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "output")
 
-    def handle_commands(self, ctx):
+    def handle_cmd(self, ctx):
         """
         Handle plugin commands
 
         :param ctx: CtxItem
         """
-        if ctx is not None and self.window.core.config.get('cmd'):
+        if self.window.core.config.get('cmd'):
             cmds = self.window.core.command.extract_cmds(ctx.output)
             if len(cmds) > 0:
                 ctx.cmds = cmds  # append to ctx
                 self.window.controller.debug.log("Executing commands...")
                 self.window.set_status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)
-
-    def handle_ctx_name(self, ctx):
-        """
-        Handle context name (summarize input and output)
-
-        :param ctx: CtxItem
-        """
-        if ctx is not None:
-            if not self.window.core.ctx.is_initialized():
-                id = self.window.core.ctx.current
-                self.window.controller.summarize.summarize_ctx(id, ctx)
-
-    def toggle_timestamp(self, value):
-        """
-        Toggle timestamp
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('output_timestamp', value)
-        self.window.core.config.save()
-        self.window.controller.ctx.refresh()
