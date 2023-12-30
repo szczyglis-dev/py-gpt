@@ -225,7 +225,7 @@ class Attachment:
         # restore attachments from assistant
         self.window.core.attachments.from_attachments(mode, assistant.attachments)
 
-    def has_attachments(self, mode):
+    def has(self, mode):
         """
         Return True if current mode has attachments
 

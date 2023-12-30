@@ -73,9 +73,9 @@ class ChatInput(QTextEdit):
                 if mode == 2:  # Shift + Enter
                     modifiers = QApplication.keyboardModifiers()
                     if modifiers == QtCore.Qt.ShiftModifier:
-                        self.window.controller.chat.input.user_send()
+                        self.window.controller.chat.input.send_input()
                 else:  # Enter
-                    self.window.controller.chat.input.user_send()
+                    self.window.controller.chat.input.send_input()
                 self.setFocus()
 
     def wheelEvent(self, event):

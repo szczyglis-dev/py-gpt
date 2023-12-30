@@ -195,7 +195,7 @@ class Input:
         # send button
         self.window.ui.nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
         self.window.ui.nodes['input.send_btn'].clicked.connect(
-            lambda: self.window.controller.chat.input.user_send())
+            lambda: self.window.controller.chat.input.send_input())
 
         # stop button
         self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))

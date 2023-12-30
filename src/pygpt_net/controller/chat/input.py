@@ -26,10 +26,8 @@ class Input:
         self.locked = False
         self.force_stop = False
         self.generating = False
-        self.thread = None
-        self.thread_started = False
 
-    def user_send(self):
+    def send_input(self):
         """
         Send text from user input (called from UI)
         """
@@ -58,11 +56,11 @@ class Input:
         :param text: input text
         :param force: force send
         """
-        self.send_execute(text, force)
+        self.execute(text, force)
 
-    def send_execute(self, text=None, force=False):
+    def execute(self, text=None, force=False):
         """
-        Send input text to API
+        Execute send input text to API
 
         :param text: input text
         :param force: force send
@@ -101,10 +99,10 @@ class Input:
 
         self.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
-        is_camera_capture = (mode == 'vision' and self.window.controller.attachment.has_attachments('vision'))
+        camera_captured = (mode == 'vision' and self.window.controller.attachment.has('vision'))
 
         # allow empty input only for vision mode, otherwise abort
-        if len(text.strip()) == 0 and not is_camera_capture:
+        if len(text.strip()) == 0 and not camera_captured:
             self.generating = False  # unlock as not generating
             return
 
@@ -134,9 +132,9 @@ class Input:
 
         # send input to API, return ctx
         if self.window.core.config.get('mode') == 'img':
-            ctx = self.window.controller.chat.image.send(text)  # dall-e mode
+            ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
         else:
-            ctx = self.window.controller.chat.text.send(text)  # text mode, OpenAI or LangChain
+            ctx = self.window.controller.chat.text.send(text)  # text mode: OpenAI or LangChain
 
         # clear attachments after send if enabled
         if self.window.core.config.get('attachments_send_clear'):
