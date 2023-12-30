@@ -11,7 +11,6 @@
 
 from PySide6.QtWidgets import QApplication
 
-from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
