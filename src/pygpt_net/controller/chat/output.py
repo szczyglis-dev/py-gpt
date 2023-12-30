@@ -75,7 +75,7 @@ class Output:
                         # langchain can provide different modes itself
                         elif mode == "langchain":
                             if sub_mode == 'chat':
-                                # if chat model response is object
+                                # if chat model response is an object
                                 if chunk.content is not None:
                                     response = chunk.content
                             elif sub_mode == 'completion':
