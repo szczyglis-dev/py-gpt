@@ -24,7 +24,7 @@ class Render:
 
     def clear(self):
         """Clear output"""
-        self.window.ui.nodes['output'].clear()
+        self.get_output_node().clear()
 
     def append_context(self):
         """Append context to output"""
@@ -103,7 +103,7 @@ class Render:
         :param text: text to append
         :param end: end of the line character
         """
-        cur = self.window.ui.nodes['output'].textCursor()  # Move cursor to end of text
+        cur = self.get_output_node().textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
         s = str(text) + end
         while s:
@@ -111,7 +111,7 @@ class Render:
             cur.insertText(head)  # Insert text at cursor
             if sep:  # New line if LF
                 cur.insertBlock()
-        self.window.ui.nodes['output'].setTextCursor(cur)  # Update visible cursor
+        self.get_output_node().setTextCursor(cur)  # Update visible cursor
 
     def append_text(self, text):
         """
@@ -119,12 +119,12 @@ class Render:
 
         :param text: Text to append
         """
-        prev_text = self.window.ui.nodes['input'].toPlainText()
+        prev_text = self.get_input_node().toPlainText()
         if prev_text != "":
             prev_text += "\n\n"
         new_text = prev_text + text.strip()
-        self.window.ui.nodes['input'].setText(new_text)
-        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
+        self.get_input_node().setText(new_text)
+        cur = self.get_input_node().textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
 
     def append_to_input(self, text):
@@ -133,7 +133,7 @@ class Render:
 
         :param text: text to append
         """
-        cur = self.window.ui.nodes['input'].textCursor()  # Move cursor to end of text
+        cur = self.get_input_node().textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
         s = str(text) + "\n"
         while s:
@@ -141,4 +141,20 @@ class Render:
             cur.insertText(head)  # Insert text at cursor
             if sep:  # New line if LF
                 cur.insertBlock()
-        self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
+        self.get_input_node().setTextCursor(cur)  # Update visible cursor
+
+    def get_output_node(self):
+        """
+        Get output node
+
+        :return: output node
+        """
+        return self.window.ui.nodes['output']
+
+    def get_input_node(self):
+        """
+        Get input node
+
+        :return: input node
+        """
+        return self.window.ui.nodes['input']
