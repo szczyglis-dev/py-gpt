@@ -56,7 +56,7 @@ class Output:
                     self.window.controller.debug.log("Reading stream...")  # log
                     for chunk in ctx.stream:
                         # if force stop then break
-                        if self.window.controller.chat.input.force_stop:
+                        if self.window.controller.chat.input.stop:
                             break
 
                         response = None

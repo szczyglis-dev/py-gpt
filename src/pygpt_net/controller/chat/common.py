@@ -87,9 +87,9 @@ class Common:
 
         # stop commands thread if running
         if not value:
-            self.window.controller.command.force_stop = True
+            self.window.controller.command.stop = True
         else:
-            self.window.controller.command.force_stop = False
+            self.window.controller.command.stop = False
 
         self.window.controller.ui.update_tokens()  # update tokens counters
 
@@ -124,9 +124,9 @@ class Common:
     def stop(self):
         """Stop input"""
         event = Event('audio.input.toggle', {"value": False})
-        self.window.controller.assistant.threads.force_stop = True
+        self.window.controller.assistant.threads.stop = True
         self.window.core.dispatcher.dispatch(event)  # stop audio input
-        self.window.controller.chat.input.force_stop = True
+        self.window.controller.chat.input.stop = True
         self.window.core.gpt.stop()
         self.unlock_input()
         self.window.controller.chat.input.generating = False

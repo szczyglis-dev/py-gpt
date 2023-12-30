@@ -27,7 +27,7 @@ class Command:
         :param window: Window instance
         """
         self.window = window
-        self.force_stop = False
+        self.stop = False
 
     def dispatch(self, event):
         """
@@ -87,7 +87,7 @@ class Command:
         :return: true if stop is requested
         :rtype: bool
         """
-        return self.force_stop
+        return self.stop
 
     def handle_debug(self, data):
         """

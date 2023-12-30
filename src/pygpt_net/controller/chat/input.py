@@ -24,7 +24,7 @@ class Input:
         """
         self.window = window
         self.locked = False
-        self.force_stop = False
+        self.stop = False
         self.generating = False
 
     def send_input(self):
@@ -85,8 +85,8 @@ class Input:
                     self.window.controller.camera.capture_frame(False)
 
         # unlock Assistant run thread if locked
-        self.window.controller.assistant.threads.force_stop = False
-        self.force_stop = False
+        self.window.controller.assistant.threads.stop = False
+        self.stop = False
 
         self.log("Input text: {}".format(text))  # log
 

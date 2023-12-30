@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.30 21:00:00                  #
 # ================================================== #
 
 import json
@@ -25,9 +25,8 @@ class Threads:
         :param window: Window instance
         """
         self.window = window
-        self.thread_run = None
-        self.thread_run_started = False
-        self.force_stop = False
+        self.started = False
+        self.stop = False
 
     def create_thread(self):
         """
@@ -82,7 +81,7 @@ class Threads:
 
         # start
         self.window.threadpool.start(worker)
-        self.thread_run_started = True
+        self.started = True
 
     @Slot(str, object)
     def handle_status(self, status, ctx):
@@ -96,19 +95,19 @@ class Threads:
         if status != "queued" and status != "in_progress":
             self.window.controller.chat.common.unlock_input()  # unlock input
         if status == "completed":
-            self.force_stop = False
+            self.stop = False
             self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
         elif status == "failed":
-            self.force_stop = False
+            self.stop = False
             self.window.controller.chat.common.unlock_input()
             self.window.statusChanged.emit(trans('assistant.run.failed'))
 
     @Slot()
     def handle_destroy(self):
         """Handle thread destroy"""
-        self.thread_run_started = False
-        self.force_stop = False
+        self.started = False
+        self.stop = False
 
     @Slot()
     def handle_started(self):
@@ -148,7 +147,7 @@ class RunWorker(QRunnable):
             self.signals.started.emit()
             while self.check \
                     and not self.window.is_closing \
-                    and not self.window.controller.assistant.threads.force_stop:
+                    and not self.window.controller.assistant.threads.stop:
                 status = self.window.core.gpt.assistants.run_status(self.ctx.thread, self.ctx.run_id)
                 self.signals.updated.emit(status, self.ctx)
                 # finished or failed
