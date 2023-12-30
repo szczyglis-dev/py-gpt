@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -166,42 +166,42 @@ class Input:
         # send with: enter
         self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))
         self.window.ui.nodes['input.send_enter'].clicked.connect(
-            lambda: self.window.controller.input.toggle_send_shift(
+            lambda: self.window.controller.chat.input.toggle_send_shift(
                 1))
 
         # send with: shift + enter
         self.window.ui.nodes['input.send_shift_enter'] = QRadioButton(trans("input.radio.enter_shift"))
         self.window.ui.nodes['input.send_shift_enter'].clicked.connect(
-            lambda: self.window.controller.input.toggle_send_shift(
+            lambda: self.window.controller.chat.input.toggle_send_shift(
                 2))
 
         # send with: none
         self.window.ui.nodes['input.send_none'] = QRadioButton(trans("input.radio.none"))
         self.window.ui.nodes['input.send_none'].clicked.connect(
-            lambda: self.window.controller.input.toggle_send_shift(
+            lambda: self.window.controller.chat.input.toggle_send_shift(
                 0))
 
         # send clear
         self.window.ui.nodes['input.send_clear'] = QCheckBox(trans('input.send_clear'))
         self.window.ui.nodes['input.send_clear'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_send_clear(
+            lambda: self.window.controller.chat.input.toggle_send_clear(
                 self.window.ui.nodes['input.send_clear'].isChecked()))
 
         # stream
         self.window.ui.nodes['input.stream'] = QCheckBox(trans('input.stream'))
         self.window.ui.nodes['input.stream'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_stream(self.window.ui.nodes['input.stream'].isChecked()))
+            lambda: self.window.controller.chat.input.toggle_stream(self.window.ui.nodes['input.stream'].isChecked()))
 
         # send button
         self.window.ui.nodes['input.send_btn'] = QPushButton(trans("input.btn.send"))
         self.window.ui.nodes['input.send_btn'].clicked.connect(
-            lambda: self.window.controller.input.user_send())
+            lambda: self.window.controller.chat.input.user_send())
 
         # stop button
         self.window.ui.nodes['input.stop_btn'] = QPushButton(trans("input.btn.stop"))
         self.window.ui.nodes['input.stop_btn'].setVisible(False)
         self.window.ui.nodes['input.stop_btn'].clicked.connect(
-            lambda: self.window.controller.input.stop())
+            lambda: self.window.controller.chat.input.stop())
 
         # layout
         self.window.ui.nodes['ui.input.buttons'] = QHBoxLayout()

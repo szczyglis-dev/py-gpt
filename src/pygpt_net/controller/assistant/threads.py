@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import json
@@ -94,14 +94,14 @@ class Threads:
         """
         print("Run status: {}".format(status))
         if status != "queued" and status != "in_progress":
-            self.window.controller.input.unlock_input()  # unlock input
+            self.window.controller.chat.input.unlock_input()  # unlock input
         if status == "completed":
             self.force_stop = False
             self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
         elif status == "failed":
             self.force_stop = False
-            self.window.controller.input.unlock_input()
+            self.window.controller.chat.input.unlock_input()
             self.window.statusChanged.emit(trans('assistant.run.failed'))
 
     @Slot()

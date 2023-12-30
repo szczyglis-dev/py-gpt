@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import os
@@ -296,9 +296,9 @@ class Plugin(BasePlugin):
         :rtype: bool
         """
         state = True
-        if self.get_option_value('wait_response') and self.window.controller.input.generating:
+        if self.get_option_value('wait_response') and self.window.controller.chat.input.generating:
             state = False
-        if self.window.controller.input.locked:
+        if self.window.controller.chat.input.locked:
             state = False
         return state
 
@@ -375,7 +375,7 @@ class Plugin(BasePlugin):
         if self.get_option_value('auto_send'):
             self.set_status('...')
             self.window.set_status(trans('audio.speak.sending'))
-            self.window.controller.input.send(text)
+            self.window.controller.chat.input.send(text)
             self.set_status('')
 
     @Slot(object)

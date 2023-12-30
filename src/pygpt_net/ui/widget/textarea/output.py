@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -44,7 +44,7 @@ class ChatOutput(QTextBrowser):
             # input
             action = copy_to_menu.addAction(trans('text.context_menu.copy_to.input'))
             action.triggered.connect(
-                lambda: self.window.controller.input.append_text(selected_text))
+                lambda: self.window.controller.chat.input.append_text(selected_text))
 
             # notepad
             num_notepads = self.window.controller.notepad.get_num_notepads()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -189,7 +189,7 @@ class Output:
                     self.window.controller.debug.log("Reading stream...")  # log
                     for chunk in ctx.stream:
                         # if force stop then break
-                        if self.window.controller.input.force_stop:
+                        if self.window.controller.chat.input.force_stop:
                             break
 
                         response = None

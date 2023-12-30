@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import threading
@@ -570,6 +570,6 @@ class SendThread(QObject):
     def run(self):
         """Run thread"""
         try:
-            self.window.controller.input.send_execute(self.text)
+            self.window.controller.chat.input.send_execute(self.text)
         except Exception as e:
             self.window.core.debug.log(e)

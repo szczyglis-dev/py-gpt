@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -35,7 +35,7 @@ class Prompt:
         # cmd enable/disable
         self.window.ui.nodes['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))
         self.window.ui.nodes['cmd.enabled'].stateChanged.connect(
-            lambda: self.window.controller.input.toggle_cmd(self.window.ui.nodes['cmd.enabled'].isChecked()))
+            lambda: self.window.controller.chat.input.toggle_cmd(self.window.ui.nodes['cmd.enabled'].isChecked()))
 
         # label
         self.window.ui.nodes['toolbox.prompt.label'] = QLabel(trans("toolbox.prompt"))

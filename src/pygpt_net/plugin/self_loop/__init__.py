@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.18 04:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -97,7 +97,7 @@ class Plugin(BasePlugin):
             if self.prev_output is not None and self.prev_output != "":
                 self.debug(
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
-                self.window.controller.input.send(self.prev_output)
+                self.window.controller.chat.input.send(self.prev_output)
 
     def on_ctx_before(self, ctx):
         """

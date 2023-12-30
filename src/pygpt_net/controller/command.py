@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 03:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import json
@@ -106,5 +106,5 @@ class Command:
         ctx = event.ctx
         self.window.set_status("")  # Clear status
         if ctx.reply:
-            self.window.controller.input.send(json.dumps(ctx.results), force=True)
+            self.window.controller.chat.input.send(json.dumps(ctx.results), force=True)
 

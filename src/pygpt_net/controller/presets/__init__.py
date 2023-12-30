@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import re
@@ -42,7 +42,7 @@ class Presets:
 
     def use(self):
         """Copy preset prompt to input"""
-        self.window.controller.input.append(self.window.ui.nodes['preset.prompt'].toPlainText())
+        self.window.controller.chat.input.append(self.window.ui.nodes['preset.prompt'].toPlainText())
 
     def set(self, mode, preset):
         """
@@ -261,6 +261,6 @@ class Presets:
         :return: true if locked
         :rtype: bool
         """
-        # if self.window.controller.input.generating:
+        # if self.window.controller.chat.input.generating:
         # return True
         return False

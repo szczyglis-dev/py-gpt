@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 import json
@@ -61,7 +61,7 @@ class Dispatcher:
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.set_status('...')
-                self.window.controller.input.send(json.dumps(ctx.results), force=True)  # force send result to input
+                self.window.controller.chat.input.send(json.dumps(ctx.results), force=True)  # force send result to input
 
 
 class Event:

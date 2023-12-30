@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.assistant import Assistant
@@ -19,7 +19,7 @@ from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.image import Image
 from pygpt_net.controller.dialogs import Dialogs
-from pygpt_net.controller.input import Input
+from pygpt_net.controller.chat.input import Input
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout

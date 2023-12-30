@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -126,7 +126,7 @@ class Ctx:
         self.window.controller.output.clear()
 
         if not force:  # only if real click on new context button
-            self.window.controller.input.unlock_input()
+            self.window.controller.chat.input.unlock_input()
 
         # update context label
         mode = self.window.core.ctx.mode
@@ -381,6 +381,6 @@ class Ctx:
         :return: True if locked
         :rtype: bool
         """
-        if self.window.controller.input.generating:
+        if self.window.controller.chat.input.generating:
             return True
         return False
