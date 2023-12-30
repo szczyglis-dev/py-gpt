@@ -9,8 +9,6 @@
 # Updated Date: 2023.12.30 02:00:00                  #
 # ================================================== #
 
-from datetime import datetime
-from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.dispatcher import Event
@@ -29,97 +27,6 @@ class Output:
     def setup(self):
         """Setup output"""
         self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
-
-    def clear(self):
-        """Clear output"""
-        self.window.ui.nodes['output'].clear()
-
-    def append_context(self):
-        """Append context to output"""
-        for item in self.window.core.ctx.items:
-            self.append_context_item(item)
-
-    def append_context_item(self, item):
-        """
-        Append context item to output
-
-        :param item: context item
-        """
-        self.append_input(item)
-        self.append_output(item)
-
-    def append_input(self, item):
-        """
-        Append input to output
-
-        :param item: context item
-        """
-        if item.input is None or item.input == "":
-            return
-        if self.window.core.config.get('output_timestamp') and item.input_timestamp is not None:
-            name = ""
-            if item.input_name is not None and item.input_name != "":
-                name = item.input_name + " "
-            ts = datetime.fromtimestamp(item.input_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: > {}\n".format(name, hour, item.input))
-        else:
-            self.append("> {}\n".format(item.input))
-
-    def append_output(self, item):
-        """
-        Append output to output
-
-        :param item: context item
-        """
-        if item.output is None or item.output == "":
-            return
-        if self.window.core.config.get('output_timestamp') and item.output_timestamp is not None:
-            name = ""
-            if item.output_name is not None and item.output_name != "":
-                name = item.output_name + " "
-            ts = datetime.fromtimestamp(item.output_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: {}".format(name, hour, item.output) + "\n")
-        else:
-            self.append(item.output + "\n")
-
-    def append_chunk(self, item, text_chunk, begin=False):
-        """
-        Append output to output
-
-        :param item: context item
-        :param text_chunk: text chunk
-        :param begin: if it is the beginning of the text
-        """
-        if text_chunk is None or text_chunk == "":
-            return
-        if begin and self.window.core.config.get('output_timestamp') and item.output_timestamp is not None:
-            name = ""
-            if item.output_name is not None and item.output_name != "":
-                name = item.output_name + " "
-            ts = datetime.fromtimestamp(item.output_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: ".format(name, hour), "")
-
-        self.append(text_chunk, "")
-
-    def append(self, text, end="\n"):
-        """
-        Append text to output
-
-        :param text: text to append
-        :param end: end of the line character
-        """
-        cur = self.window.ui.nodes['output'].textCursor()  # Move cursor to end of text
-        cur.movePosition(QTextCursor.End)
-        s = str(text) + end
-        while s:
-            head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)  # Insert text at cursor
-            if sep:  # New line if LF
-                cur.insertBlock()
-        self.window.ui.nodes['output'].setTextCursor(cur)  # Update visible cursor
 
     def toggle_timestamp(self, value):
         """
@@ -216,20 +123,15 @@ class Output:
                                 continue
                             output += response
                             output_tokens += 1
-                            self.append_chunk(ctx, response, begin)
+                            self.window.controller.chat.render.append_chunk(ctx, response, begin)
                             self.window.controller.ui.update_tokens()  # update UI
                             QApplication.processEvents()  # process events to update UI
                             begin = False
 
             except Exception as e:
                 self.window.core.debug.log(e)
-                # debug
-                # self.window.controller.debug.log("Stream error: {}".format(e))  # log
-                # print("Error in stream: " + str(e))
-                # self.window.ui.dialogs.alert(str(e))
-                pass
 
-            self.append("\n")  # append EOL
+            self.window.controller.chat.render.append("\n")  # append EOL
             self.window.controller.debug.log("End of stream.")  # log
 
             # update ctx
@@ -248,12 +150,13 @@ class Output:
 
         # log
         if ctx is not None:
-            self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".format(self.window.core.ctx.dump(ctx)))
+            self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".
+                                             format(self.window.core.ctx.dump(ctx)))
             self.window.controller.debug.log("Appending output to chat window...")
 
             # only append output if not in async stream mode, TODO: plugin output add
             if not stream_mode:
-                self.append_output(ctx)
+                self.window.controller.chat.render.append_output(ctx)
 
             self.handle_complete(ctx)
 

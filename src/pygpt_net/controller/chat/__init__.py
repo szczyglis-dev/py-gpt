@@ -11,6 +11,7 @@
 
 from .input import Input
 from .output import Output
+from .render import Render
 
 
 class Chat:
@@ -23,6 +24,7 @@ class Chat:
         self.window = window
         self.input = Input(window)
         self.output = Output(window)
+        self.render = Render(window)
 
     def setup(self):
         """Setup"""

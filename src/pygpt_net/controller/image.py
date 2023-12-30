@@ -70,7 +70,7 @@ class Image:
 
         # add ctx to DB
         self.window.core.ctx.add(ctx)
-        self.window.controller.chat.output.append_input(ctx)
+        self.window.controller.chat.render.append_input(ctx)
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
@@ -122,7 +122,7 @@ class Image:
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
 
-        self.window.controller.chat.output.append_output(ctx)
+        self.window.controller.chat.render.append_output(ctx)
         self.window.core.ctx.store()
         self.window.set_status(trans('status.img.generated'))
 
