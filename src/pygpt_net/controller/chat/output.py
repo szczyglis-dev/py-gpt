@@ -158,16 +158,6 @@ class Output:
                 self.window.set_status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)
 
-    def toggle_timestamp(self, value):
-        """
-        Toggle timestamp
-
-        :param value: value of the checkbox
-        """
-        self.window.core.config.set('output_timestamp', value)
-        self.window.core.config.save()
-        self.window.controller.ctx.refresh()
-
     def handle_ctx_name(self, ctx):
         """
         Handle context name (summarize input and output)
@@ -178,3 +168,13 @@ class Output:
             if not self.window.core.ctx.is_initialized():
                 id = self.window.core.ctx.current
                 self.window.controller.summarize.summarize_ctx(id, ctx)
+
+    def toggle_timestamp(self, value):
+        """
+        Toggle timestamp
+
+        :param value: value of the checkbox
+        """
+        self.window.core.config.set('output_timestamp', value)
+        self.window.core.config.save()
+        self.window.controller.ctx.refresh()
