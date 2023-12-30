@@ -65,8 +65,8 @@ class Input:
         :param text: input text
         :param force: force send
         """
-        # check if input is not locked or empty
-        if (self.locked and not force) or text is None or text.strip() == "":
+        # check if input is not locked
+        if self.locked and not force:
             return
 
         self.generating = True  # set generating flag
