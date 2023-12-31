@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 17:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.provider.mode.json_file import JsonFileProvider
@@ -16,7 +16,7 @@ class Modes:
 
     def __init__(self, window=None):
         """
-        Modes handler
+        Modes core
 
         :param window: Window instance
         """
@@ -35,6 +35,17 @@ class Modes:
         """
         modes = self.get_all()
         return list(modes.keys())[idx]
+
+    def get_idx_by_name(self, name):
+        """
+        Return mode index by name
+
+        :param name: mode name
+        :return: mode index
+        :rtype: int
+        """
+        modes = self.get_all()
+        return list(modes.keys()).index(name)
 
     def get_all(self):
         """

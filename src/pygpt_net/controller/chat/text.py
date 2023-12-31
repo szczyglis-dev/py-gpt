@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -25,13 +25,12 @@ class Text:
         """
         self.window = window
 
-    def send(self, text):
+    def send(self, text: str) -> CtxItem:
         """
         Send text message
 
         :param text: text to send
         :return: context item
-        :rtype: CtxItem
         """
         self.window.ui.status(trans('status.sending'))
 
@@ -201,7 +200,7 @@ class Text:
 
         return ctx
 
-    def log(self, data):
+    def log(self, data: any):
         """
         Log data to debug
 

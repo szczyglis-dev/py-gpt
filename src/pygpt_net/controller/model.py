@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 class Model:
@@ -18,11 +18,7 @@ class Model:
         """
         self.window = window
 
-    def setup(self):
-        """Setup"""
-        pass
-
-    def select(self, idx):
+    def select(self, idx: int):
         """
         Select model
 
@@ -31,15 +27,14 @@ class Model:
         # check if model change is not locked
         if self.change_locked():
             return
-        mode = self.window.core.config.get('mode')
-        self.set_by_idx(mode, idx)
+        self.set_by_idx(self.window.core.config.get('mode'), idx)
 
         # update all layout
         self.window.controller.ui.update()
 
-    def set(self, mode, model):
+    def set(self, mode: str, model: str):
         """
-        Set model
+        Set model by mode and model name
 
         :param mode: mode name
         :param model: model name
@@ -47,9 +42,9 @@ class Model:
         self.window.core.config.set('model', model)
         self.window.core.config.data['current_model'][mode] = model
 
-    def set_by_idx(self, mode, idx):
+    def set_by_idx(self, mode: str, idx: int):
         """
-        Set model by index
+        Set model by mode and model idx
 
         :param mode: mode name
         :param idx: model index
@@ -59,7 +54,7 @@ class Model:
         self.window.core.config.data['current_model'][mode] = model
 
     def select_current(self):
-        """Select model by current"""
+        """Select current model on list"""
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         items = self.window.core.models.get_by_mode(mode)
@@ -88,8 +83,7 @@ class Model:
     def update_list(self):
         """Update models list"""
         mode = self.window.core.config.get('mode')
-        items = self.window.core.models.get_by_mode(mode)
-        self.window.ui.toolbox.model.update(items)
+        self.window.ui.toolbox.model.update(self.window.core.models.get_by_mode(mode))
 
     def update(self):
         """Update models"""
@@ -97,13 +91,11 @@ class Model:
         self.update_list()
         self.select_current()
 
-    def change_locked(self):
+    def change_locked(self) -> bool:
         """
         Check if model change is locked
 
-        :return: true if locked
+        :return: True if locked
         :rtype: bool
         """
-        if self.window.controller.chat.input.generating:
-            return True
-        return False
+        return self.window.controller.chat.input.generating

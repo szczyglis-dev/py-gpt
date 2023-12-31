@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
 
+from pygpt_net.item.assistant import AssistantItem
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.utils import trans
 
 
@@ -27,7 +29,7 @@ class Files:
         """Update assistants files list"""
         self.update_list()
 
-    def select(self, idx):
+    def select(self, idx: int):
         """
         Select file
 
@@ -42,13 +44,12 @@ class Files:
         self.window.core.assistants.current_file = \
             self.window.core.assistants.get_file_id_by_idx(assistant, idx)
 
-    def count_upload(self, attachments):
+    def count_upload(self, attachments: dict) -> int:
         """
         Count attachments for upload
 
-        :param attachments: attachments list
+        :param attachments: attachments dict
         :return: number of files need to be uploaded
-        :rtype: int
         """
         num = 0
         for id in list(attachments):
@@ -57,7 +58,7 @@ class Files:
                 num += 1  # increment uploaded files counter if file is not uploaded yet
         return num
 
-    def import_files(self, assistant):
+    def import_files(self, assistant: AssistantItem):
         """
         Import assistant files from API
 
@@ -74,7 +75,7 @@ class Files:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def download(self, idx):
+    def download(self, idx: int):
         """
         Download file
 
@@ -93,7 +94,7 @@ class Files:
         # download file
         self.window.controller.attachment.download(file_id)
 
-    def sync(self, force=False):
+    def sync(self, force: bool = False):
         """
         Sync files with API
 
@@ -116,7 +117,7 @@ class Files:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def rename(self, idx):
+    def rename(self, idx: int):
         """
         Rename file
 
@@ -150,7 +151,7 @@ class Files:
         self.window.ui.dialog['rename'].close()
         self.update()
 
-    def update_name(self, file_id, name):
+    def update_name(self, file_id: str, name: str):
         """
         Rename uploaded remote file name
 
@@ -168,7 +169,7 @@ class Files:
         self.window.core.assistants.rename_file(assistant, file_id, name)
         self.rename_close()
 
-    def clear_files(self, force=False):
+    def clear_files(self, force: bool = False):
         """
         Delete all files
 
@@ -203,7 +204,7 @@ class Files:
             self.window.core.assistants.save()
             self.update()
 
-    def delete(self, idx, force=False):
+    def delete(self, idx: int, force: bool = False):
         """
         Delete file
 
@@ -250,7 +251,7 @@ class Files:
                 self.window.core.assistants.save()
                 self.update()
 
-    def clear_attachments(self, assistant):
+    def clear_attachments(self, assistant: AssistantItem):
         """
         Clear attachments
 
@@ -260,14 +261,13 @@ class Files:
         self.window.core.assistants.save()
         self.update()
 
-    def upload(self, mode, attachments):
+    def upload(self, mode: str, attachments: dict) -> int:
         """
         Upload attachments to assistant
 
         :param mode: mode
-        :param attachments: attachments list
+        :param attachments: attachments dict
         :return: number of uploaded files
-        :rtype: int
         """
         # get current chosen assistant
         assistant_id = self.window.core.config.get('assistant')
@@ -322,7 +322,7 @@ class Files:
 
         return num
 
-    def append(self, assistant, attachment):
+    def append(self, assistant: AssistantItem, attachment: AttachmentItem):
         """
         Append attachment to assistant
 
@@ -360,13 +360,12 @@ class Files:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
-    def handle_received(self, msg):
+    def handle_received(self, msg) -> list:
         """
         Handle (download) received message files
 
-        :param msg: message
+        :param msg: message object (OpenAI API response)
         :return: downloaded files paths
-        :rtype: list
         """
         num_downloaded = 0
         paths = []

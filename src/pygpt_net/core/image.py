@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import os
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -22,7 +23,7 @@ class Image:
 
     def __init__(self, window=None):
         """
-        DALL-E Wrapper
+        Image generation core
 
         :param window: Window instance
         """
@@ -34,7 +35,7 @@ class Image:
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
 
-    def get_prompt(self, allow_custom=True):
+    def get_prompt(self, allow_custom: bool = True) -> str:
         """
         Return image generate prompt command
 
@@ -57,7 +58,7 @@ class Image:
         return cmd
 
     @Slot(str, object)
-    def handle_finished(self, ctx, paths, prompt):
+    def handle_finished(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle finished image generation
 
@@ -68,7 +69,7 @@ class Image:
         self.window.controller.chat.image.handle_response(ctx, paths, prompt)
 
     @Slot()
-    def handle_status(self, msg):
+    def handle_status(self, msg: str):
         """Handle thread status"""
         self.window.ui.status(msg)
         print(msg)
@@ -79,7 +80,7 @@ class Image:
         self.window.ui.status(e)
         self.window.core.debug.log(e)
 
-    def generate(self, ctx, prompt, model="dall-e-3", num=1):
+    def generate(self, ctx: CtxItem, prompt: str, model: str = "dall-e-3", num: int = 1):
         """
         Call DALL-E API
 
@@ -192,7 +193,7 @@ class ImageWorker(QRunnable):
             print(trans('img.status.error') + ": " + str(e))
             return
 
-    def save_image(self, path, image):
+    def save_image(self, path: str, image: any) -> bool:
         """
         Save image to file
 
@@ -209,7 +210,7 @@ class ImageWorker(QRunnable):
             print(trans('img.status.save.error') + ": " + str(e))
             return False
 
-    def make_safe_filename(self, name):
+    def make_safe_filename(self, name: str) -> str:
         """
         Make safe filename
 

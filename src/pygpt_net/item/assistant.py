@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
+from pygpt_net.item.attachment import AttachmentItem
+
 
 class AssistantItem:
     def __init__(self):
@@ -46,7 +49,7 @@ class AssistantItem:
             "function": [],
         }
 
-    def add_function(self, name, parameters, desc):
+    def add_function(self, name: str, parameters: str, desc: str):
         """
         Add function to assistant
 
@@ -61,44 +64,40 @@ class AssistantItem:
         }
         self.tools['function'].append(function)
 
-    def has_functions(self):
+    def has_functions(self) -> bool:
         """
         Check if assistant has functions
 
         :return: bool
-        :rtype: bool
         """
         return len(self.tools['function']) > 0
 
-    def get_functions(self):
+    def get_functions(self) -> list:
         """
         Return assistant functions
 
         :return: functions
-        :rtype: list
         """
         return self.tools['function']
 
-    def has_tool(self, tool):
+    def has_tool(self, tool: str) -> bool:
         """
         Check if assistant has tool
 
         :param tool: tool name
         :return: bool
-        :rtype: bool
         """
         return tool in self.tools and self.tools[tool] is True
 
-    def has_file(self, id):
+    def has_file(self, id: str) -> bool:
         """
         Check if assistant has file with ID
 
         :param id: file ID
-        :return: bool
         """
         return id in self.files
 
-    def add_file(self, id):
+    def add_file(self, id: str):
         """
         Add empty file to assistant
 
@@ -107,7 +106,7 @@ class AssistantItem:
         self.files[id] = {}
         self.files[id]['id'] = id
 
-    def delete_file(self, file_id):
+    def delete_file(self, file_id: str):
         """
         Delete file from assistant
 
@@ -122,17 +121,16 @@ class AssistantItem:
         """
         self.files = {}
 
-    def has_attachment(self, id):
+    def has_attachment(self, id: str) -> bool:
         """
         Check if assistant has attachment with ID
 
         :param id: attachment ID
         :return: bool
-        :rtype: bool
         """
         return id in self.attachments
 
-    def add_attachment(self, attachment):
+    def add_attachment(self, attachment: AttachmentItem):
         """
         Add attachment to assistant
 
@@ -141,7 +139,7 @@ class AssistantItem:
         id = attachment.id
         self.attachments[id] = attachment
 
-    def delete_attachment(self, id):
+    def delete_attachment(self, id: str):
         """
         Delete attachment from assistant
 

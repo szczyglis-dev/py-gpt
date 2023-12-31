@@ -24,12 +24,11 @@ class Status:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> QHBoxLayout:
         """
         Setup status
 
         :return: QHBoxLayout
-        :rtype: QHBoxLayout
         """
         self.window.ui.nodes['status'] = QLabel(trans('status.started'))
 

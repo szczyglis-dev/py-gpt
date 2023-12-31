@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 09:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -57,7 +57,7 @@ class Notepad:
             if items[id].initialized and title is not None and len(title) > 0:
                 self.update_name(id, items[id].title, False)
 
-    def rename(self, idx):
+    def rename(self, idx: int):
         """
         Rename tab
 
@@ -78,7 +78,7 @@ class Notepad:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def update_name(self, id, name, close=True):
+    def update_name(self, id: int, name: str, close: bool = True):
         """
         Update notepad title
 
@@ -104,7 +104,7 @@ class Notepad:
         if close:
             self.window.ui.dialog['rename'].close()
 
-    def save(self, id):
+    def save(self, id: int):
         """
         Save notepad contents
 
@@ -142,7 +142,7 @@ class Notepad:
         """Setup all notepads"""
         self.load()
 
-    def append_text(self, text, id):
+    def append_text(self, text: str, id: int):
         """
         Append text to notepad
 
@@ -159,7 +159,7 @@ class Notepad:
         self.window.ui.notepad[id].setText(new_text)
         self.save(id)
 
-    def get_num_notepads(self):
+    def get_num_notepads(self) -> int:
         """
         Get number of notepads
 
@@ -168,7 +168,7 @@ class Notepad:
         """
         return self.window.core.config.get('notepad.num') or self.default_num_notepads
 
-    def rename_upd(self, id, name):
+    def rename_upd(self, id: int, name: str):
         """
         Rename notepad
 

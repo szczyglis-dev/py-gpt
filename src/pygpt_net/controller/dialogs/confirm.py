@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -18,7 +18,7 @@ class Confirm:
         """
         self.window = window
 
-    def accept(self, type, id=None, parent_object=None):
+    def accept(self, type: str, id: any = None, parent_object=None):
         """
         Confirm dialog accept
 
@@ -67,7 +67,7 @@ class Confirm:
 
         self.window.ui.dialog['confirm'].close()
 
-    def dismiss(self, type, id):
+    def dismiss(self, type: str, id: any):
         """
         Confirm dialog dismiss
 
@@ -76,7 +76,7 @@ class Confirm:
         """
         self.window.ui.dialog['confirm'].close()
 
-    def accept_rename(self, type, id, name):
+    def accept_rename(self, type: str, id: any, name: str):
         """
         Update name of object
 

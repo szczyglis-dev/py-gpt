@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
 from pygpt_net.controller.ctx.summarizer import Summarizer
+from pygpt_net.item.ctx import CtxItem
 
 from pygpt_net.utils import trans
 
@@ -53,7 +54,7 @@ class Ctx:
                 self.window.ui.nodes['ctx.search'].setText(string)
                 self.search_string_change(string)
 
-    def update(self, reload=True, all=True):
+    def update(self, reload: bool = True, all: bool = True):
         """
         Update ctx list
 
@@ -76,7 +77,7 @@ class Ctx:
             self.window.core.config.set('assistant_thread', self.window.core.ctx.thread)
             self.window.core.config.save()
 
-    def select(self, id):
+    def select(self, id: int):
         """
         Select ctx
 
@@ -86,7 +87,7 @@ class Ctx:
         self.load(id)
         self.common.focus_chat()
 
-    def select_by_idx(self, idx):
+    def select_by_idx(self, idx: int):
         """
         Select ctx by index
 
@@ -109,7 +110,7 @@ class Ctx:
             self.window.ui.nodes['ctx.list'].setCurrentIndex(current)
             self.window.ui.nodes['ctx.list'].unlocked = False  # tmp allow change if locked (disable)
 
-    def new(self, force=False):
+    def new(self, force: bool = False):
         """
         Create new ctx
 
@@ -135,7 +136,7 @@ class Ctx:
         self.common.update_label(mode, assistant_id)
         self.common.focus_chat()
 
-    def add(self, ctx):
+    def add(self, ctx: CtxItem):
         """
         Add ctx item (CtxItem object)
 
@@ -144,7 +145,7 @@ class Ctx:
         self.window.core.ctx.add(ctx)
         self.update()
 
-    def reload(self, reload=False):
+    def reload(self, reload: bool = False):
         """
         Reload current ctx list
 
@@ -156,7 +157,7 @@ class Ctx:
         """Refresh context"""
         self.load(self.window.core.ctx.current)
 
-    def load(self, id):
+    def load(self, id: int):
         """
         Load ctx data
 
@@ -228,7 +229,7 @@ class Ctx:
         # update ctx label
         self.common.update_label(mode, id)
 
-    def delete(self, idx, force=False):
+    def delete(self, idx: int, force: int = False):
         """
         Delete ctx by idx
 
@@ -248,7 +249,7 @@ class Ctx:
             self.window.controller.chat.render.clear()
         self.update()
 
-    def delete_history(self, force=False):
+    def delete_history(self, force: bool = False):
         """
         Delete all ctx / truncate
 
@@ -262,7 +263,7 @@ class Ctx:
         self.window.core.ctx.truncate()
         self.update()
 
-    def rename(self, idx):
+    def rename(self, idx: int):
         """
         Ctx name rename (shows dialog)
 
@@ -276,7 +277,7 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def update_name(self, id, name, close=True):
+    def update_name(self, id: int, name: str, close: bool = True):
         """
         Update ctx name
 
@@ -293,13 +294,12 @@ class Ctx:
             self.window.ui.dialog['rename'].close()
         self.update()
 
-    def handle_allowed(self, mode):
+    def handle_allowed(self, mode: str) -> bool:
         """
         Check if ctx is allowed for this mode, if not then switch to new context
 
         :param mode: mode name
         :return: True if allowed
-        :rtype: bool
         """
         if not self.window.core.ctx.is_allowed_for_mode(mode):
             self.new(True)  # force new context
@@ -313,7 +313,7 @@ class Ctx:
         # self.select(idx)
         self.window.ui.nodes['ctx.list'].lockSelection()
 
-    def search_string_change(self, text):
+    def search_string_change(self, text: str):
         """
         Search string change
 
@@ -323,7 +323,7 @@ class Ctx:
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
 
-    def prepare_name(self, ctx):
+    def prepare_name(self, ctx: CtxItem):
         """
         Handle context name (summarize input and output)
 
@@ -332,13 +332,11 @@ class Ctx:
         if not self.window.core.ctx.is_initialized():
             self.summarizer.summarize(self.window.core.ctx.current, ctx)
 
-    def context_change_locked(self):
+    def context_change_locked(self) -> bool:
         """
         Check if ctx change is locked
 
         :return: True if locked
         :rtype: bool
         """
-        if self.window.controller.chat.input.generating:
-            return True
-        return False
+        return self.window.controller.chat.input.generating

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
 
 from pygpt_net.controller.plugins.settings import Settings
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -85,7 +86,7 @@ class Plugins:
 
         self.handle_types()
 
-    def enable(self, id):
+    def enable(self, id: str):
         """
         Enable plugin
 
@@ -108,7 +109,7 @@ class Plugins:
         self.update_info()
         self.update()
 
-    def disable(self, id):
+    def disable(self, id: str):
         """
         Disable plugin
 
@@ -131,12 +132,12 @@ class Plugins:
         self.update_info()
         self.update()
 
-    def is_enabled(self, id):
+    def is_enabled(self, id: str):
         """
         Check if plugin is enabled
 
         :param id: plugin id
-        :return: true if enabled
+        :return: True if enabled
         :rtype: bool
         """
         if self.window.core.plugins.is_registered(id):
@@ -144,7 +145,7 @@ class Plugins:
                 return self.enabled[id]
         return False
 
-    def toggle(self, id):
+    def toggle(self, id: str):
         """
         Toggle plugin
 
@@ -159,7 +160,7 @@ class Plugins:
         self.handle_types()
         self.window.controller.ui.update_tokens()  # refresh tokens
 
-    def set_by_tab(self, idx):
+    def set_by_tab(self, idx: int):
         """
         Set current plugin by tab index
 
@@ -175,11 +176,12 @@ class Plugins:
         current = self.window.ui.models['plugin.list'].index(idx, 0)
         self.window.ui.nodes['plugin.list'].setCurrentIndex(current)
 
-    def get_tab_idx(self, plugin_id):
+    def get_tab_idx(self, plugin_id: str) -> int:
         """
         Get plugin tab index
 
         :param plugin_id: plugin id
+        :return: tab index
         """
         plugin_idx = None
         i = 0
@@ -190,7 +192,7 @@ class Plugins:
             i += 1
         return plugin_idx
 
-    def unregister(self, id):
+    def unregister(self, id: str):
         """
         Unregister plugin
 
@@ -209,25 +211,24 @@ class Plugins:
             except AttributeError:
                 pass
 
-    def has_type(self, id, type):
+    def has_type(self, id: str, type: str):
         """
         Check if plugin has type
         :param id: plugin ID
         :param type: type to check
-        :return:
+        :return: True if has type
         """
         if self.window.core.plugins.is_registered(id):
             if type in self.window.core.plugins.get(id).type:
                 return True
         return False
 
-    def is_type_enabled(self, type):
+    def is_type_enabled(self, type: str) -> bool:
         """
         Check if plugin type is enabled
 
         :param type: plugin type
-        :return: true if enabled
-        :rtype: bool
+        :return: True if enabled
         """
         enabled = False
         for id in self.window.core.plugins.get_ids():
@@ -271,7 +272,7 @@ class Plugins:
         self.window.ui.nodes['chat.plugins'].setText(count_str)
         self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)  
 
-    def apply_cmds(self, ctx, cmds):
+    def apply_cmds(self, ctx: CtxItem, cmds: list):
         """
         Apply commands
 

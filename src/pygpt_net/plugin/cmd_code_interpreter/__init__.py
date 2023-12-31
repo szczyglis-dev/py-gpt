@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
+
 from .runner import Runner
 from .worker import Worker
 
@@ -84,7 +87,7 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
@@ -99,12 +102,12 @@ class Plugin(BasePlugin):
         elif name == 'cmd.execute':
             self.cmd(ctx, data['commands'])
 
-    def is_cmd_allowed(self, cmd):
+    def is_cmd_allowed(self, cmd: str):
         """
         Check if cmd is allowed
 
         :param cmd: command name
-        :return: true if allowed
+        :return: True if allowed
         :rtype: bool
         """
         key = "cmd_" + cmd
@@ -123,7 +126,7 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def cmd_syntax(self, data):
+    def cmd_syntax(self, data: dict):
         """
         Event: On cmd syntax prepare
 
@@ -135,7 +138,7 @@ class Plugin(BasePlugin):
                 if self.has_option(key):
                     data['syntax'].append(str(self.get_option_value(key)))
 
-    def cmd(self, ctx, cmds):
+    def cmd(self, ctx: CtxItem, cmds: list):
         """
         Execute command
 

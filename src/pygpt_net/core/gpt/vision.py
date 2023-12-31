@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import base64
@@ -26,7 +26,8 @@ class Vision:
         self.urls = []
         self.input_tokens = 0
 
-    def send(self, prompt, max_tokens, stream_mode=False, system_prompt=None, attachments=None):
+    def send(self, prompt: str, max_tokens: int, stream_mode: bool = False, system_prompt: str = None,
+             attachments: dict = None):
         """
         Call OpenAI API for chat with vision
 
@@ -34,7 +35,7 @@ class Vision:
         :param max_tokens: max output tokens
         :param stream_mode: stream mode
         :param system_prompt: system prompt (optional)
-        :param attachments: attachments
+        :param attachments: attachments dict
         :return: response or stream chunks
         """
         client = self.window.core.gpt.get_client()
@@ -49,14 +50,14 @@ class Vision:
         )
         return response
 
-    def build(self, input_prompt, system_prompt=None, attachments=None):
+    def build(self, input_prompt: str, system_prompt: str = None, attachments: dict = None) -> list:
         """
         Build chat messages dict
 
         :param input_prompt: prompt
         :param system_prompt: system prompt (optional)
-        :param attachments: attachments
-        :return: messages dictionary
+        :param attachments: attachments dict
+        :return: messages list
         """
         messages = []
 
@@ -105,14 +106,13 @@ class Vision:
 
         return messages
 
-    def build_content(self, input_prompt, attachments=None):
+    def build_content(self, input_prompt: str, attachments: dict = None) -> list:
         """
-        Build vision content
+        Build vision contents
 
         :param input_prompt: prompt (user input)
         :param attachments: attachments (dict, optional)
-        :return: Dictionary with content
-        :rtype: dict
+        :return: List of contents
         """
         content = [{"type": "text", "text": str(input_prompt)}]
 
@@ -155,7 +155,7 @@ class Vision:
         Check if url is image
 
         :param path: url
-        :return: true if image
+        :return: True if image
         :rtype: bool
         """
         return path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.webp'))

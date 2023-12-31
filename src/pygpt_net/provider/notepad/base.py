@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
+from packaging.version import Version
+
+from pygpt_net.item.notepad import NotepadItem
 
 
 class BaseProvider:
@@ -22,22 +26,22 @@ class BaseProvider:
     def install(self):
         pass
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         pass
 
-    def create(self, notepad):
+    def create(self, notepad: NotepadItem):
         pass
 
-    def load(self, id):
+    def load(self, id) -> NotepadItem:
         pass
 
-    def load_all(self):
+    def load_all(self) -> dict:
         pass
 
-    def save(self, notepad):
+    def save(self, notepad: NotepadItem):
         pass
 
-    def save_all(self, items):
+    def save_all(self, items: dict):
         pass
 
     def remove(self, id):
@@ -46,5 +50,5 @@ class BaseProvider:
     def truncate(self):
         pass
 
-    def get_version(self):
+    def get_version(self) -> str:
         pass

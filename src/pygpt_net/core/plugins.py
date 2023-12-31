@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -26,35 +26,32 @@ class Plugins:
         self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output']
         self.plugins = {}
 
-    def is_registered(self, id):
+    def is_registered(self, id: str) -> bool:
         """
         Check if plugin is registered
 
         :param id: plugin id
-        :return: true if registered
-        :rtype: bool
+        :return: True if registered
         """
         return id in self.plugins
 
-    def all(self):
+    def all(self) -> dict:
         """
         Get all plugins
 
         :return: plugins dict
-        :rtype: dict
         """
         return self.plugins
 
-    def get_ids(self):
+    def get_ids(self) -> list:
         """
         Get all plugins ids
 
-        :return: plugins ids
-        :rtype: list
+        :return: plugins ids list
         """
-        return self.plugins.keys()
+        return list(self.plugins.keys())
 
-    def get(self, id):
+    def get(self, id: str) -> object:
         """
         Get plugin by id
 
@@ -65,7 +62,7 @@ class Plugins:
             return self.plugins[id]
         return None
 
-    def register(self, plugin):
+    def register(self, plugin: any):
         """
         Register plugin
 
@@ -89,7 +86,7 @@ class Plugins:
             self.window.core.debug.log(e)
             print('Error while loading plugin options: {}'.format(id))
 
-    def unregister(self, id):
+    def unregister(self, id: str):
         """
         Unregister plugin
 
@@ -98,7 +95,7 @@ class Plugins:
         if self.is_registered(id):
             self.plugins.pop(id)
 
-    def enable(self, id):
+    def enable(self, id: str):
         """
         Enable plugin
 
@@ -109,7 +106,7 @@ class Plugins:
             self.window.core.config.data['plugins_enabled'][id] = True
             self.window.core.config.save()
 
-    def disable(self, id):
+    def disable(self, id: str):
         """
         Disable plugin
 
@@ -120,7 +117,7 @@ class Plugins:
             self.window.core.config.data['plugins_enabled'][id] = False
             self.window.core.config.save()
 
-    def destroy(self, id):
+    def destroy(self, id: str):
         """
         Destroy plugin workers (send stop signal)
 
@@ -129,19 +126,18 @@ class Plugins:
         if self.is_registered(id):
             self.plugins[id].destroy()
 
-    def has_options(self, id):
+    def has_options(self, id: str) -> bool:
         """
         Check if plugin has options
 
         :param id: plugin id
-        :return: true if has options
-        :rtype: bool
+        :return: True if has options
         """
         if self.is_registered(id):
             return hasattr(self.plugins[id], 'options') and len(self.plugins[id].options) > 0
         return False
 
-    def restore_options(self, id):
+    def restore_options(self, id: str):
         """
         Restore options to initial values
 
@@ -166,7 +162,7 @@ class Plugins:
         for key in options:
             self.plugins[id].options[key]['value'] = values[key]
 
-    def dump_locale(self, plugin, path):
+    def dump_locale(self, plugin, path: str):
         """
         Dump locale
 
@@ -198,7 +194,7 @@ class Plugins:
         with io.open(path, mode="w", encoding="utf-8") as f:
             ini.write(f)
 
-    def dump_locale_by_id(self, id, path):
+    def dump_locale_by_id(self, id: str, path: str):
         """
         Dump locale by id
 

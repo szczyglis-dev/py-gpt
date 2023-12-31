@@ -136,7 +136,7 @@ class Assistant:
         self.window.ui.dialog['editor.' + id].setLayout(layout)
         self.window.ui.dialog['editor.' + id].setWindowTitle(trans('dialog.assistant'))
 
-    def add_option(self, title, option, bold=False):
+    def add_option(self, title: str, option, bold: bool = False) -> QHBoxLayout:
         """
         Add option
 
@@ -158,7 +158,7 @@ class Assistant:
         layout.setStretch(0, 1)
         return layout
 
-    def add_raw_option(self, option):
+    def add_raw_option(self, option) -> QHBoxLayout:
         """
         Add raw option row
 

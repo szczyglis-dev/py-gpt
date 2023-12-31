@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -31,7 +31,7 @@ class Files:
         # TODO: implement this
         pass
 
-    def delete(self, path, force=False):
+    def delete(self, path: str, force: bool = False):
         """
         Delete attachment
 
@@ -44,7 +44,7 @@ class Files:
 
         os.remove(path)
 
-    def rename(self, path):
+    def rename(self, path: str):
         """
         Rename attachment
 
@@ -55,7 +55,7 @@ class Files:
         self.window.ui.dialog['rename'].current = path
         self.window.ui.dialog['rename'].show()
 
-    def update_name(self, path, name):
+    def update_name(self, path: str, name: str):
         """
         Update name
 
@@ -65,7 +65,7 @@ class Files:
         os.rename(path, os.path.join(os.path.dirname(path), name))
         self.window.ui.dialog['rename'].close()
 
-    def open_dir(self, path):
+    def open_dir(self, path: str):
         """
         Open in directory
 
@@ -73,7 +73,7 @@ class Files:
         """
         self.open_in_file_manager(path)
 
-    def open_in_file_manager(self, path, select=False):
+    def open_in_file_manager(self, path: str, select: bool = False):
         """
         Open in file manager
 

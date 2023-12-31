@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 17:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -19,7 +19,7 @@ class Presets:
 
     def __init__(self, window=None):
         """
-        Presets
+        Presets core
 
         :param window: Window instance
         """
@@ -31,7 +31,7 @@ class Presets:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version):
+    def patch(self, app_version: str):
         """Patch provider data"""
         self.provider.patch(app_version)
 
@@ -106,39 +106,36 @@ class Presets:
             **self.items
         }
 
-    def has(self, mode, id):
+    def has(self, mode: str, id: str) -> bool:
         """
         Check if preset for mode exists
 
         :param mode: mode name
         :param name: preset id
         :return: bool
-        :rtype: bool
         """
         presets = self.get_by_mode(mode)
         if id in presets:
             return True
         return False
 
-    def get_by_idx(self, idx, mode):
+    def get_by_idx(self, idx: int, mode: str) -> str:
         """
         Return preset by index
 
         :param idx: index
         :param mode: mode
         :return: preset id
-        :rtype: str
         """
         presets = self.get_by_mode(mode)
         return list(presets.keys())[idx]
 
-    def get_by_mode(self, mode):
+    def get_by_mode(self, mode: str) -> dict:
         """
         Return presets for mode
 
         :param mode: mode name
         :return: presets dict for mode
-        :rtype: dict
         """
         presets = {}
         for id in self.items:
@@ -151,14 +148,13 @@ class Presets:
                 presets[id] = self.items[id]
         return presets
 
-    def get_idx_by_id(self, mode, id):
+    def get_idx_by_id(self, mode: str, id: str) -> int:
         """
         Return preset index
 
         :param mode: mode name
         :param id: preset id
         :return: preset idx
-        :rtype: int
         """
         presets = self.get_by_mode(mode)
         i = 0
@@ -168,26 +164,24 @@ class Presets:
             i += 1
         return 0
 
-    def get_default(self, mode):
+    def get_default(self, mode: str) -> str or None:
         """
         Return default preset for mode
 
         :param mode: mode name
         :return: default prompt name
-        :rtype: str
         """
         presets = self.get_by_mode(mode)
         if len(presets) == 0:
             return None
         return list(presets.keys())[0]
 
-    def get_duplicate_name(self, id):
+    def get_duplicate_name(self, id: str) -> (str, str):
         """
         Prepare name for duplicated preset
 
         :param id: preset id
         :return: new ID, new name
-        :rtype: (str, str)
         """
         old_name = self.items[id].name
         i = 1
@@ -197,13 +191,12 @@ class Presets:
                 return new_id, old_name + ' (' + str(i) + ')'
             i += 1
 
-    def duplicate(self, id):
+    def duplicate(self, id: str) -> str:
         """
         Make preset duplicate
 
         :param id: preset id
         :return: duplicated preset ID
-        :rtype: str
         """
         prev_id = id
         id, name = self.get_duplicate_name(id)
@@ -212,7 +205,7 @@ class Presets:
         self.sort_by_name()
         return id
 
-    def remove(self, id, remove_file=True):
+    def remove(self, id: str, remove_file: bool = True):
         """
         Delete preset
 
@@ -240,7 +233,7 @@ class Presets:
         self.sort_by_name()
         self.append_current()
 
-    def save(self, id):
+    def save(self, id: str):
         """
         Save preset
 

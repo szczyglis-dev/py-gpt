@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -21,7 +21,13 @@ class Files:
         """
         self.window = window
 
-    def upload(self, mode):
+    def upload(self, mode: str) -> dict:
+        """
+        Upload attachments
+
+        :param mode: mode
+        :return: uploaded attachments list
+        """
         self.window.core.gpt.assistants.file_ids = []  # clear file ids
         attachments_list = {}
 

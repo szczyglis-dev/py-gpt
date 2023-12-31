@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 14:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -15,8 +15,11 @@ import time
 import shutil
 import uuid
 
-from .storage import Storage
+from packaging.version import Version
+
+from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.provider.notepad.base import BaseProvider
+from .storage import Storage
 
 
 class DbSqliteProvider(BaseProvider):
@@ -31,13 +34,12 @@ class DbSqliteProvider(BaseProvider):
         self.window = window
         self.storage.attach(window)
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Patch versions
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         # return
         # if old version is 2.0.59 or older and if json file exists
@@ -45,50 +47,46 @@ class DbSqliteProvider(BaseProvider):
         if os.path.exists(path):
             self.truncate()
             self.import_from_json()
-            # rename notepad.json to notepad.json.old:
-            os.rename(path, path + ".old")
+            os.rename(path, path + ".old")  # rename notepad.json to notepad.json.old
+            return True
 
-    def create_id(self):
+    def create_id(self) -> str:
         """
         Create unique uuid
 
         :return: uuid
-        :rtype: str
         """
         return str(uuid.uuid4())
 
-    def create(self, notepad):
+    def create(self, notepad: NotepadItem) -> str:
         """
         Create new and return its ID
 
         :param notepad: NotepadItem
         :return: notepad ID
-        :rtype: str
         """
         if notepad.id is None or notepad.id == "":
             notepad.id = self.storage.insert(notepad)
         return notepad.id
 
-    def load_all(self):
+    def load_all(self) -> dict:
         """
         Load notepads from DB
 
         :return: notepads
-        :rtype: dict
         """
         return self.storage.get_all()
 
-    def load(self, idx):
+    def load(self, idx: int) -> NotepadItem:
         """
         Load notepad from DB
 
         :param idx: notepad IDx
         :return: notepad
-        :rtype: NotepadItem
         """
         return self.storage.get_by_idx(idx)
 
-    def save(self, notepad):
+    def save(self, notepad: NotepadItem):
         """
         Save notepad to DB
 
@@ -100,9 +98,9 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
-    def save_all(self, items):
+    def save_all(self, items: dict):
         """
-        Save notepad to DB
+        Save all notepads to DB
 
         :param items: dict of NotepadItem objects
         """
@@ -114,24 +112,23 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
-    def truncate(self):
+    def truncate(self) -> bool:
         """
         Truncate all notepads
 
-        :return: true if truncated
+        :return: True if truncated
         :rtype: bool
         """
         return self.storage.truncate_all()
 
-    def import_from_json(self):
+    def import_from_json(self) -> bool:
         """
         Import notepads from JSON file
 
-        :return: true if imported
+        :return: True if imported
         :rtype: bool
         """
-        # return
-        # tmp get json provider
+        # use json provider to load old notepads
         provider = self.window.core.notepad.providers['json_file']
         provider.attach(self.window)
 
@@ -161,7 +158,7 @@ class DbSqliteProvider(BaseProvider):
             print("[DB][DONE] Imported %s notepads." % i)
             return True
 
-    def import_notepad(self, notepad):
+    def import_notepad(self, notepad: NotepadItem):
         """
         Import notepad from JSON file
 

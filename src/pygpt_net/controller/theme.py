@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -42,7 +42,7 @@ class Theme:
             self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
         # apply current theme to nodes
-        self.reload(False)
+        self.reload(force=False)
 
     def update_menu(self):
         """Update theme menu"""
@@ -52,12 +52,12 @@ class Theme:
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
 
-    def toggle(self, name, force=True):
+    def toggle(self, name: str, force: bool = True):
         """
         Toggle theme by name
 
         :param name: theme name
-        :param force: force theme change (manual)
+        :param force: force theme change (manual toggle)
         """
         if force:
             self.window.controller.ui.store_state()  # store state before theme change
@@ -72,31 +72,30 @@ class Theme:
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
 
-    def reload(self, force=True):
+    def reload(self, force: bool = True):
         """
         Reload current theme
 
         :param force: force theme change (manual)
         """
-        self.toggle(self.window.core.config.get('theme'), force)
+        self.toggle(self.window.core.config.get('theme'), force=force)
 
-    def get_css(self, name):
+    def get_css(self, name: str) -> dict:
         """
-        Return CSS rules
+        Return CSS rules for element
 
-        :param name: css name
-        :return: css rules
-        :rtype: dict
+        :param name: css element name
+        :return: dictionary with css rules
         """
         if name in self.css:
             return self.css[name]
         return {}
 
-    def apply_node(self, key, type):
+    def apply_node(self, key: str, type: str):
         """
         Apply stylesheet to node
 
-        :param key: node key
+        :param key: UI node key
         :param type: stylesheet type
         """
         if key not in self.window.ui.nodes:
@@ -113,7 +112,7 @@ class Theme:
         elif type == 'text_faded':
             self.window.ui.nodes[key].setStyleSheet(self.get_style('text_faded'))
 
-    def apply_nodes(self, all=True):
+    def apply_nodes(self, all: bool = True):
         """
         Apply stylesheets to nodes
 
@@ -184,13 +183,12 @@ class Theme:
         if all:
             self.apply_highlighter()
 
-    def get_style(self, element):
+    def get_style(self, element: str) -> str:
         """
         Return CSS style for element
 
         :param element: type of element
         :return: CSS style for element
-        :rtype: str
         """
         theme = self.window.core.config.get('theme')
         # get theme element style
@@ -239,11 +237,10 @@ class Theme:
             try:
                 with open(path, 'r') as f:
                     self.css['highlighter'] = json.load(f)
-                    f.close()
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def apply_window(self, theme='dark_teal.xml', custom=None):
+    def apply_window(self, theme: str = 'dark_teal.xml', custom: str = None):
         """
         Update material theme and apply custom CSS
 
@@ -271,13 +268,12 @@ class Theme:
                 with open(path) as file:
                     self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
 
-    def get_custom_css(self, name):
+    def get_custom_css(self, name: str) -> str:
         """
         Return custom css filename for specified theme
 
         :param name: theme name
         :return: custom css filename (e.g. style.dark.css)
-        :rtype: str
         """
         # check per theme style css
         filename = 'style.css'
@@ -309,25 +305,23 @@ class Theme:
 
         return filename
 
-    def trans_theme(self, theme):
+    def trans_theme(self, theme: str) -> str:
         """
         Translate theme name
 
         :param theme: theme name
         :return: translated theme name
-        :rtype: str
         """
         return theme \
             .replace('_', ' ').title() \
             .replace('Dark ', trans('theme.dark') + ': ') \
             .replace('Light ', trans('theme.light') + ': ')
 
-    def get_themes_list(self):
+    def get_themes_list(self) -> list:
         """
-        Return a list of themes
+        Return a list of available themes
 
-        :return: list of themes
-        :rtype: list
+        :return: list of themes names
         """
         return [
             'dark_amber',

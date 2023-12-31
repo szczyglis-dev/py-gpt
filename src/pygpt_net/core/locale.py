@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -18,9 +18,9 @@ from pygpt_net.config import Config
 
 
 class Locale:
-    def __init__(self, domain=None):
+    def __init__(self, domain: str = None):
         """
-        Locale handler
+        Locale core
 
         :param domain: translation domain
         """
@@ -32,7 +32,7 @@ class Locale:
         self.data = {}
         self.load(self.lang, domain)
 
-    def reload(self, domain=None):
+    def reload(self, domain: str = None):
         """
         Reload translations for domain
 
@@ -43,7 +43,7 @@ class Locale:
             self.lang = self.config.get('lang')
         self.load(self.lang, domain)
 
-    def load(self, lang, domain=None):
+    def load(self, lang: str, domain: str = None):
         """
         Load translation ini file
 
@@ -75,7 +75,7 @@ class Locale:
         except Exception as e:
             print(e)
 
-    def get(self, key, domain=None):
+    def get(self, key: str, domain: str = None) -> str:
         """
         Return translation for key and domain
 

@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
 import json
 import os
 import uuid
+
+from packaging.version import Version
 
 from pygpt_net.provider.notepad.base import BaseProvider
 from pygpt_net.item.notepad import NotepadItem
@@ -26,29 +28,31 @@ class JsonFileProvider(BaseProvider):
         self.type = "notepad"
         self.config_file = 'notepad.json'
 
-    def create_id(self):
+    def create_id(self) -> str:
         """
-        Create unique uuid
+        Create unique uuid (in json file provider it is just uuid4)
 
         :return: uuid
-        :rtype: str
         """
         return str(uuid.uuid4())
 
-    def create(self, notepad):
+    def create(self, notepad: NotepadItem) -> str:
         """
         Create new and return its ID
 
         :param notepad: NotepadItem
         :return: notepad ID
-        :rtype: str
         """
         if notepad.id is None or notepad.id == "":
             notepad.id = self.create_id()
         return notepad.id
 
-    def load_all(self):
-        """Load notepads from file"""
+    def load_all(self) -> dict:
+        """
+        Load notepads from file
+
+        :return: dict of NotepadItem
+        """
         path = os.path.join(self.window.core.config.path, self.config_file)
         items = {}
         try:
@@ -88,15 +92,20 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def load(self, id):
-        """Load notepad from file"""
+    def load(self, id: str) -> NotepadItem | None:
+        """
+        Load notepad from file
+
+        :param id: notepad ID
+        :return: NotepadItem
+        """
         path = os.path.join(self.window.core.config.path, self.config_file)
         try:
             if os.path.exists(path):
                 with open(path, 'r', encoding="utf-8") as file:
                     data = json.load(file)
                     if data == "" or data is None or 'items' not in data:
-                        return {}
+                        return None
 
                     # deserialize
                     for item in data['items']:
@@ -108,9 +117,11 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def save(self, notepad):
+    def save(self, notepad: NotepadItem):
         """
         Save notepad to file
+
+        :param notepad: NotepadItem
         """
         try:
             id = notepad.id
@@ -122,9 +133,11 @@ class JsonFileProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
-    def save_all(self, items):
+    def save_all(self, items: dict):
         """
         Save notepad to file
+
+        :param items: dict of NotepadItem
         """
         try:
             # update notepads
@@ -147,7 +160,7 @@ class JsonFileProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving notepad: {}".format(str(e)))
 
-    def remove(self, id):
+    def remove(self, id: str):
         """
         Delete by id
 
@@ -169,34 +182,32 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Migrate presets to current app version
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         return False
 
     @staticmethod
-    def serialize(notepad):
+    def serialize(notepad: NotepadItem) -> dict:
         """
         Serialize item to dict
 
         :return: serialized item
-        :rtype: dict
         """
         return {
             'id': notepad.id,
             'title': notepad.title,
             'content': notepad.content,
-            'created_at': notepad.created_at,  # '2019-01-01T00:00:00
-            'updated_at': notepad.updated_at,  # '2019-01-01T00:00:00
+            'created_at': notepad.created,  # '2019-01-01T00:00:00
+            'updated_at': notepad.updated,  # '2019-01-01T00:00:00
         }
 
     @staticmethod
-    def deserialize(data, notepad):
+    def deserialize(data: dict, notepad: NotepadItem):
         """
         Deserialize item from dict
 
@@ -210,16 +221,15 @@ class JsonFileProvider(BaseProvider):
         if 'content' in data:
             notepad.content = data['content']
         if 'created_at' in data:
-            notepad.created_at = data['created_at']
+            notepad.created = data['created_at']
         if 'updated_at' in data:
-            notepad.updated_at = data['updated_at']
+            notepad.updated = data['updated_at']
 
-    def dump(self, item):
+    def dump(self, item: NotepadItem) -> str:
         """
         Dump to string
 
         :param item: item to dump
         :return: dumped item as string (json)
-        :rtype: str
         """
         return json.dumps(self.serialize(item))

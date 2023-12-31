@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 
 
 class Plugin(BasePlugin):
@@ -57,7 +59,7 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
@@ -76,7 +78,7 @@ class Plugin(BasePlugin):
         elif name == 'user.send':
             self.on_user_send(data['value'])
 
-    def on_user_send(self, text):
+    def on_user_send(self, text: str):
         """
         Event: On user send text
 
@@ -85,7 +87,7 @@ class Plugin(BasePlugin):
         self.iteration = 0
         self.prev_output = None
 
-    def on_ctx_end(self, ctx):
+    def on_ctx_end(self, ctx: CtxItem):
         """
         Event: On context end
 
@@ -99,7 +101,7 @@ class Plugin(BasePlugin):
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
                 self.window.controller.chat.input.send(self.prev_output, force=True)
 
-    def on_ctx_before(self, ctx):
+    def on_ctx_before(self, ctx: CtxItem):
         """
         Event: Before ctx
 
@@ -113,7 +115,7 @@ class Plugin(BasePlugin):
             ctx.output_name = tmp_input_name
             self.debug("Plugin: self_loop:on_ctx_before [after]: {}".format(ctx.dump()))  # log
 
-    def on_ctx_after(self, ctx):
+    def on_ctx_after(self, ctx: CtxItem):
         """
         Event: After ctx
 

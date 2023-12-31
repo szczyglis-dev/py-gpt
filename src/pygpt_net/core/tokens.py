@@ -6,30 +6,31 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 20:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import tiktoken
+
+from pygpt_net.item.ctx import CtxItem
 
 
 class Tokens:
     def __init__(self, window=None):
         """
-        Tokens
+        Tokens core
 
         :param window: Window instance
         """
         self.window = window
 
     @staticmethod
-    def from_str(string, model="gpt-4"):
+    def from_str(string: str, model: str = "gpt-4") -> int:
         """
         Return number of tokens from string
 
         :param string: string
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         if string is None or string == "":
             return 0
@@ -56,18 +57,17 @@ class Tokens:
             return 0
 
     @staticmethod
-    def get_extra(model="gpt-4"):
+    def get_extra(model: str = "gpt-4") -> int:
         """
         Return number of extra tokens
 
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         return 3
 
     @staticmethod
-    def from_prompt(text, name, model="gpt-4"):
+    def from_prompt(text: str, name: str, model: str = "gpt-4") -> int:
         """
         Return number of tokens from prompt
 
@@ -75,7 +75,6 @@ class Tokens:
         :param name: input name
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
@@ -93,14 +92,13 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_text(text, model="gpt-4"):
+    def from_text(text: str, model: str = "gpt-4") -> int:
         """
         Return number of tokens from text, without any extra tokens
 
         :param text: text
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
@@ -116,14 +114,13 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_messages(messages, model="gpt-4"):
+    def from_messages(messages: list, model: str = "gpt-4") -> int:
         """
         Return number of tokens from prompt
 
         :param messages: messages
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
@@ -137,7 +134,7 @@ class Tokens:
         return num
 
     @staticmethod
-    def from_ctx(ctx, mode="chat", model="gpt-4"):
+    def from_ctx(ctx: CtxItem, mode: str = "chat", model: str = "gpt-4") -> int:
         """
         Return number of tokens from context ctx
 
@@ -145,7 +142,6 @@ class Tokens:
         :param mode: mode
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
@@ -216,15 +212,13 @@ class Tokens:
 
         return num
 
-    def get_current(self, input_prompt):
+    def get_current(self, input_prompt: str) -> (int, int, int, int, int, int, int, int, int):
         """
         Return current number of used tokens
 
         :param input_prompt: input prompt
-
         :return: A tuple of (input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
                sum_tokens, max_current, threshold)
-        :rtype: tuple
         """
         model = self.window.core.config.get('model')
         mode = self.window.core.config.get('mode')
@@ -297,14 +291,13 @@ class Tokens:
         return input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
                sum_tokens, max_current, threshold
 
-    def from_user(self, system_prompt, input_prompt):
+    def from_user(self, system_prompt: str, input_prompt: str) -> int:
         """
         Count per-user used tokens
 
         :param system_prompt: system prompt
         :param input_prompt: input prompt
         :return: used tokens
-        :rtype: int
         """
         model = self.window.core.config.get('model')
         mode = self.window.core.config.get('mode')
@@ -323,13 +316,12 @@ class Tokens:
         return tokens
 
     @staticmethod
-    def get_config(model):
+    def get_config(model: str) -> (str, int, int):
         """
         Return tokens config values
 
         :param model: model name
         :return: model, per_message, per_name
-        :rtype: (str, int, int)
         """
         per_message = 4  # message follows <|start|>{role/name}\n{content}<|end|>\n
         per_name = -1

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -69,7 +69,7 @@ class Common:
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
 
-    def toggle_stream(self, value):
+    def toggle_stream(self, value: bool):
         """
         Toggle stream
 
@@ -77,7 +77,7 @@ class Common:
         """
         self.window.core.config.set('stream', value)
 
-    def toggle_cmd(self, value):
+    def toggle_cmd(self, value: bool):
         """
         Toggle cmd enabled
 
@@ -93,7 +93,7 @@ class Common:
 
         self.window.controller.ui.update_tokens()  # update tokens counters
 
-    def toggle_send_clear(self, value):
+    def toggle_send_clear(self, value: bool):
         """
         Toggle send clear
 
@@ -101,7 +101,7 @@ class Common:
         """
         self.window.core.config.set('send_clear', value)
 
-    def toggle_send_shift(self, value):
+    def toggle_send_shift(self, value: bool):
         """
         Toggle send with shift
 
@@ -140,7 +140,7 @@ class Common:
             result = False
         return result
 
-    def toggle_timestamp(self, value):
+    def toggle_timestamp(self, value: bool):
         """
         Toggle timestamp
 
@@ -160,7 +160,7 @@ class Common:
         self.window.core.config.set('img_raw', False)
         self.window.core.config.save()
 
-    def img_toggle_raw(self, state):
+    def img_toggle_raw(self, state: bool):
         """
         Toggle help for images
 

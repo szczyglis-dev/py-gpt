@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -22,7 +22,8 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, input_prompt, stream_mode=False, system_prompt=None, ai_name=None, user_name=None):
+    def send(self, input_prompt: str, stream_mode: bool = False, system_prompt: str = None, ai_name: str = None,
+             user_name: str = None):
         """
         Chat with LLM
 
@@ -54,16 +55,15 @@ class Chat:
         else:
             return llm.invoke(messages)
 
-    def build(self, input_prompt, system_prompt=None, ai_name=None, user_name=None):
+    def build(self, input_prompt: str, system_prompt: str = None, ai_name: str = None, user_name: str = None) -> list:
         """
-        Build chat messages dict
+        Build chat messages list
 
         :param input_prompt: prompt
         :param system_prompt: system prompt (optional)
         :param ai_name: AI name (optional)
         :param user_name: username (optional)
-        :return: dict of messages
-        :rtype: dict
+        :return: list of messages
         """
         messages = []
 
@@ -100,7 +100,7 @@ class Chat:
         """Reset input tokens counter"""
         self.input_tokens = 0
 
-    def get_used_tokens(self):
+    def get_used_tokens(self) -> int:
         """Get input tokens counter"""
         return self.input_tokens
 

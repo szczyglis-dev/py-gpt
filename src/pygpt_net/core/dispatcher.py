@@ -6,10 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
+
+from pygpt_net.item.ctx import CtxItem
+
+
+class Event:
+    def __init__(self, name=None, data=None):
+        """
+        Event object class
+
+        :param name: event name
+        :param data: event data
+        """
+        self.name = name
+        self.data = data
+        self.ctx = None
+        self.stop = False
 
 
 class Dispatcher:
@@ -21,7 +37,7 @@ class Dispatcher:
         """
         self.window = window
 
-    def dispatch(self, event, all=False, is_async=False):
+    def dispatch(self, event: Event, all: bool = False, is_async: bool = False):
         """
         Dispatch event to plugins
 
@@ -35,7 +51,7 @@ class Dispatcher:
                     break
                 self.apply(id, event, is_async)
 
-    def apply(self, id, event, is_async=False):
+    def apply(self, id: str, event: Event, is_async: bool = False):
         """
         Handle event in plugin with provided id
 
@@ -50,7 +66,7 @@ class Dispatcher:
             except AttributeError:
                 pass
 
-    def reply(self, ctx):
+    def reply(self, ctx: CtxItem):
         """
         Reply to late response (async event)
 
@@ -61,18 +77,4 @@ class Dispatcher:
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
-                self.window.controller.chat.input.send(json.dumps(ctx.results), force=True)  # force send result to input
-
-
-class Event:
-    def __init__(self, name=None, data=None):
-        """
-        Event class
-
-        :param name: event name
-        :param data: event data
-        """
-        self.name = name
-        self.data = data
-        self.ctx = None
-        self.stop = False
+                self.window.controller.chat.input.send(json.dumps(ctx.results), force=True)  # force send to input

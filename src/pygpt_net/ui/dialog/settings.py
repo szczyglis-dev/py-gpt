@@ -172,7 +172,7 @@ class Settings:
         self.window.ui.dialog['config.' + id].setLayout(layout)
         self.window.ui.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
 
-    def build_settings_widgets(self, options):
+    def build_settings_widgets(self, options) -> dict:
         """
         Build settings widgets
 
@@ -236,7 +236,7 @@ class Settings:
 
         return widgets
 
-    def add_line(self):
+    def add_line(self) -> QFrame:
         """
         Make line
         """
@@ -245,7 +245,7 @@ class Settings:
         line.setFrameShadow(QFrame.Sunken)
         return line
 
-    def add_option(self, title, option, type, extra=None):
+    def add_option(self, title: str, option, type, extra=None) -> QHBoxLayout:
         """
         Add option (label + option)
 
@@ -266,7 +266,7 @@ class Settings:
             self.window.ui.nodes[label_key].setMinimumHeight(60)
         return layout
 
-    def add_row_option(self, title, option, type, extra=None):
+    def add_row_option(self, title: str, option, type, extra=None) -> QHBoxLayout:
         """
         Add option (label + option)
 
@@ -294,7 +294,7 @@ class Settings:
             self.window.ui.nodes[label_key].setMinimumHeight(60)
         return layout
 
-    def add_raw_option(self, option, type, extra=None):
+    def add_raw_option(self, option, type, extra=None) -> QHBoxLayout:
         """
         Add raw option row (option only)
 
@@ -314,7 +314,7 @@ class Settings:
 
         return layout
 
-    def add_urls(self, urls, align=Qt.AlignLeft):
+    def add_urls(self, urls, align=Qt.AlignLeft) -> QWidget:
         """
         Add clickable urls to list
 

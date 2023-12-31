@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
 import os
 import shutil
-from packaging.version import parse as parse_version
+from packaging.version import parse as parse_version, Version
 
 from pygpt_net.provider.config.base import BaseProvider
 
@@ -35,12 +35,11 @@ class JsonFileProvider(BaseProvider):
             src = os.path.join(self.path_app, 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
 
-    def get_version(self):
+    def get_version(self) -> str | None:
         """
         Get config file version
 
         :return: version
-        :rtype: str
         """
         path = os.path.join(self.path, self.config_file)
         with open(path, 'r', encoding="utf-8") as file:
@@ -50,12 +49,11 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load(self, all=False):
+    def load(self, all: bool = False) -> dict | None:
         """
         Load config from JSON file
 
         :return: data
-        :rtype: dict
         """
         data = {}
         path = os.path.join(self.path, self.config_file)
@@ -71,12 +69,11 @@ class JsonFileProvider(BaseProvider):
             print("FATAL ERROR: {}".format(e))
         return data
 
-    def load_base(self):
+    def load_base(self) -> dict | None:
         """
         Load config from JSON file
 
         :return: data
-        :rtype: dict
         """
         data = {}
         path = os.path.join(self.path_app, 'data', 'config', self.config_file)
@@ -90,7 +87,7 @@ class JsonFileProvider(BaseProvider):
             print("FATAL ERROR: {}".format(e))
         return data
 
-    def save(self, data, filename='config.json'):
+    def save(self, data: dict, filename: str = 'config.json'):
         """
         Save config to JSON file
 
@@ -106,12 +103,11 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             print("FATAL ERROR: {}".format(e))
 
-    def get_options(self):
+    def get_options(self) -> dict | None:
         """
         Load config settings options from JSON file
 
         :return: data
-        :rtype: dict
         """
         data = {}
         path = os.path.join(self.path_app, 'data', 'config', self.settings_file)
@@ -125,13 +121,12 @@ class JsonFileProvider(BaseProvider):
             print("FATAL ERROR: {}".format(e))
         return data
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Migrate config to current app version
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         data = self.window.core.config.all()
         current = "0.0.0"
@@ -417,6 +412,23 @@ class JsonFileProvider(BaseProvider):
                 print("Migrating config from < 2.0.65...")
                 if 'ctx.search.string' not in data:
                     data['ctx.search.string'] = ""
+                updated = True
+
+            # < 2.0.68
+            if old < parse_version("2.0.68"):
+                print("Migrating config from < 2.0.68...")
+                data['img_prompt'] = "Whenever I provide a basic idea or concept for an image, such as 'a picture " \
+                                     "of mountains', I want you to ALWAYS translate it into English and expand " \
+                                     "and elaborate on this idea. Use your knowledge and creativity to add " \
+                                     "details that would make the image more vivid and interesting. This could " \
+                                     "include specifying the time of day, weather conditions, surrounding " \
+                                     "environment, and any additional elements that could enhance the scene. Your " \
+                                     "goal is to create a detailed and descriptive prompt that provides DALL-E " \
+                                     "with enough information to generate a rich and visually appealing image. " \
+                                     "Remember to maintain the original intent of my request while enriching the " \
+                                     "description with your imaginative details."
+                data['img_raw'] = False
+                data['img_prompt_model'] = "gpt-4-1106-preview"
                 updated = True
 
         # update file

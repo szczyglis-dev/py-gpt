@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 17:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
+from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.model.json_file import JsonFileProvider
 
 
@@ -16,7 +17,7 @@ class Models:
 
     def __init__(self, window=None):
         """
-        Config handler
+        Models core
 
         :param window: Window instance
         """
@@ -28,11 +29,11 @@ class Models:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version):
+    def patch(self, app_version: str):
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def get(self, model):
+    def get(self, model: str) -> ModelItem:
         """
         Return model config
 
@@ -43,25 +44,23 @@ class Models:
         if model in self.items:
             return self.items[model]
 
-    def get_by_idx(self, idx, mode):
+    def get_by_idx(self, idx: int, mode: str) -> str:
         """
         Return model by index
 
         :param idx: model idx
         :param mode: mode name
         :return: model name
-        :rtype: str
         """
         items = self.get_by_mode(mode)
         return list(items.keys())[idx]
 
-    def get_by_mode(self, mode):
+    def get_by_mode(self, mode: str) -> dict:
         """
         Return models for mode
 
         :param mode: mode name
         :return: models dict for mode
-        :rtype: dict
         """
         items = {}
         for key in self.items:
@@ -69,25 +68,23 @@ class Models:
                 items[key] = self.items[key]
         return items
 
-    def has_model(self, mode, model):
+    def has_model(self, mode: str, model: str) -> bool:
         """
         Check if model exists for mode
 
         :param mode: mode name
         :param model: model name
         :return: True if model exists for mode
-        :rtype: bool
         """
         items = self.get_by_mode(mode)
         return model in items
 
-    def get_default(self, mode):
+    def get_default(self, mode: str) -> str | None:
         """
         Return default model for mode
 
         :param mode: mode name
         :return: default model name
-        :rtype: str
         """
         models = {}
         items = self.get_by_mode(mode)
@@ -97,25 +94,23 @@ class Models:
             return None
         return list(models.keys())[0]
 
-    def get_tokens(self, model):
+    def get_tokens(self, model: str) -> int:
         """
         Return model tokens
 
         :param model: model name
         :return: number of tokens
-        :rtype: int
         """
         if model in self.items:
             return self.items[model].tokens
         return 1
 
-    def get_num_ctx(self, model):
+    def get_num_ctx(self, model: str) -> int:
         """
         Return model context window tokens
 
         :param model: model name
         :return: number of ctx tokens
-        :rtype: int
         """
         if model in self.items:
             return self.items[model].ctx
@@ -132,6 +127,6 @@ class Models:
         """Save models"""
         self.provider.save(self.items)
 
-    def get_version(self):
+    def get_version(self) -> str:
         """Get config version"""
         return self.provider.get_version()

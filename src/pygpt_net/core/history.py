@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.history.txt_file import TxtFileProvider
 
 
@@ -16,7 +17,7 @@ class History:
 
     def __init__(self, window):
         """
-        History handler
+        History core
 
         :param window: Window instance
         """
@@ -28,7 +29,7 @@ class History:
         """Install provider data"""
         self.provider.install()
 
-    def append(self, ctx, mode):
+    def append(self, ctx: CtxItem, mode: str):
         """
         Append text to history
 

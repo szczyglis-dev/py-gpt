@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -15,19 +15,18 @@ import json
 class Command:
     def __init__(self, window=None):
         """
-        Commands handler
+        Commands core
 
         :param window: Window instance
         """
         self.window = window
 
-    def get_prompt(self, allow_custom=True):
+    def get_prompt(self, allow_custom: bool = True) -> str:
         """
         Return cmd prompt instruction
 
         :param allow_custom: allow custom prompt
         :return: prompt instruction
-        :rtype: str
         """
         cmd = '''RUNNING COMMANDS:
         You can execute commands and also use them to run commands on the user's environment. 
@@ -65,13 +64,12 @@ class Command:
         # cmd += '\n"read_file": read data from file, params: "filename"'
         return cmd
 
-    def append_syntax(self, event_data):
+    def append_syntax(self, event_data: dict) -> str:
         """
         Append syntax to prompt
 
         :param event_data: event data
         :return: prompt with syntax
-        :rtype: str
         """
         cmd = event_data['prompt']
         for item in event_data['syntax']:
@@ -87,13 +85,12 @@ class Command:
                         cmd += ', example: "{}"'.format(item['example'])
         return cmd
 
-    def extract_cmds(self, response):
+    def extract_cmds(self, response: str) -> list:
         """
         Extract commands from response
 
         :param response: response
         :return: commands list
-        :rtype: list
         """
         cmds = []
         try:
@@ -107,13 +104,12 @@ class Command:
             pass
         return cmds
 
-    def extract_cmd(self, chunk):
+    def extract_cmd(self, chunk: str) -> dict or None:
         """
         Extract command from response
 
         :param chunk: chunk
-        :return: command json
-        :rtype: dict
+        :return: command JSON dict
         """
         cmd = None
         chunk = chunk.strip()

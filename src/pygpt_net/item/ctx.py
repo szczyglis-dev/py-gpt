@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
+import json
 import time
 
 
@@ -48,7 +49,7 @@ class CtxItem:
         self.extra = None
         self.current = False
 
-    def set_input(self, input, name=None):
+    def set_input(self, input: str, name: str = None):
         """
         Set input
 
@@ -59,7 +60,7 @@ class CtxItem:
         self.input_name = name
         self.input_timestamp = int(time.time())
 
-    def set_output(self, output, name=None):
+    def set_output(self, output: str, name: str = None):
         """
         Set output
 
@@ -70,7 +71,7 @@ class CtxItem:
         self.output_name = name
         self.output_timestamp = int(time.time())
 
-    def set_tokens(self, input_tokens, output_tokens):
+    def set_tokens(self, input_tokens: int, output_tokens: int):
         """
         Set tokens usage
 
@@ -80,6 +81,43 @@ class CtxItem:
         self.input_tokens = input_tokens
         self.output_tokens = output_tokens
         self.total_tokens = input_tokens + output_tokens
+
+    def dump(self) -> str:
+        """
+        Dump context item to dict
+
+        :return: dict
+        """
+        data = {
+            "id": self.id,
+            "meta_id": self.meta_id,
+            "external_id": self.external_id,
+            "stream": self.stream,
+            "cmds": self.cmds,
+            "results": self.results,
+            "urls": self.urls,
+            "images": self.images,
+            "files": self.files,
+            "attachments": self.attachments,
+            "reply": self.reply,
+            "input": self.input,
+            "output": self.output,
+            "mode": self.mode,
+            "model": self.model,
+            "thread": self.thread,
+            "msg_id": self.msg_id,
+            "run_id": self.run_id,
+            "input_name": self.input_name,
+            "output_name": self.output_name,
+            "input_timestamp": self.input_timestamp,
+            "output_timestamp": self.output_timestamp,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": self.total_tokens,
+            "extra": self.extra,
+            "current": self.current
+        }
+        return json.dumps(data)
 
 
 class CtxMeta:

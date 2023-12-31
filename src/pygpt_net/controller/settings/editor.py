@@ -40,7 +40,7 @@ class Editor:
         self.before_config = {}
         self.initialized = False
 
-    def init(self, id):
+    def init(self, id: str):
         """
         Initialize settings
 
@@ -67,7 +67,7 @@ class Editor:
         # store copy of loaded config data
         self.before_config = copy.deepcopy(self.window.core.config.all())
 
-    def load_config_options(self, initialize=True):
+    def load_config_options(self, initialize: bool = True):
         """
         Load settings options from config file
 
@@ -77,7 +77,7 @@ class Editor:
         if initialize:
             self.initialized = True
 
-    def save(self, id=None):
+    def save(self, id: str = None):
         """
         Save settings
 
@@ -107,7 +107,7 @@ class Editor:
         self.before_config = copy.deepcopy(self.window.core.config.all())
         self.window.controller.settings.close_window(id)
 
-    def toggle(self, id, value, section=None):
+    def toggle(self, id: str, value: bool, section: str = None):
         """
         Toggle checkbox
 
@@ -141,7 +141,7 @@ class Editor:
         if id in self.window.ui.config_option and value is not None:
             self.window.ui.config_option[id].box.setChecked(value)
 
-    def change(self, id, value, section=None):
+    def change(self, id: str, value: any, section: str = None):
         """
         Change input value
 
@@ -192,7 +192,7 @@ class Editor:
         txt = '{}'.format(value)
         self.window.ui.config_option[id].setText(txt)
 
-    def apply(self, id, value, type=None, section=None):
+    def apply(self, id: str, value: any, type: str = None, section: str = None):
         """
         Apply slider + input value
 
@@ -342,7 +342,7 @@ class Editor:
         if id == "temperature":
             self.apply('current_temperature', input_value, 'input', section)
 
-    def toggle_collapsed(self, id, value, section):
+    def toggle_collapsed(self, id: str, value: any, section: str):
         """
         Toggle collapsed state of section
 
@@ -355,7 +355,7 @@ class Editor:
 
         self.window.ui.groups[id].collapse(value)
 
-    def load_defaults_user(self, force=False):
+    def load_defaults_user(self, force: bool = False):
         """
         Load default user config
 
@@ -372,7 +372,7 @@ class Editor:
         self.window.controller.settings.init('settings')
         # self.window.ui.dialogs.alert(trans('dialog.settings.defaults.user.result'))
 
-    def load_defaults_app(self, force=False):
+    def load_defaults_app(self, force: bool = False):
         """
         Load default app config
 
@@ -389,7 +389,7 @@ class Editor:
         self.window.controller.settings.init('settings')
         self.window.ui.dialogs.alert(trans('dialog.settings.defaults.app.result'))
 
-    def delete_item(self, parent_object, id, force=False):
+    def delete_item(self, parent_object, id: str, force: bool = False):
         """
         Load delete item (from dict list) confirmation dialog or executes delete
 
@@ -406,11 +406,10 @@ class Editor:
         if parent_object is not None:
             parent_object.delete_item_execute(id)
 
-    def get_options(self):
+    def get_options(self) -> dict:
         """
         Return settings options dict
 
         :return: dict Options dict
-        :rtype: dict
         """
         return self.options

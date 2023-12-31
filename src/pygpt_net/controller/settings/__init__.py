@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -55,7 +55,7 @@ class Settings:
                 else:
                     self.window.ui.menu['config.' + id].setChecked(False)
 
-    def toggle_editor(self, id):
+    def toggle_editor(self, id: str):
         """
         Toggle settings
 
@@ -75,7 +75,7 @@ class Settings:
         # update menu
         self.update()
 
-    def toggle_file_editor(self, file=None):
+    def toggle_file_editor(self, file: str = None):
         """
         Toggle file editor
 
@@ -98,7 +98,7 @@ class Settings:
         # update menu
         self.update()
 
-    def close(self, id):
+    def close(self, id: str):
         """
         Close menu
 
@@ -111,7 +111,7 @@ class Settings:
         if id in allowed_settings and id in self.window.ui.menu:
             self.window.ui.menu[id].setChecked(False)
 
-    def close_window(self, id):
+    def close_window(self, id: str):
         """
         Close window
 

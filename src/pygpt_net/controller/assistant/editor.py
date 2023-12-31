@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
+from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.utils import trans
 
 
@@ -21,7 +22,7 @@ class Editor:
         """
         self.window = window
 
-    def edit(self, idx=None):
+    def edit(self, idx: int = None):
         """
         Open assistant editor
 
@@ -34,7 +35,7 @@ class Editor:
         self.init(id)
         self.window.ui.dialogs.open_editor('editor.assistants', idx)
 
-    def init(self, id=None):
+    def init(self, id: str = None):
         """
         Initialize assistant editor
 
@@ -133,7 +134,7 @@ class Editor:
         # switch to new assistant
         self.window.controller.assistant.select_by_id(id)
 
-    def assign_data(self, assistant):
+    def assign_data(self, assistant: AssistantItem):
         """
         Assign data from fields to assistant
 
@@ -167,7 +168,7 @@ class Editor:
         else:
             assistant.tools['function'] = []
 
-    def update_field(self, id, value, assistant_id=None, current=False):
+    def update_field(self, id: str, value: any, assistant_id: str = None, current: bool = False):
         """
         Update assistant field from editor
 
@@ -188,7 +189,7 @@ class Editor:
                 elif id == 'assistant.model':
                     assistant.model = value
 
-    def config_toggle(self, id, value, section=None):
+    def config_toggle(self, id: str, value: bool, section: bool = None):
         """
         Toggle checkbox
 
@@ -201,9 +202,9 @@ class Editor:
         if section == 'assistant.editor':
             assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant
             is_current = False
-        self.update_field(id, value, assistant_id, is_current)
+        self.update_field(id, value, assistant_id, is_current)  # TODO: bool?
 
-    def config_change(self, id, value, section=None):
+    def config_change(self, id: str, value: str, section: bool = None):
         """
         Change input value
 

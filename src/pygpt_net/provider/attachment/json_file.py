@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
 import os
 import uuid
+
+from packaging.version import Version
 
 from pygpt_net.provider.attachment.base import BaseProvider
 from pygpt_net.item.attachment import AttachmentItem
@@ -25,29 +27,31 @@ class JsonFileProvider(BaseProvider):
         self.type = "attachment"
         self.config_file = 'attachments.json'
 
-    def create_id(self):
+    def create_id(self) -> str:
         """
         Create unique uuid
 
         :return: uuid
-        :rtype: str
         """
         return str(uuid.uuid4())
 
-    def create(self, attachment):
+    def create(self, attachment: AttachmentItem) -> str:
         """
         Create new and return its ID
 
         :param attachment: AttachmentItem
         :return: attachment ID
-        :rtype: str
         """
         if attachment.id is None or attachment.id == "":
             attachment.id = self.create_id()
         return attachment.id
 
-    def load(self):
-        """Load attachments from file"""
+    def load(self) -> dict:
+        """
+        Load attachments from file
+
+        :return: dict
+        """
         path = os.path.join(self.window.core.config.path, self.config_file)
         items = {}
         try:
@@ -70,7 +74,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items):
+    def save(self, items: dict):
         """
         Save attachments to file
         """
@@ -97,7 +101,7 @@ class JsonFileProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving attachments: {}".format(str(e)))
 
-    def remove(self, id):
+    def remove(self, id: str):
         """
         Delete by id
 
@@ -105,7 +109,7 @@ class JsonFileProvider(BaseProvider):
         """
         pass
 
-    def truncate(self, mode):
+    def truncate(self, mode: str):
         """Delete all"""
         path = os.path.join(self.window.core.config.path, self.config_file)
         data = {'__meta__': self.window.core.config.append_meta(), 'items': {}}
@@ -116,23 +120,21 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Migrate presets to current app version
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         return False
 
     @staticmethod
-    def serialize(attachment):
+    def serialize(attachment: AttachmentItem) -> dict:
         """
         Serialize item to dict
 
         :return: serialized item
-        :rtype: dict
         """
         return {
             'id': attachment.id,
@@ -143,7 +145,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data, attachment):
+    def deserialize(data: dict, attachment: AttachmentItem):
         """
         Deserialize item from dict
 
@@ -161,12 +163,11 @@ class JsonFileProvider(BaseProvider):
         if 'send' in data:
             attachment.send = data['send']
 
-    def dump(self, item):
+    def dump(self, item: AttachmentItem) -> str:
         """
         Dump to string
 
         :param item: item to dump
         :return: dumped item as string (json)
-        :rtype: str
         """
         return json.dumps(self.serialize(item))

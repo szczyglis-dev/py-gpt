@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 09:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import time
@@ -33,12 +33,11 @@ class Storage:
         """
         self.window = window
 
-    def get_all(self):
+    def get_all(self) -> dict:
         """
         Return dict with NotepadItem objects, indexed by ID
 
         :return: dict of NotepadItem objects
-        :rtype: dict
         """
         stmt = text("""
             SELECT * FROM notepad
@@ -53,13 +52,12 @@ class Storage:
                 items[notepad.idx] = notepad  # by idx, not id
         return items
 
-    def get_by_idx(self, idx):
+    def get_by_idx(self, idx: int) -> NotepadItem:
         """
         Return NotepadItem by IDx
 
         :param idx: notepad item IDx
         :return: NotepadItem
-        :rtype: NotepadItem
         """
         stmt = text("""
             SELECT * FROM notepad WHERE idx = :idx LIMIT 1
@@ -72,25 +70,23 @@ class Storage:
                 self.unpack(notepad, row._asdict())
         return notepad
 
-    def truncate_all(self):
+    def truncate_all(self) -> bool:
         """
         Truncate all notepad items
 
-        :return: true if truncated
-        :rtype: bool
+        :return: True if truncated
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(text("DELETE FROM notepad"))
         return True
 
-    def delete_by_idx(self, idx):
+    def delete_by_idx(self, idx: int) -> bool:
         """
         Delete notepad item by IDx
 
         :param idx: notepad item IDx
-        :return: true if deleted
-        :rtype: bool
+        :return: True if deleted
         """
         stmt = text("""
             DELETE FROM notepad WHERE idx = :idx
@@ -100,7 +96,7 @@ class Storage:
             conn.execute(stmt)
             return True
 
-    def save(self, notepad):
+    def save(self, notepad: NotepadItem):
         """
         Insert or update notepad item
 
@@ -166,7 +162,7 @@ class Storage:
                 )
             conn.execute(stmt)
 
-    def insert(self, notepad):
+    def insert(self, notepad: NotepadItem) -> int:
         """
         Insert notepad item
 
@@ -213,14 +209,13 @@ class Storage:
             notepad.id = result.lastrowid
             return notepad.id
 
-    def unpack(self, notepad, row):
+    def unpack(self, notepad: NotepadItem, row: dict) -> NotepadItem:
         """
         Unpack notepad item from DB row
 
         :param notepad: Notepad item (NotepadItem)
         :param row: DB row
         :return: Notepad item
-        :rtype: NotepadItem
         """
         notepad.id = int(row['id'])
         notepad.idx = int(row['idx'] or 0)

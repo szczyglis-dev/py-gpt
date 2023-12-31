@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -17,7 +17,7 @@ locale = None
 init_file_meta = None
 
 
-def _(key, reload=False, domain=None):
+def _(key: str, reload: bool = False, domain: str = None) -> str:
     """
     Short alias for trans()
 
@@ -25,12 +25,11 @@ def _(key, reload=False, domain=None):
     :param reload: force reload translations
     :param domain: translation domain
     :return: translated string
-    :rtype: str
     """
     return trans(key, reload, domain)
 
 
-def trans(key, reload=False, domain=None):
+def trans(key: str, reload: bool = False, domain: str = None) -> str:
     """
     Return translation
 
@@ -38,7 +37,6 @@ def trans(key, reload=False, domain=None):
     :param reload: force reload translations
     :param domain: translation domain
     :return: translated string
-    :rtype: str
     """
     global locale
     if locale is None:
@@ -48,13 +46,12 @@ def trans(key, reload=False, domain=None):
     return locale.get(key, domain)
 
 
-def get_init_value(key="__version__"):
+def get_init_value(key: str = "__version__") -> str:
     """
     Return config value from __init__.py
 
     :param key: config key
     :return: config value
-    :rtype: str
     """
     global init_file_meta
 
@@ -74,11 +71,10 @@ def get_init_value(key="__version__"):
         print(e)
 
 
-def get_app_meta():
+def get_app_meta() -> dict:
     """
     Return app meta data
-    :return: app meta data
-    :rtype: dict
+    :return: app meta data=
     """
     return {
         'github': get_init_value("__github__"),

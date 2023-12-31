@@ -34,7 +34,7 @@ class Output:
         self.window = window
         self.input = Input(window)
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup output
 
@@ -79,7 +79,7 @@ class Output:
 
         return widget
 
-    def setup_header(self):
+    def setup_header(self) -> QHBoxLayout:
         """
         Setup header bar
 
@@ -103,7 +103,7 @@ class Output:
 
         return header
 
-    def setup_bottom(self):
+    def setup_bottom(self) -> QHBoxLayout:
         """
         Setup bottom bar
 

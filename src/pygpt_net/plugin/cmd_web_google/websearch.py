@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -28,7 +28,7 @@ class WebSearch:
         self.plugin = plugin
         self.signals = None
 
-    def google_search(self, q, num, offset=0):
+    def google_search(self, q: str, num: int, offset: int = 0) -> list:
         """
         Google search
 
@@ -66,17 +66,16 @@ class WebSearch:
             self.log("Error in Google Search: " + str(e))
         return []
 
-    def get_urls(self, query):
+    def get_urls(self, query: str) -> list:
         """
         Search the web and returns URLs
 
         :param query: query string
         :return: list of founded URLs
         """
-        num_pages = int(self.plugin.get_option_value("num_pages"))
-        return self.google_search(query, num_pages)
+        return self.google_search(query, int(self.plugin.get_option_value("num_pages")))
 
-    def query_url(self, url):
+    def query_url(self, url: str) -> str:
         """
         Query a URL and return the text content
 
@@ -109,7 +108,7 @@ class WebSearch:
             self.debug("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
             self.log("Error in query_web: " + str(e))
 
-    def to_chunks(self, text, chunk_size):
+    def to_chunks(self, text: str, chunk_size: int) -> list:
         """
         Split text into chunks
 
@@ -121,7 +120,7 @@ class WebSearch:
             return []
         return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
-    def get_summarized_text(self, chunks, query, summarize_prompt=None):
+    def get_summarized_text(self, chunks: list, query: str, summarize_prompt: str = None) -> str:
         """
         Get summarized text from chunks
 
@@ -164,7 +163,7 @@ class WebSearch:
 
         return summary
 
-    def make_query(self, query, page_no=1, summarize_prompt=""):
+    def make_query(self, query: str, page_no: int = 1, summarize_prompt: str = "") -> (str, int, int, str):
         """
         Get result from search query
 
@@ -172,7 +171,6 @@ class WebSearch:
         :param page_no: page number
         :param summarize_prompt: custom prompt
         :return: result, total_found, current, url
-        :rtype: (result, total_found, current, url)
         """
         self.log("Using web query: " + query)
         urls = self.get_urls(query)
@@ -230,7 +228,7 @@ class WebSearch:
 
         return result, total_found, current, url
 
-    def open_url(self, url, summarize_prompt=""):
+    def open_url(self, url: str, summarize_prompt: str = "") -> (str, str):
         """
         Get result from specified URL
 
@@ -272,7 +270,7 @@ class WebSearch:
 
         return result, url
 
-    def error(self, err):
+    def error(self, err: any):
         """
         Log error message
 
@@ -281,7 +279,7 @@ class WebSearch:
         if self.signals is not None:
             self.signals.error.emit(err)
 
-    def status(self, msg):
+    def status(self, msg: str):
         """
         Send status message
 
@@ -290,7 +288,7 @@ class WebSearch:
         if self.signals is not None:
             self.signals.status.emit(msg)
 
-    def debug(self, msg):
+    def debug(self, msg: str):
         """
         Log debug message
 
@@ -299,7 +297,7 @@ class WebSearch:
         if self.signals is not None:
             self.signals.debug.emit(msg)
 
-    def log(self, msg):
+    def log(self, msg: str):
         """
         Log message
 

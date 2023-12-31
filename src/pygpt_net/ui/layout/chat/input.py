@@ -38,12 +38,11 @@ class Input:
         self.min_height_input_tab = 80
         self.min_height_input = 50
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup input
 
         :return: QWidget
-        :rtype: QWidget
         """
         input = self.setup_input()
         files = self.setup_attachments()
@@ -68,12 +67,11 @@ class Input:
 
         return widget
 
-    def setup_input(self):
+    def setup_input(self) -> QWidget:
         """
         Setup input tab
 
         :return: QWidget
-        :rtype: QWidget
         """
         # input textarea
         self.window.ui.nodes['input'] = ChatInput(self.window)
@@ -87,12 +85,11 @@ class Input:
         widget.setLayout(layout)
         return widget
 
-    def setup_attachments(self):
+    def setup_attachments(self) -> QWidget:
         """
         Setup attachments
 
         :return: QWidget
-        :rtype: QWidget
         """
         layout = QVBoxLayout()
         layout.addLayout(self.attachments.setup())
@@ -103,12 +100,11 @@ class Input:
         widget.setMinimumHeight(self.min_height_files_tab)
         return widget
 
-    def setup_attachments_uploaded(self):
+    def setup_attachments_uploaded(self) -> QWidget:
         """
         Setup attachments uploaded
 
         :return: QWidget
-        :rtype: QWidget
         """
         layout = QVBoxLayout()
         layout.addLayout(self.attachments_uploaded.setup())
@@ -119,12 +115,11 @@ class Input:
         widget.setMinimumHeight(self.min_height_files_tab)
         return widget
 
-    def setup_header(self):
+    def setup_header(self) -> QHBoxLayout:
         """
         Setup input header
 
         :return: QHBoxLayout
-        :rtype: QHBoxLayout
         """
         # header (input label + input counter)
         self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
@@ -143,12 +138,11 @@ class Input:
 
         return header
 
-    def setup_bottom(self):
+    def setup_bottom(self) -> QHBoxLayout:
         """
         Setup input bottom
 
         :return: QHBoxLayout
-        :rtype: QHBoxLayout
         """
         layout = QHBoxLayout()
         layout.addLayout(self.status.setup())
@@ -156,12 +150,11 @@ class Input:
 
         return layout
 
-    def setup_buttons(self):
+    def setup_buttons(self) -> QHBoxLayout:
         """
         Setup input buttons
 
         :return: QHBoxLayout
-        :rtype: QHBoxLayout
         """
         # send with: enter
         self.window.ui.nodes['input.send_enter'] = QRadioButton(trans("input.radio.enter"))

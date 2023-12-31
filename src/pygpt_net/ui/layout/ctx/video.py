@@ -21,7 +21,7 @@ class Video:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> VideoContainer:
         """
         Setup video preview
         :return: VideoContainer

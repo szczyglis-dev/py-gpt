@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
+from packaging.version import Version
+
+from pygpt_net.item.ctx import CtxMeta, CtxItem
 
 
 class BaseProvider:
@@ -22,22 +26,22 @@ class BaseProvider:
     def install(self):
         pass
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         pass
 
-    def append_item(self, meta, item):
+    def append_item(self, meta: CtxMeta, item: CtxItem):
         pass
 
-    def update_item(self, item):
+    def update_item(self, item: CtxItem):
         pass
 
-    def create(self, meta):
+    def create(self, meta: CtxMeta):
         pass
 
-    def load(self, id):
+    def load(self, id) -> list:
         return []
 
-    def save(self, id, meta, items):
+    def save(self, id, meta: CtxMeta, items: list):
         pass
 
     def remove(self, id):
@@ -46,8 +50,9 @@ class BaseProvider:
     def truncate(self):
         pass
 
-    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
+    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
+                 limit: int = None, offset: int = None):
         pass
 
-    def dump(self, ctx):
+    def dump(self, ctx: CtxItem):
         pass

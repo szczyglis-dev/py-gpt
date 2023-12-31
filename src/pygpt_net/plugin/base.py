@@ -11,6 +11,8 @@
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -40,22 +42,22 @@ class BasePlugin:
         return self.options
 
     def add_option(self,
-                   name,  # option name (ID, key)
-                   type,  # option type (text, textarea, bool, int, float, dict)
-                   value=None,  # option value
-                   label="",  # option label
-                   description="",  # option description
-                   tooltip=None,  # option tooltip
-                   min=None,  # option min value
-                   max=None,  # option max value
-                   multiplier=1,  # option float value multiplier (for sliders)
-                   step=1,  # option step value (for sliders)
-                   slider=False,  # option slider (True/False)
-                   keys=None,  # option keys (for dict type)
-                   advanced=False,  # option is advanced (True/False)
-                   secret=False,  # option is secret (True/False)
-                   persist=False,  # option is persistent on reset to defaults (True/False)
-                   urls=None):  # option URLs (API keys, docs, etc.)
+                   name: str,  # option name (ID, key)
+                   type: str,  # option type (text, textarea, bool, int, float, dict)
+                   value: any = None,  # option value
+                   label: str = "",  # option label
+                   description: str = "",  # option description
+                   tooltip: str = None,  # option tooltip
+                   min: int = None,  # option min value
+                   max: int = None,  # option max value
+                   multiplier: int = 1,  # option float value multiplier (for sliders)
+                   step: int = 1,  # option step value (for sliders)
+                   slider: bool = False,  # option slider (True/False)
+                   keys: dict = None,  # option keys (for dict type)
+                   advanced: bool = False,  # option is advanced (True/False)
+                   secret: bool = False,  # option is secret (True/False)
+                   persist: bool = False,  # option is persistent on reset to defaults (True/False)
+                   urls: dict = None):  # option URLs (API keys, docs, etc.)
         """
         Add plugin configuration option
 
@@ -98,17 +100,17 @@ class BasePlugin:
         }
         self.options[name] = option
 
-    def has_option(self, name):
+    def has_option(self, name: str) -> bool:
         """
         Check if option exists
 
         :param name: option name
-        :return: true if exists
+        :return: True if exists
         :rtype: bool
         """
         return name in self.options
 
-    def get_option(self, name):
+    def get_option(self, name: str) -> dict:
         """
         Return option
 
@@ -119,7 +121,7 @@ class BasePlugin:
         if self.has_option(name):
             return self.options[name]
 
-    def get_option_value(self, name):
+    def get_option_value(self, name: str) -> any:
         """
         Return option value
 
@@ -138,7 +140,7 @@ class BasePlugin:
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle event
 
@@ -148,7 +150,7 @@ class BasePlugin:
         """
         return
 
-    def trans(self, text=None):
+    def trans(self, text: str = None) -> str:
         """
         Translate text using plugin domain
 
@@ -161,7 +163,7 @@ class BasePlugin:
         domain = 'plugin.{}'.format(self.id)
         return trans(text, False, domain)
 
-    def debug(self, data):
+    def debug(self, data: any):
         """
         Send debug message to logger window
 
@@ -169,7 +171,7 @@ class BasePlugin:
         """
         self.window.controller.debug.log(data, True)
 
-    def log(self, msg):
+    def log(self, msg: str):
         """
         Log message to logger and console
 
@@ -180,7 +182,7 @@ class BasePlugin:
         print(msg)
 
     @Slot(object)
-    def handle_finished(self, response, ctx=None):
+    def handle_finished(self, response: dict, ctx: CtxItem = None):
         """
         Handle finished response signal
 
@@ -194,7 +196,7 @@ class BasePlugin:
             self.window.core.dispatcher.reply(ctx)
 
     @Slot(object)
-    def handle_status(self, data):
+    def handle_status(self, data: str):
         """
         Handle thread status msg signal
 
@@ -203,7 +205,7 @@ class BasePlugin:
         self.window.ui.status(str(data))
 
     @Slot(object)
-    def handle_error(self, err):
+    def handle_error(self, err: any):
         """
         Handle thread error signal
 
@@ -213,7 +215,7 @@ class BasePlugin:
         self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
 
     @Slot(object)
-    def handle_debug(self, msg):
+    def handle_debug(self, msg: any):
         """
         Handle debug message signal
 
@@ -222,7 +224,7 @@ class BasePlugin:
         self.debug(msg)
 
     @Slot(object)
-    def handle_log(self, msg):
+    def handle_log(self, msg: str):
         """
         Handle log message signal
 

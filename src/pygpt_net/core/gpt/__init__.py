@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
 import json
 
 from openai import OpenAI
@@ -23,7 +24,7 @@ from pygpt_net.item.ctx import CtxItem
 class Gpt:
     def __init__(self, window=None):
         """
-        GPT Wrapper
+        GPT wrapper core
 
         :param window: Window instance
         """
@@ -52,7 +53,7 @@ class Gpt:
             organization=self.window.core.config.get('organization_key'),
         )
 
-    def call(self, prompt, ctx=None, stream_mode=False):
+    def call(self, prompt: str, ctx: CtxItem = None, stream_mode: bool = False) -> bool:
         """
         Call OpenAI API
 
@@ -60,7 +61,6 @@ class Gpt:
         :param ctx: context item (CtxItem)
         :param stream_mode: stream mode, default: False
         :return: result
-        :rtype: bool
         """
         # prepare max tokens
         mode = self.window.core.config.get('mode')
@@ -136,8 +136,8 @@ class Gpt:
 
         return True
 
-    def quick_call(self, prompt, sys_prompt, append_context=False,
-                   max_tokens=500, model="gpt-3.5-turbo-1106", temp=0.0):
+    def quick_call(self, prompt: str, sys_prompt: str, append_context: bool = False,
+                   max_tokens: int = 500, model: str = "gpt-3.5-turbo-1106", temp: float = 0.0) -> str:
         """
         Quick call OpenAI API with custom prompt
 
@@ -148,7 +148,6 @@ class Gpt:
         :param model: model name
         :param temp: temperature
         :return: response content
-        :rtype: str
         """
         client = self.get_client()
 

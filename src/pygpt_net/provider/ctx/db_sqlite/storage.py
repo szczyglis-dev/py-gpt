@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 14:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -34,12 +34,12 @@ class Storage:
         """
         self.window = window
 
-    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
+    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
+                 limit: int = None, offset: int = None) -> dict:
         """
         Return dict with CtxMeta objects, indexed by ID
 
         :return: dict of CtxMeta
-        :rtype: dict
         """
         limit_suffix = ""
         if limit is not None and limit > 0:
@@ -63,12 +63,11 @@ class Storage:
                 items[meta.id] = meta
         return items
 
-    def get_items(self, id):
+    def get_items(self, id: int) -> list:
         """
         Return ctx items list by ctx meta ID
 
         :return: list of CtxItem
-        :rtype: list
         """
         stmt = text("""
             SELECT * FROM ctx_item WHERE meta_id = :id ORDER BY id ASC
@@ -83,12 +82,11 @@ class Storage:
                 items.append(item)
         return items
 
-    def truncate_all(self):
+    def truncate_all(self) -> bool:
         """
         Truncate all ctx tables
 
-        :return: true if truncated
-        :rtype: bool
+        :return: True if truncated
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
@@ -96,13 +94,12 @@ class Storage:
             conn.execute(text("DELETE FROM ctx_meta"))
         return True
 
-    def delete_meta_by_id(self, id):
+    def delete_meta_by_id(self, id: int) -> bool:
         """
         Delete ctx meta by ID
 
         :param id: ctx meta ID
-        :return: true if deleted
-        :rtype: bool
+        :return: True if deleted
         """
         stmt = text("""
             DELETE FROM ctx_meta WHERE id = :id
@@ -113,13 +110,12 @@ class Storage:
         self.delete_items_by_meta_id(id)
         return True
 
-    def delete_items_by_meta_id(self, id):
+    def delete_items_by_meta_id(self, id: int) -> bool:
         """
         Delete ctx items by ctx meta ID
 
         :param id: ctx meta ID
-        :return: true if deleted
-        :rtype: bool
+        :return: True if deleted
         """
         stmt = text("""
             DELETE FROM ctx_item WHERE meta_id = :id
@@ -129,13 +125,12 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def update_meta(self, meta):
+    def update_meta(self, meta: CtxMeta) -> bool:
         """
         Update ctx meta
 
         :param meta: CtxMeta
-        :return: true if updated
-        :rtype: bool
+        :return: True if updated
         """
         db = self.window.core.db.get_db()
         stmt = text("""
@@ -181,13 +176,12 @@ class Storage:
             conn.execute(stmt)
             return True
 
-    def update_meta_ts(self, id):
+    def update_meta_ts(self, id: int) -> bool:
         """
         Update ctx meta updated timestamp
 
         :param id: ctx meta ID
-        :return: true if updated
-        :rtype: bool
+        :return: True if updated
         """
         db = self.window.core.db.get_db()
         ts = int(time.time())
@@ -204,13 +198,12 @@ class Storage:
             conn.execute(stmt)
             return True
 
-    def insert_meta(self, meta):
+    def insert_meta(self, meta: CtxMeta) -> int:
         """
         Insert ctx meta
 
         :param meta: CtxMeta
         :return: inserted record ID
-        :rtype: int
         """
         db = self.window.core.db.get_db()
         stmt = text("""
@@ -284,14 +277,13 @@ class Storage:
             meta.id = result.lastrowid
             return meta.id
 
-    def insert_item(self, meta, item):
+    def insert_item(self, meta: CtxMeta, item: CtxItem) -> int:
         """
         Insert ctx item
 
         :param meta: Context meta (CtxMeta)
         :param item: Context item (CtxItem)
         :return: inserted record ID
-        :rtype: int
         """
         db = self.window.core.db.get_db()
         stmt = text("""
@@ -378,13 +370,12 @@ class Storage:
 
         return item.id
 
-    def update_item(self, item):
+    def update_item(self, item: CtxItem) -> bool:
         """
         Update ctx item
 
         :param item: Context item (CtxItem)
         :return: True if updated
-        :rtype: bool
         """
         db = self.window.core.db.get_db()
         stmt = text("""
@@ -439,25 +430,23 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def pack_item_value(self, value):
+    def pack_item_value(self, value: any) -> str:
         """
         Pack item value to JSON
 
         :param value: Value to pack
         :return: JSON string or value itself
-        :rtype: str
         """
         if isinstance(value, (list, dict)):
             return json.dumps(value)
         return value
 
-    def unpack_item_value(self, value):
+    def unpack_item_value(self, value: str) -> any:
         """
         Unpack item value from JSON
 
         :param value: Value to unpack
         :return: Unpacked value
-        :rtype: dict or list or str
         """
         if value is None:
             return None
@@ -466,14 +455,13 @@ class Storage:
         except:
             return value
 
-    def unpack_item(self, item, row):
+    def unpack_item(self, item: CtxItem, row: dict) -> CtxItem:
         """
         Unpack item from DB row
 
         :param item: Context item (CtxItem)
         :param row: DB row
         :return: context item
-        :rtype: CtxItem
         """
         item.id = int(row['id'])
         item.meta_id = int(row['meta_id'])
@@ -501,14 +489,13 @@ class Storage:
         item.total_tokens = int(row['total_tokens'] or 0)
         return item
 
-    def unpack_meta(self, meta, row):
+    def unpack_meta(self, meta: CtxMeta, row: dict) -> CtxMeta:
         """
         Unpack meta from DB row
 
         :param meta: Context meta (CtxMeta)
         :param row: DB row
         :return: context meta
-        :rtype: CtxMeta
         """
         meta.id = int(row['id'])
         meta.external_id = row['external_id']

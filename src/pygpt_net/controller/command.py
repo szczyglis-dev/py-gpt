@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
 
 from PySide6.QtCore import QObject, Signal
+
+from pygpt_net.core.dispatcher import Event
 from pygpt_net.core.worker import Worker
 
 
@@ -29,7 +31,7 @@ class Command:
         self.window = window
         self.stop = False
 
-    def dispatch(self, event):
+    def dispatch(self, event: Event):
         """
         Dispatch cmd execute event (command execution)
 
@@ -38,7 +40,7 @@ class Command:
         self.dispatch_sync(event)
         # self.dispatch_async(event)  # TODO: async execution
 
-    def dispatch_sync(self, event):
+    def dispatch_sync(self, event: Event):
         """
         Dispatch async event (command execution)
 
@@ -51,7 +53,7 @@ class Command:
                 self.window.core.dispatcher.apply(id, event, is_async=False)
         self.handle_finished(event)
 
-    def dispatch_async(self, event):
+    def dispatch_async(self, event: Event):
         """
         Dispatch async event (command execution)
 
@@ -65,7 +67,7 @@ class Command:
         worker.kwargs['finished_signal'] = worker.signals.finished
         self.window.threadpool.start(worker)
 
-    def worker(self, event, window, finished_signal):
+    def worker(self, event: Event, window, finished_signal: Signal):
         """
         Command worker callback
 
@@ -84,7 +86,7 @@ class Command:
         """
         Check if stop is requested
 
-        :return: true if stop is requested
+        :return: True if stop is requested
         :rtype: bool
         """
         return self.stop
@@ -97,7 +99,7 @@ class Command:
         """
         self.window.controller.debug.log(str(data))
 
-    def handle_finished(self, event):
+    def handle_finished(self, event: Event):
         """
         Handle thread command execution finish
 

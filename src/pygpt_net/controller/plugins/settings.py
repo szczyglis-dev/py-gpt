@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -141,7 +141,7 @@ class Settings:
             self.window.ui.dialogs.close('plugin_settings')
             self.config_dialog = False
 
-    def load_defaults_user(self, force=False):
+    def load_defaults_user(self, force: bool = False):
         """
         Load plugin settings user defaults
 
@@ -156,7 +156,7 @@ class Settings:
         self.init()
         # self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.user.result'))
 
-    def load_defaults_app(self, force=False):
+    def load_defaults_app(self, force: bool = False):
         """
         Load plugin settings app defaults
 
@@ -174,7 +174,7 @@ class Settings:
         self.init()
         self.window.ui.dialogs.alert(trans('dialog.plugin.settings.defaults.app.result'))
 
-    def config_toggle(self, id, value):
+    def config_toggle(self, id: str, value: any):
         """
         Toggle checkbox
 
@@ -184,7 +184,7 @@ class Settings:
         key = id.replace('plugin.' + self.current_plugin + '.', '')
         self.window.ui.plugin_option[self.current_plugin][key].box.setChecked(value)
 
-    def config_dict_update(self, id, value):
+    def config_dict_update(self, id: str, value: any):
         """
         Toggle dict items
 
@@ -196,7 +196,7 @@ class Settings:
         self.window.ui.plugin_option[self.current_plugin][key].items = values  # replace model data list
         self.window.ui.plugin_option[self.current_plugin][key].model.updateData(values)  # update model data
 
-    def config_change(self, id, value):
+    def config_change(self, id: str, value: any):
         """
         Change input value
 
@@ -219,7 +219,7 @@ class Settings:
 
         self.window.ui.plugin_option[self.current_plugin][key].setText('{}'.format(value))
 
-    def config_slider(self, id, value, type=None):
+    def config_slider(self, id: str, value: any, type: str = None):
         """
         Apply slider + input value
 
@@ -282,13 +282,12 @@ class Settings:
             self.window.ui.plugin_option[self.current_plugin][key].input.setText(txt)
             self.window.ui.plugin_option[self.current_plugin][key].slider.setValue(slider_value)
 
-    def get_option(self, id, key):
+    def get_option(self, id: str, key: str) -> any:
         """
         Get plugin option
 
         :param id: option id
         :param key: option key
         :return: option value
-        :rtype: any
         """
         return self.window.core.plugins.plugins[id].options[key]

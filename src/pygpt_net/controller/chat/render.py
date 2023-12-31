@@ -6,11 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from PySide6.QtGui import QTextCursor
+
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.ui.widget.textarea.input import ChatInput
+from pygpt_net.ui.widget.textarea.output import ChatOutput
 
 
 class Render:
@@ -35,7 +39,7 @@ class Render:
         for item in self.window.core.ctx.items:
             self.append_context_item(item)
 
-    def append_context_item(self, item):
+    def append_context_item(self, item: CtxItem):
         """
         Append context item to output
 
@@ -44,7 +48,7 @@ class Render:
         self.append_input(item)
         self.append_output(item)
 
-    def append_input(self, item):
+    def append_input(self, item: CtxItem):
         """
         Append input to output
 
@@ -62,7 +66,7 @@ class Render:
         else:
             self.append("> {}\n".format(item.input))
 
-    def append_output(self, item):
+    def append_output(self, item: CtxItem):
         """
         Append output to output
 
@@ -80,7 +84,7 @@ class Render:
         else:
             self.append(item.output + "\n")
 
-    def append_chunk(self, item, text_chunk, begin=False):
+    def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output to output
 
@@ -100,7 +104,7 @@ class Render:
 
         self.append(text_chunk, "")
 
-    def append(self, text, end="\n"):
+    def append(self, text: str, end: str = "\n"):
         """
         Append text to output
 
@@ -117,7 +121,7 @@ class Render:
                 cur.insertBlock()
         self.get_output_node().setTextCursor(cur)  # Update visible cursor
 
-    def append_text(self, text):
+    def append_text(self, text: str):
         """
         Append text to notepad
 
@@ -131,7 +135,7 @@ class Render:
         cur = self.get_input_node().textCursor()  # Move cursor to end of text
         cur.movePosition(QTextCursor.End)
 
-    def append_to_input(self, text):
+    def append_to_input(self, text: str):
         """
         Append text to input
 
@@ -147,7 +151,7 @@ class Render:
                 cur.insertBlock()
         self.get_input_node().setTextCursor(cur)  # Update visible cursor
 
-    def is_timestamp_enabled(self):
+    def is_timestamp_enabled(self) -> bool:
         """
         Check if timestamp is enabled
 
@@ -155,7 +159,7 @@ class Render:
         """
         return self.window.core.config.get('output_timestamp')
 
-    def get_output_node(self):
+    def get_output_node(self) -> ChatOutput:
         """
         Get output node
 
@@ -163,7 +167,7 @@ class Render:
         """
         return self.window.ui.nodes['output']
 
-    def get_input_node(self):
+    def get_input_node(self) -> ChatInput:
         """
         Get input node
 

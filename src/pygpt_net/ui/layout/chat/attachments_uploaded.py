@@ -27,12 +27,11 @@ class AttachmentsUploaded:
         self.window = window
         self.id = 'attachments_uploaded'
 
-    def setup(self):
+    def setup(self) -> QVBoxLayout:
         """
         Setup list
 
         :return: QVBoxLayout
-        :rtype: QVBoxLayout
         """
         self.setup_attachments()
 
@@ -73,13 +72,12 @@ class AttachmentsUploaded:
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
 
         :param parent: parent widget
         :return: QStandardItemModel
-        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 2, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))

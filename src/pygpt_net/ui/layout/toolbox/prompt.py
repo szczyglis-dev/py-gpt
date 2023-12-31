@@ -25,12 +25,11 @@ class Prompt:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup system prompt
 
         :return: QWidget
-        :rtype: QWidget
         """
         # cmd enable/disable
         self.window.ui.nodes['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))

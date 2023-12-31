@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -21,23 +21,18 @@ class Mode:
         """
         self.window = window
 
-    def setup(self):
-        """Setup"""
-        pass
-
-    def select(self, idx):
+    def select(self, idx: int):
         """
-        Select mode
+        Select mode by idx
 
         :param idx: value of the list (row idx)
         """
         # check if mode change is not locked
         if self.change_locked():
             return
-        mode = self.window.core.modes.get_by_idx(idx)
-        self.set(mode)
+        self.set(self.window.core.modes.get_by_idx(idx))
 
-    def set(self, mode):
+    def set(self, mode: str):
         """
         Set mode
 
@@ -52,12 +47,11 @@ class Mode:
         self.window.core.config.set('mode', mode)
         self.window.core.config.set('model', "")
         self.window.core.config.set('preset', "")
+
+        # update
         self.window.controller.attachment.update()
         self.window.controller.ctx.update_ctx()
-
-        # update all layout
         self.window.controller.ui.update()
-
         self.window.ui.status(trans('status.started'))
 
         # vision camera
@@ -67,18 +61,22 @@ class Mode:
         else:
             self.window.controller.camera.hide_camera()
 
-        # assistant
+        # if assistant mode then update ctx label
         if mode == "assistant":
-            # update ctx label
             self.window.controller.ctx.common.update_label_by_current()
 
     def select_current(self):
-        """Select mode by current"""
+        """Select current on the list"""
         mode = self.window.core.config.get('mode')
-        items = self.window.core.modes.get_all()
-        idx = list(items.keys()).index(mode)
+        idx = self.window.core.modes.get_idx_by_name(mode)
         current = self.window.ui.models['prompt.mode'].index(idx, 0)
         self.window.ui.nodes['prompt.mode'].setCurrentIndex(current)
+
+    def select_default(self):
+        """Set default mode"""
+        mode = self.window.core.config.get('mode')
+        if mode is None or mode == "":
+            self.window.core.config.set('mode', self.window.core.modes.get_default())
 
     def default_all(self):
         """Set default mode, model and preset"""
@@ -87,22 +85,16 @@ class Mode:
         self.window.controller.presets.select_default()
         self.window.controller.assistant.select_default()
 
-    def select_default(self):
-        """Set default mode"""
-        mode = self.window.core.config.get('mode')
-        if mode is None or mode == "":
-            self.window.core.config.set('mode', self.window.core.modes.get_default())
-
     def update_list(self):
         """Update modes list"""
-        items = self.window.core.modes.get_all()
-        self.window.ui.toolbox.mode.update(items)
+        self.window.ui.toolbox.mode.update(self.window.core.modes.get_all())
 
-    def update_temperature(self, temperature=None):
+    def update_temperature(self, temperature: float = None):
         """
         Update current temperature
 
-        :param temperature: temperature (float)
+        :param temperature: current temperature
+        :type temperature: float or None
         """
         if temperature is None:
             if self.window.core.config.get('preset') is None or self.window.core.config.get('preset') == "":
@@ -110,7 +102,7 @@ class Mode:
             else:
                 id = self.window.core.config.get('preset')
                 if id in self.window.core.presets.items:
-                    temperature = float(self.window.core.presets.items[id].temperature)
+                    temperature = float(self.window.core.presets.items[id].temperature or 1.0)
         self.window.controller.settings.editor.apply("current_temperature", temperature)
 
     def update_mode(self):
@@ -120,18 +112,16 @@ class Mode:
         self.select_current()
 
     def reset_current(self):
-        """Reset current data"""
+        """Reset current setup"""
         self.window.core.config.set('prompt', None)
         self.window.core.config.set('ai_name', None)
         self.window.core.config.set('user_name', None)
 
-    def change_locked(self):
+    def change_locked(self) -> bool:
         """
         Check if mode change is locked
 
-        :return: true if locked
+        :return: True if locked
         :rtype: bool
         """
-        if self.window.controller.chat.input.generating:
-            return True
-        return False
+        return self.window.controller.chat.input.generating

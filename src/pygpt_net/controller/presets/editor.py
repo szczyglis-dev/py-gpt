@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -25,7 +25,7 @@ class Editor:
         """
         self.window = window
 
-    def edit(self, idx=None):
+    def edit(self, idx: int = None):
         """
         Open preset editor
 
@@ -39,7 +39,7 @@ class Editor:
         self.init(preset)
         self.window.ui.dialogs.open_editor('editor.preset.presets', idx)
 
-    def init(self, id=None):
+    def init(self, id: str = None):
         """
         Initialize preset editor
 
@@ -107,7 +107,7 @@ class Editor:
         # set focus to name field
         self.window.ui.config_option['preset.name'].setFocus()
 
-    def save(self, force=False):
+    def save(self, force: bool = False):
         """
         Save preset
 
@@ -182,7 +182,7 @@ class Editor:
         # update list
         self.window.controller.presets.refresh()
 
-    def assign_data(self, id):
+    def assign_data(self, id: str):
         """
         Assign data from fields to preset
 
@@ -216,7 +216,7 @@ class Editor:
         self.config_slider('preset.temperature', self.window.core.config.get('temperature'), '',
                            'preset.editor')
 
-    def update_field(self, id, value, preset=None, current=False):
+    def update_field(self, id: str, value: any, preset: str = None, current: any = False):
         """
         Update preset field from editor
 
@@ -249,7 +249,7 @@ class Editor:
 
         self.window.controller.ui.update_tokens()
 
-    def config_toggle(self, id, value, section=None):
+    def config_toggle(self, id: str, value: any, section: str = None):
         """
         Toggle checkbox
 
@@ -265,7 +265,7 @@ class Editor:
         self.update_field(id, value, preset, is_current)
         self.window.ui.config_option[id].box.setChecked(value)
 
-    def config_change(self, id, value, section=None):
+    def config_change(self, id: str, value: any, section: str = None):
         """
         Change input value
 
@@ -287,7 +287,7 @@ class Editor:
         self.update_field(id, value, preset, is_current)
         self.window.ui.config_option[id].setText('{}'.format(value))
 
-    def config_slider(self, id, value, type=None, section=None):
+    def config_slider(self, id: str, value: any, type: str = None, section: str = None):
         """
         Apply slider + input value
 

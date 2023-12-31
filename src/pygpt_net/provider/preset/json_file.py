@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
 import os
 import shutil
-from packaging.version import parse as parse_version
+from packaging.version import parse as parse_version, Version
 
 from pygpt_net.provider.preset.base import BaseProvider
 from pygpt_net.item.preset import PresetItem
@@ -44,9 +44,11 @@ class JsonFileProvider(BaseProvider):
                 if not os.path.exists(dst_file):
                     shutil.copyfile(src_file, dst_file)
 
-    def load(self):
+    def load(self) -> dict | None:
         """
         Load presets from JSON file
+
+        :return: dict or None
         """
         items = {}
         path = os.path.join(self.window.core.config.path, self.config_dir)
@@ -66,10 +68,11 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, id, item):
+    def save(self, id: str, item: PresetItem):
         """
         Save preset to JSON file
 
+        :param id: preset id
         :param item: PresetItem
         """
         path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
@@ -82,7 +85,7 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def save_all(self, items):
+    def save_all(self, items: dict):
         """
         Save all presets to JSON files
 
@@ -101,7 +104,7 @@ class JsonFileProvider(BaseProvider):
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def remove(self, id):
+    def remove(self, id: str):
         """
         Remove preset
 
@@ -117,13 +120,12 @@ class JsonFileProvider(BaseProvider):
     def truncate(self):
         pass
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Migrate presets to current app version
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         migrated = False
         for k in self.window.core.presets.items:
@@ -160,13 +162,12 @@ class JsonFileProvider(BaseProvider):
         return migrated
 
     @staticmethod
-    def serialize(item):
+    def serialize(item: PresetItem) -> dict:
         """
         Serialize item to dict
 
         :param item: item to serialize
         :return: serialized item
-        :rtype: dict
         """
         return {
             'name': item.name,
@@ -184,7 +185,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data, item):
+    def deserialize(data: dict, item: PresetItem):
         """
         Deserialize item from dict
 
@@ -218,12 +219,11 @@ class JsonFileProvider(BaseProvider):
         if '__meta__' in data and 'version' in data['__meta__']:
             item.version = data['__meta__']['version']
 
-    def dump(self, item):
+    def dump(self, item: PresetItem) -> str:
         """
         Dump to string
 
         :param item: item to dump
         :return: dumped item as string (json)
-        :rtype: str
         """
         return json.dumps(self.serialize(item))

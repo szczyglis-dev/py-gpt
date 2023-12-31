@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
+from pygpt_net.item.mode import ModeItem
 
 
 class BaseProvider:
@@ -19,23 +21,23 @@ class BaseProvider:
     def attach(self, window):
         self.window = window
 
-    def create(self, meta):
+    def create(self, mode: ModeItem) -> str:
         pass
 
-    def load(self):
+    def load(self) -> dict:
         pass
 
-    def save(self, items):
+    def save(self, items: dict):
         pass
 
-    def remove(self, id):
+    def remove(self, id: str):
         pass
 
     def truncate(self):
         pass
 
-    def dump(self, ctx):
+    def dump(self, mode: ModeItem) -> str:
         pass
 
-    def get_version(self):
+    def get_version(self) -> str:
         pass

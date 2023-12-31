@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -41,7 +41,7 @@ class Debug:
         else:
             self.window.ui.menu['debug.logger'].setChecked(False)
 
-    def on_update(self, all=False):
+    def on_update(self, all: bool = False):
         """
         Update debug windows (only if active)
 
@@ -54,7 +54,7 @@ class Debug:
                 if all or id not in not_realtime:
                     self.window.controller.dialogs.debug.update_worker(id)
 
-    def log(self, data, window=True):
+    def log(self, data, window: bool = True):
         """
         Log text
 
@@ -102,7 +102,7 @@ class Debug:
         """Clear logger dialog"""
         self.window.logger.clear()
 
-    def toggle(self, id):
+    def toggle(self, id: str):
         """
         Toggle debug window
 

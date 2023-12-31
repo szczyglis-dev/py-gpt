@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal
 from pygpt_net.core.worker import Worker
+from pygpt_net.item.ctx import CtxItem
 
 
 class WorkerSignals(QObject):
@@ -26,7 +27,7 @@ class Summarizer:
         """
         self.window = window
 
-    def summarize(self, id, ctx):
+    def summarize(self, id: int, ctx: CtxItem):
         """
         Summarize context
 
@@ -35,7 +36,7 @@ class Summarizer:
         """
         self.start_worker(id, ctx)
 
-    def summarizer(self, id, ctx, window, updated_signal):
+    def summarizer(self, id: int, ctx: CtxItem, window, updated_signal: Signal):
         """
         Summarize worker callback
 
@@ -48,7 +49,7 @@ class Summarizer:
         if title:
             updated_signal.emit(id, title)
 
-    def start_worker(self, id, ctx):
+    def start_worker(self, id: int, ctx: CtxItem):
         """
         Handle worker thread
 
@@ -64,7 +65,7 @@ class Summarizer:
         worker.kwargs['updated_signal'] = worker.signals.updated
         self.window.threadpool.start(worker)
 
-    def handle_update(self, id, title):
+    def handle_update(self, id: int, title: str):
         """
         Handle update signal
 

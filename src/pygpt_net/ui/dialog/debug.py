@@ -24,7 +24,7 @@ class Debug:
         """
         self.window = window
 
-    def setup(self, id):
+    def setup(self, id: str):
         """
         Setup debug dialog
 

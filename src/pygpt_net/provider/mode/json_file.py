@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -24,7 +24,7 @@ class JsonFileProvider(BaseProvider):
         self.type = "mode"
         self.config_file = 'modes.json'
 
-    def get_version(self):
+    def get_version(self) -> str | None:
         """
         Get data version
 
@@ -38,9 +38,11 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load(self):
+    def load(self) -> dict | None:
         """
         Load modes config from JSON file
+
+        :return: models dict
         """
         items = {}
         path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
@@ -65,7 +67,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items):
+    def save(self, items: dict):
         """
         Save modes config to JSON file
 
@@ -90,14 +92,14 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def remove(self, id):
+    def remove(self, id: str):
         pass
 
     def truncate(self):
         pass
 
     @staticmethod
-    def serialize(item):
+    def serialize(item: ModeItem) -> dict:
         """
         Serialize item to dict
 
@@ -112,7 +114,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data, item):
+    def deserialize(data: dict, item: ModeItem):
         """
         Deserialize item from dict
 
@@ -126,7 +128,7 @@ class JsonFileProvider(BaseProvider):
         if 'label' in data:
             item.label = data['label']
 
-    def dump(self, item):
+    def dump(self, item: ModeItem) -> str:
         """
         Dump to string
 

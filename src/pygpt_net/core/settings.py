@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -17,7 +17,7 @@ import shutil
 class Settings:
     def __init__(self, window=None):
         """
-        Settings handler
+        Settings core
 
         :param window: Window instance
         """
@@ -33,13 +33,12 @@ class Settings:
         for id in self.ids:
             self.active[id] = False
 
-    def get_options(self, id=None):
+    def get_options(self, id: str = None) -> dict:
         """
         Return options for given id
 
         :param id: settings id
         :return: dictionary of options
-        :rtype: dict
         """
         if not self.initialized:
             self.load()
@@ -48,12 +47,11 @@ class Settings:
         if id in self.options:
             return self.options[id]
 
-    def get_persist_options(self):
+    def get_persist_options(self) -> list:
         """
         Return persist options keys (options that should be persisted when loading defaults)
 
         :return: list of keys
-        :rtype: list
         """
         if not self.initialized:
             self.load()
@@ -101,7 +99,7 @@ class Settings:
         self.load_editor(file)
         self.window.ui.status("Loaded defaults from file: {}".format(file))
 
-    def load_editor(self, file=None):
+    def load_editor(self, file: str = None):
         """
         Load file to editor
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -20,7 +20,7 @@ from pygpt_net.migrations import Migrations
 class Database:
     def __init__(self, window=None):
         """
-        Database provider
+        Database provider core
         """
         self.window = window
         self.db_path = None
@@ -61,7 +61,7 @@ class Database:
             );"""))
             print("[DB] Installed database: {}".format(self.db_path))
 
-    def get_version(self):
+    def get_version(self) -> int:
         """
         Get database migration version
 
@@ -77,7 +77,7 @@ class Database:
         """
         return self.engine
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         """
         Check if database is installed
 
@@ -92,7 +92,7 @@ class Database:
             """)).fetchone()
             return result[0] == 1
 
-    def apply_migration(self, migration, conn, db_version):
+    def apply_migration(self, migration, conn, db_version: int):
         """
         Apply DB migration
 
@@ -120,13 +120,12 @@ class Database:
             for migration in sorted_migrations:
                 self.apply_migration(migration, conn, db_version)
 
-    def get_param(self, key):
+    def get_param(self, key: str) -> str or None:
         """
         Get parameter from database
 
         :param key: parameter key
         :return: parameter value
-        :rtype: str
         """
         self.init()
 
@@ -135,7 +134,7 @@ class Database:
             result = conn.execute(sel_stmt).fetchone()
             return result[0] if result else None
 
-    def set_param(self, key, value):
+    def set_param(self, key: str, value: any):
         """
         Insert or update parameter in database
 
@@ -146,7 +145,7 @@ class Database:
         with self.engine.begin() as conn:
             self.set_param_exec(key, value, conn)
 
-    def set_param_exec(self, key, value, conn):
+    def set_param_exec(self, key: str, value: any, conn):
         """
         Insert or update parameter in database
 

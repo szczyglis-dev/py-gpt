@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -37,7 +37,7 @@ class Assistants:
         if thread is not None:
             return thread.id
 
-    def thread_delete(self, id):
+    def thread_delete(self, id: str) -> str:
         """
         Delete thread
 
@@ -50,7 +50,7 @@ class Assistants:
         if response is not None:
             return response.id
 
-    def msg_send(self, id, text):
+    def msg_send(self, id: str, text: str):
         """
         Send message to thread
 
@@ -75,19 +75,18 @@ class Assistants:
         if message is not None:
             return message
 
-    def msg_list(self, thread_id):
+    def msg_list(self, thread_id: str) -> list:
         """
         Get messages from thread
 
         :param thread_id: thread ID
         :return: messages
-        :rtype: list
         """
         client = self.window.core.gpt.get_client()
         thread_messages = client.beta.threads.messages.list(thread_id)
         return thread_messages.data
 
-    def file_info(self, file_id):
+    def file_info(self, file_id: str):
         """
         Get file info
 
@@ -97,7 +96,7 @@ class Assistants:
         client = self.window.core.gpt.get_client()
         return client.files.retrieve(file_id)
 
-    def file_download(self, file_id, path):
+    def file_download(self, file_id: str, path: str):
         """
         Download file
 
@@ -108,9 +107,8 @@ class Assistants:
         content = client.files.retrieve_content(file_id)
         with open(path, 'wb', ) as f:
             f.write(content.encode())
-            f.close()
 
-    def run_create(self, thread_id, assistant_id, instructions=None):
+    def run_create(self, thread_id: str, assistant_id: str, instructions=None):
         """
         Create assistant run
 
@@ -134,7 +132,7 @@ class Assistants:
         if run is not None:
             return run
 
-    def run_status(self, thread_id, run_id):
+    def run_status(self, thread_id: str, run_id: str) -> str:
         """
         Get assistant run status
 
@@ -150,15 +148,14 @@ class Assistants:
         if run is not None:
             return run.status
 
-    def file_upload(self, id, path, purpose="assistants"):
+    def file_upload(self, id: str, path: str, purpose: str = "assistants") -> str or None:
         """
         Upload file to assistant
 
         :param id: assistant ID
         :param path: file path
         :param purpose: file purpose
-        :return: file ID
-        :rtype: str
+        :return: file ID or None
         """
         client = self.window.core.gpt.get_client()
 
@@ -181,14 +178,13 @@ class Assistants:
             if assistant_file is not None:
                 return assistant_file.id
 
-    def file_delete(self, assistant_id, file_id):
+    def file_delete(self, assistant_id: str, file_id: str) -> str:
         """
         Delete file from assistant
 
         :param assistant_id: assistant ID
         :param file_id: file ID
         :return: file ID
-        :rtype: str
         """
         client = self.window.core.gpt.get_client()
         deleted_file = client.beta.assistants.files.delete(
@@ -199,13 +195,12 @@ class Assistants:
             if deleted_file is not None:
                 return deleted_file.id
 
-    def file_list(self, assistant_id):
+    def file_list(self, assistant_id: str) -> list:
         """
         Get files from assistant
 
         :param assistant_id: assistant ID
         :return: files list
-        :rtype: list
         """
         client = self.window.core.gpt.get_client()
         assistant_files = client.beta.assistants.files.list(
@@ -215,13 +210,12 @@ class Assistants:
         if assistant_files is not None:
             return assistant_files.data
 
-    def create(self, assistant):
+    def create(self, assistant: AssistantItem) -> AssistantItem:
         """
         Create assistant
 
         :param assistant: assistant object
         :return: assistant object
-        :rtype: Assistant
         """
         client = self.window.core.gpt.get_client()
         tools = self.get_tools(assistant)
@@ -236,13 +230,12 @@ class Assistants:
             assistant.id = result.id
             return assistant
 
-    def update(self, assistant):
+    def update(self, assistant: AssistantItem) -> AssistantItem:
         """
         Update assistant
 
         :param assistant: assistant object
         :return: assistant object
-        :rtype: Assistant
         """
         client = self.window.core.gpt.get_client()
         tools = self.get_tools(assistant)
@@ -258,7 +251,7 @@ class Assistants:
             assistant.id = result.id
             return assistant
 
-    def delete(self, id):
+    def delete(self, id: str) -> str:
         """
         Delete assistant
 
@@ -271,14 +264,13 @@ class Assistants:
         if response is not None:
             return response.id
 
-    def get_files(self, id, limit=100):
+    def get_files(self, id: str, limit: int = 100) -> list:
         """
         Get assistant files
 
         :param id: assistant ID
         :param limit: limit
         :return: files list
-        :rtype: list
         """
         client = self.window.core.gpt.get_client()
         return client.beta.assistants.files.list(
@@ -286,7 +278,7 @@ class Assistants:
             limit=limit,
         )
 
-    def import_api(self, items, order="asc", limit=100):
+    def import_api(self, items: dict, order: str = "asc", limit: int = 100) -> dict:
         """
         Import assistants from API
 
@@ -294,7 +286,6 @@ class Assistants:
         :param order: order
         :param limit: limit
         :return: items dict
-        :rtype: dict
         """
         client = self.window.core.gpt.get_client()
         assistants = client.beta.assistants.list(
@@ -334,13 +325,12 @@ class Assistants:
                         items[id].tools[tool.type] = True
         return items
 
-    def get_tools(self, assistant):
+    def get_tools(self, assistant: AssistantItem) -> list:
         """
         Get assistant tools
 
         :param assistant: assistant
         :return: tools list
-        :rtype: list
         """
         tools = []
         if assistant.has_tool("code_interpreter"):

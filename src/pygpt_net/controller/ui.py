@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 20:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -264,7 +264,7 @@ class UI:
             model_str = "{} ({})".format(trans("mode." + mode), model)
         self.window.ui.nodes['chat.model'].setText(model_str)
 
-    def update_ctx_label(self, label):
+    def update_ctx_label(self, label: str = None):
         """
         Update ctx label
 

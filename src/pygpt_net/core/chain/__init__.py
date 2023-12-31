@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -19,7 +19,7 @@ from pygpt_net.item.ctx import CtxItem
 class Chain:
     def __init__(self, window=None):
         """
-        Langchain Wrapper
+        Langchain wrapper core
 
         :param window: Window instance
         """
@@ -32,7 +32,7 @@ class Chain:
         self.attachments = {}
         self.llms = {}
 
-    def register(self, id, llm):
+    def register(self, id: str, llm):
         """
         Register LLM
 
@@ -41,7 +41,7 @@ class Chain:
         """
         self.llms[id] = llm
 
-    def call(self, prompt, ctx, stream_mode=False):
+    def call(self, prompt: str, ctx: CtxItem, stream_mode: bool = False) -> bool:
         """
         Call LLM with Langchain
 
@@ -49,7 +49,6 @@ class Chain:
         :param ctx: context (CtxItem)
         :param stream_mode: stream mode
         :return: result
-        :rtype: bool
         """
         model_config = self.window.core.models.get(self.window.core.config.get('model'))
         response = None

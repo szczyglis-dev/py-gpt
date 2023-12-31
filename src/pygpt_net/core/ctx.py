@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -20,7 +20,7 @@ from pygpt_net.utils import trans
 class Ctx:
     def __init__(self, window=None):
         """
-        Context handler
+        Context core
 
         :param window: Window instance
         """
@@ -52,11 +52,11 @@ class Ctx:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version):
+    def patch(self, app_version: str):
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def select(self, id):
+    def select(self, id: int):
         """
         Select ctx
 
@@ -85,12 +85,11 @@ class Ctx:
 
             self.items = self.load(id)
 
-    def new(self):
+    def new(self) -> CtxMeta or None:
         """
         Create new ctx and set as current
 
         :return: CtxMeta instance (new ctx meta)
-        :rtype: CtxMeta
         """
         meta = self.create()  # create new ctx meta
         if meta is None:
@@ -109,12 +108,11 @@ class Ctx:
 
         return meta
 
-    def build(self):
+    def build(self) -> CtxMeta:
         """
         Build new ctx
 
         :return: created CtxMeta instance
-        :rtype: CtxMeta
         """
         meta = CtxMeta()  # create ctx meta
         meta.name = "{}".format(trans('ctx.new.prefix'))
@@ -126,18 +124,18 @@ class Ctx:
         meta.initialized = False
         return meta
 
-    def create(self):
+    def create(self) -> CtxMeta:
         """
         Send created meta to provider and return new ID
 
-        :return: created ID
+        :return: CtxMeta instance
         """
         meta = self.build()
         id = self.provider.create(meta)
         meta.id = id
         return meta
 
-    def add(self, item):
+    def add(self, item: CtxItem):
         """
         Add CtxItem to contexts and saves context
 
@@ -152,7 +150,7 @@ class Ctx:
             if not result:
                 self.store()  # if not stored, e.g. in JSON file provider, then store whole ctx (save all)
 
-    def update_item(self, item):
+    def update_item(self, item: CtxItem):
         """
         Update CtxItem in context
 
@@ -160,12 +158,11 @@ class Ctx:
         """
         self.provider.update_item(item)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """
         Check if ctx is empty
 
-        :return: true if empty, false otherwise
-        :rtype: bool
+        :return: True if empty, false otherwise
         """
         if self.current is None:
             return True
@@ -185,7 +182,7 @@ class Ctx:
         self.meta[self.current].mode = self.mode
         self.save(self.current)
 
-    def post_update(self, mode):
+    def post_update(self, mode: str):
         """
         Update current (last) ctx data
 
@@ -211,15 +208,14 @@ class Ctx:
         # save ctx
         self.save(self.current)
 
-    def is_initialized(self):
+    def is_initialized(self) -> bool:
         """
         Check if ctx is initialized (name assigned)
 
-        :return: true if initialized, false otherwise
-        :rtype: bool
+        :return: True if initialized, false otherwise
         """
         if self.current is None:
-            return
+            return False
         if self.current in self.meta:
             return self.meta[self.current].initialized
 
@@ -233,30 +229,28 @@ class Ctx:
             self.meta[self.current].initialized = True
             self.save(self.current)
 
-    def has(self, id):
+    def has(self, id: int) -> bool:
         """
         Check if ctx meta exists
 
         :param id: ctx ID
-        :return: true if exists, false otherwise
-        :rtype: bool
+        :return: True if exists, false otherwise
         """
         if id in self.meta:
             return True
         return False
 
-    def get(self, idx):
+    def get(self, idx: int) -> CtxItem:
         """
         Return ctx item by index
 
         :param idx: item index
         :return: context item
-        :rtype: CtxItem or None
         """
         if idx < len(self.items):
             return self.items[idx]
 
-    def get_meta(self, reload=False):
+    def get_meta(self, reload: bool = False) -> dict:
         """
         Get ctx items sorted descending by date
 
@@ -266,13 +260,12 @@ class Ctx:
             self.load_meta()
         return self.meta
 
-    def get_id_by_idx(self, idx):
+    def get_id_by_idx(self, idx: int) -> int:
         """
         Get ctx id (id) by index
 
         :param idx: index
         :return: ctx id
-        :rtype: str or None
         """
         i = 0
         for id in self.get_meta():
@@ -280,45 +273,41 @@ class Ctx:
                 return id
             i += 1
 
-    def get_idx_by_id(self, id):
+    def get_idx_by_id(self, id: int) -> int:
         """
         Get ctx index by id
 
         :param id: id
         :return: idx
-        :rtype: int or None
         """
         items = self.get_meta()
         if id in items:
             return list(items.keys()).index(id)
 
-    def get_first(self):
+    def get_first(self) -> str:
         """
         Return first ctx ID from list
 
         :return: ctx id
-        :rtype: str or None
         """
         for id in self.get_meta():
             return id
 
-    def get_meta_by_id(self, id):
+    def get_meta_by_id(self, id: int) -> CtxMeta:
         """
         Return ctx meta by id
 
         :param id: ctx id
         :return: ctx meta object
-        :rtype: CtxMeta or None
         """
         if id in self.meta:
             return self.meta[id]
 
-    def get_last(self):
+    def get_last(self) -> CtxItem or None:
         """
         Return last item from ctx
 
         :return: last ctx item
-        :rtype: CtxItem or None
         """
         if len(self.items) > 0:
             return self.items[-1]
@@ -330,34 +319,31 @@ class Ctx:
         if len(self.meta) == 0:
             self.new()
 
-    def count(self):
+    def count(self) -> int:
         """
         Count ctx items
 
         :return: ctx items count
-        :rtype: int
         """
         return len(self.items)
 
-    def count_meta(self):
+    def count_meta(self) -> int:
         """
         Count ctx meta items
 
         :return: ctx meta count
-        :rtype: int
         """
         return len(self.meta)
 
-    def all(self):
+    def all(self) -> list:
         """
         Return ctx items
 
         :return: ctx items
-        :rtype: list
         """
         return self.items
 
-    def remove(self, id):
+    def remove(self, id: int):
         """
         Delete ctx by id
 
@@ -427,7 +413,7 @@ class Ctx:
             self.meta[self.current].status = self.status
             self.save(self.current)
 
-    def count_prompt_items(self, model, mode, used_tokens=100, max_tokens=1000):
+    def count_prompt_items(self, model: str, mode: str, used_tokens: int = 100, max_tokens: int = 1000) -> (int, int):
         """
         Count ctx items to add to prompt
 
@@ -452,7 +438,8 @@ class Ctx:
 
         return i, context_tokens
 
-    def get_prompt_items(self, model, mode="chat", used_tokens=100, max_tokens=1000, ignore_first=True):
+    def get_prompt_items(self, model: str, mode: str = "chat", used_tokens: int = 100, max_tokens: int = 1000,
+                         ignore_first: bool = True) -> list:
         """
         Return ctx items to add to prompt
 
@@ -462,7 +449,6 @@ class Ctx:
         :param max_tokens: max tokens
         :param ignore_first: ignore current item (provided by user)
         :return: context items list
-        :rtype: list
         """
         items = []
         # loop on items from end to start
@@ -481,13 +467,12 @@ class Ctx:
         items.reverse()
         return items
 
-    def get_all_items(self, ignore_first=True):
+    def get_all_items(self, ignore_first: bool = True) -> list:
         """
         Return all ctx items
 
         :param ignore_first: ignore current item (provided by user)
         :return: ctx items list
-        :rtype: list
         """
         items = []
         is_first = True
@@ -501,7 +486,7 @@ class Ctx:
         items.reverse()
         return items
 
-    def check(self, threshold, max_total):
+    def check(self, threshold: int, max_total: int):
         """
         Check context and clear if limit exceeded
 
@@ -511,34 +496,31 @@ class Ctx:
         if self.get_tokens_left(max_total) <= threshold:
             self.remove_first()
 
-    def get_tokens_left(self, max):
+    def get_tokens_left(self, max: int) -> int:
         """
         Return remaining tokens in context
 
         :param max: max tokens
         :return: remaining tokens in context
-        :rtype: int
         """
         return max - self.get_total_tokens()
 
-    def get_total_tokens(self):
+    def get_total_tokens(self) -> int:
         """
         Return current prompt tokens
 
         :return: total tokens
-        :rtype: int
         """
         last = self.get_last()
         if last is not None:
             return last.total_tokens
         return 0
 
-    def get_last_tokens(self):
+    def get_last_tokens(self) -> int:
         """
         Return last tokens count
 
         :return: last tokens
-        :rtype: int
         """
         last = self.get_last()
         if last is not None:
@@ -555,14 +537,13 @@ class Ctx:
         if len(self.items) > 0:
             self.items.pop(0)
 
-    def is_allowed_for_mode(self, mode, check_assistant=True):
+    def is_allowed_for_mode(self, mode: str, check_assistant: bool = True) -> bool:
         """
         Check if ctx is allowed for this mode
 
         :param mode: mode name
         :param check_assistant: True if check also current assistant
         :return: True if allowed for mode
-        :rtype: bool
         """
         # always allow if lock_modes is disabled
         if not self.window.core.config.get('lock_modes'):
@@ -612,17 +593,16 @@ class Ctx:
             limit = int(self.window.core.config.get('ctx.records.limit') or 0)
         self.meta = self.provider.get_meta(self.search_string, 'updated_ts', 'DESC', limit)
 
-    def load(self, id):
+    def load(self, id: int) -> list:
         """
         Load ctx data from provider
 
         :param id: ctx id
-        :return: ctx items
-        :rtype: list
+        :return: ctx items list
         """
         return self.provider.load(id)
 
-    def save(self, id):
+    def save(self, id: int):
         """
         Save ctx data
 
@@ -638,7 +618,7 @@ class Ctx:
         if self.current is not None and self.current in self.meta:
             self.save(self.current)
 
-    def dump(self, ctx):
+    def dump(self, ctx: CtxItem) -> str:
         """
         Dump context item
 

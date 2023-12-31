@@ -123,7 +123,7 @@ class Preset:
         self.window.ui.dialog['editor.' + id].setLayout(layout)
         self.window.ui.dialog['editor.' + id].setWindowTitle(trans('dialog.preset'))
 
-    def add_option(self, title, option, bold=False):
+    def add_option(self, title: str, option, bold: bool = False) -> QHBoxLayout:
         """
         Add option
 
@@ -141,7 +141,7 @@ class Preset:
 
         return layout
 
-    def add_raw_option(self, option):
+    def add_raw_option(self, option) -> QHBoxLayout:
         """
         Add raw option row
 

@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
 import json
 import os
+
+from packaging.version import Version
 
 from pygpt_net.provider.ctx.base import BaseProvider
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -32,30 +34,39 @@ class JsonFileProvider(BaseProvider):
         if not os.path.exists(context_dir):
             os.mkdir(context_dir)
 
-    def create_id(self):
+    def create_id(self) -> str:
         """
-        Create unique ctx ID
+        Create unique ctx ID, in JSON file this is a timestamp with microseconds
 
         Format: YYYYMMDDHHMMSS.MICROSECONDS.json
 
         :return: generated ID
-        :rtype: str
         """
         return datetime.datetime.now().strftime("%Y%m%d%H%M%S.%f")
 
-    def create(self, meta):
+    def create(self, meta: CtxMeta) -> str:
         """
         Create new ctx and return its ID
 
-        :param meta: CtxMeta
+        :param meta: CtxMeta object
         :return: ctx ID
         """
         if meta.id is None or meta.id == "":
             meta.id = self.create_id()
         return meta.id
 
-    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
-        """Load ctx metadata from file"""
+    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
+                 limit: int = None, offset: int = None) -> dict:
+        """
+        Load ctx metadata from file
+
+        :param search_string: search string
+        :param order_by: order by field
+        :param order_direction: order direction
+        :param limit: limit
+        :param offset: offset
+        :return: ctx metadata
+        """
         contexts = {}
         path = os.path.join(self.window.core.config.path, 'context.json')
         try:
@@ -71,13 +82,12 @@ class JsonFileProvider(BaseProvider):
 
         return contexts
 
-    def load(self, id):
+    def load(self, id: str) -> list:
         """
         Load ctx data from json file
 
         :param id: context id
         :return: context items (list of CtxItem)
-        :rtype: list
         """
         data = []
         path = os.path.join(self.window.core.config.path, 'context', id + '.json')
@@ -93,7 +103,7 @@ class JsonFileProvider(BaseProvider):
                 data = []
         return data
 
-    def append(self, meta, item):
+    def append(self, meta: CtxMeta, item: CtxItem) -> bool:
         """
         Append item to ctx
 
@@ -102,7 +112,7 @@ class JsonFileProvider(BaseProvider):
         """
         return False  # handled after in save() method
 
-    def save(self, id, meta, items):
+    def save(self, id: str, meta: CtxMeta, items: list):
         """
         Dump ctx to json file
 
@@ -143,7 +153,7 @@ class JsonFileProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while dumping context: {}".format(id))
 
-    def remove(self, id):
+    def remove(self, id: str):
         """
         Delete ctx by id
 
@@ -198,24 +208,22 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Migrate ctx to current app version
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         return False
 
     @staticmethod
-    def serialize_meta(meta):
+    def serialize_meta(meta: CtxMeta) -> dict:
         """
         Serialize CtxMeta to dict
 
         :param meta: CtxMeta
         :return: serialized CtxMeta dict
-        :rtype: dict
         """
         return {
             'id': meta.id,
@@ -232,7 +240,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize_meta(data, meta):
+    def deserialize_meta(data: dict, meta: CtxMeta):
         """
         Deserialize CtxMeta from dict
 
@@ -264,13 +272,12 @@ class JsonFileProvider(BaseProvider):
         return meta
 
     @staticmethod
-    def serialize_item(ctx):
+    def serialize_item(ctx: CtxItem) -> dict:
         """
         Serialize CtxItem to dict
 
         :param ctx: CtxItem
         :return: serialized item dict
-        :rtype: dict
         """
         return {
             'input': ctx.input,
@@ -289,7 +296,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize_item(data, ctx):
+    def deserialize_item(data: dict, ctx: CtxItem):
         """
         Deserialize CtxItem from dict
 
@@ -323,23 +330,21 @@ class JsonFileProvider(BaseProvider):
         if 'output_timestamp' in data:
             ctx.output_timestamp = data['output_timestamp']
 
-    def dump(self, ctx):
+    def dump(self, ctx: CtxItem) -> str:
         """
         Dump ctx to string
 
         :param ctx: CtxItem
         :return: dumped item as string (json)
-        :rtype: str
         """
         return json.dumps(self.serialize_item(ctx))
 
-    def parse_data(self, data):
+    def parse_data(self, data: list) -> list:
         """
         Parse ctx data from json to objects
 
         :param data: ctx items data
         :return: ctx items (deserialized) as objects list
-        :rtype: list
         """
         items = []
         for item in data:
@@ -348,13 +353,12 @@ class JsonFileProvider(BaseProvider):
             items.append(ctx)
         return items
 
-    def parse_meta(self, data):
+    def parse_meta(self, data: dict) -> dict:
         """
         Parse ctx data from json to objects
 
         :param data: ctx items data
         :return: ctx items (deserialized) dict
-        :rtype: dict
         """
         items = {}
         for k in data:

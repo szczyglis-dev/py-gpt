@@ -27,11 +27,10 @@ class About:
         """
         self.window = window
 
-    def prepare_content(self):
+    def prepare_content(self) -> str:
         """
         Get info text
         :return: info text
-        :rtype: str
         """
         data = "{}: {}\n" \
                "{}: {}\n" \

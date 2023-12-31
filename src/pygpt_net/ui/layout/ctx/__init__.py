@@ -28,12 +28,11 @@ class CtxMain:
         self.ctx_list = CtxList(window)
         self.video = Video(window)
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup layout
 
         :return: QWidget
-        :rtype: QWidget
         """
         ctx = self.ctx_list.setup()
         video = self.video.setup()

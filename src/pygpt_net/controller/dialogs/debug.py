@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -60,7 +60,7 @@ class Debug:
             self.active[id] = False
             self.idx[id] = 0
 
-    def begin(self, id):
+    def begin(self, id: str):
         """
         Begin debug data
 
@@ -78,7 +78,7 @@ class Debug:
             self.initialized[id] = False
         self.idx[id] = 0
 
-    def end(self, id):
+    def end(self, id: str):
         """
         End debug data
 
@@ -87,7 +87,7 @@ class Debug:
         self.counters[id] = self.idx[id]
         self.initialized[id] = True
 
-    def add(self, id, k, v):
+    def add(self, id: str, k: str, v: any):
         """
         Append debug entry
 
@@ -108,25 +108,23 @@ class Debug:
                     return
         self.idx[id] += 1
 
-    def get_ids(self):
+    def get_ids(self) -> list:
         """
         Get debug workers ids
 
         :return: list of ids
-        :rtype: list
         """
-        return self.ids
+        return list(self.ids)
 
-    def get_workers(self):
+    def get_workers(self) -> dict:
         """
         Get debug workers
 
-        :return: list of workers
-        :rtype: list
+        :return: dict of workers
         """
         return self.workers
 
-    def update_worker(self, id):
+    def update_worker(self, id: str):
         """
         Update debug worker
 
@@ -135,19 +133,18 @@ class Debug:
         if id in self.workers:
             self.workers[id].update()
 
-    def is_active(self, id):
+    def is_active(self, id: str) -> bool:
         """
         Check if debug window is active
 
         :param id: debug id
         :return: True if active
-        :rtype: bool
         """
         if id not in self.active:
             return False
         return self.active[id]
 
-    def show(self, id):
+    def show(self, id: str):
         """
         Activate debug window
 
@@ -158,7 +155,7 @@ class Debug:
         self.active[id] = True
         self.window.ui.dialogs.open('debug.' + id)
 
-    def hide(self, id):
+    def hide(self, id: str):
         """
         Deactivate debug window
 
@@ -169,13 +166,12 @@ class Debug:
         self.active[id] = False
         self.window.ui.dialogs.close('debug.' + id)
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
 
         :param parent: parent widget
         :return: model instance
-        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 2, parent)
         model.setHeaderData(self.DBG_KEY, Qt.Horizontal, "Key")

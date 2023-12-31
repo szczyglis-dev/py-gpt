@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -24,7 +25,7 @@ class Output:
         """
         self.window = window
 
-    def handle(self, ctx, mode, stream_mode=False):
+    def handle(self, ctx: CtxItem, mode: str, stream_mode: bool = False):
         """
         Handle response from LLM
 
@@ -117,7 +118,7 @@ class Output:
 
         self.handle_complete(ctx)
 
-    def handle_complete(self, ctx):
+    def handle_complete(self, ctx: CtxItem):
         """
         Handle completed context
 
@@ -135,7 +136,7 @@ class Output:
         if self.window.core.config.get('store_history'):
             self.window.core.history.append(ctx, "output")
 
-    def handle_cmd(self, ctx):
+    def handle_cmd(self, ctx: CtxItem):
         """
         Handle plugin commands
 

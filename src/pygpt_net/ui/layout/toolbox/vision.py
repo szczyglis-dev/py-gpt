@@ -23,12 +23,11 @@ class Vision:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup vision
 
         :return: QWidget
-        :rtype: QWidget
         """
         # enable/disable
         self.window.ui.nodes['vision.capture.enable'] = QCheckBox(trans("vision.capture.enable"))

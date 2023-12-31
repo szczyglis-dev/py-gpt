@@ -27,12 +27,11 @@ class Assistants:
         self.window = window
         self.id = 'assistants'
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup assistants
 
         :return: QWidget
-        :rtype: QWidget
         """
         layout = self.setup_assistants()
 
@@ -42,12 +41,11 @@ class Assistants:
 
         return self.window.ui.nodes['assistants.widget']
 
-    def setup_assistants(self):
+    def setup_assistants(self) -> QVBoxLayout:
         """
         Setup list of assistants
 
         :return: QVBoxLayout
-        :rtype: QVBoxLayout
         """
         # new
         self.window.ui.nodes['assistants.new'] = QPushButton(trans('assistant.new'))
@@ -88,13 +86,12 @@ class Assistants:
 
         return layout
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
 
         :param parent: parent widget
         :return: QStandardItemModel
-        :rtype: QStandardItemModel
         """
         return QStandardItemModel(0, 1, parent)
 

@@ -27,12 +27,11 @@ class CtxList:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup list
 
         :return: QWidget
-        :rtype: QWidget
         """
         id = 'ctx.list'
         self.window.ui.nodes['ctx.new'] = QPushButton(trans('ctx.new'))
@@ -60,13 +59,12 @@ class CtxList:
 
         return widget
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create model
 
         :param parent: parent widget
         :return: QStandardItemModel
-        :rtype: QStandardItemModel
         """
         return QStandardItemModel(0, 1, parent)
 
@@ -96,13 +94,12 @@ class CtxList:
 
         self.window.ui.nodes[id].restore_selection()
 
-    def convert_date(self, timestamp):
+    def convert_date(self, timestamp: int) -> str:
         """
         Convert timestamp to human readable format
 
         :param timestamp: timestamp
         :return: string
-        :rtype: str
         """
         today = datetime.today().date()
         yesterday = today - timedelta(days=1)

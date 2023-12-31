@@ -24,7 +24,7 @@ class Image:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup image
 

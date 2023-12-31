@@ -258,7 +258,7 @@ class Plugins:
             except:
                 print('Can\'t restore plugin settings tab: {}'.format(idx))
 
-    def add_line(self):
+    def add_line(self) -> QFrame:
         """
         Make line
         """
@@ -267,7 +267,7 @@ class Plugins:
         line.setFrameShadow(QFrame.Sunken)
         return line
 
-    def add_urls(self, urls):
+    def add_urls(self, urls: dict) -> QWidget:
         """
         Add clickable urls to list
 
@@ -283,7 +283,7 @@ class Plugins:
         widget.setLayout(layout)
         return widget
 
-    def add_option(self, plugin, key, option, widget, type):
+    def add_option(self, plugin, key, option, widget, type) -> QVBoxLayout:
         """
         Append option row
 
@@ -360,7 +360,7 @@ class Plugins:
 
         return layout
 
-    def add_raw_option(self, option):
+    def add_raw_option(self, option) -> QHBoxLayout:
         """
         Add raw option row
 
@@ -370,7 +370,7 @@ class Plugins:
         layout.addWidget(option)
         return layout
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
         :param parent: parent widget

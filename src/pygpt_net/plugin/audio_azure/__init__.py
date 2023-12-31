@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,8 @@ from PySide6.QtCore import Slot
 
 from .worker import Worker
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 
 
 class Plugin(BasePlugin):
@@ -54,12 +56,11 @@ class Plugin(BasePlugin):
                         "Specify voice for non-English languages, e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
                         tooltip="Voice (PL)")
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
         :return: config options
-        :rtype: dict
         """
         return self.options
 
@@ -71,7 +72,7 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
@@ -88,7 +89,7 @@ class Plugin(BasePlugin):
         elif name == 'audio.output.stop':
             self.stop_audio()
 
-    def on_input_before(self, text):
+    def on_input_before(self, text: str):
         """
         Event: Before input
 
@@ -96,7 +97,7 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
-    def on_ctx_after(self, ctx):
+    def on_ctx_after(self, ctx: CtxItem):
         """
         Event: After ctx
 
@@ -144,7 +145,7 @@ class Plugin(BasePlugin):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def set_status(self, status):
+    def set_status(self, status: str):
         """
         Set status
 

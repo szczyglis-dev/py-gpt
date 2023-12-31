@@ -6,17 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 17:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.provider.assistant.json_file import JsonFileProvider
 
 
 class Assistants:
     def __init__(self, window=None):
         """
-        Assistants
+        Assistants core
 
         :param window: Window instance
         """
@@ -33,60 +34,55 @@ class Assistants:
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def get_by_idx(self, idx):
+    def get_by_idx(self, idx: int) -> str:
         """
-        Return assistant by index
+        Return assistant ID by index
 
         :param idx: index
         :return: assistant ID
-        :rtype: str
         """
         assistants = self.get_all()
         return list(assistants.keys())[idx]
 
-    def get_by_id(self, id):
+    def get_by_id(self, id: str) -> AssistantItem | None:
         """
         Return assistant by ID
 
         :param id: ID
         :return: assistant
-        :rtype: AssistantItem
         """
         assistants = self.get_all()
         if id not in assistants:
             return None
         return assistants[id]
 
-    def get_all(self):
+    def get_all(self) -> dict:
         """
         Return assistants
 
         :return: assistants dict
-        :rtype: dict
         """
         return self.items
 
-    def has(self, id):
+    def has(self, id: str) -> bool:
         """
         Check if assistant exists
 
         :param id: assistant ID
         :return: bool
-        :rtype: bool
         """
         return id in self.items
 
-    def create(self):
+    def create(self) -> AssistantItem:
         """
         Create new assistant item (only empty object)
 
         :return: assistant ID
-        :rtype: AssistantItem
         """
         assistant = AssistantItem()
         return assistant
 
-    def add(self, assistant):
+    def add(self, assistant: AssistantItem):
         """
         Add assistant
 
@@ -98,7 +94,7 @@ class Assistants:
         # save to file
         self.save()
 
-    def delete(self, id):
+    def delete(self, id: str):
         """
         Delete assistant
 
@@ -108,7 +104,7 @@ class Assistants:
             self.items.pop(id)
         self.save()
 
-    def rename_file(self, assistant, file_id, name):
+    def rename_file(self, assistant: AssistantItem, file_id: str, name: str):
         """
         Rename uploaded remote file name
 
@@ -135,7 +131,7 @@ class Assistants:
         if need_save:
             self.save()
 
-    def replace_attachment(self, assistant, attachment, old_id, new_id):
+    def replace_attachment(self, assistant: AssistantItem, attachment: AttachmentItem, old_id: str, new_id: str):
         """
         Replace temporary attachment with uploaded one
 
@@ -149,9 +145,9 @@ class Assistants:
             del assistant.attachments[old_id]
             self.save()
 
-    def get_default_assistant(self):
+    def get_default_assistant(self) -> str or None:
         """
-        Return default assistant
+        Return default assistant ID or None
 
         :return: default assistant
         :rtype: AssistantItem or None
@@ -161,21 +157,20 @@ class Assistants:
             return None
         return list(assistants.keys())[0]
 
-    def get_file_id_by_idx(self, assistant, idx):
+    def get_file_id_by_idx(self, assistant: AssistantItem, idx: int) -> str | None:
         """
         Return file ID by index
 
         :param assistant: assistant object
         :param idx: index
-        :return: file ID
-        :rtype: str
+        :return: file ID or None
         """
         files = assistant.files
         if idx >= len(files):
             return None
         return list(files.keys())[idx]
 
-    def get_file_by_id(self, assistant, id):
+    def get_file_by_id(self, assistant: AssistantItem, id: str) -> dict | None:
         """
         Return file by ID
 
@@ -189,7 +184,7 @@ class Assistants:
             return None
         return files[id]
 
-    def import_files(self, assistant, data, import_data=True):
+    def import_files(self, assistant: AssistantItem, data: list, import_data: bool = True):
         """
         Import files from remote API
 
@@ -238,13 +233,12 @@ class Assistants:
             if id not in remote_ids:
                 del assistant.files[id]
 
-    def import_filenames(self, id):
+    def import_filenames(self, id: str) -> str:
         """
         Import filenames from remote API
 
         :param id: file id
         :return: filename
-        :rtype: str
         """
         name = id
         try:

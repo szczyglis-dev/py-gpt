@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -44,7 +44,7 @@ class Lang:
         if lang in self.window.ui.menu['lang']:
             self.window.ui.menu['lang'][lang].setChecked(True)
 
-    def toggle(self, id):
+    def toggle(self, id: str):
         """
         Toggle language
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import platform
@@ -21,7 +21,7 @@ class Platforms:
 
     def __init__(self, window=None):
         """
-        Platform handler
+        Platform core
 
         :param window: Window instance
         """
@@ -65,7 +65,7 @@ class Platforms:
         """Initialize platform"""
         pass
 
-    def get_os(self):
+    def get_os(self) -> str:
         """
         Return OS name
 
@@ -74,7 +74,7 @@ class Platforms:
         """
         return platform.system()
 
-    def get_architecture(self):
+    def get_architecture(self) -> str:
         """
         Return platform architecture
 
@@ -83,16 +83,16 @@ class Platforms:
         """
         return platform.machine()
 
-    def is_linux(self):
+    def is_linux(self) -> bool:
         """
         Return True if OS is Linux
 
-        :return: true if OS is Linux
+        :return: True if OS is Linux
         :rtype: bool
         """
         return self.get_os() == 'Linux'
 
-    def is_mac(self):
+    def is_mac(self) -> bool:
         """
         Return True if OS is MacOS
 
@@ -101,20 +101,20 @@ class Platforms:
         """
         return self.get_os() == 'Darwin'
 
-    def is_windows(self):
+    def is_windows(self) -> bool:
         """
         Return True if OS is Windows
 
-        :return: true if OS is Windows
+        :return: True if OS is Windows
         :rtype: bool
         """
         return self.get_os() == 'Windows'
 
-    def is_snap(self):
+    def is_snap(self) -> bool:
         """
         Return True if app is running as snap
 
-        :return: true if app is running as snap
+        :return: True if app is running as snap
         :rtype: bool
         """
         return "SNAP" in os.environ \

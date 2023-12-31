@@ -26,12 +26,11 @@ class Attachments:
         self.window = window
         self.id = 'attachments'
 
-    def setup(self):
+    def setup(self) -> QVBoxLayout:
         """
         Setup attachments list
 
         :return: QVBoxLayout
-        :rtype: QVBoxLayout
         """
         self.setup_attachments()
         self.setup_buttons()
@@ -50,12 +49,11 @@ class Attachments:
 
         return layout
 
-    def setup_send_clear(self):
+    def setup_send_clear(self) -> QWidget:
         """
         Setup send clear checkbox
 
         :return: QWidget
-        :rtype: QWidget
         """
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -67,12 +65,11 @@ class Attachments:
 
         return widget
 
-    def setup_capture_clear(self):
+    def setup_capture_clear(self) -> QWidget:
         """
         Setup after capture clear checkbox
 
         :return: QWidget
-        :rtype: QWidget
         """
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -114,13 +111,12 @@ class Attachments:
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
 
         :param parent: parent widget
         :return: QStandardItemModel
-        :rtype: QStandardItemModel
         """
         model = QStandardItemModel(0, 2, parent)
         model.setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))

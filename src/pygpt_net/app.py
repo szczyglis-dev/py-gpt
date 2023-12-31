@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -124,7 +124,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.debug.on_update()
 
     @Slot(str)
-    def update_status(self, text):
+    def update_status(self, text: str):
         """
         Update status text
 
@@ -201,7 +201,7 @@ class Launcher:
         sys.exit(self.app.exec())
 
 
-def run(plugins=None, llms=None):
+def run(plugins: list = None, llms: list = None):
     """
     PyGPT launcher.
 

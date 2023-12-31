@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,8 @@ import os
 from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 from .worker import Worker
 
@@ -146,7 +148,7 @@ class Plugin(BasePlugin):
         """
         pass
 
-    def get_words(self, key):
+    def get_words(self, key: str):
         """
         Get and parse words from option string
 
@@ -161,7 +163,7 @@ class Plugin(BasePlugin):
             words = [x.strip() for x in words]  # remove white-spaces
         return words
 
-    def toggle_speech(self, state):
+    def toggle_speech(self, state: bool):
         """
         Toggle speech
 
@@ -187,7 +189,7 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
@@ -214,7 +216,7 @@ class Plugin(BasePlugin):
         elif name == 'audio.input.stop':
             self.on_stop()
 
-    def on_ctx_begin(self, ctx):
+    def on_ctx_begin(self, ctx: CtxItem):
         """
         Event: On new context begin
 
@@ -222,7 +224,7 @@ class Plugin(BasePlugin):
         """
         self.waiting = True
 
-    def on_ctx_end(self, ctx):
+    def on_ctx_end(self, ctx: CtxItem):
         """
         Event: On context end
 
@@ -250,7 +252,7 @@ class Plugin(BasePlugin):
         self.speech_enabled = False
         self.set_status('')
 
-    def on_input_before(self, text):
+    def on_input_before(self, text: str):
         """
         Event: Before input
 
@@ -292,7 +294,7 @@ class Plugin(BasePlugin):
         """
         Check if can listen
 
-        :return: true if can listen
+        :return: True if can listen
         :rtype: bool
         """
         state = True
@@ -302,7 +304,7 @@ class Plugin(BasePlugin):
             state = False
         return state
 
-    def set_status(self, status):
+    def set_status(self, status: str):
         """
         Set status
 
@@ -311,7 +313,7 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.input'].set_status(status)
 
     @Slot(object, object)
-    def handle_input(self, text, ctx=None):
+    def handle_input(self, text: str, ctx: CtxItem = None):
         """
         Insert text to input and send
 
@@ -379,7 +381,7 @@ class Plugin(BasePlugin):
             self.set_status('')
 
     @Slot(object)
-    def handle_status(self, data):
+    def handle_status(self, data: str):
         """
         Handle thread status msg signal
 

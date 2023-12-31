@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
+import json
+
 
 class AttachmentItem:
     def __init__(self):
@@ -20,12 +23,11 @@ class AttachmentItem:
         self.remote = None
         self.send = False
 
-    def serialize(self):
+    def serialize(self) -> dict:
         """
         Serialize item to dict
 
         :return: serialized item
-        :rtype: dict
         """
         return {
             'id': self.id,
@@ -35,7 +37,7 @@ class AttachmentItem:
             'send': self.send
         }
 
-    def deserialize(self, data):
+    def deserialize(self, data: dict):
         """
         Deserialize item from dict
 

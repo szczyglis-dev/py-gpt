@@ -35,7 +35,7 @@ class ToolboxMain:
         self.presets = Presets(window)
         self.prompt = Prompt(window)
 
-    def setup(self):
+    def setup(self) -> QSplitter:
         """
         Setup toolbox
 

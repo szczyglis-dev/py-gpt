@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
 import os
 import shutil
-from packaging.version import parse as parse_version
+from packaging.version import parse as parse_version, Version
 
 from pygpt_net.provider.model.base import BaseProvider
 from pygpt_net.item.model import ModelItem
@@ -35,7 +35,7 @@ class JsonFileProvider(BaseProvider):
             src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
             shutil.copyfile(src, dst)
 
-    def get_version(self):
+    def get_version(self) -> str | None:
         """
         Get data version
 
@@ -49,7 +49,7 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load(self):
+    def load(self) -> dict | None:
         """
         Load models config from JSON file
         """
@@ -92,7 +92,7 @@ class JsonFileProvider(BaseProvider):
 
         return items
 
-    def save(self, items):
+    def save(self, items: dict):
         """
         Save models config to JSON file
 
@@ -117,19 +117,18 @@ class JsonFileProvider(BaseProvider):
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def remove(self, id):
+    def remove(self, id: str):
         pass
 
     def truncate(self):
         pass
 
-    def patch(self, version):
+    def patch(self, version: Version) -> bool:
         """
         Migrate models to current app version
 
         :param version: current app version
-        :return: true if updated
-        :rtype: bool
+        :return: True if updated
         """
         data = self.window.core.models.items
         updated = False
@@ -164,13 +163,12 @@ class JsonFileProvider(BaseProvider):
         return updated
 
     @staticmethod
-    def serialize(item):
+    def serialize(item: ModelItem) -> dict:
         """
         Serialize item to dict
 
         :param item: item to serialize
         :return: serialized item
-        :rtype: dict
         """
         return {
             'id': item.id,
@@ -183,7 +181,7 @@ class JsonFileProvider(BaseProvider):
         }
 
     @staticmethod
-    def deserialize(data, item):
+    def deserialize(data: dict, item: ModelItem):
         """
         Deserialize item from dict
 
@@ -205,12 +203,11 @@ class JsonFileProvider(BaseProvider):
         if 'default' in data:
             item.default = data['default']
 
-    def dump(self, item):
+    def dump(self, item: ModelItem) -> str:
         """
         Dump to string
 
         :param item: item to dump
         :return: dumped item as string (json)
-        :rtype: str
         """
         return json.dumps(self.serialize(item))

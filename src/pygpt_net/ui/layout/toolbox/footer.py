@@ -33,12 +33,11 @@ class Footer:
         self.image = Image(window)
         self.vision = Vision(window)
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup footer
 
         :return: QHBoxLayout
-        :rtype: QHBoxLayout
         """
         # AI and users names
         names_layout = QHBoxLayout()
@@ -80,14 +79,13 @@ class Footer:
 
         return widget
 
-    def setup_name_input(self, id, title):
+    def setup_name_input(self, id: str, title: str) -> QVBoxLayout:
         """
         Setup name input
 
         :param id: ID of the input
         :param title: Title of the input
         :return: QVBoxLayout
-        :rtype: QVBoxLayout
         """
         label_key = 'toolbox.' + id + '.label'
         self.window.ui.nodes[label_key] = QLabel(title)
@@ -99,12 +97,11 @@ class Footer:
 
         return layout
 
-    def setup_logo(self):
+    def setup_logo(self) -> QPushButton:
         """
         Setup logo
 
         :return: QPushButton
-        :rtype: QPushButton
         """
         path = os.path.abspath(os.path.join(self.window.core.config.get_app_path(), 'data', 'logo.png'))
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
@@ -19,7 +19,7 @@ class OpenAILLM:
     def __init__(self):
         self.id = "openai"
 
-    def completion(self, config, options, stream=False):
+    def completion(self, config, options: dict, stream: bool = False):
         """
         Return LLM model for completion
 
@@ -36,7 +36,7 @@ class OpenAILLM:
         llm = OpenAI(**args)
         return llm
 
-    def chat(self, config, options, stream=False):
+    def chat(self, config, options: dict, stream: bool = False):
         """
         Return LLM model for chat
 

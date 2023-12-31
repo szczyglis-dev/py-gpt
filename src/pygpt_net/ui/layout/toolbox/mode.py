@@ -26,12 +26,11 @@ class Mode:
         self.window = window
         self.id = 'prompt.mode'
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup mode
 
         :return: QWidget
-        :rtype: QWidget
         """
         widget = QWidget()
         widget.setLayout(self.setup_list())
@@ -39,12 +38,11 @@ class Mode:
 
         return widget
 
-    def setup_list(self):
+    def setup_list(self) -> QVBoxLayout:
         """
         Setup list
 
         :return: QVBoxLayout
-        :rtype: QVBoxLayout
         """
         label_key = self.id + '.label'
 
@@ -66,12 +64,11 @@ class Mode:
 
         return layout
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
         :param parent: parent widget
         :return: QStandardItemModel
-        :rtype: QStandardItemModel
         """
         return QStandardItemModel(0, 1, parent)
 

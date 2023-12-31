@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -14,6 +14,7 @@ import webbrowser
 from pygpt_net.controller.assistant.editor import Editor
 from pygpt_net.controller.assistant.files import Files
 from pygpt_net.controller.assistant.threads import Threads
+from pygpt_net.item.assistant import AssistantItem
 
 from pygpt_net.utils import trans
 
@@ -21,7 +22,7 @@ from pygpt_net.utils import trans
 class Assistant:
     def __init__(self, window=None):
         """
-        Assistants controller
+        Assistant controller
 
         :param window: Window instance
         """
@@ -35,7 +36,7 @@ class Assistant:
         self.window.core.assistants.load()
         self.update()
 
-    def update(self, update_list=True):
+    def update(self, update_list: bool = True):
         """
         Update assistants list
 
@@ -65,7 +66,7 @@ class Assistant:
         """Update assistants"""
         self.select_default()
 
-    def select(self, idx):
+    def select(self, idx: int):
         """
         Select assistant on the list
 
@@ -79,7 +80,7 @@ class Assistant:
         id = self.window.core.assistants.get_by_idx(idx)
         self.select_by_id(id)
 
-    def select_by_id(self, id):
+    def select_by_id(self, id: str):
         """
         Select assistant on the list
 
@@ -123,8 +124,12 @@ class Assistant:
                 self.window.core.config.set('assistant', self.window.core.assistants.get_default_assistant())
                 self.update()
 
-    def create(self):
-        """Create assistant"""
+    def create(self) -> AssistantItem:
+        """
+        Create assistant
+
+        :return: AssistantItem
+        """
         assistant = self.window.core.assistants.create()
         self.editor.assign_data(assistant)
         try:
@@ -133,7 +138,7 @@ class Assistant:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def update_data(self, assistant):
+    def update_data(self, assistant: AssistantItem):
         """Update assistant"""
         self.editor.assign_data(assistant)
         try:
@@ -142,7 +147,7 @@ class Assistant:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def import_api(self, force=False):
+    def import_api(self, force: bool = False):
         """
         Import all remote assistants from API
 
@@ -172,7 +177,7 @@ class Assistant:
             self.window.ui.dialogs.alert(str(e))
         self.update()
 
-    def clear(self, force=False):
+    def clear(self, force: bool = False):
         """
         Clear assistant data
 
@@ -193,7 +198,7 @@ class Assistant:
         self.window.ui.status(trans('status.assistant.cleared'))
         self.update()
 
-    def delete(self, idx=None, force=False):
+    def delete(self, idx: int = None, force: bool = False):
         """
         Delete assistant
 
@@ -229,13 +234,10 @@ class Assistant:
         """Open Assistants page"""
         webbrowser.open('https://platform.openai.com/assistants')
 
-    def change_locked(self):
+    def change_locked(self) -> bool:
         """
         Check if assistant change is locked
 
-        :return: true if locked
-        :rtype: bool
+        :return: True if locked
         """
-        if self.window.controller.chat.input.generating:
-            return True
-        return False
+        return self.window.controller.chat.input.generating

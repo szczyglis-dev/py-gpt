@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import re
@@ -25,7 +25,7 @@ class Presets:
         self.window = window
         self.editor = Editor(window)
 
-    def select(self, idx):
+    def select(self, idx: int):
         """
         Select preset
 
@@ -56,7 +56,7 @@ class Presets:
         self.window.core.config.data['preset'] = preset
         self.window.core.config.data['current_preset'][mode] = preset
 
-    def set_by_idx(self, mode, idx):
+    def set_by_idx(self, mode: str, idx: int):
         """
         Set preset by index
 
@@ -163,19 +163,18 @@ class Presets:
         self.window.ui.nodes['preset.ai_name'].setText("")
         self.window.ui.nodes['preset.user_name'].setText("")
 
-    def make_filename(self, name):
+    def make_filename(self, name: str) -> str:
         """
         Make preset filename from name
 
         :param name: preset name
         :return: preset filename
-        :rtype: str
         """
         filename = name.lower()
         filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
         return filename
 
-    def duplicate(self, idx=None):
+    def duplicate(self, idx: int = None):
         """
         Duplicate preset
 
@@ -193,7 +192,7 @@ class Presets:
                     self.editor.edit(idx)
                     self.window.ui.status(trans('status.preset.duplicated'))
 
-    def clear(self, force=False):
+    def clear(self, force: bool = False):
         """
         Clear preset data
 
@@ -220,7 +219,7 @@ class Presets:
 
         self.window.ui.status(trans('status.preset.cleared'))
 
-    def delete(self, idx=None, force=False):
+    def delete(self, idx: int = None, force: bool = False):
         """
         Delete preset
 
@@ -243,23 +242,21 @@ class Presets:
                     self.refresh()
                     self.window.ui.status(trans('status.preset.deleted'))
 
-    def validate_filename(self, value):
+    def validate_filename(self, value: str) -> str:
         """
         Validate filename
 
         :param value: filename
         :return: sanitized filename
-        :rtype: str
         """
         # strip not allowed characters
         return re.sub(r'[^\w\s-]', '', value)
 
-    def preset_change_locked(self):
+    def preset_change_locked(self) -> bool:
         """
         Check if preset change is locked
 
-        :return: true if locked
-        :rtype: bool
+        :return: True if locked
         """
         # if self.window.controller.chat.input.generating:
         # return True

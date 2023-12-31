@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -49,7 +49,7 @@ class Input:
         text = event.data['value']
         self.send(text)
 
-    def send(self, text=None, force=False):
+    def send(self, text: str = None, force: bool = False):
         """
         Send input wrapper
 
@@ -58,7 +58,7 @@ class Input:
         """
         self.execute(text, force)
 
-    def execute(self, text=None, force=False):
+    def execute(self, text: str = None, force: bool = False):
         """
         Execute send input text to API
 
@@ -154,7 +154,7 @@ class Input:
         self.window.controller.ui.update_tokens()  # update UI
         self.generating = False  # unlock
 
-    def log(self, data):
+    def log(self, data: any):
         """
         Log data to debug
 

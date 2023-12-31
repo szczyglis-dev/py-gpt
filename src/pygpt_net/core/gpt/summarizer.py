@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
+from pygpt_net.item.ctx import CtxItem
+
 
 class Summarizer:
     def __init__(self, window=None):
@@ -18,13 +21,12 @@ class Summarizer:
         """
         self.window = window
 
-    def summary_ctx(self, ctx):
+    def summary_ctx(self, ctx: CtxItem) -> str:
         """
         Summarize conversation begin
 
         :param ctx: context item (CtxItem)
         :return: response text (generated summary)
-        :rtype: str
         """
         # default values
         model = 'gpt-3.5-turbo-1106'

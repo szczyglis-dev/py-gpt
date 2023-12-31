@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.assistant import Assistant
@@ -71,7 +71,6 @@ class Controller:
 
         # setup controllers
         self.lang.setup()
-        self.mode.setup()
         self.assistant.setup()
         self.chat.setup()
         self.ctx.setup()

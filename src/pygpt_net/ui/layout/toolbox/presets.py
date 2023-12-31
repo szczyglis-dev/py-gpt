@@ -29,12 +29,11 @@ class Presets:
         self.footer = Footer(window)
         self.id = 'preset.presets'
 
-    def setup(self):
+    def setup(self) -> QSplitter:
         """
         Setup presets
 
         :return: QSplitter
-        :rtype: QSplitter
         """
         presets = self.setup_presets()
 
@@ -47,12 +46,11 @@ class Presets:
 
         return self.window.ui.nodes['presets.widget']
 
-    def setup_presets(self,):
+    def setup_presets(self) -> QVBoxLayout:
         """
         Setup list
 
         :return: QVBoxLayout
-        :rtype: QVBoxLayout
         """
         self.window.ui.nodes['preset.presets.new'] = QPushButton(trans('preset.new'))
         self.window.ui.nodes['preset.presets.new'].clicked.connect(
@@ -81,12 +79,11 @@ class Presets:
 
         return layout
 
-    def create_model(self, parent):
+    def create_model(self, parent) -> QStandardItemModel:
         """
         Create list model
         :param parent: parent widget
         :return: QStandardItemModel
-        :rtype: QStandardItemModel
         """
         return QStandardItemModel(0, 1, parent)
 

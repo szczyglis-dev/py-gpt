@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -59,12 +59,11 @@ class Config:
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def get_app_path(self):
+    def get_app_path(self) -> str:
         """
         Return app data path
 
         :return: app root path
-        :rtype: str
         """
         if __file__.endswith('.pyc'):  # if compiled with pyinstaller
             return os.path.abspath('.')
@@ -80,7 +79,7 @@ class Config:
         """
         return self.path
 
-    def init(self, all=True):
+    def init(self, all: bool = True):
         """
         Initialize config
 
@@ -108,12 +107,11 @@ class Config:
             self.load(all)
             self.initialized = True
 
-    def get_version(self):
+    def get_version(self) -> str:
         """
         Return version
 
         :return: version string
-        :rtype: str
         """
         path = os.path.abspath(os.path.join(self.get_app_path(), '__init__.py'))
         try:
@@ -127,28 +125,26 @@ class Config:
             else:
                 print("Error loading version file: {}".format(e))
 
-    def get_options(self):
+    def get_options(self) -> dict:
         """
         Return settings options
 
         :return: settings options
-        :rtype: dict
         """
         return self.provider.get_options()
 
-    def get(self, key):
+    def get(self, key: str) -> any:
         """
         Return config value by key
 
         :param key: key
         :return: value
-        :rtype: Any
         """
         if key in self.data:
             return self.data[key]
         return None
 
-    def set(self, key, value):
+    def set(self, key: str, value: any):
         """
         Set config value
 
@@ -157,33 +153,30 @@ class Config:
         """
         self.data[key] = value
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
         """
         Check if key exists in config
 
         :param key: key
-        :return: true if exists
-        :rtype: bool
+        :return: True if exists
         """
         if key in self.data:
             return True
         return False
 
-    def all(self):
+    def all(self) -> dict:
         """
         Return all config values
 
         :return: dict with all config values
-        :rtype: dict
         """
         return self.data
 
-    def get_available_langs(self):
+    def get_available_langs(self) -> list:
         """
         Return list with available languages
 
         :return: list with available languages (user + app)
-        :rtype: list
         """
         langs = []
         path = os.path.join(self.get_app_path(), 'data', 'locale')
@@ -216,12 +209,11 @@ class Config:
             langs.insert(1, 'pl')
         return langs
 
-    def append_meta(self):
+    def append_meta(self) -> dict:
         """
         Append meta data
 
         :return: meta data dict
-        :rtype: dict
         """
         return {
             'version': self.version,
@@ -229,7 +221,7 @@ class Config:
             'updated_at': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         }
 
-    def load(self, all=True):
+    def load(self, all: bool = True):
         """
         Load config
 
@@ -242,7 +234,7 @@ class Config:
             self.window.core.models.load()
             self.window.core.presets.load()
 
-    def load_config(self, all=True):
+    def load_config(self, all: bool = True):
         """
         Load user config from JSON file
 
@@ -269,7 +261,7 @@ class Config:
             self.load_base_config()
         self.data = copy.deepcopy(self.data_base)
 
-    def get_base(self, option=None):
+    def get_base(self, option: str = None) -> any:
         """
         Return base config option or all base config
 
@@ -283,7 +275,7 @@ class Config:
         elif option in self.data_base:
             return self.data_base[option]
 
-    def save(self, filename='config.json'):
+    def save(self, filename: str = 'config.json'):
         """
         Save config
 

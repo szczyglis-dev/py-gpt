@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -14,6 +14,7 @@ import time
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
 
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -40,7 +41,7 @@ class Threads:
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
 
-    def handle_messages(self, ctx):
+    def handle_messages(self, ctx: CtxItem):
         """
         Handle run messages
 
@@ -63,7 +64,7 @@ class Threads:
                 self.window.controller.ctx.update()
                 break
 
-    def handle_run(self, ctx):
+    def handle_run(self, ctx: CtxItem):
         """
         Handle assistant's run
 
@@ -84,7 +85,7 @@ class Threads:
         self.started = True
 
     @Slot(str, object)
-    def handle_status(self, status, ctx):
+    def handle_status(self, status: str, ctx: CtxItem):
         """
         Insert text to input and send
 

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.dispatcher import Event
 
 
 class Plugin(BasePlugin):
@@ -60,7 +61,7 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
@@ -75,7 +76,7 @@ class Plugin(BasePlugin):
                 silent = True
             data['value'] = self.on_system_prompt(data['value'], silent)
 
-    def on_system_prompt(self, prompt, silent=False):
+    def on_system_prompt(self, prompt: str, silent: bool = False):
         """
         Event: On prepare system prompt
 

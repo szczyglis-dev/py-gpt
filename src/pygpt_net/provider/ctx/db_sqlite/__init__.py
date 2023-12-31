@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 14:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
 import datetime
 import os
 import sys
@@ -15,6 +16,7 @@ import time
 import shutil
 from uuid import uuid4
 
+from pygpt_net.item.ctx import CtxMeta, CtxItem
 from .storage import Storage
 from pygpt_net.provider.ctx.base import BaseProvider
 
@@ -31,13 +33,12 @@ class DbSqliteProvider(BaseProvider):
         self.window = window
         self.storage.attach(window)
 
-    def patch(self, version):
+    def patch(self, version: str) -> bool:
         """
         Patch versions
 
         :param version: current app version
-        :return: true if migrated
-        :rtype: bool
+        :return: True if migrated
         """
         # return
         # if old version is 2.0.59 or older and if json file exists
@@ -48,7 +49,7 @@ class DbSqliteProvider(BaseProvider):
             # rename context.json to context.json.old:
             os.rename(path, path + ".old")
 
-    def create_id(self, meta):
+    def create_id(self, meta: CtxMeta) -> int:
         """
         Create unique ctx ID
 
@@ -59,7 +60,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.insert_meta(meta)
 
-    def create(self, meta):
+    def create(self, meta: CtxMeta) -> int:
         """
         Create new ctx and return its ID
 
@@ -77,7 +78,8 @@ class DbSqliteProvider(BaseProvider):
             meta.id = self.create_id(meta)  # insert to DB and get ID
         return meta.id
 
-    def get_meta(self, search_string=None, order_by=None, order_direction=None, limit=None, offset=None):
+    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
+                 limit: int = None, offset: int = None) -> dict:
         """
         Return dict of ctx meta, TODO: add order, limit, offset, etc.
 
@@ -86,16 +88,14 @@ class DbSqliteProvider(BaseProvider):
         :param order_direction: order direction
         :param limit: limit
         :param offset: offset
-
         :return: dict of ctx meta
-        :rtype: dict
         """
         param_limit = 0
         if limit is not None:
             param_limit = int(limit)
         return self.storage.get_meta(search_string, order_by, order_direction, param_limit, offset)
 
-    def load(self, id):
+    def load(self, id: int) -> list:
         """
         Load items for ctx ID
 
@@ -105,7 +105,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_items(id)
 
-    def append_item(self, meta, item):
+    def append_item(self, meta: CtxMeta, item: CtxItem) -> bool:
         """
         Append item to ctx
 
@@ -115,57 +115,52 @@ class DbSqliteProvider(BaseProvider):
         self.storage.update_meta_ts(meta.id)
         return self.storage.insert_item(meta, item) is not None
 
-    def update_item(self, item):
+    def update_item(self, item: CtxItem) -> bool:
         """
         Update item in ctx
 
         :param item: ctx item (CtxItem)
-        :return: true if updated
+        :return: True if updated
         """
         self.storage.update_meta_ts(item.meta_id)
         return self.storage.update_item(item) is not None
 
-    def save(self, id, meta, items):
+    def save(self, id: int, meta: CtxMeta, items: list) -> bool:
         """
         Save ctx
 
         :param id: ctx ID
         :param meta: CtxMeta
         :param items: list of CtxItem
-        :return: true if saved
-        :rtype: bool
+        :return: True if saved
         """
         if self.storage.update_meta(meta):
             return True  # update only meta, items are appended separately
 
-    def remove(self, id):
+    def remove(self, id: int) -> bool:
         """
         Remove ctx
 
         :param id: ctx meta ID
-        :return: true if removed
-        :rtype: bool
+        :return: True if removed
         """
         return self.storage.delete_meta_by_id(id)
 
-    def truncate(self):
+    def truncate(self) -> bool:
         """
         Truncate ctx (remove all ctx, meta + items)
 
-        :return: true if truncated
-        :rtype: bool
+        :return: True if truncated
         """
         return self.storage.truncate_all()
 
-    def import_from_json(self):
+    def import_from_json(self) -> bool:
         """
         Import ctx from JSON
 
-        :return: true if imported
-        :rtype: bool
+        :return: True if imported
         """
-        # return
-        # tmp get json provider
+        # use json provider to load old contexts
         provider = self.window.core.ctx.providers['json_file']
         provider.attach(self.window)
 
@@ -200,14 +195,13 @@ class DbSqliteProvider(BaseProvider):
             print("[DB][DONE] Imported %s contexts." % i)
             return True
 
-    def import_ctx(self, meta, items):
+    def import_ctx(self, meta: CtxMeta, items: list):
         """
         Import ctx from JSON
 
         :param meta: ctx meta (CtxMeta)
         :param items: list of ctx items (CtxItem)
-        :return: true if imported
-        :rtype: bool
+        :return: True if imported
         """
         meta.id = None  # reset old meta ID to allow creating new
         self.create(meta)  # create new meta and get its new ID

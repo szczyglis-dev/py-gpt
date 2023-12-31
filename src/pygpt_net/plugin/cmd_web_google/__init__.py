@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
+
 from .websearch import WebSearch
 from .worker import Worker
 
@@ -128,7 +131,7 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
-    def handle(self, event, *args, **kwargs):
+    def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
@@ -145,7 +148,7 @@ class Plugin(BasePlugin):
         elif name == 'cmd.execute':
             self.cmd(ctx, data['commands'])
 
-    def on_input_before(self, text):
+    def on_input_before(self, text: str):
         """
         Event: Before input
 
@@ -153,7 +156,7 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
-    def log(self, msg):
+    def log(self, msg: str):
         """
         Log message to console
 
@@ -164,7 +167,7 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def cmd_syntax(self, data):
+    def cmd_syntax(self, data: dict):
         """
         Event: On cmd syntax prepare
 
@@ -175,7 +178,7 @@ class Plugin(BasePlugin):
             if self.has_option(key):
                 data['syntax'].append(self.get_option_value(key))
 
-    def cmd(self, ctx, cmds):
+    def cmd(self, ctx: CtxItem, cmds: list):
         """
         Event: On cmd
 
@@ -221,7 +224,7 @@ class Plugin(BasePlugin):
         # start
         self.window.threadpool.start(worker)
 
-    def gen_api_key_response(self, ctx, cmds):
+    def gen_api_key_response(self, ctx: CtxItem, cmds: list):
         """
         Generate response for empty API key error
 

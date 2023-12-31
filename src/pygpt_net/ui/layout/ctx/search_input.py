@@ -27,12 +27,11 @@ class SearchInput:
         """
         self.window = window
 
-    def setup(self):
+    def setup(self) -> QWidget:
         """
         Setup search input
 
         :return: QWidget
-        :rtype: QWidget
         """
         self.window.ui.nodes['ctx.search'] = CtxSearchInput(self.window)
 

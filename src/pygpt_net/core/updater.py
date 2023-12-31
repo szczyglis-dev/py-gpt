@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.27 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import copy
@@ -16,7 +16,7 @@ import json
 import ssl
 
 from urllib.request import urlopen, Request
-from packaging.version import parse as parse_version
+from packaging.version import parse as parse_version, Version
 
 from pygpt_net.utils import trans
 
@@ -24,7 +24,7 @@ from pygpt_net.utils import trans
 class Updater:
     def __init__(self, window=None):
         """
-        Updater (config data patcher)
+        Updater core (config data patcher)
 
         :param window: Window instance
         """
@@ -57,7 +57,7 @@ class Updater:
             self.window.core.debug.log(e)
             print("Failed to migrate database!")
 
-    def patch_config(self, version):
+    def patch_config(self, version: Version):
         """
         Migrate config to current app version
 
@@ -66,7 +66,7 @@ class Updater:
         if self.window.core.config.patch(version):
             print("Migrated config. [OK]")
 
-    def patch_models(self, version):
+    def patch_models(self, version: Version):
         """
         Migrate models to current app version
 
@@ -75,7 +75,7 @@ class Updater:
         if self.window.core.models.patch(version):
             print("Migrated models. [OK]")
 
-    def patch_presets(self, version):
+    def patch_presets(self, version: Version):
         """
         Migrate presets to current app version
 
@@ -84,7 +84,7 @@ class Updater:
         if self.window.core.presets.patch(version):
             print("Migrated presets. [OK]")
 
-    def patch_ctx(self, version):
+    def patch_ctx(self, version: Version):
         """
         Migrate ctx to current app version
 
@@ -93,7 +93,7 @@ class Updater:
         if self.window.core.ctx.patch(version):
             print("Migrated ctx. [OK]")
 
-    def patch_assistants(self, version):
+    def patch_assistants(self, version: Version):
         """
         Migrate assistants to current app version
 
@@ -102,7 +102,7 @@ class Updater:
         if self.window.core.assistants.patch(version):
             print("Migrated assistants. [OK]")
 
-    def patch_attachments(self, version):
+    def patch_attachments(self, version: Version):
         """
         Migrate attachments to current app version
 
@@ -111,7 +111,7 @@ class Updater:
         if self.window.core.attachments.patch(version):
             print("Migrated attachments. [OK]")
 
-    def patch_notepad(self, version):
+    def patch_notepad(self, version: Version):
         """
         Migrate notepad to current app version
 
@@ -120,17 +120,17 @@ class Updater:
         if self.window.core.notepad.patch(version):
             print("Migrated notepad. [OK]")
 
-    def patch_dir(self, dirname="", force=False):
+    def patch_dir(self, dir_name: str = "", force: bool = False):
         """
         Patch directory (replace all files)
 
-        :param dirname: directory name
+        :param dir_name: directory name
         :param force: force update
         """
         try:
             # directory
-            dst_dir = os.path.join(self.window.core.config.path, dirname)
-            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', dirname)
+            dst_dir = os.path.join(self.window.core.config.path, dir_name)
+            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', dir_name)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(dst_dir, file)
@@ -140,7 +140,7 @@ class Updater:
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def patch_file(self, filename="", force=False):
+    def patch_file(self, filename: str = "", force: bool = False):
         """
         Patch file
 
@@ -157,20 +157,20 @@ class Updater:
         except Exception as e:
             self.window.core.debug.log(e)
 
-    def get_app_version(self):
+    def get_app_version(self) -> Version:
         """
         Get the current app version.
 
-        :return: version
-        :rtype: str
+        :return: version (packaging.version.Version)
         """
         return parse_version(self.window.meta['version'])
 
-    def check(self, force=False):
+    def check(self, force: bool = False) -> bool:
         """
         Check for updates
 
         :param force: force show version dialog
+        :return: True if update is available
         """
         print("Checking for updates...")
         url = self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
@@ -207,7 +207,7 @@ class Updater:
             print("Failed to check for updates")
         return False
 
-    def show_version_dialog(self, version, build, changelog, is_new=False):
+    def show_version_dialog(self, version: str, build: str, changelog: str, is_new: bool = False):
         """
         Display version dialog
 
@@ -227,12 +227,11 @@ class Updater:
         self.window.ui.dialog['update'].message.setText(txt)
         self.window.ui.dialogs.open('update')
 
-    def post_check_config(self):
+    def post_check_config(self) -> bool:
         """
         Check for missing config keys and add them.
 
-        :return: true if updated
-        :rtype: bool
+        :return: True if updated
         """
         base = self.window.core.config.get_base()
         data = self.window.core.config.all()

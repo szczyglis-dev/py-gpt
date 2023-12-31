@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import os
 from datetime import datetime
 
 from PySide6.QtWidgets import QFileDialog
-from pathlib import PurePath
 
+from pygpt_net.item.assistant import AssistantItem
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.utils import trans
 
 
@@ -30,13 +31,15 @@ class Attachment:
     def setup(self):
         """Setup attachments"""
         # send clear
-        if self.window.core.config.has('attachments_send_clear') and self.window.core.config.get('attachments_send_clear'):
+        if self.window.core.config.has('attachments_send_clear') \
+                and self.window.core.config.get('attachments_send_clear'):
             self.window.ui.nodes['attachments.send_clear'].setChecked(True)
         else:
             self.window.ui.nodes['attachments.send_clear'].setChecked(False)
 
         #  capture clear
-        if self.window.core.config.has('attachments_capture_clear') and self.window.core.config.get('attachments_capture_clear'):
+        if self.window.core.config.has('attachments_capture_clear') \
+                and self.window.core.config.get('attachments_capture_clear'):
             self.window.ui.nodes['attachments.capture_clear'].setChecked(True)
         else:
             self.window.ui.nodes['attachments.capture_clear'].setChecked(False)
@@ -51,7 +54,7 @@ class Attachment:
         self.window.ui.chat.input.attachments.update(items)
         self.update_tab(mode)
 
-    def update_tab(self, mode):
+    def update_tab(self, mode: str):
         """
         Update tab label
 
@@ -63,7 +66,7 @@ class Attachment:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab') + suffix)
 
-    def select(self, mode, idx):
+    def select(self, mode: str, idx: int):
         """
         Select attachment
 
@@ -79,7 +82,7 @@ class Attachment:
         # TODO: implement this
         pass
 
-    def delete(self, idx, force=False):
+    def delete(self, idx: int, force: bool = False):
         """
         Delete attachment
 
@@ -100,7 +103,7 @@ class Attachment:
 
         self.update()
 
-    def rename(self, mode, idx):
+    def rename(self, mode: str, idx: int):
         """
         Rename attachment
 
@@ -123,7 +126,7 @@ class Attachment:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def update_name(self, file_id, name):
+    def update_name(self, file_id: str, name: str):
         """
         Update name
 
@@ -144,7 +147,7 @@ class Attachment:
         self.window.ui.dialog['rename'].close()
         self.update()
 
-    def add(self, mode, attachment):
+    def add(self, mode: str, attachment: AttachmentItem):
         """
         Add attachment item to list
 
@@ -154,7 +157,7 @@ class Attachment:
         self.window.core.attachments.add(mode, attachment)
         self.update()
 
-    def clear(self, force=False):
+    def clear(self, force: bool = False):
         """
         Clear attachments list
 
@@ -200,7 +203,7 @@ class Attachment:
             self.window.core.attachments.save()
             self.update()
 
-    def open_dir(self, mode, idx):
+    def open_dir(self, mode: str, idx: int):
         """
         Open in directory
 
@@ -213,7 +216,7 @@ class Attachment:
         if data.path is not None and data.path != '' and os.path.exists(data.path):
             self.window.controller.files.open_in_file_manager(data.path)
 
-    def import_from_assistant(self, mode, assistant):
+    def import_from_assistant(self, mode: str, assistant: AssistantItem):
         """
         Load attachments from assistant
 
@@ -225,23 +228,21 @@ class Attachment:
         # restore attachments from assistant
         self.window.core.attachments.from_attachments(mode, assistant.attachments)
 
-    def has(self, mode):
+    def has(self, mode: str) -> bool:
         """
         Return True if current mode has attachments
 
         :param mode: mode to check
-        :return: true if has attachments
-        :rtype: bool
+        :return: True if has attachments
         """
         return self.window.core.attachments.has(mode)
 
-    def download(self, file_id):
+    def download(self, file_id: str) -> str or None:
         """
         Download file
 
         :param file_id: file id to download (id in OpenAI API)
         :return: path to downloaded file
-        :rtype: str
         """
         try:
             # get file info from assistant API
@@ -266,7 +267,7 @@ class Attachment:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
 
-    def toggle_send_clear(self, value):
+    def toggle_send_clear(self, value: bool):
         """
         Toggle send clear
 
@@ -274,7 +275,7 @@ class Attachment:
         """
         self.window.core.config.set('attachments_send_clear', value)
 
-    def toggle_capture_clear(self, value):
+    def toggle_capture_clear(self, value: bool):
         """
         Toggle capture clear
 
@@ -282,23 +283,21 @@ class Attachment:
         """
         self.window.core.config.set('attachments_capture_clear', value)
 
-    def is_capture_clear(self):
+    def is_capture_clear(self) -> bool:
         """
         Return True if capture clear is enabled
 
-        :return: true if capture clear is enabled
-        :rtype: bool
+        :return: True if capture clear is enabled
         """
         if not self.window.core.config.has('attachments_capture_clear'):
             self.window.core.config.set('attachments_capture_clear', False)
         return self.window.core.config.get('attachments_capture_clear')
 
-    def is_send_clear(self):
+    def is_send_clear(self) -> bool:
         """
         Return True if send clear is enabled
 
-        :return: true if send clear is enabled
-        :rtype: bool
+        :return: True if send clear is enabled
         """
         if not self.window.core.config.has('attachments_send_clear'):
             self.window.core.config.set('attachments_send_clear', False)

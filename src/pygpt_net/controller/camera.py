@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -139,11 +139,12 @@ class Camera:
         else:
             self.window.statusChanged.emit(trans('vision.capture.auto.click'))
 
-    def capture_frame(self, switch=True):
+    def capture_frame(self, switch: bool = True) -> bool:
         """
         Capture frame and save it as attachment
 
         :param switch: true if switch to attachments tab (tmp: disabled)
+        :return: True if success
         """
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
@@ -191,7 +192,7 @@ class Camera:
         if self.is_capture:
             self.window.ui.nodes['video.preview'].setVisible(True)
 
-    def hide_camera(self, stop=True):
+    def hide_camera(self, stop: bool = True):
         """
         Hide camera
 
@@ -224,7 +225,7 @@ class Camera:
         self.stop_capture()
         self.blank_screen()
 
-    def toggle(self, state):
+    def toggle(self, state: bool):
         """
         Toggle camera
 
@@ -259,7 +260,7 @@ class Camera:
         self.window.core.config.set('vision.capture.auto', False)
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
 
-    def toggle_auto(self, state):
+    def toggle_auto(self, state: bool):
         """
         Toggle camera
 
@@ -272,21 +273,19 @@ class Camera:
 
         self.window.ui.status('')
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         """
         Check if camera is enabled
 
-        :return: true if enabled, false otherwise
-        :rtype: bool
+        :return: True if enabled, false otherwise
         """
         return self.is_capture
 
-    def is_auto(self):
+    def is_auto(self) -> bool:
         """
         Check if camera is enabled
 
-        :return: true if enabled, false otherwise
-        :rtype: bool
+        :return: True if enabled, false otherwise
         """
         return self.auto
 

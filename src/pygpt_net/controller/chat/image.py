@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import json
@@ -31,13 +31,12 @@ class Image:
         """
         self.window = window
 
-    def send(self, text):
+    def send(self, text: str) -> CtxItem:
         """
         Send prompt for image generate
 
         :param text: prompt for image generation
         :return: ctx item
-        :rtype: CtxItem
         """
         num = int(self.window.ui.config_option['img_variants'].input.text() or 1)
         if num < 1:
@@ -84,7 +83,7 @@ class Image:
 
         return ctx
 
-    def handle_response(self, ctx, paths, prompt):
+    def handle_response(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle response from DALL-E API
 
@@ -122,7 +121,7 @@ class Image:
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
 
-    def open_images(self, paths):
+    def open_images(self, paths: list):
         """
         Open image in dialog
 
@@ -152,7 +151,7 @@ class Image:
         self.window.ui.dialog['image'].resize(520, 520)
         self.window.ui.dialog['image'].show()
 
-    def open(self, path):
+    def open(self, path: str):
         """
         Open image in default image viewer
 
@@ -160,7 +159,7 @@ class Image:
         """
         webbrowser.open(path)
 
-    def open_dir(self, path):
+    def open_dir(self, path: str):
         """
         Open image in default image viewer
 
@@ -169,7 +168,7 @@ class Image:
         if os.path.exists(path):
             self.window.controller.files.open_in_file_manager(path)
 
-    def save(self, path):
+    def save(self, path: str):
         """
         Save image
 
@@ -186,7 +185,7 @@ class Image:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-    def delete(self, path, force=False):
+    def delete(self, path: str, force: bool = False):
         """
         Delete image
 

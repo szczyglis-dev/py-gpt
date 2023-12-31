@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 17:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -18,7 +18,7 @@ from pygpt_net.provider.notepad.db_sqlite import DbSqliteProvider
 class Notepad:
     def __init__(self, window=None):
         """
-        Notepad
+        Notepad core
 
         :param window: Window instance
         """
@@ -30,49 +30,45 @@ class Notepad:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version):
+    def patch(self, app_version: str):
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def get_by_id(self, id):
+    def get_by_id(self, id: int) -> NotepadItem or None:
         """
         Get notepad by id
 
         :param id: notepad id
         :return: notepad instance
-        :rtype: NotepadItem
         """
         if id in self.items:
             return self.items[id]
         return None
 
-    def get_all(self):
+    def get_all(self) -> dict:
         """
         Get all notepads
 
         :return: notepads dict
-        :rtype: dict
         """
         return self.items
 
-    def build(self):
+    def build(self) -> NotepadItem:
         """
         Build notepad
 
         :param id: notepad id
         :return: NotepadItem instance
-        :rtype: NotepadItem
         """
         item = NotepadItem()
         return item
 
-    def add(self, notepad):
+    def add(self, notepad: NotepadItem) -> bool:
         """
         Add notepad
 
         :param notepad: NotepadItem instance
         :return: True if success
-        :rtype: bool
         """
         id = self.provider.create(notepad)
         notepad.id = id
@@ -80,13 +76,12 @@ class Notepad:
         self.save(id)
         return True
 
-    def update(self, notepad):
+    def update(self, notepad: NotepadItem) -> bool:
         """
         Update and save notepad
 
         :param notepad: NotepadItem instance
         :return: True if success
-        :rtype: bool
         """
         if notepad.id not in self.items:
             return False
@@ -96,7 +91,7 @@ class Notepad:
         self.save(notepad.id)
         return True
 
-    def load(self, id):
+    def load(self, id: int):
         """
         Load notepad by id
 
@@ -108,7 +103,7 @@ class Notepad:
         """Load all notepads"""
         self.items = self.provider.load_all()
 
-    def save(self, id):
+    def save(self, id: int) -> bool:
         """
         Save notepad by id
 

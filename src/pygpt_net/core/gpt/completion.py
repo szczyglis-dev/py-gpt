@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 21:00:00                  #
+# Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
 class Completion:
@@ -19,7 +19,8 @@ class Completion:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, prompt, max_tokens, stream_mode=False, system_prompt=None, ai_name=None, user_name=None):
+    def send(self, prompt: str, max_tokens: int, stream_mode: bool = False, system_prompt: str = None,
+             ai_name: str = None, user_name: str = None):
         """
         Call OpenAI API for completion
 
@@ -53,7 +54,7 @@ class Completion:
         )
         return response
 
-    def build(self, input_prompt, system_prompt=None, ai_name=None, user_name=None):
+    def build(self, input_prompt: str, system_prompt: str = None, ai_name: str = None, user_name: str = None) -> str:
         """
         Build completion string
 
@@ -62,7 +63,6 @@ class Completion:
         :param ai_name: AI name
         :param user_name: username
         :return: message string (parsed with context)
-        :rtype: str
         """
         message = ""
 
@@ -120,6 +120,6 @@ class Completion:
         """Reset input tokens counter"""
         self.input_tokens = 0
 
-    def get_used_tokens(self):
+    def get_used_tokens(self) -> int:
         """Get input tokens counter"""
         return self.input_tokens
