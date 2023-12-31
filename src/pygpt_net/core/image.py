@@ -68,6 +68,17 @@ class Image:
         """
         self.window.controller.chat.image.handle_response(ctx, paths, prompt)
 
+    @Slot(str, object)
+    def handle_finished_inline(self, ctx: CtxItem, paths: list, prompt: str):
+        """
+        Handle finished image generation
+
+        :param ctx: CtxItem
+        :param paths: images paths list
+        :param prompt: prompt used for generate images
+        """
+        self.window.controller.chat.image.handle_response_inline(ctx, paths, prompt)
+
     @Slot()
     def handle_status(self, msg: str):
         """Handle thread status"""
@@ -80,7 +91,7 @@ class Image:
         self.window.ui.status(e)
         self.window.core.debug.log(e)
 
-    def generate(self, ctx: CtxItem, prompt: str, model: str = "dall-e-3", num: int = 1):
+    def generate(self, ctx: CtxItem, prompt: str, model: str = "dall-e-3", num: int = 1, inline: bool = False):
         """
         Call DALL-E API
 
@@ -105,9 +116,11 @@ class Image:
         worker.input_prompt = prompt
         worker.system_prompt = self.get_prompt()
         worker.num = num
+        worker.inline = inline
 
         # signals
         worker.signals.finished.connect(self.handle_finished)
+        worker.signals.finished_inline.connect(self.handle_finished_inline)
         worker.signals.status.connect(self.handle_status)
         worker.signals.error.connect(self.handle_error)
 
@@ -117,6 +130,7 @@ class Image:
 
 class ImageSignals(QObject):
     finished = Signal(object, object, object)
+    finished_inline = Signal(object, object, object)
     status = Signal(object)
     error = Signal(object)
 
@@ -137,11 +151,12 @@ class ImageWorker(QRunnable):
         self.model_prompt = None
         self.input_prompt = None
         self.system_prompt = None
+        self.inline = False
         self.num = 1
 
     @Slot()
     def run(self):
-        if not self.raw:
+        if not self.raw and not self.inline:  # disable on inline and raw
             max_tokens = 200
             temperature = 1.0
             try:
@@ -186,7 +201,10 @@ class ImageWorker(QRunnable):
                     paths.append(path)
 
             # send finished signal
-            self.signals.finished.emit(self.ctx, paths, self.input_prompt)
+            if self.inline:
+                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
+            else:
+                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
 
         except Exception as e:
             self.signals.error.emit(e)

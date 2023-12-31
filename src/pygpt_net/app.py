@@ -32,6 +32,7 @@ from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPl
 from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
 from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
 from pygpt_net.plugin.cmd_web_google import Plugin as CmdWebGooglePlugin
+from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
 
@@ -255,6 +256,7 @@ def run(plugins: list = None, llms: list = None):
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())
+    launcher.add_plugin(OpenAIDallePlugin())
 
     # register custom plugins
     if plugins is not None:

@@ -121,6 +121,22 @@ class Image:
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
 
+    def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
+        """
+        Handle inline response from DALL-E API
+
+        :param ctx: ctx item
+        :param paths: list with paths to downloaded images
+        :param prompt: prompt used to generate images
+        """
+        string = ""
+        i = 1
+        for path in paths:
+            string += "{}) `{}`".format(i, path) + "\n"
+            i += 1
+        self.open_images(paths)
+        self.window.ui.status(trans('status.img.generated'))
+
     def open_images(self, paths: list):
         """
         Open image in dialog

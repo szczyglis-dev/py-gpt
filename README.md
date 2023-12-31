@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.67** | build: **2023.12.30** | Python: **3.10+**
+Release: **2.0.68** | build: **2023.12.31** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1352,6 +1352,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.68 (2023-12-31)
+
+- Added a new plugin: DALL-E 3 Image Generation (inline) which enables image generation in any chat and mode, seamlessly in the background - just request an image from any model, like GPT-4, and it will generate it "inline."
+- User Interface optimizations.
+- Added type hints to the code.
+- Fixed issue with sending attachments in Assistant mode.
 
 ### 2.0.67 (2023-12-30)
 

@@ -43,7 +43,7 @@ class Files:
                     self.window.ui.status(trans('status.uploading'))
                     num_uploaded = self.window.controller.assistant.files.upload(mode, attachments)
                     self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
-                    attachments_list = self.window.core.gpt.attachments.make_json_list(attachments)
+                    attachments_list = self.window.core.attachments.make_json_list(attachments)
 
                 # show uploaded status
                 if is_upload and num_uploaded > 0:

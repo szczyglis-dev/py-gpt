@@ -293,3 +293,25 @@ class Plugins:
         })
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
+
+    def apply_cmds_only(self, ctx: CtxItem, cmds: list):
+        """
+        Apply commands
+
+        :param ctx: CtxItem
+        :param cmds: commands
+        """
+        commands = []
+        for cmd in cmds:
+            if 'cmd' in cmd:
+                commands.append(cmd)
+
+        if len(commands) == 0:
+            return
+
+        # dispatch 'cmd.only' event
+        event = Event('cmd.only', {
+            'commands': commands
+        })
+        event.ctx = ctx
+        self.window.controller.command.dispatch(event)
