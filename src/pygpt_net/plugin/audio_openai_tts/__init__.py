@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2023.12.31 22:00:00                  #
 # ================================================== #
 
 import os
-import re
 
 from PySide6.QtCore import Slot
 
@@ -112,8 +111,6 @@ class Plugin(BasePlugin):
                 if voice not in self.allowed_voices:
                     voice = 'alloy'
 
-                text = re.sub(r'~###~.*?~###~', '', str(text))
-
                 # worker
                 worker = Worker()
                 worker.plugin = self
@@ -121,7 +118,7 @@ class Plugin(BasePlugin):
                 worker.model = model
                 worker.path = os.path.join(self.window.core.config.path, self.output_file)
                 worker.voice = voice
-                worker.text = text
+                worker.text = self.window.core.audio.clean_text(text)
 
                 # signals
                 worker.signals.playback.connect(self.handle_playback)
@@ -133,7 +130,7 @@ class Plugin(BasePlugin):
                 self.window.threadpool.start(worker)
 
         except Exception as e:
-            self.debug(e)
+            self.error(e)
 
     def destroy(self):
         """Destroy thread"""

@@ -163,6 +163,16 @@ class BasePlugin:
         domain = 'plugin.{}'.format(self.id)
         return trans(text, False, domain)
 
+    def error(self, err: any):
+        """
+        Send error message to logger
+
+        :param err: error message
+        """
+        self.window.core.debug.log(err)
+        self.window.controller.debug.log(str(err), True)
+        self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
+
     def debug(self, data: any):
         """
         Send debug message to logger window
@@ -211,8 +221,7 @@ class BasePlugin:
 
         :param err: error message
         """
-        self.window.core.debug.log(err)
-        self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
+        self.error(err)
 
     @Slot(object)
     def handle_debug(self, msg: any):

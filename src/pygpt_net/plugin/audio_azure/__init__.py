@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2023.12.31 22:00:00                  #
 # ================================================== #
 
 import os
-import re
 
 from PySide6.QtCore import Slot
 
@@ -126,15 +125,13 @@ class Plugin(BasePlugin):
                 else:
                     voice = self.get_option_value("voice_pl")
 
-                text = re.sub(r'~###~.*?~###~', '', str(text))
-
                 # worker
                 worker = Worker()
                 worker.plugin = self
                 worker.api_key = api_key
                 worker.region = region
                 worker.voice = voice
-                worker.text = text
+                worker.text = self.window.core.audio.clean_text(text)
                 worker.path = path
 
                 # signals
@@ -147,7 +144,7 @@ class Plugin(BasePlugin):
                 self.window.threadpool.start(worker)
 
         except Exception as e:
-            self.window.core.debug.log(e)
+            self.error(e)
 
     def set_status(self, status: str):
         """
