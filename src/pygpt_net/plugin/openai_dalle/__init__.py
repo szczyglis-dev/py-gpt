@@ -37,7 +37,7 @@ class Plugin(BasePlugin):
         that could enhance the scene. Your goal is to create a detailed and descriptive prompt that provides DALL-E 
         with enough information to generate a rich and visually appealing image. Remember to maintain the original 
         intent of my request while enriching the description with your imaginative details. HOW TO START IMAGE 
-        GENARATION: to start image generation return to me prepared prompt in JSON format, all in one line, 
+        GENERATION: to start image generation return to me prepared prompt in JSON format, all in one line, 
         using following syntax: # ~###~{"cmd": "image", "params": {"query": "your query here"}}~###~. Use ONLY this 
         syntax and remember to surround JSON string with ~###~ and start command with single # - like comment in code. 
         DO NOT use any other syntax. Use English in the generated JSON command, but conduct all the remaining parts 
@@ -88,7 +88,7 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        full_msg = '[Dalle] ' + str(msg)
+        full_msg = '[DALL-E] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
         print(full_msg)
