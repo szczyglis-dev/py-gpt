@@ -61,15 +61,12 @@ class Worker(BaseWorker):
         except Exception as e:
             self.error(e)
 
-        self.status('')
-
     def send(self, playback):
         """Send playback object to main thread"""
         self.signals.playback.emit(playback)
 
     def stop_playback(self):
         """Stop audio playback"""
-        self.status('')
         self.stop()
 
     def stop(self):

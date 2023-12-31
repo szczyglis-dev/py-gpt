@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.0.70 (2023-12-31)
+
+- Added commands part strip from speech generation
+- Added img check for links sending to vision in auto mode
+
 ## 2.0.69 (2023-12-31)
 
 - Added a new plugin: GPT-4 Vision (inline - in any chat). Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.

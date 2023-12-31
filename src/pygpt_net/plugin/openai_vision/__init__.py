@@ -98,7 +98,12 @@ class Plugin(BasePlugin):
         built_attachments = self.window.core.gpt.vision.attachments
         built_urls = self.window.core.gpt.vision.urls
 
-        if len(built_attachments) > 0 or len(built_urls) > 0:
+        img_urls = []
+        for url in built_urls:
+            if url.endswith('.jpg') or url.endswith('.png') or url.endswith('.jpeg') or url.endswith('.gif') or url.endswith('.webp'):
+                img_urls.append(url)
+
+        if len(built_attachments) > 0 or len(img_urls) > 0:
             return 'vision'  # temporally switch to vision mode
 
         return mode

@@ -10,6 +10,8 @@
 # ================================================== #
 
 import os
+import re
+
 from PySide6.QtCore import Slot
 
 from .worker import Worker
@@ -123,6 +125,8 @@ class Plugin(BasePlugin):
                     voice = self.get_option_value("voice_en")
                 else:
                     voice = self.get_option_value("voice_pl")
+
+                text = re.sub(r'~###~.*?~###~', '', text)
 
                 # worker
                 worker = Worker()

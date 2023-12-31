@@ -47,7 +47,6 @@ class Worker(BaseWorker):
             playback = pygame.mixer.Sound(self.path)
             playback.play()
             self.send(playback)  # send playback object to main thread
-            self.status('')
         except Exception as e:
             self.error(e)
 
@@ -57,7 +56,6 @@ class Worker(BaseWorker):
 
     def stop_playback(self):
         """Stop audio playback"""
-        self.status('')
         self.stop()
 
     def stop(self):

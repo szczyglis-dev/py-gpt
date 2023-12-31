@@ -10,6 +10,8 @@
 # ================================================== #
 
 import os
+import re
+
 from PySide6.QtCore import Slot
 
 from pygpt_net.plugin.base import BasePlugin
@@ -109,6 +111,8 @@ class Plugin(BasePlugin):
                     model = 'tts-1'
                 if voice not in self.allowed_voices:
                     voice = 'alloy'
+
+                text = re.sub(r'~###~.*?~###~', '', text)
 
                 # worker
                 worker = Worker()
