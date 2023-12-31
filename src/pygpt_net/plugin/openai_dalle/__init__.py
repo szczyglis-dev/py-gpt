@@ -93,12 +93,11 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def on_system_prompt(self, prompt: str, silent: bool = False):
+    def on_system_prompt(self, prompt: str):
         """
         Event: On prepare system prompt
 
         :param prompt: prompt
-        :param silent: silent mode
         :return: updated prompt
         """
         prompt += self.get_option_value("prompt")
