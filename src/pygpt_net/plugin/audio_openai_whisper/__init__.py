@@ -272,23 +272,27 @@ class Plugin(BasePlugin):
         if self.thread_started:
             return
 
-        # worker
-        worker = Worker()
-        worker.plugin = self
-        worker.client = self.window.core.gpt.get_client()
-        worker.path = os.path.join(self.window.core.config.path, self.input_file)
+        try:
+            # worker
+            worker = Worker()
+            worker.plugin = self
+            worker.client = self.window.core.gpt.get_client()
+            worker.path = os.path.join(self.window.core.config.path, self.input_file)
 
-        # signals
-        worker.signals.finished.connect(self.handle_input)
-        worker.signals.destroyed.connect(self.handle_destroy)
-        worker.signals.started.connect(self.handle_started)
-        worker.signals.stopped.connect(self.handle_stop)
-        worker.signals.status.connect(self.handle_status)
-        worker.signals.error.connect(self.handle_error)
+            # signals
+            worker.signals.finished.connect(self.handle_input)
+            worker.signals.destroyed.connect(self.handle_destroy)
+            worker.signals.started.connect(self.handle_started)
+            worker.signals.stopped.connect(self.handle_stop)
+            worker.signals.status.connect(self.handle_status)
+            worker.signals.error.connect(self.handle_error)
 
-        # start
-        self.window.threadpool.start(worker)
-        self.thread_started = True
+            # start
+            self.window.threadpool.start(worker)
+            self.thread_started = True
+
+        except Exception as e:
+            self.error(e)
 
     def can_listen(self) -> bool:
         """

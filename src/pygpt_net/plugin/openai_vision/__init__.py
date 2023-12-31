@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 08:00:00                  #
+# Updated Date: 2023.12.31 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -57,15 +57,15 @@ class Plugin(BasePlugin):
         data = event.data
 
         if name == 'mode.before':
-            data['value'] = self.on_mode_before(data['value'], data['prompt'])
+            data['value'] = self.on_mode_before(data['value'], data['prompt'])  # handle mode change
         if name == 'model.before':
             mode = data['mode']
             if mode == 'vision':
-                data['model'] = self.get_option_value("model")  # force switch to vision model
+                data['model'] = self.get_option_value("model")  # force choose correct vision model
         elif name == 'ui.vision':
-            data['value'] = True  # allow vision UI elements
+            data['value'] = True  # allow render vision UI elements
         elif name == 'ui.attachments':
-            data['value'] = True  # allow attachments UI elements
+            data['value'] = True  # allow render attachments UI elements
 
     def log(self, msg: str):
         """
@@ -80,16 +80,15 @@ class Plugin(BasePlugin):
 
     def on_mode_before(self, mode: str, prompt: str):
         """
-        Event: On prepare system prompt
+        Event: On before mode execution
 
         :param mode: current mode
         :param prompt: current prompt
-        :return: updated prompt
+        :return: updated mode
         """
-
-        # abort if already vision
+        # abort if already in vision mode
         if mode == 'vision':
-            return mode
+            return mode  # keep current mode
 
         # check for attachments
         attachments = self.window.core.attachments.get_all(mode)
@@ -98,12 +97,16 @@ class Plugin(BasePlugin):
         built_attachments = self.window.core.gpt.vision.attachments
         built_urls = self.window.core.gpt.vision.urls
 
+        # check for images in URLs
+        img_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
         img_urls = []
         for url in built_urls:
-            if url.endswith('.jpg') or url.endswith('.png') or url.endswith('.jpeg') or url.endswith('.gif') or url.endswith('.webp'):
-                img_urls.append(url)
+            for ext in img_ext:
+                if url.lower().endswith(ext):
+                    img_urls.append(url)
+                    break
 
         if len(built_attachments) > 0 or len(img_urls) > 0:
-            return 'vision'  # temporally switch to vision mode
+            return 'vision'  # jump to vision mode (only for this call)
 
-        return mode
+        return mode  # keep current mode

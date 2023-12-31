@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2023.12.31 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -216,18 +216,22 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
-        # worker
-        worker = Worker()
-        worker.plugin = self
-        worker.cmds = my_commands
-        worker.ctx = ctx
+        try:
+            # worker
+            worker = Worker()
+            worker.plugin = self
+            worker.cmds = my_commands
+            worker.ctx = ctx
 
-        # signals (base handlers)
-        worker.signals.finished.connect(self.handle_finished)
-        worker.signals.log.connect(self.handle_log)
-        worker.signals.debug.connect(self.handle_debug)
-        worker.signals.status.connect(self.handle_status)
-        worker.signals.error.connect(self.handle_error)
+            # signals (base handlers)
+            worker.signals.finished.connect(self.handle_finished)
+            worker.signals.log.connect(self.handle_log)
+            worker.signals.debug.connect(self.handle_debug)
+            worker.signals.status.connect(self.handle_status)
+            worker.signals.error.connect(self.handle_error)
 
-        # start
-        self.window.threadpool.start(worker)
+            # start
+            self.window.threadpool.start(worker)
+
+        except Exception as e:
+            self.error(e)
