@@ -35,7 +35,6 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        self.stop_playback()  # stop previous playback
         try:
             response = self.client.audio.speech.create(
                 model=self.model,
@@ -45,6 +44,7 @@ class Worker(BaseWorker):
             response.stream_to_file(self.path)
             pygame.mixer.init()
             playback = pygame.mixer.Sound(self.path)
+            self.stop_playback()  # stop previous playback
             playback.play()
             self.send(playback)  # send playback object to main thread
         except Exception as e:

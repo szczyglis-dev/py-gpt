@@ -37,7 +37,6 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
-        self.stop_playback()  # stop previous playback
         try:
             url = f"https://{self.region}.tts.speech.microsoft.com/cognitiveservices/v1"
             headers = {
@@ -53,6 +52,7 @@ class Worker(BaseWorker):
                     file.write(response.content)
                 pygame.mixer.init()
                 playback = pygame.mixer.Sound(self.path)
+                self.stop_playback()  # stop previous playback
                 playback.play()
                 self.send(playback)  # send playback object to main thread
             else:
