@@ -112,7 +112,7 @@ class Plugin(BasePlugin):
                 if voice not in self.allowed_voices:
                     voice = 'alloy'
 
-                text = re.sub(r'~###~.*?~###~', '', text)
+                text = re.sub(r'~###~.*?~###~', '', str(text))
 
                 # worker
                 worker = Worker()

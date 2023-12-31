@@ -126,7 +126,7 @@ class Plugin(BasePlugin):
                 else:
                     voice = self.get_option_value("voice_pl")
 
-                text = re.sub(r'~###~.*?~###~', '', text)
+                text = re.sub(r'~###~.*?~###~', '', str(text))
 
                 # worker
                 worker = Worker()
