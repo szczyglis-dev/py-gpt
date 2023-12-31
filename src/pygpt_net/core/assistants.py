@@ -145,7 +145,7 @@ class Assistants:
             del assistant.attachments[old_id]
             self.save()
 
-    def get_default_assistant(self) -> str or None:
+    def get_default_assistant(self) -> str | None:
         """
         Return default assistant ID or None
 

@@ -15,7 +15,7 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Event:
-    def __init__(self, name=None, data=None):
+    def __init__(self, name: str = None, data: dict = None):
         """
         Event object class
 
