@@ -79,7 +79,7 @@ class Plugin(BasePlugin):
 
         if name == 'system.prompt':
             data['value'] = self.on_system_prompt(data['value'])
-        elif name == 'cmd.only':
+        elif name == 'cmd.only' or name == 'cmd.execute':
             self.cmd(ctx, data['commands'])
 
     def log(self, msg: str):

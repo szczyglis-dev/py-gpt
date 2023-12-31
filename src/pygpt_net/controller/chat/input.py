@@ -78,7 +78,7 @@ class Input:
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 self.generating = False  # unlock
                 return
-        elif mode == 'vision':
+        elif mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
             # capture frame from camera if auto-capture enabled
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
@@ -100,7 +100,7 @@ class Input:
         self.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
         # check if image captured from camera
-        camera_captured = (mode == 'vision' and self.window.controller.attachment.has('vision'))
+        camera_captured = ((mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision')) and self.window.controller.attachment.has(mode))
 
         # allow empty input only for vision mode, otherwise abort
         if len(text.strip()) == 0 and not camera_captured:

@@ -87,7 +87,9 @@
     "cmd_files": true,
     "cmd_web_google": true,
     "real_time": true,
-    "self_loop": false
+    "self_loop": false,
+    "openai_dalle": true,
+    "openai_vision": true
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",
