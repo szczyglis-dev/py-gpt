@@ -13,8 +13,6 @@ from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
-from .worker import Worker
-
 
 class Plugin(BasePlugin):
     def __init__(self):
@@ -47,7 +45,8 @@ class Plugin(BasePlugin):
         """
         self.add_option("prompt", "textarea", prompt,
                         "Prompt",
-                        "Prompt used for generating a query for DALL-E in background - please DO NOT EDIT if you do not know what you are doing.",
+                        "Prompt used for generating a query for DALL-E in background - please DO NOT EDIT if you do "
+                        "not know what you are doing.",
                         tooltip="Prompt", advanced=True)
 
     def setup(self):
@@ -127,7 +126,6 @@ class Plugin(BasePlugin):
                 if item["cmd"] == "image":
                     query = item["params"]["query"]
                     self.window.core.image.generate(ctx, query, 'dall-e-3', 1, inline=True)
-                    print("query", query)
             except Exception as e:
                 self.log("Error: " + str(e))
                 return

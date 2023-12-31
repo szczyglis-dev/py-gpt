@@ -14,6 +14,8 @@ The following plugins are currently available, and GPT can use them instantly:
 * ``Audio Input (OpenAI Whisper)`` - offers speech recognition through the `OpenAI Whisper API`.
 * ``Self Loop`` - creates a self-loop mode, where GPT can generate a continuous conversation between two AI instances, effectively talking to itself.
 * ``Real Time`` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
+* ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
+
 
 
 Command: Files I/O
@@ -456,6 +458,18 @@ If enabled, it appends the current date to the system prompt. *Default:* `True`
 
 Template to append to the system prompt. The placeholder ``{time}`` will be replaced with the 
 current date and time in real-time. *Default:* `Current time is {time}.`
+
+
+DALL-E 3: Image Generation (inline)
+------------------------------------
+
+Integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
+
+**Options**
+
+- ``Prompt`` *prompt*
+
+Prompt used for generating a query for DALL-E in background.
 
 Creating Your Own Plugins
 --------------------------

@@ -8,6 +8,8 @@ The older model version, ``DALL-E 2``, is also accessible. Generating images is 
 a user's prompt triggers the generation, followed by downloading, saving to the computer, 
 and displaying the image onscreen.
 
+**INFO: From version 2.0.68 (released 2023-12-31) image generation using DALL-E is available in every mode via plugin "DALL-E 3 Image Generation (inline)". Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.**
+
 
 Multiple variants
 -----------------
