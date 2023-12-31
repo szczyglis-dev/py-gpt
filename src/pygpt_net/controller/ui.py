@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
-
+from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
 
@@ -75,6 +75,7 @@ class UI:
 
     def update_active(self):
         """Update mode, model, preset and rest of the toolbox"""
+
         mode = self.window.core.config.data['mode']
         if mode == 'chat':
             # temperature
@@ -93,12 +94,30 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
+            # event: ui.vision
+            value = False
+            event = Event('ui.vision', {
+                'mode': mode,
+                'value': value,
+            })
+            self.window.core.dispatcher.dispatch(event)
+            value = event.data['value']
             # vision capture
-            self.window.ui.nodes['vision.capture.options'].setVisible(False)
-            self.window.ui.nodes['attachments.capture_clear'].setVisible(False)
+            self.window.ui.nodes['vision.capture.options'].setVisible(value)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
+            # event: ui.vision
+            value = False
+            event = Event('ui.attachments', {
+                'mode': mode,
+                'value': value,
+            })
+            self.window.core.dispatcher.dispatch(event)
+            value = event.data['value']
             # files tabs
-            self.window.ui.tabs['input'].setTabVisible(1, False)  # files
+            self.window.ui.tabs['input'].setTabVisible(1, value)  # files
+
+            # uploaded files
             self.window.ui.tabs['input'].setTabVisible(2, False)  # uploaded files
 
             # stream checkbox
@@ -245,6 +264,15 @@ class UI:
 
             # stream checkbox
             self.window.ui.nodes['input.stream'].setVisible(False)
+
+    def update_vision(self):
+        # vision camera
+        mode = self.window.core.config.data['mode']
+        if mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
+            self.window.controller.camera.setup()
+            self.window.controller.camera.show_camera()
+        else:
+            self.window.controller.camera.hide_camera()
 
     def store_state(self):
         """Store UI state"""

@@ -70,12 +70,11 @@ class Plugin(BasePlugin):
                         "Syntax: sys_exec",
                         "Syntax for system commands execution", advanced=True)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
         :return: config options
-        :rtype: dict
         """
         return self.options
 

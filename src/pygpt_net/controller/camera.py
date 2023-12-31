@@ -205,7 +205,8 @@ class Camera:
 
     def enable_capture(self):
         """Enable capture"""
-        if self.window.core.config.get('mode') != 'vision':
+        if self.window.core.config.get('mode') != 'vision' \
+                and not self.window.controller.plugins.is_type_enabled('vision'):
             return
 
         self.is_capture = True
@@ -216,7 +217,8 @@ class Camera:
 
     def disable_capture(self):
         """Disable capture"""
-        if self.window.core.config.get('mode') != 'vision':
+        if self.window.core.config.get('mode') != 'vision' \
+                and not self.window.controller.plugins.is_type_enabled('vision'):
             return
 
         self.is_capture = False
@@ -240,7 +242,8 @@ class Camera:
 
     def enable_auto(self):
         """Enable capture"""
-        if self.window.core.config.data['mode'] != 'vision':
+        if self.window.core.config.data['mode'] != 'vision' \
+                and not self.window.controller.plugins.is_type_enabled('vision'):
             return
 
         self.auto = True
@@ -253,7 +256,8 @@ class Camera:
 
     def disable_auto(self):
         """Disable capture"""
-        if self.window.core.config.get('mode') != 'vision':
+        if self.window.core.config.get('mode') != 'vision' \
+                and not self.window.controller.plugins.is_type_enabled('vision'):
             return
 
         self.auto = False

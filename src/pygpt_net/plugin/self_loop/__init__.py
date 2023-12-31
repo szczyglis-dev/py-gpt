@@ -43,7 +43,7 @@ class Plugin(BasePlugin):
                         "Reverse roles between iterations",
                         "If enabled, roles will be reversed between iterations.")
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 

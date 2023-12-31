@@ -1,3 +1,7 @@
+2.0.69 (2023-12-31)
+
+- Added a new plugin: GPT-4 Vision (inline - in any chat). Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+
 2.0.68 (2023-12-31)
 
 - Added a new plugin: DALL-E 3 Image Generation (inline) which enables image generation in any chat and mode, seamlessly in the background - just request an image from any model, like GPT-4, and it will generate it "inline."

@@ -15,6 +15,7 @@ The following plugins are currently available, and GPT can use them instantly:
 * ``Self Loop`` - creates a self-loop mode, where GPT can generate a continuous conversation between two AI instances, effectively talking to itself.
 * ``Real Time`` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 * ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
+* ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
 
 
@@ -470,6 +471,19 @@ Integrates DALL-E 3 image generation with any chat and mode. Just enable and ask
 - ``Prompt`` *prompt*
 
 Prompt used for generating a query for DALL-E in background.
+
+
+GPT-4 Vision (inline - in any chat)
+-----------------------------------
+
+Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+
+**Options**
+
+- ``Model`` *model*
+
+The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
+
 
 Creating Your Own Plugins
 --------------------------

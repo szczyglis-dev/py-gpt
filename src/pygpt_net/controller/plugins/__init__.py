@@ -85,6 +85,8 @@ class Plugins:
                 self.window.ui.menu['plugins'][id].setChecked(True)
 
         self.handle_types()
+        self.window.controller.ui.update_active()  # refresh active elements
+        self.window.controller.ui.update_vision()  # vision camera
 
     def enable(self, id: str):
         """
@@ -159,6 +161,8 @@ class Plugins:
 
         self.handle_types()
         self.window.controller.ui.update_tokens()  # refresh tokens
+        self.window.controller.ui.update_active()  # refresh active elements
+        self.window.controller.ui.update_vision()  # vision camera
 
     def set_by_tab(self, idx: int):
         """

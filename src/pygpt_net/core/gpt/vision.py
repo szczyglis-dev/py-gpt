@@ -39,12 +39,15 @@ class Vision:
         :return: response or stream chunks
         """
         client = self.window.core.gpt.get_client()
+        model = self.window.core.gpt.get_model('vision')
+        if model != 'gpt-4-vision-preview':
+            model = 'gpt-4-vision-preview'
 
         # build chat messages
         messages = self.build(prompt, system_prompt=system_prompt, attachments=attachments)
         response = client.chat.completions.create(
             messages=messages,
-            model=self.window.core.config.get('model'),
+            model=model,
             max_tokens=int(max_tokens),
             stream=stream_mode,
         )

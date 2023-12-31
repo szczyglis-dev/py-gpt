@@ -41,9 +41,11 @@ class Completion:
             stop = [user_name + ':']
 
         client = self.window.core.gpt.get_client()
+        model = self.window.core.gpt.get_model('completion')
+
         response = client.completions.create(
             prompt=message,
-            model=self.window.core.config.get('model'),
+            model=model,
             max_tokens=int(max_tokens),
             temperature=self.window.core.config.get('temperature'),
             top_p=self.window.core.config.get('top_p'),

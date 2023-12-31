@@ -115,7 +115,7 @@ class Plugin(BasePlugin):
                         "Syntax: web_url_open",
                         "Syntax for web URL open command", advanced=True)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 

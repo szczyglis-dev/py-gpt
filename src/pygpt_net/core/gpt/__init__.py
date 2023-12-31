@@ -19,6 +19,7 @@ from .completion import Completion
 from .summarizer import Summarizer
 from .vision import Vision
 from pygpt_net.item.ctx import CtxItem
+from ..dispatcher import Event
 
 
 class Gpt:
@@ -53,6 +54,17 @@ class Gpt:
             organization=self.window.core.config.get('organization_key'),
         )
 
+    def get_model(self, mode: str):
+        # event: model.before
+        model = str(self.window.core.config.get('model'))
+        event = Event('model.before', {
+            'model': model,
+            'mode': mode,
+        })
+        self.window.core.dispatcher.dispatch(event)
+        model = event.data['model']
+        return model
+
     def call(self, prompt: str, ctx: CtxItem = None, stream_mode: bool = False) -> bool:
         """
         Call OpenAI API
@@ -77,6 +89,15 @@ class Gpt:
 
         response = None
         used_tokens = 0
+
+        # event: mode.before
+        event = Event('mode.before', {
+            'value': mode,
+            'prompt': prompt,
+        })
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
+        mode = event.data['value']
 
         # get response
         if mode == "completion":

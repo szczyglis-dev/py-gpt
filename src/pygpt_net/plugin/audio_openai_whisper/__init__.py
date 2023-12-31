@@ -134,7 +134,7 @@ class Plugin(BasePlugin):
                         "dynamically adjust the threshold for before returning. Default: 1", min=0, max=100,
                         slider=True, multiplier=10, advanced=True)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
@@ -148,7 +148,7 @@ class Plugin(BasePlugin):
         """
         pass
 
-    def get_words(self, key: str):
+    def get_words(self, key: str) -> list:
         """
         Get and parse words from option string
 
@@ -290,7 +290,7 @@ class Plugin(BasePlugin):
         self.window.threadpool.start(worker)
         self.thread_started = True
 
-    def can_listen(self):
+    def can_listen(self) -> bool:
         """
         Check if can listen
 

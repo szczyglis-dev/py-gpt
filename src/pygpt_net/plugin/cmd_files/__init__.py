@@ -133,12 +133,11 @@ class Plugin(BasePlugin):
                         "Syntax: file_info",
                         "Syntax for getting file info", advanced=True)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
         :return: config options
-        :rtype: dict
         """
         return self.options
 
@@ -165,13 +164,12 @@ class Plugin(BasePlugin):
         elif name == 'cmd.execute':
             self.cmd(ctx, data['commands'])
 
-    def is_cmd_allowed(self, cmd: str):
+    def is_cmd_allowed(self, cmd: str) -> bool:
         """
         Check if cmd is allowed
 
         :param cmd: command name
         :return: True if allowed
-        :rtype: bool
         """
         key = "cmd_" + cmd
         if self.has_option(key) and self.get_option_value(key) is True:

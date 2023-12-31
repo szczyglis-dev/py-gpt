@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.68** | build: **2023.12.31** | Python: **3.10+**
+Release: **2.0.69** | build: **2023.12.31** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -609,6 +609,8 @@ two AI instances, effectively talking to itself.
 
 - `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
 
+- `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+
 ## Command: Files I/O
 
 The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `output` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
@@ -1047,7 +1049,17 @@ Integrates DALL-E 3 image generation with any chat and mode. Just enable and ask
 
 - `Prompt` *prompt*
 
-Prompt used for generating a query for DALL-E in background 
+Prompt used for generating a query for DALL-E in background.
+
+## GPT-4 Vision (inline - in any chat)
+
+Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+
+**Options**
+
+- `Model` *model*
+
+The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
 
 # Creating Your Own Plugins
 
@@ -1367,6 +1379,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.69 (2023-12-31)
+
+- Added a new plugin: GPT-4 Vision (inline - in any chat). Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
 ### 2.0.68 (2023-12-31)
 

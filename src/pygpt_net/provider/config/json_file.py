@@ -414,9 +414,9 @@ class JsonFileProvider(BaseProvider):
                     data['ctx.search.string'] = ""
                 updated = True
 
-            # < 2.0.68
-            if old < parse_version("2.0.68"):
-                print("Migrating config from < 2.0.68...")
+            # < 2.0.69
+            if old < parse_version("2.0.69"):
+                print("Migrating config from < 2.0.69...")
                 data['img_prompt'] = "Whenever I provide a basic idea or concept for an image, such as 'a picture " \
                                      "of mountains', I want you to ALWAYS translate it into English and expand " \
                                      "and elaborate on this idea. Use your knowledge and creativity to add " \

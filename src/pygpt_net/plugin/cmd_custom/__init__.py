@@ -50,12 +50,11 @@ class Plugin(BasePlugin):
         self.add_option("cmds", "dict", value,
                         "Your custom commands", desc, tooltip, keys=keys)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
         :return: config options
-        :rtype: dict
         """
         return self.options
 

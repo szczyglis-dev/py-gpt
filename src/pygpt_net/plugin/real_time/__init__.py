@@ -45,7 +45,7 @@ class Plugin(BasePlugin):
         self.add_option("tpl", "textarea", " Current time is {time}.",
                         "Template", desc, tooltip=tooltip)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 

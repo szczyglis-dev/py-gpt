@@ -51,12 +51,11 @@ class Plugin(BasePlugin):
                         "not know what you are doing.",
                         tooltip="Prompt", advanced=True)
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
         :return: config options
-        :rtype: dict
         """
         return self.options
 
@@ -89,7 +88,7 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        full_msg = '[CMD] ' + str(msg)
+        full_msg = '[Dalle] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
         print(full_msg)
@@ -101,7 +100,6 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :param silent: silent mode
         :return: updated prompt
-        :rtype: str
         """
         prompt += self.get_option_value("prompt")
         return prompt

@@ -55,11 +55,7 @@ class Mode:
         self.window.ui.status(trans('status.started'))
 
         # vision camera
-        if mode == 'vision':
-            self.window.controller.camera.setup()
-            self.window.controller.camera.show_camera()
-        else:
-            self.window.controller.camera.hide_camera()
+        self.window.controller.ui.update_vision()
 
         # if assistant mode then update ctx label
         if mode == "assistant":

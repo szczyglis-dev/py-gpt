@@ -49,7 +49,7 @@ class CtxItem:
         self.extra = None
         self.current = False
 
-    def set_input(self, input: str, name: str = None):
+    def set_input(self, input: str | None, name: str = None):
         """
         Set input
 
@@ -60,7 +60,7 @@ class CtxItem:
         self.input_name = name
         self.input_timestamp = int(time.time())
 
-    def set_output(self, output: str, name: str = None):
+    def set_output(self, output: str | None, name: str = None):
         """
         Set output
 

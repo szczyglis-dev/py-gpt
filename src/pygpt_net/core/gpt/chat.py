@@ -33,6 +33,7 @@ class Chat:
         :return: response or stream chunks
         """
         client = self.window.core.gpt.get_client()
+        model = self.window.core.gpt.get_model('chat')
 
         # build chat messages
         messages = self.build(prompt, system_prompt=system_prompt, ai_name=ai_name, user_name=user_name)
@@ -47,7 +48,7 @@ class Chat:
 
         response = client.chat.completions.create(
             messages=messages,
-            model=self.window.core.config.get('model'),
+            model=model,
             max_tokens=int(max_tokens),
             temperature=self.window.core.config.get('temperature'),
             top_p=self.window.core.config.get('top_p'),
