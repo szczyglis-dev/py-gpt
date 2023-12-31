@@ -43,12 +43,14 @@ class Image:
         :return: system command for generate image prompt
         """
         cmd = '''
-        1. Apply these rules if the request is related to image generation or image description; otherwise, return the user's prompt as is.
-        2. Translate any non-English image prompts accurately into English.
-        3. Start from "A photograph of..." or "An image of...", etc. DO NOT use asking, like "Please generate...", "I want to see...", etc.
-        4. Use as many details as possible to describe the image.
-        5. If the user only wants to talk, then return the user's prompt as is (AND ONLY their prompt, without adding any text to it).
-        '''
+        Whenever I provide a basic idea or concept for an image, such as 'a picture of mountains', 
+        I want you to ALWAYS translate it into English and expand and elaborate on this idea. Use your knowledge and 
+        creativity to add details that would make the image more vivid and interesting. This could include specifying 
+        the time of day, weather conditions, surrounding environment, and any additional elements that could enhance 
+        the scene. Your goal is to create a detailed and descriptive prompt that provides DALL-E with enough 
+        information to generate a rich and visually appealing image. Remember to maintain the original intent of my 
+        request while enriching the description with your imaginative details. '''
+
         # get custom prompt from config if exists
         if allow_custom:
             if self.window.core.config.has('img_prompt'):
@@ -99,8 +101,8 @@ class Image:
         :param prompt: prompt
         :param model: model name
         :param num: number of variants
+        :param inline: inline mode
         :return: images paths list
-        :rtype: list
         """
 
         # worker
