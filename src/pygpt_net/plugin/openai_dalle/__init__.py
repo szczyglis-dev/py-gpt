@@ -41,7 +41,9 @@ class Plugin(BasePlugin):
         using following syntax: # ~###~{"cmd": "image", "params": {"query": "your query here"}}~###~. Use ONLY this 
         syntax and remember to surround JSON string with ~###~ and start command with single # - like comment in code. 
         DO NOT use any other syntax. Use English in the generated JSON command, but conduct all the remaining parts 
-        of the discussion with me in the language in which I am speaking to you.
+        of the discussion with me in the language in which I am speaking to you. The image will be generated on my machine 
+        immediately after the command is issued, allowing us to discuss the photo once it has been created. 
+        Please engage with me about the photo itself, not only by giving the generate command.
         """
         self.add_option("prompt", "textarea", prompt,
                         "Prompt",
