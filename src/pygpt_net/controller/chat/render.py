@@ -95,16 +95,22 @@ class Render:
 
         if len(item.images) > 0:
             for image in item.images:
-                html_image = """
+                html = """
                 <img src="{image}" width="400">""".format(image=image)
-                self.get_output_node().append(html_image)
+                self.get_output_node().append(html)
                 self.append("\n")
         if len(item.files) > 0:
             for file in item.files:
-                self.append(file + "\n")
+                html = """
+                <a href="{file}">{file}</a>""".format(file=file)
+                self.get_output_node().append(html)
+                self.append("\n")
         if len(item.urls) > 0:
             for url in item.urls:
-                self.append(url + "\n")
+                html = """
+                <a href="{url}">{url}</a>""".format(url=url)
+                self.get_output_node().append(html)
+                self.append("\n")
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """

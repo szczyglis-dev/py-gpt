@@ -202,7 +202,7 @@ class MarkdownHighlighter(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         self.highlightMarkdown(text, 0)
-        self.highlightHtml(text)
+        #self.highlightHtml(text)
 
     def highlightMarkdown(self, text, strt):
         cursor = QTextCursor(self.document())
