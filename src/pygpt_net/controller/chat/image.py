@@ -143,6 +143,7 @@ class Image:
 
         # append extra output to chat
         self.window.controller.chat.render.append_extra(ctx)
+        self.window.controller.chat.render.to_end()
 
     def open_images(self, paths: list):
         """

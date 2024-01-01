@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 

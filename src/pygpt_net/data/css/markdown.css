@@ -8,9 +8,10 @@ img {{
     width: 200px !important;
 }}
 .msg-user {{
-    color: #8c8c8c !important;
+    color: #bdbdbd !important;
 }}
 .msg-bot {{
+    color: #fff;
     border: 1px solid #fff;
     width: 100%;
 }}

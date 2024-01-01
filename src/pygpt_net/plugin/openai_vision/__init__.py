@@ -23,6 +23,7 @@ class Plugin(BasePlugin):
         self.window = None
         self.order = 100
         self.use_locale = True
+        self.is_vision = False
         self.init_options()
 
     def init_options(self):
@@ -30,6 +31,10 @@ class Plugin(BasePlugin):
                         "Model",
                         "Model used to temporarily providing vision abilities, default: gpt-4-vision-preview",
                         tooltip="Model")
+        self.add_option("keep", "bool", True,
+                        "Keep vision",
+                        "Keep vision model after image or capture detection",
+                        tooltip="Keep vision model after image or capture detection")
 
     def setup(self) -> dict:
         """
@@ -66,6 +71,8 @@ class Plugin(BasePlugin):
             data['value'] = True  # allow render vision UI elements
         elif name == 'ui.attachments':
             data['value'] = True  # allow render attachments UI elements
+        elif name == 'ctx.select' or name == 'mode.select' or name == 'model.select':
+            self.is_vision = False  # reset vision flag
 
     def log(self, msg: str):
         """
@@ -90,6 +97,9 @@ class Plugin(BasePlugin):
         if mode == 'vision':
             return mode  # keep current mode
 
+        if self.is_vision and self.get_option_value("keep"):  # if already used in this ctx then keep vision mode
+            return 'vision'
+
         # check for attachments
         attachments = self.window.core.attachments.get_all(mode)
         self.window.core.gpt.vision.build_content(prompt, attachments)  # tmp build content
@@ -107,6 +117,7 @@ class Plugin(BasePlugin):
                     break
 
         if len(built_attachments) > 0 or len(img_urls) > 0:
+            self.is_vision = True  # set vision flag
             return 'vision'  # jump to vision mode (only for this call)
 
         return mode  # keep current mode

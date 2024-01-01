@@ -455,6 +455,11 @@ class JsonFileProvider(BaseProvider):
 
                 data['plugins_enabled']['openai_dalle'] = True
                 data['plugins_enabled']['openai_vision'] = True
+
+                # deprecate vision and img modes
+                if data['mode'] == 'vision' or data['mode'] == 'img':
+                    data['mode'] = 'chat'
+
                 updated = True
 
         # update file

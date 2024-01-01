@@ -195,7 +195,6 @@ class Text:
         if stream_mode:
             # append extra data to output if stream mode
             self.window.controller.chat.render.reload()
-            self.window.controller.chat.render.append_extra(ctx)
 
         self.window.controller.chat.common.unlock_input()  # unlock
 

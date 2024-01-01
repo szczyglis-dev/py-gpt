@@ -11,7 +11,7 @@
 
 import re
 from datetime import datetime
-from PySide6.QtGui import QTextCursor
+from PySide6.QtGui import QTextCursor, QTextBlockFormat
 import markdown
 
 from pygpt_net.item.ctx import CtxItem
@@ -96,6 +96,18 @@ class Render:
         """
         return text
 
+    def append_block(self):
+        cursor = self.get_output_node().textCursor()
+        cursor.movePosition(QTextCursor.End)
+        block_format = QTextBlockFormat()
+        block_format.setIndent(0)
+        cursor.insertBlock(block_format)
+
+    def to_end(self):
+        cursor = self.get_output_node().textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.get_output_node().setTextCursor(cursor)
+
     def append_raw(self, text: str, type: str = "msg-bot"):
         """
         Append and format raw text to output
@@ -115,8 +127,26 @@ class Render:
             text = "<p>" + self.format_user_text(text) + "</p>"
 
         text = self.post_format_text(text)
-        text = '<div class="{}">'.format(type) + text.strip()
+        text = '<div class="{}">'.format(type) + text.strip() + "</div>"
+
+        # reset formatting
+        is_empty = not self.get_output_node().document().toPlainText().strip()
+        if not is_empty:
+            self.append_block()
+
         self.get_output_node().append(text)
+        self.to_end()
+
+    def append_chunk_start(self):
+        """
+        Append start of chunk to output
+        """
+        text = '<div class="msg-bot"></div>'
+        self.get_output_node().append(text)
+        cursor = self.get_output_node().textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertHtml('<div class="msg-bot">&nbsp;</div>')  # fix for font change
+        self.get_output_node().setTextCursor(cursor)
 
     def append_context_item(self, item: CtxItem):
         """
@@ -209,6 +239,11 @@ class Render:
                 except Exception as e:
                     pass
 
+        # jump to end
+        if len(already_appended) > 0:
+            self.to_end()
+            #self.append_block()
+
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
         Append output chunk to output
@@ -225,10 +260,14 @@ class Render:
                 name = item.output_name + " "
             ts = datetime.fromtimestamp(item.output_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: ".format(name, hour), "")
-
-        if begin:
-            self.append_raw("", "msg-bot")  # fix for new block start
+            self.to_end()
+            self.append_chunk_start()
+            self.append_block()
+            text_chunk = "{}{}: ".format(name, hour) + text_chunk
+        elif begin:
+            self.to_end()
+            self.append_chunk_start()
+            self.append_block()
 
         self.append(self.format_chunk(text_chunk), "")
 

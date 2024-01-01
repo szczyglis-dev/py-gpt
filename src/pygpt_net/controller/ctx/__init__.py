@@ -11,6 +11,7 @@
 
 from pygpt_net.controller.ctx.common import Common
 from pygpt_net.controller.ctx.summarizer import Summarizer
+from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
 
 from pygpt_net.utils import trans
@@ -97,7 +98,13 @@ class Ctx:
         if self.context_change_locked():
             return
 
-        self.select(self.window.core.ctx.get_id_by_idx(idx))
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        self.select(id)
+
+        event = Event('ctx.select', {
+            'value': id,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def select_by_current(self):
         """Select ctx by current"""

@@ -11,6 +11,7 @@ img {{
     color: #bdbdbd !important;
 }}
 .msg-bot {{
+    color: #fff;
     border: 1px solid #fff;
     width: 100%;
 }}

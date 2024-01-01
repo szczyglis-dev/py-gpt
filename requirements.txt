@@ -38,6 +38,7 @@ langchain==0.0.346
 langchain-core==0.0.10
 langchain-experimental==0.0.44
 langsmith==0.0.69
+Markdown==3.5.1
 markdown-it-py==2.2.0
 MarkupSafe==2.1.2
 marshmallow==3.20.1

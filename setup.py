@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.70'
+VERSION = '2.0.71'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, ' \
               'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
 LONG_DESCRIPTION = 'Package contains a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 Desktop AI Assistant with chatbot, ' \
@@ -30,6 +30,7 @@ setup(
         'docker>=7.0.0',
         'langchain>=0.0.345',
         'langchain-experimental>=0.0.44',
+        'Markdown>=3.5.1',
         'openai>=1.3.7',
         'opencv-python>=4.8.1.78',
         'packaging>=23.0',

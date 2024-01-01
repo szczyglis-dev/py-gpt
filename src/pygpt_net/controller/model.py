@@ -8,6 +8,8 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+from pygpt_net.core.dispatcher import Event
+
 
 class Model:
     def __init__(self, window=None):
@@ -52,6 +54,11 @@ class Model:
         model = self.window.core.models.get_by_idx(idx, mode)
         self.window.core.config.set('model', model)
         self.window.core.config.data['current_model'][mode] = model
+
+        event = Event('model.select', {
+            'value': model,
+        })
+        self.window.core.dispatcher.dispatch(event)
 
     def select_current(self):
         """Select current model on list"""

@@ -2,13 +2,15 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.70** | build: **2023.12.31** | Python: **3.10+**
+Release: **2.0.71** | build: **2024.01.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
 Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
 
 Compiled version for Linux (tar.gz) and Windows 10/11 (msi) 64-bit: https://pygpt.net/#download
+
+**INFO:** From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.
 
 ## Overview
 
@@ -287,6 +289,8 @@ it also allows you to upload images or provide URLs to images. The vision featur
 images and those found online. 
 
 **From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
+
+**INFO: From version 2.0.68 (released 2023-12-31) Vision is integrated into any chat mode via plugin "GPT-4 Vision (inline)". Just enable plugin and use Vision in standard modes.**
 
 ![v2_capture_enable](https://github.com/szczyglis-dev/py-gpt/assets/61396542/dd8ee149-afd2-4d7b-b2be-5c4e9725c584)
 
@@ -1379,6 +1383,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.71 (2024-01-01)
+
+- Added Markdown and HTML formatting in the chat window (beta version)
+- Added the display of images, files and URLs internally in the chat window
+- Added fully integration with images, attachments, and files inside the chat window
+- Added vision capture and image generation directly into the chat window (via the DALL-E Inline plugin)
+- Improved audio speech generation (eliminated the silence that prematurely truncated the previous audio output before generating the next speech synthesis)
 
 ### 2.0.70 (2023-12-31)
 

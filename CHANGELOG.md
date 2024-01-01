@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.71 (2024-01-01)
+
+- Added Markdown and HTML formatting in the chat window (beta version)
+- Added the display of images, files and URLs internally in the chat window
+- Added fully integration with images, attachments, and files inside the chat window
+- Added vision capture and image generation directly into the chat window (via the DALL-E Inline plugin)
+- Improved audio speech generation (eliminated the silence that prematurely truncated the previous audio output before generating the next speech synthesis)
+
 ## 2.0.70 (2023-12-31)
 
 - Added commands part strip from speech generation
