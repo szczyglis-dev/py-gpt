@@ -48,6 +48,7 @@ class CtxItem:
         self.total_tokens = 0
         self.extra = None
         self.current = False
+        self.internal = False
 
     def set_input(self, input: str | None, name: str = None):
         """
@@ -115,7 +116,8 @@ class CtxItem:
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
             "extra": self.extra,
-            "current": self.current
+            "current": self.current,
+            "internal": self.internal
         }
         return json.dumps(data)
 

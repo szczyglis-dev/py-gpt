@@ -102,7 +102,7 @@ class Image:
             string += "\nPrompt: "
             string += prompt
 
-        ctx.images = json.dumps(paths)  # save images paths
+        ctx.images = paths  # save images paths
         ctx.set_output(string.strip())
 
         # event: ctx.after
@@ -134,8 +134,15 @@ class Image:
         for path in paths:
             string += "{}) `{}`".format(i, path) + "\n"
             i += 1
+
+        ctx.images = paths  # save images paths
+        self.window.core.ctx.update_item(ctx)
+
         self.open_images(paths)
         self.window.ui.status(trans('status.img.generated'))
+
+        # append extra output to chat
+        self.window.controller.chat.render.append_extra(ctx)
 
     def open_images(self, paths: list):
         """

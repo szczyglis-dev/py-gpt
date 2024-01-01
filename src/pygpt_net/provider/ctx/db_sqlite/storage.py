@@ -311,7 +311,8 @@ class Storage:
                 extra,
                 input_tokens,
                 output_tokens,
-                total_tokens
+                total_tokens,
+                is_internal
             )
             VALUES 
             (
@@ -337,7 +338,8 @@ class Storage:
                 :extra,
                 :input_tokens,
                 :output_tokens,
-                :total_tokens
+                :total_tokens,
+                :is_internal
             )
         """).bindparams(
             meta_id=int(meta.id),
@@ -362,7 +364,8 @@ class Storage:
             extra=self.pack_item_value(item.extra),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
-            total_tokens=int(item.total_tokens or 0)
+            total_tokens=int(item.total_tokens or 0),
+            is_internal=int(item.internal)
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -400,7 +403,8 @@ class Storage:
                 extra = :extra,
                 input_tokens = :input_tokens,
                 output_tokens = :output_tokens,
-                total_tokens = :total_tokens
+                total_tokens = :total_tokens,
+                is_internal = :is_internal
             WHERE id = :id
         """).bindparams(
             id=item.id,
@@ -424,7 +428,8 @@ class Storage:
             extra=self.pack_item_value(item.extra),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
-            total_tokens=int(item.total_tokens or 0)
+            total_tokens=int(item.total_tokens or 0),
+            is_internal=int(item.internal or 0)
         )
         with db.begin() as conn:
             conn.execute(stmt)
@@ -487,6 +492,7 @@ class Storage:
         item.input_tokens = int(row['input_tokens'] or 0)
         item.output_tokens = int(row['output_tokens'] or 0)
         item.total_tokens = int(row['total_tokens'] or 0)
+        item.internal = int(row['is_internal'] or 0)
         return item
 
     def unpack_meta(self, meta: CtxMeta, row: dict) -> CtxMeta:

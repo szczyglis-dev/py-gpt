@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2023.12.31 23:00:00                  #
 # ================================================== #
 
 import os
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -360,10 +361,11 @@ class Files:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
-    def handle_received(self, msg) -> list:
+    def handle_received(self, ctx: CtxItem, msg) -> list:
         """
         Handle (download) received message files
 
+        :param ctx: context object
         :param msg: message object (OpenAI API response)
         :return: downloaded files paths
         """
@@ -374,8 +376,10 @@ class Files:
             if path is not None:
                 paths.append(path)
                 num_downloaded += 1
+
         if num_downloaded > 0:
             # show alert with downloaded files
             msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
             self.window.ui.dialogs.alert(msg)
+
         return paths

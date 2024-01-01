@@ -51,9 +51,9 @@ class Threads:
         for msg in data:
             if msg.role == "assistant":
                 ctx.set_output(msg.content[0].text.value)
-                paths = self.window.controller.assistant.files.handle_received(msg)
+                paths = self.window.controller.assistant.files.handle_received(ctx, msg)
                 if paths:
-                    ctx.files = json.dumps(paths)  # append files to ctx
+                    ctx.files = list(paths)  # append files paths list to ctx
                 self.window.controller.chat.output.handle(ctx, 'assistant', False)
                 self.window.controller.chat.output.handle_cmd(ctx)
 

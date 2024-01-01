@@ -117,9 +117,10 @@ class Gpt:
 
             # store sent images in ctx
             if len(images) > 0:
-                ctx.images = json.dumps(images)
+                ctx.images = list(images.values())
             if len(urls) > 0:
-                ctx.urls = json.dumps(urls)
+                ctx.images = urls
+                ctx.urls = urls
 
         elif mode == "assistant":
             response = self.assistants.msg_send(self.thread_id, prompt)

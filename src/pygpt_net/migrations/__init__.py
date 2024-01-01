@@ -11,6 +11,7 @@
 
 from .Version20231227152900 import Version20231227152900  # 2.0.59
 from .Version20231230095000 import Version20231230095000  # 2.0.66
+from .Version20231231230000 import Version20231231230000  # 2.0.71
 
 
 class Migrations:
@@ -18,14 +19,14 @@ class Migrations:
         pass
 
     @staticmethod
-    def get_versions():
+    def get_versions() -> list:
         """
         Return migrations
 
         :return: list with migrations classes
-        :rtype: list
         """
         return [
             Version20231227152900(),  # 2.0.59
             Version20231230095000(),  # 2.0.66
+            Version20231231230000(),  # 2.0.71
         ]

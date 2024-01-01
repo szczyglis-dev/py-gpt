@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2023.12.31 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -47,10 +47,11 @@ class Render:
         """
         self.append_input(item)
         self.append_output(item)
+        self.append_extra(item)
 
     def append_input(self, item: CtxItem):
         """
-        Append input to output
+        Append text input to output
 
         :param item: context item
         """
@@ -68,7 +69,7 @@ class Render:
 
     def append_output(self, item: CtxItem):
         """
-        Append output to output
+        Append text output to output
 
         :param item: context item
         """
@@ -84,9 +85,30 @@ class Render:
         else:
             self.append(item.output + "\n")
 
+    def append_extra(self, item: CtxItem):
+        """
+        Append extra data (images, files, etc.) to output
+
+        :param item: context item
+        """
+        # self.append("SPECIAL:" + "\n")
+
+        if len(item.images) > 0:
+            for image in item.images:
+                html_image = """
+                <img src="{image}" width="400">""".format(image=image)
+                self.get_output_node().append(html_image)
+                self.append("\n")
+        if len(item.files) > 0:
+            for file in item.files:
+                self.append(file + "\n")
+        if len(item.urls) > 0:
+            for url in item.urls:
+                self.append(url + "\n")
+
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
-        Append output to output
+        Append output chunk to output
 
         :param item: context item
         :param text_chunk: text chunk
@@ -123,7 +145,7 @@ class Render:
 
     def append_text(self, text: str):
         """
-        Append text to notepad
+        Append custom text to output
 
         :param text: Text to append
         """
