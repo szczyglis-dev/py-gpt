@@ -28,9 +28,17 @@ class Render:
         :param window: Window instance
         """
         self.window = window
+        self.images_appended = []
+        self.urls_appended = []
+
+    def reset(self):
+        """Reset"""
+        self.images_appended = []
+        self.urls_appended = []
 
     def clear(self):
         """Clear output"""
+        self.reset()
         self.get_output_node().clear()
 
     def clear_input(self):
@@ -39,6 +47,7 @@ class Render:
 
     def reload(self):
         """Reload output"""
+        self.reset()
         self.window.controller.ctx.refresh_output()
 
     def end_of_stream(self):
@@ -206,7 +215,7 @@ class Render:
         already_appended = []
         if len(item.images) > 0:
             for image in item.images:
-                if image in already_appended:
+                if image in already_appended or image in self.images_appended:
                     continue
                 try:
                     html = """
@@ -214,6 +223,7 @@ class Render:
                     <p><b>{prefix}:</b> <a href="{image}">{image}</a></p>""".format(prefix=trans('chat.prefix.img'), image=image)
                     self.get_output_node().append(html)
                     already_appended.append(image)
+                    self.images_appended.append(image)
                 except Exception as e:
                     pass
         if len(item.files) > 0:
@@ -229,13 +239,14 @@ class Render:
                     pass
         if len(item.urls) > 0:
             for url in item.urls:
-                if url in already_appended:
+                if url in already_appended or url in self.urls_appended:
                     continue
                 try:
                     html = """
                     <b>{prefix}:</b> <a href="{url}">{url}</a>""".format(prefix=trans('chat.prefix.url'), url=url)
                     self.get_output_node().append(html)
                     already_appended.append(url)
+                    self.urls_appended.append(url)
                 except Exception as e:
                     pass
 

@@ -130,6 +130,9 @@ class Ctx:
         self.window.core.ctx.new()
         self.window.core.config.set('assistant_thread', None)  # reset assistant thread id
         self.update()
+
+        # reset appended data
+        self.window.controller.chat.render.reset()
         self.window.controller.chat.render.clear()
 
         if not force:  # only if real click on new context button
@@ -178,6 +181,9 @@ class Ctx:
         """
         # select ctx by id
         self.window.core.ctx.select(id)
+
+        # reset appended data
+        self.window.controller.chat.render.reset()
 
         # get current settings stored in ctx
         thread = self.window.core.ctx.thread

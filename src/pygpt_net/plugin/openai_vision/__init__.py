@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.31 22:00:00                  #
 # ================================================== #
-
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 
@@ -60,9 +60,10 @@ class Plugin(BasePlugin):
         """
         name = event.name
         data = event.data
+        ctx = event.ctx
 
         if name == 'mode.before':
-            data['value'] = self.on_mode_before(data['value'], data['prompt'])  # handle mode change
+            data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
         if name == 'model.before':
             mode = data['mode']
             if mode == 'vision':
@@ -85,10 +86,11 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def on_mode_before(self, mode: str, prompt: str):
+    def on_mode_before(self, ctx: CtxItem, mode: str, prompt: str):
         """
         Event: On before mode execution
 
+        :param ctx: current ctx
         :param mode: current mode
         :param prompt: current prompt
         :return: updated mode
@@ -98,6 +100,7 @@ class Plugin(BasePlugin):
             return mode  # keep current mode
 
         if self.is_vision and self.get_option_value("keep"):  # if already used in this ctx then keep vision mode
+            ctx.is_vision = True
             return 'vision'
 
         # check for attachments
@@ -118,6 +121,7 @@ class Plugin(BasePlugin):
 
         if len(built_attachments) > 0 or len(img_urls) > 0:
             self.is_vision = True  # set vision flag
+            ctx.is_vision = True
             return 'vision'  # jump to vision mode (only for this call)
 
         return mode  # keep current mode

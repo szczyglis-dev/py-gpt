@@ -49,6 +49,7 @@ class CtxItem:
         self.extra = None
         self.current = False
         self.internal = False
+        self.is_vision = False
 
     def set_input(self, input: str | None, name: str = None):
         """

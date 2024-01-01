@@ -129,9 +129,13 @@ class Output:
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
         self.window.core.ctx.store()
         self.window.controller.ctx.update_ctx()  # update current ctx info
+
+        extra_data = ""
+        if ctx.is_vision:
+            extra_data = " | [VISION]"
         self.window.ui.status(
-            trans('status.tokens') + ": {} + {} = {}".
-            format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens))
+            trans('status.tokens') + ": {} + {} = {}{}".
+            format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens, extra_data))
 
         # store to history
         if self.window.core.config.get('store_history'):
