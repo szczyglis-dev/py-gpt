@@ -1,0 +1,30 @@
+a {{
+    color: #fff;
+}}
+img {{
+    width: 400px !important;
+}}
+.image {{
+    width: 200px !important;
+}}
+.msg-user {{
+    color: #bdbdbd !important;
+}}
+.msg-bot {{
+    border: 1px solid #fff;
+    width: 100%;
+}}
+.cmd {{
+    color: #4d4d4d;
+}}
+pre {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+    background-color: #1c1e20;
+    border: 1px solid #fff;
+    font-family: 'Courier New', monospace;
+    display: block;
+    padding: 0px !important;
+}}
+code {{
+    color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
+}}

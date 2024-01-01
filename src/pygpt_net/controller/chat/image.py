@@ -138,7 +138,7 @@ class Image:
         ctx.images = paths  # save images paths
         self.window.core.ctx.update_item(ctx)
 
-        self.open_images(paths)
+        # self.open_images(paths)  # don't open images in dialog, just append to chat
         self.window.ui.status(trans('status.img.generated'))
 
         # append extra output to chat

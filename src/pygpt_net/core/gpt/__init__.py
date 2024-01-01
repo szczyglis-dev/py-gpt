@@ -99,6 +99,8 @@ class Gpt:
         self.window.core.dispatcher.dispatch(event)
         mode = event.data['value']
 
+        print("Mode: " + mode)
+
         # get response
         if mode == "completion":
             response = self.completion.send(prompt, max_tokens, stream_mode, system_prompt=self.system_prompt,

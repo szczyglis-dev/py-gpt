@@ -15,7 +15,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget
 
 from pygpt_net.ui.layout.chat.input import Input
-from pygpt_net.ui.layout.chat.markdown import MarkdownHighlighter
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
@@ -43,9 +42,6 @@ class Output:
         """
         # chat output
         self.window.ui.nodes['output'] = ChatOutput(self.window)
-
-        # markup highlighter
-        self.window.ui.nodes['output_highlighter'] = MarkdownHighlighter(self.window.ui.nodes['output'])
 
         # file explorer
         path = os.path.join(self.window.core.config.path, 'output')

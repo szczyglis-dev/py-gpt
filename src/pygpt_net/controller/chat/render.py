@@ -6,15 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 23:00:00                  #
+# Updated Date: 2024.01.01 03:00:00                  #
 # ================================================== #
 
+import re
 from datetime import datetime
 from PySide6.QtGui import QTextCursor
+import markdown
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
+from pygpt_net.utils import trans
 
 
 class Render:
@@ -34,10 +37,86 @@ class Render:
         """Clear input"""
         self.get_input_node().clear()
 
+    def reload(self):
+        """Reload output"""
+        self.window.controller.ctx.refresh_output()
+
+    def end_of_stream(self):
+        """Reload output"""
+        # self.append("\n")  # append EOL
+        pass
+
     def append_context(self):
         """Append context to output"""
         for item in self.window.core.ctx.items:
             self.append_context_item(item)
+
+    def replace_code_tags(self, text):
+        pattern = r"~###~(.*?)~###~"
+        replacement = r'<span class="cmd">\1</span>'
+        return re.sub(pattern, replacement, text)
+
+    def pre_format_text(self, text: str) -> str:
+        """
+        Post-format text
+
+        :param text: text to format
+        :return: formatted text
+        """
+        text = text.strip()
+        text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
+        text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
+        text = self.replace_code_tags(text)
+        return text
+
+    def post_format_text(self, text: str) -> str:
+        """
+        Post-format text
+
+        :param text: text to format
+        :return: formatted text
+        """
+        return text.strip()
+
+    def format_user_text(self, text: str) -> str:
+        """
+        Post-format user text
+
+        :param text: text to format
+        :return: formatted text
+        """
+        return text.strip().replace("\n", "<br>")
+
+    def format_chunk(self, text: str) -> str:
+        """
+        Format chunk
+
+        :param text: text to format
+        :return: formatted text
+        """
+        return text
+
+    def append_raw(self, text: str, type: str = "msg-bot"):
+        """
+        Append and format raw text to output
+
+        :param text: text to append
+        :param type: type of message
+        """
+        prefix = ""
+        if type == "msg-user":
+            prefix = "&gt; "
+        text = prefix + text
+
+        if type != "msg-user":  # markdown for bot messages
+            text = self.pre_format_text(text)
+            text = markdown.markdown(text.strip(), extensions=['fenced_code'])
+        else:
+            text = "<p>" + self.format_user_text(text) + "</p>"
+
+        text = self.post_format_text(text)
+        text = '<div class="{}">'.format(type) + text.strip()
+        self.get_output_node().append(text)
 
     def append_context_item(self, item: CtxItem):
         """
@@ -63,9 +142,11 @@ class Render:
                 name = item.input_name + " "
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: > {}\n".format(name, hour, item.input))
+            text = "{}{}: {}".format(name, hour, item.input)
         else:
-            self.append("> {}\n".format(item.input))
+            text = "{}".format(item.input)
+
+        self.append_raw(text, "msg-user")
 
     def append_output(self, item: CtxItem):
         """
@@ -81,9 +162,10 @@ class Render:
                 name = item.output_name + " "
             ts = datetime.fromtimestamp(item.output_timestamp)
             hour = ts.strftime("%H:%M:%S")
-            self.append("{}{}: {}".format(name, hour, item.output) + "\n")
+            text = "{}{}: {}".format(name, hour, item.output)
         else:
-            self.append(item.output + "\n")
+            text = "{}".format(item.output)
+        self.append_raw(text, "msg-bot")
 
     def append_extra(self, item: CtxItem):
         """
@@ -91,26 +173,41 @@ class Render:
 
         :param item: context item
         """
-        # self.append("SPECIAL:" + "\n")
-
+        already_appended = []
         if len(item.images) > 0:
             for image in item.images:
-                html = """
-                <img src="{image}" width="400">""".format(image=image)
-                self.get_output_node().append(html)
-                self.append("\n")
+                if image in already_appended:
+                    continue
+                try:
+                    html = """
+                    <img src="{image}" width="400" class="image">
+                    <p><b>{prefix}:</b> <a href="{image}">{image}</a></p>""".format(prefix=trans('chat.prefix.img'), image=image)
+                    self.get_output_node().append(html)
+                    already_appended.append(image)
+                except Exception as e:
+                    pass
         if len(item.files) > 0:
             for file in item.files:
-                html = """
-                <a href="{file}">{file}</a>""".format(file=file)
-                self.get_output_node().append(html)
-                self.append("\n")
+                if file in already_appended:
+                    continue
+                try:
+                    html = """
+                    <b>{prefix}:</b> <a href="{file}">{file}</a>""".format(prefix=trans('chat.prefix.file'), file=file)
+                    self.get_output_node().append(html)
+                    already_appended.append(file)
+                except Exception as e:
+                    pass
         if len(item.urls) > 0:
             for url in item.urls:
-                html = """
-                <a href="{url}">{url}</a>""".format(url=url)
-                self.get_output_node().append(html)
-                self.append("\n")
+                if url in already_appended:
+                    continue
+                try:
+                    html = """
+                    <b>{prefix}:</b> <a href="{url}">{url}</a>""".format(prefix=trans('chat.prefix.url'), url=url)
+                    self.get_output_node().append(html)
+                    already_appended.append(url)
+                except Exception as e:
+                    pass
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -130,7 +227,10 @@ class Render:
             hour = ts.strftime("%H:%M:%S")
             self.append("{}{}: ".format(name, hour), "")
 
-        self.append(text_chunk, "")
+        if begin:
+            self.append_raw("", "msg-bot")  # fix for new block start
+
+        self.append(self.format_chunk(text_chunk), "")
 
     def append(self, text: str, end: str = "\n"):
         """
@@ -146,12 +246,12 @@ class Render:
             head, sep, s = s.partition("\n")  # Split line at LF
             cur.insertText(head)  # Insert text at cursor
             if sep:  # New line if LF
-                cur.insertBlock()
+                cur.insertHtml("<br>")
         self.get_output_node().setTextCursor(cur)  # Update visible cursor
 
     def append_text(self, text: str):
         """
-        Append custom text to output
+        Append custom text to input
 
         :param text: Text to append
         """

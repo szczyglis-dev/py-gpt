@@ -30,7 +30,7 @@ class Theme:
     def setup(self):
         """Setup theme"""
         # load highlighter CSS rules
-        self.load_highlighter()
+        self.load_markdown()
 
         # setup themes menu
         themes = self.get_themes_list()
@@ -64,9 +64,12 @@ class Theme:
 
         self.window.core.config.set('theme', name)
         self.window.core.config.save()
-        self.load_highlighter()
         self.apply_nodes()
         self.apply_window(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
+
+        # apply markdown CSS
+        self.load_markdown()
+        self.apply_markdown()
         self.update_menu()
 
         if force:
@@ -179,10 +182,6 @@ class Theme:
                 if id in self.window.ui.notepad:
                     self.window.ui.notepad[id].setStyleSheet(self.get_style('chat_output'))
 
-        # apply CSS to syntax highlighter
-        if all:
-            self.apply_highlighter()
-
     def get_style(self, element: str) -> str:
         """
         Return CSS style for element
@@ -212,33 +211,48 @@ class Theme:
                 return "color: #999;"
             # return "font-size: 8px; color: #999;"  <-- too small on big screens
 
-    def apply_highlighter(self):
-        """Apply CSS to syntax highlight"""
-        self.window.ui.nodes['output_highlighter'].setTheme(self.get_css('highlighter'))
+    def apply_markdown(self):
+        """Apply CSS to markdown formatter"""
+        self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
+        self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
+        self.window.controller.chat.render.reload()
 
-    def load_highlighter(self):
-        """Load syntax highlighter CSS from json file"""
+    def load_markdown(self):
+        """Load markdown formatter CSS from json file"""
         theme = self.window.core.config.get('theme')
-
-        base_name = 'highlighter'
+        name = 'markdown'
+        color_name = 'markdown'
+        if theme.startswith('light'):
+            color_name += '.light'
+        else:
+            color_name += '.dark'
 
         # check in user directory first
-        path = os.path.join(self.window.core.config.get_user_path(), 'css', base_name + '.' + theme + '.json')
+        path = os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css')
         if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', base_name + '.json')
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css')
 
-        # check in app directory
         if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', base_name + '.' + theme + '.json')
+            path = os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css')
             if not os.path.exists(path):
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', base_name + '.json')
+                path = os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css')
+
+        if not os.path.exists(path):
+            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css')
+            if not os.path.exists(path):
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css')
+
+            if not os.path.exists(path):
+                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css')
+                if not os.path.exists(path):
+                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css')
 
         if os.path.exists(path):
             try:
-                with open(path, 'r') as f:
-                    self.css['highlighter'] = json.load(f)
+                with open(path, 'r') as file:
+                    self.css['markdown'] = file.read().format(**os.environ)
             except Exception as e:
-                self.window.core.debug.log(e)
+                pass
 
     def apply_window(self, theme: str = 'dark_teal.xml', custom: str = None):
         """

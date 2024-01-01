@@ -93,7 +93,7 @@ class Output:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-            self.window.controller.chat.render.append("\n")  # append EOL
+            self.window.controller.chat.render.end_of_stream()  # append EOL
             self.window.controller.debug.log("End of stream.")  # log
 
             # update ctx
@@ -115,9 +115,6 @@ class Output:
         # only append output if not in async stream mode, TODO: plugin output add
         if not stream_mode:
             self.window.controller.chat.render.append_output(ctx)  # extra is appended in append_output
-        else:
-            # append extra data to output if stream mode
-            self.window.controller.chat.render.append_extra(ctx)
 
         self.handle_complete(ctx)
 

@@ -192,6 +192,11 @@ class Text:
             self.window.controller.chat.output.handle_cmd(ctx)
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
+        if stream_mode:
+            # append extra data to output if stream mode
+            self.window.controller.chat.render.reload()
+            self.window.controller.chat.render.append_extra(ctx)
+
         self.window.controller.chat.common.unlock_input()  # unlock
 
         # handle ctx name (generate title from summary if not initialized)

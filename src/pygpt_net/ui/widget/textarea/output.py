@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextBrowser, QMenu
+from PySide6.QtGui import QDesktopServices
 
 from pygpt_net.utils import trans
 
@@ -29,6 +30,45 @@ class ChatOutput(QTextBrowser):
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
+
+        css_style = """
+        a {
+            color: #fff;
+        }
+        img {
+            width: 400px !important;
+        }
+        .image {
+            width: 200px !important;
+        }
+        .msg-user {
+            color: #8c8c8c !important;
+        }
+        .msg-bot {
+            border: 1px solid #fff;
+            width: 100%;
+        }
+        .cmd {
+            color: #4d4d4d;
+        }
+        pre {
+            color: #ffd740;
+            background-color: #1c1e20;
+            border: 1px solid #fff;
+            font-family: 'Courier New', monospace;
+            display: block;
+            padding: 0px !important;
+        }
+        code {
+            color: #ffd740;
+        }"""
+        self.document().setDefaultStyleSheet(css_style)
+        self.setOpenExternalLinks(False)
+        self.setOpenLinks(False)
+        self.anchorClicked.connect(self.open_external_link)
+
+    def open_external_link(self, url):
+        QDesktopServices.openUrl(url)
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()

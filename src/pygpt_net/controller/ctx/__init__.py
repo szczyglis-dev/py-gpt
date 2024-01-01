@@ -157,6 +157,12 @@ class Ctx:
         """Refresh context"""
         self.load(self.window.core.ctx.current)
 
+    def refresh_output(self):
+        """Refresh output"""
+        # clear before output and append ctx to output
+        self.window.controller.chat.render.clear()
+        self.window.controller.chat.render.append_context()
+
     def load(self, id: int):
         """
         Load ctx data
@@ -177,8 +183,7 @@ class Ctx:
         self.window.core.config.set('assistant_thread', thread)
 
         # clear before output and append ctx to output
-        self.window.controller.chat.render.clear()
-        self.window.controller.chat.render.append_context()
+        self.refresh_output()
 
         # switch mode to ctx mode
         if mode is not None:

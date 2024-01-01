@@ -431,6 +431,32 @@ class JsonFileProvider(BaseProvider):
                 data['img_prompt_model'] = "gpt-4-1106-preview"
                 updated = True
 
+            # < 2.0.71
+            if old < parse_version("2.0.71"):
+                print("Migrating config from < 2.0.71...")
+                prompt = """IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as 'a picture of 
+                        mountains', I want you to ALWAYS translate it into English and expand and elaborate on this idea. Use your 
+                        knowledge and creativity to add details that would make the image more vivid and interesting. This could 
+                        include specifying the time of day, weather conditions, surrounding environment, and any additional elements 
+                        that could enhance the scene. Your goal is to create a detailed and descriptive prompt that provides DALL-E 
+                        with enough information to generate a rich and visually appealing image. Remember to maintain the original 
+                        intent of my request while enriching the description with your imaginative details. HOW TO START IMAGE 
+                        GENERATION: to start image generation return to me prepared prompt in JSON format, all in one line, 
+                        using following syntax: ~###~{"cmd": "image", "params": {"query": "your query here"}}~###~. Use ONLY this 
+                        syntax and remember to surround JSON string with ~###~. 
+                        DO NOT use any other syntax. Use English in the generated JSON command, but conduct all the remaining parts 
+                        of the discussion with me in the language in which I am speaking to you. The image will be generated on my machine 
+                        immediately after the command is issued, allowing us to discuss the photo once it has been created. 
+                        Please engage with me about the photo itself, not only by giving the generate command.
+                        """
+                if 'openai_dalle' not in data['plugins']:
+                    data['plugins']['openai_dalle'] = {}
+                    data['plugins']['openai_dalle']['prompt'] = prompt  # fixed prompt
+
+                data['plugins_enabled']['openai_dalle'] = True
+                data['plugins_enabled']['openai_vision'] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:
