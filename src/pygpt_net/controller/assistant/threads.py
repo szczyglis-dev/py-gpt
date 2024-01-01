@@ -54,6 +54,10 @@ class Threads:
                 paths = self.window.controller.assistant.files.handle_received(ctx, msg)
                 if paths:
                     ctx.files = list(paths)  # append files paths list to ctx
+
+                # update ctx
+                self.window.core.ctx.update_item(ctx)
+
                 self.window.controller.chat.output.handle(ctx, 'assistant', False)
                 self.window.controller.chat.output.handle_cmd(ctx)
 

@@ -114,7 +114,8 @@ class Output:
 
         # only append output if not in async stream mode, TODO: plugin output add
         if not stream_mode:
-            self.window.controller.chat.render.append_output(ctx)  # extra is appended in append_output
+            self.window.controller.chat.render.append_output(ctx)
+            self.window.controller.chat.render.append_extra(ctx)
 
         self.handle_complete(ctx)
 
