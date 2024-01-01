@@ -378,8 +378,9 @@ class Files:
                 num_downloaded += 1
 
         if num_downloaded > 0:
+            pass
             # show alert with downloaded files
-            msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
-            self.window.ui.dialogs.alert(msg)
+            # msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
+            # self.window.ui.dialogs.alert(msg)
 
         return paths
