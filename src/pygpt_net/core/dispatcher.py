@@ -37,19 +37,24 @@ class Dispatcher:
         """
         self.window = window
 
-    def dispatch(self, event: Event, all: bool = False, is_async: bool = False):
+    def dispatch(self, event: Event, all: bool = False, is_async: bool = False) -> (list, Event):
         """
         Dispatch event to plugins
 
         :param event: event to dispatch
         :param all: true if dispatch to all plugins (enabled or not)
         :param is_async: true if async event
+        :return:list of affected plugins ids and event object
         """
+        affected = []
         for id in self.window.core.plugins.plugins:
             if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop:
                     break
                 self.apply(id, event, is_async)
+                affected.append(id)
+
+        return affected, event
 
     def apply(self, id: str, event: Event, is_async: bool = False):
         """
