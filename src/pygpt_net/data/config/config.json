@@ -101,7 +101,7 @@
   "stream": true,
   "temperature": 1.0,
   "theme": "dark_teal",
-  "theme.markdown": false,
+  "theme.markdown": true,
   "top_p": 1.0,
   "use_context": true,
   "user_name": "",

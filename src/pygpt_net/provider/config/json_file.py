@@ -466,7 +466,7 @@ class JsonFileProvider(BaseProvider):
             if old < parse_version("2.0.72"):
                 print("Migrating config from < 2.0.72...")
                 if 'theme.markdown' not in data:
-                    data['theme.markdown'] = False
+                    data['theme.markdown'] = True
                 prompt = 'IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as \'a picture of ' \
                          'mountains\', I want you to ALWAYS translate it into English and expand and elaborate on this idea. ' \
                          'Use your  knowledge and creativity to add details that would make the image more vivid and ' \

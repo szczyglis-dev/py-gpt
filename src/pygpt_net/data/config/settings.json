@@ -115,7 +115,7 @@
         "type": "bool",
         "slider": false,
         "label": "theme.markdown",
-        "value": false,
+        "value": true,
         "min": 0,
         "max": 0,
         "multiplier": 1,

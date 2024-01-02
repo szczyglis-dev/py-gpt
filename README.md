@@ -1217,7 +1217,7 @@ Config -> Settings...
 
 - `DPI factor`: DPI factor. Restart of app required. Default: 1.0. 
 
-- `Use theme colors in chat window`: use color theme in chat window, Default: False
+- `Use theme colors in chat window`: use color theme in chat window, Default: True
 
 - `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
 
