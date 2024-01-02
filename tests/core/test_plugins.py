@@ -6,27 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import pytest
-from unittest.mock import MagicMock
-
-import requests
-from PySide6.QtWidgets import QMainWindow
-
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.plugins import Plugins
 from pygpt_net.plugin.base import BasePlugin
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test'
-    return window
 
 
 def mock_get(key):
@@ -44,11 +29,11 @@ def mock_has(key):
         return True
 
 
-def test_is_registered(mock_window):
+def test_is_registered(mock_window_conf):
     """
     Test is registered
     """
-    plugins = Plugins(mock_window)
+    plugins = Plugins(mock_window_conf)
     plugins.window.core.config.get = mock_get
     plugins.window.core.config.has = mock_has
     plugin = BasePlugin()
@@ -58,11 +43,11 @@ def test_is_registered(mock_window):
     assert plugins.is_registered('test') is True
 
 
-def test_register(mock_window):
+def test_register(mock_window_conf):
     """
     Test register
     """
-    plugins = Plugins(mock_window)
+    plugins = Plugins(mock_window_conf)
     plugins.window.core.config.get = mock_get
     plugins.window.core.config.has = mock_has
     plugin = BasePlugin()
@@ -72,11 +57,11 @@ def test_register(mock_window):
     assert plugins.plugins['test'] == plugin
 
 
-def test_restore_options(mock_window):
+def test_restore_options(mock_window_conf):
     """
     Test restore options
     """
-    plugins = Plugins(mock_window)
+    plugins = Plugins(mock_window_conf)
     plugins.window.core.config.get = mock_get
     plugins.window.core.config.has = mock_has
     plugin = BasePlugin()

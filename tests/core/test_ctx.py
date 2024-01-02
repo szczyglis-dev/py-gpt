@@ -6,25 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
+from unittest.mock import MagicMock, patch
 
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.ctx import Ctx
 from pygpt_net.item.ctx import CtxItem, CtxMeta
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test_path'
-    return window
 
 
 def mock_get(key):
@@ -65,11 +54,11 @@ def test_patch():
     ctx.provider.patch.assert_called_once_with(version)
 
 
-def test_select(mock_window):
+def test_select(mock_window_conf):
     """
     Test select
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 2
 
     item1 = CtxMeta()
@@ -102,11 +91,11 @@ def test_select(mock_window):
     ctx.load.assert_called_once_with(2)
 
 
-def test_new(mock_window):
+def test_new(mock_window_conf):
     """
     Test new context
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.create_id = MagicMock(return_value='test_id')
     ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 4
@@ -202,11 +191,11 @@ def test_update_item():
     ctx.provider.update_item.assert_called_once_with(item)
 
 
-def test_is_empty(mock_window):
+def test_is_empty(mock_window_conf):
     """
     Test is_empty
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     assert ctx.is_empty() is True
     ctx.current = 5
     assert ctx.is_empty() is True
@@ -214,11 +203,11 @@ def test_is_empty(mock_window):
     assert ctx.is_empty() is False
 
 
-def test_update(mock_window):
+def test_update(mock_window_conf):
     """
     Test update context data
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 6
     ctx.mode = 'test_mode'
@@ -236,11 +225,11 @@ def test_update(mock_window):
     ctx.save.assert_called_once_with(6)
 
 
-def test_post_update(mock_window):
+def test_post_update(mock_window_conf):
     """
     Test post update context data
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.window.core.config.get.side_effect = mock_get
     ctx.current = 5
     ctx.mode = 'test_mode'
@@ -258,11 +247,11 @@ def test_post_update(mock_window):
     ctx.save.assert_called_once_with(5)
 
 
-def test_is_initialized(mock_window):
+def test_is_initialized(mock_window_conf):
     """
     Test is_initialized
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 5
 
     item = CtxMeta()
@@ -287,11 +276,11 @@ def test_is_initialized(mock_window):
     assert ctx.is_initialized() is False
 
 
-def test_set_initialized(mock_window):
+def test_set_initialized(mock_window_conf):
     """
     Test set_initialized
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 4
 
     item = CtxMeta()
@@ -335,11 +324,11 @@ def test_get():
     assert ctx.get(1) == item2
 
 
-def test_get_meta(mock_window):
+def test_get_meta(mock_window_conf):
     """
     Test list
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 2
 
     item1 = CtxMeta()
@@ -357,11 +346,11 @@ def test_get_meta(mock_window):
     }
 
 
-def test_get_id_by_idx(mock_window):
+def test_get_id_by_idx(mock_window_conf):
     """
     Test get_id_by_idx
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 3
     item1 = CtxMeta()
     item1.mode = 'test_mode'
@@ -378,11 +367,11 @@ def test_get_id_by_idx(mock_window):
     assert ctx.get_id_by_idx(2) is None
 
 
-def test_get_idx_by_id(mock_window):
+def test_get_idx_by_id(mock_window_conf):
     """
     Test get_idx_by_id
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 3
 
     item1 = CtxMeta()
@@ -400,11 +389,11 @@ def test_get_idx_by_id(mock_window):
     assert ctx.get_idx_by_id(6) is None
 
 
-def test_get_first(mock_window):
+def test_get_first(mock_window_conf):
     """
     Test get_first_ctx
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 3
 
     item1 = CtxMeta()
@@ -422,11 +411,11 @@ def test_get_first(mock_window):
     assert ctx.get_first() is None
 
 
-def test_get_meta_by_id(mock_window):
+def test_get_meta_by_id(mock_window_conf):
     """
     Test get_meta_by_id
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 3
 
     item1 = CtxMeta()
@@ -564,11 +553,11 @@ def test_clear():
     assert ctx.items == []
 
 
-def test_append_thread(mock_window):
+def test_append_thread(mock_window_conf):
     """
     Test append_thread
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 1
     ctx.thread = 'test_thread'
 
@@ -587,11 +576,11 @@ def test_append_thread(mock_window):
     ctx.save.assert_called_once_with(1)
 
 
-def test_append_run(mock_window):
+def test_append_run(mock_window_conf):
     """
     Test append_run
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 3
     ctx.run = 'test_run'
 
@@ -609,11 +598,11 @@ def test_append_run(mock_window):
     ctx.save.assert_called_once_with(3)
 
 
-def test_append_status(mock_window):
+def test_append_status(mock_window_conf):
     """
     Test append_status
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 2
     ctx.status = 'test_status'
 
@@ -745,11 +734,11 @@ def test_get_prompt_items():
     assert ctx.get_prompt_items('test_model', 'test_mode', 100, 1000) == []
 
 
-def test_get_all_items(mock_window):
+def test_get_all_items(mock_window_conf):
     """
     Test get_all_items
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     item1 = CtxItem()
     item2 = CtxItem()
     ctx.items = [
@@ -762,11 +751,11 @@ def test_get_all_items(mock_window):
     ]
 
 
-def test_check(mock_window):
+def test_check(mock_window_conf):
     """
     Test check
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.get_tokens_left = MagicMock()
     ctx.get_tokens_left.return_value = 10
     ctx.remove_first = MagicMock()
@@ -776,11 +765,11 @@ def test_check(mock_window):
     ctx.remove_first.assert_called_once_with()
 
 
-def test_get_tokens_left(mock_window):
+def test_get_tokens_left(mock_window_conf):
     """
     Test get_tokens_left
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.get_total_tokens = MagicMock()
     ctx.get_total_tokens.return_value = 10
     assert ctx.get_tokens_left(20) == 10
@@ -788,24 +777,24 @@ def test_get_tokens_left(mock_window):
     assert ctx.get_tokens_left(20) == 0
 
 
-def test_get_total_tokens(mock_window):
+def test_get_total_tokens(mock_window_conf):
     """
     Test get_total_tokens
     """
     last_item = CtxItem()
     last_item.total_tokens = 66
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.get_last = MagicMock()
     ctx.get_last.return_value = last_item
 
     assert ctx.get_total_tokens() == 66
 
 
-def test_get_last_tokens(mock_window):
+def test_get_last_tokens(mock_window_conf):
     """
     Test get_last_tokens
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.get_last = MagicMock()
     ctx.get_last.return_value = CtxItem()
     ctx.get_last().total_tokens = 10
@@ -814,11 +803,11 @@ def test_get_last_tokens(mock_window):
     assert ctx.get_last_tokens() == 0
 
 
-def test_remove_last(mock_window):
+def test_remove_last(mock_window_conf):
     """
     Test remove_last
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.items = [
         'item1',
         'item2'
@@ -836,7 +825,7 @@ def test_remove_first():
     """
     Test remove_first
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.items = [
         'item1',
         'item2'
@@ -854,7 +843,7 @@ def test_is_allowed_for_mode():
     """
     Test is_allowed_for_mode
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.window = MagicMock()
     ctx.window.core.config.get.return_value = True
     ctx.allowed_modes = {
@@ -890,7 +879,7 @@ def test_load_meta():
     """
     Test load_meta
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.window = MagicMock()
     ctx.window.core.config.has.return_value = True
     ctx.window.core.config.get.return_value = 1000
@@ -913,7 +902,7 @@ def test_load():
     """
     Test load
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.window = MagicMock()
     ctx.provider = MagicMock()
     items = [
@@ -930,7 +919,7 @@ def test_save():
     """
     Test save
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.window = MagicMock()
     ctx.provider = MagicMock()
     ctx.meta = {
@@ -944,11 +933,11 @@ def test_save():
     ctx.provider.save.assert_called_once_with(3, ctx.meta[3], ctx.items)
 
 
-def test_store(mock_window):
+def test_store(mock_window_conf):
     """
     Test store
     """
-    ctx = Ctx(mock_window)
+    ctx = Ctx(mock_window_conf)
     ctx.current = 7
     ctx.meta = {
         7: {

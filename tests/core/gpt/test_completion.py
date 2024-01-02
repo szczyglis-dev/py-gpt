@@ -6,29 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import base64
-import os
+from unittest.mock import MagicMock
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
-
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.gpt.completion import Completion
 from pygpt_net.item.ctx import CtxItem
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.models = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test_path'
-    return window
 
 
 def mock_get(key):
@@ -44,11 +29,11 @@ def mock_get(key):
         return 200
 
 
-def test_send(mock_window):
+def test_send(mock_window_conf):
     """
     Test completion
     """
-    completion = Completion(mock_window)
+    completion = Completion(mock_window_conf)
     completion.window.core.config.get.side_effect = mock_get
     completion.window.core.models.get_num_ctx.return_value = 2048
     completion.window.core.ctx.get_prompt_items.return_value = []
@@ -67,17 +52,17 @@ def test_send(mock_window):
     assert response.choices[0].text == 'test_response'
 
 
-def test_reset_tokens(mock_window):
+def test_reset_tokens(mock_window_conf):
     """
     Test reset tokens
     """
-    completion = Completion(mock_window)
+    completion = Completion(mock_window_conf)
     completion.input_tokens = 10
     completion.reset_tokens()
     assert completion.input_tokens == 0
 
 
-def test_build(mock_window):
+def test_build(mock_window_conf):
     """
     Test build completion
     """
@@ -90,7 +75,7 @@ def test_build(mock_window):
     ctx_item.output = 'AI message'
     items.append(ctx_item)
 
-    completion = Completion(mock_window)
+    completion = Completion(mock_window_conf)
     completion.count_used_tokens = MagicMock(return_value=4)
     completion.window.core.config.get.side_effect = mock_get
     completion.window.core.models.get_num_ctx = MagicMock(return_value=2048)
@@ -100,7 +85,7 @@ def test_build(mock_window):
     assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
 
 
-def test_build_with_names(mock_window):
+def test_build_with_names(mock_window_conf):
     """
     Test build completion with names
     """
@@ -117,7 +102,7 @@ def test_build_with_names(mock_window):
     ctx_item.output_name = 'AI'
     items.append(ctx_item)
 
-    completion = Completion(mock_window)
+    completion = Completion(mock_window_conf)
     completion.window.core.config.get.side_effect = mock_get
     completion.window.core.models.get_num_ctx = MagicMock(return_value=2048)
     completion.window.core.ctx.get_prompt_items.return_value = items

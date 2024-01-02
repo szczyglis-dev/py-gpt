@@ -6,26 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import json
+from unittest.mock import MagicMock, patch
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
-
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.core.assistants import Assistants
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.config = MagicMock(spec=Config)
-    window.config.path = 'test_path'
-    return window
 
 
 def test_install():
@@ -288,7 +276,7 @@ def test_get_file_by_id_not_found():
     assert assistants.get_file_by_id(assistant, 'file3') is None
 
 
-def test_import_files(mock_window):
+def test_import_files(mock_window_conf):
     """
     Test import files
     """
@@ -301,7 +289,7 @@ def test_import_files(mock_window):
         file1.name = ''
         files.append(file1)
 
-        assistants = Assistants(window=mock_window)
+        assistants = Assistants(window=mock_window_conf)
         assistant = MagicMock()
         assistant.files = {
             'file1': {'id': 'file1', 'name': 'file1', 'path': ''},
@@ -318,7 +306,7 @@ def test_import_files(mock_window):
         }
 
 
-def test_import_files_with_remote_name(mock_window):
+def test_import_files_with_remote_name(mock_window_conf):
     """
     Test import files with remote name
     """
@@ -331,7 +319,7 @@ def test_import_files_with_remote_name(mock_window):
         file1.name = 'remote_name'
         files.append(file1)
 
-        assistants = Assistants(window=mock_window)
+        assistants = Assistants(window=mock_window_conf)
         assistant = MagicMock()
         assistant.files = {
             'file1': {'id': 'file1', '': 'file1', 'path': ''},  # this should be updated
@@ -342,14 +330,14 @@ def test_import_files_with_remote_name(mock_window):
         assert assistant.files == {'file1': {'id': 'file1', 'name': 'remote_name', 'path': ''}}
 
 
-def test_import_filenames(mock_window):
+def test_import_filenames(mock_window_conf):
     """
     Test import filenames
     """
     fake_file_info = MagicMock()
     fake_file_info.filename = 'fake.txt'
 
-    assistants = Assistants(window=mock_window)
+    assistants = Assistants(window=mock_window_conf)
     core = MagicMock()
     core.gpt.assistants = MagicMock()
     core.gpt.assistants.file_info = MagicMock(return_value=fake_file_info)
@@ -360,7 +348,7 @@ def test_import_filenames(mock_window):
     assert filename == 'fake.txt'
 
 
-def test_load(mock_window):
+def test_load(mock_window_conf):
     """
     Test load
     """
@@ -373,7 +361,7 @@ def test_load(mock_window):
             'id1': asst1,
             'id2': asst2,
     }
-    assistants = Assistants(window=mock_window)
+    assistants = Assistants(window=mock_window_conf)
     assistants.provider = {}
     assistants.provider = MagicMock()
     assistants.provider.load.return_value = fake_data

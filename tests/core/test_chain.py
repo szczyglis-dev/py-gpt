@@ -6,31 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
+from unittest.mock import MagicMock
 
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.chain import Chain
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test_path'
-    window.core.models = MagicMock()
-    return window
-
-
-def test_call(mock_window):
+def test_call(mock_window_conf):
     """
     Test call
     """
@@ -44,8 +31,8 @@ def test_call(mock_window):
         'mode': ['chat', 'completion']
     }
 
-    mock_window.core.models.get.return_value = model
-    chain = Chain(mock_window)
+    mock_window_conf.core.models.get.return_value = model
+    chain = Chain(mock_window_conf)
     chain.chat = MagicMock()
     chain.chat.send.content = MagicMock()
     chain.completion.send = MagicMock()

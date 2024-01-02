@@ -6,31 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
+from unittest.mock import MagicMock
 
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.chain.completion import Completion
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test_path'
-    window.core.models = MagicMock()
-    return window
-
-
-def test_build(mock_window):
+def test_build(mock_window_conf):
     """
     Test build completion
     """
@@ -43,7 +30,7 @@ def test_build(mock_window):
     ctx_item.output = 'AI message'
     items.append(ctx_item)
 
-    completion = Completion(mock_window)
+    completion = Completion(mock_window_conf)
     completion.window.core.config.get.return_value = True
     completion.window.core.ctx.get_all_items.return_value = items
 
@@ -51,7 +38,7 @@ def test_build(mock_window):
     assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
 
 
-def test_build_with_names(mock_window):
+def test_build_with_names(mock_window_conf):
     """
     Test build completion with names
     """
@@ -68,7 +55,7 @@ def test_build_with_names(mock_window):
     ctx_item.output_name = 'AI'
     items.append(ctx_item)
 
-    completion = Completion(mock_window)
+    completion = Completion(mock_window_conf)
     completion.window.core.config.get.return_value = True
     completion.window.core.ctx.get_all_items.return_value = items
 
@@ -76,7 +63,7 @@ def test_build_with_names(mock_window):
     assert message == 'test_system_prompt\nUser: user message\nAI: AI message\nUser: test_prompt\nAI:'
 
 
-def test_send(mock_window):
+def test_send(mock_window_conf):
     """
     Test completion
     """
@@ -84,8 +71,8 @@ def test_send(mock_window):
     model.name = 'test'
     model.langchain = {'provider': 'test'}
 
-    mock_window.core.models.get.return_value = model
-    completion = Completion(mock_window)
+    mock_window_conf.core.models.get.return_value = model
+    completion = Completion(mock_window_conf)
     completion.build = MagicMock()
     completion.build.return_value = 'test_messages'
     mock_chat_instance = MagicMock()
@@ -97,7 +84,7 @@ def test_send(mock_window):
     assert response == 'test_response'
     completion.build.assert_called_once_with('test_prompt', system_prompt=None, ai_name=None, user_name=None)
     completion.window.core.chain.llms['test'].completion.assert_called_once_with(
-        mock_window.core.config.all(), model.langchain, False
+        mock_window_conf.core.config.all(), model.langchain, False
     )
     mock_chat_instance.invoke.assert_called_once_with('test_messages')
 

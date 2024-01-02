@@ -6,24 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
+from unittest.mock import MagicMock, patch
 
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.core.attachments import Attachments
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.config = MagicMock(spec=Config)
-    window.config.path = 'test_path'
-    return window
 
 
 def test_install():
@@ -499,7 +489,7 @@ def test_from_attachments():
         attachments.clear.assert_called_once()
 
 
-def test_load(mock_window):
+def test_load(mock_window_conf):
     """
     Test load
     """
@@ -512,7 +502,7 @@ def test_load(mock_window):
             'id1': asst1,
             'id2': asst2,
     }
-    attachments = Attachments(window=mock_window)
+    attachments = Attachments(window=mock_window_conf)
     attachments.provider = {}
     attachments.provider = MagicMock()
     attachments.provider.load.return_value = fake_data

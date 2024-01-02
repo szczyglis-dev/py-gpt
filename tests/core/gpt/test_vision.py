@@ -6,29 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
 import base64
 import os
 
-import pytest
 from unittest.mock import MagicMock, mock_open, patch
-from PySide6.QtWidgets import QMainWindow
 
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.gpt.vision import Vision
-from pygpt_net.item.ctx import CtxItem
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.models = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test_path'
-    return window
 
 
 def mock_get(key):
@@ -44,11 +31,11 @@ def mock_get(key):
         return 200
 
 
-def test_send(mock_window):
+def test_send(mock_window_conf):
     """
     Test vision
     """
-    vision = Vision(mock_window)
+    vision = Vision(mock_window_conf)
     vision.window.core.config.get.side_effect = mock_get
     vision.window.core.models.get_num_ctx.return_value = 2048
     vision.window.core.ctx.get_prompt_items.return_value = []
@@ -67,21 +54,21 @@ def test_send(mock_window):
     assert response.choices[0].message.content == 'test_response'
 
 
-def test_reset_tokens(mock_window):
+def test_reset_tokens(mock_window_conf):
     """
     Test reset tokens
     """
-    vision = Vision(mock_window)
+    vision = Vision(mock_window_conf)
     vision.input_tokens = 10
     vision.reset_tokens()
     assert vision.input_tokens == 0
 
 
-def test_build(mock_window):
+def test_build(mock_window_conf):
     """
     Test build vision content
     """
-    vision = Vision(mock_window)
+    vision = Vision(mock_window_conf)
     vision.extract_urls = MagicMock(return_value=['https://test.com'])
     vision.is_image = MagicMock(return_value=True)
     vision.encode_image = MagicMock(return_value='test_base64')

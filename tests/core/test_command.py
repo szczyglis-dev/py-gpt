@@ -6,32 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
 import json
 
-import pytest
-from unittest.mock import MagicMock
-from PySide6.QtWidgets import QMainWindow
 
-from pygpt_net.config import Config
+from tests.mocks import mock_window_conf
 from pygpt_net.core.command import Command
 
 
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    return window
-
-
-def test_get_prompt(mock_window):
+def test_get_prompt(mock_window_conf):
     """
     Test get prompt
     """
-    cmd = Command(window=mock_window)
+    cmd = Command(window=mock_window_conf)
     assert cmd.get_prompt().startswith('RUNNING COMMANDS:')
 
 

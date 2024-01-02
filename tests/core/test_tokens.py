@@ -6,27 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.02 11:00:00                  #
 # ================================================== #
 
-import pytest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
-from PySide6.QtWidgets import QMainWindow
-
-from pygpt_net.config import Config
-from pygpt_net.core.ctx import Ctx
+from tests.mocks import mock_window_conf
 from pygpt_net.core.tokens import Tokens
 from pygpt_net.item.ctx import CtxItem
-
-
-@pytest.fixture
-def mock_window():
-    window = MagicMock(spec=QMainWindow)
-    window.core = MagicMock()
-    window.core.config = MagicMock(spec=Config)
-    window.core.config.path = 'test_path'
-    return window
 
 
 def mock_get(key):
@@ -37,26 +24,20 @@ def mock_get(key):
 
 
 def test_from_str():
-    """
-    Test from_str
-    """
+    """Test from_str"""
     text = "This is a test"
     Tokens.from_str = MagicMock(return_value=4)
     assert Tokens.from_str(text, 'gpt-3.5') == 4
 
 
 def test_get_extra():
-    """
-    Test get_extra
-    """
+    """Test get_extra"""
     model = "gpt-4-0613"
     assert Tokens.get_extra() == 3
 
 
 def test_from_prompt():
-    """
-    Test from_prompt
-    """
+    """Test from_prompt"""
     text = "This is a test"
     input_name = "test"
     model = "gpt-4-0613"
@@ -65,18 +46,15 @@ def test_from_prompt():
 
 
 def test_from_text():
-    """
-    Test from_text
-    """
+    """Test from_text"""
     text = "This is a test"
     model = "gpt-4-0613"
     with patch('pygpt_net.core.tokens.Tokens.from_str', return_value=8):
         assert Tokens.from_text(text, model) == 8
 
+
 def test_from_messages():
-    """
-    Test from_messages
-    """
+    """Test from_messages"""
     messages = [
         {
             'name': 'test',
@@ -93,9 +71,7 @@ def test_from_messages():
 
 
 def test_from_ctx():
-    """
-    Test from_ctx
-    """
+    """Test from_ctx"""
     item = CtxItem()
     item.input = "This is a test"
     item.output = "This is a second test"
@@ -113,8 +89,6 @@ def test_from_ctx():
 
 
 def test_get_config():
-    """
-    Test get_config
-    """
+    """Test get_config"""
     model = "gpt-4-0613"
     assert Tokens.get_config(model) == ('gpt-4-0613', 3, 1)
