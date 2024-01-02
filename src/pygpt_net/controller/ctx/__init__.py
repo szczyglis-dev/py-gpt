@@ -303,7 +303,7 @@ class Ctx:
         :param name: context name
         :param close: close dialog
         """
-        if id not in self.window.core.ctx.meta:
+        if id not in self.window.core.ctx.get_meta():
             return
         self.window.core.ctx.meta[id].name = name
         self.window.core.ctx.set_initialized()
