@@ -9,13 +9,21 @@ img {{
 }}
 .msg-user {{
     color: #bdbdbd !important;
+    white-space: pre-wrap;
+    width: 100%;
+    max-width: 100%;
 }}
 .msg-bot {{
     color: #fff;
+    white-space: pre-wrap;
     border: 1px solid #fff;
     width: 100%;
+    max-width: 100%;
 }}
 .cmd {{
+    color: #4d4d4d;
+}}
+.ts {{
     color: #4d4d4d;
 }}
 pre {{
