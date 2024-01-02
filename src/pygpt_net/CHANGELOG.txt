@@ -1,3 +1,9 @@
+2.0.72 (2024-01-02)
+
+- Fixed markdown / HTML formatting
+- Added config option "Use color theme in chat window" in main settings
+- Added configuration for system prompt to use with vision in Vision Inline plugin settings
+
 2.0.71 (2024-01-01)
 
 - Added Markdown and HTML formatting in the chat window (beta version)

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.71** | build: **2024.01.01** | Python: **3.10+**
+Release: **2.0.72** | build: **2024.01.02** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1217,6 +1217,8 @@ Config -> Settings...
 
 - `DPI factor`: DPI factor. Restart of app required. Default: 1.0. 
 
+- `Use theme colors in chat window`: use color theme in chat window, Default: False
+
 - `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
 
 - `Max Total Tokens`: Defines the maximum token count that the application can send to the model, 
@@ -1382,6 +1384,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.72 (2024-01-02)
+
+- Fixed markdown / HTML formatting
+- Added config option "Use color theme in chat window" in main settings
+- Added configuration for system prompt to use with vision in Vision Inline plugin settings
 
 ### 2.0.71 (2024-01-01)
 
