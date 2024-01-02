@@ -193,8 +193,7 @@ class Text:
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
         if stream_mode:
-            # append extra data to output if stream mode
-            self.window.controller.chat.render.reload()
+            self.window.controller.chat.render.reload()  # reload output after stream mode
 
         self.window.controller.chat.common.unlock_input()  # unlock
 
