@@ -141,6 +141,10 @@ class Editor:
         if id in self.window.ui.config_option and value is not None:
             self.window.ui.config_option[id].box.setChecked(value)
 
+        # update markdown
+        if id == "theme.markdown":
+            self.window.controller.theme.update_markdown(force=True)
+
     def change(self, id: str, value: any, section: str = None):
         """
         Change input value
