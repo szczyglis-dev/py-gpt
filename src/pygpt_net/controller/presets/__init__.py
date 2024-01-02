@@ -32,7 +32,7 @@ class Presets:
         :param idx: value of the list (row idx)
         """
         # check if preset change is not locked
-        if self.window.controller.presets.preset_change_locked():
+        if self.preset_change_locked():
             return
         mode = self.window.core.config.get('mode')
         self.set_by_idx(mode, idx)
@@ -54,6 +54,8 @@ class Presets:
         if not self.window.core.presets.has(mode, preset):
             return False
         self.window.core.config.data['preset'] = preset
+        if 'current_preset' not in self.window.core.config.data:
+            self.window.core.config.data['current_preset'] = {}
         self.window.core.config.data['current_preset'][mode] = preset
 
     def set_by_idx(self, mode: str, idx: int):
@@ -65,6 +67,8 @@ class Presets:
         """
         preset = self.window.core.presets.get_by_idx(idx, mode)
         self.window.core.config.data['preset'] = preset
+        if 'current_preset' not in self.window.core.config.data:
+            self.window.core.config.data['current_preset'] = {}
         self.window.core.config.data['current_preset'][mode] = preset
 
     def select_current(self):
