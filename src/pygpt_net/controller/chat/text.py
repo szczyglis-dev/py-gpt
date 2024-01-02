@@ -93,8 +93,15 @@ class Text:
         self.log("Context: input [after plugin: ctx.before]: {}".format(self.window.core.ctx.dump(ctx)))
         self.log("System: {}".format(self.window.core.gpt.system_prompt))
 
-        # event: system.prompt
+        # event: pre.prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
+        event = Event('pre.prompt', {
+            'value': sys_prompt,
+        })
+        self.window.core.dispatcher.dispatch(event)
+        sys_prompt = event.data['value']
+
+        # event: system.prompt (append to system prompt)
         event = Event('system.prompt', {
             'value': sys_prompt,
         })

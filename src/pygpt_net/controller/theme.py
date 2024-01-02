@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.02 21:00:00                  #
 # ================================================== #
 
-import json
 import os
 
 from PySide6.QtGui import QAction
@@ -68,9 +67,24 @@ class Theme:
         self.apply_window(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
 
         # apply markdown CSS
-        self.load_markdown()
-        self.apply_markdown()
+        self.update_markdown()
+
+        # update themes menu
         self.update_menu()
+
+        if force:
+            self.window.controller.ui.restore_state()  # restore state after theme change
+
+    def update_markdown(self, force: bool = False):
+        """Update markdown CSS"""
+        if force:
+            self.window.controller.ui.store_state()  # store state before theme change
+
+        if self.window.core.config.get('theme.markdown'):
+            self.load_markdown()
+        else:
+            self.set_default_markdown()
+        self.apply_markdown()
 
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
@@ -210,6 +224,76 @@ class Theme:
             else:
                 return "color: #999;"
             # return "font-size: 8px; color: #999;"  <-- too small on big screens
+
+    def set_default_markdown(self):
+        """Set default markdown CSS"""
+        colors = {
+            "dark": {
+                "a": "#fff",
+                "msg-user": "#d9d9d9",
+                "msg-bot": "#fff",
+                "cmd": "#4d4d4d",
+                "ts": "#d0d0d0",
+                "pre-bg": "#1c1e20",
+                "pre": "#fff",
+                "code": "#fff",
+            },
+            "light": {
+                "a": "#fff",
+                "msg-user": "#444444",
+                "msg-bot": "#000",
+                "cmd": "#4d4d4d",
+                "ts": "#4d4d4d",
+                "pre-bg": "#dbdbdb",
+                "pre": "#000",
+                "code": "#000",
+            }
+        }
+        theme = self.window.core.config.get('theme')
+        styles = colors['dark']
+        if theme.startswith('light'):
+            styles = colors['light']
+        css = """
+        a {{
+            color: {a};
+        }}
+        img {{
+            width: 400px !important;
+        }}
+        .image {{
+            width: 200px !important;
+        }}
+        .msg-user {{
+            color: {msg-user} !important;
+            white-space: pre-wrap;
+            width: 100%;
+            max-width: 100%;
+        }}
+        .msg-bot {{
+            color: {msg-bot} !important;
+            border: 1px solid #fff;
+            white-space: pre-wrap;
+            width: 100%;
+            max-width: 100%;
+        }}
+        .cmd {{
+            color: {cmd};
+        }}
+        .ts {{
+            color: {ts};
+        }}
+        pre {{
+            color: {pre};
+            background-color: {pre-bg};
+            border: 1px solid #fff;
+            font-family: 'Courier New', monospace;
+            display: block;
+            padding: 0px !important;
+        }}
+        code {{
+            color: {pre};
+        }}""".format_map(styles)
+        self.css['markdown'] = css
 
     def apply_markdown(self):
         """Apply CSS to markdown formatter"""

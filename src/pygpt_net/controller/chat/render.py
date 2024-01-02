@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.01 03:00:00                  #
+# Updated Date: 2024.01.02 22:00:00                  #
 # ================================================== #
 
 import re
 from datetime import datetime
 from PySide6.QtGui import QTextCursor, QTextBlockFormat
 import markdown
+import html
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
@@ -30,6 +31,8 @@ class Render:
         self.window = window
         self.images_appended = []
         self.urls_appended = []
+        self.buffer = ""
+        self.is_cmd = False
 
     def reset(self):
         """Reset"""
@@ -60,7 +63,25 @@ class Render:
         for item in self.window.core.ctx.items:
             self.append_context_item(item)
 
-    def replace_code_tags(self, text):
+    def append_timestamp(self, text: str, item: CtxItem) -> str:
+        """
+        Append timestamp to text
+
+        :param text: Input text
+        :param item: Context item
+        :return: Text with timestamp (if enabled)
+        """
+        if item is not None and self.is_timestamp_enabled() and item.input_timestamp is not None:
+            ts = datetime.fromtimestamp(item.input_timestamp)
+            hour = ts.strftime("%H:%M:%S")
+            text = '<span class="ts">{}:</span> {}'.format(hour, text)
+        return text
+
+    def replace_code_tags(self, text: str) -> str:
+        """
+        Replace cmd code tags
+        :param text:
+        """
         pattern = r"~###~(.*?)~###~"
         replacement = r'<span class="cmd">\1</span>'
         return re.sub(pattern, replacement, text)
@@ -94,6 +115,7 @@ class Render:
         :param text: text to format
         :return: formatted text
         """
+        text = html.escape(text)
         return text.strip().replace("\n", "<br>")
 
     def format_chunk(self, text: str) -> str:
@@ -106,6 +128,7 @@ class Render:
         return text
 
     def append_block(self):
+        """Append block to output"""
         cursor = self.get_output_node().textCursor()
         cursor.movePosition(QTextCursor.End)
         block_format = QTextBlockFormat()
@@ -113,27 +136,27 @@ class Render:
         cursor.insertBlock(block_format)
 
     def to_end(self):
+        """Move cursor to end of output"""
         cursor = self.get_output_node().textCursor()
         cursor.movePosition(QTextCursor.End)
         self.get_output_node().setTextCursor(cursor)
 
-    def append_raw(self, text: str, type: str = "msg-bot"):
+    def append_raw(self, text: str, type: str = "msg-bot", item: CtxItem = None):
         """
         Append and format raw text to output
 
         :param text: text to append
         :param type: type of message
+        :param item: CtxItem instance
         """
-        prefix = ""
-        if type == "msg-user":
-            prefix = "&gt; "
-        text = prefix + text
-
         if type != "msg-user":  # markdown for bot messages
             text = self.pre_format_text(text)
+            text = self.append_timestamp(text, item)
             text = markdown.markdown(text.strip(), extensions=['fenced_code'])
         else:
-            text = "<p>" + self.format_user_text(text) + "</p>"
+            #text = "<div>" + self.format_user_text(text) + "</div>"
+            text = self.format_user_text(text)
+            text = self.append_timestamp(text, item)
 
         text = self.post_format_text(text)
         text = '<div class="{}">'.format(type) + text.strip() + "</div>"
@@ -179,13 +202,11 @@ class Render:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
-            ts = datetime.fromtimestamp(item.input_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            text = "{}{}: {}".format(name, hour, item.input)
+            text = '{} > {}'.format(name, item.input)
         else:
-            text = "{}".format(item.input)
+            text = "> {}".format(item.input)
 
-        self.append_raw(text, "msg-user")
+        self.append_raw(text, "msg-user", item)
 
     def append_output(self, item: CtxItem):
         """
@@ -199,12 +220,40 @@ class Render:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
-            ts = datetime.fromtimestamp(item.output_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            text = "{}{}: {}".format(name, hour, item.output)
+            text = '{} {}'.format(name, item.output)
         else:
             text = "{}".format(item.output)
-        self.append_raw(text, "msg-bot")
+        self.append_raw(text, "msg-bot", item)
+
+    def get_image_html(self, link: str) -> str:
+        """
+        Get image HTML
+
+        :param link: image link
+        :return: HTML
+        """
+        return """<a href="{link}"><img src="{link}" width="400" class="image"></a>
+        <p><b>{prefix}:</b> <a href="{link}">{link}</a></p>""".format(prefix=trans('chat.prefix.img'), link=link)
+
+    def get_url_html(self, link: str) -> str:
+        """
+        Get URL HTML
+
+        :param link: URL link
+        :return: HTML
+        """
+        return """<br/><b>{prefix}:</b> <a href="{link}">{link}</a>""".format(prefix=trans('chat.prefix.url'),
+                                                                              link=link)
+
+    def get_file_html(self, link: str) -> str:
+        """
+        Get file HTML
+
+        :param link: file link
+        :return: HTML
+        """
+        return """<div><b>{prefix}:</b> <a href="{link}">{link}</a></div>""".format(prefix=trans('chat.prefix.file'),
+                                                                                    link=link)
 
     def append_extra(self, item: CtxItem):
         """
@@ -212,48 +261,46 @@ class Render:
 
         :param item: context item
         """
-        already_appended = []
+        appended = []
+
+        # images
         if len(item.images) > 0:
             for image in item.images:
-                if image in already_appended or image in self.images_appended:
+                if image in appended or image in self.images_appended:
                     continue
                 try:
-                    html = """
-                    <img src="{image}" width="400" class="image">
-                    <p><b>{prefix}:</b> <a href="{image}">{image}</a></p>""".format(prefix=trans('chat.prefix.img'), image=image)
-                    self.get_output_node().append(html)
-                    already_appended.append(image)
+                    appended.append(image)
+                    self.get_output_node().append(self.get_image_html(image))
                     self.images_appended.append(image)
                 except Exception as e:
                     pass
+
+        # files and attachments, TODO check attachments
         if len(item.files) > 0:
             for file in item.files:
-                if file in already_appended:
+                if file in appended:
                     continue
                 try:
-                    html = """
-                    <b>{prefix}:</b> <a href="{file}">{file}</a>""".format(prefix=trans('chat.prefix.file'), file=file)
-                    self.get_output_node().append(html)
-                    already_appended.append(file)
+                    appended.append(file)
+                    self.get_output_node().append(self.get_file_html(file))
                 except Exception as e:
                     pass
+
+        # urls
         if len(item.urls) > 0:
             for url in item.urls:
-                if url in already_appended or url in self.urls_appended:
+                if url in appended or url in self.urls_appended:
                     continue
                 try:
-                    html = """
-                    <b>{prefix}:</b> <a href="{url}">{url}</a>""".format(prefix=trans('chat.prefix.url'), url=url)
-                    self.get_output_node().append(html)
-                    already_appended.append(url)
+                    appended.append(url)
+                    self.get_output_node().append(self.get_url_html(url))
                     self.urls_appended.append(url)
                 except Exception as e:
                     pass
 
         # jump to end
-        if len(already_appended) > 0:
+        if len(appended) > 0:
             self.to_end()
-            #self.append_block()
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
@@ -265,21 +312,36 @@ class Render:
         """
         if text_chunk is None or text_chunk == "":
             return
-        if begin and self.is_timestamp_enabled() and item.output_timestamp is not None:
-            name = ""
-            if item.output_name is not None and item.output_name != "":
-                name = item.output_name + " "
-            ts = datetime.fromtimestamp(item.output_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            self.to_end()
-            self.append_chunk_start()
-            self.append_block()
-            text_chunk = "{}{}: ".format(name, hour) + text_chunk
-        elif begin:
-            self.to_end()
-            self.append_chunk_start()
-            self.append_block()
 
+        raw_chunk = str(text_chunk)
+
+        if begin:
+            self.buffer = ""  # reset buffer
+            self.is_cmd = False  # reset command flag
+
+            if self.is_timestamp_enabled() and item.output_timestamp is not None:
+                name = ""
+                if item.output_name is not None and item.output_name != "":
+                    name = item.output_name + " "
+                ts = datetime.fromtimestamp(item.output_timestamp)
+                hour = ts.strftime("%H:%M:%S")
+                self.to_end()
+                self.append_chunk_start()
+                self.append_block()
+                text_chunk = "{}{}: ".format(name, hour) + text_chunk
+            else:
+                self.to_end()
+                self.append_chunk_start()
+                self.append_block()
+
+        """
+        if "~###~" in self.buffer and not self.is_cmd:
+            self.is_cmd = True
+            self.get_output_node().append('<span class="cmd">')
+            print("append cmd...")
+        """
+
+        self.buffer += raw_chunk
         self.append(self.format_chunk(text_chunk), "")
 
     def append(self, text: str, end: str = "\n"):

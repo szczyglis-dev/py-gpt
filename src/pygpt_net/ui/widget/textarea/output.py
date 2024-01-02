@@ -43,12 +43,20 @@ class ChatOutput(QTextBrowser):
         }
         .msg-user {
             color: #8c8c8c !important;
+            white-space: pre-wrap;
+            width: 100%;
+            max-width: 100%;
         }
         .msg-bot {
             border: 1px solid #fff;
+            white-space: pre-wrap;
             width: 100%;
+            max-width: 100%;
         }
         .cmd {
+            color: #4d4d4d;
+        }
+        .ts {
             color: #4d4d4d;
         }
         pre {

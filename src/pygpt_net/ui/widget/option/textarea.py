@@ -28,6 +28,7 @@ class OptionTextarea(QTextEdit):
         self.section = section
         self.autoupdate = autoupdate
         self.update_ui = True
+        self.setAcceptRichText(False)
 
     def keyPressEvent(self, event):
         """
