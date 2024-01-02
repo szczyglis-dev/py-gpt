@@ -111,6 +111,17 @@
         "step": 1,
         "advanced": false
     },
+    "theme.markdown": {
+        "type": "bool",
+        "slider": false,
+        "label": "theme.markdown",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "max_output_tokens": {
         "type": "int",
         "slider": true,
