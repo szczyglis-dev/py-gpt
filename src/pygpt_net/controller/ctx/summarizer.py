@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.02 04:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, Signal, Slot
 from pygpt_net.core.worker import Worker
 from pygpt_net.item.ctx import CtxItem
 
@@ -65,9 +65,10 @@ class Summarizer:
         worker.kwargs['updated_signal'] = worker.signals.updated
         self.window.threadpool.start(worker)
 
+    @Slot(int, str)
     def handle_update(self, id: int, title: str):
         """
-        Handle update signal
+        Handle update signal (make update)
 
         :param id: CtxMeta ID
         :param title: CtxMeta title
