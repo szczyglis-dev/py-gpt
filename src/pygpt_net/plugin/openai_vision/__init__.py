@@ -36,6 +36,23 @@ class Plugin(BasePlugin):
                         "Keep vision model after image or capture detection",
                         tooltip="Keep vision model after image or capture detection")
 
+        prompt = "IMAGE ANALYSIS: You are an expert in analyzing photos. Each time I send you a photo, you will " \
+                 "analyze it as accurately as you can, answer all my questions, and offer any help on the subject " \
+                 "related to the photo.  Remember to always describe in great detail all the aspects related to the " \
+                 "photo, try to place them in the context of the conversation, and make a full analysis of what you " \
+                 "see. "
+        self.add_option("prompt", "textarea", prompt,
+                        "Prompt",
+                        "Prompt used for vision mode. It will replace current system prompt when using vision model",
+                        tooltip="Prompt", advanced=False)
+
+        self.add_option("replace_prompt", "bool", False,
+                        "Replace prompt",
+                        "Replace all system prompts with vision prompt against appending it to the end of the current "
+                        "prompt",
+                        tooltip="Replace all system prompts with vision prompt against appending it to the end of the "
+                                "current prompt")
+
     def setup(self) -> dict:
         """
         Return available config options
@@ -64,12 +81,16 @@ class Plugin(BasePlugin):
 
         if name == 'mode.before':
             data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
-        if name == 'model.before':
+        elif name == 'model.before':
             mode = data['mode']
             if mode == 'vision':
                 data['model'] = self.get_option_value("model")  # force choose correct vision model
         elif name == 'ui.vision':
             data['value'] = True  # allow render vision UI elements
+        elif name == 'pre.prompt':
+            data['value'] = self.on_pre_prompt(data['value'])
+        elif name == 'system.prompt':
+            data['value'] = self.on_pre_prompt(data['value'])
         elif name == 'ui.attachments':
             data['value'] = True  # allow render attachments UI elements
         elif name == 'ctx.select' or name == 'mode.select' or name == 'model.select':
@@ -85,6 +106,29 @@ class Plugin(BasePlugin):
         self.debug(full_msg)
         self.window.ui.status(full_msg)
         print(full_msg)
+
+    def on_system_prompt(self, prompt: str):
+        """
+        Event: On prepare system prompt
+
+        :param prompt: prompt
+        :return: updated prompt
+        """
+        if not self.get_option_value("replace_prompt"):
+            prompt += self.get_option_value("prompt")
+        return prompt
+
+    def on_pre_prompt(self, prompt: str):
+        """
+        Event: On pre-prepare system prompt
+
+        :param prompt: prompt
+        :return: updated prompt
+        """
+        if self.get_option_value("replace_prompt"):
+            return self.get_option_value("prompt")
+        else:
+            return prompt
 
     def on_mode_before(self, ctx: CtxItem, mode: str, prompt: str):
         """
