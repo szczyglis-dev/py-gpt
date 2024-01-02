@@ -27,9 +27,9 @@ def mock_window():
     window = MagicMock(spec=QMainWindow)
     window.core = MagicMock()
     window.core.config = Config(window)  # real config object
-    window.core.config.initialized = True  # prevent loading config
+    window.core.config.initialized = True  # prevent initializing config
     window.core.config.init = MagicMock()  # mock init method to prevent init
-    window.core.config.load = MagicMock()  # mock init method to prevent loading
+    window.core.config.load = MagicMock()  # mock load method to prevent loading
     window.core.config.save = MagicMock()  # mock save method to prevent saving
     window.controller = MagicMock()
     window.ui = MagicMock()
