@@ -2,7 +2,7 @@
   "name": "*",
   "ai_name": "",
   "user_name": "",
-  "prompt": "You are a helpful assistant.",
+  "prompt": "You are an expert in analyzing photos. Each time I send you a photo, you will analyze it as accurately as you can, answer all my questions, and offer any help on the subject related to the photo.",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
