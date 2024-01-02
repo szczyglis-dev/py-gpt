@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.02 04:00:00                  #
 # ================================================== #
+
 from pygpt_net.core.dispatcher import Event
 
 
@@ -42,6 +43,8 @@ class Model:
         :param model: model name
         """
         self.window.core.config.set('model', model)
+        if 'current_model' not in self.window.core.config.data:
+            self.window.core.config.data['current_model'] = {}
         self.window.core.config.data['current_model'][mode] = model
 
     def set_by_idx(self, mode: str, idx: int):
@@ -53,6 +56,8 @@ class Model:
         """
         model = self.window.core.models.get_by_idx(idx, mode)
         self.window.core.config.set('model', model)
+        if 'current_model' not in self.window.core.config.data:
+            self.window.core.config.data['current_model'] = {}
         self.window.core.config.data['current_model'][mode] = model
 
         event = Event('model.select', {
@@ -103,6 +108,5 @@ class Model:
         Check if model change is locked
 
         :return: True if locked
-        :rtype: bool
         """
         return self.window.controller.chat.input.generating
