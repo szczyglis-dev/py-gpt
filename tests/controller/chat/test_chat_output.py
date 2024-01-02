@@ -75,8 +75,10 @@ def test_handle_cmd(mock_window):
     mock_window.controller.plugins.apply_cmds = MagicMock()
     mock_window.controller.plugins.apply_cmds_only = MagicMock()
     mock_window.ui.status = MagicMock()
-
-    cmds = ['cmd1', 'cmd2']
+    cmds = [
+        {'cmd': 'cmd1', 'params': {'param1': 'value1'}},
+        {'cmd': 'cmd2', 'params': {'param2': 'value2'}},
+    ]
     mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
 
     ctx = CtxItem()
@@ -94,8 +96,10 @@ def test_handle_cmd_only(mock_window):
     mock_window.controller.plugins.apply_cmds = MagicMock()
     mock_window.controller.plugins.apply_cmds_only = MagicMock()
     mock_window.ui.status = MagicMock()
-
-    cmds = ['cmd1', 'cmd2']
+    cmds = [
+        {'cmd': 'cmd1', 'params': {'param1': 'value1'}},
+        {'cmd': 'cmd2', 'params': {'param2': 'value2'}},
+    ]
     mock_window.core.command.extract_cmds = MagicMock(return_value=cmds)
 
     ctx = CtxItem()
