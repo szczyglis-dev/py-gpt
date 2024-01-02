@@ -181,7 +181,7 @@ def test_append_input(mock_window):
     item = CtxItem()
     item.input = "test"
     render.append_input(item)
-    render.append_raw.assert_called_once_with("test", "msg-user")
+    render.append_raw.assert_called_once_with("> test", "msg-user", item)
 
 
 def test_append_output(mock_window):
@@ -191,7 +191,7 @@ def test_append_output(mock_window):
     item = CtxItem()
     item.output = "test"
     render.append_output(item)
-    render.append_raw.assert_called_once_with("test", "msg-bot")
+    render.append_raw.assert_called_once_with("test", "msg-bot", item)
 
 
 def test_append_extra(mock_window):
