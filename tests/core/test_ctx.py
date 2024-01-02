@@ -284,7 +284,7 @@ def test_is_initialized(mock_window):
     }
     assert ctx.is_initialized() is False
     ctx.current = None
-    assert ctx.is_initialized() is None
+    assert ctx.is_initialized() is False
 
 
 def test_set_initialized(mock_window):
