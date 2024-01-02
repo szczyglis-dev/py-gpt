@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.70",
-    "app.version": "2.0.70",
-    "updated_at": "2023-12-31T00:00:00"
+    "version": "2.0.72",
+    "app.version": "2.0.72",
+    "updated_at": "2024-01-02T00:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -101,6 +101,7 @@
   "stream": true,
   "temperature": 1.0,
   "theme": "dark_teal",
+  "theme.markdown": false,
   "top_p": 1.0,
   "use_context": true,
   "user_name": "",
