@@ -29,8 +29,8 @@ img {{
 }}
 pre {{
     color: {QTMATERIAL_PRIMARYLIGHTCOLOR};
-    background-color: #1c1e20;
-    font-family: 'Courier New', monospace;
+    background-color: #202225;
+    font-family: 'Lato';
     display: block;
 }}
 code {{

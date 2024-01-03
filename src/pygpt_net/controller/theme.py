@@ -234,7 +234,7 @@ class Theme:
                 "msg-bot": "#fff",
                 "cmd": "#4d4d4d",
                 "ts": "#d0d0d0",
-                "pre-bg": "#1c1e20",
+                "pre-bg": "#202225",
                 "pre": "#fff",
                 "code": "#fff",
             },
@@ -244,7 +244,7 @@ class Theme:
                 "msg-bot": "#000",
                 "cmd": "#4d4d4d",
                 "ts": "#4d4d4d",
-                "pre-bg": "#dbdbdb",
+                "pre-bg": "#e9e9e9",
                 "pre": "#000",
                 "code": "#000",
             }
@@ -286,7 +286,7 @@ class Theme:
         pre {{
             color: {pre};
             background-color: {pre-bg};
-            font-family: 'Courier New', monospace;
+            font-family: 'Lato';
             display: block;
         }}
         code {{

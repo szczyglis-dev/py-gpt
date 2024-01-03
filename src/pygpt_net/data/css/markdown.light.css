@@ -28,8 +28,8 @@ img {{
 }}
 pre {{
     color: #000;
-    background-color: #dbdbdb;
-    font-family: 'Courier New', monospace;
+    background-color: #e9e9e9;
+    font-family: 'Lato';
     display: block;
 }}
 code {{
