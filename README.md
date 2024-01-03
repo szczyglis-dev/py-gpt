@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.72** | build: **2024.01.02** | Python: **3.10+**
+Release: **2.0.73** | build: **2024.01.03** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1384,6 +1384,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.73 (2024-01-03)
+
+- Fixed vision prompt appending
+- Improved inline Vision: removed keep option and added Vision indicator with checkbox for quick enable/disable vision model if needed (will auto-enable when any image provided if the plugin is active)
 
 ### 2.0.72 (2024-01-02)
 
