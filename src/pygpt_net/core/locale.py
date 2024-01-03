@@ -18,18 +18,22 @@ from pygpt_net.config import Config
 
 
 class Locale:
-    def __init__(self, domain: str = None):
+    def __init__(self, domain: str = None, config=None):
         """
         Locale core
 
         :param domain: translation domain
+        :param config: Config instance
         """
-        self.config = Config()
-        self.config.init(False)
+        if config is None:
+            self.config = Config()
+        else:
+            self.config = config
         self.lang = 'en'
+        self.data = {}
+        self.config.init(False)
         if self.config.has('lang'):
             self.lang = self.config.get('lang')
-        self.data = {}
         self.load(self.lang, domain)
 
     def reload(self, domain: str = None):
