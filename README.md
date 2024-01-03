@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.73** | build: **2024.01.03** | Python: **3.10+**
+Release: **2.0.74** | build: **2024.01.03** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1384,6 +1384,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.74 (2023-01-03)
+
+- Fixed timestamp position when appending input to the chat window.
+- Extended the Markdown parser with an extension for converting <li> to <p> (it allows copying lists bullets with Ctrl-C).
+- Added notebook titles to the "Copy to..." context menu.
+- Added an "Open file" option in the file explorer and attachments list.
 
 ### 2.0.73 (2024-01-03)
 
