@@ -154,8 +154,7 @@ class Render:
             text = self.append_timestamp(text, item)
             text = markdown.markdown(text.strip(), extensions=['fenced_code'])
         else:
-            #text = "<div>" + self.format_user_text(text) + "</div>"
-            text = self.format_user_text(text)
+            text = "<div>" + self.format_user_text(text) + "</div>"
             text = self.append_timestamp(text, item)
 
         text = self.post_format_text(text)
