@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.02 22:00:00                  #
 # ================================================== #
 
 import os
+import shutil
 
 
 class Filesystem:
@@ -23,6 +24,34 @@ class Filesystem:
 
     def install(self):
         """Install provider data"""
-        img_dir = os.path.join(self.window.core.config.path, 'output')
-        if not os.path.exists(img_dir):
-            os.mkdir(img_dir)
+        # output data directory
+        data_dir = os.path.join(self.window.core.config.path, 'output')
+        if not os.path.exists(data_dir):
+            os.mkdir(data_dir)
+
+        # install custom css styles for override default styles
+        css_dir = os.path.join(self.window.core.config.path, 'css')
+        if not os.path.exists(css_dir):
+            os.mkdir(css_dir)
+
+        styles = [
+            'style.css',
+            'style.dark.css',
+            'style.light.css',
+            'markdown.css',
+            'markdown.dark.css',
+            'markdown.light.css',
+        ]
+
+        src_dir = os.path.join(self.window.core.config.get_app_path(), 'data', 'css')
+        dst_dir = os.path.join(self.window.core.config.path, 'css')
+
+        try:
+            for style in styles:
+                src = os.path.join(src_dir, style)
+                dst = os.path.join(dst_dir, style)
+                if not os.path.exists(dst) and os.path.exists(src):
+                    shutil.copyfile(src, dst)
+        except Exception as e:
+            print("Error while installing css files: ", e)
+
