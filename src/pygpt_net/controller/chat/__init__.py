@@ -16,6 +16,7 @@ from pygpt_net.controller.chat.input import Input
 from pygpt_net.controller.chat.output import Output
 from pygpt_net.controller.chat.render import Render
 from pygpt_net.controller.chat.text import Text
+from pygpt_net.controller.chat.vision import Vision
 
 
 class Chat:
@@ -33,6 +34,7 @@ class Chat:
         self.output = Output(window)
         self.render = Render(window)
         self.text = Text(window)
+        self.vision = Vision(window)
 
     def setup(self):
         """Setup"""
