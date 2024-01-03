@@ -33,6 +33,7 @@ def test_create_thread(mock_window):
 
 
 def test_handle_messages(mock_window):
+    """Test handle messages"""
     msg = MagicMock()
     msg.role = "assistant"
     msg.content = [MagicMock()]
@@ -63,6 +64,7 @@ def test_handle_messages(mock_window):
 
 
 def test_handle_run(mock_window):
+    """Test handle run"""
     threads = Threads(mock_window)
     mock_window.threadpool.start = MagicMock()
 
@@ -73,6 +75,7 @@ def test_handle_run(mock_window):
 
 
 def handle_status_complete(mock_window):
+    """Test handle status complete"""
     threads = Threads(mock_window)
     mock_window.controller.chat.common.unlock_input = MagicMock()
     mock_window.statusChanged.emit = MagicMock()
@@ -88,6 +91,7 @@ def handle_status_complete(mock_window):
 
 
 def handle_status_failed(mock_window):
+    """Test handle status failed"""
     threads = Threads(mock_window)
     mock_window.controller.chat.common.unlock_input = MagicMock()
     mock_window.statusChanged.emit = MagicMock()
@@ -103,6 +107,7 @@ def handle_status_failed(mock_window):
 
 
 def handle_status_common(mock_window):
+    """Test handle status common"""
     threads = Threads(mock_window)
     mock_window.controller.chat.common.unlock_input = MagicMock()
     mock_window.statusChanged.emit = MagicMock()
@@ -115,6 +120,7 @@ def handle_status_common(mock_window):
 
 
 def test_handle_destroy(mock_window):
+    """Test handle destroy"""
     threads = Threads(mock_window)
     threads.started = True
     threads.stop = True
@@ -124,6 +130,7 @@ def test_handle_destroy(mock_window):
 
 
 def test_handle_started(mock_window):
+    """Test handle started"""
     threads = Threads(mock_window)
     mock_window.statusChanged = MagicMock()
     threads.handle_started()

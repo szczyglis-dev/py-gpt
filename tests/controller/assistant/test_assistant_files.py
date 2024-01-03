@@ -10,7 +10,6 @@
 # ================================================== #
 
 import os
-import webbrowser
 from unittest.mock import MagicMock
 
 from pygpt_net.item.assistant import AssistantItem
@@ -281,6 +280,7 @@ def test_update_list(mock_window):
 
 
 def test_update_tab(mock_window):
+    """Test update tab"""
     files = Files(mock_window)
     item = AssistantItem()
     item.id = "assistant_id"
