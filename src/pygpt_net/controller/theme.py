@@ -282,7 +282,6 @@ class Theme:
             color: {ts};
         }}
         .list {{
-            margin-left: 20px;
         }}
         pre {{
             color: {pre};
