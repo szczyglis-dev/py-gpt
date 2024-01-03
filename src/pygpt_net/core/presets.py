@@ -11,6 +11,7 @@
 
 import copy
 
+from packaging.version import Version
 from pygpt_net.item.preset import PresetItem
 from pygpt_net.provider.preset.json_file import JsonFileProvider
 
@@ -31,7 +32,7 @@ class Presets:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: str):
+    def patch(self, app_version: Version):
         """Patch provider data"""
         self.provider.patch(app_version)
 
