@@ -94,6 +94,10 @@ class FileExplorer(QWidget):
             path = self.model.filePath(index)
 
             actions = {}
+            actions['open'] = QAction(QIcon.fromTheme("document-open"), trans('action.open'), self)
+            actions['open'].triggered.connect(
+                lambda: self.action_open(path))
+
             actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
@@ -107,11 +111,20 @@ class FileExplorer(QWidget):
                 lambda: self.action_delete(path))
 
             menu = QMenu(self)
-            menu.addAction(actions['rename'])
+            menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
+            menu.addAction(actions['rename'])
             menu.addAction(actions['delete'])
 
             menu.exec(QCursor.pos())
+
+    def action_open(self, path):
+        """
+        Open action handler
+
+        :param path: path to open
+        """
+        self.window.controller.files.open(path)
 
     def action_open_dir(self, path):
         """

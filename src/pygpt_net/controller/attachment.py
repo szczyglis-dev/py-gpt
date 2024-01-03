@@ -227,6 +227,19 @@ class Attachment:
         if data.path is not None and data.path != '' and os.path.exists(data.path):
             self.window.controller.files.open_in_file_manager(data.path)
 
+    def open(self, mode: str, idx: int):
+        """
+        Open attachment
+
+        :param mode: mode
+        :param idx: index
+        """
+        # TODO: check dict/obj
+        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
+        data = self.window.core.attachments.get_by_id(mode, file_id)
+        if data.path is not None and data.path != '' and os.path.exists(data.path):
+            self.window.controller.files.open(data.path)
+
     def import_from_assistant(self, mode: str, assistant: AssistantItem):
         """
         Load attachments from assistant

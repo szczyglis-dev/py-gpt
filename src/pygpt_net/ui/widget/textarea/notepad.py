@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2024.01.02 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -53,7 +53,8 @@ class NotepadOutput(QTextEdit):
                 for i in range(1, num_notepads + 1):
                     if i == self.id:
                         continue
-                    action = copy_to_menu.addAction(trans('text.context_menu.copy_to.notepad') + ' ' + str(i))
+                    name = self.window.controller.notepad.get_notepad_name(i)
+                    action = copy_to_menu.addAction(name)
                     action.triggered.connect(lambda checked=False, i=i:
                                              self.window.controller.notepad.append_text(selected_text, i))
 

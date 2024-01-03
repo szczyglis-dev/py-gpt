@@ -12,6 +12,8 @@
 import os
 
 from pathlib import PurePath
+
+from PySide6.QtGui import QDesktopServices
 from showinfm import show_in_file_manager
 
 from pygpt_net.utils import trans
@@ -71,7 +73,16 @@ class Files:
 
         :param path: path to file or directory
         """
-        self.open_in_file_manager(path)
+        QDesktopServices.openUrl(path)  # TODO: check in snap
+        # self.open_in_file_manager(path)
+
+    def open(self, path: str):
+        """
+        Open file
+
+        :param path: path to file or directory
+        """
+        QDesktopServices.openUrl(path)
 
     def open_in_file_manager(self, path: str, select: bool = False):
         """

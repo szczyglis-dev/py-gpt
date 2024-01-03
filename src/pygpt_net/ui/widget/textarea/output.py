@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2024.01.02 03:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -30,55 +30,24 @@ class ChatOutput(QTextBrowser):
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
-
-        css_style = """
-        a {
-            color: #fff;
-        }
-        img {
-            width: 400px !important;
-        }
-        .image {
-            width: 200px !important;
-        }
-        .msg-user {
-            color: #8c8c8c !important;
-            white-space: pre-wrap;
-            width: 100%;
-            max-width: 100%;
-        }
-        .msg-bot {
-            border: 1px solid #fff;
-            white-space: pre-wrap;
-            width: 100%;
-            max-width: 100%;
-        }
-        .cmd {
-            color: #4d4d4d;
-        }
-        .ts {
-            color: #4d4d4d;
-        }
-        pre {
-            color: #ffd740;
-            background-color: #1c1e20;
-            border: 1px solid #fff;
-            font-family: 'Courier New', monospace;
-            display: block;
-            padding: 0px !important;
-        }
-        code {
-            color: #ffd740;
-        }"""
-        self.document().setDefaultStyleSheet(css_style)
         self.setOpenExternalLinks(False)
         self.setOpenLinks(False)
         self.anchorClicked.connect(self.open_external_link)
 
     def open_external_link(self, url):
+        """
+        Open external link
+
+        :param url: url
+        """
         QDesktopServices.openUrl(url)
 
     def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: Event
+        """
         menu = self.createStandardContextMenu()
         selected_text = self.textCursor().selectedText()
         if selected_text:
@@ -98,7 +67,8 @@ class ChatOutput(QTextBrowser):
             num_notepads = self.window.controller.notepad.get_num_notepads()
             if num_notepads > 0:
                 for i in range(1, num_notepads + 1):
-                    action = copy_to_menu.addAction(trans('text.context_menu.copy_to.notepad') + ' ' + str(i))
+                    name = self.window.controller.notepad.get_notepad_name(i)
+                    action = copy_to_menu.addAction(name)
                     action.triggered.connect(lambda checked=False, i=i:
                                              self.window.controller.notepad.append_text(selected_text, i))
 

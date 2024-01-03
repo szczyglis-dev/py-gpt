@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.02 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -56,6 +56,21 @@ class Notepad:
             title = items[id].title
             if items[id].initialized and title is not None and len(title) > 0:
                 self.update_name(id, items[id].title, False)
+
+    def get_notepad_name(self, id: int):
+        """
+        Get notepad name
+
+        :param id: notepad id
+        :return: notepad name
+        """
+        title = trans('text.context_menu.copy_to.notepad') + ' ' + str(id)
+        item = self.window.core.notepad.get_by_id(id)
+        if item is None:
+            return None
+        if item.initialized and item.title is not None and len(item.title) > 0:
+            title = item.title
+        return title
 
     def rename(self, idx: int):
         """

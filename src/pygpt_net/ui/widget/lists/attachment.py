@@ -72,6 +72,10 @@ class AttachmentList(BaseList):
         :param event: context menu event
         """
         actions = {}
+        actions['open'] = QAction(QIcon.fromTheme("document-open"), trans('action.open'), self)
+        actions['open'].triggered.connect(
+            lambda: self.action_open(event))
+
         actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
         actions['open_dir'].triggered.connect(
             lambda: self.action_open_dir(event))
@@ -85,8 +89,9 @@ class AttachmentList(BaseList):
             lambda: self.action_delete(event))
 
         menu = QMenu(self)
-        menu.addAction(actions['rename'])
+        menu.addAction(actions['open'])
         menu.addAction(actions['open_dir'])
+        menu.addAction(actions['rename'])
         menu.addAction(actions['delete'])
 
         item = self.indexAt(event.pos())
@@ -95,6 +100,18 @@ class AttachmentList(BaseList):
             mode = self.window.core.config.get('mode')
             self.window.controller.attachment.select(mode, item.row())
             menu.exec_(event.globalPos())
+
+    def action_open(self, event):
+        """
+        Open action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            mode = self.window.core.config.get('mode')
+            self.window.controller.attachment.open(mode, idx)
 
     def action_open_dir(self, event):
         """
