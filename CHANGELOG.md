@@ -3,7 +3,7 @@
 ## 2.0.73 (2024-01-03)
 
 - Fixed vision prompt appending
-- Improved inline Vision: removed keep option and added Vision indicator with checkbox for quick enable/disable vision model if needed (will auto-enable when any image provided if the plugin is active)
+- Improved inline vision: removed the "keep" option and added a vision indicator with a checkbox for quickly enabling/disabling the vision model if needed (will auto-enable when an image is provided if the plugin is active)
 
 ## 2.0.72 (2024-01-02)
 
