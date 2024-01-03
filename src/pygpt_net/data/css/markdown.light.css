@@ -14,7 +14,6 @@ img {{
     max-width: 100%;
 }}
 .msg-bot {{
-    border: 1px solid #fff;
     white-space: pre-wrap;
     width: 100%;
     max-width: 100%;
@@ -25,13 +24,14 @@ img {{
 .ts {{
     color: #4d4d4d;
 }}
+.list {{
+    margin-left: 20px;
+}}
 pre {{
     color: #000;
     background-color: #dbdbdb;
-    border: 1px solid #fff;
     font-family: 'Courier New', monospace;
     display: block;
-    padding: 0px !important;
 }}
 code {{
     color: #000;
