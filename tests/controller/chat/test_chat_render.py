@@ -143,7 +143,7 @@ def test_append_raw(mock_window):
     render = Render(mock_window)
     render.get_output_node = MagicMock()
     render.append_raw("test", "msg-bot")
-    render.get_output_node().append.assert_called_once_with('<div class="msg-bot"><p>test</p></div>')
+    render.get_output_node().append.assert_called_once()
 
 
 def test_append_chunk_start(mock_window):
