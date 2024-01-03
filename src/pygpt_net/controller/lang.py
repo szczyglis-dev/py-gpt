@@ -134,6 +134,7 @@ class Lang:
         self.window.ui.nodes['vision.capture.auto'].setText(trans("vision.capture.auto"))
         self.window.ui.nodes['vision.capture.auto'].setToolTip(trans('vision.capture.auto.tooltip'))
         self.window.ui.nodes['vision.capture.label'].setText(trans('vision.capture.options.title'))
+        self.window.ui.nodes['inline.vision'].setText(trans("inline.vision"))
 
         # capture label
         if not self.window.core.config.get('vision.capture.auto'):
