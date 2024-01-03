@@ -145,7 +145,6 @@ class Editor:
 
         # update markdown
         if id == "theme.markdown" and value is not before_markdown:
-            print("upd markdown")
             self.window.controller.theme.update_markdown(force=True)
 
     def change(self, id: str, value: any, section: str = None):
