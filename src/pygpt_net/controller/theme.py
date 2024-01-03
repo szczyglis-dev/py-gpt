@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 03:00:00                  #
+# Updated Date: 2024.01.04 03:00:00                  #
 # ================================================== #
 
 import os
@@ -24,11 +24,11 @@ class Theme:
         :param window: Window instance
         """
         self.window = window
-        self.css = {}  # external custom rules
+        self.css = {}  # external styles
 
     def setup(self):
         """Setup theme"""
-        # load highlighter CSS rules
+        # load markdown CSS
         self.load_markdown()
 
         # setup themes menu
@@ -56,7 +56,7 @@ class Theme:
         Toggle theme by name
 
         :param name: theme name
-        :param force: force theme change (manual toggle)
+        :param force: force theme change (manual trigger)
         """
         if force:
             self.window.controller.ui.store_state()  # store state before theme change
@@ -67,7 +67,7 @@ class Theme:
         self.apply_window(name + '.xml', self.get_custom_css(name))  # style.css = additional custom stylesheet
 
         # apply markdown CSS
-        self.update_markdown()
+        self.update_markdown(force=False)
 
         # update themes menu
         self.update_menu()
@@ -76,7 +76,11 @@ class Theme:
             self.window.controller.ui.restore_state()  # restore state after theme change
 
     def update_markdown(self, force: bool = False):
-        """Update markdown CSS"""
+        """
+        Update markdown styles
+
+        :param force: force theme change (manual trigger)
+        """
         if force:
             self.window.controller.ui.store_state()  # store state before theme change
 
@@ -93,7 +97,7 @@ class Theme:
         """
         Reload current theme
 
-        :param force: force theme change (manual)
+        :param force: force theme change (manual trigger)
         """
         self.toggle(self.window.core.config.get('theme'), force=force)
 
@@ -107,6 +111,111 @@ class Theme:
         if name in self.css:
             return self.css[name]
         return {}
+
+    def set_default_markdown(self):
+        """Set default markdown CSS"""
+        self.css['markdown'] = self.get_default_markdown()
+
+    def apply_markdown(self):
+        """Apply CSS to markdown formatter"""
+        self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
+        self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
+        self.window.controller.chat.render.reload()
+
+    def load_markdown(self):
+        """Load markdown styles"""
+        theme = self.window.core.config.get('theme')
+        name = 'markdown'
+        color_name = 'markdown'
+        if theme.startswith('light'):
+            color_name += '.light'
+        else:
+            color_name += '.dark'
+
+        paths = []
+        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css'))
+        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
+        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css'))
+        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
+        for path in paths:
+            if os.path.exists(path):
+                with open(path, 'r') as file:
+                    try:
+                        self.css['markdown'] = file.read().format(**os.environ)
+                    except KeyError as e:
+                        pass  # ignore missing env vars
+                break
+
+    def apply_window(self, theme: str = 'dark_teal.xml', custom: str = None):
+        """
+        Update material theme and apply custom CSS
+
+        :param theme: material theme filename (e.g. dark_teal.xml)
+        :param custom: additional custom stylesheet filename (e.g. style.css)
+        """
+        inverse = False
+        if theme.startswith('light'):
+            inverse = True
+        extra = {
+            'density_scale': self.window.core.config.get('layout.density'),
+            'pyside6': True,
+        }
+        self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
+
+        # append custom stylesheet
+        if custom is not None:
+            stylesheet = self.window.styleSheet()
+            paths = []
+            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', custom))
+            paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom))
+            for path in paths:
+                if os.path.exists(path):
+                    with open(path) as file:
+                        try:
+                            self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
+                        except KeyError as e:
+                            pass  # ignore missing env variables
+                    break
+
+    def get_custom_css(self, name: str) -> str:
+        """
+        Return custom css filename for specified theme
+
+        :param name: theme name
+        :return: custom css filename (e.g. style.dark.css)
+        """
+        # check per theme style css
+        filename = 'style.css'
+        if filename is not None:
+            # per theme mode (light / dark)
+            tmp = None
+            if name.startswith('light_'):
+                tmp = 'style.light.css'
+            elif name.startswith('dark_'):
+                tmp = 'style.dark.css'
+            if tmp is not None:
+                paths = []
+                paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
+                paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
+                paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', tmp))
+                paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp))
+                for path in paths:
+                    if os.path.exists(path):
+                        filename = tmp
+                        break
+        return filename
+
+    def trans_theme(self, theme: str) -> str:
+        """
+        Translate theme name
+
+        :param theme: theme name
+        :return: translated theme name
+        """
+        return theme \
+            .replace('_', ' ').title() \
+            .replace('Dark ', trans('theme.dark') + ': ') \
+            .replace('Light ', trans('theme.light') + ': ')
 
     def apply_node(self, key: str, type: str):
         """
@@ -292,130 +401,6 @@ class Theme:
         code {{
             color: {pre};
         }}""".format_map(styles)
-
-    def set_default_markdown(self):
-        """Set default markdown CSS"""
-        self.css['markdown'] = self.get_default_markdown()
-
-    def apply_markdown(self):
-        """Apply CSS to markdown formatter"""
-        self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
-        self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
-        self.window.controller.chat.render.reload()
-
-    def load_markdown(self):
-        """Load markdown formatter CSS from json file"""
-        theme = self.window.core.config.get('theme')
-        name = 'markdown'
-        color_name = 'markdown'
-        if theme.startswith('light'):
-            color_name += '.light'
-        else:
-            color_name += '.dark'
-
-        # check in user directory first
-        path = os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css')
-        if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css')
-
-        if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css')
-            if not os.path.exists(path):
-                path = os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css')
-
-        if not os.path.exists(path):
-            path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css')
-            if not os.path.exists(path):
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css')
-
-            if not os.path.exists(path):
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css')
-                if not os.path.exists(path):
-                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css')
-
-        if os.path.exists(path):
-            try:
-                with open(path, 'r') as file:
-                    self.css['markdown'] = file.read().format(**os.environ)
-            except Exception as e:
-                pass
-
-    def apply_window(self, theme: str = 'dark_teal.xml', custom: str = None):
-        """
-        Update material theme and apply custom CSS
-
-        :param theme: material theme filename (e.g. dark_teal.xml)
-        :param custom: additional custom CSS filename
-        """
-        inverse = False
-        if theme.startswith('light'):
-            inverse = True
-        extra = {
-            'density_scale': self.window.core.config.get('layout.density'),
-            'pyside6': True,
-        }
-        self.window.apply_stylesheet(self.window, theme, invert_secondary=inverse, extra=extra)
-
-        # append custom CSS
-        if custom is not None:
-            stylesheet = self.window.styleSheet()
-            # check for override in user directory
-            path = os.path.join(self.window.core.config.get_user_path(), 'css', custom)
-            if not os.path.exists(path):
-                # check in app directory
-                path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom)
-            if os.path.exists(path):
-                with open(path) as file:
-                    self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
-
-    def get_custom_css(self, name: str) -> str:
-        """
-        Return custom css filename for specified theme
-
-        :param name: theme name
-        :return: custom css filename (e.g. style.dark.css)
-        """
-        # check per theme style css
-        filename = 'style.css'
-        if filename is not None:
-            # per theme mode (light / dark)
-            tmp = None
-            if name.startswith('light_'):
-                tmp = 'style.light.css'
-            elif name.startswith('dark_'):
-                tmp = 'style.dark.css'
-            if tmp is not None:
-                # check for override in user directory
-                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp)
-                if not os.path.exists(path):
-                    # check in app directory
-                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp)
-                if os.path.exists(path):
-                    filename = tmp
-
-                # per theme name
-                tmp = name + '.css'
-                # check for override in user directory
-                path = os.path.join(self.window.core.config.get_user_path(), 'css', tmp)
-                if not os.path.exists(path):
-                    # check in app directory
-                    path = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', tmp)
-                if os.path.exists(path):
-                    filename = tmp
-
-        return filename
-
-    def trans_theme(self, theme: str) -> str:
-        """
-        Translate theme name
-
-        :param theme: theme name
-        :return: translated theme name
-        """
-        return theme \
-            .replace('_', ' ').title() \
-            .replace('Dark ', trans('theme.dark') + ': ') \
-            .replace('Light ', trans('theme.light') + ': ')
 
     def get_themes_list(self) -> list:
         """
