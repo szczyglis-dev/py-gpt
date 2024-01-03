@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 21:00:00                  #
+# Updated Date: 2024.01.02 03:00:00                  #
 # ================================================== #
 
 import os
@@ -225,7 +225,7 @@ class Theme:
                 return "color: #999;"
             # return "font-size: 8px; color: #999;"  <-- too small on big screens
 
-    def set_default_markdown(self):
+    def get_default_markdown(self):
         """Set default markdown CSS"""
         colors = {
             "dark": {
@@ -253,7 +253,7 @@ class Theme:
         styles = colors['dark']
         if theme.startswith('light'):
             styles = colors['light']
-        css = """
+        return """
         a {{
             color: {a};
         }}
@@ -271,7 +271,6 @@ class Theme:
         }}
         .msg-bot {{
             color: {msg-bot} !important;
-            border: 1px solid #fff;
             white-space: pre-wrap;
             width: 100%;
             max-width: 100%;
@@ -282,18 +281,22 @@ class Theme:
         .ts {{
             color: {ts};
         }}
+        .list {{
+            margin-left: 20px;
+        }}
         pre {{
             color: {pre};
             background-color: {pre-bg};
-            border: 1px solid #fff;
             font-family: 'Courier New', monospace;
             display: block;
-            padding: 0px !important;
         }}
         code {{
             color: {pre};
         }}""".format_map(styles)
-        self.css['markdown'] = css
+
+    def set_default_markdown(self):
+        """Set default markdown CSS"""
+        self.css['markdown'] = self.get_default_markdown()
 
     def apply_markdown(self):
         """Apply CSS to markdown formatter"""
