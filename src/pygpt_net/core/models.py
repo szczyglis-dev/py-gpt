@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
+from packaging.version import Version
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.model.json_file import JsonFileProvider
@@ -29,7 +30,7 @@ class Models:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: str):
+    def patch(self, app_version: Version):
         """Patch provider data"""
         self.provider.patch(app_version)
 

@@ -11,6 +11,8 @@
 
 import datetime
 
+from packaging.version import Version
+
 from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.provider.notepad.db_sqlite import DbSqliteProvider
 
@@ -30,7 +32,7 @@ class Notepad:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: str):
+    def patch(self, app_version: Version):
         """Patch provider data"""
         self.provider.patch(app_version)
 
