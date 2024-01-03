@@ -272,8 +272,14 @@ class UI:
         if mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
             self.window.controller.camera.setup()
             self.window.controller.camera.show_camera()
+
+            # if attachments then show enabled checkbox
+            if mode != 'vision':
+                self.window.controller.chat.vision.show_inline()  # show enabled checkbox
         else:
             self.window.controller.camera.hide_camera()
+            if mode != 'vision':
+                self.window.controller.chat.vision.hide_inline()  # hide enabled checkbox
 
     def store_state(self):
         """Store UI state"""

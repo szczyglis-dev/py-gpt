@@ -112,6 +112,13 @@ class Output:
             lambda: self.window.controller.chat.common.toggle_timestamp(
                 self.window.ui.nodes['output.timestamp'].isChecked()))
 
+        # add inline vision checkbox
+        self.window.ui.nodes['inline.vision'] = QCheckBox(trans('inline.vision'))
+        self.window.ui.nodes['inline.vision'].clicked.connect(
+            lambda: self.window.controller.chat.vision.toggle(
+                self.window.ui.nodes['inline.vision'].isChecked()))
+        self.window.ui.nodes['inline.vision'].setVisible(False)
+
         # tokens info
         self.window.ui.nodes['prompt.context'] = QLabel("")
         self.window.ui.nodes['prompt.context'].setAlignment(Qt.AlignRight)
@@ -121,8 +128,16 @@ class Output:
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
 
+        opts_layout = QHBoxLayout()
+        opts_layout.setSpacing(0)
+        opts_layout.setContentsMargins(0, 0, 0, 0)
+        opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
+        opts_layout.addStretch(1)
+        opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
+        opts_layout.addStretch(1)
+
         layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes['output.timestamp'])
+        layout.addLayout(opts_layout)
         layout.addWidget(self.window.ui.plugin_addon['audio.output'])
         layout.addWidget(self.window.ui.nodes['prompt.context'])
 
