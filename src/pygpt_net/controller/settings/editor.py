@@ -115,6 +115,8 @@ class Editor:
         :param value: checkbox option value
         :param section: settings section
         """
+        before_markdown = self.window.core.config.get('theme.markdown')
+
         # dialog: preset
         if id.startswith('preset.'):
             self.window.controller.presets.editor.config_toggle(id, value, section)
@@ -142,7 +144,8 @@ class Editor:
             self.window.ui.config_option[id].box.setChecked(value)
 
         # update markdown
-        if id == "theme.markdown":
+        if id == "theme.markdown" and value is not before_markdown:
+            print("upd markdown")
             self.window.controller.theme.update_markdown(force=True)
 
     def change(self, id: str, value: any, section: str = None):
