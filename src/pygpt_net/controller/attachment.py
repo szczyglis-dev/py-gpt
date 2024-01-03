@@ -54,6 +54,12 @@ class Attachment:
         self.window.ui.chat.input.attachments.update(items)
         self.update_tab(mode)
 
+        if not self.has(mode):
+            self.window.controller.chat.vision.unavailable()
+        else:
+            if mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
+                self.window.controller.chat.vision.available()
+
     def update_tab(self, mode: str):
         """
         Update tab label
@@ -100,6 +106,9 @@ class Attachment:
         # clear current if current == deleted
         if self.window.core.attachments.current == file_id:
             self.window.core.attachments.current = None
+
+        if not self.has(mode):
+            self.window.controller.chat.vision.unavailable()
 
         self.update()
 
@@ -170,6 +179,8 @@ class Attachment:
         # delete all from attachments for current mode
         mode = self.window.core.config.get('mode')
         self.window.core.attachments.delete_all(mode)
+
+        self.window.controller.chat.vision.unavailable()  # set no content to provide
 
         if mode == 'assistant':
             # delete all from assistant data
