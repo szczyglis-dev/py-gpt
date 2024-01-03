@@ -45,7 +45,7 @@ class Vision:
 
     def hide_inline(self):
         """Hide inline vision checkbox"""
-        self.window.ui.nodes['inline.vision'].setVisible(False)  # show vision checkbox
+        self.window.ui.nodes['inline.vision'].setVisible(False)  # hide vision checkbox
 
     def enable(self):
         """Enable inline vision"""
@@ -55,6 +55,7 @@ class Vision:
     def enabled(self) -> bool:
         """
         Check if inline vision is enabled
+
         :return: bool
         """
         return self.is_enabled
