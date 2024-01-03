@@ -3,7 +3,7 @@
 ## 2.0.74 (2023-01-03)
 
 - Fixed timestamp position when appending input to the chat window.
-- Extended the Markdown parser with an extension for converting <li> to <p> (it allows copying lists bullets with Ctrl-C).
+- Extended the Markdown parser with an extension for converting `li` to `p` (it allows copying lists bullets with Ctrl-C).
 - Added notebook titles to the "Copy to..." context menu.
 - Added an "Open file" option in the file explorer and attachments list.
 
