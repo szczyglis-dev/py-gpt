@@ -67,14 +67,14 @@ class Files:
         os.rename(path, os.path.join(os.path.dirname(path), name))
         self.window.ui.dialog['rename'].close()
 
-    def open_dir(self, path: str):
+    def open_dir(self, path: str, select: bool = False):
         """
         Open in directory
 
         :param path: path to file or directory
+        :param select: select file in file manager
         """
-        QDesktopServices.openUrl(path)  # TODO: check in snap
-        # self.open_in_file_manager(path)
+        self.open_in_file_manager(path, select)
 
     def open(self, path: str):
         """
