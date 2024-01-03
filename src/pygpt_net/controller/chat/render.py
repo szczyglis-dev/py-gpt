@@ -12,7 +12,6 @@
 import re
 from datetime import datetime
 from PySide6.QtGui import QTextCursor, QTextBlockFormat
-import markdown
 import html
 
 from pygpt_net.item.ctx import CtxItem
@@ -152,10 +151,9 @@ class Render:
         if type != "msg-user":  # markdown for bot messages
             text = self.pre_format_text(text)
             text = self.append_timestamp(text, item)
-            text = markdown.markdown(text.strip(), extensions=['fenced_code'])
+            text = self.window.core.parser.parse(text)
         else:
-            text = "<div>" + self.format_user_text(text) + "</div>"
-            text = self.append_timestamp(text, item)
+            text = "<p>" + self.append_timestamp(self.format_user_text(text), item) + "</p>"
 
         text = self.post_format_text(text)
         text = '<div class="{}">'.format(type) + text.strip() + "</div>"
