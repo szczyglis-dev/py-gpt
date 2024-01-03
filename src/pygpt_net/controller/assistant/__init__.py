@@ -168,7 +168,7 @@ class Assistant:
             # import uploaded files
             for id in self.window.core.assistants.items:
                 assistant = self.window.core.assistants.get_by_id(id)
-                self.window.controller.assistant.files.import_files(assistant)
+                self.files.import_files(assistant)
             # status
             self.window.ui.status("Imported assistants: " + str(len(items)))
         except Exception as e:
