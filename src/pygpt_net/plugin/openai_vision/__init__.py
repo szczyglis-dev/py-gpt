@@ -114,6 +114,11 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
+        # append vision prompt only if vision is provided or enabled
+        if not self.is_vision_provided() and not self.window.controller.chat.vision.enabled():
+            return prompt
+
+        # append vision prompt
         if not self.get_option_value("replace_prompt"):
             prompt += self.get_option_value("prompt")
         return prompt
@@ -125,10 +130,43 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
+        # append vision prompt only if vision is provided or enabled
+        if not self.is_vision_provided() and not self.window.controller.chat.vision.enabled():
+            return prompt
+
+        # replace vision prompt
         if self.get_option_value("replace_prompt"):
             return self.get_option_value("prompt")
         else:
             return prompt
+
+    def is_vision_provided(self) -> bool:
+        """
+        Check if vision is provided (images, attachments)
+
+        :return: True if vision is provided in this ctx
+        """
+        result = False
+        mode = self.window.core.config.get('mode')
+        attachments = self.window.core.attachments.get_all(mode)
+        self.window.core.gpt.vision.build_content("", attachments)  # tmp build content
+
+        built_attachments = self.window.core.gpt.vision.attachments
+        built_urls = self.window.core.gpt.vision.urls
+
+        # check for images in URLs
+        img_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
+        img_urls = []
+        for url in built_urls:
+            for ext in img_ext:
+                if url.lower().endswith(ext):
+                    img_urls.append(url)
+                    break
+
+        if len(built_attachments) > 0 or len(img_urls) > 0:
+            result = True
+
+        return result
 
     def on_mode_before(self, ctx: CtxItem, mode: str, prompt: str):
         """
@@ -148,23 +186,7 @@ class Plugin(BasePlugin):
             ctx.is_vision = True
             return 'vision'
 
-        # check for attachments
-        attachments = self.window.core.attachments.get_all(mode)
-        self.window.core.gpt.vision.build_content(prompt, attachments)  # tmp build content
-
-        built_attachments = self.window.core.gpt.vision.attachments
-        built_urls = self.window.core.gpt.vision.urls
-
-        # check for images in URLs
-        img_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
-        img_urls = []
-        for url in built_urls:
-            for ext in img_ext:
-                if url.lower().endswith(ext):
-                    img_urls.append(url)
-                    break
-
-        if len(built_attachments) > 0 or len(img_urls) > 0:
+        if self.is_vision_provided():
             self.window.controller.chat.vision.enable()
             ctx.is_vision = True
             return 'vision'  # jump to vision mode (only for this call)

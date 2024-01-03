@@ -34,10 +34,12 @@ class Vision:
         """
         if not value:
             self.disable()  # disable vision
-            if clear:
-                self.window.controller.attachment.clear(True)  # clear attachments on disable
+            # if clear:
+                # self.window.controller.attachment.clear(True)  # clear attachments on disable
         else:
             self.enable()  # enable vision keep
+
+        self.window.controller.ui.update_tokens()  # update tokens
 
     def show_inline(self):
         """Show inline vision checkbox"""
