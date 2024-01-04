@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.75** | build: **2024.01.04** | Python: **3.10+**
+Release: **2.0.76** | build: **2024.01.04** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1384,6 +1384,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.76 (2024-01-04)
+
+- Markdown post-process changed from markdown extension to BS4 html parser.
 
 ### 2.0.75 (2024-01-04)
 

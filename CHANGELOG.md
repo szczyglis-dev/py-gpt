@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.76 (2024-01-04)
+
+- Markdown post-process changed from markdown extension to BS4 html parser.
+
 ## 2.0.75 (2024-01-04)
 
 - Improved default theme for markdown styling
