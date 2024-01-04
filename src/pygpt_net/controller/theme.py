@@ -366,12 +366,6 @@ class Theme:
         a {{
             color: {a};
         }}
-        img {{
-            width: 400px !important;
-        }}
-        .image {{
-            width: 200px !important;
-        }}
         .msg-user {{
             color: {msg-user} !important;
             white-space: pre-wrap;
