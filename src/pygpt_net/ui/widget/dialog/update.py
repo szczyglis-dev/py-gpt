@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
 
 from pygpt_net.utils import trans
 
@@ -54,6 +54,16 @@ class UpdateDialog(QDialog):
         buttons.addWidget(self.download)
         buttons.addWidget(self.snap)
 
+        self.checkbox_startup = QCheckBox(trans("updater.check.launch"))
+        self.checkbox_startup.stateChanged.connect(
+            lambda: self.window.controller.launcher.toggle_update_check(
+                self.checkbox_startup.isChecked()))
+
+        if self.window.core.config.get('updater.check.launch'):
+            self.checkbox_startup.setChecked(True)
+        else:
+            self.checkbox_startup.setChecked(False)
+
         self.layout = QVBoxLayout()
         self.message = QLabel("")
         self.info = QLabel(trans("update.info"))
@@ -66,6 +76,7 @@ class UpdateDialog(QDialog):
         self.layout.addWidget(self.info)
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.changelog, 1)
+        self.layout.addWidget(self.checkbox_startup)
         self.layout.addLayout(buttons)
         self.layout.addStretch()
         self.setLayout(self.layout)
