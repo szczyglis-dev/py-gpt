@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.76** | build: **2024.01.04** | Python: **3.10+**
+Release: **2.0.77** | build: **2024.01.05** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -10,7 +10,7 @@ Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-ne
 
 Compiled version for Linux (tar.gz) and Windows 10/11 (msi) 64-bit: https://pygpt.net/#download
 
-**INFO:** From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.
+**TIP: From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.**
 
 ## Overview
 
@@ -26,11 +26,11 @@ Multiple operation modes are included, such as chat, text completion, assistant,
 
 Video (mp4):
 
-https://github.com/szczyglis-dev/py-gpt/assets/61396542/bbf5076d-6c91-4a45-bbdd-9564d18a6612
+https://github.com/szczyglis-dev/py-gpt/assets/61396542/5898136b-e06d-400b-83cf-99d801db61a8
 
-Screenshot:
+Screenshot (version 2.0.77):
 
-![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/7216bc26-b580-41bc-b2d9-c7fe5f271450)
+![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/08e0c68f-685a-4dd7-9369-ee8915cd84ab)
 
 You can download compiled version for Windows and Linux here: https://pygpt.net/#download
 
@@ -241,7 +241,7 @@ Your API keys will be available here:
 
 # Chat, completion, assistants and vision (GPT-4, GPT-3.5, Langchain)
 
-## Chatbot
+## Chat (+ inline Vision and Image generation)
 
 This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo`, `GPT-3.5`, and `GPT-3`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
 
@@ -250,6 +250,20 @@ The main part of the interface is a chat window where conversations appear. Righ
 Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There's also a feature to upload files in this area. Go to the `Files` tab to manage your uploads or add attachments to send to the OpenAI API (but this makes effect only in `Assisant` and `Vision` modes).
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1579417c-8e8d-4b98-b255-6593103a1c4f)
+
+**Vision:** If you want to send photos or image from camera to analysis you must enable plugin **GPT-4 Vision Inline** in the Plugins menu.
+Plugin allows you to send photos or image from camera to analysis in any Chat mode:
+
+![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4366d955-cb01-4cfb-b15a-f98eed8a142b)
+
+With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
+
+![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/6be4b1db-2f39-40ce-a42a-2c549181b6dd)
+
+**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
+Plugin allows you to generate images in Chat mode:
+
+![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/0cf29093-373e-4c71-ab02-9a630f88c68e)
 
 ## Completion
 
@@ -272,7 +286,7 @@ This mode expands on the basic chat functionality by including additional extern
 
 Setting up new assistants is simple - a single click is all it takes, and they instantly sync with the `OpenAI API`. Importing assistants you've previously created with OpenAI into **PyGPT** is also a seamless process.
 
-![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8752bb86-234b-4769-821d-ac7826f8641f)
+![v2_mode_assistant](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d199fefc-d795-4fc7-8570-acbc219f9ba4)
 
 In Assistant mode you are allowed to storage your files (per Assistant) and manage them easily from app:
 
@@ -288,27 +302,29 @@ This mode enables image analysis using the `GPT-4 Vision` model. Functioning muc
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
-**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
+**From version 2.0.68** - Vision is integrated into any chat mode via plugin `GPT-4 Vision (inline)`. Just enable plugin and use Vision in standard modes.
 
-**INFO: From version 2.0.68 (released 2023-12-31) Vision is integrated into any chat mode via plugin "GPT-4 Vision (inline)". Just enable plugin and use Vision in standard modes.**
+**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option `Camera` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable `Auto capture` - image will be captured and appended to chat message every time you send message.
 
 ![v2_capture_enable](https://github.com/szczyglis-dev/py-gpt/assets/61396542/dd8ee149-afd2-4d7b-b2be-5c4e9725c584)
 
 
-**1) Video camera real-time image capture:**
+**1) Video camera real-time image capture**
 
 ![v2_capture1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f69a5510-fc34-4073-80ef-fcc5ce5c50a7)
 
 
-![v2_capture_result](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ac9a8223-75f0-418b-81c7-9855d04ffde3)
+![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/6be4b1db-2f39-40ce-a42a-2c549181b6dd)
 
-**2) ...you can also provide an image URL:**
+**2) you can also provide an image URL**
 
 ![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/051bfaf7-467c-4e44-bd79-3c28548ea41e)
 
-**3) ...or you can just upload your local images:**
+**3) or you can just upload your local images**
 
-![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1508ccc2-f0a0-4f42-a9e6-106462890dae)
+![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/54656c2c-330c-4f6a-b7cf-002042594e73)
+
+**4) or just use the inline Vision in the standard chat mode.**
 
 ## Langchain
 
@@ -409,21 +425,21 @@ The application includes several sample presets that help you become acquainted 
 ## DALL-E 3
 
 **PyGPT** enables quick and straightforward image creation with `DALL-E 3`. 
-The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  
-a user's prompt triggers the generation, followed by downloading, saving to the computer, 
-and displaying the image onscreen.
+The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, 
+and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image generation` mode or ask the model for the best prompt.
 
-**INFO: From version 2.0.68 (released 2023-12-31) image generation using DALL-E is available in every mode via plugin "DALL-E 3 Image Generation (inline)". Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.**
+**From version 2.0.68 (released 2023-12-31) image generation using DALL-E is available in every mode via plugin `DALL-E 3 Image Generation (inline)`. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.**
 
+If you want to generate images (using DALL-E) directly in chat you must enable plugin **DALL-E 3 Inline** in the Plugins menu.
+Plugin allows you to generate images in Chat mode:
+
+![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/assets/61396542/0cf29093-373e-4c71-ab02-9a630f88c68e)
 
 ## Multiple variants
 
 You can generate up to **4 different variants** (DALL-E 2) for a given prompt in one session. DALL-E 3 allows one image.
 To select the desired number of variants to create, use the slider located in the right-hand corner at 
 the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
-
-![v2_dalle](https://github.com/szczyglis-dev/py-gpt/assets/61396542/46b42488-b0fb-4da0-a937-7b04fe7606bd)
-
 
 ## Raw mode
 
@@ -444,6 +460,8 @@ This lets you quickly use them again for generating new images later on.
 
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
+
+Images are stored in ``img`` directory in **PyGPT** user data folder.
 
 # Managing models
 
@@ -1140,6 +1158,8 @@ Syntax: **event name** - triggered on, `event data` *(data type)*:
 
 - **cmd.execute** - when a command is executed, `data['commands']` *(list, commands and arguments)*
 
+- **cmd.only** - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
+
 - **cmd.syntax** - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
 
 - **ctx.after** - after the context item is sent, `ctx`
@@ -1150,13 +1170,25 @@ Syntax: **event name** - triggered on, `event data` *(data type)*:
 
 - **ctx.end** - when context item handling is finished, `ctx`
 
+- **ctx.select** - when context is selected on list, `data['value']` *(int, ctx meta ID)*
+
 - **disable** - when the plugin is disabled, `data['value']` *(string, plugin ID)*
 
 - **enable** - when the plugin is enabled, `data['value']` *(string, plugin ID)*
 
 - **input.before** - upon receiving input from the textarea, `data['value']` *(string, text to be sent)*
 
+- **mode.before** - before the mode is selected `data['value'], data['prompt']` *(string, string, mode ID)*
+
+- **model.before** - before the model is selected `data['value']` *(string, model ID)*
+
+- **pre.prompt** - before preparing a system prompt, `data['value']` *(string, system prompt)*
+
 - **system.prompt** - when preparing a system prompt, `data['value']` *(string, system prompt)*
+
+- **ui.attachments** - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
+
+- **ui.vision** - when the vision elements are rendered, `data['value']` *(bool, show True/False)*
 
 - **user.name** - when preparing a user's name, `data['value']` *(string, name of the user)*
 
@@ -1178,6 +1210,8 @@ The application features a token calculator. It attempts to forecast the number 
 a particular query will consume and displays this estimate in real time. This gives you improved 
 control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
 the system prompt, any additional data, and those used within the context (the memory of previous entries).
+
+**Remember that these are only approximate calculations and do not include, for example, the number of tokens consumed by certain tokens. You can find the exact number of tokens used on the OpenAI website.**
 
 ![v2_tokens1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8f1d9217-6610-41ee-a72d-60b3ae45b61d)
 
@@ -1314,11 +1348,13 @@ You can manually edit the configuration files in this directory:
 - `config.json` - holds the main configuration settings.
 - `models.json` - stores models configurations.
 - `capture` - a directory for captured images from camera
+- `css` - a directory for CSS stylesheets (user override)
 - `history` - a directory for history logs in `.txt` format.
 - `img` - a directory for images generated with `DALL-E 3` and `DALL-E 2`, saved as `.png` files.
+- `locale` - a directory for locales (user override)
 - `output` - a directory for output files and files downloaded/generated by GPT.
 - `presets` - a directory for presets stored as `.json` files.
-- `db.sqlite` - database with contexts
+- `db.sqlite` - database with contexts and notepads data
 
 ---
 
@@ -1339,7 +1375,7 @@ locale.es.ini
 
 This will add Spanish as a selectable language in the application's language menu.
 
-**Overwriting with your own files:**
+**Overwriting CSS and locales with your own files:**
 
 You can also overwrite files in the `locale` and `css` app directories with your own files in the user directory. 
 This allows you to overwrite language files or CSS styles in a very simple way - by just creating files in your working directory.
@@ -1350,7 +1386,7 @@ This allows you to overwrite language files or CSS styles in a very simple way -
 ```
 
 - `locale` - a directory for locales in `.ini` format.
-- `css` - a directory for css styles
+- `css` - a directory for css styles in `.css` format.
 
 ---
 
