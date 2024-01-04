@@ -64,7 +64,7 @@ def test_handle_cmd_execute(mock_window):
                 "cmd": "example_cmd",
                 "params": {
                     "hello": "hi",
-                    "world": "earth"
+                    "world": "earth",
                 }
             }
         ]
