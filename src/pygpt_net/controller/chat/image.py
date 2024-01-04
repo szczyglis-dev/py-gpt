@@ -96,7 +96,7 @@ class Image:
         for path in paths:
             string += "{}) `{}`".format(i, path) + "\n"
             i += 1
-        self.open_images(paths)
+        self.open_images(paths)  # TODO: MAYBE DON'T OPEN IMAGES IN DIALOG, JUST APPEND TO CHAT ?
 
         if not self.window.core.config.get('img_raw'):
             string += "\nPrompt: "
@@ -120,6 +120,10 @@ class Image:
 
         # update ctx in DB
         self.window.core.ctx.update_item(ctx)
+
+        # append extra output to chat
+        self.window.controller.chat.render.append_extra(ctx)
+        self.window.controller.chat.render.to_end()
 
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
