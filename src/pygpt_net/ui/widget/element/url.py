@@ -19,8 +19,10 @@ class UrlLabel(QLabel):
     def __init__(self, text, url, parent=None):
         super().__init__(text, parent)
         self.url = url
+        if text is not None and len(text) > 0:
+            text += ': '
         self.setText(
-            f"<a href='{self.url}' style='text-decoration:none; color:#90d9ff; font-weight:bold;'>{text}: {self.url}</a>")
+            f"<a href='{self.url}' style='text-decoration:none; color:#90d9ff; font-weight:bold;'>{text}{self.url}</a>")
         self.setTextFormat(Qt.RichText)
         self.setOpenExternalLinks(False)
         self.linkActivated.connect(self.open_url)

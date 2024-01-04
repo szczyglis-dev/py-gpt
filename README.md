@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.74** | build: **2024.01.03** | Python: **3.10+**
+Release: **2.0.75** | build: **2024.01.03** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1385,7 +1385,15 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-### 2.0.74 (2023-01-03)
+### 2.0.75 (2024-01-04)
+
+- Improved default theme for markdown styling
+- Added "Check for updates on start-up" config option in updater dialog
+- Added custom CSS stylesheets editor in Config menu
+- Added password show/hide in password/secret input fields (click on the right corner of input reveals plain text)
+- Fixed JSON files editing (added data reloading after save to prevent overwrite on exit)
+
+### 2.0.74 (2024-01-04)
 
 - Fixed timestamp position when appending input to the chat window.
 - Extended the Markdown parser with an extension for converting `li` to `p` (it allows copying lists bullets with Ctrl-C).
