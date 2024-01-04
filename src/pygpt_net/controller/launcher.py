@@ -26,7 +26,8 @@ class Launcher:
             self.show_api_monit()
 
         # check for updates
-        self.window.core.updater.check()
+        if self.window.core.config.get('updater.check.launch'):
+            self.window.core.updater.check()
 
     def show_api_monit(self):
         """Show empty API KEY monit"""
@@ -35,3 +36,8 @@ class Launcher:
     def check_updates(self):
         """Check for updates"""
         self.window.core.updater.check(True)
+
+    def toggle_update_check(self, value):
+        """Toggle update check on startup"""
+        self.window.core.config.set('updater.check.launch', value)
+        self.window.core.config.save()
