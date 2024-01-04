@@ -33,12 +33,11 @@ class DbSqliteProvider(BaseProvider):
         self.window = window
         self.storage.attach(window)
 
-    def patch(self, version: str) -> bool:
+    def patch(self, version: str):
         """
         Patch versions
 
         :param version: current app version
-        :return: True if migrated
         """
         # return
         # if old version is 2.0.59 or older and if json file exists
