@@ -5,6 +5,7 @@
 - Added custom CSS stylesheets editor in Config menu
 - Added password show/hide in password/secret input fields (click on the right corner of input reveals plain text)
 - Fixed JSON files editing (added data reloading after save to prevent overwrite on exit)
+- Added tests for plugins and extended tests for core/controllers
 
 2.0.74 (2024-01-03)
 

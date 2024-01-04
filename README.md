@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.75** | build: **2024.01.03** | Python: **3.10+**
+Release: **2.0.75** | build: **2024.01.04** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1392,6 +1392,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added custom CSS stylesheets editor in Config menu
 - Added password show/hide in password/secret input fields (click on the right corner of input reveals plain text)
 - Fixed JSON files editing (added data reloading after save to prevent overwrite on exit)
+- Added tests for plugins and extended tests for core/controllers
 
 ### 2.0.74 (2024-01-04)
 
