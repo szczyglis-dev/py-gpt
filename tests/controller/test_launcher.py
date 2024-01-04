@@ -20,6 +20,7 @@ def test_post_setup(mock_window):
     launcher = Launcher(mock_window)
     mock_window.core.config.data['mode'] = 'chat'
     mock_window.core.config.data['api_key'] = None
+    mock_window.core.config.data['updater.check.launch'] = True
     launcher.show_api_monit = MagicMock()
     mock_window.core.updater.check = MagicMock()
 
