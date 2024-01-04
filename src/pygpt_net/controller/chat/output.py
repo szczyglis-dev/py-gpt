@@ -132,7 +132,7 @@ class Output:
 
         extra_data = ""
         if ctx.is_vision:
-            extra_data = " | [VISION]"
+            extra_data = " (VISION)"
         self.window.ui.status(
             trans('status.tokens') + ": {} + {} = {}{}".
             format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens, extra_data))
