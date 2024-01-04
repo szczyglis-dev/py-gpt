@@ -20,7 +20,7 @@ from pygpt_net.ui.widget.element.url import UrlLabel
 from pygpt_net.ui.widget.lists.plugin import PluginList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.dictionary import OptionDict
-from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
@@ -129,10 +129,10 @@ class Plugins:
                                                                              int(value))
                     else:
                         # text input
-                        self.window.ui.plugin_option[id][key] = OptionInput(self.window, option_name)
                         if 'secret' in option and option['secret']:
-                            # password
-                            self.window.ui.plugin_option[id][key].setEchoMode(QLineEdit.Password)
+                            self.window.ui.plugin_option[id][key] = PasswordInput(self.window, option_name)
+                        else:
+                            self.window.ui.plugin_option[id][key] = OptionInput(self.window, option_name)
                 elif option['type'] == 'textarea':
                     # textarea
                     self.window.ui.plugin_option[id][key] = OptionTextarea(self.window, option_name)

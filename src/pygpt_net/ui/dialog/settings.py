@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 
 from pygpt_net.ui.widget.dialog.settings import SettingsDialog
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
-from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.ui.widget.element.group import CollapsedGroup
@@ -221,10 +221,10 @@ class Settings:
                                                 value)
                 else:
                     # text input
-                    widgets[key] = OptionInput(self.window, label)
                     if 'secret' in option and option['secret']:
-                        # password
-                        widgets[key].setEchoMode(QLineEdit.Password)
+                        widgets[key] = PasswordInput(self.window, label)
+                    else:
+                        widgets[key] = OptionInput(self.window, label)
 
             elif option['type'] == 'textarea':
                 # textarea

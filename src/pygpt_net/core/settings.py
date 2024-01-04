@@ -106,7 +106,12 @@ class Settings:
         :param file: file name
         """
         # load file
-        path = os.path.join(self.window.core.config.path, file)
+        path = None
+        if file.endswith('.json'):
+            path = os.path.join(self.window.core.config.path, file)
+        elif file.endswith('.css'):
+            path = os.path.join(self.window.core.config.path, 'css', file)
+
         self.window.ui.paths['config'].setText(path)
         self.window.ui.dialog['config.editor'].file = file
         try:
@@ -119,17 +124,21 @@ class Settings:
 
     def save_editor(self):
         """Save file to disk"""
-        # check if this is a valid JSON:
-        data = self.window.ui.editor['config'].toPlainText()
-        try:
-            json.loads(data)
-        except Exception as e:
-            self.window.ui.status("This is not a valid JSON: {}".format(e))
-            self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
-            return
-
         file = self.window.ui.dialog['config.editor'].file
-        path = os.path.join(self.window.core.config.path, file)
+
+        path = None
+        data = self.window.ui.editor['config'].toPlainText()
+        # check if this is a valid JSON:
+        if file.endswith('.json'):
+            try:
+                json.loads(data)
+            except Exception as e:
+                self.window.ui.status("This is not a valid JSON: {}".format(e))
+                self.window.ui.dialogs.alert("This is not a valid JSON: {}".format(e))
+                return
+            path = os.path.join(self.window.core.config.path, file)
+        elif file.endswith('.css'):
+            path = os.path.join(self.window.core.config.path, 'css', file)
 
         # make backup of current file:
         backup_file = file + '.backup'
@@ -144,6 +153,13 @@ class Settings:
                 f.write(data)
             self.window.ui.status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
+
+            if file == "config.json":
+                self.window.core.config.load_config()  # reload config
+            elif file == "models.json":
+                self.window.core.models.load()  # reload models
+            elif file.endswith('.css'):
+                self.window.controller.theme.reload(force=True)  # reload theme
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.status("Error saving file: {}".format(path))
