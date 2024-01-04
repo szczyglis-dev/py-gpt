@@ -1,12 +1,6 @@
 a {{
     color: #fff;
 }}
-img {{
-    width: 400px !important;
-}}
-.image {{
-    width: 200px !important;
-}}
 .msg-user {{
     color: #686868 !important;
     white-space: pre-wrap;
