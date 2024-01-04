@@ -561,6 +561,8 @@ Syntax: **event name** - triggered on, ``event data`` `(data type)`:
 
 - **cmd.execute** - when a command is executed, ``data['commands']`` `(list, commands and arguments)`
 
+- **cmd.only** - when an inline command is executed, ``data['commands']`` `(list, commands and arguments)`
+
 - **cmd.syntax** - when appending syntax for commands, ``data['prompt'], data['syntax']`` `(string, list, prompt and list with commands usage syntax)`
 
 - **ctx.after** - after the context item is sent, ``ctx``
@@ -571,13 +573,25 @@ Syntax: **event name** - triggered on, ``event data`` `(data type)`:
 
 - **ctx.end** - when context handling is finished, ``ctx``
 
+- **ctx.select** - when context is selected on list, ``data['value']`` `(int, ctx meta ID)`
+
 - **disable** - when the plugin is disabled, ``data['value']`` `(string, plugin ID)`
 
 - **enable** - when the plugin is enabled, ``data['value']`` `(string, plugin ID)`
 
 - **input.before** - upon receiving input from the textarea, ``data['value']`` `(string, text to be sent)`
 
+- **mode.before** - before the mode is selected ``data['value'], data['prompt']`` `(string, string, mode ID)`
+
+- **model.before** - before the model is selected ``data['value']`` `(string, model ID)`
+
+- **pre.prompt** - before preparing a system prompt, ``data['value']`` `(string, system prompt)`
+
 - **system.prompt** - when preparing a system prompt, ``data['value']`` `(string, system prompt)`
+
+- **ui.attachments** - when the attachment upload elements are rendered, ``data['value']`` `(bool, show True/False)`
+
+- **ui.vision** - when the vision elements are rendered, ``data['value']`` `(bool, show True/False)`
 
 - **user.name** - when preparing a user's name, ``data['value']`` `(string, name of the user)`
 

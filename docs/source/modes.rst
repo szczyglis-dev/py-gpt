@@ -1,7 +1,7 @@
 Chat, completion, assistants and vision
 =======================================
 
-Chat
+Chat (+ inline Vision and Image generation)
 ----
 This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
 
@@ -12,6 +12,25 @@ Above where you type your messages, the interface shows you the number of tokens
 .. image:: images/v2_mode_chat.png
    :width: 800
 
+
+**Vision:** If you want to send photos or image from camera to analysis you must enable plugin "GPT-4 Vision Inline" in the Plugins menu.
+Plugin allows you to send photos or image from camera to analysis in any Chat mode:
+
+
+.. image:: images/v3_vision_plugins.png
+   :width: 600
+
+With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
+
+.. image:: images/v3_vision_chat.png
+:width: 800
+
+
+**Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin "DALL-E 3 Inline" in the Plugins menu.
+Plugin allows you to generate images in Chat mode:
+
+.. image:: images/v3_img_chat.png
+:width: 800
 
 
 Text Completion
@@ -52,7 +71,9 @@ This mode enables image analysis using the ``GPT-4 Vision`` model. Functioning m
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
-**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option "Camera" on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable "Auto capture" mode - image will be captured and appended to chat message every time you send message.
+**From version 2.0.68** - Vision is integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable plugin and use Vision in standard modes.
+
+**From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option ``Camera`` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
 
 .. image:: images/v2_capture_enable.png
    :width: 400
@@ -62,18 +83,21 @@ images and those found online.
 .. image:: images/v2_capture1.png
    :width: 800
 
-.. image:: images/v2_capture_result.png
+.. image:: images/v3_vision_chat.png
    :width: 800
 
-**2) ...you can also provide an image URL:**
+**2) you can also provide an image URL**
 
 .. image:: images/v2_mode_vision.png
    :width: 800
 
-**3) ...or you can just upload your local images:**
+**3) or you can just upload your local images**
 
 .. image:: images/v2_mode_vision_upload.png
    :width: 800
+
+
+**4) or just use the inline Vision in the standard chat mode.**
 
 
 Langchain

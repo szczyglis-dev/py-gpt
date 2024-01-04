@@ -4,11 +4,12 @@ Images generation (DALL-E 3)
 DALL-E 3
 ---------
 **PyGPT** enables quick and straightforward image creation with ``DALL-E 3``. 
-The older model version, ``DALL-E 2``, is also accessible. Generating images is akin to a chat conversation  -  
-a user's prompt triggers the generation, followed by downloading, saving to the computer, 
-and displaying the image onscreen.
+The older model version, ``DALL-E 2``, is also accessible. Generating images is akin to a chat conversation  - a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to ``DALL-E`` in ``Image generation`` mode or ask the model for the best prompt.
 
-**INFO: From version 2.0.68 (released 2023-12-31) image generation using DALL-E is available in every mode via plugin "DALL-E 3 Image Generation (inline)". Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.**
+**From version 2.0.68 (released 2023-12-31) image generation using DALL-E is available in every mode via plugin ``DALL-E 3 Image Generation (inline)``. Just ask any model, in any mode, like e.g. GPT-4 to generate an image and it will do it inline, without need to mode change.**
+
+.. image:: images/v3_img_chat.png
+:width: 800
 
 
 Multiple variants
@@ -16,9 +17,6 @@ Multiple variants
 You can generate up to **4 different variants** for a given prompt in one session. 
 To select the desired number of variants to create, use the slider located in the right-hand corner at 
 the bottom of the screen. This replaces the conversation temperature slider when you switch to image generation mode.
-
-.. image:: images/v2_dalle.png
-   :width: 600
 
 ## Raw mode
 
@@ -40,3 +38,5 @@ This lets you quickly use them again for generating new images later on.
 
 The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
 prompts for creating new images.
+
+Images are stored in ``img`` directory in PyGPT's user data folder.
