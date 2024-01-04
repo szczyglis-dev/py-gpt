@@ -119,8 +119,8 @@ class Input:
         if self.window.core.config.get('send_clear') and not force:
             self.window.controller.chat.render.clear_input()
 
-        # prepare ctx, create new ctx meta if there is no ctx yet (first run)
-        if self.window.core.ctx.count_meta() == 0:
+        # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
+        if self.window.core.ctx.count_meta() == 0 or self.window.core.ctx.current is None:
             self.window.core.ctx.new()
             self.window.controller.ctx.update()
             self.log("New context created...")  # log
