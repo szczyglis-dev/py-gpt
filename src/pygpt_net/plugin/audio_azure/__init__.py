@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 22:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 import os
@@ -20,14 +20,13 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "audio_azure"
         self.name = "Audio Output (MS Azure)"
         self.type = ['audio.output']
         self.description = "Enables audio/voice output (speech synthesis) using Microsoft Azure API"
         self.input_text = None
-        self.window = None
         self.playback = None
         self.order = 9999
         self.use_locale = True

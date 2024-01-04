@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 22:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 import os
@@ -20,8 +20,8 @@ from .worker import Worker
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "audio_openai_tts"
         self.name = "Audio Output (OpenAI TTS)"
         self.type = ['audio.output']
@@ -29,7 +29,6 @@ class Plugin(BasePlugin):
         self.allowed_voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
         self.allowed_models = ['tts-1', 'tts-1-hd']
         self.input_text = None
-        self.window = None
         self.playback = None
         self.order = 1
         self.use_locale = True

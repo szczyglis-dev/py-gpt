@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 22:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -18,12 +18,11 @@ from .worker import Worker
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_code_interpreter"
         self.name = "Command: Code Interpreter"
         self.description = "Provides Python code execution"
-        self.window = None
         self.order = 100
         self.allowed_cmds = [
             "code_execute",

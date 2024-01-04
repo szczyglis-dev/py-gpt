@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 import os
@@ -21,14 +21,13 @@ from .worker import Worker
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "audio_openai_whisper"
         self.name = "Audio Input (OpenAI Whisper)"
         self.type = ['audio.input']
         self.description = "Enables speech recognition using OpenAI Whisper API"
         self.input_text = None
-        self.window = None
         self.speech_enabled = False
         self.thread_started = False
         self.listening = False

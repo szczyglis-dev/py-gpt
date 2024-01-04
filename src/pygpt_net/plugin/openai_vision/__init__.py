@@ -15,13 +15,12 @@ from pygpt_net.core.dispatcher import Event
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_vision"
         self.name = "GPT-4 Vision (inline, for use in any chat)"
         self.type = ['vision']
         self.description = "Integrates GPT-4 Vision abilities with any chat mode"
-        self.window = None
         self.order = 100
         self.use_locale = True
         self.init_options()
@@ -103,9 +102,14 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def on_toggle(self, value):
+    def on_toggle(self, value: bool):
+        """
+        Event: On toggle vision mode
+
+        :param value: vision mode value
+        """
         if not value:
-            self.window.controller.chat.vision.is_vision = False
+            self.window.controller.chat.vision.is_enabled = False
 
     def on_system_prompt(self, prompt: str):
         """
@@ -120,7 +124,7 @@ class Plugin(BasePlugin):
 
         # append vision prompt
         if not self.get_option_value("replace_prompt"):
-            prompt += self.get_option_value("prompt")
+            prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
     def on_pre_prompt(self, prompt: str):

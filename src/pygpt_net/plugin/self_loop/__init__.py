@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -15,14 +15,13 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "self_loop"
         self.name = "Self Loop"
         self.description = "Allows to execute self talk (AI to AI) loop and connect output to input."
         self.iteration = 0
         self.prev_output = None
-        self.window = None
         self.order = 9998
         self.use_locale = True
         self.init_options()

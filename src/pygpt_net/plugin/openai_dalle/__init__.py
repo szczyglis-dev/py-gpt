@@ -15,15 +15,14 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_dalle"
         self.name = "DALL-E 3: Image generation"
         self.description = "Integrates DALL-E 3 image generation with any chat"
         self.allowed_cmds = [
             "image"
         ]
-        self.window = None
         self.order = 100
         self.use_locale = True
         self.init_options()
@@ -100,7 +99,7 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        prompt += self.get_option_value("prompt")
+        prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
     def cmd(self, ctx: CtxItem, cmds: list):

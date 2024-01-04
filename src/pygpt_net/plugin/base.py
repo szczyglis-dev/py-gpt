@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -17,15 +17,15 @@ from pygpt_net.utils import trans
 
 
 class BasePlugin:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        self.window = kwargs.get('window', None)
         self.id = ""
         self.name = ""
-        self.type = []  # audio.input, audio.output
+        self.type = []  # audio.input, audio.output, text.input, text.output, image.input, image.output
         self.description = ""
         self.urls = {}
         self.options = {}
         self.initial_options = {}
-        self.window = None
         self.parent = None
         self.enabled = False
         self.use_locale = False

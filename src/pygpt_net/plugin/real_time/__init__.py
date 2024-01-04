@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -16,12 +16,11 @@ from pygpt_net.core.dispatcher import Event
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "real_time"
         self.name = "Real Time"
         self.description = "Appends current time and date to every system prompt."
-        self.window = None
         self.order = 2
         self.use_locale = True
         self.init_options()

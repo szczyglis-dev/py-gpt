@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 22:00:00                  #
+# Updated Date: 2024.01.04 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -18,14 +18,13 @@ from .worker import Worker
 
 
 class Plugin(BasePlugin):
-    def __init__(self):
-        super(Plugin, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_web_google"
         self.name = "Command: Google Web Search"
         self.description = "Allows to connect to the Web and search web pages for actual data."
         self.urls = {}
         self.input_text = None
-        self.window = None
         self.allowed_cmds = ["web_search", "web_url_open"]
         self.order = 100
         self.use_locale = True
@@ -201,7 +200,7 @@ class Plugin(BasePlugin):
         # check API key
         key = self.get_option_value("google_api_key")
         cx = self.get_option_value("google_api_cx")
-        if need_api_key and key is None or cx is None or key == "" or cx == "":
+        if need_api_key and (key is None or cx is None or key == "" or cx == ""):
             self.gen_api_key_response(ctx, cmds)
             self.window.ui.dialogs.alert("Google API key and CX ID are required for this command to work. "
                                          "Please go to the plugin settings and enter your API key and CX ID.")
