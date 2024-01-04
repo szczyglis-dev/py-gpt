@@ -39,10 +39,14 @@ class Parser:
         :return: html formatted text
         """
         self.init()
-        html = self.md.convert(text.strip())
-        soup = BeautifulSoup(html, 'html.parser')
-        self.convert_lists_to_paragraphs(soup)
-        return str(soup)
+        try:
+            html = self.md.convert(text.strip())
+            soup = BeautifulSoup(html, 'html.parser')
+            self.convert_lists_to_paragraphs(soup)
+            text = str(soup)
+        except Exception as e:
+            pass
+        return text
 
     def convert_lists_to_paragraphs(self, soup):
         """
@@ -61,6 +65,7 @@ class Parser:
     def convert_list(self, soup, list_element, ordered=False):
         """
         Convert list to paragraphs
+
         :param soup: BeautifulSoup instance
         :param list_element: Element to convert
         :param ordered: Is ordered list
@@ -70,5 +75,5 @@ class Parser:
             p = soup.new_tag('p')
             p['class'] = "list"
             prefix = f"{index}. " if ordered else "- "
-            p.string = f"{prefix}{li.get_text()}"
+            p.string = f"{prefix}{li.get_text().strip()}"
             list_element.insert_before(p)
