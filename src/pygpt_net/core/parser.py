@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 04:00:00                  #
+# Updated Date: 2024.01.04 12:00:00                  #
 # ================================================== #
 
 import markdown
-from markdown.extensions import Extension
-from markdown.treeprocessors import Treeprocessor
-import xml.etree.ElementTree as etree
+from bs4 import BeautifulSoup
 
 
 class Parser:
@@ -31,81 +29,46 @@ class Parser:
         Initialize markdown parser
         """
         if self.md is None:
-            # UnorderedListToParagraphExtension() <- convert <li> to <p>, it allows copy lists from QTextBrowser via
-            # Ctrl+C (HTML list-bullets are not copied)
-            self.md = markdown.Markdown(extensions=[UnorderedListToParagraphExtension(), 'fenced_code'])
+            self.md = markdown.Markdown(extensions=['fenced_code'])
 
     def parse(self, text: str) -> str:
         """
-        Convert markdown to html
+        Convert markdown to html and then convert lists to paragraphs using BeautifulSoup
 
         :param text: markdown text
         :return: html formatted text
         """
         self.init()
-        return self.md.convert(text.strip())
+        html = self.md.convert(text.strip())
+        soup = BeautifulSoup(html, 'html.parser')
+        self.convert_lists_to_paragraphs(soup)
+        return str(soup)
 
+    def convert_lists_to_paragraphs(self, soup):
+        """
+        Convert lists to paragraphs
 
-class UnorderedListToParagraphProcessor(Treeprocessor):
-    def run(self, root):
+        :param soup: BeautifulSoup instance
         """
-        Convert ul to p
-        :param root: Root element
-        """
-        self.convert_ul_to_paragraphs(root)
+        for ul in soup.find_all('ul'):
+            self.convert_list(soup, ul, ordered=False)
+        for ol in soup.find_all('ol'):
+            self.convert_list(soup, ol, ordered=True)
 
-    def convert_ul_to_paragraphs(self, element):
-        """
-        Convert ul to p
+        for element in soup.find_all(['ul', 'ol']):
+            element.decompose()
 
-        :param element: Element
+    def convert_list(self, soup, list_element, ordered=False):
         """
-        for child in list(element):
-            if child.tag == 'ul':
-                self.handle_ul(element, child)
-            elif child.tag == 'ol':
-                self.handle_ol(element, child)
-            else:
-                self.convert_ul_to_paragraphs(child)
-
-    def handle_ul(self, parent, ul_element):
+        Convert list to paragraphs
+        :param soup: BeautifulSoup instance
+        :param list_element: Element to convert
+        :param ordered: Is ordered list
         """
-        Handle ul element
-
-        :param parent: Parent element
-        :param ul_element: Ul element
-        """
-        for li in list(ul_element):
-            p = etree.Element('p')
-            p.set('class', 'list')  # styled in css
-            p.text = "- " + (li.text if li.text is not None else "")
-            parent.append(p)
-            self.convert_ul_to_paragraphs(li)
-        parent.remove(ul_element)
-
-    def handle_ol(self, parent, ol_element):
-        """
-        Handle ol element
-        :param parent: Parent element
-        :param ol_element: Ol element
-        """
-        i = 1
-        for li in list(ol_element):
-            p = etree.Element('p')
-            p.set('class', 'list')  # styled in css
-            p.text = f"{i}. " + (li.text if li.text is not None else "")
-            i += 1
-            parent.append(p)
-            self.convert_ul_to_paragraphs(li)
-        parent.remove(ol_element)
-
-
-class UnorderedListToParagraphExtension(Extension):
-    def extendMarkdown(self, md):
-        """
-        Markdown extension, convert ul to p
-
-        :param md: Markdown instance
-        """
-        ul_to_p = UnorderedListToParagraphProcessor(md)
-        md.treeprocessors.register(ul_to_p, 'ul_to_p', 25)
+        list_items = list_element.find_all('li')
+        for index, li in enumerate(list_items, start=1):
+            p = soup.new_tag('p')
+            p['class'] = "list"
+            prefix = f"{index}. " if ordered else "- "
+            p.string = f"{prefix}{li.get_text()}"
+            list_element.insert_before(p)

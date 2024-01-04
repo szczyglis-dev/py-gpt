@@ -113,6 +113,6 @@ def test_parse_images():
     parser.init()
 
     markdown_input = "![Alt text](/path/to/img.jpg)"
-    expected_html_output = '<p><img alt="Alt text" src="/path/to/img.jpg" /></p>'
+    expected_html_output = '<p><img alt="Alt text" src="/path/to/img.jpg"/></p>'
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output
