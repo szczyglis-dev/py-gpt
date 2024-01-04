@@ -16,6 +16,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton
 
 from pygpt_net.ui.widget.dialog.info import InfoDialog
+from pygpt_net.ui.widget.element.url import UrlLabel
 from pygpt_net.utils import trans
 
 
@@ -42,7 +43,7 @@ class Start:
         logo_label.setPixmap(pixmap)
 
         self.window.ui.nodes['start.title'] = QLabel(trans('dialog.start.title.text'))
-        link = QLabel(trans('dialog.start.link'))
+        link = UrlLabel('', trans('dialog.start.link'))
         self.window.ui.nodes['start.settings'] = QLabel(trans('dialog.start.settings.text'))
         self.window.ui.nodes['start.settings'].setAlignment(Qt.AlignCenter)
 
