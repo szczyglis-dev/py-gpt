@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
 
@@ -100,6 +101,26 @@ class Menu:
                                                             trans("menu.config.edit.config"), self.window)
         self.window.ui.menu['config.edit.models'] = QAction(QIcon.fromTheme("document-edit"),
                                                             trans("menu.config.edit.models"), self.window)
+
+        css_files = []
+        css_files.append("style.css")
+        css_files.append("style.dark.css")
+        css_files.append("style.light.css")
+        css_files.append("markdown.css")
+        css_files.append("markdown.dark.css")
+        css_files.append("markdown.light.css")
+
+        # create submenu for css files
+        self.window.ui.menu['config.edit.css'] = QMenu(trans("menu.config.edit.css"), self.window)
+
+        for css_file in css_files:
+            name = css_file.split("/")[-1]
+            self.window.ui.menu['config.edit.css.' + name] = QAction(QIcon.fromTheme("document-edit"),
+                                                                name, self.window)
+            self.window.ui.menu['config.edit.css.' + name].triggered.connect(
+                lambda checked=True, file=css_file: self.window.controller.settings.toggle_file_editor(file))
+            self.window.ui.menu['config.edit.css'].addAction(self.window.ui.menu['config.edit.css.' + name])
+
         self.window.ui.menu['config.open_dir'] = QAction(QIcon.fromTheme("folder-open"),
                                                          trans("menu.config.open_dir"), self.window)
         self.window.ui.menu['config.save'] = QAction(QIcon.fromTheme("document-save"),
@@ -124,6 +145,7 @@ class Menu:
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.settings'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.edit.config'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.edit.models'])
+        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.css'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.open_dir'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.save'])
 
