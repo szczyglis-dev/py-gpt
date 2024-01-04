@@ -487,6 +487,15 @@ class JsonFileProvider(BaseProvider):
                     data['plugins']['openai_dalle']['prompt'] = prompt  # fixed prompt
                 updated = True
 
+            # < 2.0.75
+            if old < parse_version("2.0.75"):
+                print("Migrating config from < 2.0.75...")
+                if 'updater.check.launch' not in data:
+                    data['updater.check.launch'] = True
+                if 'updater.check.bg' not in data:
+                    data['updater.check.bg'] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:
