@@ -24,7 +24,7 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
 
-Video (mp4):
+Video (mp4, version 2.0.77):
 
 https://github.com/szczyglis-dev/py-gpt/assets/61396542/5898136b-e06d-400b-83cf-99d801db61a8
 
@@ -1420,6 +1420,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.77 (2024-01-05)
+
+- Fixed inline plugins disable when pausing command plugins by unchecking 'Execute commands' checkbox
+- Added real-time image appending into chat window when generating images in Image Generation mode
+- Added automatic creation of context after deletion from the list when no other context is selected
+- Updated docs
 
 ### 2.0.76 (2024-01-04)
 

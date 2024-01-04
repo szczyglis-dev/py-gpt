@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2.0.77 (2024-01-05)
+
+- Fixed inline plugins disable when pausing command plugins by unchecking 'Execute commands' checkbox
+- Added real-time image appending into chat window when generating images in Image Generation mode
+- Added automatic creation of context after deletion from the list when no other context is selected
+- Updated docs
+
 ## 2.0.76 (2024-01-04)
 
 - Markdown post-process changed from markdown extension to BS4 html parser.
