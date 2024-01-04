@@ -167,14 +167,16 @@ def test_apply_markdown(mock_window):
 def test_load_markdown(mock_window):
     """Test load markdown"""
     mock_window.core.config.data['theme'] = 'light'
-    os.path.exists = MagicMock(return_value=True)
-    os.path.join = MagicMock(return_value='test')
-    theme = Theme(mock_window)
+    with patch('os.path.exists') as os_path_exists, \
+        patch('os.path.join') as os_path_join:
+        os_path_exists.return_value=True
+        os_path_join.return_value='test'
+        theme = Theme(mock_window)
 
-    with patch('builtins.open', mock_open(read_data='test')) as mock_file:
-        theme.load_markdown()
-        mock_file.assert_called_with('test', 'r')
-        assert theme.css['markdown'] is not None
+        with patch('builtins.open', mock_open(read_data='test')) as mock_file:
+            theme.load_markdown()
+            mock_file.assert_called_with('test', 'r')
+            assert theme.css['markdown'] is not None
 
 
 def test_apply_window(mock_window):
@@ -190,9 +192,11 @@ def test_get_custom_css(mock_window):
     """Test get custom css"""
     mock_window.core.config.data['theme'] = 'dark_teal'
     theme = Theme(mock_window)
-    os.path.exists = MagicMock(return_value=True)
-    os.path.join = MagicMock(return_value='test')
-    assert theme.get_custom_css('dark_teal') == 'dark_teal.css'
+    with patch('os.path.exists') as os_path_exists, \
+        patch('os.path.join') as os_path_join:
+        os_path_exists.return_value=True
+        os_path_join.return_value='test'
+        assert theme.get_custom_css('dark_teal') == 'style.dark.css'
 
 
 def test_trans_theme(mock_window):

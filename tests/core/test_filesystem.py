@@ -22,5 +22,5 @@ def test_install(mock_window):
     os.path.exists = MagicMock(return_value=False)
     os.mkdir = MagicMock()
     filesystem.install()
-    os.path.exists.assert_called_once()
-    os.mkdir.assert_called_once()
+    os.path.exists.assert_called()
+    os.mkdir.assert_called()

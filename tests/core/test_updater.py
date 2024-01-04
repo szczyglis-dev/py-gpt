@@ -113,10 +113,13 @@ def test_patch_dir(mock_window):
     """Test patch_dir"""
     updater = Updater(mock_window)
 
-    with patch('shutil.copyfile') as mock_copyfile:
-        os.listdir = MagicMock(return_value=["test_file"])
-        os.path.exists = MagicMock(return_value=False)
-        os.path.join = MagicMock(return_value="/tmp/test_file")
+    with patch('os.path.join') as os_path_join, \
+        patch('os.listdir') as os_list_dir, \
+        patch('os.path.exists') as os_path_exists, \
+        patch('shutil.copyfile') as mock_copyfile:
+        os_list_dir.return_value=["test_file"]
+        os_path_exists .return_value=False
+        os_path_join.return_value="/tmp/test_file"
         mock_window.core.config.path = "/tmp"
         mock_window.core.config.get_app_path = MagicMock(return_value="/tmp")
         updater.patch_dir("test_dir", True)
@@ -128,10 +131,13 @@ def test_patch_file(mock_window):
     """Test patch_file"""
     updater = Updater(mock_window)
 
-    with patch('shutil.copyfile') as mock_copyfile:
-        os.listdir = MagicMock(return_value=["test_file"])
-        os.path.exists = MagicMock(return_value=False)
-        os.path.join = MagicMock(return_value="/tmp/test_file")
+    with patch('os.path.join') as os_path_join, \
+        patch('os.listdir') as os_list_dir, \
+        patch('os.path.exists') as os_path_exists, \
+        patch('shutil.copyfile') as mock_copyfile:
+        os_list_dir.return_value=["test_file"]
+        os_path_exists.return_value=False
+        os_path_join.return_value="/tmp/test_file"
         mock_window.core.config.path = "/tmp"
         mock_window.core.config.get_app_path = MagicMock(return_value="/tmp")
         updater.patch_file("test_file", True)

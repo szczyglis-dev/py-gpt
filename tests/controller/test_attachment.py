@@ -195,22 +195,24 @@ def test_open_dir(mock_window):
     attachment = Attachment(mock_window)
     att = AttachmentItem
     att.path = "path"
-    os.path.exists = MagicMock(return_value=True)
-    mock_window.controller.files.open_in_file_manager = MagicMock()
-    mock_window.core.attachments.get_by_id = MagicMock(return_value=att)
-    attachment.open_dir('assistant', 1)
-    mock_window.controller.files.open_in_file_manager.assert_called_once()
+    with patch('os.path.exists') as os_path_exists:
+        os_path_exists.return_value=True
+        mock_window.controller.files.open_in_file_manager = MagicMock()
+        mock_window.core.attachments.get_by_id = MagicMock(return_value=att)
+        attachment.open_dir('assistant', 1)
+        mock_window.controller.files.open_in_file_manager.assert_called_once()
 
 
 def test_open(mock_window):
     attachment = Attachment(mock_window)
     att = AttachmentItem
     att.path = "path"
-    os.path.exists = MagicMock(return_value=True)
-    mock_window.controller.files.open = MagicMock()
-    mock_window.core.attachments.get_by_id = MagicMock(return_value=att)
-    attachment.open('assistant', 1)
-    mock_window.controller.files.open.assert_called_once()
+    with patch('os.path.exists') as os_path_exists:
+        os_path_exists.return_value=True
+        mock_window.controller.files.open = MagicMock()
+        mock_window.core.attachments.get_by_id = MagicMock(return_value=att)
+        attachment.open('assistant', 1)
+        mock_window.controller.files.open.assert_called_once()
 
 
 def test_import_from_assistant(mock_window):
@@ -235,13 +237,16 @@ def test_download(mock_window):
     data.filename = 'test'
     mock_window.core.gpt.assistants.file_info = MagicMock(return_value=data)
 
-    os.path.join = MagicMock(return_value='path')
-    os.path.exists = MagicMock(return_value=True)
+    with patch('os.path.join') as os_path_join, \
+        patch('os.path.exists') as os_path_exists:
 
-    mock_window.core.attachments.download = MagicMock()
-    result = attachment.download('file_id')
-    mock_window.core.gpt.assistants.file_download.assert_called_once_with('file_id', 'path')
-    assert result == 'path'
+        os_path_join.return_value='path'
+        os_path_exists.return_value=True
+
+        mock_window.core.attachments.download = MagicMock()
+        result = attachment.download('file_id')
+        mock_window.core.gpt.assistants.file_download.assert_called_once_with('file_id', 'path')
+        assert result == 'path'
 
 
 def test_toggle_send_clear(mock_window):
