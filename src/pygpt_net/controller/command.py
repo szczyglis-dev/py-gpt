@@ -48,7 +48,7 @@ class Command:
         """
         for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id):
-                if event.stop or self.is_stop():
+                if event.stop or (event.name == "cmd.execute" and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break
@@ -79,7 +79,7 @@ class Command:
         """
         for id in window.core.plugins.get_ids():
             if window.controller.plugins.is_enabled(id):
-                if event.stop or self.is_stop():
+                if event.stop or (event.name == "cmd.execute" and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break
