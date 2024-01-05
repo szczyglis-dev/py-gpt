@@ -8,8 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.26 21:00:00                  #
 # ================================================== #
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
+from pygpt_net.utils import trans
 
 
 class ModelList(BaseList):
@@ -27,3 +30,23 @@ class ModelList(BaseList):
     def click(self, val):
         self.window.controller.model.select(val.row())
         self.selection = self.selectionModel().selection()
+
+    def contextMenuEvent(self, event):
+        """
+        Context menu event
+
+        :param event: context menu event
+        """
+        actions = {}
+        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.edit'), self)
+        actions['edit'].triggered.connect(
+            lambda: self.window.controller.settings.toggle_file_editor('models.json'))
+
+        menu = QMenu(self)
+        menu.addAction(actions['edit'])
+
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            # self.window.controller.mode.select(self.id, item.row())
+            menu.exec_(event.globalPos())
