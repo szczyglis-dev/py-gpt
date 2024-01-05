@@ -157,6 +157,23 @@ class Updater:
         except Exception as e:
             self.window.core.debug.log(e)
 
+    def patch_css(self, filename: str = "", force: bool = False):
+        """
+        Patch css file
+
+        :param filename: file name
+        :param force: force update
+        """
+        try:
+            # file
+            dst = os.path.join(self.window.core.config.path, 'css', filename)
+            if not os.path.exists(dst) or force:
+                src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'css', filename)
+                shutil.copyfile(src, dst)
+                print("Patched css file: {}.".format(dst))
+        except Exception as e:
+            self.window.core.debug.log(e)
+
     def get_app_version(self) -> Version:
         """
         Get the current app version.
