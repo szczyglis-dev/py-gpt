@@ -132,6 +132,7 @@ class Theme:
         self.window.ui.nodes['output'].setPlainText("")
         self.window.controller.ctx.refresh()
         self.window.controller.ctx.refresh_output()
+        self.window.controller.chat.render.end()
 
     def load_markdown(self):
         """Load markdown styles"""
