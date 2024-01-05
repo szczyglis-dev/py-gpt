@@ -35,12 +35,10 @@ class Renderer:
 
     def begin(self, stream: bool = False):
         """Render begin"""
-        pass  # do nothing
+        self.to_end()
 
     def end(self, stream: bool = False):
         """Render end"""
-        if stream:
-            self.reload()  # reload ctx items only if stream
         self.to_end()
 
     def stream_begin(self):
@@ -104,6 +102,7 @@ class Renderer:
             text = "> {}".format(item.input)
 
         self.append_raw(text.strip())
+        self.to_end()
 
     def append_output(self, item: CtxItem):
         """
@@ -123,6 +122,7 @@ class Renderer:
         else:
             text = "{}".format(item.output)
         self.append_raw(text.strip())
+        self.to_end()
 
     def append_extra(self, item: CtxItem):
         """
