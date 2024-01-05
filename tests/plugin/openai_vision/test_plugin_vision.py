@@ -34,10 +34,12 @@ def test_handle_mode_before_vision_enabled(mock_window):
     plugin.init_options()
     plugin.setup()
     mock_window.controller.chat.vision.enabled = MagicMock(return_value=True)
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "mode.before"
     event.data = {
+        "mode": "chat",
         "value": "chat",
         "prompt": "prev prompt"
     }
@@ -55,10 +57,12 @@ def test_handle_mode_before_vision_provided(mock_window):
     plugin.is_vision_provided = MagicMock(return_value=True)
     mock_window.controller.chat.vision.enabled = MagicMock(return_value=False)
     mock_window.controller.chat.vision.enable = MagicMock()
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "mode.before"
     event.data = {
+        "mode": "chat",
         "value": "chat",
         "prompt": "prev prompt"
     }
@@ -74,6 +78,7 @@ def test_handle_model_before(mock_window):
     plugin.init_options()
     plugin.setup()
     mock_window.controller.chat.vision.enabled = MagicMock(return_value=True)
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "model.before"
@@ -91,10 +96,12 @@ def test_handle_ui_vision(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "ui.vision"
     event.data = {
+        "mode": "chat",
         "value": False,
     }
     event.ctx = ctx
@@ -107,10 +114,12 @@ def test_handle_ui_attachments(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "ui.attachments"
     event.data = {
+        "mode": "chat",
         "value": False,
     }
     event.ctx = ctx
@@ -125,10 +134,12 @@ def test_handle_pre_prompt(mock_window):
     plugin.setup()
     plugin.is_vision_provided = MagicMock(return_value=True)
     mock_window.controller.chat.vision.enabled = MagicMock(return_value=True)
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "pre.prompt"
     event.data = {
+        "mode": "chat",
         "value": "prev prompt",
     }
     event.ctx = ctx
@@ -145,10 +156,12 @@ def test_handle_system_prompt(mock_window):
     plugin.setup()
     plugin.is_vision_provided = MagicMock(return_value=True)
     mock_window.controller.chat.vision.enabled = MagicMock(return_value=True)
+    mock_window.controller.chat.vision.allowed_modes = ["chat"]
     ctx = CtxItem()
     event = Event()
     event.name = "system.prompt"
     event.data = {
+        "mode": "chat",
         "value": "prev prompt",
     }
     event.ctx = ctx

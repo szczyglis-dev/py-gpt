@@ -103,11 +103,12 @@ class UI:
             })
             self.window.core.dispatcher.dispatch(event)
             value = event.data['value']
+
             # vision capture
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
             self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
-            # event: ui.vision
+            # event: ui.attachments
             value = False
             event = Event('ui.attachments', {
                 'mode': mode,
@@ -115,6 +116,7 @@ class UI:
             })
             self.window.core.dispatcher.dispatch(event)
             value = event.data['value']
+
             # files tabs
             self.window.ui.tabs['input'].setTabVisible(1, value)  # files
 
@@ -171,12 +173,30 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
+            # event: ui.vision
+            value = False
+            event = Event('ui.vision', {
+                'mode': mode,
+                'value': value,
+            })
+            self.window.core.dispatcher.dispatch(event)
+            value = event.data['value']
+
             # vision capture
-            self.window.ui.nodes['vision.capture.options'].setVisible(False)
-            self.window.ui.nodes['attachments.capture_clear'].setVisible(False)
+            self.window.ui.nodes['vision.capture.options'].setVisible(value)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
+
+            # event: ui.attachments
+            value = False
+            event = Event('ui.attachments', {
+                'mode': mode,
+                'value': value,
+            })
+            self.window.core.dispatcher.dispatch(event)
+            value = event.data['value']
 
             # files tabs
-            self.window.ui.tabs['input'].setTabVisible(1, False)  # files
+            self.window.ui.tabs['input'].setTabVisible(1, value)  # files
             self.window.ui.tabs['input'].setTabVisible(2, False)  # uploaded files
 
             # stream checkbox
@@ -227,12 +247,30 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
+            # event: ui.vision
+            value = False
+            event = Event('ui.vision', {
+                'mode': mode,
+                'value': value,
+            })
+            self.window.core.dispatcher.dispatch(event)
+            value = event.data['value']
+
             # vision capture
-            self.window.ui.nodes['vision.capture.options'].setVisible(False)
-            self.window.ui.nodes['attachments.capture_clear'].setVisible(False)
+            self.window.ui.nodes['vision.capture.options'].setVisible(value)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
+
+            # event: ui.attachments
+            value = False
+            event = Event('ui.attachments', {
+                'mode': mode,
+                'value': value,
+            })
+            self.window.core.dispatcher.dispatch(event)
+            value = event.data['value']
 
             # files tabs
-            self.window.ui.tabs['input'].setTabVisible(1, False)  # files
+            self.window.ui.tabs['input'].setTabVisible(1, value)  # files
             self.window.ui.tabs['input'].setTabVisible(2, False)  # uploaded files
 
             # stream checkbox
@@ -269,16 +307,16 @@ class UI:
     def update_vision(self):
         # vision camera
         mode = self.window.core.config.data['mode']
-        if mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
+        if self.window.controller.plugins.is_type_enabled('vision'):
             self.window.controller.camera.setup()
             self.window.controller.camera.show_camera()
 
             # if attachments then show enabled checkbox
-            if mode != 'vision':
+            if mode != 'vision' and mode in self.window.controller.chat.vision.allowed_modes:
                 self.window.controller.chat.vision.show_inline()  # show enabled checkbox
         else:
             self.window.controller.camera.hide_camera()
-            if mode != 'vision':
+            if mode != 'vision' or mode not in self.window.controller.chat.vision.allowed_modes:
                 self.window.controller.chat.vision.hide_inline()  # hide enabled checkbox
 
     def store_state(self):

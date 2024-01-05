@@ -24,6 +24,7 @@ class Prompt:
     def build_final_system_prompt(self, prompt: str) -> str:
         # tmp dispatch event: system.prompt
         event = Event('system.prompt', {
+            'mode': self.window.core.config.get('mode'),
             'value': prompt,
             'silent': True,
         })

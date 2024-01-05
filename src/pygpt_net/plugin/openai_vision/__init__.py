@@ -64,6 +64,15 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
+    def is_allowed(self, mode: str) -> bool:
+        """
+        Check if plugin is allowed in given mode
+
+        :param mode: mode name
+        :return: True if allowed, False otherwise
+        """
+        return mode in self.window.controller.chat.vision.allowed_modes
+
     def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
@@ -75,21 +84,23 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         if name == 'mode.before':
-            data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
+            if self.is_allowed(data['value']):
+                data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
         elif name == 'model.before':
-            mode = data['mode']
-            if mode == 'vision':
-                data['model'] = self.get_option_value("model")  # force choose correct vision model
-        elif name == 'ui.vision':
-            data['value'] = True  # allow render vision UI elements
+            data['model'] = self.get_option_value("model")  # force choose correct vision model
         elif name == 'pre.prompt':
-            data['value'] = self.on_pre_prompt(data['value'])
+            if self.is_allowed(data['mode']):
+                data['value'] = self.on_pre_prompt(data['value'])
         elif name == 'system.prompt':
-            data['value'] = self.on_system_prompt(data['value'])
+            if self.is_allowed(data['mode']):
+                data['value'] = self.on_system_prompt(data['value'])
         elif name == 'ui.attachments':
             data['value'] = True  # allow render attachments UI elements
+        elif name == 'ui.vision':
+            if self.is_allowed(data['mode']):
+                data['value'] = True  # allow render vision UI elements
         elif name == 'ctx.select' or name == 'mode.select' or name == 'model.select':
-            self.on_toggle(False)  # reset vision flag / disable vision mode
+            self.on_toggle(False)  # always reset vision flag / disable vision mode
 
     def log(self, msg: str):
         """

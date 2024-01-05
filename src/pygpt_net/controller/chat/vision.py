@@ -20,6 +20,7 @@ class Vision:
         self.window = window
         self.is_enabled = False
         self.is_available = False
+        self.allowed_modes = ['chat', 'langchain', 'completion']
 
     def setup(self):
         """Set up UI"""
@@ -74,3 +75,11 @@ class Vision:
     def unavailable(self):
         """Set vision content unavailable"""
         self.is_available = False
+
+    def update(self):
+        """Update vision content on mode change"""
+        mode = self.window.core.config.get('mode')
+        if mode in self.allowed_modes:
+            self.show_inline()
+        else:
+            self.hide_inline()
