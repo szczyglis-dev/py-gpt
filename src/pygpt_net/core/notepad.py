@@ -36,15 +36,15 @@ class Notepad:
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def get_by_id(self, id: int) -> NotepadItem or None:
+    def get_by_id(self, idx: int) -> NotepadItem or None:
         """
-        Get notepad by id
+        Get notepad by idx
 
-        :param id: notepad id
+        :param idx: notepad idx
         :return: notepad instance
         """
-        if id in self.items:
-            return self.items[id]
+        if idx in self.items:
+            return self.items[idx]
         return None
 
     def get_all(self) -> dict:
@@ -59,7 +59,7 @@ class Notepad:
         """
         Build notepad
 
-        :param id: notepad id
+        :param idx: notepad idx
         :return: NotepadItem instance
         """
         item = NotepadItem()
@@ -72,10 +72,10 @@ class Notepad:
         :param notepad: NotepadItem instance
         :return: True if success
         """
-        id = self.provider.create(notepad)
-        notepad.id = id
-        self.items[id] = notepad
-        self.save(id)
+        idx = self.provider.create(notepad)
+        notepad.id = idx
+        self.items[idx] = notepad
+        self.save(idx)
         return True
 
     def update(self, notepad: NotepadItem) -> bool:
@@ -85,38 +85,38 @@ class Notepad:
         :param notepad: NotepadItem instance
         :return: True if success
         """
-        if notepad.id not in self.items:
+        if notepad.idx not in self.items:
             return False
 
         notepad.updated_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        self.items[notepad.id] = notepad
-        self.save(notepad.id)
+        self.items[notepad.idx] = notepad
+        self.save(notepad.idx)
         return True
 
-    def load(self, id: int):
+    def load(self, idx: int):
         """
-        Load notepad by id
+        Load notepad by idx
 
-        :param id: notepad id
+        :param idx: notepad idx
         """
-        self.items[id] = self.provider.load(id)
+        self.items[idx] = self.provider.load(idx)
 
     def load_all(self):
         """Load all notepads"""
         self.items = self.provider.load_all()
 
-    def save(self, id: int) -> bool:
+    def save(self, idx: int) -> bool:
         """
-        Save notepad by id
+        Save notepad by idx
 
-        :param id: notepad id
+        :param idx: notepad idx
         :return: True if saved, False if not
         :rtype: bool
         """
-        if id not in self.items:
+        if idx not in self.items:
             return False
 
-        self.provider.save(self.items[id])
+        self.provider.save(self.items[idx])
         return False
 
     def save_all(self):

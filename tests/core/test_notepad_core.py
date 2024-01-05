@@ -64,6 +64,7 @@ def test_add(mock_window):
     notepad.save = MagicMock()
     assert notepad.add(item)
     assert item.id == 1
+    assert item.idx == 0
     assert notepad.items == {1: item}
     notepad.save.assert_called_once_with(1)
 
@@ -72,7 +73,7 @@ def test_update(mock_window):
     """Test update"""
     notepad = Notepad(mock_window)
     item = NotepadItem()
-    item.id = 1
+    item.idx = 1
     notepad.items = {1: item}
     notepad.provider.update = MagicMock(return_value=True)
     notepad.save = MagicMock()
@@ -85,7 +86,7 @@ def test_load(mock_window):
     """Test load"""
     notepad = Notepad(mock_window)
     item = NotepadItem()
-    item.id = 1
+    item.idx = 1
     notepad.items = {1: item}
     notepad.provider.load = MagicMock(return_value=item)
     notepad.load(1)
@@ -97,7 +98,7 @@ def test_load_all(mock_window):
     """Test load all"""
     notepad = Notepad(mock_window)
     item = NotepadItem()
-    item.id = 1
+    item.idx = 1
     notepad.items = {1: item}
     notepad.provider.load_all = MagicMock(return_value={1: item})
     notepad.load_all()
@@ -109,7 +110,7 @@ def test_save(mock_window):
     """Test save"""
     notepad = Notepad(mock_window)
     item = NotepadItem()
-    item.id = 1
+    item.idx = 1
     notepad.items = {1: item}
     notepad.provider.save = MagicMock()
     notepad.save(1)
@@ -120,7 +121,7 @@ def test_save_all(mock_window):
     """Test save all"""
     notepad = Notepad(mock_window)
     item = NotepadItem()
-    item.id = 1
+    item.idx = 1
     notepad.items = {1: item}
     notepad.provider.save_all = MagicMock()
     notepad.save_all()

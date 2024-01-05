@@ -112,14 +112,12 @@ class Storage:
                 stmt = text("""
                             UPDATE notepad
                             SET
-                                idx = :idx,
                                 title = :title,
                                 content = :content,
                                 is_initialized = :is_initialized,
                                 updated_ts = :updated_ts
-                            WHERE id = :id
+                            WHERE idx = :idx
                         """).bindparams(
-                    id=notepad.id,
                     idx=int(notepad.idx or 0),
                     title=notepad.title,
                     content=notepad.content,

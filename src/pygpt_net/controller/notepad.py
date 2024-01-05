@@ -35,6 +35,7 @@ class Notepad:
                 for id in range(1, num_notepads + 1):
                     item = NotepadItem()
                     item.id = id
+                    item.idx = id
                     items[id] = item
 
         if num_notepads > 0:
@@ -42,6 +43,7 @@ class Notepad:
                 if id not in items:
                     item = NotepadItem()
                     item.id = id
+                    item.idx = id
                     items[id] = item
                 if id in self.window.ui.notepad:
                     title = items[id].title
@@ -105,6 +107,7 @@ class Notepad:
         if item is None:
             item = NotepadItem()
             item.id = id
+            item.idx = id
             self.window.core.notepad.items[id] = item
         tab_idx = id + 1
         if name is None or len(name) == 0:
@@ -129,6 +132,7 @@ class Notepad:
         if item is None:
             item = NotepadItem()
             item.id = id
+            item.idx = id
             self.window.core.notepad.items[id] = item
 
         if id in self.window.ui.notepad:
@@ -143,9 +147,9 @@ class Notepad:
         items = self.window.core.notepad.get_all()
         num_notepads = self.get_num_notepads()
         if num_notepads > 0:
-            for id in range(0, num_notepads + 1):
+            for id in range(1, num_notepads + 1):
                 if id in self.window.ui.notepad:
-                    prev_content = items[id].content
+                    prev_content = str(items[id].content)
                     items[id].content = self.window.ui.notepad[id].toPlainText()
 
                     # update only if content changed
@@ -194,6 +198,7 @@ class Notepad:
         if item is None:
             item = NotepadItem()
             item.id = id
+            item.idx = id
             self.window.core.notepad.items[id] = item
         item.title = name
         self.window.core.notepad.update(item)
