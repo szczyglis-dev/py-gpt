@@ -58,8 +58,8 @@ class Gpt:
         # event: model.before
         model = str(self.window.core.config.get('model'))
         event = Event('model.before', {
-            'model': model,
             'mode': mode,
+            'model': model,
         })
         self.window.core.dispatcher.dispatch(event)
         model = event.data['model']
