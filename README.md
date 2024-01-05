@@ -24,11 +24,11 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
 
-Video (mp4, version 2.0.77):
+Video (mp4, version 2.0.77, build 2024-01-05):
 
 https://github.com/szczyglis-dev/py-gpt/assets/61396542/5898136b-e06d-400b-83cf-99d801db61a8
 
-Screenshot (version 2.0.77):
+Screenshot (version 2.0.77 build 2024-01-05):
 
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/08e0c68f-685a-4dd7-9369-ee8915cd84ab)
 
