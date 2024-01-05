@@ -97,13 +97,15 @@ To manage future updates just use:
 sudo snap refresh pygpt
 ```
 
-**Info:** to use camera in Snap version you must connect the camera with interface:
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
+
+**Using camera:** to use camera in Snap version you must connect the camera with:
 
 ```commandline
 sudo snap connect pygpt:camera
 ```
 
-[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
+**File explorer:** `Open file` and `Open in folder` options may not work in Snap version.
 
 ## PyPi (pip)
 
