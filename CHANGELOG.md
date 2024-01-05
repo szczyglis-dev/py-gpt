@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.79 (2024-01-05)
+
+- Fixed bug: notepad save/load content from DB
+
 ## 2.0.78 (2024-01-05)
 
 - Improved markdown formatting
