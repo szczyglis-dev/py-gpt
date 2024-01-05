@@ -139,7 +139,7 @@ class Output:
         opts_layout.setContentsMargins(0, 0, 0, 0)
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
-        opts_layout.addStretch(1)
+        # opts_layout.addStretch(1)
         opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
         opts_layout.addStretch(1)
 
