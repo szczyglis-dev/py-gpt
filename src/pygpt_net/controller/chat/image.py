@@ -123,7 +123,7 @@ class Image:
 
         # append extra output to chat
         self.window.controller.chat.render.append_extra(ctx)
-        self.window.controller.chat.render.to_end()
+        self.window.controller.chat.render.end_extra()
 
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
@@ -147,7 +147,7 @@ class Image:
 
         # append extra output to chat
         self.window.controller.chat.render.append_extra(ctx)
-        self.window.controller.chat.render.to_end()
+        self.window.controller.chat.render.end_extra()
 
     def open_images(self, paths: list):
         """

@@ -51,6 +51,10 @@ class Output:
                     elif 'completion' in config.langchain['mode']:
                         sub_mode = 'completion'
 
+            
+            # chunks: stream begin
+            self.window.controller.chat.render.stream_begin()  # append EOL
+
             # read stream
             try:
                 if ctx.stream is not None:
@@ -93,8 +97,11 @@ class Output:
             except Exception as e:
                 self.window.core.debug.log(e)
 
-            self.window.controller.chat.render.end_of_stream()  # append EOL
-            self.window.controller.debug.log("End of stream.")  # log
+            # chunks: stream end
+            self.window.controller.chat.render.stream_end()
+
+            # log
+            self.window.controller.debug.log("End of stream.")  
 
             # update ctx
             ctx.output = output
