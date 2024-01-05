@@ -54,7 +54,6 @@ class Chat:
             top_p=self.window.core.config.get('top_p'),
             frequency_penalty=self.window.core.config.get('frequency_penalty'),
             presence_penalty=self.window.core.config.get('presence_penalty'),
-            stop=None,
             stream=stream_mode,
         )
         return response

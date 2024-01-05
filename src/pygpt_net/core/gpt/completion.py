@@ -36,7 +36,7 @@ class Completion:
         message = self.build(prompt, system_prompt=system_prompt, ai_name=ai_name, user_name=user_name)
 
         # prepare stop word if user_name is set
-        stop = None
+        stop = ""
         if user_name is not None and user_name != '':
             stop = [user_name + ':']
 
