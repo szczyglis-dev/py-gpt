@@ -118,6 +118,8 @@ def test_update_active(mock_window):
 def test_update_vision_vision_mode(mock_window):
     """Test update vision: vision mode"""
     ui = UI(mock_window)
+    mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=True)
+    mock_window.controller.chat.vision.allowed_modes = ["chat", "completion"]
     mock_window.core.config.data['mode'] = 'vision'
     mock_window.controller.camera.setup = MagicMock()
     mock_window.controller.camera.show_camera = MagicMock()
@@ -137,6 +139,7 @@ def test_update_vision_inline(mock_window):
     ui = UI(mock_window)
     mock_window.core.config.data['mode'] = 'chat'
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=True)
+    mock_window.controller.chat.vision.allowed_modes = ["chat", "completion"]
     mock_window.controller.camera.setup = MagicMock()
     mock_window.controller.camera.show_camera = MagicMock()
     mock_window.controller.camera.hide_camera = MagicMock()
