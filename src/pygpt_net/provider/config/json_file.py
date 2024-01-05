@@ -496,6 +496,13 @@ class JsonFileProvider(BaseProvider):
                     data['updater.check.bg'] = False
                 updated = True
 
+            # < 2.0.78
+            if old < parse_version("2.0.78"):
+                print("Migrating config from < 2.0.78...")
+                if 'render.plain' not in data:
+                    data['render.plain'] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -116,6 +116,7 @@ class Editor:
         :param section: settings section
         """
         before_markdown = self.window.core.config.get('theme.markdown')
+        before_plain = self.window.core.config.get('render.plain')
 
         # dialog: preset
         if id.startswith('preset.'):
@@ -145,6 +146,9 @@ class Editor:
 
         # update markdown
         if id == "theme.markdown" and value is not before_markdown:
+            self.window.controller.theme.update_markdown(force=True)
+
+        if id == "render.plain" and value is not before_plain:
             self.window.controller.theme.update_markdown(force=True)
 
     def change(self, id: str, value: any, section: str = None):

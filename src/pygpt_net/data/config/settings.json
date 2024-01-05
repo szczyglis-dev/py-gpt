@@ -122,6 +122,17 @@
         "step": 1,
         "advanced": false
     },
+    "render.plain": {
+        "type": "bool",
+        "slider": false,
+        "label": "render.plain",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "max_output_tokens": {
         "type": "int",
         "slider": true,

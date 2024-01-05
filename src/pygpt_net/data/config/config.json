@@ -94,6 +94,7 @@
   "presence_penalty": 0.0,
   "preset": "current.chat",
   "prompt": "",
+  "render.plain": false,
   "send_clear": true,
   "send_mode": 2,
   "store_history": true,
