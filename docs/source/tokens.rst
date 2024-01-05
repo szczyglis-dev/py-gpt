@@ -8,7 +8,7 @@ a particular query will consume and displays this estimate in real time. This gi
 control over your token usage. The app provides detailed information about the tokens used for the user's prompt, 
 the system prompt, any additional data, and those used within the context (the memory of previous entries).
 
-**Remember that these are only approximate calculations and do not include, for example, the number of tokens consumed by certain tokens. You can find the exact number of tokens used on the OpenAI website.**
+**Remember that these are only approximate calculations and do not include, for example, the number of tokens consumed by some plugins. You can find the exact number of tokens used on the OpenAI website.**
 
 .. image:: images/v2_tokens1.png
    :width: 400
