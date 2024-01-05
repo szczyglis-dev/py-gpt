@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.80 (2024-01-05)
+
+- Added Plain Text checkbox at the bottom of chat window
+- Removed datetime append when copying text to notepad
+- Improved plain-text mode
+
 ## 2.0.79 (2024-01-05)
 
 - Fixed bug: notepad save/load content from DB

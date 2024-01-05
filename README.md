@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.79** | build: **2024.01.05** | Python: **3.10+**
+Release: **2.0.80** | build: **2024.01.05** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1422,6 +1422,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.80 (2024-01-05)
+
+- Added Plain Text checkbox at the bottom of chat window
+- Removed datetime append when copying text to notepad
+- Improved plain-text mode
 
 ### 2.0.79 (2024-01-05)
 
