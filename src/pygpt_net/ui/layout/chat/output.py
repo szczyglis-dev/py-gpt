@@ -114,7 +114,7 @@ class Output:
 
         # raw plain text checkbox
         self.window.ui.nodes['output.raw'] = QCheckBox(trans('output.raw'))
-        self.window.ui.nodes['output.raw'].stateChanged.connect(
+        self.window.ui.nodes['output.raw'].clicked.connect(
             lambda: self.window.controller.chat.common.toggle_raw(
                 self.window.ui.nodes['output.raw'].isChecked()))
 
