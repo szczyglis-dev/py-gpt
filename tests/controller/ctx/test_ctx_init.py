@@ -156,7 +156,7 @@ def test_new(mock_window):
     ctx.update.assert_called_once()
 
     mock_window.controller.chat.render.reset.assert_called_once()
-    mock_window.controller.chat.render.clear.assert_called_once()
+    mock_window.controller.chat.render.clear_output.assert_called_once()
     mock_window.controller.chat.common.unlock_input.assert_called_once()
 
     ctx.common.update_label.assert_called_once_with('assistant', 'as_123')
@@ -199,12 +199,10 @@ def test_refresh(mock_window):
 def test_refresh_output(mock_window):
     """Test refresh output"""
     ctx = Ctx(mock_window)
-    mock_window.controller.chat.render.clear = MagicMock()
     mock_window.controller.chat.render.append_context = MagicMock()
 
     ctx.refresh_output()
 
-    mock_window.controller.chat.render.clear.assert_called_once()
     mock_window.controller.chat.render.append_context.assert_called_once()
 
 
@@ -274,7 +272,7 @@ def test_delete(mock_window):
 
     # current
     assert mock_window.core.ctx.current is None
-    mock_window.controller.chat.render.clear.assert_called_once()
+    mock_window.controller.chat.render.clear_output.assert_called_once()
 
 
 def test_delete_history(mock_window):

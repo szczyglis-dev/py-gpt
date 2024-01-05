@@ -92,7 +92,7 @@ def test_send_stream(mock_window):
         mock_window.core.ctx.update_item.assert_called()  # should update ctx item
         mock_window.controller.chat.output.handle.assert_called_once()  # should handle output
         mock_window.controller.chat.output.handle_cmd.assert_called_once()  # should handle cmds
-        mock_window.controller.chat.render.reload.assert_called_once()  # should not reload output (if not stream)
+        mock_window.controller.chat.render.end.assert_called_once()  # should not reload output (if not stream)
         mock_window.controller.chat.common.unlock_input.assert_called_once()  # should unlock input
         mock_window.controller.ctx.prepare_name.assert_called_once()  # should prepare name for ctx
 
