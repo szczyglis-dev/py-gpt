@@ -28,7 +28,6 @@ from pygpt_net.core.image import Image
 from pygpt_net.core.models import Models
 from pygpt_net.core.modes import Modes
 from pygpt_net.core.notepad import Notepad
-from pygpt_net.core.parser import Parser
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.core.plugins import Plugins
 from pygpt_net.core.presets import Presets
@@ -67,7 +66,6 @@ class Container:
         self.models = Models(window)
         self.modes = Modes(window)
         self.notepad = Notepad(window)
-        self.parser = Parser(window)
         self.platforms = Platforms(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
