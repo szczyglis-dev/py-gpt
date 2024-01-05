@@ -152,8 +152,10 @@ class Editor:
             if not value:
                 self.window.controller.ctx.refresh()
                 self.window.controller.theme.update_markdown(force=True)
+                self.window.ui.nodes['output.raw'].setChecked(False)
             else:
                 self.window.controller.theme.clear_markdown()
+                self.window.ui.nodes['output.raw'].setChecked(True)
 
     def change(self, id: str, value: any, section: str = None):
         """
