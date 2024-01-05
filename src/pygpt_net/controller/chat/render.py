@@ -11,6 +11,7 @@
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
+from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 
 
 class Render:
@@ -21,11 +22,15 @@ class Render:
         :param window: Window instance
         """
         self.window = window
-        self.renderer = MarkdownRenderer(window)
+        self.markdown_renderer = MarkdownRenderer(window)
+        self.plaintext_renderer = PlainTextRenderer(window)
 
     def get_renderer(self):
         """Get current renderer"""
-        return self.renderer
+        if self.window.core.config.get('render.plain'):
+            return self.plaintext_renderer
+        else:
+            return self.markdown_renderer
 
     def begin(self, stream: bool = False):
         """
