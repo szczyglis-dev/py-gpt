@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.81 (2024-01-05)
+
+- Added Edit context menu option in models list (JSON file edit)
+- Fixed link color in light theme css
+- Fixed font color restore when switching to plain text
+
 ## 2.0.80 (2024-01-05)
 
 - Added Plain Text checkbox at the bottom of chat window
