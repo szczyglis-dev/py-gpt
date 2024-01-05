@@ -83,9 +83,13 @@ class Ctx:
         Select ctx
 
         :param id: context id
+        :param focus: focus chat
         """
+        prev_id = self.window.core.ctx.current
         self.window.core.ctx.current = id
-        self.load(id)
+
+        if prev_id != id:
+            self.load(id)
         self.common.focus_chat()
 
     def select_by_idx(self, idx: int):
@@ -93,6 +97,7 @@ class Ctx:
         Select ctx by index
 
         :param idx: context index
+        :param focus: focus chat
         """
         # lock if generating response is in progress
         if self.context_change_locked():
