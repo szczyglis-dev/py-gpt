@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.81** | build: **2024.01.05** | Python: **3.10+**
+Release: **2.0.82** | build: **2024.01.05** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -10,7 +10,7 @@ Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-ne
 
 Compiled version for Linux (tar.gz) and Windows 10/11 (msi) 64-bit: https://pygpt.net/#download
 
-**TIP: From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.**
+**Tip: From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.**
 
 ## Overview
 
@@ -1422,6 +1422,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.82 (2024-01-05)
+
+- Plain text append scroll fix
 
 ### 2.0.81 (2024-01-05)
 

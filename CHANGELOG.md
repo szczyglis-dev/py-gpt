@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.0.82 (2024-01-05)
+
+- Plain text append scroll fix
+
 ## 2.0.81 (2024-01-05)
 
 - Added Edit context menu option in models list (JSON file edit)
