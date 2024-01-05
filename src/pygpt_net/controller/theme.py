@@ -120,7 +120,7 @@ class Theme:
         """Apply CSS to markdown formatter"""
         self.window.ui.nodes['output'].document().setDefaultStyleSheet(self.css['markdown'])
         self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
-        self.window.controller.chat.render.reload()
+        self.window.controller.ctx.refresh_output()
 
     def load_markdown(self):
         """Load markdown styles"""

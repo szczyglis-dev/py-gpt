@@ -96,6 +96,7 @@ class Text:
         # event: pre.prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
         event = Event('pre.prompt', {
+            'mode': mode,
             'value': sys_prompt,
         })
         self.window.core.dispatcher.dispatch(event)
@@ -103,6 +104,7 @@ class Text:
 
         # event: system.prompt (append to system prompt)
         event = Event('system.prompt', {
+            'mode': mode,
             'value': sys_prompt,
         })
         self.window.core.dispatcher.dispatch(event)
@@ -112,6 +114,7 @@ class Text:
         if self.window.core.config.get('cmd'):
             sys_prompt += " " + self.window.core.command.get_prompt()
             data = {
+                'mode': mode,
                 'prompt': sys_prompt,
                 'syntax': [],
             }
@@ -125,6 +128,12 @@ class Text:
         self.log("AI name: {}".format(ctx.output_name))
         self.log("Appending input to chat window...")
 
+        # async or sync mode
+        stream_mode = self.window.core.config.get('stream')
+
+        # render: begin
+        self.window.controller.chat.render.begin(stream=stream_mode)
+
         # append text from input to chat window
         self.window.controller.chat.render.append_input(ctx)
 
@@ -136,9 +145,6 @@ class Text:
 
         # process events to update UI
         QApplication.processEvents()
-
-        # async or sync mode
-        stream_mode = self.window.core.config.get('stream')
 
         try:
             # make API call
@@ -199,8 +205,8 @@ class Text:
             self.window.controller.chat.output.handle_cmd(ctx)
             self.window.core.ctx.update_item(ctx)  # update ctx in DB
 
-        if stream_mode:
-            self.window.controller.chat.render.reload()  # reload output after stream mode
+        # render: end
+        self.window.controller.chat.render.end(stream=stream_mode)
 
         self.window.controller.chat.common.unlock_input()  # unlock
 
