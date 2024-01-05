@@ -446,7 +446,7 @@ class Storage:
             return json.dumps(value)
         return value
 
-    def unpack_item_value(self, value: str) -> any:
+    def unpack_item_value(self, value: any) -> any:
         """
         Unpack item value from JSON
 
@@ -492,7 +492,7 @@ class Storage:
         item.input_tokens = int(row['input_tokens'] or 0)
         item.output_tokens = int(row['output_tokens'] or 0)
         item.total_tokens = int(row['total_tokens'] or 0)
-        item.internal = int(row['is_internal'] or 0)
+        item.internal = bool(row['is_internal'])
         return item
 
     def unpack_meta(self, meta: CtxMeta, row: dict) -> CtxMeta:
