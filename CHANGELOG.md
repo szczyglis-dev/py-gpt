@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.0.78 (2024-01-05)
+
+- Improved markdown formatting
+- Output text renderers moved to separated modules
+- Added plain-text render option in settings
+- Vision inline disabled in unsupported modes (Image generation and Assistant) and hidden in Vision (always enabled here)
+- Updated OpenAI Chat Completion API
+
 ## 2.0.77 (2024-01-05)
 
 - Fixed inline plugins disable when pausing command plugins by unchecking 'Execute commands' checkbox
