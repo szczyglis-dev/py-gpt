@@ -133,7 +133,7 @@ class Ctx:
 
         # reset appended data
         self.window.controller.chat.render.reset()
-        self.window.controller.chat.render.clear()
+        self.window.controller.chat.render.clear_output()
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
@@ -169,9 +169,8 @@ class Ctx:
 
     def refresh_output(self):
         """Refresh output"""
-        # clear before output and append ctx to output
-        self.window.controller.chat.render.clear()
-        self.window.controller.chat.render.append_context()
+        # append ctx to output
+        self.window.controller.chat.render.append_context(self.window.core.ctx.items, clear=True)
 
     def load(self, id: int):
         """
@@ -264,7 +263,7 @@ class Ctx:
         # reset current if current ctx deleted
         if self.window.core.ctx.current == id:
             self.window.core.ctx.current = None
-            self.window.controller.chat.render.clear()
+            self.window.controller.chat.render.clear_output()
         self.update()
 
     def delete_history(self, force: bool = False):
