@@ -112,6 +112,12 @@ class Output:
             lambda: self.window.controller.chat.common.toggle_timestamp(
                 self.window.ui.nodes['output.timestamp'].isChecked()))
 
+        # raw plain text checkbox
+        self.window.ui.nodes['output.raw'] = QCheckBox(trans('output.raw'))
+        self.window.ui.nodes['output.raw'].stateChanged.connect(
+            lambda: self.window.controller.chat.common.toggle_raw(
+                self.window.ui.nodes['output.raw'].isChecked()))
+
         # add inline vision checkbox
         self.window.ui.nodes['inline.vision'] = QCheckBox(trans('inline.vision'))
         self.window.ui.nodes['inline.vision'].clicked.connect(
@@ -129,9 +135,10 @@ class Output:
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
 
         opts_layout = QHBoxLayout()
-        opts_layout.setSpacing(0)
+        opts_layout.setSpacing(2) #
         opts_layout.setContentsMargins(0, 0, 0, 0)
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
+        opts_layout.addWidget(self.window.ui.nodes['output.raw'])
         opts_layout.addStretch(1)
         opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
         opts_layout.addStretch(1)

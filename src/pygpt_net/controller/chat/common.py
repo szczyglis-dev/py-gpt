@@ -60,6 +60,9 @@ class Common:
         # output timestamps
         self.window.ui.nodes['output.timestamp'].setChecked(self.window.core.config.get('output_timestamp'))
 
+        # raw (plain) output
+        self.window.ui.nodes['output.raw'].setChecked(self.window.core.config.get('render.plain'))
+
         # images generation
         if self.window.core.config.get('img_raw'):
             self.window.ui.config_option['img_raw'].setChecked(True)
@@ -149,6 +152,20 @@ class Common:
         self.window.core.config.set('output_timestamp', value)
         self.window.core.config.save()
         self.window.controller.ctx.refresh()
+
+    def toggle_raw(self, value: bool):
+        """
+        Toggle raw (plain) output
+
+        :param value: value of the checkbox
+        """
+        self.window.core.config.set('render.plain', value)
+        self.window.core.config.save()
+        if not value:
+            self.window.controller.ctx.refresh()
+            self.window.controller.theme.update_markdown(force=True)
+        else:
+            self.window.controller.theme.clear_markdown()
 
     def img_enable_raw(self):
         """Enable help for images"""

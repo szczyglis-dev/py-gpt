@@ -122,6 +122,17 @@ class Theme:
         self.window.ui.nodes['output'].document().setMarkdown(self.window.ui.nodes['output'].document().toMarkdown())
         self.window.controller.ctx.refresh_output()
 
+    def clear_markdown(self):
+        """Clear CSS to markdown formatter"""
+        self.window.ui.nodes['output'].document().setDefaultStyleSheet("")
+        self.window.ui.nodes['output'].setStyleSheet("")
+        self.window.ui.nodes['output'].clear()
+        self.window.ui.nodes['output'].setHtml("")
+        self.window.ui.nodes['output'].setPlainText("")
+        self.window.controller.ctx.refresh()
+        self.window.controller.ctx.refresh_output()
+        self.window.controller.chat.render.end()
+
     def load_markdown(self):
         """Load markdown styles"""
         theme = self.window.core.config.get('theme')

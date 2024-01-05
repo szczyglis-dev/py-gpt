@@ -149,7 +149,11 @@ class Editor:
             self.window.controller.theme.update_markdown(force=True)
 
         if id == "render.plain" and value is not before_plain:
-            self.window.controller.theme.update_markdown(force=True)
+            if not value:
+                self.window.controller.ctx.refresh()
+                self.window.controller.theme.update_markdown(force=True)
+            else:
+                self.window.controller.theme.clear_markdown()
 
     def change(self, id: str, value: any, section: str = None):
         """

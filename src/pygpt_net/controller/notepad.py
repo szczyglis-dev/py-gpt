@@ -170,7 +170,8 @@ class Notepad:
         """
         if id not in self.window.ui.notepad:
             return
-        dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
+        dt = "" # TODO: add to config append date/time
+        # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
         prev_text = self.window.ui.notepad[id].toPlainText()
         if prev_text != "":
             prev_text += "\n\n"

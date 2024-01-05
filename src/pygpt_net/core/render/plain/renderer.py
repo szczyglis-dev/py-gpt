@@ -41,6 +41,7 @@ class Renderer:
         """Render end"""
         if stream:
             self.reload()  # reload ctx items only if stream
+        self.to_end()
 
     def stream_begin(self):
         """Render stream begin"""
@@ -96,7 +97,9 @@ class Renderer:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
-            text = '{} > {}'.format(name, item.input)
+            ts = datetime.fromtimestamp(item.output_timestamp)
+            hour = ts.strftime("%H:%M:%S")
+            text = '{}{} > {}'.format(name, hour, item.input)
         else:
             text = "> {}".format(item.input)
 
@@ -114,7 +117,9 @@ class Renderer:
             name = ""
             if item.output_name is not None and item.output_name != "":
                 name = item.output_name + " "
-            text = '{} {}'.format(name, item.output)
+            ts = datetime.fromtimestamp(item.output_timestamp)
+            hour = ts.strftime("%H:%M:%S")
+            text = '{}{} {}'.format(name, hour, item.output)
         else:
             text = "{}".format(item.output)
         self.append_raw(text.strip())
