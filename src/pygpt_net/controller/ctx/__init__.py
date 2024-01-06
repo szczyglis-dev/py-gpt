@@ -348,6 +348,11 @@ class Ctx:
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
 
+    def search_string_clear(self):
+        """Search string clear"""
+        self.window.ui.nodes['ctx.search'].clear()
+        self.search_string_change("")  # clear search
+
     def append_search_string(self, text: str):
         """
         Append search string to input and make search
