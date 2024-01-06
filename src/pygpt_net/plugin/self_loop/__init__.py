@@ -39,21 +39,26 @@ class Plugin(BasePlugin):
         self.add_option("reverse_roles", "bool", True,
                         "Reverse roles between iterations",
                         "If enabled, roles will be reversed between iterations.")
-        prompt = "AUTONOMOUS MODE: \n1. You will now enter self-dialogue mode, where you will be conversing with yourself," \
-                 " not with a human. \n2. you enter self-dialogue mode, remember that you are engaging in a conversation " \
+        prompt = "AUTONOMOUS MODE: 1. You will now enter self-dialogue mode, where you will be conversing with yourself," \
+                 " not with a human. 2. When you enter self-dialogue mode, remember that you are engaging in a conversation " \
                  "with yourself. Any user input will be considered a reply featuring your previous response. " \
-                 "\n3. The objective of this self-conversation is well-defined—focus on achieving it. \n4. Your new message" \
-                 " should be a continuation of the last response you generated, essentially replying to yourself and extending it. " \
-                 "\n5. After each response, critically evaluate its effectiveness and alignment with the goal. " \
-                 "If necessary, refine your approach. \n6. Incorporate self-critique after every response to capitalize " \
-                 "on your strengths and address areas needing improvement. \n7. To advance towards the goal, utilize all" \
-                 " the strategic thinking and resources at your disposal. \n8. Ensure that the dialogue remains coherent" \
-                 " and logical, with each response serving as a stepping stone towards the ultimate objective. " \
-                 "\n9. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets " \
-                 "the initial criteria. \n10. You are allowed to use any commands and tools without asking for it. \n11. " \
-                 "ALWAYS BREAK DOWN the main task into manageable logical subtasks, " \
-                 "systematically addressing and analyzing each one in sequence. 12. The first instruction, along with a " \
-                 "description of the main objective, will come from the user."
+                 "3. The objective of this self-conversation is well-defined—focus on achieving it. 4. Your new message " \
+                 "should be a continuation of the last response you generated, essentially replying to yourself and " \
+                 "extending it. 5. After each response, critically evaluate its effectiveness and alignment with the " \
+                 "goal. If necessary, refine your approach. 6. Incorporate self-critique after every response to " \
+                 "capitalize on your strengths and address areas needing improvement. 7. To advance towards the goal," \
+                 " utilize all the strategic thinking and resources at your disposal. 8. Ensure that the dialogue " \
+                 "remains coherent and logical, with each response serving as a stepping stone towards the ultimate " \
+                 "objective. 9. Treat the entire dialogue as one long, continuous conversation with oneself, and as " \
+                 "a monologue aimed at devising the best possible solution to the problem. 10. Conclude the " \
+                 "self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria. " \
+                 "11. You are allowed to use any commands and tools without asking for it. 12. ALWAYS break down the " \
+                 "main task into manageable logical subtasks, systematically addressing and analyzing each one " \
+                 "in sequence. 13. The first instruction, along with a description of the main objective, will come" \
+                 " from the user. 14. Start by breaking down the task into as many smaller sub-tasks as possible, " \
+                 "then proceed to complete each one in sequence. Next, break down each sub-task into even smaller tasks, " \
+                 "carefully and step by step go through all of them until the required goal is fully " \
+                 "and correctly achieved."
         self.add_option("prompt", "textarea", prompt,
                         "Prompt",
                         "Prompt used to instruct how to handle autonomous mode",
