@@ -18,7 +18,7 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "self_loop"
-        self.name = "Self Loop: AI to AI (Autonomous mode)"
+        self.name = "Autonomous Mode: AI to AI conversation"
         self.description = "Enables autonomous conversation (AI to AI), manages loop, and connects output back to input."
         self.iteration = 0
         self.prev_output = None

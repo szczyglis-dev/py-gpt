@@ -628,7 +628,7 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
 
-- `Autonomous Mode: self loop, AI to AI conversation` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
+- `Autonomous Mode: AI to AI conversation` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
 
 - `Real Time` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 
@@ -1015,7 +1015,7 @@ for before returning. *Default:* `1`
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 
-## Autonomous Mode: self loop, AI to AI conversation
+## Autonomous Mode: AI to AI conversation
 
 The plugin introduces a "talk with yourself" mode, where GPT begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout such a sequence, the model will engage 
