@@ -68,10 +68,13 @@ class Lang:
         # notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
-            for i in range(0, num_notepads + 1):
-                tab = i + 2
-                self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i+1))
+            for i in range(1, num_notepads + 1):
+                tab = (self.window.controller.notepad.start_tab_idx - 1) + i
+                self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
         self.window.controller.notepad.reload_tab_names()  # <-- reload tab names to restore custom names if present
+
+        # calendar
+        self.window.controller.calendar.update_current_note_label()
 
         # context
         self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))

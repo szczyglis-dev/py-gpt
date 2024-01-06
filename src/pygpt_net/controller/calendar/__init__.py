@@ -153,8 +153,22 @@ class Calendar:
             self.window.ui.calendar['note'].setPlainText(note.content)
 
     def update_note_label(self, year: int, month: int, day: int):
+        """
+        Update note label
+
+        :param year: year
+        :param month: month
+        :param day: day
+        """
         dt_formatted_suffix = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
         self.window.ui.calendar['note.label'].setText(trans('calendar.note.label') + " (" + dt_formatted_suffix + ")")
+
+    def update_current_note_label(self):
+        """Update note label to current selected date"""
+        year = self.window.ui.calendar['select'].currentYear
+        month = self.window.ui.calendar['select'].currentMonth
+        day = self.window.ui.calendar['select'].currentDay
+        self.update_note_label(year, month, day)
 
     def append_text(self, text: str):
         """
