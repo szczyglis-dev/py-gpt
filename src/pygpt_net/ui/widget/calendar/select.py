@@ -38,9 +38,9 @@ class CalendarSelect(QCalendarWidget):
         self.currentPageChanged.connect(self.page_changed)
         self.clicked[QDate].connect(self.on_day_clicked)
 
-        # TODO: implement context menu
-        # self.setContextMenuPolicy(Qt.CustomContextMenu)
-        # self.customContextMenuRequested.connect(self.open_context_menu)
+        # context menu
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.open_context_menu)
 
     def page_changed(self, year, month):
         """
@@ -74,15 +74,25 @@ class CalendarSelect(QCalendarWidget):
             painter.restore()
 
         if date in self.counters['notes']:
-            padding = 2
-            task_rect = QRect(rect.left() + padding, rect.bottom() - padding - 20, 20, 20)
-            painter.save()
-            painter.setBrush(QBrush(QColor(100, 50, 20)))
-            painter.drawRect(task_rect)
-            painter.setPen(QColor(255, 255, 255))
-            painter.setFont(QFont('Lato', self.font_size))
-            painter.drawText(task_rect, Qt.AlignCenter, str(self.counters['notes'][date]))
-            painter.restore()
+            day_notes = self.counters['notes'][date]
+            for status, count in day_notes.items():
+                padding = 2
+                task_rect = QRect(rect.left() + padding, rect.bottom() - padding - 20, 20, 20)
+                painter.save()
+                bg_color, font_color = self.get_color_for_status(status)
+                painter.setBrush(QBrush(bg_color))
+                painter.drawRect(task_rect)
+                painter.setPen(font_color)
+                painter.setFont(QFont('Lato', self.font_size))
+                painter.drawText(task_rect, Qt.AlignCenter, "!")  # str(count)
+                painter.restore()
+
+    def get_color_for_status(self, status):
+        if status in self.window.controller.calendar.statuses:
+            return self.window.controller.calendar.statuses[status]['color'], \
+                   self.window.controller.calendar.statuses[status]['font']
+        else:
+            return QColor(100, 100, 100), QColor(255, 255, 255)
 
     def on_day_clicked(self, date: QDate):
         """
@@ -97,6 +107,9 @@ class CalendarSelect(QCalendarWidget):
         self.currentMonth = month
         self.currentDay = day
         self.window.controller.calendar.on_day_select(year, month, day)
+
+        # check if date has ctx TODO: think about better solution
+        # if date in self.counters['ctx']:
         self.window.controller.calendar.on_ctx_select(year, month, day)
 
     def add_ctx(self, date: QDate, num: int):
@@ -127,8 +140,6 @@ class CalendarSelect(QCalendarWidget):
         self.counters['notes'] = {QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()}
         self.updateCells()
 
-    # TODO: implement context menu
-    """
     def open_context_menu(self, position):
         selected_date = self.selectedDate()
         context_menu = QMenu(self)
@@ -136,6 +147,14 @@ class CalendarSelect(QCalendarWidget):
         action = QAction(action_text, self)
         action.triggered.connect(lambda: self.execute_action(selected_date))
         context_menu.addAction(action)
+        
+        # set label menu
+        set_label_menu = context_menu.addMenu(trans('calendar.day.label'))
+        for status_id, status_info in self.window.controller.calendar.statuses.items():
+            status_action = QAction(trans('calendar.day.' + status_info['label']), self)
+            status_action.triggered.connect(lambda checked=False, s_id=status_id: self.set_label_for_day(selected_date, s_id))
+            set_label_menu.addAction(status_action)
+
         context_menu.exec(self.mapToGlobal(position))
 
     def execute_action(self, date):
@@ -146,4 +165,7 @@ class CalendarSelect(QCalendarWidget):
 
     def contextMenuEvent(self, event: QContextMenuEvent):
         self.open_context_menu(event.pos())
-    """
+
+    def set_label_for_day(self, date: QDate, status_id: int):
+        self.window.controller.calendar.update_status_label(status_id, date.year(), date.month(), date.day())
+

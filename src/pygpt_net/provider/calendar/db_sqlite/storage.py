@@ -100,17 +100,28 @@ class Storage:
             result = conn.execute(text("""
                     SELECT
                         year || '-' || printf('%02d', month) || '-' || printf('%02d', day) as day,
+                        status,
                         COUNT(id) as note_count
                     FROM calendar_note
                     WHERE year = :year
                       AND month = :month
                       AND is_deleted = 0
                       AND content != ''
-                    GROUP BY day
+                    GROUP BY day, status
                 """), {'year': year, 'month': month})
 
-            days_with_notes = {row._mapping['day']: row._mapping['note_count'] for row in result if
-                               row._mapping['note_count'] > 0}
+            days_with_notes = {}
+            for row in result:
+                day = row._mapping['day']
+                status = row._mapping['status']
+                note_count = row._mapping['note_count']
+
+                if day not in days_with_notes:
+                    days_with_notes[day] = {}
+
+                if note_count > 0:
+                    days_with_notes[day][status] = note_count
+
             return days_with_notes
 
     def truncate_all(self) -> bool:
