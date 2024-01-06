@@ -12,6 +12,7 @@
 from pygpt_net.controller.assistant import Assistant
 from pygpt_net.controller.attachment import Attachment
 from pygpt_net.controller.audio import Audio
+from pygpt_net.controller.calendar import Calendar
 from pygpt_net.controller.camera import Camera
 from pygpt_net.controller.chat import Chat
 from pygpt_net.controller.command import Command
@@ -43,6 +44,7 @@ class Controller:
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
+        self.calendar = Calendar(window)
         self.camera = Camera(window)
         self.chat = Chat(window)
         self.command = Command(window)
@@ -85,6 +87,7 @@ class Controller:
         """Post-setup, after plugins are loaded"""
         self.plugins.settings.setup()
         self.launcher.post_setup()
+        self.calendar.setup()  # after everything is loaded
 
     def on_update(self):
         """On app main loop update"""

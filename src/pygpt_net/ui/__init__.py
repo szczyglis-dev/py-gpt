@@ -32,6 +32,7 @@ class UI:
         self.window = window
 
         # prepare
+        self.calendar = {}
         self.config_option = {}
         self.debug = {}
         self.dialog = {}

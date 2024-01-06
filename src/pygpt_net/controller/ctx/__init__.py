@@ -78,6 +78,9 @@ class Ctx:
             self.window.core.config.set('assistant_thread', self.window.core.ctx.thread)
             self.window.core.config.save()
 
+        # update calendar ctx list
+        self.window.controller.calendar.update()
+
     def select(self, id: int):
         """
         Select ctx
@@ -344,6 +347,15 @@ class Ctx:
         self.window.core.ctx.search_string = text
         self.window.core.config.set('ctx.search.string', text)
         self.update(reload=True, all=False)
+
+    def append_search_string(self, text: str):
+        """
+        Append search string to input and make search
+
+        :param text: search string
+        """
+        self.window.ui.nodes['ctx.search'].setText(text)
+        self.search_string_change(text)  # make search
 
     def prepare_name(self, ctx: CtxItem):
         """
