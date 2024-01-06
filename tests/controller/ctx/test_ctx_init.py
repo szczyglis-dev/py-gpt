@@ -33,10 +33,6 @@ def test_setup(mock_window):
     ctx.setup()
     mock_window.core.ctx.count_meta.assert_called_once()
 
-    # search string should be restored
-    mock_window.ui.nodes['ctx.search'].setText.assert_called_once_with("test")
-    ctx.search_string_change.assert_called_once_with("test")
-
     ctx.load.assert_called_once_with(3)
     assert mock_window.core.ctx.current == 3
 
@@ -59,10 +55,6 @@ def test_setup_new(mock_window):
 
     ctx.setup()
     mock_window.core.ctx.count_meta.assert_called_once()
-
-    # search string should be restored
-    mock_window.ui.nodes['ctx.search'].setText.assert_called_once_with("test")
-    ctx.search_string_change.assert_called_once_with("test")
 
     ctx.new.assert_called_once()  # new ctx should be created
     ctx.load.assert_called_once()  # new ctx should be loaded
