@@ -172,6 +172,8 @@ class Plugin(BasePlugin):
         """
         self.iteration = 0
         self.prev_output = None
+        if self.stop:
+            self.stop = False
 
     def on_ctx_end(self, ctx: CtxItem):
         """
