@@ -18,12 +18,13 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "self_loop"
-        self.name = "Self Loop"
-        self.description = "Allows to execute self talk (AI to AI) loop and connect output to input."
+        self.name = "Self Loop: AI to AI (Autonomous mode)"
+        self.description = "Enables autonomous conversation (AI to AI), manages loop, and connects output back to input."
         self.iteration = 0
         self.prev_output = None
         self.order = 9998
         self.use_locale = True
+        self.stop = False
         self.init_options()
 
     def init_options(self):
@@ -35,12 +36,28 @@ class Plugin(BasePlugin):
                         "How many iterations to run? 0 = infinite.\nWARNING: setting this to 0 can cause a lot of "
                         "requests and heavy tokens usage!",
                         min=0, max=100, multiplier=1, step=1, slider=True)
-        self.add_option("clear_output", "bool", True,
-                        "Clear context output",
-                        "If enabled, previous context output will be cleared before sending new input.")
         self.add_option("reverse_roles", "bool", True,
                         "Reverse roles between iterations",
                         "If enabled, roles will be reversed between iterations.")
+        prompt = "AUTONOMOUS MODE: \n1. You will now enter self-dialogue mode, where you will be conversing with yourself," \
+                 " not with a human. \n2. you enter self-dialogue mode, remember that you are engaging in a conversation " \
+                 "with yourself. Any user input will be considered a reply featuring your previous response. " \
+                 "\n3. The objective of this self-conversation is well-defined—focus on achieving it. \n4. Your new message" \
+                 " should be a continuation of the last response you generated, essentially replying to yourself and extending it. " \
+                 "\n5. After each response, critically evaluate its effectiveness and alignment with the goal. " \
+                 "If necessary, refine your approach. \n6. Incorporate self-critique after every response to capitalize " \
+                 "on your strengths and address areas needing improvement. \n7. To advance towards the goal, utilize all" \
+                 " the strategic thinking and resources at your disposal. \n8. Ensure that the dialogue remains coherent" \
+                 " and logical, with each response serving as a stepping stone towards the ultimate objective. " \
+                 "\n9. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets " \
+                 "the initial criteria. \n10. You are allowed to use any commands and tools without asking for it. \n11. " \
+                 "ALWAYS BREAK DOWN the main task into manageable logical subtasks, " \
+                 "systematically addressing and analyzing each one in sequence. 12. The first instruction, along with a " \
+                 "description of the main objective, will come from the user."
+        self.add_option("prompt", "textarea", prompt,
+                        "Prompt",
+                        "Prompt used to instruct how to handle autonomous mode",
+                        tooltip="Prompt", advanced=True)
 
     def setup(self) -> dict:
         """
@@ -76,6 +93,30 @@ class Plugin(BasePlugin):
             self.on_ctx_end(ctx)
         elif name == 'user.send':
             self.on_user_send(data['value'])
+        elif name == 'force.stop':
+            self.on_stop(data['value'])
+        elif name == 'system.prompt':
+            data['value'] = self.on_system_prompt(data['value'])
+
+    def on_system_prompt(self, prompt: str):
+        """
+        Event: On prepare system prompt
+
+        :param prompt: prompt
+        :return: updated prompt
+        """
+        prompt += "\n" + self.get_option_value("prompt")
+        return prompt
+
+    def on_stop(self, value: bool):
+        """
+        Event: On force stop
+
+        :param value: value
+        """
+        self.iteration = 0
+        self.prev_output = None
+        self.stop = True
 
     def on_user_send(self, text: str):
         """
@@ -92,13 +133,18 @@ class Plugin(BasePlugin):
 
         :param ctx: CtxItem
         """
+        if self.stop:
+            self.stop = False
+            self.iteration = 0
+            self.prev_output = None
+
         iterations = int(self.get_option_value("iterations"))
         if iterations == 0 or self.iteration < iterations:
             self.iteration += 1
             if self.prev_output is not None and self.prev_output != "":
                 self.debug(
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
-                self.window.controller.chat.input.send(self.prev_output, force=True)
+                self.window.controller.chat.input.send(self.prev_output, force=True, internal=True)
 
     def on_ctx_before(self, ctx: CtxItem):
         """
@@ -107,12 +153,10 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         """
         if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
-            self.debug("Plugin: self_loop:on_ctx_before [before]: {}".format(ctx.dump()))  # log
             tmp_input_name = ctx.input_name
             tmp_output_name = ctx.output_name
             ctx.input_name = tmp_output_name
             ctx.output_name = tmp_input_name
-            self.debug("Plugin: self_loop:on_ctx_before [after]: {}".format(ctx.dump()))  # log
 
     def on_ctx_after(self, ctx: CtxItem):
         """
@@ -121,7 +165,3 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         """
         self.prev_output = ctx.output
-        if self.get_option_value("clear_output"):
-            self.debug("Plugin: self_loop:on_ctx_after [before]: {}".format(ctx.dump()))  # log
-            ctx.output = ""
-            self.debug("Plugin: self_loop:on_ctx_after [after]: {}".format(ctx.dump()))  # log
