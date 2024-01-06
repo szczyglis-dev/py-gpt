@@ -2,7 +2,7 @@
 
 ## 2.0.83 (2024-01-06)
 
-- Added callendar (beta, more callendar-related features coming soon)
+- Added calendar (beta, more calendar-related features coming soon)
 - Added search filter by selected date
 - Added 'clear' icon in search input
 
