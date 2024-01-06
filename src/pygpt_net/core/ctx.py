@@ -177,7 +177,7 @@ class Ctx:
         """
         self.mode = self.window.core.config.get('mode')
 
-        if self.current is None:
+        if self.current is None or self.current not in self.meta:
             return
         self.meta[self.current].mode = self.mode
         self.save(self.current)
@@ -188,7 +188,7 @@ class Ctx:
 
         :param mode: mode name
         """
-        if self.current is None:
+        if self.current is None or self.current not in self.meta:
             return
 
         # update current
