@@ -51,7 +51,7 @@ def test_send(mock_window):
     message = 'test'
 
     input.send(message)
-    input.execute.assert_called_once_with(message, False)
+    input.execute.assert_called_once_with(message, force=False, internal=False)
 
 
 def test_execute_text(mock_window):
@@ -73,7 +73,7 @@ def test_execute_text(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test')
+        mock_window.controller.chat.text.send.assert_called_once_with('test', internal=False)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -141,7 +141,7 @@ def test_execute_no_ctx(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test')
+        mock_window.controller.chat.text.send.assert_called_once_with('test', internal=False)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -201,7 +201,7 @@ def test_execute_vision_mode(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test')
+        mock_window.controller.chat.text.send.assert_called_once_with('test', internal=False)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 
@@ -243,7 +243,7 @@ def test_execute_vision_plugin(mock_window):
         assert input.generating is False
         assert input.stop is False
 
-        mock_window.controller.chat.text.send.assert_called_once_with('test')
+        mock_window.controller.chat.text.send.assert_called_once_with('test', internal=False)
         mock_window.controller.ui.update_tokens.assert_called_once()
         mock_window.ui.status.assert_called_once()
 

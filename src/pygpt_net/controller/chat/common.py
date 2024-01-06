@@ -126,6 +126,8 @@ class Common:
 
     def stop(self):
         """Stop input"""
+        event = Event('force.stop', {"value": True})
+        self.window.core.dispatcher.dispatch(event)  # stop event
         event = Event('audio.input.toggle', {"value": False})
         self.window.controller.assistant.threads.stop = True
         self.window.core.dispatcher.dispatch(event)  # stop audio input

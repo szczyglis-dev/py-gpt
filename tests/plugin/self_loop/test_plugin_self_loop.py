@@ -24,7 +24,6 @@ def test_options(mock_window):
     plugin.init_options()
     options = plugin.setup()
     assert "iterations" in options
-    assert "clear_output" in options
     assert "reverse_roles" in options
 
 
@@ -60,7 +59,7 @@ def test_handle_ctx_end(mock_window):
     plugin.prev_output = "prev output"
     plugin.options["iterations"]["value"] = 1
     plugin.handle(event)
-    mock_window.controller.chat.input.send.assert_called_once_with("prev output", force=True)
+    mock_window.controller.chat.input.send.assert_called_once_with("prev output", force=True, internal=True)
 
 
 def test_handle_ctx_before(mock_window):
@@ -103,5 +102,4 @@ def test_handle_ctx_after(mock_window):
     plugin.prev_output = ""
     plugin.handle(event)
     assert plugin.prev_output == "output"
-    assert ctx.output == ""
 

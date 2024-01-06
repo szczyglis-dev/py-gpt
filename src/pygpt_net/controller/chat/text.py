@@ -25,11 +25,12 @@ class Text:
         """
         self.window = window
 
-    def send(self, text: str) -> CtxItem:
+    def send(self, text: str, internal: bool = False) -> CtxItem:
         """
         Send text message
 
         :param text: text to send
+        :param internal: internal call
         :return: context item
         """
         self.window.ui.status(trans('status.sending'))
@@ -61,6 +62,7 @@ class Text:
 
         # create ctx item
         ctx = CtxItem()
+        ctx.internal = internal
         ctx.current = True  # mark as current context item
         ctx.mode = mode
         ctx.model = model

@@ -49,24 +49,26 @@ class Input:
         text = event.data['value']
         self.send(text)
 
-    def send(self, text: str = None, force: bool = False):
+    def send(self, text: str = None, force: bool = False, internal: bool = False):
         """
         Send input wrapper
 
         :param text: input text
         :param force: force send
+        :param internal: internal call
         """
-        self.execute(text, force)
+        self.execute(text, force=force, internal=internal)
 
-    def execute(self, text: str = None, force: bool = False):
+    def execute(self, text: str = None, force: bool = False, internal: bool = False):
         """
         Execute send input text to API
 
         :param text: input text
         :param force: force send
+        :param internal: internal call
         """
         # check if input is not locked
-        if self.locked and not force:
+        if self.locked and not force and not internal:
             return
 
         self.generating = True  # set generating flag
@@ -135,7 +137,7 @@ class Input:
         if self.window.core.config.get('mode') == 'img':
             ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
         else:
-            ctx = self.window.controller.chat.text.send(text)  # text mode: OpenAI or LangChain
+            ctx = self.window.controller.chat.text.send(text, internal=internal)  # text mode: OpenAI or LangChain
 
         # clear attachments after send if enabled
         if self.window.core.config.get('attachments_send_clear'):

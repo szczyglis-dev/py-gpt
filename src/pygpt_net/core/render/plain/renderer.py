@@ -101,6 +101,11 @@ class Renderer:
         else:
             text = "> {}".format(item.input)
 
+        # hidden internal call
+        if item.internal:
+            self.append_raw('-->')
+            return
+
         self.append_raw(text.strip())
         self.to_end()
 

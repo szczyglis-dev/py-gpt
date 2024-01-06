@@ -102,6 +102,11 @@ class Renderer:
         else:
             text = "> {}".format(item.input)
 
+        # hidden internal call
+        if item.internal:
+            self.append_raw('-->', "msg-user", item)
+            return
+
         self.append_raw(text.strip(), "msg-user", item)
 
     def append_output(self, item: CtxItem):
