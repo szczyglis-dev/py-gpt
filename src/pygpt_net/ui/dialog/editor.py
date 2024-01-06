@@ -30,6 +30,7 @@ class Editor:
 
         self.window.ui.editor[id] = QPlainTextEdit()
         self.window.ui.editor[id].setReadOnly(False)
+        self.window.ui.editor[id].setStyleSheet("background-color: #efefef; color: #000")
 
         self.window.ui.nodes['editor.btn.default'] = QPushButton(trans("dialog.editor.btn.defaults"))
         self.window.ui.nodes['editor.btn.save'] = QPushButton(trans("dialog.editor.btn.save"))
