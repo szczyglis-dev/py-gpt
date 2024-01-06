@@ -70,6 +70,8 @@ class Calendar:
         self.window.ui.splitters['calendar'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['calendar'].addWidget(self.window.ui.calendar['select'])
         self.window.ui.splitters['calendar'].addWidget(widget)
+        self.window.ui.splitters['calendar'].setStretchFactor(0, 6)  # 60%
+        self.window.ui.splitters['calendar'].setStretchFactor(1, 4)  # 40%
 
         return self.window.ui.splitters['calendar']
 
