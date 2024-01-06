@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 03:00:00                  #
+# Updated Date: 2024.01.06 06:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -50,6 +50,11 @@ class ChatInput(QTextEdit):
                     action = copy_to_menu.addAction(name)
                     action.triggered.connect(lambda checked=False, i=i:
                                              self.window.controller.notepad.append_text(selected_text, i))
+
+            # calendar
+            action = copy_to_menu.addAction(trans('text.context_menu.copy_to.calendar'))
+            action.triggered.connect(
+                lambda: self.window.controller.calendar.append_text(selected_text))
 
             menu.addMenu(copy_to_menu)
         menu.exec_(event.globalPos())
