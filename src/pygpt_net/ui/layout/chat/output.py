@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 10:00:00                  #
+# Updated Date: 2024.01.06 04:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget
 
 from pygpt_net.ui.layout.chat.input import Input
+from pygpt_net.ui.layout.chat.calendar import Calendar
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
@@ -32,6 +33,7 @@ class Output:
         """
         self.window = window
         self.input = Input(window)
+        self.calendar = Calendar(window)
 
     def setup(self) -> QWidget:
         """
@@ -58,6 +60,10 @@ class Output:
         self.window.ui.tabs['output'] = OutputTabs(self.window)
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output'], trans('output.tab.chat'))
         self.window.ui.tabs['output'].addTab(self.window.ui.nodes['output_files'], trans('output.tab.files'))
+
+        # calendar
+        calendar = self.calendar.setup()
+        self.window.ui.tabs['output'].addTab(calendar, trans('output.tab.calendar'))
 
         # append notepads
         if num_notepads > 0:
@@ -135,7 +141,7 @@ class Output:
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
 
         opts_layout = QHBoxLayout()
-        opts_layout.setSpacing(2) #
+        opts_layout.setSpacing(2)  #
         opts_layout.setContentsMargins(0, 0, 0, 0)
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
