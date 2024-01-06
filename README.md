@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.83** | build: **2024.01.06** | Python: **3.10+**
+Release: **2.0.84** | build: **2024.01.06** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -55,6 +55,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
 - Includes a notebook.
+- Includes optional Autonomous Mode
 - Supports multiple languages.
 - Enables the use of all the powerful features of `GPT-4`, `GPT-4V`, and `GPT-3.5`.
 - Requires no previous knowledge of using AI models.
@@ -627,8 +628,7 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
 
-- `Self Loop` - creates a self-loop mode, where GPT can generate a continuous conversation between 
-two AI instances, effectively talking to itself.
+- `Autonomous Mode: self loop, AI to AI conversation` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
 
 - `Real Time` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 
@@ -1015,7 +1015,7 @@ for before returning. *Default:* `1`
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 
-## Self Loop
+## Autonomous Mode: self loop, AI to AI conversation
 
 The plugin introduces a "talk with yourself" mode, where GPT begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout such a sequence, the model will engage 
@@ -1033,16 +1033,37 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 **Additional options:**
 
-- `Clear context output` *clear_output*
-
-The option clears the previous answer in the context, which is then used as input for the next iteration. *Default:* `True`
-
 - `Reverse roles between iterations` *reverse_roles*
 
+Only for Completion/Langchain modes. 
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
+- `Prompt` *prompt*
+
+Prompt used to instruct how to handle autonomous mode. You can extend it with your own rules.
+
+*Default:* 
+
+```console
+AUTONOMOUS MODE: 
+1. You will now enter self-dialogue mode, where you will be conversing with yourself, not with a human. 
+2. When you enter self-dialogue mode, remember that you are engaging in a conversation with yourself. Any user input will be considered a reply featuring your previous response. 
+3. The objective of this self-conversation is well-defined—focus on achieving it. 
+4. Your new message should be a continuation of the last response you generated, essentially replying to yourself and extending it. 
+5. After each response, critically evaluate its effectiveness and alignment with the goal. If necessary, refine your approach. 
+6. Incorporate self-critique after every response to capitalize on your strengths and address areas needing improvement. 
+7. To advance towards the goal, utilize all the strategic thinking and resources at your disposal. 
+8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping stone towards the ultimate objective. 
+9. Treat the entire dialogue as one long, continuous conversation with oneself, and as a monologue aimed at devising the best possible solution to the problem.
+10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria. 
+11. You are allowed to use any commands and tools without asking for it. 
+12. ALWAYS break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence. 
+13. The first instruction, along with a description of the main objective, will come from the user.
+14. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence. 
+   Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
+```
 
 ## Real Time
 
@@ -1423,6 +1444,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+### 2.0.84 (2024-01-06)
+
+- The "Self-Loop" plugin has been completely redesigned, improved, and renamed to the 'Autonomous Mode' option, which enables the launch of autonomous reasoning in a looped AI-with-AI conversation mode.
+- A system prompt option has been added to the plugin configuration with instructions for the autonomous mode.
 
 ### 2.0.83 (2024-01-06)
 

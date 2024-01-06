@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.0.84 (2024-01-06)
+
+- The "Self-Loop" plugin has been completely redesigned, improved, and renamed to the 'Autonomous Mode' option, which enables the launch of autonomous reasoning in a looped AI-with-AI conversation mode.
+- A system prompt option has been added to the plugin configuration with instructions for the autonomous mode.
+
 ## 2.0.83 (2024-01-06)
 
 - Added calendar, day notes (memos) and color labels

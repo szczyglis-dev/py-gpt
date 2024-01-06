@@ -404,34 +404,55 @@ The duration parameter is the maximum number of seconds that it will dynamically
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 
-Self Loop
-----------
+Autonomous Mode: self loop, AI to AI conversation
+--------------------------------------------------
 
 The plugin introduces a "talk with yourself" mode, where GPT begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout such a sequence, the model will engage 
-in self-dialogue, responding to its own questions and comments. This feature is available in both ``Chat`` and ``Completion`` modes. 
+in self-dialogue, responding to its own questions and comments. This feature is available in both `Chat` and `Completion` modes. 
 To enhance the experience in Completion mode, you can assign specific names (roles) to each participant in the dialogue.
 
 To effectively start this mode, it's important to craft the system prompt carefully, ensuring it indicates to GPT that 
 it is conversing with itself. The outcomes can be intriguing, so it's worth exploring what happens when you try this.
 
-You can adjust the number of iterations for the self-conversation in the ``Plugins / Settings...`` menu under the following option:
+You can adjust the number of iterations for the self-conversation in the `Plugins / Settings...` menu under the following option:
 
 ``Iterations`` *iterations*
 
 *Default:* `3`
 
-
 **Additional options:**
 
-``Clear context output`` *clear_output*
+``Prompt`` *prompt*
 
+Prompt used to instruct how to handle autonomous mode. You can extend it with your own rules.
 
-The option clears the previous answer in the context, which is then used as input for the next iteration. *Default:* `True`
+**Default:** 
+
+.. code-block:: console
+
+   AUTONOMOUS MODE: 
+   1. You will now enter self-dialogue mode, where you will be conversing with yourself, not with a human. 
+   2. When you enter self-dialogue mode, remember that you are engaging in a conversation with yourself. Any user input will be considered a reply featuring your previous response. 
+   3. The objective of this self-conversation is well-defined—focus on achieving it. 
+   4. Your new message should be a continuation of the last response you generated, essentially replying to yourself and extending it. 
+   5. After each response, critically evaluate its effectiveness and alignment with the goal. If necessary, refine your approach. 
+   6. Incorporate self-critique after every response to capitalize on your strengths and address areas needing improvement. 
+   7. To advance towards the goal, utilize all the strategic thinking and resources at your disposal. 
+   8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping stone towards the ultimate objective. 
+   9. Treat the entire dialogue as one long, continuous conversation with oneself, and as a monologue aimed at devising the best possible solution to the problem.
+   10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria. 
+   11. You are allowed to use any commands and tools without asking for it. 
+   12. ALWAYS break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence. 
+   13. The first instruction, along with a description of the main objective, will come from the user.
+   14. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence. 
+      Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
+
 
 
 ``Reverse roles between iterations`` *reverse_roles*
 
+Only for Completion/Langchain modes. 
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`

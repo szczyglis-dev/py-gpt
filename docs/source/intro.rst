@@ -41,6 +41,7 @@ Features
 * Allows you to easily manage prompts with handy editable presets.
 * Provides an intuitive operation and interface.
 * Includes a notebook.
+* Includes optional Autonomous Mode
 * Supports multiple languages.
 * Enables the use of all the powerful features of ``GPT-4``, ``GPT-4V``, and ``GPT-3.5``.
 * Requires no previous knowledge of using AI models.
