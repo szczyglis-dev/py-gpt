@@ -79,7 +79,7 @@ class Ctx:
             self.window.core.config.save()
 
         # update calendar ctx list
-        self.window.controller.calendar.update()
+        self.window.controller.calendar.update(all=False)
 
     def select(self, id: int):
         """

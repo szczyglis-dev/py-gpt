@@ -163,9 +163,9 @@ class Notepad:
         :param text: text to append
         :param idx: notepad idx
         """
-        if id not in self.window.ui.notepad:
+        if idx not in self.window.ui.notepad:
             return
-        dt = "" # TODO: add to config append date/time
+        dt = ""  # TODO: add to config append date/time
         # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
         prev_text = self.window.ui.notepad[idx].toPlainText()
         if prev_text != "":

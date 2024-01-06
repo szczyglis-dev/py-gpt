@@ -9,16 +9,11 @@
 # Updated Date: 2024.01.06 04:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QDate
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, \
-    QTabWidget, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter
 
-from pygpt_net.ui.layout.chat.attachments import Attachments
-from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
-from pygpt_net.ui.layout.status import Status
-from pygpt_net.ui.widget.audio.input import AudioInput
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
-from pygpt_net.ui.widget.textarea.input import ChatInput
+from pygpt_net.ui.widget.textarea.CalendarNote import CalendarNote
 from pygpt_net.utils import trans
 
 
@@ -39,7 +34,8 @@ class Calendar:
         """
         # layout
         layout = QVBoxLayout()
-        layout.addLayout(self.setup_calendar())
+        layout.addWidget(self.setup_calendar())
+        layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -50,7 +46,7 @@ class Calendar:
         """
         Setup calendar
 
-        :return: QHBoxLayout
+        :return: QSplitter
         """
         # calendar
         self.window.ui.calendar['select'] = CalendarSelect(self.window)
@@ -58,9 +54,22 @@ class Calendar:
         self.window.ui.calendar['select'].setMinimumWidth(200)
         self.window.ui.calendar['select'].setGridVisible(True)
 
-        # layout
-        layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.calendar['select'])
+        self.window.ui.calendar['note'] = CalendarNote(self.window)
 
-        return layout
+        # note
+        self.window.ui.calendar['note.label'] = QLabel(trans('calendar.note.label'))
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.calendar['note.label'])
+        layout.addWidget(self.window.ui.calendar['note'])
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        # layout / splitter
+        self.window.ui.splitters['calendar'] = QSplitter(Qt.Horizontal)
+        self.window.ui.splitters['calendar'].addWidget(self.window.ui.calendar['select'])
+        self.window.ui.splitters['calendar'].addWidget(widget)
+
+        return self.window.ui.splitters['calendar']
 

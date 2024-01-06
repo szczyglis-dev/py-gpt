@@ -9,6 +9,11 @@
 # Updated Date: 2024.01.06 04:00:00                  #
 # ================================================== #
 
+import datetime
+
+from pygpt_net.utils import trans
+
+
 class Calendar:
     def __init__(self, window=None):
         """
@@ -20,32 +25,96 @@ class Calendar:
 
     def setup(self):
         """Setup calendar"""
-        self.update()
+        self.load_notes()
+        self.update()  # update counters and load notes for current month
+        self.update_note_current() # set to current note at start
 
-    def update(self):
-        """Update calendar counters"""
+    def update_note_current(self):
+        """Update note to current selected date"""
         year = self.window.ui.calendar['select'].currentYear
         month = self.window.ui.calendar['select'].currentMonth
-        self.on_page_changed(year, month)
+        day = self.window.ui.calendar['select'].currentDay
+        self.update_note_content(year, month, day)
+        self.update_note_label(year, month, day)
+
+    def load_notes(self):
+        """Load notes from current year and month from database"""
+        year = self.window.ui.calendar['select'].currentYear
+        month = self.window.ui.calendar['select'].currentMonth
+        self.window.core.calendar.load_by_month(year, month)
+
+    def update(self, all: bool = True):
+        """
+        Update calendar counters
+
+        :param all: reload all notes
+        """
+        year = self.window.ui.calendar['select'].currentYear
+        month = self.window.ui.calendar['select'].currentMonth
+        self.on_page_changed(year, month, all=all)  # load notes for current month
+
+    def date_to_key(self, year: int, month: int, day: int) -> str:
+        """
+        Convert date to key string in format: YYYY-MM-DD
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :return: key string in format: YYYY-MM-DD
+        """
+        return datetime.datetime(year, month, day).strftime("%Y-%m-%d")
+
+    def update_note(self):
+        year = self.window.ui.calendar['select'].currentYear
+        month = self.window.ui.calendar['select'].currentMonth
+        day = self.window.ui.calendar['select'].currentDay
+        content = self.window.ui.calendar['note'].toPlainText()
+        note = self.window.core.calendar.get_by_date(year, month, day)
+        if note is None:
+            note = self.window.core.calendar.build()
+            note.year = year
+            note.month = month
+            note.day = day
+            note.content = content
+            self.window.core.calendar.add(note)
+        else:
+            note.content = content
+            self.window.core.calendar.update(note)
+
+        self.update_note_cells(year, month)  # update note cells when note is changed
 
     def update_ctx_cells(self, year: int, month: int):
         """
-        Update calendar context cells
+        Update calendar ctx cells
 
-        :param year: Year
-        :param month: Month
+        :param year: year
+        :param month: month
         """
-        ctx_count = self.window.core.ctx.provider.get_ctx_count_by_day(year, month)
-        self.window.ui.calendar['select'].update_ctx(ctx_count)
+        counters = self.window.core.ctx.provider.get_ctx_count_by_day(year, month)
+        self.window.ui.calendar['select'].update_ctx(counters)
 
-    def on_page_changed(self, year: int, month: int):
+    def update_note_cells(self, year: int, month: int):
+        """
+        Update calendar ctx cells
+
+        :param year: year
+        :param month: month
+        """
+        counters = self.window.core.calendar.get_notes_existence_by_day(year, month)
+        self.window.ui.calendar['select'].update_notes(counters)
+
+    def on_page_changed(self, year: int, month: int, all: bool = True):
         """
         On calendar page changed
 
-        :param year: Year
-        :param month: Month
+        :param year: year
+        :param month: month
+        :param all: reload all notes
         """
+        if all:
+            self.load_notes()  # reload notes for current year and month
         self.update_ctx_cells(year, month)
+        self.update_note_cells(year, month)
 
     def on_day_select(self, year: int, month: int, day: int):
         """
@@ -55,6 +124,50 @@ class Calendar:
         :param month: Month
         :param day: Day
         """
+        self.update_note_content(year, month, day)
+        self.update_note_label(year, month, day)
+
+    def on_ctx_select(self, year: int, month: int, day: int):
+        """
+        On calendar day select
+
+        :param year: Year
+        :param month: Month
+        :param day: Day
+        """
         date_search_string = '@date({:04d}-{:02d}-{:02d})'.format(year, month, day)
         self.window.controller.ctx.append_search_string(date_search_string)
+
+    def update_note_content(self, year: int, month: int, day: int):
+        """
+        Update note content
+
+        :param year: Year
+        :param month: Month
+        :param day: Day
+        """
+        note = self.window.core.calendar.get_by_date(year, month, day)
+        if note is None:
+            self.window.ui.calendar['note'].setPlainText("")
+        else:
+            self.window.ui.calendar['note'].setPlainText(note.content)
+
+    def update_note_label(self, year: int, month: int, day: int):
+        dt_formatted_suffix = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
+        self.window.ui.calendar['note.label'].setText(trans('calendar.note.label') + " (" + dt_formatted_suffix + ")")
+
+    def append_text(self, text: str):
+        """
+        Append text to note
+
+        :param text: text to append
+        """
+        dt = ""  # TODO: add to config append date/time
+        # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
+        prev_text = self.window.ui.calendar['note'].toPlainText()
+        if prev_text != "":
+            prev_text += "\n\n"
+        new_text = prev_text + dt + text.strip()
+        self.window.ui.calendar['note'].setText(new_text)
+        self.update_note()
 
