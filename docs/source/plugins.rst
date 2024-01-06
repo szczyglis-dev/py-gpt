@@ -421,6 +421,10 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 *Default:* `3`
 
+``Auto-stop after goal is reached`` *auto_stop*
+
+If enabled, plugin will stop after goal is reached." **Default:** ``True``
+
 **Additional options:**
 
 ``Prompt`` *prompt*

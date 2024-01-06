@@ -25,6 +25,9 @@ class Plugin(BasePlugin):
         self.order = 9998
         self.use_locale = True
         self.stop = False
+        self.allowed_cmds = [
+            "goal_update",
+        ]
         self.init_options()
 
     def init_options(self):
@@ -39,6 +42,9 @@ class Plugin(BasePlugin):
         self.add_option("reverse_roles", "bool", True,
                         "Reverse roles between iterations",
                         "If enabled, roles will be reversed between iterations.")
+        self.add_option("auto_stop", "bool", True,
+                        "Auto-stop after goal is reached",
+                        "If enabled, plugin will stop after goal is reached.")
         prompt = "AUTONOMOUS MODE: 1. You will now enter self-dialogue mode, where you will be conversing with yourself," \
                  " not with a human. 2. When you enter self-dialogue mode, remember that you are engaging in a conversation " \
                  "with yourself. Any user input will be considered a reply featuring your previous response. " \
@@ -102,6 +108,9 @@ class Plugin(BasePlugin):
             self.on_stop(data['value'])
         elif name == 'system.prompt':
             data['value'] = self.on_system_prompt(data['value'])
+        elif name == 'cmd.only' or name == 'cmd.execute':
+            if self.get_option_value("auto_stop"):
+                self.cmd(ctx, data['commands'])
 
     def on_system_prompt(self, prompt: str):
         """
@@ -110,8 +119,40 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        prompt += "\n" + self.get_option_value("prompt")
+        stop_cmd = ""
+        if self.get_option_value("auto_stop"):
+            stop_cmd = '\n\nON FINISH: When you believe that the task has been completed 100% and all goals have ' \
+                       'been achieved, include the following command in your response, which will stop further ' \
+                       'conversation. Remember to put it in the form as given, at the end of response and including ' \
+                       'the surrounding ~###~ marks: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
+        prompt += "\n" + self.get_option_value("prompt") + stop_cmd
         return prompt
+
+    def cmd(self, ctx: CtxItem, cmds: list):
+        """
+        Event: On command
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        """
+        is_cmd = False
+        my_commands = []
+        for item in cmds:
+            if item["cmd"] in self.allowed_cmds:
+                my_commands.append(item)
+                is_cmd = True
+
+        if not is_cmd:
+            return
+
+        for item in my_commands:
+            try:
+                if item["cmd"] == "goal_update":
+                    if item["params"]["status"] == "finished":
+                        self.on_stop(True)
+            except Exception as e:
+                self.log("Error: " + str(e))
+                return
 
     def on_stop(self, value: bool):
         """

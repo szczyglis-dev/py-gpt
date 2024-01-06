@@ -1040,6 +1040,10 @@ If enabled, this option reverses the roles (AI <> user) with each iteration. For
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
+- `Auto-stop after goal is reached` *auto_stop*
+
+If enabled, plugin will stop after goal is reached." *Default:* `True`
+
 - `Prompt` *prompt*
 
 Prompt used to instruct how to handle autonomous mode. You can extend it with your own rules.
@@ -1447,8 +1451,9 @@ may consume additional tokens that are not displayed in the main window.
 
 ### 2.0.84 (2024-01-06)
 
-- The "Self-Loop" plugin has been completely redesigned, improved, and renamed to the 'Autonomous Mode' option, which enables the launch of autonomous reasoning in a looped AI-with-AI conversation mode.
+- The "Self-Loop" plugin has been completely redesigned, improved, and renamed to the Autonomous Mode, which enables the launch of autonomous reasoning in a looped AI-with-AI conversation mode.
 - A system prompt option has been added to the plugin configuration with instructions for the autonomous mode.
+- Auto-stop after goal is reached option is added also to plugin settings.
 
 ### 2.0.83 (2024-01-06)
 
