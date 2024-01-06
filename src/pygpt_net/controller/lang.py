@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.06 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, Qt
@@ -63,6 +63,7 @@ class Lang:
         # output: tabs
         self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
         self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
+        self.window.ui.tabs['output'].setTabText(2, trans('output.tab.calendar'))
 
         # notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
