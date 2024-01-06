@@ -33,6 +33,7 @@ Features
 * Speech recognition through ``OpenAI Whisper``.
 * Image analysis via ``GPT-4 Vision``.
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
+* Integrated calendar, day notes and search in contexts by selected date
 * Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 * Custom commands creation and execution
 * Manages files and attachments with options to upload, download, and organize.

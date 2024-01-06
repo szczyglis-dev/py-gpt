@@ -2,9 +2,10 @@
 
 ## 2.0.83 (2024-01-06)
 
-- Added calendar (beta, more calendar-related features coming soon)
-- Added search filter by selected date
+- Added calendar, day notes (memos) and color labels
+- Added context search filter by date (days selected in calendar)
 - Added 'clear' icon in search input
+- Small fixes and improvements
 
 ## 2.0.82 (2024-01-05)
 

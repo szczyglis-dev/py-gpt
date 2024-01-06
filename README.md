@@ -47,7 +47,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Speech recognition via `OpenAI Whisper`.
 - Image analysis via `GPT-4 Vision`.
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated callendar
+- Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
 - Manages files and attachments with options to upload, download, and organize.
@@ -1426,9 +1426,10 @@ may consume additional tokens that are not displayed in the main window.
 
 ### 2.0.83 (2024-01-06)
 
-- Added calendar (beta, more calendar-related features coming soon)
-- Added search filter by selected date
+- Added calendar, day notes (memos) and color labels
+- Added context search filter by date (days selected in calendar)
 - Added 'clear' icon in search input
+- Small fixes and improvements
 
 ### 2.0.82 (2024-01-05)
 
