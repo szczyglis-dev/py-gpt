@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.06 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -103,6 +103,16 @@ class DbSqliteProvider(BaseProvider):
         :rtype: list
         """
         return self.storage.get_items(id)
+
+    def get_ctx_count_by_day(self, year, month):
+        """
+        Get ctx count by day
+
+        :param year: year
+        :param month: month
+        :return: dict of ctx count by day
+        """
+        return self.storage.get_ctx_count_by_day(year, month)
 
     def append_item(self, meta: CtxMeta, item: CtxItem) -> bool:
         """

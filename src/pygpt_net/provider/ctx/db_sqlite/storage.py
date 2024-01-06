@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.06 03:00:00                  #
 # ================================================== #
 
+from datetime import datetime
 import json
+import re
 import time
 
 from sqlalchemy import text
@@ -34,6 +36,39 @@ class Storage:
         """
         self.window = window
 
+    def search_by_date_string(self, search_string):
+        """
+        Prepare date ranges from search string if @date() syntax is used in search
+
+        Examples of @date() syntax in search string:
+
+        @date(YYYY-MM-DD) -- search in exact day
+        @date(YYYY-MM-DD,YYYY-MM-DD) -- search in date range
+        @date(,YYYY-MM-DD) -- search in date range from beginning of time
+        @date(YYYY-MM-DD,) -- search in date range to end of time
+
+        :param search_string: search string
+        :return: list of date ranges
+        """
+        date_pattern = re.compile(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)')
+        matches = date_pattern.findall(search_string)
+        date_ranges = []
+        for match in matches:
+            start_date_str, _, end_date_str = match
+            if start_date_str and end_date_str:
+                start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
+                end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
+                date_ranges.append((start_ts, end_ts))
+            elif start_date_str:
+                start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
+                end_of_day_ts = start_ts + (24 * 60 * 60) - 1
+                date_ranges.append((start_ts, end_of_day_ts))
+            elif end_date_str:
+                end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
+                date_ranges.append((0, end_ts))
+
+        return date_ranges
+
     def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
                  limit: int = None, offset: int = None) -> dict:
         """
@@ -50,9 +85,40 @@ class Storage:
                 SELECT * FROM ctx_meta ORDER BY updated_ts DESC {}
             """.format(limit_suffix))
         else:
-            stmt = text("""
-                SELECT * FROM ctx_meta WHERE name LIKE :search_string ORDER BY updated_ts DESC {}
-            """.format(limit_suffix)).bindparams(search_string=f"%{search_string}%")
+            # now we can search by search string or with date ranges
+            # 1) first check if search string contains @date() syntax
+            date_ranges = self.search_by_date_string(search_string)
+            if len(date_ranges) > 0:
+                # if yes, then remove @date() syntax from search string
+                search_string = re.sub(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)', '', search_string)
+
+                # prepare query
+                date_ranges_query = []
+                bind_params = {}
+
+                # add string search to date ranges
+                if search_string:
+                    date_ranges_query.append("(name LIKE :search_string)".format(search_string))
+                    bind_params['search_string'] = '%'+search_string+'%'
+
+                # and add date ranges to query
+                for date_range in date_ranges:
+                    start_ts, end_ts = date_range
+                    date_ranges_query.append("(updated_ts BETWEEN :start_ts AND :end_ts)")
+                    bind_params['start_ts'] = start_ts
+                    bind_params['end_ts'] = end_ts
+                    break  # TODO: remove this break when multiple date ranges will be supported
+                date_ranges_query = " AND ".join(date_ranges_query)
+                stmt = text("""
+                    SELECT * FROM ctx_meta WHERE {} ORDER BY updated_ts DESC {}
+                """.format(date_ranges_query, limit_suffix)).bindparams(**bind_params)
+
+            else:
+                # 2) if no, then search by search string only
+                stmt = text("""
+                    SELECT * FROM ctx_meta WHERE name LIKE :search_string ORDER BY updated_ts DESC {}
+                """.format(limit_suffix)).bindparams(search_string=f"%{search_string}%")
+
         items = {}
         db = self.window.core.db.get_db()
         with db.connect() as conn:
@@ -434,6 +500,23 @@ class Storage:
         with db.begin() as conn:
             conn.execute(stmt)
         return True
+
+    def get_ctx_count_by_day(self, year, month):
+        """Return ctx count by day for given year and month"""
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            result = conn.execute(text("""
+                SELECT
+                    strftime('%Y-%m-%d', datetime(updated_ts, 'unixepoch')) as day,
+                    COUNT(*) as count
+                FROM ctx_meta
+                WHERE strftime('%Y', datetime(updated_ts, 'unixepoch')) = :year 
+                  AND strftime('%m', datetime(updated_ts, 'unixepoch')) = :month
+                GROUP BY day
+            """), {'year': str(year),
+                   'month': f'{month:02}'})
+
+            return {row._mapping['day']: row._mapping['count'] for row in result}
 
     def pack_item_value(self, value: any) -> str:
         """
