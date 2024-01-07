@@ -82,6 +82,7 @@ class Plugins:
                 for key in plugins[id]:
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = plugins[id][key]
+            print("Loaded plugin: {}".format(plugin.name))
         except Exception as e:
             self.window.core.debug.log(e)
             print('Error while loading plugin options: {}'.format(id))
