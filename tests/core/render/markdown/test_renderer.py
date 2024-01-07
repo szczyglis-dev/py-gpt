@@ -69,7 +69,7 @@ def test_replace_code_tags(mock_window):
     """Test replace code cmd tags"""
     render = Render(mock_window)
     text = "test ~###~test~###~ test"
-    expected = "test <span class=\"cmd\">test</span> test"
+    expected = "test <div class=\"cmd\">test</div> test"
     assert render.replace_code_tags(text) == expected
 
 
@@ -77,7 +77,7 @@ def test_pre_format_text(mock_window):
     """Test pre format text"""
     render = Render(mock_window)
     text = "test ~###~test~###~ test"
-    expected = "test <span class=\"cmd\">test</span> test"
+    expected = "test <div class=\"cmd\">test</div> test"
     assert render.pre_format_text(text) == expected
 
 
@@ -93,7 +93,7 @@ def test_format_user_text(mock_window):
     """Test format user text"""
     render = Render(mock_window)
     text = " test ~###~test~###~ test "
-    expected = "test ~###~test~###~ test"
+    expected = " test ~###~test~###~ test "  # no strip here
     assert render.format_user_text(text) == expected
 
 

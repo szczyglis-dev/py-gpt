@@ -93,4 +93,4 @@ def test_handle_finished(mock_window):
     event.ctx = ctx
     command.handle_finished(event)
     mock_window.ui.status.assert_called_once_with('')
-    mock_window.controller.chat.input.send.assert_called_once_with('{"test": "test"}', force=True)
+    mock_window.controller.chat.input.send.assert_called_once_with('{"test": "test"}', force=True, internal=False)

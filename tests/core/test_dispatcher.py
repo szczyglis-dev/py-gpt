@@ -44,8 +44,9 @@ def test_reply(mock_window):
     ctx = MagicMock()
     ctx.reply = True
     ctx.results = {'test': 'test'}
+    ctx.internal = False
     dispatcher.window.core.ctx.update_item = MagicMock()
     dispatcher.window.controller.chat.input.send = MagicMock()
     dispatcher.reply(ctx)
     dispatcher.window.core.ctx.update_item.assert_called_once_with(ctx)
-    dispatcher.window.controller.chat.input.send.assert_called_once_with(json.dumps(ctx.results), force=True)
+    dispatcher.window.controller.chat.input.send.assert_called_once_with(json.dumps(ctx.results), force=True, internal=False)

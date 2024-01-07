@@ -37,7 +37,7 @@ def test_summarizer(mock_window):
 
     item = CtxItem()
     summarizer.summarizer(3, item, mock_window, signal)
-    signal.emit.assert_called_once_with(3, 'test_title')
+    signal.emit.assert_called_once_with(3, item, 'test_title')
 
 
 def test_start_worker(mock_window):
@@ -51,5 +51,6 @@ def test_start_worker(mock_window):
 def test_handle_update(mock_window):
     """Test handle update"""
     summarizer = Summarizer(mock_window)
-    summarizer.handle_update(3, 'test_title')
-    mock_window.controller.ctx.update_name.assert_called_once_with(3, 'test_title')
+    ctx = CtxItem()
+    summarizer.handle_update(3, ctx, 'test_title')
+    mock_window.controller.ctx.update_name.assert_called_once_with(3, 'test_title', refresh=True)
