@@ -509,6 +509,35 @@ class JsonFileProvider(BaseProvider):
                 self.window.core.updater.patch_css('markdown.light.css', True)  # force replace file
                 updated = True
 
+            # < 2.0.85
+            if old < parse_version("2.0.85"):
+                print("Migrating config from < 2.0.85...")
+                prompt = "AUTONOMOUS MODE: 1. You will now enter self-dialogue mode, where you will be conversing with yourself," \
+                         " not with a human. 2. When you enter self-dialogue mode, remember that you are engaging in a conversation " \
+                         "with yourself. Any user input will be considered a reply featuring your previous response. " \
+                         "3. The objective of this self-conversation is well-defined—focus on achieving it. 4. Your new message " \
+                         "should be a continuation of the last response you generated, essentially replying to yourself and " \
+                         "extending it. 5. After each response, critically evaluate its effectiveness and alignment with the " \
+                         "goal. If necessary, refine your approach. 6. Incorporate self-critique after every response to " \
+                         "capitalize on your strengths and address areas needing improvement. 7. To advance towards the goal," \
+                         " utilize all the strategic thinking and resources at your disposal. 8. Ensure that the dialogue " \
+                         "remains coherent and logical, with each response serving as a stepping stone towards the ultimate " \
+                         "objective. 9. Treat the entire dialogue as a monologue aimed at devising the best possible solution to the problem. " \
+                         "10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets " \
+                         "the initial criteria. 11. You are allowed to use any commands and tools without asking for it. " \
+                         "12. While using commands, always use the correct syntax and never interrupt the command before " \
+                         "generating the full instruction. 13. ALWAYS break down the main task into manageable logical subtasks," \
+                         " systematically addressing and analyzing each one in sequence. 14. The first instruction, along with " \
+                         "a description of the main objective, will come from the user. 15. Start by breaking down the task into" \
+                         " as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  " \
+                         "Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of " \
+                         "them until the required goal is fully and correctly achieved."
+                if 'self_loop' not in data['plugins']:
+                    data['plugins']['self_loop'] = {}
+                    data['plugins']['self_loop']['prompt'] = prompt  # fixed prompt
+
+                updated = True
+
         # update file
         migrated = False
         if updated:
