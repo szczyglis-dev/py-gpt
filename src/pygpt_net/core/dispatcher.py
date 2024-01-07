@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.06 23:00:00                  #
 # ================================================== #
 
 import json
@@ -26,6 +26,7 @@ class Event:
         self.data = data
         self.ctx = None
         self.stop = False
+        self.internal = False  # internal event, not from user, handled synchronously, ctxitem has internal flag
 
 
 class Dispatcher:
@@ -43,8 +44,8 @@ class Dispatcher:
 
         :param event: event to dispatch
         :param all: true if dispatch to all plugins (enabled or not)
-        :param is_async: true if async event
-        :return:list of affected plugins ids and event object
+        :param is_async: true if async event  TODO: remove this param
+        :return: list of affected plugins ids and event object
         """
         affected = []
         for id in self.window.core.plugins.plugins:
@@ -62,7 +63,7 @@ class Dispatcher:
 
         :param id: plugin id
         :param event: event object
-        :param is_async: true if async event
+        :param is_async: true if async event  TODO: remove this param
         """
         if id in self.window.core.plugins.plugins:
             try:
@@ -82,4 +83,4 @@ class Dispatcher:
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
-                self.window.controller.chat.input.send(json.dumps(ctx.results), force=True)  # force send to input
+                self.window.controller.chat.input.send(json.dumps(ctx.results), force=True, internal=ctx.internal)
