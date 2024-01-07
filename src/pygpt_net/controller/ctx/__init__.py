@@ -48,6 +48,17 @@ class Ctx:
         # load selected ctx
         self.load(self.window.core.ctx.current)
 
+        # restore search string if exists
+        if self.window.core.config.has("ctx.search.string"):
+            string = self.window.core.config.get("ctx.search.string")
+            if string is not None and string != "":
+                self.window.ui.nodes['ctx.search'].setText(string)
+                self.search_string_change(string)
+                # check if current selected ctx is still valid
+                if self.window.core.ctx.current is not None:
+                    if not self.window.core.ctx.has(self.window.core.ctx.current):
+                        self.search_string_clear()  # clear search and reload ctx list to prevent creating new ctx
+
     def update(self, reload: bool = True, all: bool = True):
         """
         Update ctx list
