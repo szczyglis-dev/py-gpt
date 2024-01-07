@@ -108,9 +108,9 @@ class DbSqliteProvider(BaseProvider):
         :param items: dict of CalendarNoteItem objects
         """
         try:
-            for idx in items:
-                notepad = items[idx]
-                self.storage.save(notepad)
+            for dt in items:
+                note = items[dt]
+                self.storage.save(note)
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error while saving note: {}".format(str(e)))

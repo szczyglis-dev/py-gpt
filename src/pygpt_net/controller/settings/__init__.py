@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.07 08:00:00                  #
 # ================================================== #
 
 import os
@@ -32,11 +32,12 @@ class Settings:
         self.editor.load()
 
     def save_all(self):
-        """Save all settings"""
+        """Save all settings and data"""
         info = trans('info.settings.all.saved')
         self.window.core.config.save()
         self.window.core.presets.save_all()
         self.window.controller.notepad.save_all()
+        self.window.controller.calendar.save_all()
         self.window.ui.dialogs.alert(info)
         self.window.ui.status(info)
         self.window.controller.ui.update()

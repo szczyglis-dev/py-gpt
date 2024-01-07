@@ -77,6 +77,7 @@ class Calendar:
         return datetime.datetime(year, month, day).strftime("%Y-%m-%d")
 
     def update_note(self):
+        """Update note on content change"""
         year = self.window.ui.calendar['select'].currentYear
         month = self.window.ui.calendar['select'].currentMonth
         day = self.window.ui.calendar['select'].currentDay
@@ -211,4 +212,8 @@ class Calendar:
         new_text = prev_text + dt + text.strip()
         self.window.ui.calendar['note'].setText(new_text)
         self.update_note()
+
+    def save_all(self):
+        """Save all calendar notes"""
+        self.window.core.calendar.save_all()
 
