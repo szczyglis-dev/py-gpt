@@ -13,7 +13,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
-from pygpt_net.ui.widget.textarea.CalendarNote import CalendarNote
+from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
 
 

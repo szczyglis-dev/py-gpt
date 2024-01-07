@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 03:00:00                  #
+# Updated Date: 2024.01.07 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -27,6 +27,7 @@ class CalendarNote(QTextEdit):
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
         self.value = int(self.window.core.config.get('font_size.calendar.note') or 12)
+        self.textChanged.connect(self.window.controller.calendar.update_note)
         self.max_font_size = 42
         self.min_font_size = 8
 
@@ -63,15 +64,6 @@ class CalendarNote(QTextEdit):
         Read selected text (audio)
         """
         self.window.controller.audio.read_text(self.textCursor().selectedText())
-
-    def keyPressEvent(self, event):
-        """
-        Key press event
-
-        :param event: key event
-        """
-        super(CalendarNote, self).keyPressEvent(event)
-        self.window.controller.calendar.update_note()
 
     def wheelEvent(self, event):
         """
