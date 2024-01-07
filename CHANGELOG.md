@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.87 (2024-01-07)
+
+- Fixed paragraph formatting and font color.
+- Implemented automatic database backup creation prior to all migrations.
+- Added functionality to search contexts using both fields in a single query: search string and date range.
+
 # 2.0.86 (2024-01-07)
 
 - Fixed window state saving on exit

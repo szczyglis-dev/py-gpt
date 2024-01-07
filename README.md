@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.86** | build: **2024.01.07** | Python: **3.10+**
+Release: **2.0.87** | build: **2024.01.07** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1455,6 +1455,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+## 2.0.87 (2024-01-07)
+
+- Fixed paragraph formatting and font color.
+- Implemented automatic database backup creation prior to all migrations.
+- Added functionality to search contexts using both fields in a single query: search string and date range.
+
 ## 2.0.86 (2024-01-07)
 
 - Fixed window state saving on exit
@@ -1534,67 +1540,6 @@ may consume additional tokens that are not displayed in the main window.
 - Extended the Markdown parser with an extension for converting `li` to `p` (it allows copying lists bullets with Ctrl-C).
 - Added notebook titles to the "Copy to..." context menu.
 - Added an "Open file" option in the file explorer and attachments list.
-
-### 2.0.73 (2024-01-03)
-
-- Fixed vision prompt appending
-- Improved inline vision: removed the "keep" option and added a vision indicator with a checkbox for quickly enabling/disabling the vision model if needed (will auto-enable when an image is provided if the plugin is active)
-
-### 2.0.72 (2024-01-02)
-
-- Fixed markdown / HTML formatting
-- Added config option "Use color theme in chat window" in main settings
-- Added configuration for system prompt to use with vision in Vision Inline plugin settings
-
-### 2.0.71 (2024-01-01)
-
-- Added Markdown and HTML formatting in the chat window (beta version)
-- Added the display of images, files and URLs internally in the chat window
-- Added fully integration with images, attachments, and files inside the chat window
-- Added vision capture and image generation directly into the chat window (via the DALL-E Inline plugin)
-- Improved audio speech generation (eliminated the silence that prematurely truncated the previous audio output before generating the next speech synthesis)
-
-### 2.0.70 (2023-12-31)
-
-- Added commands part strip from speech generation
-- Added img check for links sending to vision in auto mode
-
-### 2.0.69 (2023-12-31)
-
-- Added a new plugin: GPT-4 Vision (inline - in any chat). Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
-
-### 2.0.68 (2023-12-31)
-
-- Added a new plugin: DALL-E 3 Image Generation (inline) which enables image generation in any chat and mode, seamlessly in the background - just request an image from any model, like GPT-4, and it will generate it "inline."
-- User Interface optimizations.
-- Added type hints to the code.
-- Fixed issue with sending attachments in Assistant mode.
-
-### 2.0.67 (2023-12-30)
-
-- Notepad restore fix
-
-### 2.0.66 (2023-12-30)
-
-- Added "Rename" option to Notepad Tabs (via RMB)
-- Improved language switching
-
-### 2.0.65 (2023-12-30)
-
-- Image generation, vision capture and assistants run listeners moved to async threadpool
-- Added saving state of scroll value in chat window
-- Added search string save and restore
-- Added input text save and restore
-- Updated tests and code cleanup
-- Added translations (only main app): DE, ES, FR, IT, UA 
-- Small fixes and optimizations
-
-### 2.0.64 (2023-12-29)
-
-- Commands and plugins execution moved to asynchronous native QT threadpool
-- Improved theme switching
-- Improved debugger window
-- Small fixes and optimizations
 
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
