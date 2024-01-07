@@ -295,13 +295,14 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def update_name(self, id: int, name: str, close: bool = True):
+    def update_name(self, id: int, name: str, close: bool = True, refresh: bool = True):
         """
         Update ctx name
 
         :param id: context id
         :param name: context name
         :param close: close dialog
+        :param refresh: refresh ctx list
         """
         if id not in self.window.core.ctx.get_meta():
             return
@@ -310,7 +311,11 @@ class Ctx:
         self.window.core.ctx.save(id)
         if close:
             self.window.ui.dialog['rename'].close()
-        self.update()
+
+        if refresh:
+            self.update()
+        else:
+            self.update(True, False)
 
     def handle_allowed(self, mode: str) -> bool:
         """

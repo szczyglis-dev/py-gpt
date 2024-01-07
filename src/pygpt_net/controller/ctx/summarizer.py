@@ -15,7 +15,7 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class WorkerSignals(QObject):
-    updated = Signal(int, str)
+    updated = Signal(int, object, str)
 
 
 class Summarizer:
@@ -47,7 +47,7 @@ class Summarizer:
         """
         title = window.core.gpt.summarizer.summary_ctx(ctx)
         if title:
-            updated_signal.emit(id, title)
+            updated_signal.emit(id, ctx, title)
 
     def start_worker(self, id: int, ctx: CtxItem):
         """
@@ -65,13 +65,17 @@ class Summarizer:
         worker.kwargs['updated_signal'] = worker.signals.updated
         self.window.threadpool.start(worker)
 
-    @Slot(int, str)
-    def handle_update(self, id: int, title: str):
+    @Slot(int, object, str)
+    def handle_update(self, id: int, ctx: CtxItem, title: str):
         """
         Handle update signal (make update)
 
         :param id: CtxMeta ID
+        :param ctx: CtxItem
         :param title: CtxMeta title
         """
-        self.window.controller.ctx.update_name(id, title)
+        refresh = True
+        if ctx.internal:
+            refresh = False
+        self.window.controller.ctx.update_name(id, title, refresh=refresh)
 
