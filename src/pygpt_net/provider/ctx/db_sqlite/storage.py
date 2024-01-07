@@ -494,7 +494,7 @@ class Storage:
                 input_tokens = :input_tokens,
                 output_tokens = :output_tokens,
                 total_tokens = :total_tokens,
-                is_internal = :is_internal,
+                is_internal = :is_internal
             WHERE id = :id
         """).bindparams(
             id=item.id,
