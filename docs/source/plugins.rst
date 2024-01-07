@@ -454,7 +454,6 @@ Prompt used to instruct how to handle autonomous mode. You can extend it with yo
    15. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
 
 
-
 ``Reverse roles between iterations`` *reverse_roles*
 
 Only for Completion/Langchain modes. 
