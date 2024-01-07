@@ -1017,20 +1017,21 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 ## Autonomous Mode: AI to AI conversation
 
-**WARNING**: Please use Autonomous mode with caution - this mode, when connected with other plugins, may produce unexpected results!
+**WARNING**: Please use **autonomous mode** with caution - this mode, when connected with other plugins, may produce unexpected results!
 
 The plugin activates autonomous mode, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
-This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved.
-The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using DALL-E.
+This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using `DALL-E`.
 
 You can adjust the number of iterations for the self-conversation in the `Plugins / Settings...` menu under the following option:
 
 - `Iterations` *iterations*
 
 *Default:* `3`
+
+Setting this option to `0` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
 **Additional options:**
 
