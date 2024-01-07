@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.01.07 06:00:00                  #
 # ================================================== #
 
 import os
@@ -17,14 +17,6 @@ import logging
 from pathlib import Path
 
 from pygpt_net.config import Config
-
-
-class CustomQtMsgType:
-    QtDebugMsg = logging.DEBUG
-    QtInfoMsg = logging.INFO
-    QtWarningMsg = logging.WARNING
-    QtCriticalMsg = logging.ERROR
-    QtFatalMsg = logging.CRITICAL
 
 
 class Debug:
@@ -51,6 +43,9 @@ class Debug:
             filemode='a'
         )
 
+        # DISABLED IN: v2.0.87 (2024-01-07)
+        # TODO: fix circular handle error on exit (pip version)
+        '''  
         def handle_exception(exc_type, value, tb):
             """
             Handle uncaught exception
@@ -65,6 +60,7 @@ class Debug:
                 traceback.print_exception(exc_type, value, tb)
 
         sys.excepthook = handle_exception
+        '''
 
     def log(self, message=None, level=logging.ERROR):
         """
