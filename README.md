@@ -1019,7 +1019,7 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 **WARNING**: Please use Autonomous mode with caution - this mode, when connected with other plugins, may produce unexpected results!
 
-The plugin introduces a "talk with yourself" mode, where AI begins a conversation with itself. 
+The plugin activates autonomous mode, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
