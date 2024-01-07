@@ -4,7 +4,7 @@
 
 - Improved Autonomous mode
 - Added synchronous command execution from plugins, which now allows the Autonomous mode to use the output of other plugins (such as access to the websearch engine, access to filesystem and code execution or generating images in DALL-E) and retrieve and use response from them internally
-- Fixed system prompt for Autonomous mode: eliminated the issue of command generation being interrupted between responses.
+- Fixed system prompt for Autonomous mode: resolved the problem of command generation interruptions between responses, and incorporated the capability for user to send additional instructions and update goals in real-time
 - Fixed loss of selection on the modes and models list in Autonomous mode
 
 ## 2.0.84 (2024-01-06)
