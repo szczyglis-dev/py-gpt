@@ -53,10 +53,10 @@ class Footer:
         # per mode options
         rows = QVBoxLayout()
         rows.addStretch(1)
-        rows.addWidget(self.image.setup())
-        rows.addWidget(self.vision.setup())
         rows.addWidget(self.window.ui.nodes['temperature.label'])
         rows.addWidget(self.window.ui.config_option['current_temperature'])
+        rows.addWidget(self.image.setup())
+        rows.addWidget(self.vision.setup())
 
         # logo
         logo_button = self.setup_logo()
