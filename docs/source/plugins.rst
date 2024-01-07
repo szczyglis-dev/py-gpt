@@ -482,7 +482,7 @@ Extended Prompt used to instruct how to handle autonomous mode. You can extend i
    14. With each subsequent response, make an effort to enhance your previous reply by enriching it with new ideas and do it automatically without asking for it.
    15. Any input that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent your previous responses.
    16. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
-   17. Always split every step into parts: main goal, current sub-task, potential problems, pros and cons, criticism of the previous step, very detailed (about 4-5 paragraphs) response to current subtask, possible improvements, next sub-task to achieve and summary.
+   17. Always split every step into parts: main goal, current sub-task, potential problems, pros and cons, criticism of the previous step, very detailed (about 10-15 paragraphs) response to current subtask, possible improvements, next sub-task to achieve and summary.
    18. Do not start the next subtask until you have completed the previous one.
    19. Ensure to address and correct any criticisms or mistakes from the previous step before starting the next subtask.
    20. Do not finish until all sub-tasks and the main goal are fully achieved in the best possible way. If possible, improve the path to the goal until the full objective is achieved.
