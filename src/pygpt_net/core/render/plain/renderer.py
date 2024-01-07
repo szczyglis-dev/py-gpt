@@ -80,8 +80,12 @@ class Renderer:
         """
         if clear:
             self.clear_output()
+
+        i = 0
         for item in items:
+            item.idx = i
             self.append_context_item(item)
+            i += 1
 
     def append_input(self, item: CtxItem):
         """
@@ -101,8 +105,13 @@ class Renderer:
         else:
             text = "> {}".format(item.input)
 
+        # check if it is a command response
+        is_cmd = False
+        if item.input.strip().startswith("[") and item.input.strip().endswith("]"):
+            is_cmd = True
+
         # hidden internal call
-        if item.internal:
+        if item.internal and not is_cmd and item.idx > 0:
             self.append_raw('-->')
             return
 

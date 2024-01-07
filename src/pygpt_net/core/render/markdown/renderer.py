@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 11:00:00                  #
+# Updated Date: 2024.01.07 02:00:00                  #
 # ================================================== #
 
 import re
@@ -83,8 +83,13 @@ class Renderer:
         """
         if clear:
             self.clear_output()
+        i = 0
         for item in items:
+            item.idx = i
+            if i == 0:
+                item.first = True
             self.append_context_item(item)
+            i += 1
 
     def append_input(self, item: CtxItem):
         """
@@ -102,8 +107,13 @@ class Renderer:
         else:
             text = "> {}".format(item.input)
 
+        # check if it is a command response
+        is_cmd = False
+        if item.input.strip().startswith("[") and item.input.strip().endswith("]"):
+            is_cmd = True
+
         # hidden internal call
-        if item.internal:
+        if item.internal and not is_cmd and not item.first:
             self.append_raw('-->', "msg-user", item)
             return
 
@@ -305,7 +315,7 @@ class Renderer:
         :param link: URL link
         :return: HTML
         """
-        return """<br/><b>{prefix}:</b> <a href="{link}">{link}</a>""".format(prefix=trans('chat.prefix.url'),
+        return """<br/><b>{prefix}:</b> <a href="{link}">{link}</a><br/>""".format(prefix=trans('chat.prefix.url'),
                                                                               link=link)
 
     def get_file_html(self, link: str) -> str:
@@ -355,7 +365,7 @@ class Renderer:
         :param text:
         """
         pattern = r"~###~(.*?)~###~"
-        replacement = r'<span class="cmd">\1</span>'
+        replacement = r'<div class="cmd">\1</div>'
         return re.sub(pattern, replacement, text)
 
     def pre_format_text(self, text: str) -> str:
@@ -387,7 +397,12 @@ class Renderer:
         :param text: text to format
         :return: formatted text
         """
-        return html.escape(text).strip().replace("\n", "<br>")
+        text = html.escape(text).replace("\n", "<br>")
+
+        # append cmd tags if response from command detected
+        if text.strip().startswith("&gt; [") and text.strip().endswith("]"):
+            text = '<div class="cmd">{}</div><br/>'.format(text)
+        return text
 
     def format_chunk(self, text: str) -> str:
         """
