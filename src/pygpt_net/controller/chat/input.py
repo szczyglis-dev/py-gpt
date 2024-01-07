@@ -102,7 +102,10 @@ class Input:
         self.log("Input text [after plugin: input.before]: {}".format(text))  # log
 
         # check if image captured from camera
-        camera_captured = ((mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision')) and self.window.controller.attachment.has(mode))
+        camera_captured = (
+                (mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'))
+                and self.window.controller.attachment.has(mode)  # check if attachment exists
+        )
 
         # allow empty input only for vision mode, otherwise abort
         if len(text.strip()) == 0 and not camera_captured:
@@ -118,7 +121,7 @@ class Input:
         self.window.ui.status(trans('status.sending'))
 
         # clear input field if clear-on-send is enabled
-        if self.window.core.config.get('send_clear') and not force:
+        if self.window.core.config.get('send_clear') and not force and not internal:
             self.window.controller.chat.render.clear_input()
 
         # prepare ctx, create new ctx meta if there is no ctx, or no ctx selected
