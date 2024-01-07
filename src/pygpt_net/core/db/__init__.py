@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import shutil
 import time
 
 from sqlalchemy import create_engine, text
@@ -107,6 +108,33 @@ class Database:
             self.set_param_exec("db_version", migration_version, conn)
             print("[DB] Executed DB migration: {}".format(migration.__class__.__name__).replace('Version', ''))
 
+    def has_migrations_to_apply(self, migrations) -> bool:
+        """
+        Check if there are any migrations to apply
+        
+        :param migrations: list of migrations
+        """
+        has_migrations = False
+        for migration in migrations:
+            migration.window = self.window
+            migration_version = int(migration.__class__.__name__.replace('Version', ''))
+            if migration_version > self.get_version():
+                has_migrations = True
+                break
+        return has_migrations
+
+    def make_backup(self):
+        """
+        Make backup of database before migration
+        """
+        try:
+            backup_path = os.path.join(self.window.core.config.path, 'db.sqlite.backup')
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+            shutil.copyfile(self.db_path, backup_path)
+        except Exception as e:
+            print("[DB] Error while making backup of database: {}".format(e))
+
     def migrate(self):
         """
         Apply all DB migrations
@@ -114,11 +142,13 @@ class Database:
         db_version = self.get_version()
         migrations = Migrations().get_versions()
         sorted_migrations = sorted(migrations, key=lambda m: m.__class__.__name__)
-
         self.init()
-        with self.engine.begin() as conn:
-            for migration in sorted_migrations:
-                self.apply_migration(migration, conn, db_version)
+        if self.has_migrations_to_apply(sorted_migrations):
+            print("[DB] Migrating database...")
+            self.make_backup()  # make backup of current database
+            with self.engine.begin() as conn:
+                for migration in sorted_migrations:
+                    self.apply_migration(migration, conn, db_version)
 
     def get_param(self, key: str) -> str or None:
         """
