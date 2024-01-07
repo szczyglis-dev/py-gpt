@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 06:00:00                  #
+# Updated Date: 2024.01.07 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -26,6 +26,8 @@ class NotepadOutput(QTextEdit):
         self.window = window
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.get_style('chat_output'))
+        self.textChanged.connect(
+            lambda: self.window.controller.notepad.save(self.id))
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8
@@ -71,15 +73,6 @@ class NotepadOutput(QTextEdit):
         Read selected text (audio)
         """
         self.window.controller.audio.read_text(self.textCursor().selectedText())
-
-    def keyPressEvent(self, event):
-        """
-        Key press event
-
-        :param event: key event
-        """
-        super(NotepadOutput, self).keyPressEvent(event)
-        self.window.controller.notepad.save(self.id)
 
     def wheelEvent(self, event):
         """
