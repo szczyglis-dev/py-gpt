@@ -307,6 +307,33 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
+    def set_important(self, idx: int):
+        """
+        Ctx name rename (shows dialog)
+
+        :param idx: context idx
+        """
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is not None:
+            meta.important = not meta.important
+            self.window.core.ctx.save(id)
+            self.update()
+
+    def set_label(self, idx: int, label_id: int):
+        """
+        Set color label for ctx by idx
+
+        :param idx: context idx
+        :param label_id: label id
+        """
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is not None:
+            meta.label = label_id
+            self.window.core.ctx.save(id)
+            self.update()
+
     def update_name(self, id: int, name: str, close: bool = True, refresh: bool = True):
         """
         Update ctx name
