@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.86 (2024-01-07)
+
+- Fixed window state saving on exit
+- Added focus on input on creating new context
+
 ## 2.0.85 (2024-01-07)
 
 - Improved Autonomous mode

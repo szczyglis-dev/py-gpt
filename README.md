@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.85** | build: **2024.01.07** | Python: **3.10+**
+Release: **2.0.86** | build: **2024.01.07** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1017,10 +1017,15 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 ## Autonomous Mode: AI to AI conversation
 
+**WARNING**: Please use Autonomous mode with caution - this mode, when connected with other plugins, may produce unexpected results!
+
 The plugin introduces a "talk with yourself" mode, where GPT begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout such a sequence, the model will engage 
 in self-dialogue, responding to its own questions and comments. This feature is available in both `Chat` and `Completion` modes. 
 To enhance the experience in Completion mode, you can assign specific names (roles) to each participant in the dialogue.
+
+This mode is similar to "Auto-GPT" - you can use it to produce more advanced reasoning.
+The plugin is capable of working in conjunction with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using DALL-E.
 
 To effectively start this mode, it's important to craft the system prompt carefully, ensuring it indicates to GPT that 
 it is conversing with itself. The outcomes can be intriguing, so it's worth exploring what happens when you try this.
@@ -1449,6 +1454,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.86 (2024-01-07)
+
+- Fixed window state saving on exit
+- Added focus on input on creating new context
 
 ### 2.0.85 (2024-01-07)
 
