@@ -54,16 +54,28 @@ class Storage:
         matches = date_pattern.findall(search_string)
         date_ranges = []
         for match in matches:
-            start_date_str, _, end_date_str = match
+            start_date_str, sep, end_date_str = match
             if start_date_str and end_date_str:
+                # search between dates
                 start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
                 end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
                 date_ranges.append((start_ts, end_ts))
+            elif start_date_str and sep:
+                # search from date to infinity
+                start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
+                end_of_day_ts = None
+                date_ranges.append((start_ts, end_of_day_ts))
+            elif end_date_str and sep:
+                # search from beginning of time to date
+                end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
+                date_ranges.append((None, end_ts))
             elif start_date_str:
+                # search in exact day
                 start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
                 end_of_day_ts = start_ts + (24 * 60 * 60) - 1
                 date_ranges.append((start_ts, end_of_day_ts))
             elif end_date_str:
+                # search in exact day
                 end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
                 date_ranges.append((0, end_ts))
 
@@ -90,7 +102,7 @@ class Storage:
             date_ranges = self.search_by_date_string(search_string)
             if len(date_ranges) > 0:
                 # if yes, then remove @date() syntax from search string
-                search_string = re.sub(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)', '', search_string)
+                search_string = re.sub(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)', '', search_string.strip())
 
                 # prepare query
                 date_ranges_query = []
@@ -104,9 +116,16 @@ class Storage:
                 # and add date ranges to query
                 for date_range in date_ranges:
                     start_ts, end_ts = date_range
-                    date_ranges_query.append("(updated_ts BETWEEN :start_ts AND :end_ts)")
-                    bind_params['start_ts'] = start_ts
-                    bind_params['end_ts'] = end_ts
+                    if start_ts is not None and end_ts is not None:
+                        date_ranges_query.append("(updated_ts BETWEEN :start_ts AND :end_ts)")
+                        bind_params['start_ts'] = start_ts
+                        bind_params['end_ts'] = end_ts
+                    elif start_ts is not None:
+                        date_ranges_query.append("(updated_ts >= :start_ts)")
+                        bind_params['start_ts'] = start_ts
+                    elif end_ts is not None:
+                        date_ranges_query.append("(updated_ts <= :end_ts)")
+                        bind_params['end_ts'] = end_ts
                     break  # TODO: remove this break when multiple date ranges will be supported
                 date_ranges_query = " AND ".join(date_ranges_query)
                 stmt = text("""
