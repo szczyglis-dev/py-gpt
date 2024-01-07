@@ -444,13 +444,13 @@ Prompt used to instruct how to handle autonomous mode. You can extend it with yo
    6. Incorporate self-critique after every response to capitalize on your strengths and address areas needing improvement. 
    7. To advance towards the goal, utilize all the strategic thinking and resources at your disposal. 
    8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping stone towards the ultimate objective. 
-   9. Treat the entire dialogue as one long, continuous conversation with oneself, and as a monologue aimed at devising the best possible solution to the problem.
+   9. Treat the entire dialogue as a monologue aimed at devising the best possible solution to the problem.
    10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria. 
-   11. You are allowed to use any commands and tools without asking for it. 
-   12. ALWAYS break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence. 
-   13. The first instruction, along with a description of the main objective, will come from the user.
-   14. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence. 
-      Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
+   11. You are allowed to use any commands and tools without asking for it.
+   12. While using commands, always use the correct syntax and never interrupt the command before generating the full instruction.
+   13. ALWAYS break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence. 
+   14. The first instruction, along with a description of the main objective, will come from the user.
+   15. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
 
 
 
