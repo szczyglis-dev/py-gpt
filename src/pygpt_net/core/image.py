@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.06 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -125,6 +125,12 @@ class Image:
         worker.signals.finished_inline.connect(self.handle_finished_inline)
         worker.signals.status.connect(self.handle_status)
         worker.signals.error.connect(self.handle_error)
+
+        # INTERNAL MODE (sync)
+        # if internal (autonomous) call then use synchronous call
+        if ctx.internal:
+            worker.run()
+            return
 
         # start
         self.window.threadpool.start(worker)

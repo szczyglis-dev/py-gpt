@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.06 23:00:00                  #
 # ================================================== #
 
 import json
@@ -127,7 +127,7 @@ class Image:
 
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
-        Handle inline response from DALL-E API
+        Handle inline response from DALL-E
 
         :param ctx: ctx item
         :param paths: list with paths to downloaded images
@@ -139,13 +139,23 @@ class Image:
             string += "{}) `{}`".format(i, path) + "\n"
             i += 1
 
-        ctx.images = paths  # save images paths
-        self.window.core.ctx.update_item(ctx)
+        ctx.images = paths  # save images paths in ctx item here
+        self.window.core.ctx.update_item(ctx)  # update in DB
+        self.window.ui.status(trans('status.img.generated'))  # update status
 
-        # self.open_images(paths)  # don't open images in dialog, just append to chat
-        self.window.ui.status(trans('status.img.generated'))
+        # WARNING:
+        # if internal (sync) mode, then re-send OK status response, if not, append only img result
+        # it will only inform system that image was generated, user will see it in chat with image after render
+        # of ctx item (link to images are appended to ctx item)
+        if ctx.internal:
+            ctx.results.append({"request": {"cmd": "image"}, "result": "OK. Generated"})
+            ctx.reply = True
+            self.window.controller.chat.render.append_extra(ctx)  # show image first
+            self.window.controller.chat.render.end_extra()
+            self.window.core.dispatcher.reply(ctx)
+            return
 
-        # append extra output to chat
+        # NOT internal-mode, user called, so append only img output to chat (show images now)
         self.window.controller.chat.render.append_extra(ctx)
         self.window.controller.chat.render.end_extra()
 
