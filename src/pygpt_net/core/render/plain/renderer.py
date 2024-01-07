@@ -112,7 +112,7 @@ class Renderer:
 
         # hidden internal call
         if item.internal and not is_cmd and item.idx > 0:
-            self.append_raw('-->')
+            self.append_raw('>>>')
             return
 
         self.append_raw(text.strip())

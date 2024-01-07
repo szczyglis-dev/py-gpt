@@ -114,8 +114,12 @@ class Renderer:
 
         # hidden internal call
         if item.internal and not is_cmd and not item.first:
-            self.append_raw('-->', "msg-user", item)
+            self.append_raw('>>>', "msg-user", item)
             return
+        else:
+            # don't show user prefix if provided in internal call goal update
+            if item.internal and item.input.startswith("user: "):
+                text = re.sub(r'^user: ', '', item.input)
 
         self.append_raw(text.strip(), "msg-user", item)
 
