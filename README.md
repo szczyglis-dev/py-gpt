@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.87** | build: **2024.01.07** | Python: **3.10+**
+Release: **2.0.88** | build: **2024.01.07** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1454,6 +1454,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.88 (2024-01-07)
+
+- Added color labels to context items (you can now mark item on list with 'Set label color...' context menu option)
+- Improved storage of notepad and calendar items
 
 ## 2.0.87 (2024-01-07)
 

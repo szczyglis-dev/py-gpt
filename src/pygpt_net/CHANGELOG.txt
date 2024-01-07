@@ -1,3 +1,8 @@
+2.0.88 (2024-01-07)
+
+- Added color labels to context items (you can now mark item on list with 'Set label color...' context menu option)
+- Improved storage of notepad and calendar items
+
 2.0.87 (2024-01-07)
 
 - Fixed paragraph formatting and font color.
