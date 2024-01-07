@@ -202,7 +202,7 @@ def test_get_custom_css(mock_window):
 def test_trans_theme(mock_window):
     name = 'dark_teal'
     theme = Theme(mock_window)
-    assert theme.trans_theme(name) == 'Dark: Teal'
+    assert theme.trans_theme(name) == 'Dark: Teal'  # must have EN lang in config to pass!!!!!!!!
 
 
 def test_get_themes_list(mock_window):

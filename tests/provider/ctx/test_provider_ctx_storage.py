@@ -41,6 +41,7 @@ def test_get_meta(mock_window):
         'is_deleted': 0,
         'is_important': 0,
         'is_archived': 0,
+        'label': 0,
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
@@ -72,6 +73,7 @@ def test_get_meta(mock_window):
     assert result[1].deleted is False
     assert result[1].important is False
     assert result[1].archived is False
+    assert result[1].label == 0
 
 
 def test_get_items(mock_window):
@@ -275,7 +277,8 @@ def test_unpack_meta(mock_window):
         'is_initialized': 1,
         'is_deleted': 1,
         'is_important': 1,
-        'is_archived': 1
+        'is_archived': 1,
+        'label': 0,
     }
     meta = CtxMeta()
     storage.unpack_meta(meta, row)
@@ -299,6 +302,7 @@ def test_unpack_meta(mock_window):
     assert meta.deleted is True
     assert meta.important is True
     assert meta.archived is True
+    assert meta.label == 0
 
 
 def test_unpack_item(mock_window):
