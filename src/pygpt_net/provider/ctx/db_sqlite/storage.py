@@ -236,7 +236,8 @@ class Storage:
                 is_initialized = :is_initialized,
                 is_deleted = :is_deleted,
                 is_important = :is_important,
-                is_archived = :is_archived
+                is_archived = :is_archived,
+                label = :label
             WHERE id = :id
         """).bindparams(
             id=meta.id,
@@ -255,7 +256,8 @@ class Storage:
             is_initialized=int(meta.initialized),
             is_deleted=int(meta.deleted),
             is_important=int(meta.important),
-            is_archived=int(meta.archived)
+            is_archived=int(meta.archived),
+            label=int(meta.label),
         )
         with db.begin() as conn:
             conn.execute(stmt)
@@ -312,7 +314,8 @@ class Storage:
                 is_initialized,
                 is_deleted,
                 is_important,
-                is_archived
+                is_archived,
+                label
             )
             VALUES 
             (
@@ -334,7 +337,8 @@ class Storage:
                 :is_initialized,
                 :is_deleted,
                 :is_important,
-                :is_archived
+                :is_archived,
+                :label
             )
         """).bindparams(
             uuid=meta.uuid,
@@ -355,7 +359,8 @@ class Storage:
             is_initialized=int(meta.initialized),
             is_deleted=int(meta.deleted),
             is_important=int(meta.important),
-            is_archived=int(meta.archived)
+            is_archived=int(meta.archived),
+            label=int(meta.label)
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -489,7 +494,7 @@ class Storage:
                 input_tokens = :input_tokens,
                 output_tokens = :output_tokens,
                 total_tokens = :total_tokens,
-                is_internal = :is_internal
+                is_internal = :is_internal,
             WHERE id = :id
         """).bindparams(
             id=item.id,
@@ -625,4 +630,5 @@ class Storage:
         meta.deleted = bool(row['is_deleted'])
         meta.important = bool(row['is_important'])
         meta.archived = bool(row['is_archived'])
+        meta.label = int(row['label'] or 0)
         return meta
