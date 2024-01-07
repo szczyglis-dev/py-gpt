@@ -1019,16 +1019,12 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 **WARNING**: Please use Autonomous mode with caution - this mode, when connected with other plugins, may produce unexpected results!
 
-The plugin introduces a "talk with yourself" mode, where GPT begins a conversation with itself. 
-You can set this loop to run for any number of iterations. Throughout such a sequence, the model will engage 
-in self-dialogue, responding to its own questions and comments. This feature is available in both `Chat` and `Completion` modes. 
-To enhance the experience in Completion mode, you can assign specific names (roles) to each participant in the dialogue.
+The plugin introduces a "talk with yourself" mode, where AI begins a conversation with itself. 
+You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
+in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
-This mode is similar to "Auto-GPT" - you can use it to produce more advanced reasoning.
-The plugin is capable of working in conjunction with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using DALL-E.
-
-To effectively start this mode, it's important to craft the system prompt carefully, ensuring it indicates to GPT that 
-it is conversing with itself. The outcomes can be intriguing, so it's worth exploring what happens when you try this.
+This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved.
+The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using DALL-E.
 
 You can adjust the number of iterations for the self-conversation in the `Plugins / Settings...` menu under the following option:
 
