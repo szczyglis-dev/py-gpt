@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 22:00:00                  #
+# Updated Date: 2024.01.06 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -123,7 +123,11 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] == "image":
                     query = item["params"]["query"]
-                    self.window.core.image.generate(ctx, query, 'dall-e-3', 1, inline=True)
+
+                    # WHAT'S HAPPENING HERE:
+                    # if internal call (ctx.internal = True) then it will re-send OK response
+                    # if not internal call then it will append image to chat only
+                    self.window.core.image.generate(ctx, query, 'dall-e-3', 1, inline=True)  # force inline mode
             except Exception as e:
                 self.log("Error: " + str(e))
                 return

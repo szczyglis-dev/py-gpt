@@ -12,6 +12,7 @@
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.utils import trans
 
 
 class Plugin(BasePlugin):
@@ -150,6 +151,7 @@ class Plugin(BasePlugin):
                 if item["cmd"] == "goal_update":
                     if item["params"]["status"] == "finished":
                         self.on_stop(True)
+                        self.window.ui.status(trans('status.finished'))  # show info
             except Exception as e:
                 self.log("Error: " + str(e))
                 return
@@ -193,6 +195,7 @@ class Plugin(BasePlugin):
                 self.debug(
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
                 self.window.controller.chat.input.send(self.prev_output, force=True, internal=True)
+                # internal call will not trigger async mode and will hide the message from previous iteration
 
     def on_ctx_before(self, ctx: CtxItem):
         """
@@ -200,6 +203,10 @@ class Plugin(BasePlugin):
 
         :param ctx: CtxItem
         """
+        ctx.internal = True  # always force internal call
+        if self.iteration == 0:
+            ctx.first = True
+
         if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
             tmp_input_name = ctx.input_name
             tmp_output_name = ctx.output_name

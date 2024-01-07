@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.07 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -209,6 +209,11 @@ class Plugins:
 
     def destroy(self):
         """Destroy plugins workers"""
+
+        # send force stop event
+        event = Event('force.stop', {})
+        self.window.core.dispatcher.dispatch(event)
+
         for id in self.window.core.plugins.get_ids():
             try:
                 # destroy plugin workers
