@@ -50,7 +50,6 @@ class Output:
                         sub_mode = 'chat'
                     elif 'completion' in config.langchain['mode']:
                         sub_mode = 'completion'
-
             
             # chunks: stream begin
             self.window.controller.chat.render.stream_begin()  # append EOL
