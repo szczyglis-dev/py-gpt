@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 06:00:00                  #
+# Updated Date: 2024.01.07 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -111,7 +111,7 @@ class Plugin(BasePlugin):
         elif name == 'user.send':
             self.on_user_send(data['value'])
         elif name == 'force.stop':
-            self.on_stop(data['value'])
+            self.on_stop()
         elif name == 'system.prompt':
             data['value'] = self.on_system_prompt(data['value'])
         elif name == 'input.before':
@@ -169,13 +169,13 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] == "goal_update":
                     if item["params"]["status"] == "finished":
-                        self.on_stop(True)
+                        self.on_stop()
                         self.window.ui.status(trans('status.finished'))  # show info
             except Exception as e:
                 self.log("Error: " + str(e))
                 return
 
-    def on_stop(self, value: bool):
+    def on_stop(self):
         """
         Event: On force stop
 
