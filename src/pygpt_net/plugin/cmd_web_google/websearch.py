@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.07 02:00:00                  #
 # ================================================== #
 
 import json
@@ -84,25 +84,36 @@ class WebSearch:
         """
         self.debug("Plugin: cmd_web_google:query_url: crawling URL: {}".format(url))  # log
         text = ''
+        html = ''
         try:
             req = Request(
                 url=url,
                 headers={'User-Agent': 'Mozilla/5.0'}
             )
+
+            # get data from URL
             if self.plugin.get_option_value('disable_ssl'):
                 context = ssl.create_default_context()
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
-                html = urlopen(req, context=context, timeout=4).read().decode("utf-8")
+                data = urlopen(req, context=context, timeout=4).read()
             else:
-                html = urlopen(req, timeout=4).read().decode("utf-8")
-            soup = BeautifulSoup(html, "html.parser")
-            for element in soup.find_all('html'):
-                text += element.text
-            text = text.replace("\n", " ").replace("\t", " ")
-            text = re.sub(r'\s+', ' ', text)
-            self.debug("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
-            return text
+                data = urlopen(req, timeout=4).read()
+
+            # try to decode
+            try:
+                html = data.decode("utf-8")
+            except Exception as e:
+                pass
+
+            if html:
+                soup = BeautifulSoup(html, "html.parser")
+                for element in soup.find_all('html'):
+                    text += element.text
+                text = text.replace("\n", " ").replace("\t", " ")
+                text = re.sub(r'\s+', ' ', text)
+                self.debug("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
+                return text
         except Exception as e:
             self.error(e)
             self.debug("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
