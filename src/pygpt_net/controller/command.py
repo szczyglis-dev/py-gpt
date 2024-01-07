@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 22:00:00                  #
+# Updated Date: 2024.01.06 22:00:00                  #
 # ================================================== #
 
 import json
@@ -42,7 +42,7 @@ class Command:
 
     def dispatch_sync(self, event: Event):
         """
-        Dispatch async event (command execution)
+        Dispatch cmd event (command execution)
 
         :param event: event object
         """
@@ -53,11 +53,17 @@ class Command:
                         self.stop = False  # unlock needed here
                     break
                 self.window.core.dispatcher.apply(id, event, is_async=False)
-        self.handle_finished(event)
+
+        # WARNING: do not emit finished signal here if event is internal (otherwise it will be emitted twice)
+        # it is handled already in internal event, in synchronous way
+        if event.ctx is not None and event.ctx.internal:
+            return
+
+        self.handle_finished(event)  # emit finished signal only for non-internal events
 
     def dispatch_async(self, event: Event):
         """
-        Dispatch async event (command execution)
+        Dispatch cmd event (command execution)
 
         :param event: event object
         """
@@ -112,5 +118,5 @@ class Command:
         ctx = event.ctx
         self.window.ui.status("")  # Clear status
         if ctx.reply:
-            self.window.controller.chat.input.send(json.dumps(ctx.results), force=True)
+            self.window.controller.chat.input.send(json.dumps(ctx.results), force=True, internal=ctx.internal)
 
