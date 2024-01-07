@@ -9,7 +9,8 @@
 # Updated Date: 2023.12.29 21:00:00                  #
 # ================================================== #
 
-from PySide6 import QtCore
+from PySide6 import QtCore, QtGui
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
@@ -89,6 +90,7 @@ class CtxList:
                 mode_str = " ({})".format(trans('mode.' + data[n].last_mode))
             tooltip_text = "{}: {}{}".format(date_time_str, data[n].name, mode_str)
             self.window.ui.models[id].setData(index, tooltip_text, QtCore.Qt.ToolTipRole)
+            self.window.ui.models[id].setData(index, data[n].label, QtCore.Qt.ItemDataRole.UserRole)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1
 
