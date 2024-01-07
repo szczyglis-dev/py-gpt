@@ -138,6 +138,7 @@ class Ctx:
 
         if not force:  # only if real click on new context button
             self.window.controller.chat.common.unlock_input()
+            self.window.ui.nodes['input'].setFocus()  # set focus to input
 
         # update context label
         mode = self.window.core.ctx.mode
