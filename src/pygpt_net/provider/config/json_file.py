@@ -484,7 +484,7 @@ class JsonFileProvider(BaseProvider):
                          'engage with me about the photo itself, not only by giving the generate command. '
                 if 'openai_dalle' not in data['plugins']:
                     data['plugins']['openai_dalle'] = {}
-                    data['plugins']['openai_dalle']['prompt'] = prompt  # fixed prompt
+                data['plugins']['openai_dalle']['prompt'] = prompt  # fixed prompt
                 updated = True
 
             # < 2.0.75
@@ -512,29 +512,53 @@ class JsonFileProvider(BaseProvider):
             # < 2.0.85
             if old < parse_version("2.0.85"):
                 print("Migrating config from < 2.0.85...")
-                prompt = "AUTONOMOUS MODE: 1. You will now enter self-dialogue mode, where you will be conversing with yourself," \
-                         " not with a human. 2. When you enter self-dialogue mode, remember that you are engaging in a conversation " \
-                         "with yourself. Any user input will be considered a reply featuring your previous response. " \
-                         "3. The objective of this self-conversation is well-defined—focus on achieving it. 4. Your new message " \
-                         "should be a continuation of the last response you generated, essentially replying to yourself and " \
-                         "extending it. 5. After each response, critically evaluate its effectiveness and alignment with the " \
-                         "goal. If necessary, refine your approach. 6. Incorporate self-critique after every response to " \
-                         "capitalize on your strengths and address areas needing improvement. 7. To advance towards the goal," \
-                         " utilize all the strategic thinking and resources at your disposal. 8. Ensure that the dialogue " \
-                         "remains coherent and logical, with each response serving as a stepping stone towards the ultimate " \
-                         "objective. 9. Treat the entire dialogue as a monologue aimed at devising the best possible solution to the problem. " \
-                         "10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets " \
-                         "the initial criteria. 11. You are allowed to use any commands and tools without asking for it. " \
-                         "12. While using commands, always use the correct syntax and never interrupt the command before " \
-                         "generating the full instruction. 13. ALWAYS break down the main task into manageable logical subtasks," \
-                         " systematically addressing and analyzing each one in sequence. 14. The first instruction, along with " \
-                         "a description of the main objective, will come from the user. 15. Start by breaking down the task into" \
-                         " as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  " \
-                         "Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of " \
-                         "them until the required goal is fully and correctly achieved."
+                prompt = "AUTONOMOUS MODE:\n1. You will now enter self-dialogue mode, where you will be conversing with " \
+                         "yourself, not with a human.\n2. When you enter self-dialogue mode, remember that you are engaging " \
+                         "in a conversation with yourself. Any user input will be considered a reply featuring your previous response.\n" \
+                         "3. The objective of this self-conversation is well-defined—focus on achieving it.\n" \
+                         "4. Your new message should be a continuation of the last response you generated, essentially replying" \
+                         " to yourself and extending it.\n5. After each response, critically evaluate its effectiveness " \
+                         "and alignment with the goal. If necessary, refine your approach.\n6. Incorporate self-critique " \
+                         "after every response to capitalize on your strengths and address areas needing improvement.\n7. To " \
+                         "advance towards the goal, utilize all the strategic thinking and resources at your disposal.\n" \
+                         "8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping " \
+                         "stone towards the ultimate objective.\n9. Treat the entire dialogue as a monologue aimed at devising" \
+                         " the best possible solution to the problem.\n10. Conclude the self-dialogue upon realizing the " \
+                         "goal or reaching a pivotal conclusion that meets the initial criteria.\n11. You are allowed to use " \
+                         "any commands and tools without asking for it.\n12. While using commands, always use the correct " \
+                         "syntax and never interrupt the command before generating the full instruction.\n13. ALWAYS break " \
+                         "down the main task into manageable logical subtasks, systematically addressing and analyzing each" \
+                         " one in sequence.\n14. With each subsequent response, make an effort to enhance your previous " \
+                         "reply by enriching it with new ideas and do it automatically without asking for it.\n14. Any input " \
+                         "that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional " \
+                         "commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent" \
+                         " your previous responses.\n15. Start by breaking down the task into as many smaller sub-tasks as " \
+                         "possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even " \
+                         "smaller tasks, carefully and step by step go through all of them until the required goal is fully " \
+                         "and correctly achieved.\n"
                 if 'self_loop' not in data['plugins']:
                     data['plugins']['self_loop'] = {}
-                    data['plugins']['self_loop']['prompt'] = prompt  # fixed prompt
+                data['plugins']['self_loop']['prompt'] = prompt  # fixed prompt
+
+                # before fix (from 2.0.72)
+                prompt = 'IMAGE GENERATION: Whenever I provide a basic idea or concept for an image, such as \'a picture of ' \
+                         'mountains\', I want you to ALWAYS translate it into English and expand and elaborate on this idea. ' \
+                         'Use your  knowledge and creativity to add details that would make the image more vivid and ' \
+                         'interesting. This could include specifying the time of day, weather conditions, surrounding ' \
+                         'environment, and any additional elements that could enhance the scene. Your goal is to create a ' \
+                         'detailed and descriptive prompt that provides DALL-E  with enough information to generate a rich ' \
+                         'and visually appealing image. Remember to maintain the original  intent of my request while ' \
+                         'enriching the description with your imaginative details. HOW TO START IMAGE GENERATION: to start ' \
+                         'image generation return to me prepared prompt in JSON format, all in one line,  using following ' \
+                         'syntax: ~###~{"cmd": "image", "params": {"query": "your query here"}}~###~. Use ONLY this syntax ' \
+                         'and remember to surround JSON string with ~###~.  DO NOT use any other syntax. Use English in the ' \
+                         'generated JSON command, but conduct all the remaining parts of the discussion with me in the ' \
+                         'language in which I am speaking to you. The image will be generated on my machine  immediately ' \
+                         'after the command is issued, allowing us to discuss the photo once it has been created.  Please ' \
+                         'engage with me about the photo itself, not only by giving the generate command. '
+                if 'openai_dalle' not in data['plugins']:
+                    data['plugins']['openai_dalle'] = {}
+                data['plugins']['openai_dalle']['prompt'] = prompt  # fixed prompt
 
                 updated = True
 
