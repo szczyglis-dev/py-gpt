@@ -50,6 +50,8 @@ class CtxItem:
         self.current = False
         self.internal = False
         self.is_vision = False
+        self.idx = 0
+        self.first = False
 
     def set_input(self, input: str | None, name: str = None):
         """
