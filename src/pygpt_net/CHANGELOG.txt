@@ -1,7 +1,7 @@
 2.0.89 (2024-01-07)
 
-- Added secondary, extended prompt to autonomous mode configuration (it allows to choose between standard and extended step-by-step reasoning)
-- Fixed user input disappear when appending inside autonomous mode
+- Added secondary, extended prompt to autonomous mode configuration (it allows quick switching between standard and more extended reasoning).
+- Fixed user input disappearance in history when appending inside autonomous mode.
 
 2.0.88 (2024-01-07)
 

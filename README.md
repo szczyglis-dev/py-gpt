@@ -1487,6 +1487,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+## 2.0.89 (2024-01-07)
+
+- Added secondary, extended prompt to autonomous mode configuration (it allows quick switching between standard and more extended reasoning).
+- Fixed user input disappearance in history when appending inside autonomous mode.
+
 ## 2.0.88 (2024-01-07)
 
 - Added color labels to context items (you can now mark item on list with 'Set label color...' context menu option)
