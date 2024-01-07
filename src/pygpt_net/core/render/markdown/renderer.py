@@ -119,7 +119,7 @@ class Renderer:
         else:
             # don't show user prefix if provided in internal call goal update
             if item.internal and item.input.startswith("user: "):
-                text = re.sub(r'^user: ', '', item.input)
+                text = re.sub(r'^user: ', '> ', item.input)
 
         self.append_raw(text.strip(), "msg-user", item)
 
@@ -407,7 +407,7 @@ class Renderer:
 
         # append cmd tags if response from command detected
         if text.strip().startswith("&gt; [") and text.strip().endswith("]"):
-            text = '<div class="cmd">{}</div><br/>'.format(text)
+            text = '<div class="cmd">&gt; {}</div><br/>'.format(text)
         return text
 
     def format_chunk(self, text: str) -> str:
