@@ -278,7 +278,7 @@ class Renderer:
             text = self.append_timestamp(text, item)
             text = self.parser.parse(text)
         else:
-            text = "<p>" + self.append_timestamp(self.format_user_text(text), item) + "</p>"
+            text = "<div><p>" + self.append_timestamp(self.format_user_text(text), item) + "</p></div>"
 
         text = self.post_format_text(text)
         text = '<div class="{}">'.format(type) + text.strip() + "</div>"
