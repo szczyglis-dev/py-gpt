@@ -113,7 +113,7 @@ class Renderer:
             is_cmd = True
 
         # hidden internal call
-        if item.internal and not is_cmd and not item.first:
+        if item.internal and not is_cmd and not item.first and not item.input.strip().startswith("user: "):
             self.append_raw('>>>', "msg-user", item)
             return
         else:
