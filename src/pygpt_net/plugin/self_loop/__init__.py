@@ -64,10 +64,10 @@ class Plugin(BasePlugin):
                  "syntax and never interrupt the command before generating the full instruction.\n13. ALWAYS break " \
                  "down the main task into manageable logical subtasks, systematically addressing and analyzing each" \
                  " one in sequence.\n14. With each subsequent response, make an effort to enhance your previous " \
-                 "reply by enriching it with new ideas and do it automatically without asking for it.\n14. Any input " \
+                 "reply by enriching it with new ideas and do it automatically without asking for it.\n15. Any input " \
                  "that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional " \
                  "commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent" \
-                 " your previous responses.\n15. Start by breaking down the task into as many smaller sub-tasks as " \
+                 " your previous responses.\n16. Start by breaking down the task into as many smaller sub-tasks as " \
                  "possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even " \
                  "smaller tasks, carefully and step by step go through all of them until the required goal is fully " \
                  "and correctly achieved.\n"
