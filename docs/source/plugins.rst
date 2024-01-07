@@ -421,7 +421,7 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 *Default:* `3`
 
-Setting this option to ``0`` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
+**WARNING**: Setting this option to ``0`` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
 ``Auto-stop after goal is reached`` *auto_stop*
 
