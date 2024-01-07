@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
 
 from pygpt_net.ui.widget.lists.context import ContextList
-from pygpt_net.ui.widget.textarea.ctx_search_input import CtxSearchInput
+from pygpt_net.ui.widget.textarea.search_input import CtxSearchInput
 from pygpt_net.utils import trans
 
 
