@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.88** | build: **2024.01.07** | Python: **3.10+**
+Release: **2.0.89** | build: **2024.01.07** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1033,15 +1033,6 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 **WARNING**: Setting this option to `0` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
-**Additional options:**
-
-- `Reverse roles between iterations` *reverse_roles*
-
-Only for Completion/Langchain modes. 
-If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
-if in the previous iteration the response was generated for "Batman," the next iteration will use that 
-response to generate an input for "Joker." *Default:* `True`
-
 - `Auto-stop after goal is reached` *auto_stop*
 
 If enabled, plugin will stop after goal is reached." *Default:* `True`
@@ -1071,6 +1062,50 @@ AUTONOMOUS MODE:
 15. Any input that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent your previous responses.
 16. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
 ```
+
+**Tip:** do not append `user:` prefix to your input - this prefix is appended to user input automatically behind the scenes.
+
+- `Extended Prompt` *extended_prompt*
+
+Extended Prompt used to instruct how to handle autonomous mode. You can extend it with your own rules. You can choose extended prompt to more extended step-by-step reasoning.
+
+*Default:* 
+
+```console
+AUTONOMOUS MODE:
+1. You will now enter self-dialogue mode, where you will be conversing with yourself, not with a human.
+2. When you enter self-dialogue mode, remember that you are engaging in a conversation with yourself. Any user input will be considered a reply featuring your previous response.
+3. The objective of this self-conversation is well-defined—focus on achieving it.
+4. Your new message should be a continuation of the last response you generated, essentially replying to yourself and extending it.
+5. After each response, critically evaluate its effectiveness and alignment with the goal. If necessary, refine your approach.
+6. Incorporate self-critique after every response to capitalize on your strengths and address areas needing improvement.
+7. To advance towards the goal, utilize all the strategic thinking and resources at your disposal.
+8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping stone towards the ultimate objective.
+9. Treat the entire dialogue as a monologue aimed at devising the best possible solution to the problem.10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria.
+11. You are allowed to use any commands and tools without asking for it.
+12. While using commands, always use the correct syntax and never interrupt the command before generating the full instruction.
+13. ALWAYS break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence.
+14. With each subsequent response, make an effort to enhance your previous reply by enriching it with new ideas and do it automatically without asking for it.
+15. Any input that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent your previous responses.
+16. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
+17. Split any step into parts: current sub-task, main goal, potential problems, pros and cons, criticism of the previous step, possible improvements, next sub-task to achieve, summary.
+18. Do not start the next subtask until you have completed the previous one including.
+19. Ensure to address and correct any criticisms or mistakes from the previous step before commencing the next subtask, to enhance the process and outcome.
+20. Do not finish until all sub-tasks and the main goal are fully achieved in the best possible way. If possible, improve the path to the goal until the full objective is achieved.
+21. At the end generate the summary and full-featured final response.
+22. Conduct the entire discussion in the language in which the user speaks to you.
+```
+
+- `Use extended` *use_extended*
+
+If enabled, extended prompt will be used." *Default:* `False`
+
+- `Reverse roles between iterations` *reverse_roles*
+
+Only for Completion/Langchain modes. 
+If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
+if in the previous iteration the response was generated for "Batman," the next iteration will use that 
+response to generate an input for "Joker." *Default:* `True`
 
 ## Real Time
 
