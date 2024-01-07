@@ -11,7 +11,7 @@
 
 import re
 from datetime import datetime
-from PySide6.QtGui import QTextCursor, QTextBlockFormat
+from PySide6.QtGui import QTextCursor, QTextBlockFormat, QTextCharFormat
 import html
 
 from pygpt_net.item.ctx import CtxItem
@@ -252,6 +252,8 @@ class Renderer:
         """Append block to output"""
         cursor = self.get_output_node().textCursor()
         cursor.movePosition(QTextCursor.End)
+        default_format = QTextCharFormat()  # reset format
+        cursor.setCharFormat(default_format)
         block_format = QTextBlockFormat()
         block_format.setIndent(0)
         cursor.insertBlock(block_format)
