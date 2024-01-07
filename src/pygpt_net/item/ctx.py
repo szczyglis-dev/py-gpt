@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.07 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -153,3 +153,4 @@ class CtxMeta:
         self.deleted = False
         self.important = False
         self.archived = False
+        self.label = 0  # label color
