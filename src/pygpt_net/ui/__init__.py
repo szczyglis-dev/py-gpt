@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 16:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
 
 import os
