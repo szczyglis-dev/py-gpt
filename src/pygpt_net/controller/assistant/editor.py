@@ -99,8 +99,10 @@ class Editor:
             if self.window.core.assistants.has(id):
                 assistant = self.window.core.assistants.get_by_id(id)
         else:
-            # default instructions
+            # defaults
             assistant.instructions = 'You are a helpful assistant.'
+            assistant.tools['code_interpreter'] = True
+            assistant.tools['retrieval'] = True
 
         if assistant.name is None:
             assistant.name = ""
@@ -155,7 +157,7 @@ class Editor:
                 return
             id = assistant.id  # set to ID created in API
             self.window.core.assistants.add(assistant)
-            self.window.controller.config.apply_value(self.id, "id", id)
+            self.window.controller.config.apply_value(self.id, "id", self.options["id"], id)
             created = True
         else:
             assistant = self.window.core.assistants.get_by_id(id)
