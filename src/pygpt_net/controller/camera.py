@@ -211,6 +211,7 @@ class Camera:
 
         self.is_capture = True
         self.window.core.config.set('vision.capture.enabled', True)
+        self.window.controller.config.checkbox.apply('config', 'vision.capture.enabled', {'value': True})
         self.window.ui.nodes['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
@@ -223,6 +224,7 @@ class Camera:
 
         self.is_capture = False
         self.window.core.config.set('vision.capture.enabled', False)
+        self.window.controller.config.checkbox.apply('config', 'vision.capture.enabled', {'value': False})
         self.window.ui.nodes['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
@@ -248,6 +250,7 @@ class Camera:
 
         self.auto = True
         self.window.core.config.set('vision.capture.auto', True)
+        self.window.controller.config.checkbox.apply('config', 'vision.capture.auto', {'value': True})
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
         if not self.window.core.config.get('vision.capture.enabled'):
@@ -262,6 +265,7 @@ class Camera:
 
         self.auto = False
         self.window.core.config.set('vision.capture.auto', False)
+        self.window.controller.config.checkbox.apply('config', 'vision.capture.auto', {'value': False})
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
 
     def toggle_auto(self, state: bool):
