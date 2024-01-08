@@ -24,7 +24,6 @@ from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui import UI
 from pygpt_net.utils import get_app_meta
-from pygpt_net.config import ConfigBag
 
 from pygpt_net.plugin.audio_azure import Plugin as AudioAzurePlugin
 from pygpt_net.plugin.audio_openai_tts import Plugin as AudioOpenAITTSPlugin
@@ -64,7 +63,6 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         # load version info
         self.meta = get_app_meta()
-        self.config_bag = ConfigBag(self)
 
         # setup service container
         self.core = Container(self)

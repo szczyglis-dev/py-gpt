@@ -127,14 +127,14 @@ class Editor:
             values = []
             for function in functions:
                 values.append({"name": function['name'], "params": function['params'], "desc": function['desc']})
-            self.window.config_bag.items[self.id]['tool.function'].items = values
-            self.window.config_bag.items[self.id]['tool.function'].model.updateData(values)
+            self.window.ui.config[self.id]['tool.function'].items = values
+            self.window.ui.config[self.id]['tool.function'].model.updateData(values)
         else:
-            self.window.config_bag.items[self.id]['tool.function'].items = []
-            self.window.config_bag.items[self.id]['tool.function'].model.updateData([])
+            self.window.ui.config[self.id]['tool.function'].items = []
+            self.window.ui.config[self.id]['tool.function'].model.updateData([])
 
         # set focus to name field
-        self.window.config_bag.items[self.id]['name'].setFocus()
+        self.window.ui.config[self.id]['name'].setFocus()
 
     def save(self):
         """Save assistant"""

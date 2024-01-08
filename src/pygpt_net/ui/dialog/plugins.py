@@ -91,8 +91,8 @@ class Plugins:
             content = QVBoxLayout()
 
             # create plugin options entry if not exists
-            if parent_id not in self.window.config_bag.items:
-                self.window.config_bag.items[parent_id] = {}
+            if parent_id not in self.window.ui.config:
+                self.window.ui.config[parent_id] = {}
 
             # get plugin options
             options = plugin.setup()
@@ -104,7 +104,7 @@ class Plugins:
 
             # apply settings widgets
             for key in widgets:
-                self.window.config_bag.items[parent_id][key] = widgets[key]
+                self.window.ui.config[parent_id][key] = widgets[key]
 
             # append URLs at the beginning
             if len(plugin.urls) > 0:

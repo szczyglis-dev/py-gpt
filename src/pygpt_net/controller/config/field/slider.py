@@ -54,7 +54,7 @@ class Slider:
                 value = option['max']
 
             # update connected input field
-            self.window.config_bag.items[parent_id][key].input.setText(str(value))
+            self.window.ui.config[parent_id][key].input.setText(str(value))
 
         slider_value = round(float(value) * multiplier, 0)
 
@@ -64,7 +64,7 @@ class Slider:
             if is_integer:
                 input_value = round(int(input_value), 0)
             txt = '{}'.format(input_value)
-            self.window.config_bag.items[parent_id][key].input.setText(txt)
+            self.window.ui.config[parent_id][key].input.setText(txt)
 
         # from input
         elif type == 'input':
@@ -72,12 +72,12 @@ class Slider:
                 slider_value = option['min'] * multiplier
             elif 'max' in option and slider_value > option['max'] * multiplier:
                 slider_value = option['max'] * multiplier
-            self.window.config_bag.items[parent_id][key].slider.setValue(slider_value)
+            self.window.ui.config[parent_id][key].slider.setValue(slider_value)
 
         # from value
         else:
-            self.window.config_bag.items[parent_id][key].input.setText(str(value))
-            self.window.config_bag.items[parent_id][key].slider.setValue(slider_value)
+            self.window.ui.config[parent_id][key].input.setText(str(value))
+            self.window.ui.config[parent_id][key].slider.setValue(slider_value)
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, type: str = None, hooks: bool = True):
         """
@@ -96,8 +96,12 @@ class Slider:
         # on update hooks
         if hooks:
             hook_name = "update.{}.{}".format(parent_id, key)
-            if hook_name in self.window.config_bag.hooks:
-                self.window.config_bag.hooks[hook_name](key, value, type)
+            if self.window.ui.has_hook(hook_name):
+                hook = self.window.ui.get_hook(hook_name)
+                try:
+                    hook(key, value, type)
+                except Exception as e:
+                    self.window.core.debug.log(e)
 
     def get_value(self, parent_id: str, key: str, option: dict) -> any:
         """
@@ -114,7 +118,7 @@ class Slider:
             is_integer = True
         if 'multiplier' in option:
             multiplier = option['multiplier']
-        value = self.window.config_bag.items[parent_id][key].slider.value()
+        value = self.window.ui.config[parent_id][key].slider.value()
         if is_integer:
             return round(int(value), 0)
         else:

@@ -33,16 +33,16 @@ class Editor:
         :param id: settings window id
         """
         # add hooks for config update in real-time
-        self.window.config_bag.add_hook("update.config.font_size", self.hook_update)
-        self.window.config_bag.add_hook("update.config.font_size.input", self.hook_update)
-        self.window.config_bag.add_hook("update.config.font_size.ctx", self.hook_update)
-        self.window.config_bag.add_hook("update.config.font_size.toolbox", self.hook_update)
-        self.window.config_bag.add_hook("update.config.theme.markdown", self.hook_update)
-        self.window.config_bag.add_hook("update.config.render.plain", self.hook_update)
-        self.window.config_bag.add_hook("update.config.vision.capture.enabled", self.hook_update)
-        self.window.config_bag.add_hook("update.config.vision.capture.auto", self.hook_update)
-        self.window.config_bag.add_hook("update.config.ctx.records.limit", self.hook_update)
-        self.window.config_bag.add_hook("update.config.layout.density", self.hook_update)
+        self.window.ui.add_hook("update.config.font_size", self.hook_update)
+        self.window.ui.add_hook("update.config.font_size.input", self.hook_update)
+        self.window.ui.add_hook("update.config.font_size.ctx", self.hook_update)
+        self.window.ui.add_hook("update.config.font_size.toolbox", self.hook_update)
+        self.window.ui.add_hook("update.config.theme.markdown", self.hook_update)
+        self.window.ui.add_hook("update.config.render.plain", self.hook_update)
+        self.window.ui.add_hook("update.config.vision.capture.enabled", self.hook_update)
+        self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
+        self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
+        self.window.ui.add_hook("update.config.layout.density", self.hook_update)
 
         if id == 'settings':
             options = {}

@@ -34,8 +34,6 @@ class Assistant:
 
     def setup(self):
         """Setups assistant editor dialog"""
-        self.window.config_bag.items['assistant'] = {}
-
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.editor.save())
@@ -43,12 +41,6 @@ class Assistant:
 
         footer = QHBoxLayout()
         footer.addWidget(self.window.ui.nodes['assistant.btn.save'])
-        func_keys = {
-            'name': 'text',
-            'params': 'text',
-            'desc': 'text',
-        }
-        func_values = {}
 
         # get option fields config
         fields = self.window.controller.assistant.editor.get_options()
@@ -58,10 +50,10 @@ class Assistant:
 
         # apply settings widgets
         for key in widgets:
-            self.window.config_bag.items[self.id][key] = widgets[key]
+            self.window.ui.config[self.id][key] = widgets[key]
 
         # btn: add function
-        self.window.config_bag.items[self.id]['tool.function'].add_btn.setText(trans('assistant.func.add'))
+        self.window.ui.config[self.id]['tool.function'].add_btn.setText(trans('assistant.func.add'))
         # Empty params: {"type": "object", "properties": {}}
 
         # set tips

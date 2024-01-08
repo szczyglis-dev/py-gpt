@@ -24,15 +24,30 @@ class UIDebug:
         """Update debug items"""
         self.window.core.debug.add(self.id, 'ui.' + name, '')
 
-        for key in sorted(dict(items).keys()):
-            prefix = " -- ".format(key)
-            self.window.core.debug.add(self.id, prefix, str(key))
+        keys = list(items)
+        try:
+            for key in sorted(keys):
+                has_children = False
+                if type(items[key]) is dict:
+                    has_children = True
+                prefix = " -- "
+                label = key
+                if has_children:
+                    prefix = " + "
+                    label = '[' + key + ']'
+                self.window.core.debug.add(self.id, prefix, label)
+                if has_children:
+                    for sub_key in sorted(list(items[key])):
+                        sub_prefix = " ---- "
+                        self.window.core.debug.add(self.id, sub_prefix, '  ' + sub_key)
+        except Exception as e:
+            pass
 
     def update(self):
         """Update debug window"""
         self.window.core.debug.begin(self.id)
 
-        self.update_section(self.window.ui.config_option, 'config_option')
+        self.update_section(self.window.ui.config, 'config')
         self.update_section(self.window.ui.debug, 'debug')
         self.update_section(self.window.ui.dialog, 'dialog')
         self.update_section(self.window.ui.editor, 'editor')
@@ -44,7 +59,6 @@ class UIDebug:
         self.update_section(self.window.ui.paths, 'paths')
         self.update_section(self.window.ui.plugin_addon, 'plugin_addon')
         self.update_section(self.window.ui.plugin_data, 'plugin_data')
-        self.update_section(self.window.ui.plugin_option, 'plugin_option')
         self.update_section(self.window.ui.splitters, 'splitters')
         self.update_section(self.window.ui.tabs, 'tabs')
 

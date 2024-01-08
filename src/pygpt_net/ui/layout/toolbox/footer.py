@@ -47,15 +47,15 @@ class Footer:
         # bottom
         option = dict(self.window.controller.settings.editor.get_options()["temperature"])
         self.window.ui.nodes['temperature.label'] = QLabel(trans("toolbox.temperature.label"))
-        self.window.config_bag.items['global']['current_temperature'] = \
+        self.window.ui.config['global']['current_temperature'] = \
             OptionSlider(self.window, 'global', 'current_temperature', option)
-        self.window.config_bag.add_hook("update.global.current_temperature", self.window.controller.mode.hook_global_temperature)
+        self.window.ui.add_hook("update.global.current_temperature", self.window.controller.mode.hook_global_temperature)
 
         # per mode options
         rows = QVBoxLayout()
         rows.addStretch(1)
         rows.addWidget(self.window.ui.nodes['temperature.label'])
-        rows.addWidget(self.window.config_bag.items['global']['current_temperature'])
+        rows.addWidget(self.window.ui.config['global']['current_temperature'])
         rows.addWidget(self.image.setup())
         rows.addWidget(self.vision.setup())
 

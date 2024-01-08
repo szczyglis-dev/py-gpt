@@ -30,8 +30,8 @@ class Dictionary:
         :param option: Option data
         """
         values = list(option["value"])
-        self.window.config_bag.items[parent_id][key].items = values  # replace model data list
-        self.window.config_bag.items[parent_id][key].model.updateData(values)  # update model data
+        self.window.ui.config[parent_id][key].items = values  # replace model data list
+        self.window.ui.config[parent_id][key].model.updateData(values)  # update model data
 
     def get_value(self, parent_id: str, key: str, option: dict) -> list:
         """
@@ -42,7 +42,7 @@ class Dictionary:
         :param option: Option data
         :return: list with dictionary values
         """
-        return self.window.config_bag.items[parent_id][key].model.items
+        return self.window.ui.config[parent_id][key].model.items
 
     def delete_item(self, parent_object, id: str, force: bool = False):
         """

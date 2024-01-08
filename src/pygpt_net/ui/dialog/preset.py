@@ -32,7 +32,6 @@ class Preset:
     def setup(self):
         """Setup preset editor dialog"""
         id = "preset.presets"
-        self.window.config_bag.items[self.id] = {}
 
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
@@ -59,14 +58,14 @@ class Preset:
 
         # apply settings widgets
         for key in widgets:
-            self.window.config_bag.items[self.id][key] = widgets[key]
+            self.window.ui.config[self.id][key] = widgets[key]
 
         # fix max width
         max_width = 240
-        self.window.config_bag.items[self.id]['filename'].setMaximumWidth(max_width)
-        self.window.config_bag.items[self.id]['name'].setMaximumWidth(max_width)
-        self.window.config_bag.items[self.id]['ai_name'].setMaximumWidth(max_width)
-        self.window.config_bag.items[self.id]['user_name'].setMaximumWidth(max_width)
+        self.window.ui.config[self.id]['filename'].setMaximumWidth(max_width)
+        self.window.ui.config[self.id]['name'].setMaximumWidth(max_width)
+        self.window.ui.config[self.id]['ai_name'].setMaximumWidth(max_width)
+        self.window.ui.config[self.id]['user_name'].setMaximumWidth(max_width)
 
         # apply widgets to layouts
         options = {}

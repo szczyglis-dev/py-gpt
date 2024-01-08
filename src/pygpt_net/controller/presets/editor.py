@@ -154,7 +154,7 @@ class Editor:
         self.window.controller.config.load_options(self.id, options)
 
         # set focus to name field
-        self.window.config_bag.items[self.id]['name'].setFocus()
+        self.window.ui.config[self.id]['name'].setFocus()
 
     def save(self, force: bool = False):
         """

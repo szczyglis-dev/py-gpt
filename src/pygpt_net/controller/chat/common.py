@@ -65,9 +65,9 @@ class Common:
 
         # images generation
         if self.window.core.config.get('img_raw'):
-            self.window.config_bag.items['global']['img_raw'].setChecked(True)
+            self.window.ui.config['global']['img_raw'].setChecked(True)
         else:
-            self.window.config_bag.items['global']['img_raw'].setChecked(False)
+            self.window.ui.config['global']['img_raw'].setChecked(False)
 
         # set focus to input
         self.window.ui.nodes['input'].setFocus()

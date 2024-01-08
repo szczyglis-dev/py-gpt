@@ -26,7 +26,7 @@ class Textarea:
         :param key: Option key
         :param option: Option data
         """
-        self.window.config_bag.items[parent_id][key].setText('{}'.format(option["value"]))
+        self.window.ui.config[parent_id][key].setText('{}'.format(option["value"]))
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
         """
@@ -42,9 +42,14 @@ class Textarea:
         self.apply(parent_id, key, option)
 
         # on update hooks
-        hook_name = "update.{}.{}".format(parent_id, key)
-        if hook_name in self.window.config_bag.hooks:
-            self.window.config_bag.hooks[hook_name](key, value, 'textarea')
+        if hooks:
+            hook_name = "update.{}.{}".format(parent_id, key)
+            if self.window.ui.has_hook(hook_name):
+                hook = self.window.ui.get_hook(hook_name)
+                try:
+                    hook(key, value, 'textarea')
+                except Exception as e:
+                    self.window.core.debug.log(e)
 
     def get_value(self, parent_id: str, key: str, option: dict) -> str:
         """
@@ -54,4 +59,4 @@ class Textarea:
         :param option: Option data
         :return: Textarea option value (plain text)
         """
-        return self.window.config_bag.items[parent_id][key].toPlainText()
+        return self.window.ui.config[parent_id][key].toPlainText()

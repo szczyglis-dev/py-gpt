@@ -36,7 +36,6 @@ class Settings:
 
         id = "settings"
         parent_id = "config"
-        self.window.config_bag.items[parent_id] = {}
         path = self.window.core.config.path
 
         # buttons
@@ -78,7 +77,7 @@ class Settings:
 
         # apply settings widgets
         for key in widgets:
-            self.window.config_bag.items[parent_id][key] = widgets[key]
+            self.window.ui.config[parent_id][key] = widgets[key]
 
         # apply widgets to layouts
         options = {}

@@ -26,7 +26,7 @@ class AssistantsDebug:
 
         # assistants
         assistants = self.window.core.assistants.get_all()
-        for key in assistants:
+        for key in list(assistants):
             prefix = "[{}] ".format(key)
             assistant = assistants[key]
             self.window.core.debug.add(self.id, '----', '')

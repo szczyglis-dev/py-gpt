@@ -39,7 +39,7 @@ class Input:
                 elif 'max' in option and option['max'] is not None and value > option['max']:
                     value = option['max']
 
-        self.window.config_bag.items[parent_id][key].setText('{}'.format(value))
+        self.window.ui.config[parent_id][key].setText('{}'.format(value))
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
         """
@@ -57,8 +57,12 @@ class Input:
         # on update hooks
         if hooks:
             hook_name = "update.{}.{}".format(parent_id, key)
-            if hook_name in self.window.config_bag.hooks:
-                self.window.config_bag.hooks[hook_name](key, value, 'input')
+            if self.window.ui.has_hook(hook_name):
+                hook = self.window.ui.get_hook(hook_name)
+                try:
+                    hook(key, value, 'input')
+                except Exception as e:
+                    self.window.core.debug.log(e)
 
     def get_value(self, parent_id: str, key: str, option: dict) -> any:
         """
@@ -72,14 +76,14 @@ class Input:
         value = None
         if option['type'] == 'int':
             try:
-                value = int(self.window.config_bag.items[parent_id][key].text())
+                value = int(self.window.ui.config[parent_id][key].text())
             except ValueError:
                 value = 0
         elif option['type'] == 'float':
             try:
-                value = float(self.window.config_bag.items[parent_id][key].text())
+                value = float(self.window.ui.config[parent_id][key].text())
             except ValueError:
                 value = 0.0
         elif option['type'] == 'text':
-            value = self.window.config_bag.items[parent_id][key].text()
+            value = self.window.ui.config[parent_id][key].text()
         return value

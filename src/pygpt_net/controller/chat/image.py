@@ -38,7 +38,7 @@ class Image:
         :param text: prompt for image generation
         :return: ctx item
         """
-        num = int(self.window.ui.config_option['img_variants'].input.text() or 1)
+        num = int(self.window.ui.config['global']['img_variants'].input.text() or 1)
         if num < 1:
             num = 1
         elif num > 4:

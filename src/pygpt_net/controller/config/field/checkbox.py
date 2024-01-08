@@ -27,7 +27,7 @@ class Checkbox:
         :param option: Option data
         """
         value = option["value"]
-        self.window.config_bag.items[parent_id][key].box.setChecked(value)
+        self.window.ui.config[parent_id][key].box.setChecked(value)
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
         """
@@ -42,8 +42,12 @@ class Checkbox:
         # on update hooks
         if hooks:
             hook_name = "update.{}.{}".format(parent_id, key)
-            if hook_name in self.window.config_bag.hooks:
-                self.window.config_bag.hooks[hook_name](key, value, 'checkbox')
+            if self.window.ui.has_hook(hook_name):
+                hook = self.window.ui.get_hook(hook_name)
+                try:
+                    hook(key, value, 'checkbox')
+                except Exception as e:
+                    self.window.core.debug.log(e)
 
     def get_value(self, parent_id: str, key: str, option: dict) -> bool:
         """
@@ -54,4 +58,4 @@ class Checkbox:
         :param option: Option data dict
         :return: Option value
         """
-        return self.window.config_bag.items[parent_id][key].box.isChecked()
+        return self.window.ui.config[parent_id][key].box.isChecked()

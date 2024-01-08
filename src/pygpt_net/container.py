@@ -9,7 +9,7 @@
 # Updated Date: 2023.12.31 04:00:00                  #
 # ================================================== #
 
-from pygpt_net.config import Config, ConfigBag
+from pygpt_net.config import Config
 from pygpt_net.core.assistants import Assistants
 from pygpt_net.core.attachments import Attachments
 from pygpt_net.core.audio import Audio

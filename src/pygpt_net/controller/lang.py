@@ -127,8 +127,8 @@ class Lang:
         self.window.ui.nodes['assistant.functions.label'].setText(trans('assistant.functions.label'))
         self.window.ui.nodes['assistant.id_tip'].setText(trans("assistant.new.id_tip"))
         self.window.ui.nodes['assistant.api.tip'].setText(trans('assistant.api.tip'))
-        self.window.ui.config_option['assistant.tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
-        self.window.ui.config_option['assistant.tool.code_interpreter'].box.setText(
+        self.window.ui.config['assistant']['tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
+        self.window.ui.config['assistant']['tool.code_interpreter'].box.setText(
             trans('assistant.tool.code_interpreter'))
         self.window.ui.dialog['editor.assistants'].setWindowTitle(trans('dialog.assistant'))
 
@@ -179,10 +179,10 @@ class Lang:
         self.window.ui.nodes['preset.btn.current'].setText(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'].setText(trans("dialog.preset.btn.save"))
         self.window.ui.nodes['cmd.enabled'].setText(trans('cmd.enabled'))
-        self.window.ui.config_option['preset.chat'].box.setText(trans("preset.chat"))
-        self.window.ui.config_option['preset.completion'].box.setText(trans("preset.completion"))
-        self.window.ui.config_option['preset.img'].box.setText(trans("preset.img"))
-        self.window.ui.config_option['img_raw'].setText(trans("img.raw"))
+        self.window.ui.config['preset']['chat'].box.setText(trans("preset.chat"))
+        self.window.ui.config['preset']['completion'].box.setText(trans("preset.completion"))
+        self.window.ui.config['preset']['img'].box.setText(trans("preset.img"))
+        self.window.ui.config['global']['img_raw'].setText(trans("img.raw"))
 
         # dialog: rename
         self.window.ui.dialog['rename'].setWindowTitle(trans("dialog.rename.title"))
@@ -346,9 +346,9 @@ class Lang:
                     self.window.ui.nodes[desc_key].setToolTip(tooltip_str)
 
                 # update widget tooltip
-                if id in self.window.ui.plugin_option and option_id in self.window.ui.plugin_option[id]:
+                if id in self.window.ui.config and option_id in self.window.ui.config[id]:  # TODO
                     try:
-                        self.window.ui.plugin_option[id][option_id].setTooltip(tooltip_str)
+                        self.window.ui.config[id][option_id].setTooltip(tooltip_str)
                     except Exception as e:
                         pass
 
@@ -366,11 +366,11 @@ class Lang:
         # update settings options labels
         for id in self.window.controller.settings.editor.options:
             option = self.window.controller.settings.editor.options[id]
-            option_label = 'settings.{}.label'.format(id)
-            trans_key = 'settings.{}'.format(option['label'])
+            option_label = 'settings.{}.label'.format(id)  # TODO: check
+            trans_key = '{}'.format(option['label'])
             if option['type'] == 'bool':
-                if id in self.window.ui.config_option:
-                    self.window.ui.config_option[id].box.setText(trans(trans_key))
+                if id in self.window.ui.config['config']:
+                    self.window.ui.config['config'][id].box.setText(trans(trans_key))
             else:
                 if option_label in self.window.ui.nodes:
                     self.window.ui.nodes[option_label].setText(trans(trans_key))

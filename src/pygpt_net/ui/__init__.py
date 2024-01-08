@@ -33,7 +33,13 @@ class UI:
 
         # prepare
         self.calendar = {}
-        self.config_option = {}
+        self.config = {
+            "assistant": {},
+            "config": {},
+            "global": {},
+            "preset": {},
+        }
+        self.config_hooks = {}
         self.debug = {}
         self.dialog = {}
         self.editor = {}
@@ -46,7 +52,6 @@ class UI:
         self.paths = {}
         self.plugin_addon = {}
         self.plugin_data = {}
-        self.plugin_option = {}
         self.splitters = {}
         self.tabs = {}
 
@@ -106,3 +111,30 @@ class UI:
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:
             print("Error loading font file {}".format(path))
+
+    def add_hook(self, name: str, callback: callable):
+        """
+        Add config hook
+
+        :param name: Hook name
+        :param callback: Callback function
+        """
+        self.config_hooks[name] = callback
+
+    def has_hook(self, name: str):
+        """
+        Check if hook exists
+
+        :param name: Hook name
+        :return: True if hook exists
+        """
+        return name in self.config_hooks
+
+    def get_hook(self, name: str):
+        """
+        Get hook
+
+        :param name: Hook name
+        :return: Hook callback
+        """
+        return self.config_hooks[name]
