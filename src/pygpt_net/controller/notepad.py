@@ -181,7 +181,7 @@ class Notepad:
         :return: number of notepads
         :rtype: int
         """
-        return self.window.core.config.get('notepad.num') or self.default_num_notepads
+        return int(self.window.core.config.get('notepad.num') or self.default_num_notepads)
 
     def rename_upd(self, idx: int, name: str):
         """
