@@ -31,7 +31,7 @@ class Checkbox:
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
         """
-        Update value of checkbox
+        Event: on update checkbox value
 
         :param parent_id: Options parent ID
         :param key: Option key
@@ -45,5 +45,13 @@ class Checkbox:
             if hook_name in self.window.config_bag.hooks:
                 self.window.config_bag.hooks[hook_name](key, value, 'checkbox')
 
-    def get_value(self, parent_id: str, key: str, option: dict):
+    def get_value(self, parent_id: str, key: str, option: dict) -> bool:
+        """
+        Get checkbox value
+
+        :param parent_id: Parent ID
+        :param key: Option key
+        :param option: Option data dict
+        :return: Option value
+        """
         return self.window.config_bag.items[parent_id][key].box.isChecked()
