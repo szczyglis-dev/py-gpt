@@ -169,6 +169,9 @@ class Common:
         else:
             self.window.controller.theme.clear_markdown()
 
+        # update checkbox in config dialog
+        self.window.controller.config.checkbox.apply('config', 'render.plain', {'value': value})
+
     def img_enable_raw(self):
         """Enable help for images"""
         self.window.core.config.set('img_raw', True)
