@@ -49,6 +49,21 @@ class AssistantItem:
             "function": [],
         }
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "instructions": self.instructions,
+            "model": self.model,
+            "meta": self.meta,
+            "files": self.files,
+            "attachments": self.attachments,
+            "tool.code_interpreter": self.tools["code_interpreter"],
+            "tool.retrieval": self.tools["retrieval"],
+            "tool.function": self.tools["function"],
+        }
+
     def add_function(self, name: str, parameters: str, desc: str):
         """
         Add function to assistant

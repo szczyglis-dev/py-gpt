@@ -25,3 +25,34 @@ class PresetItem:
         self.temperature = 1.0
         self.filename = None
         self.version = None
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "ai_name": self.ai_name,
+            "user_name": self.user_name,
+            "prompt": self.prompt,
+            "chat": self.chat,
+            "completion": self.completion,
+            "img": self.img,
+            "vision": self.vision,
+            "langchain": self.langchain,
+            "assistant": self.assistant,
+            "temperature": self.temperature,
+            "filename": self.filename,
+        }
+
+    def from_dict(self, data):
+        self.name = data["name"]
+        self.ai_name = data["ai_name"]
+        self.user_name = data["user_name"]
+        self.prompt = data["prompt"]
+        self.chat = data["chat"]
+        self.completion = data["completion"]
+        self.img = data["img"]
+        self.vision = data["vision"]
+        self.langchain = data["langchain"]
+        self.assistant = data["assistant"]
+        self.temperature = data["temperature"]
+        self.filename = data["filename"]
+        return self
