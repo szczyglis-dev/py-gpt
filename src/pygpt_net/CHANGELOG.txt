@@ -1,3 +1,9 @@
+2.0.90 (2024-01-08)
+
+- Fixed config load defaults bug
+- Refactored configurations core
+- Small UI fixes
+
 2.0.89 (2024-01-07)
 
 - Added secondary, extended prompt to autonomous mode configuration (it allows quick switching between standard and more extended reasoning).

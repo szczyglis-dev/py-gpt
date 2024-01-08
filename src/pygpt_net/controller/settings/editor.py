@@ -222,3 +222,15 @@ class Editor:
         :return: dict Options dict
         """
         return self.options
+
+    def get_option(self, key: str) -> dict:
+        """
+        Return settings option
+
+        :param key: option key
+        :return: dict Option dict
+        """
+        if key not in self.options:
+            return {}
+
+        return self.options[key]
