@@ -31,7 +31,7 @@ class UI:
         """
         self.window = window
 
-        # prepare
+        # bags
         self.calendar = {}
         self.config = {
             "assistant": {},
@@ -39,7 +39,7 @@ class UI:
             "global": {},
             "preset": {},
         }
-        self.config_hooks = {}
+        self.hooks = {}
         self.debug = {}
         self.dialog = {}
         self.editor = {}
@@ -51,7 +51,6 @@ class UI:
         self.parts = {}
         self.paths = {}
         self.plugin_addon = {}
-        self.plugin_data = {}
         self.splitters = {}
         self.tabs = {}
 
@@ -114,27 +113,27 @@ class UI:
 
     def add_hook(self, name: str, callback: callable):
         """
-        Add config hook
+        Add hook
 
         :param name: Hook name
         :param callback: Callback function
         """
-        self.config_hooks[name] = callback
+        self.hooks[name] = callback
 
-    def has_hook(self, name: str):
+    def has_hook(self, name: str) -> bool:
         """
         Check if hook exists
 
         :param name: Hook name
         :return: True if hook exists
         """
-        return name in self.config_hooks
+        return name in self.hooks
 
-    def get_hook(self, name: str):
+    def get_hook(self, name: str) -> callable:
         """
         Get hook
 
         :param name: Hook name
         :return: Hook callback
         """
-        return self.config_hooks[name]
+        return self.hooks[name]
