@@ -124,7 +124,7 @@ class Lang:
         self.window.ui.nodes['assistant.instructions.label'].setText(trans("assistant.instructions"))
         self.window.ui.nodes['assistant.model.label'].setText(trans("assistant.model"))
         self.window.ui.nodes['assistant.description.label'].setText(trans("assistant.description"))
-        self.window.ui.nodes['assistant.functions.label'].setText(trans('assistant.functions.label'))
+        self.window.ui.nodes['assistant.tool.function.label'].setText(trans('assistant.functions.label'))
         self.window.ui.nodes['assistant.id_tip'].setText(trans("assistant.new.id_tip"))
         self.window.ui.nodes['assistant.api.tip'].setText(trans('assistant.api.tip'))
         self.window.ui.config['assistant']['tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
@@ -326,7 +326,8 @@ class Lang:
             if id in self.window.ui.menu['plugins']:
                 self.window.ui.menu['plugins'][id].setText(name_txt)
 
-            option_ids = plugin.setup().keys()
+            options = plugin.setup()
+            option_ids = options.keys()
             for option_id in option_ids:
                 # prepare element nodes keys
                 label_key = 'plugin.' + id + '.' + option_id + '.label'
@@ -345,12 +346,13 @@ class Lang:
                     self.window.ui.nodes[desc_key].setText(desc_str)
                     self.window.ui.nodes[desc_key].setToolTip(tooltip_str)
 
-                # update widget tooltip
-                if id in self.window.ui.config and option_id in self.window.ui.config[id]:  # TODO
-                    try:
-                        self.window.ui.config[id][option_id].setTooltip(tooltip_str)
-                    except Exception as e:
-                        pass
+                if options[option_id]['type'] == 'bool':
+                    # update checkbox label
+                    if domain in self.window.ui.config and option_id in self.window.ui.config[domain]:
+                        try:
+                            self.window.ui.config[domain][option_id].box.setText(label_str)
+                        except Exception as e:
+                            pass
 
         # update settings dialog list
         idx = self.window.ui.tabs['plugin.settings'].currentIndex()
