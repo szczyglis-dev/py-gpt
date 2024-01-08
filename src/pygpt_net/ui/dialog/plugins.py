@@ -11,9 +11,9 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
-    QLineEdit
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame
 
+from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.ui.widget.dialog.settings_plugin import PluginSettingsDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.url import UrlLabel
@@ -34,12 +34,14 @@ class Plugins:
         :param window: Window instance
         """
         self.window = window
+        self.dialog_id = "plugin_settings"
 
     def setup(self, idx=None):
-        """Setup plugin settings dialog"""
+        """
+        Setup plugin settings dialog
 
-        dialog_id = "plugin_settings"
-
+        :param idx: current plugin tab index
+        """
         self.window.ui.nodes['plugin.settings.btn.defaults.user'] = \
             QPushButton(trans("dialog.plugin.settings.btn.defaults.user"))
         self.window.ui.nodes['plugin.settings.btn.defaults.app'] = \
@@ -72,19 +74,6 @@ class Plugins:
         for id in self.window.core.plugins.plugins:
             plugin = self.window.core.plugins.plugins[id]
             parent_id = "plugin." + id
-
-            """
-            options["iterations"] = {
-                "type": "int",  # int, float, bool, text, textarea
-                "label": "Iterations",
-                "desc": "How many iterations to run? 0 = infinite. "
-                        "Warning: Setting to 0 can cause a lot of requests and tokens usage!",
-                "tooltip": "Some tooltip...",
-                "value": 3,
-                "min": 0,
-                "max": 100,
-            }
-            """
 
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
@@ -168,16 +157,16 @@ class Plugins:
             lambda: self.window.controller.plugins.set_by_tab(
                 self.window.ui.tabs['plugin.settings'].currentIndex()))
 
+        data = {}
+        for plugin_id in self.window.core.plugins.plugins:
+            plugin = self.window.core.plugins.plugins[plugin_id]
+            data[plugin_id] = plugin
+
         # plugins list
         id = 'plugin.list'
         self.window.ui.nodes[id] = PluginList(self.window, id)
         self.window.ui.models[id] = self.create_model(self.window)
         self.window.ui.nodes[id].setModel(self.window.ui.models[id])
-
-        data = {}
-        for plugin_id in self.window.core.plugins.plugins:
-            plugin = self.window.core.plugins.plugins[plugin_id]
-            data[plugin_id] = plugin
 
         # update plugins list
         self.update_list(id, data)
@@ -193,9 +182,9 @@ class Plugins:
         layout.addLayout(main_layout)  # list + plugins tabs
         layout.addLayout(footer)  # bottom buttons (save, defaults)
 
-        self.window.ui.dialog[dialog_id] = PluginSettingsDialog(self.window, dialog_id)
-        self.window.ui.dialog[dialog_id].setLayout(layout)
-        self.window.ui.dialog[dialog_id].setWindowTitle(trans('dialog.plugin_settings'))
+        self.window.ui.dialog[self.dialog_id] = PluginSettingsDialog(self.window, self.dialog_id)
+        self.window.ui.dialog[self.dialog_id].setLayout(layout)
+        self.window.ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.plugin_settings'))
 
         # restore current opened tab if idx is set
         if idx is not None:
@@ -205,20 +194,20 @@ class Plugins:
             except Exception as e:
                 print('Failed restore plugin settings tab: {}'.format(idx))
 
-    def build_widgets(self, plugin, options) -> dict:
+    def build_widgets(self, plugin: BasePlugin, options: dict) -> dict:
         """
         Build settings options widgets
 
-        :param options: settings options
+        :param plugin: plugin instance
+        :param options: plugin options
+        :return: dict of widgets
         """
         id = plugin.id
-        parent = "plugin." + id
+        parent = "plugin." + id  # parent id for plugins is in format: plugin.<plugin_id>
         widgets = {}
 
         for key in options:
             option = options[key]
-            option_name = 'plugin.' + id + '.' + key  # TODO: replace option label
-
             # create widget by option type
             if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
                 if 'slider' in option and option['slider'] \
@@ -241,6 +230,8 @@ class Plugins:
     def add_line(self) -> QFrame:
         """
         Make separator line
+
+        :return: separator line
         """
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -252,6 +243,7 @@ class Plugins:
         Add clickable urls to list
 
         :param urls: urls dict
+        :return: QWidget
         """
         layout = QVBoxLayout()
         for name in urls:
@@ -263,7 +255,7 @@ class Plugins:
         widget.setLayout(layout)
         return widget
 
-    def add_option(self, plugin, widget, option) -> QVBoxLayout:
+    def add_option(self, plugin: BasePlugin, widget: QWidget, option: dict) -> QVBoxLayout:
         """
         Append option widget to layout
 
@@ -324,6 +316,8 @@ class Plugins:
             layout = QVBoxLayout()
             if option['type'] != 'bool':
                 layout.addWidget(self.window.ui.nodes[label_key])
+            else:
+                widget.box.setText(txt_title)  # set checkbox label
             layout.addWidget(widget)
 
             self.window.ui.nodes[desc_key] = QLabel(txt_desc)
@@ -344,11 +338,12 @@ class Plugins:
 
         return layout
 
-    def add_raw_option(self, option) -> QHBoxLayout:
+    def add_raw_option(self, option: dict) -> QHBoxLayout:
         """
         Add raw option row
 
         :param option: Option
+        :return: QHBoxLayout
         """
         layout = QHBoxLayout()
         layout.addWidget(option)
@@ -360,10 +355,9 @@ class Plugins:
         :param parent: parent widget
         :return: QStandardItemModel
         """
-        model = QStandardItemModel(0, 1, parent)
-        return model
+        return QStandardItemModel(0, 1, parent)
 
-    def update_list(self, id, data):
+    def update_list(self, id: str, data: dict):
         """
         Update list
 

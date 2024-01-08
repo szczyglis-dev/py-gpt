@@ -10,19 +10,16 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
-from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
-from pygpt_net.ui.widget.option.dictionary import OptionDict
-from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
-from pygpt_net.ui.widget.option.slider import OptionSlider
-from pygpt_net.ui.widget.option.textarea import OptionTextarea
+from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
 from pygpt_net.utils import trans
 
 
-class Assistant:
-    def __init__(self, window=None):
+class Assistant(BaseConfigDialog):
+    def __init__(self, window=None, *args, **kwargs):
+        super(Assistant, self).__init__(window, *args, **kwargs)
         """
         Assistant editor dialog
 
@@ -46,7 +43,7 @@ class Assistant:
         fields = self.window.controller.assistant.editor.get_options()
 
         # build settings widgets
-        widgets = self.build_widgets(fields)
+        widgets = self.build_widgets(self.id, fields)  # from base config dialog
 
         # apply settings widgets
         for key in widgets:
@@ -78,7 +75,7 @@ class Assistant:
             elif fields[key]["type"] == 'textarea':
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
-                options[key] = self.add_raw_option(widgets[key])
+                options[key] = self.add_raw_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
                 if key == "tool.function":
@@ -88,7 +85,7 @@ class Assistant:
 
         # append widgets options layouts to rows
         for key in options:
-            # extra rows  TODO: add tip to settings config
+            # extra rows  TODO: add tip as extra to settings config
             if key == "id":
                 rows.addWidget(self.window.ui.nodes['assistant.id_tip'])
 
@@ -106,88 +103,3 @@ class Assistant:
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
         self.window.ui.dialog['editor.' + self.dialog_id].setLayout(layout)
         self.window.ui.dialog['editor.' + self.dialog_id].setWindowTitle(trans('dialog.assistant'))
-
-    def build_widgets(self, options) -> dict:
-        """
-        Build settings options widgets
-
-        :param options: settings options
-        """
-        widgets = {}
-
-        for key in options:
-            option = options[key]
-
-            # create widget by option type
-            if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
-                if 'slider' in option and option['slider'] and (option['type'] == 'int' or option['type'] == 'float'):
-                    widgets[key] = OptionSlider(self.window, self.id, key, option)  # slider + text input
-                else:
-                    if 'secret' in option and option['secret']:
-                        widgets[key] = PasswordInput(self.window, self.id, key, option)  # password input
-                    else:
-                        widgets[key] = OptionInput(self.window, self.id, key, option)  # text input
-
-            elif option['type'] == 'textarea':
-                widgets[key] = OptionTextarea(self.window, self.id, key, option)  # textarea
-                widgets[key].setMinimumHeight(150)
-            elif option['type'] == 'bool':
-                widgets[key] = OptionCheckbox(self.window, self.id, key, option)  # checkbox
-            elif option['type'] == 'dict':
-                widgets[key] = OptionDict(self.window, self.id, key, option)  # dictionary
-
-        return widgets
-
-    def add_option(self, widget, option) -> QHBoxLayout:
-        """
-        Add option
-
-        :param title: Title
-        :param option: Option
-        :param bold: Bold title
-        """
-        label = option['label']
-        extra = {}
-        if 'extra' in option:
-            extra = option['extra']
-        label_key = label + '.label'
-        
-        self.window.ui.nodes[label_key] = QLabel(trans(label))
-        self.window.ui.nodes[label_key].setMaximumWidth(120)
-        if 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
-        self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-
-        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes[label_key])
-        layout.addWidget(widget)
-        layout.setStretch(0, 1)
-        return layout
-
-    def add_row_option(self, widget, option) -> QHBoxLayout:
-        """
-        Add option row (label + option)
-
-        :param widget: Widget
-        :param option: Option
-        """
-        label = option['label']
-        label_key = label + '.label'
-        self.window.ui.nodes[label_key] = QLabel(trans(label))
-        self.window.ui.nodes[label_key].setMinimumHeight(30)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes[label_key])
-        layout.addWidget(widget)
-        return layout
-
-    def add_raw_option(self, option) -> QHBoxLayout:
-        """
-        Add raw option row
-
-        :param option: Option
-        """
-        layout = QHBoxLayout()
-        layout.addWidget(option)
-        return layout
