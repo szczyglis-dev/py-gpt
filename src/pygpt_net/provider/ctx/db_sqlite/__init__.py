@@ -55,7 +55,6 @@ class DbSqliteProvider(BaseProvider):
         Format: YYYYMMDDHHMMSS.MICROSECONDS.json
 
         :return: generated ID
-        :rtype: str
         """
         return self.storage.insert_meta(meta)
 
@@ -100,17 +99,16 @@ class DbSqliteProvider(BaseProvider):
 
         :param id: ctx ID
         :return: list of ctx items
-        :rtype: list
         """
         return self.storage.get_items(id)
 
-    def get_ctx_count_by_day(self, year, month):
+    def get_ctx_count_by_day(self, year, month) -> dict:
         """
         Get ctx count by day
 
         :param year: year
         :param month: month
-        :return: dict of ctx count by day
+        :return: dict of ctx counters by day
         """
         return self.storage.get_ctx_count_by_day(year, month)
 
@@ -120,6 +118,7 @@ class DbSqliteProvider(BaseProvider):
 
         :param meta: ctx meta (CtxMeta)
         :param item: ctx item (CtxItem)
+        :return: True if appended
         """
         self.storage.update_meta_ts(meta.id)
         return self.storage.insert_item(meta, item) is not None

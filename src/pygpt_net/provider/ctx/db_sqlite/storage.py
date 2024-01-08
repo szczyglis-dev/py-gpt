@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 03:00:00                  #
+# Updated Date: 2024.01.08 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -17,6 +17,7 @@ import time
 from sqlalchemy import text
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem
+from .utils import search_by_date_string, pack_item_value, unpack_meta, unpack_item, get_month_start_end_timestamps
 
 
 class Storage:
@@ -36,51 +37,6 @@ class Storage:
         """
         self.window = window
 
-    def search_by_date_string(self, search_string):
-        """
-        Prepare date ranges from search string if @date() syntax is used in search
-
-        Examples of @date() syntax in search string:
-
-        @date(YYYY-MM-DD) -- search in exact day
-        @date(YYYY-MM-DD,YYYY-MM-DD) -- search in date range
-        @date(,YYYY-MM-DD) -- search in date range from beginning of time
-        @date(YYYY-MM-DD,) -- search in date range to end of time
-
-        :param search_string: search string
-        :return: list of date ranges
-        """
-        date_pattern = re.compile(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)')
-        matches = date_pattern.findall(search_string)
-        date_ranges = []
-        for match in matches:
-            start_date_str, sep, end_date_str = match
-            if start_date_str and end_date_str:
-                # search between dates
-                start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
-                end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
-                date_ranges.append((start_ts, end_ts))
-            elif start_date_str and sep:
-                # search from date to infinity
-                start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
-                end_of_day_ts = None
-                date_ranges.append((start_ts, end_of_day_ts))
-            elif end_date_str and sep:
-                # search from beginning of time to date
-                end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
-                date_ranges.append((None, end_ts))
-            elif start_date_str:
-                # search in exact day
-                start_ts = datetime.strptime(start_date_str, '%Y-%m-%d').timestamp()
-                end_of_day_ts = start_ts + (24 * 60 * 60) - 1
-                date_ranges.append((start_ts, end_of_day_ts))
-            elif end_date_str:
-                # search in exact day
-                end_ts = datetime.strptime(end_date_str, '%Y-%m-%d').timestamp()
-                date_ranges.append((0, end_ts))
-
-        return date_ranges
-
     def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
                  limit: int = None, offset: int = None) -> dict:
         """
@@ -99,7 +55,7 @@ class Storage:
         else:
             # now we can search by search string or with date ranges
             # 1) first check if search string contains @date() syntax
-            date_ranges = self.search_by_date_string(search_string)
+            date_ranges = search_by_date_string(search_string)
             if len(date_ranges) > 0:
                 # if yes, then remove @date() syntax from search string
                 search_string = re.sub(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)', '', search_string.strip())
@@ -144,7 +100,7 @@ class Storage:
             result = conn.execute(stmt)
             for row in result:
                 meta = CtxMeta()
-                self.unpack_meta(meta, row._asdict())
+                unpack_meta(meta, row._asdict())
                 items[meta.id] = meta
         return items
 
@@ -163,7 +119,7 @@ class Storage:
             result = conn.execute(stmt)
             for row in result:
                 item = CtxItem()
-                self.unpack_item(item, row._asdict())
+                unpack_item(item, row._asdict())
                 items.append(item)
         return items
 
@@ -445,13 +401,13 @@ class Storage:
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
-            cmds_json=self.pack_item_value(item.cmds),
-            results_json=self.pack_item_value(item.results),
-            urls_json=self.pack_item_value(item.urls),
-            images_json=self.pack_item_value(item.images),
-            files_json=self.pack_item_value(item.files),
-            attachments_json=self.pack_item_value(item.attachments),
-            extra=self.pack_item_value(item.extra),
+            cmds_json=pack_item_value(item.cmds),
+            results_json=pack_item_value(item.results),
+            urls_json=pack_item_value(item.urls),
+            images_json=pack_item_value(item.images),
+            files_json=pack_item_value(item.files),
+            attachments_json=pack_item_value(item.attachments),
+            extra=pack_item_value(item.extra),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
@@ -509,13 +465,13 @@ class Storage:
             thread_id=item.thread,
             msg_id=item.msg_id,
             run_id=item.run_id,
-            cmds_json=self.pack_item_value(item.cmds),
-            results_json=self.pack_item_value(item.results),
-            urls_json=self.pack_item_value(item.urls),
-            images_json=self.pack_item_value(item.images),
-            files_json=self.pack_item_value(item.files),
-            attachments_json=self.pack_item_value(item.attachments),
-            extra=self.pack_item_value(item.extra),
+            cmds_json=pack_item_value(item.cmds),
+            results_json=pack_item_value(item.results),
+            urls_json=pack_item_value(item.urls),
+            images_json=pack_item_value(item.images),
+            files_json=pack_item_value(item.files),
+            attachments_json=pack_item_value(item.attachments),
+            extra=pack_item_value(item.extra),
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
@@ -525,110 +481,25 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def get_ctx_count_by_day(self, year, month):
-        """Return ctx count by day for given year and month"""
+    def get_ctx_count_by_day(self, year: int, month: int) -> dict:
+        """
+        Return ctx count by day for given year and month
+
+        :param year: year
+        :param month: month
+        :return: dict with day as key and count as value
+        """
         db = self.window.core.db.get_db()
         with db.connect() as conn:
+            start_timestamp, end_timestamp = get_month_start_end_timestamps(year, month)
             result = conn.execute(text("""
                 SELECT
-                    strftime('%Y-%m-%d', datetime(updated_ts, 'unixepoch')) as day,
-                    COUNT(*) as count
+                    date(datetime(updated_ts, 'unixepoch')) as day,
+                    COUNT(updated_ts) as count
                 FROM ctx_meta
-                WHERE strftime('%Y', datetime(updated_ts, 'unixepoch')) = :year 
-                  AND strftime('%m', datetime(updated_ts, 'unixepoch')) = :month
+                WHERE updated_ts BETWEEN :start_ts AND :end_ts
                 GROUP BY day
-            """), {'year': str(year),
-                   'month': f'{month:02}'})
+            """), {'start_ts': start_timestamp,
+               'end_ts': end_timestamp})
 
             return {row._mapping['day']: row._mapping['count'] for row in result}
-
-    def pack_item_value(self, value: any) -> str:
-        """
-        Pack item value to JSON
-
-        :param value: Value to pack
-        :return: JSON string or value itself
-        """
-        if isinstance(value, (list, dict)):
-            return json.dumps(value)
-        return value
-
-    def unpack_item_value(self, value: any) -> any:
-        """
-        Unpack item value from JSON
-
-        :param value: Value to unpack
-        :return: Unpacked value
-        """
-        if value is None:
-            return None
-        try:
-            return json.loads(value)
-        except:
-            return value
-
-    def unpack_item(self, item: CtxItem, row: dict) -> CtxItem:
-        """
-        Unpack item from DB row
-
-        :param item: Context item (CtxItem)
-        :param row: DB row
-        :return: context item
-        """
-        item.id = int(row['id'])
-        item.meta_id = int(row['meta_id'])
-        item.external_id = row['external_id']
-        item.input = row['input']
-        item.output = row['output']
-        item.input_name = row['input_name']
-        item.output_name = row['output_name']
-        item.input_timestamp = int(row['input_ts'] or 0)
-        item.output_timestamp = int(row['output_ts'] or 0)
-        item.mode = row['mode']
-        item.model = row['model']
-        item.thread = row['thread_id']
-        item.msg_id = row['msg_id']
-        item.run_id = row['run_id']
-        item.cmds = self.unpack_item_value(row['cmds_json'])
-        item.results = self.unpack_item_value(row['results_json'])
-        item.urls = self.unpack_item_value(row['urls_json'])
-        item.images = self.unpack_item_value(row['images_json'])
-        item.files = self.unpack_item_value(row['files_json'])
-        item.attachments = self.unpack_item_value(row['attachments_json'])
-        item.extra = self.unpack_item_value(row['extra'])
-        item.input_tokens = int(row['input_tokens'] or 0)
-        item.output_tokens = int(row['output_tokens'] or 0)
-        item.total_tokens = int(row['total_tokens'] or 0)
-        item.internal = bool(row['is_internal'])
-        return item
-
-    def unpack_meta(self, meta: CtxMeta, row: dict) -> CtxMeta:
-        """
-        Unpack meta from DB row
-
-        :param meta: Context meta (CtxMeta)
-        :param row: DB row
-        :return: context meta
-        """
-        meta.id = int(row['id'])
-        meta.external_id = row['external_id']
-        meta.uuid = row['uuid']
-        meta.created = int(row['created_ts'])
-        meta.updated = int(row['updated_ts'])
-        meta.name = row['name']
-        meta.mode = row['mode']
-        meta.model = row['model']
-        meta.last_mode = row['last_mode']
-        meta.last_model = row['last_model']
-        meta.thread = row['thread_id']
-        meta.assistant = row['assistant_id']
-        meta.preset = row['preset_id']
-        meta.run = row['run_id']
-        meta.status = row['status']
-        meta.extra = row['extra']
-        meta.initialized = bool(row['is_initialized'])
-        meta.deleted = bool(row['is_deleted'])
-        meta.important = bool(row['is_important'])
-        meta.archived = bool(row['is_archived'])
-        meta.label = int(row['label'] or 0)
-        return meta
