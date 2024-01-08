@@ -2,7 +2,7 @@
     "api_key": {
         "type": "text",
         "slider": false,
-        "label": "api_key",
+        "label": "settings.api_key",
         "value": "",
         "min": null,
         "max": null,
@@ -18,7 +18,7 @@
     "organization_key": {
         "type": "text",
         "slider": false,
-        "label": "organization_key",
+        "label": "settings.organization_key",
         "value": "",
         "min": null,
         "max": null,
@@ -37,7 +37,7 @@
     "font_size": {
         "type": "int",
         "slider": true,
-        "label": "font_size",
+        "label": "settings.font_size",
         "value": 12,
         "min": 8,
         "max": 42,
@@ -48,7 +48,7 @@
     "font_size.input": {
         "type": "int",
         "slider": true,
-        "label": "font_size.input",
+        "label": "settings.font_size.input",
         "value": 12,
         "min": 8,
         "max": 42,
@@ -59,7 +59,7 @@
     "font_size.ctx": {
         "type": "int",
         "slider": true,
-        "label": "font_size.ctx",
+        "label": "settings.font_size.ctx",
         "value": 12,
         "min": 8,
         "max": 20,
@@ -70,7 +70,7 @@
     "font_size.toolbox": {
         "type": "int",
         "slider": true,
-        "label": "font_size.toolbox",
+        "label": "settings.font_size.toolbox",
         "value": 12,
         "min": 8,
         "max": 20,
@@ -81,7 +81,7 @@
     "layout.density": {
         "type": "int",
         "slider": true,
-        "label": "layout.density",
+        "label": "settings.layout.density",
         "value": 0,
         "min": -5,
         "max": 5,
@@ -92,7 +92,7 @@
     "layout.dpi.scaling": {
         "type": "bool",
         "slider": false,
-        "label": "layout.dpi.scaling",
+        "label": "settings.layout.dpi.scaling",
         "value": true,
         "min": 0,
         "max": 0,
@@ -103,7 +103,7 @@
     "layout.dpi.factor": {
         "type": "float",
         "slider": true,
-        "label": "layout.dpi.factor",
+        "label": "settings.layout.dpi.factor",
         "value": 1.0,
         "min": 1.0,
         "max": 3.0,
@@ -114,7 +114,7 @@
     "theme.markdown": {
         "type": "bool",
         "slider": false,
-        "label": "theme.markdown",
+        "label": "settings.theme.markdown",
         "value": true,
         "min": 0,
         "max": 0,
@@ -125,7 +125,7 @@
     "render.plain": {
         "type": "bool",
         "slider": false,
-        "label": "render.plain",
+        "label": "settings.render.plain",
         "value": false,
         "min": 0,
         "max": 0,
@@ -136,7 +136,7 @@
     "max_output_tokens": {
         "type": "int",
         "slider": true,
-        "label": "max_output_tokens",
+        "label": "settings.max_output_tokens",
         "value": 50,
         "min": 0,
         "max": 32000,
@@ -147,7 +147,7 @@
     "max_total_tokens": {
         "type": "int",
         "slider": true,
-        "label": "max_total_tokens",
+        "label": "settings.max_total_tokens",
         "value": 400,
         "min": 0,
         "max": 256000,
@@ -158,7 +158,7 @@
     "context_threshold": {
         "type": "int",
         "slider": true,
-        "label": "context_threshold",
+        "label": "settings.context_threshold",
         "value": 80,
         "min": 1,
         "max": 1000,
@@ -169,7 +169,7 @@
     "ctx.records.limit": {
         "type": "int",
         "slider": true,
-        "label": "ctx.records.limit",
+        "label": "settings.ctx.records.limit",
         "value": 0,
         "min": 0,
         "max": 10000,
@@ -180,7 +180,7 @@
     "use_context": {
         "type": "bool",
         "slider": false,
-        "label": "use_context",
+        "label": "settings.use_context",
         "value": true,
         "min": null,
         "max": null,
@@ -191,7 +191,7 @@
     "store_history": {
         "type": "bool",
         "slider": false,
-        "label": "store_history",
+        "label": "settings.store_history",
         "value": true,
         "min": null,
         "max": null,
@@ -202,7 +202,7 @@
     "store_history_time": {
         "type": "bool",
         "slider": false,
-        "label": "store_history_time",
+        "label": "settings.store_history_time",
         "value": true,
         "min": null,
         "max": null,
@@ -213,7 +213,7 @@
     "ctx.auto_summary": {
         "type": "bool",
         "slider": false,
-        "label": "ctx.auto_summary",
+        "label": "settings.ctx.auto_summary",
         "value": true,
         "min": null,
         "max": null,
@@ -224,7 +224,7 @@
     "lock_modes": {
         "type": "bool",
         "slider": false,
-        "label": "lock_modes",
+        "label": "settings.lock_modes",
         "value": true,
         "min": null,
         "max": null,
@@ -235,7 +235,7 @@
     "temperature": {
         "type": "float",
         "slider": true,
-        "label": "temperature",
+        "label": "settings.temperature",
         "value": 0.0,
         "min": 0.0,
         "max": 2.0,
@@ -246,7 +246,7 @@
     "top_p": {
         "type": "float",
         "slider": true,
-        "label": "top_p",
+        "label": "settings.top_p",
         "value": 0.0,
         "min": 0.0,
         "max": 2.0,
@@ -257,7 +257,7 @@
     "frequency_penalty": {
         "type": "float",
         "slider": true,
-        "label": "frequency_penalty",
+        "label": "settings.frequency_penalty",
         "value": 0.0,
         "min": 0.0,
         "max": 2.0,
@@ -268,7 +268,7 @@
     "presence_penalty": {
         "type": "float",
         "slider": true,
-        "label": "presence_penalty",
+        "label": "settings.presence_penalty",
         "value": 0.0,
         "min": 0.0,
         "max": 2.0,
@@ -279,7 +279,7 @@
     "img_resolution": {
         "type": "text",
         "slider": false,
-        "label": "img_resolution",
+        "label": "settings.img_resolution",
         "value": "",
         "min": null,
         "max": null,
@@ -290,7 +290,7 @@
     "notepad.num": {
         "type": "int",
         "slider": true,
-        "label": "notepad.num",
+        "label": "settings.notepad.num",
         "value": 5,
         "min": 0,
         "max": 10,
@@ -301,7 +301,7 @@
     "vision.capture.enabled": {
         "type": "bool",
         "slider": false,
-        "label": "vision.capture.enabled",
+        "label": "settings.vision.capture.enabled",
         "value": true,
         "min": null,
         "max": null,
@@ -312,7 +312,7 @@
     "vision.capture.auto": {
         "type": "bool",
         "slider": false,
-        "label": "vision.capture.auto",
+        "label": "settings.vision.capture.auto",
         "value": true,
         "min": null,
         "max": null,
@@ -323,7 +323,7 @@
     "vision.capture.width": {
         "type": "int",
         "slider": true,
-        "label": "vision.capture.width",
+        "label": "settings.vision.capture.width",
         "value": 800,
         "min": 320,
         "max": 4096,
@@ -334,7 +334,7 @@
     "vision.capture.height": {
         "type": "int",
         "slider": true,
-        "label": "vision.capture.height",
+        "label": "settings.vision.capture.height",
         "value": 800,
         "min": 320,
         "max": 4096,
@@ -345,7 +345,7 @@
     "vision.capture.idx": {
         "type": "int",
         "slider": true,
-        "label": "vision.capture.idx",
+        "label": "settings.vision.capture.idx",
         "value": 0,
         "min": 0,
         "max": 3,
@@ -356,7 +356,7 @@
     "vision.capture.quality": {
         "type": "int",
         "slider": true,
-        "label": "vision.capture.quality",
+        "label": "settings.vision.capture.quality",
         "value": 85,
         "min": 1,
         "max": 100,
@@ -367,7 +367,7 @@
     "ctx.auto_summary.model": {
         "type": "text",
         "slider": false,
-        "label": "ctx.auto_summary.model",
+        "label": "settings.ctx.auto_summary.model",
         "value": "gpt-3.5-turbo-1106",
         "min": null,
         "max": null,
@@ -378,7 +378,7 @@
     "ctx.auto_summary.system": {
         "type": "textarea",
         "slider": false,
-        "label": "ctx.auto_summary.system",
+        "label": "settings.ctx.auto_summary.system",
         "value": "",
         "min": null,
         "max": null,
@@ -389,7 +389,7 @@
     "ctx.auto_summary.prompt": {
         "type": "textarea",
         "slider": false,
-        "label": "ctx.auto_summary.prompt",
+        "label": "settings.ctx.auto_summary.prompt",
         "value": "",
         "min": null,
         "max": null,
@@ -400,7 +400,7 @@
     "cmd.prompt": {
         "type": "textarea",
         "slider": false,
-        "label": "cmd.prompt",
+        "label": "settings.cmd.prompt",
         "value": "",
         "min": null,
         "max": null,
@@ -411,7 +411,7 @@
     "img_prompt": {
         "type": "textarea",
         "slider": false,
-        "label": "img_prompt",
+        "label": "settings.img_prompt",
         "value": "",
         "min": null,
         "max": null,
@@ -422,7 +422,7 @@
     "img_prompt_model": {
         "type": "text",
         "slider": false,
-        "label": "img_prompt_model",
+        "label": "settings.img_prompt_model",
         "value": "gpt-4-1106-preview",
         "min": null,
         "max": null,
