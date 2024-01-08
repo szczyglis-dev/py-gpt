@@ -371,7 +371,7 @@ class Renderer:
         :param text:
         """
         pattern = r"~###~(.*?)~###~"
-        replacement = r'<div class="cmd">\1</div>'
+        replacement = r'<p class="cmd">\1</p>'
         return re.sub(pattern, replacement, text)
 
     def pre_format_text(self, text: str) -> str:
