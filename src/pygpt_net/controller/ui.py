@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -80,9 +80,9 @@ class UI:
         mode = self.window.core.config.data['mode']
         if mode == 'chat':
             # temperature
-            self.window.ui.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].input.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].setVisible(True)
+            self.window.config_bag.items['global']['current_temperature'].slider.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].input.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].setVisible(True)
             self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
@@ -128,9 +128,9 @@ class UI:
 
         elif mode == 'img':
             # temperature
-            self.window.ui.config_option['current_temperature'].slider.setDisabled(True)
-            self.window.ui.config_option['current_temperature'].input.setDisabled(True)
-            self.window.ui.config_option['current_temperature'].setVisible(False)
+            self.window.config_bag.items['global']['current_temperature'].slider.setDisabled(True)
+            self.window.config_bag.items['global']['current_temperature'].input.setDisabled(True)
+            self.window.config_bag.items['global']['current_temperature'].setVisible(False)
             self.window.ui.nodes['temperature.label'].setVisible(False)
 
             # presets
@@ -157,9 +157,9 @@ class UI:
 
         elif mode == 'completion':
             # temperature
-            self.window.ui.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].input.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].setVisible(True)
+            self.window.config_bag.items['global']['current_temperature'].slider.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].input.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].setVisible(True)
             self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
@@ -204,9 +204,9 @@ class UI:
 
         elif mode == 'vision':
             # temperature
-            self.window.ui.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].input.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].setVisible(False)
+            self.window.config_bag.items['global']['current_temperature'].slider.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].input.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].setVisible(False)
             self.window.ui.nodes['temperature.label'].setVisible(False)
 
             # presets
@@ -232,9 +232,9 @@ class UI:
 
         elif mode == 'langchain':
             # temperature
-            self.window.ui.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].input.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].setVisible(True)
+            self.window.config_bag.items['global']['current_temperature'].slider.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].input.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].setVisible(True)
             self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
@@ -278,9 +278,9 @@ class UI:
 
         elif mode == 'assistant':
             # temperature
-            self.window.ui.config_option['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].input.setDisabled(False)
-            self.window.ui.config_option['current_temperature'].setVisible(True)
+            self.window.config_bag.items['global']['current_temperature'].slider.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].input.setDisabled(False)
+            self.window.config_bag.items['global']['current_temperature'].setVisible(True)
             self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets

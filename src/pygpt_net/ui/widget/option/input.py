@@ -8,24 +8,40 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2023.12.25 21:00:00                  #
 # ================================================== #
+
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QLineEdit
 
 
 class OptionInputInline(QLineEdit):
-    def __init__(self, window=None, id=None, section=None):
+    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
-        Settings input inline
+        Settings inline input
 
         :param window: main window
         :param id: option id
-        :param section: settings section
+        :param parent_id: parent option id
+        :param option: option data
         """
         super(OptionInputInline, self).__init__(window)
         self.window = window
         self.id = id
-        self.section = section
+        self.parent_id = parent_id
+        self.option = option
+        self.value = False
+        self.title = ""
+        self.real_time = False
+        self.slider = False  # True if connected slider
         self.setMaximumWidth(60)
+
+        # from option data
+        if self.option is not None:
+            if "label" in self.option:
+                self.title = self.option["label"]
+            if "value" in self.option:
+                self.value = self.option["value"]
+            if "real_time" in self.option:
+                self.real_time = self.option["real_time"]
 
     def keyPressEvent(self, event):
         """
@@ -34,24 +50,41 @@ class OptionInputInline(QLineEdit):
         :param event: key event
         """
         super(OptionInputInline, self).keyPressEvent(event)
-        self.window.controller.settings.editor.apply(self.id, self.text(), 'input', self.section)
+        # always update slider if connected
+        if self.slider:
+            self.window.controller.config.slider.on_update(self.parent_id, self.id, self.option, self.text(), "input")
+        if not self.real_time:
+            return
+        self.window.controller.config.input.on_update(self.parent_id, self.id, self.option, self.text())
 
 
 class OptionInput(QLineEdit):
-    def __init__(self, window=None, id=None, autoupdate=False, section=None):
+    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
         Settings input
 
         :param window: main window
         :param id: option id
-        :param autoupdate: auto update
-        :param section: settings section
+        :param parent_id: parent option id
+        :param option: option data
         """
         super(OptionInput, self).__init__(window)
         self.window = window
         self.id = id
-        self.section = section
-        self.autoupdate = autoupdate
+        self.parent_id = parent_id
+        self.option = option
+        self.value = False
+        self.title = ""
+        self.real_time = False
+
+        # from option data
+        if self.option is not None:
+            if "label" in self.option:
+                self.title = self.option["label"]
+            if "value" in self.option:
+                self.value = self.option["value"]
+            if "real_time" in self.option:
+                self.real_time = self.option["real_time"]
 
     def keyPressEvent(self, event):
         """
@@ -60,30 +93,41 @@ class OptionInput(QLineEdit):
         :param event: key event
         """
         super(OptionInput, self).keyPressEvent(event)
-        if not self.autoupdate:
+        if not self.real_time:
             return
         self.window.controller.ui.update()
-        self.window.controller.settings.editor.change(self.id, self.text(), self.section)
+        self.window.controller.config.input.on_update(self.parent_id, self.id, self.option, self.text())
 
 
 class PasswordInput(QLineEdit):
-    def __init__(self, window=None, id=None, autoupdate=False, section=None):
+    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
-        Settings input
+        Settings password input
 
         :param window: main window
         :param id: option id
-        :param autoupdate: auto update
-        :param section: settings section
+        :param parent_id: parent option id
+        :param option: option data
         """
         super(PasswordInput, self).__init__(window)
         self.window = window
         self.id = id
-        self.section = section
-        self.autoupdate = autoupdate
+        self.parent_id = parent_id
+        self.option = option
+        self.value = False
+        self.title = ""
+        self.real_time = False
+
+        # from option data
+        if self.option is not None:
+            if "label" in self.option:
+                self.title = self.option["label"]
+            if "value" in self.option:
+                self.value = self.option["value"]
+            if "real_time" in self.option:
+                self.real_time = self.option["real_time"]
 
         self.setEchoMode(QLineEdit.Password)
-
         self.toggle_password_action = QAction('+', self)
         self.toggle_password_action.triggered.connect(self.toggle_password_visibility)
         self.addAction(self.toggle_password_action, QLineEdit.TrailingPosition)
@@ -107,7 +151,7 @@ class PasswordInput(QLineEdit):
         :param event: key event
         """
         super(PasswordInput, self).keyPressEvent(event)
-        if not self.autoupdate:
+        if not self.real_time:
             return
         self.window.controller.ui.update()
-        self.window.controller.settings.editor.change(self.id, self.text(), self.section)
+        self.window.controller.config.input.on_update(self.parent_id, self.id, self.option, self.text())

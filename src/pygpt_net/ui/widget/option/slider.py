@@ -24,45 +24,68 @@ class NoScrollSlider(QSlider):
 
 
 class OptionSlider(QWidget):
-    def __init__(self, window=None, id=None, title=None, min=None, max=None, step=None, value=None, max_width=True,
-                 section=None):
+    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
         Settings slider
 
         :param window: main window
         :param id: option id
-        :param title: option title
-        :param min: min value
-        :param max: max value
-        :param step: value step
-        :param value: current value
-        :param max_width: max width
-        :param section: settings section
+        :param parent_id: parent option id
+        :param option: option data
         """
         super(OptionSlider, self).__init__(window)
         self.window = window
         self.id = id
-        self.title = title
-        self.min = min
-        self.max = max
-        self.step = step
-        self.value = value
-        self.section = section
+        self.parent_id = parent_id
+        self.option = option
+        self.value = 0
+        self.title = ""
+        self.min = 0
+        self.max = 1
+        self.step = 1
+        self.multiplier = 1
 
-        self.label = QLabel(title)
+        # from option data
+        if self.option is not None:
+            if 'min' in self.option:
+                self.min = self.option['min']
+            if 'max' in self.option:
+                self.max = self.option['max']
+            if 'step' in self.option:
+                self.step = self.option['step']
+            self.value = self.min
+            if 'value' in self.option:
+                self.value = self.option['value']
+            if 'multiplier' in self.option:
+                self.multiplier = self.option['multiplier']
+            if 'label' in self.option:
+                self.title = self.option['label']
+            if 'type' in self.option:
+                if self.option['type'] == 'float':
+                    self.value = self.value * self.multiplier  # multiplier makes effect only on float
+                    self.min = self.min * self.multiplier
+                    self.max = self.max * self.multiplier
+                    # step = step * multiplier
+                elif self.option['type'] == 'int':
+                    self.value = int(self.value)
+
+        # self.label = QLabel(self.title)  # TODO: check this
+        self.label = QLabel('')
         self.slider = NoScrollSlider(Qt.Horizontal)
-        self.slider.setMinimum(min)
-        self.slider.setMaximum(max)
-        self.slider.setSingleStep(step)
-        self.slider.setValue(value)
+        self.slider.setMinimum(self.min)
+        self.slider.setMaximum(self.max)
+        self.slider.setSingleStep(self.step)
+        self.slider.setValue(self.value)
         self.slider.valueChanged.connect(
-            lambda: self.window.controller.settings.editor.apply(self.id, self.slider.value(), 'slider', self.section))
+            lambda: self.window.controller.config.slider.on_update(
+                self.parent_id, self.id, self.option, self.slider.value(), 'slider'))
 
-        if max_width:
-            self.slider.setMaximumWidth(240)
+        # if max_width:
+            # self.slider.setMaximumWidth(240)
 
-        self.input = OptionInputInline(self.window, self.id, self.section)
-        self.input.setText(str(value))
+        self.input = OptionInputInline(self.window, self.parent_id, self.id, self.option)
+        self.input.setText(str(self.value))
+        self.input.slider = True  # set is slider connected
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.label)

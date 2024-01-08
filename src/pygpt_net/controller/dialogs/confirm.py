@@ -59,7 +59,7 @@ class Confirm:
         elif type == 'settings.defaults.app':
             self.window.controller.settings.editor.load_defaults_app(True)
         elif type == 'settings.dict.delete':
-            self.window.controller.settings.editor.delete_item(parent_object, id, True)
+            self.window.controller.config.dictionary.delete_item(parent_object, id, True)
         elif type == 'plugin.settings.defaults.user':
             self.window.controller.plugins.settings.load_defaults_user(True)
         elif type == 'plugin.settings.defaults.app':

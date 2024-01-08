@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
+
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
@@ -93,7 +94,7 @@ class Mode:
 
     def update_temperature(self, temperature: float = None):
         """
-        Update current temperature
+        Update current temperature field
 
         :param temperature: current temperature
         :type temperature: float or None
@@ -105,7 +106,25 @@ class Mode:
                 id = self.window.core.config.get('preset')
                 if id in self.window.core.presets.items:
                     temperature = float(self.window.core.presets.items[id].temperature or 1.0)
-        self.window.controller.settings.editor.apply("current_temperature", temperature)
+        option = self.window.controller.settings.editor.get_options()["temperature"]
+        self.window.controller.config.slider.on_update("global", "current_temperature", option, temperature,
+                                                       hooks=False)  # disable hooks to prevent circular update
+
+    def hook_global_temperature(self, key, value, caller, *args, **kwargs):
+        """
+        Hook: on update current temperature global field
+        """
+        if caller != "slider":
+            return  # accept call only from slider (has already validated min/max)
+
+        temperature = value / 100
+        self.window.core.config.set("temperature", temperature)
+        preset_id = self.window.core.config.get('preset')
+        if preset_id is not None and preset_id != "":
+            if preset_id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[preset_id]
+                preset.temperature = temperature
+                self.window.core.presets.save(preset_id)
 
     def update_mode(self):
         """Update mode"""

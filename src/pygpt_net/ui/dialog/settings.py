@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -35,6 +35,8 @@ class Settings:
         """Setup settings dialog"""
 
         id = "settings"
+        parent_id = "config"
+        self.window.config_bag.items[parent_id] = {}
         path = self.window.core.config.path
 
         # buttons
@@ -54,46 +56,41 @@ class Settings:
         self.window.ui.nodes['settings.btn.save'].setAutoDefault(True)
 
         # bottom buttons layout
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.ui.nodes['settings.btn.defaults.user'])
-        bottom_layout.addWidget(self.window.ui.nodes['settings.btn.defaults.app'])
-        bottom_layout.addWidget(self.window.ui.nodes['settings.btn.save'])
+        bottom = QHBoxLayout()
+        bottom.addWidget(self.window.ui.nodes['settings.btn.defaults.user'])
+        bottom.addWidget(self.window.ui.nodes['settings.btn.defaults.app'])
+        bottom.addWidget(self.window.ui.nodes['settings.btn.save'])
 
         self.window.ui.paths[id] = QLabel(str(path))
         self.window.ui.paths[id].setStyleSheet("font-weight: bold;")
 
         # advanced options keys
-        advanced_options = []
+        advanced_keys = []
 
         # get settings options config
-        settings_options = self.window.controller.settings.editor.get_options()
-        for key in settings_options:
-            if 'advanced' in settings_options[key] and settings_options[key]['advanced']:
-                advanced_options.append(key)
+        fields = self.window.controller.settings.editor.get_options()
+        for key in fields:
+            if 'advanced' in fields[key] and fields[key]['advanced']:
+                advanced_keys.append(key)
 
         # build settings widgets
-        settings_widgets = self.build_settings_widgets(settings_options)
+        widgets = self.build_widgets(fields)
 
         # apply settings widgets
-        for key in settings_widgets:
-            self.window.ui.config_option[key] = settings_widgets[key]
+        for key in widgets:
+            self.window.config_bag.items[parent_id][key] = widgets[key]
 
         # apply widgets to layouts
         options = {}
-        for key in settings_widgets:
-            type = settings_options[key]['type']
-            label = 'settings.' + settings_options[key]['label']
-            extra = {}
-            if 'extra' in settings_options[key]:
-                extra = settings_options[key]['extra']
-            if type == 'text' or type == 'int' or type == 'float':
-                options[key] = self.add_option(label, settings_widgets[key], type, extra)
-            elif type == 'textarea':
-                options[key] = self.add_row_option(label, settings_widgets[key], type, extra)
-            elif type == 'bool':
-                options[key] = self.add_raw_option(settings_widgets[key], type, extra)
+        for key in widgets:
+            if fields[key]["type"] == 'text' or fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
+                options[key] = self.add_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'textarea':
+                options[key] = self.add_row_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'bool':
+                options[key] = self.add_raw_option(widgets[key], fields[key])
 
-        fixed_options = [
+        fixed_keys = [
             'api_key',
             'organization_key'
         ]
@@ -103,136 +100,101 @@ class Settings:
         scroll.setWidgetResizable(True)
 
         line = self.add_line()
-        scroll_content = QVBoxLayout()
+        content = QVBoxLayout()
 
         # API keys at the top
         rows = QVBoxLayout()
-        for key in fixed_options:
-            scroll_content.addLayout(options[key])
-            if 'urls' in settings_options[key]:
-                urls_widget = self.add_urls(settings_options[key]['urls'], Qt.AlignCenter)
-                scroll_content.addWidget(urls_widget)
+        for key in fixed_keys:
+            content.addLayout(options[key])
+            if 'urls' in fields[key]:
+                urls_widget = self.add_urls(fields[key]['urls'], Qt.AlignCenter)
+                content.addWidget(urls_widget)
 
-        scroll_content.addWidget(line)
+        content.addWidget(line)
 
         # append widgets options layouts to scroll area
-        for opt_key in options:
-            option = options[opt_key]
+        for key in options:
+            option = options[key]
 
             # hide advanced options
-            if opt_key in advanced_options:
+            if key in advanced_keys:
                 continue
 
             # prevent already added options from being added again
-            if opt_key in fixed_options:
+            if key in fixed_keys:
                 continue
 
             # add option
-            scroll_content.addLayout(option)
+            content.addLayout(option)
 
             # append URLs
-            if 'urls' in settings_options[opt_key]:
-                urls_widget = self.add_urls(settings_options[opt_key]['urls'])
-                scroll_content.addWidget(urls_widget)
+            if 'urls' in fields[key]:
+                urls_widget = self.add_urls(fields[key]['urls'])
+                content.addWidget(urls_widget)
 
             line = self.add_line()
-            scroll_content.addWidget(line)
+            content.addWidget(line)
 
         # append advanced options at the end
-        if len(advanced_options) > 0:
+        if len(advanced_keys) > 0:
             group_id = 'settings.advanced'
             self.window.ui.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
             self.window.ui.groups[group_id].box.setText(trans('settings.advanced.collapse'))
-            for opt_key in options:
+            for key in options:
                 # hide non-advanced options
-                if opt_key not in advanced_options:
+                if key not in advanced_keys:
                     continue
 
                 # add option to group
-                option = options[opt_key]
+                option = options[key]
                 self.window.ui.groups[group_id].add_layout(option)
 
                 # add line if not last option
-                if opt_key != advanced_options[-1]:
+                if key != advanced_keys[-1]:
                     line = self.add_line()
                     self.window.ui.groups[group_id].add_widget(line)
 
-            scroll_content.addWidget(self.window.ui.groups[group_id])
+            content.addWidget(self.window.ui.groups[group_id])
 
-        scroll_widget = QWidget()
-        scroll_widget.setLayout(scroll_content)
-        scroll.setWidget(scroll_widget)
+        widget = QWidget()
+        widget.setLayout(content)
+        scroll.setWidget(widget)
 
         layout = QVBoxLayout()
-        # layout.addLayout(rows)  # api keys
-        layout.addWidget(scroll)  # rest of options widgets
-        layout.addLayout(bottom_layout)  # buttons (save, defaults)
+        layout.addWidget(scroll)  # options widgets
+        layout.addLayout(bottom)  # footer buttons (save, load defaults)
 
         self.window.ui.dialog['config.' + id] = SettingsDialog(self.window, id)
         self.window.ui.dialog['config.' + id].setLayout(layout)
         self.window.ui.dialog['config.' + id].setWindowTitle(trans('dialog.settings'))
 
-    def build_settings_widgets(self, options) -> dict:
+    def build_widgets(self, options) -> dict:
         """
-        Build settings widgets
+        Build settings options widgets
 
         :param options: settings options
         """
         widgets = {}
+
         for key in options:
             option = options[key]
-            label = options[key]['label']
+            parent_id = "config"
 
             # create widget by option type
             if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
-                if 'slider' in option and option['slider'] \
-                        and (option['type'] == 'int' or option['type'] == 'float'):
-                    min = 0
-                    max = 1
-                    step = 1
-
-                    if 'min' in option:
-                        min = option['min']
-                    if 'max' in option:
-                        max = option['max']
-                    if 'step' in option:
-                        step = option['step']
-                    value = min
-                    if 'value' in option:
-                        value = option['value']
-
-                    multiplier = 1
-                    if 'multiplier' in option:
-                        multiplier = option['multiplier']
-
-                    if option['type'] == 'float':
-                        value = value * multiplier  # multiplier makes effect only on float
-                        min = min * multiplier
-                        max = max * multiplier
-                        # step = step * multiplier
-                    elif option['type'] == 'int':
-                        value = int(value)
-
-                    # slider + text input
-                    widgets[key] = OptionSlider(self.window, label, '',
-                                                min,
-                                                max,
-                                                step,
-                                                value)
+                if 'slider' in option and option['slider'] and (option['type'] == 'int' or option['type'] == 'float'):
+                    widgets[key] = OptionSlider(self.window, parent_id, key, option)  # slider + text input
                 else:
-                    # text input
                     if 'secret' in option and option['secret']:
-                        widgets[key] = PasswordInput(self.window, label)
+                        widgets[key] = PasswordInput(self.window, parent_id, key, option)  # password input
                     else:
-                        widgets[key] = OptionInput(self.window, label)
+                        widgets[key] = OptionInput(self.window, parent_id, key, option)  # text input
 
             elif option['type'] == 'textarea':
-                # textarea
-                widgets[key] = OptionTextarea(self.window, label)
+                widgets[key] = OptionTextarea(self.window, parent_id, key, option)  # textarea
                 widgets[key].setMinimumHeight(100)
             elif option['type'] == 'bool':
-                # checkbox
-                widgets[key] = OptionCheckbox(self.window, label, trans('settings.' + key))
+                widgets[key] = OptionCheckbox(self.window, parent_id, key, option)  # checkbox
 
         return widgets
 
@@ -245,7 +207,7 @@ class Settings:
         line.setFrameShadow(QFrame.Sunken)
         return line
 
-    def add_option(self, title: str, option, type, extra=None) -> QHBoxLayout:
+    def add_option(self, widget, option) -> QHBoxLayout:
         """
         Add option (label + option)
 
@@ -254,34 +216,42 @@ class Settings:
         :param type: Option type
         :param extra: Extra params
         """
-        label_key = title + '.label'
-        self.window.ui.nodes[label_key] = QLabel(trans(title))
-        if extra is not None and 'bold' in extra and extra['bold']:
+        label = option['label']
+        extra = {}
+        if 'extra' in option:
+            extra = option['extra']
+        label_key = label + '.label'
+        self.window.ui.nodes[label_key] = QLabel(trans(label))
+        if 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
-        layout.addWidget(option)
+        layout.addWidget(widget)
 
-        if title == 'settings.api_key':
+        if label == 'settings.api_key':
             self.window.ui.nodes[label_key].setMinimumHeight(60)
         return layout
 
-    def add_row_option(self, title: str, option, type, extra=None) -> QHBoxLayout:
+    def add_row_option(self, widget, option) -> QHBoxLayout:
         """
-        Add option (label + option)
+        Add option row (label + option)
 
         :param title: Title
         :param option: Option
         :param type: Option type
         :param extra: Extra params
         """
-        label_key = title + '.label'
-        self.window.ui.nodes[label_key] = QLabel(trans(title))
+        label = option['label']
+        extra = {}
+        if 'extra' in option:
+            extra = option['extra']
+        label_key = label + '.label'
+        self.window.ui.nodes[label_key] = QLabel(trans(label))
         if extra is not None and 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
-        layout.addWidget(option)
+        layout.addWidget(widget)
 
         # append URLs
         if 'urls' in extra \
@@ -290,11 +260,11 @@ class Settings:
             urls_widget = self.add_urls(extra['urls'])
             layout.addWidget(urls_widget)
 
-        if title == 'settings.api_key':
+        if label == 'settings.api_key':
             self.window.ui.nodes[label_key].setMinimumHeight(60)
         return layout
 
-    def add_raw_option(self, option, type, extra=None) -> QHBoxLayout:
+    def add_raw_option(self, widget, option) -> QHBoxLayout:
         """
         Add raw option row (option only)
 
@@ -302,8 +272,11 @@ class Settings:
         :param type: Option type
         :param extra: Extra options
         """
+        extra = {}
+        if 'extra' in option:
+            extra = option['extra']
         layout = QHBoxLayout()
-        layout.addWidget(option)
+        layout.addWidget(widget)
 
         # append URLs
         if 'urls' in extra \
@@ -326,7 +299,6 @@ class Settings:
             url = urls[name]
             label = UrlLabel(name, url)
             layout.addWidget(label)
-
         layout.setAlignment(align)
 
         widget = QWidget()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
@@ -21,6 +21,56 @@ class Editor:
         :param window: Window instance
         """
         self.window = window
+        self.options = {
+            "id": {
+                "type": "text",
+                "label": "assistant.id",
+            },
+            "name": {
+                "type": "text",
+                "label": "assistant.name",
+            },
+            "description": {
+                "type": "text",
+                "label": "assistant.description",
+            },
+            "model": {
+                "type": "text",
+                "label": "assistant.model",
+            },
+            "instructions": {
+                "type": "textarea",
+                "label": "assistant.instructions",
+            },
+            "tool.code_interpreter": {
+                "type": "bool",
+                "label": "assistant.tool.code_interpreter",
+                "value": True,
+            },
+            "tool.retrieval": {
+                "type": "bool",
+                "label": "assistant.tool.retrieval",
+                "value": True,
+            },
+            "tool.function": {
+                "type": "dict",
+                "label": "assistant.tool.function",
+                "keys": {
+                    'name': 'text',
+                    'params': 'text',
+                    'desc': 'text',
+                },
+            },
+        }
+        self.id = "assistant"
+
+    def get_options(self):
+        """
+        Get options list
+
+        :return: options list
+        """
+        return self.options
 
     def edit(self, idx: int = None):
         """
@@ -39,7 +89,7 @@ class Editor:
         """
         Initialize assistant editor
 
-        :param id: assistant ID
+        :param id: assistant ID (in API)
         """
         assistant = self.window.core.assistants.create()
         assistant.model = "gpt-4-1106-preview"  # default model
@@ -61,21 +111,15 @@ class Editor:
         if assistant.model is None:
             assistant.model = ""
 
-        self.window.ui.config_option['assistant.id'].setText(id)
-        self.config_change('assistant.name', assistant.name, 'assistant.editor')
-        self.config_change('assistant.description', assistant.description, 'assistant.editor')
-        self.config_change('assistant.instructions', assistant.instructions, 'assistant.editor')
-        self.config_change('assistant.model', assistant.model, 'assistant.editor')
+        options = {}
+        data_dict = assistant.to_dict()
+        for key in self.options:
+            options[key] = self.options[key]
+            options[key]['value'] = data_dict[key]
+            if options[key]['value'] is None:
+                options[key]['value'] = ""
 
-        if assistant.has_tool('code_interpreter'):
-            self.config_toggle('assistant.tool.code_interpreter', True, 'assistant.editor')
-        else:
-            self.config_toggle('assistant.tool.code_interpreter', False, 'assistant.editor')
-
-        if assistant.has_tool('retrieval'):
-            self.config_toggle('assistant.tool.retrieval', True, 'assistant.editor')
-        else:
-            self.config_toggle('assistant.tool.retrieval', False, 'assistant.editor')
+        self.window.controller.config.load_options(self.id, options)
 
         # restore functions
         if assistant.has_functions():
@@ -83,21 +127,21 @@ class Editor:
             values = []
             for function in functions:
                 values.append({"name": function['name'], "params": function['params'], "desc": function['desc']})
-            self.window.ui.config_option['assistant.tool.function'].items = values
-            self.window.ui.config_option['assistant.tool.function'].model.updateData(values)
+            self.window.config_bag.items[self.id]['tool.function'].items = values
+            self.window.config_bag.items[self.id]['tool.function'].model.updateData(values)
         else:
-            self.window.ui.config_option['assistant.tool.function'].items = []
-            self.window.ui.config_option['assistant.tool.function'].model.updateData([])
+            self.window.config_bag.items[self.id]['tool.function'].items = []
+            self.window.config_bag.items[self.id]['tool.function'].model.updateData([])
 
         # set focus to name field
-        self.window.ui.config_option['assistant.name'].setFocus()
+        self.window.config_bag.items[self.id]['name'].setFocus()
 
     def save(self):
         """Save assistant"""
         created = False
-        id = self.window.ui.config_option['assistant.id'].text()
-        name = self.window.ui.config_option['assistant.name'].text()
-        model = self.window.ui.config_option['assistant.model'].text()
+        id = self.window.controller.config.get_value(self.id, 'id', self.options['id'])  # empty or not
+        name = self.window.controller.config.get_value(self.id, 'name', self.options['name'])
+        model = self.window.controller.config.get_value(self.id, 'model', self.options['model'])
 
         # check name
         if name is None or name == "" or model is None or model == "":
@@ -105,25 +149,25 @@ class Editor:
             return
 
         if id is None or id == "" or not self.window.core.assistants.has(id):
-            assistant = self.window.controller.assistant.create()  # id created in API
+            assistant = self.window.controller.assistant.create()  # id is created in API here
             if assistant is None:
-                print("Assistant not created")
+                print("ERROR: Assistant not created!")
                 return
-            id = assistant.id
+            id = assistant.id  # set to ID created in API
             self.window.core.assistants.add(assistant)
-            self.window.ui.config_option['assistant.id'].setText(id)
+            self.window.controller.config.apply_value(self.id, "id", id)
             created = True
         else:
             assistant = self.window.core.assistants.get_by_id(id)
 
-        # assign data from fields to assistant
+        # assign data from fields to assistant object
         self.assign_data(assistant)
 
-        # update in API
+        # update data in API if only updating data here (not creating)
         if not created:
             self.window.controller.assistant.update_data(assistant)
 
-        # save file
+        # save
         self.window.core.assistants.save()
         self.window.controller.assistant.refresh()
         self.window.controller.assistant.update()
@@ -131,7 +175,7 @@ class Editor:
         self.window.ui.dialogs.close('editor.assistants')
         self.window.ui.status(trans('status.assistant.saved'))
 
-        # switch to new assistant
+        # switch to edited assistant
         self.window.controller.assistant.select_by_id(id)
 
     def assign_data(self, assistant: AssistantItem):
@@ -140,86 +184,36 @@ class Editor:
 
         :param assistant: assistant
         """
-        assistant.name = self.window.ui.config_option['assistant.name'].text()
-        assistant.model = self.window.ui.config_option['assistant.model'].text()
-        assistant.description = self.window.ui.config_option['assistant.description'].text()
-        assistant.instructions = self.window.ui.config_option['assistant.instructions'].toPlainText()
+        assistant.name = self.window.controller.config.get_value(self.id, 'name', self.options['name'])
+        assistant.model = self.window.controller.config.get_value(self.id, 'model', self.options['model'])
+        assistant.description = self.window.controller.config.get_value(self.id, 'description',
+                                                                        self.options['description'])
+        assistant.instructions = self.window.controller.config.get_value(self.id, 'instructions',
+                                                                         self.options['instructions'])
         assistant.tools = {
-            'code_interpreter': self.window.ui.config_option['assistant.tool.code_interpreter'].box.isChecked(),
-            'retrieval': self.window.ui.config_option['assistant.tool.retrieval'].box.isChecked(),
-            'function': [],  # functions are assigned separately
+            'code_interpreter': self.window.controller.config.get_value(self.id, 'tool.code_interpreter',
+                                                                        self.options['tool.code_interpreter']),
+            'retrieval': self.window.controller.config.get_value(self.id, 'tool.retrieval',
+                                                                 self.options['tool.retrieval']),
+            'function': [],  # functions are assigned separately (below)
         }
 
         # assign assistant's functions tool
         functions = []
-        for function in self.window.ui.config_option['assistant.tool.function'].items:
+        for function in self.window.controller.config.get_value(self.id, 'tool.function',
+                                                                self.options['tool.function']):
             name = function['name']
             params = function['params']
             desc = function['desc']
             if name is None or name == "":
                 continue
             if params is None or params == "":
-                params = '{"type": "object", "properties": {}}'
+                params = '{"type": "object", "properties": {}}'  # default empty JSON params
             if desc is None:
                 desc = ""
             functions.append({"name": name, "params": params, "desc": desc})
+
         if len(functions) > 0:
             assistant.tools['function'] = functions
         else:
             assistant.tools['function'] = []
-
-    def update_field(self, id: str, value: any, assistant_id: str = None, current: bool = False):
-        """
-        Update assistant field from editor
-
-        :param id: field id
-        :param value: field value
-        :param assistant_id: assistant ID
-        :param current: if true, updates current assistant
-        """
-        if assistant_id is not None and assistant_id != "":
-            if self.window.core.assistants.has(assistant_id):
-                assistant = self.window.core.assistants.get_by_id(assistant_id)
-                if id == 'assistant.name':
-                    assistant.name = value
-                elif id == 'assistant.description':
-                    assistant.description = value
-                elif id == 'assistant.instructions':
-                    assistant.instructions = value
-                elif id == 'assistant.model':
-                    assistant.model = value
-
-    def config_toggle(self, id: str, value: bool, section: bool = None):
-        """
-        Toggle checkbox
-
-        :param id: checkbox option id
-        :param value: checkbox option value
-        :param section: settings section
-        """
-        assistant_id = self.window.core.config.get('assistant')  # current assistant
-        is_current = True
-        if section == 'assistant.editor':
-            assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant
-            is_current = False
-        self.update_field(id, value, assistant_id, is_current)  # TODO: bool?
-
-    def config_change(self, id: str, value: str, section: bool = None):
-        """
-        Change input value
-
-        :param id: input option id
-        :param value: input option value
-        :param section: settings section
-        """
-        # validate filename
-        if id == 'assistant.id':
-            self.window.ui.config_option[id].setText(value)
-
-        assistant_id = self.window.core.config.get('assistant')  # current assistant
-        is_current = True
-        if section == 'assistant.editor':
-            assistant_id = self.window.ui.config_option['assistant.id']  # editing assistant
-            is_current = False
-        self.update_field(id, value, assistant_id, is_current)
-        self.window.ui.config_option[id].setText('{}'.format(value))

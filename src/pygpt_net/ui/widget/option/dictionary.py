@@ -17,27 +17,37 @@ from pygpt_net.utils import trans
 
 
 class OptionDict(QWidget):
-    def __init__(self, window=None, option_id=None, autoupdate=True, section=None, parent_id=None, keys=None,
-                 values=None):
+    def __init__(self, window=None, parent_id: str = None, id: str = None, option: dict = None):
         """
         Settings dictionary items
 
         :param window: main window
-        :param option_id: option id
-        :param autoupdate: auto update
-        :param section: settings section
-        :param parent_id: parent id
-        :param keys: dict keys
-        :param values: dict values
+        :param id: option id
+        :param parent_id: parent option id
+        :param option: option data
         """
         super(OptionDict, self).__init__(window)
         self.window = window
-        self.id = option_id  # option id (key)
-        self.section = section  # settings or plugin
-        self.parent_id = parent_id  # plugin id or None if settings
-        self.autoupdate = autoupdate
-        self.keys = keys  # dict keys
-        self.items = list(values)  # dict items
+        self.id = id
+        self.parent_id = parent_id
+        self.option = option
+        self.title = ""
+        self.real_time = False
+        self.keys = {}
+        self.items = []
+
+        # init from option data
+        if self.option is not None:
+            if "label" in self.option:
+                self.title = self.option["label"]
+            if "value" in self.option:
+                self.items = self.option["value"]
+            if "keys" in self.option:
+                self.keys = self.option["keys"]
+            if "items" in self.option:
+                self.items = list(self.option["items"])
+            if "real_time" in self.option:
+                self.real_time = self.option["real_time"]
 
         # setup dict model
         headers = list(self.keys.keys())
@@ -48,8 +58,6 @@ class OptionDict(QWidget):
 
         # append dict model
         self.list.setModel(self.model)
-        self.list.selectionModel().selectionChanged.connect(
-            lambda: self.window.controller.ctx.selection_change())
 
         # add button
         self.add_btn = QPushButton(trans('action.add'), self)
@@ -94,7 +102,7 @@ class OptionDict(QWidget):
         if index.isValid():
             # remove item
             idx = index.row()
-            self.window.controller.settings.editor.delete_item(self, idx)
+            self.window.controller.config.dictionary.delete_item(self, idx)
 
     def delete_item_execute(self, idx):
         """

@@ -18,6 +18,28 @@ from pathlib import Path
 from pygpt_net.provider.config.json_file import JsonFileProvider
 
 
+class ConfigBag:
+    def __init__(self, window=None):
+        """
+        :param window: Window instance
+        """
+        self.window = window
+        self.items = {
+            "config": {},
+            "global": {},
+        }
+        self.hooks = {}
+
+    def add_hook(self, name: str, callback: callable):
+        """
+        Add hook
+
+        :param name: Hook name
+        :param callback: Callback function
+        """
+        self.hooks[name] = callback
+
+
 class Config:
     CONFIG_DIR = 'pygpt-net'
     TYPE_STR = 0

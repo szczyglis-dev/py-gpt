@@ -32,23 +32,32 @@ class Image:
         :rtype: QWidget
         """
         # img variants
+        option = {
+            "type": "int",
+            "slider": True,
+            "label": "img_variants",
+            "min": 0,
+            "max": 2,
+            "step": 1,
+            "value": 1,
+            "multiplier": 1,
+        }
         self.window.ui.nodes['img_variants.label'] = QLabel(trans("toolbox.img_variants.label"))
-        self.window.ui.config_option['img_variants'] = OptionSlider(self.window, 'img_variants',
-                                                                    '', 1, 4,
-                                                                    1, 1, False)
+        self.window.config_bag.items['global']['img_variants'] = \
+            OptionSlider(self.window, 'global', 'img_variants', option)
 
         # img raw
-        self.window.ui.config_option['img_raw'] = QCheckBox(trans("img.raw"))
-        self.window.ui.config_option['img_raw'].stateChanged.connect(
-            lambda: self.window.controller.chat.common.img_toggle_raw(self.window.ui.config_option['img_raw'].isChecked()))
+        self.window.config_bag.items['global']['img_raw'] = QCheckBox(trans("img.raw"))
+        self.window.config_bag.items['global']['img_raw'].stateChanged.connect(
+            lambda: self.window.controller.chat.common.img_toggle_raw(self.window.config_bag.items['global']['img_raw'].isChecked()))
 
         # label
         label = QLabel(trans("toolbox.img_variants.label"))
 
         # options
         cols = QHBoxLayout()
-        cols.addWidget(self.window.ui.config_option['img_raw'])
-        cols.addWidget(self.window.ui.config_option['img_variants'])
+        cols.addWidget(self.window.config_bag.items['global']['img_raw'])
+        cols.addWidget(self.window.config_bag.items['global']['img_variants'])
 
         # rows
         rows = QVBoxLayout()

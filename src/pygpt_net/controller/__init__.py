@@ -16,6 +16,7 @@ from pygpt_net.controller.calendar import Calendar
 from pygpt_net.controller.camera import Camera
 from pygpt_net.controller.chat import Chat
 from pygpt_net.controller.command import Command
+from pygpt_net.controller.config import Config
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.files import Files
@@ -48,6 +49,7 @@ class Controller:
         self.camera = Camera(window)
         self.chat = Chat(window)
         self.command = Command(window)
+        self.config = Config(window)
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)

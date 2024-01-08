@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
-from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -27,12 +27,12 @@ class Preset:
         :param window: Window instance
         """
         self.window = window
+        self.id = "preset"
 
     def setup(self):
         """Setup preset editor dialog"""
-
         id = "preset.presets"
-        path = self.window.core.config.path
+        self.window.config_bag.items[self.id] = {}
 
         self.window.ui.nodes['preset.btn.current'] = QPushButton(trans("dialog.preset.btn.current"))
         self.window.ui.nodes['preset.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
@@ -44,86 +44,86 @@ class Preset:
         self.window.ui.nodes['preset.btn.current'].setAutoDefault(False)
         self.window.ui.nodes['preset.btn.save'].setAutoDefault(True)
 
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.window.ui.nodes['preset.btn.current'])
-        bottom_layout.addWidget(self.window.ui.nodes['preset.btn.save'])
-
-        section = 'preset.editor'  # prevent autoupdate current preset
+        footer = QHBoxLayout()
+        footer.addWidget(self.window.ui.nodes['preset.btn.current'])
+        footer.addWidget(self.window.ui.nodes['preset.btn.save'])
 
         # fields
-        self.window.ui.paths[id] = QLabel(str(path))
-        self.window.ui.config_option['preset.prompt'] = OptionTextarea(self.window, 'preset.prompt', False, section)
-        self.window.ui.config_option['preset.filename'] = OptionInput(self.window, 'preset.filename', False, section)
-        self.window.ui.config_option['preset.name'] = OptionInput(self.window, 'preset.name', False, section)
-        self.window.ui.config_option['preset.ai_name'] = OptionInput(self.window, 'preset.ai_name', False, section)
-        self.window.ui.config_option['preset.user_name'] = OptionInput(self.window, 'preset.user_name', False, section)
-        self.window.ui.config_option['preset.img'] = OptionCheckbox(self.window, 'preset.img',
-                                                                    trans('preset.img'), False, section)
-        self.window.ui.config_option['preset.chat'] = OptionCheckbox(self.window, 'preset.chat', trans('preset.chat'),
-                                                                     False, section)
-        self.window.ui.config_option['preset.completion'] = OptionCheckbox(self.window, 'preset.completion',
-                                                                           trans('preset.completion'), False, section)
-        self.window.ui.config_option['preset.vision'] = OptionCheckbox(self.window, 'preset.vision',
-                                                                       trans('preset.vision'), False, section)
-        self.window.ui.config_option['preset.langchain'] = OptionCheckbox(self.window, 'preset.langchain',
-                                                                          trans('preset.langchain'), False, section)
-        self.window.ui.config_option['preset.assistant'] = OptionCheckbox(self.window, 'preset.assistant',
-                                                                          trans('preset.assistant'), False, section)
-        self.window.ui.config_option['preset.temperature'] = OptionSlider(self.window, 'preset.temperature',
-                                                                          '', 0, 200,
-                                                                          1, 100, True, section)
+        self.window.ui.paths[id] = QLabel(str(self.window.core.config.path))
 
-        # set max width
+        # get option fields config
+        fields = self.window.controller.presets.editor.get_options()
+
+        # build settings widgets
+        widgets = self.build_widgets(fields)
+
+        # apply settings widgets
+        for key in widgets:
+            self.window.config_bag.items[self.id][key] = widgets[key]
+
+        # fix max width
         max_width = 240
-        self.window.ui.config_option['preset.filename'].setMaximumWidth(max_width)
-        self.window.ui.config_option['preset.name'].setMaximumWidth(max_width)
-        self.window.ui.config_option['preset.ai_name'].setMaximumWidth(max_width)
-        self.window.ui.config_option['preset.user_name'].setMaximumWidth(max_width)
+        self.window.config_bag.items[self.id]['filename'].setMaximumWidth(max_width)
+        self.window.config_bag.items[self.id]['name'].setMaximumWidth(max_width)
+        self.window.config_bag.items[self.id]['ai_name'].setMaximumWidth(max_width)
+        self.window.config_bag.items[self.id]['user_name'].setMaximumWidth(max_width)
 
+        # apply widgets to layouts
         options = {}
-        options['filename'] = self.add_option('preset.filename', self.window.ui.config_option['preset.filename'])
-        options['name'] = self.add_option('preset.name', self.window.ui.config_option['preset.name'])
-        options['ai_name'] = self.add_option('preset.ai_name', self.window.ui.config_option['preset.ai_name'])
-        options['user_name'] = self.add_option('preset.user_name', self.window.ui.config_option['preset.user_name'])
-        options['chat'] = self.add_raw_option(self.window.ui.config_option['preset.chat'])
-        options['completion'] = self.add_raw_option(self.window.ui.config_option['preset.completion'])
-        options['vision'] = self.add_raw_option(self.window.ui.config_option['preset.vision'])
-        options['assistant'] = self.add_raw_option(self.window.ui.config_option['preset.assistant'])
-        options['langchain'] = self.add_raw_option(self.window.ui.config_option['preset.langchain'])
-        options['img'] = self.add_raw_option(self.window.ui.config_option['preset.img'])
-        options['temperature'] = self.add_option('preset.temperature',
-                                                 self.window.ui.config_option['preset.temperature'])
-
-        self.window.ui.config_option['preset.prompt'].setMinimumHeight(150)
-
-        self.window.ui.nodes['preset.prompt.label'] = QLabel(trans('preset.prompt'))
-        options['prompt'] = QVBoxLayout()
-        options['prompt'].addWidget(self.window.ui.nodes['preset.prompt.label'])
-        options['prompt'].addWidget(self.window.ui.config_option['preset.prompt'])
+        for key in widgets:
+            if fields[key]["type"] == 'text' or fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
+                options[key] = self.add_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'textarea':
+                options[key] = self.add_row_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'bool':
+                options[key] = self.add_raw_option(widgets[key])
 
         rows = QVBoxLayout()
-        rows.addLayout(options['filename'])
-        rows.addLayout(options['name'])
-        rows.addLayout(options['ai_name'])
-        rows.addLayout(options['user_name'])
-        rows.addLayout(options['chat'])
-        rows.addLayout(options['completion'])
-        rows.addLayout(options['img'])
-        rows.addLayout(options['vision'])
-        rows.addLayout(options['assistant'])
-        rows.addLayout(options['langchain'])
-        rows.addLayout(options['temperature'])
-        rows.addLayout(options['prompt'])
+
+        # append widgets options layouts to rows
+        for key in options:
+            rows.addLayout(options[key])
 
         layout = QVBoxLayout()
         layout.addLayout(rows)
-        layout.addLayout(bottom_layout)
+        layout.addLayout(footer)
 
         self.window.ui.dialog['editor.' + id] = EditorDialog(self.window, id)
         self.window.ui.dialog['editor.' + id].setLayout(layout)
         self.window.ui.dialog['editor.' + id].setWindowTitle(trans('dialog.preset'))
 
-    def add_option(self, title: str, option, bold: bool = False) -> QHBoxLayout:
+    def build_widgets(self, options) -> dict:
+        """
+        Build settings options widgets
+
+        :param options: settings options
+        """
+        widgets = {}
+
+        for key in options:
+            option = options[key]
+
+            # create widget by option type
+            if option['type'] == 'text' or option['type'] == 'int' or option['type'] == 'float':
+                if 'slider' in option and option['slider'] and (option['type'] == 'int' or option['type'] == 'float'):
+                    widgets[key] = OptionSlider(self.window, self.id, key, option)  # slider + text input
+                else:
+                    if 'secret' in option and option['secret']:
+                        widgets[key] = PasswordInput(self.window, self.id, key, option)  # password input
+                    else:
+                        widgets[key] = OptionInput(self.window, self.id, key, option)  # text input
+
+            elif option['type'] == 'textarea':
+                widgets[key] = OptionTextarea(self.window, self.id, key, option)  # textarea
+                widgets[key].setMinimumHeight(150)
+            elif option['type'] == 'bool':
+                widgets[key] = OptionCheckbox(self.window, self.id, key, option)  # checkbox
+            elif option['type'] == 'dict':
+                widgets[key] = OptionDict(self.window, self.id, key, option)  # dictionary
+
+        return widgets
+
+    def add_option(self, widget, option) -> QHBoxLayout:
         """
         Add option
 
@@ -131,14 +131,35 @@ class Preset:
         :param option: Option
         :param bold: Bold title
         """
-        label_key = title + '.label'
-        self.window.ui.nodes[label_key] = QLabel(trans(title))
-        if bold:
+        label = option['label']
+        extra = {}
+        if 'extra' in option:
+            extra = option['extra']
+        label_key = label + '.label'
+        self.window.ui.nodes[label_key] = QLabel(trans(label))
+        if 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         layout = QHBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
-        layout.addWidget(option)
+        layout.addWidget(widget)
+        return layout
 
+    def add_row_option(self, widget, option) -> QHBoxLayout:
+        """
+        Add option row (label + option)
+
+        :param title: Title
+        :param option: Option
+        :param type: Option type
+        :param extra: Extra params
+        """
+        label = option['label']
+        label_key = label + '.label'
+        self.window.ui.nodes[label_key] = QLabel(trans(label))
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes[label_key])
+        layout.addWidget(widget)
         return layout
 
     def add_raw_option(self, option) -> QHBoxLayout:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 06:00:00                  #
+# Updated Date: 2024.01.08 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -82,6 +82,7 @@ class BasePlugin:
             tooltip = description
 
         option = {
+            "id": name,  # append ID based on name
             "type": type,
             "value": value,
             "label": label,
@@ -294,5 +295,4 @@ class BaseWorker(QRunnable):
     def stopped(self):
         if self.signals is not None and hasattr(self.signals, "stopped"):
             self.signals.stopped.emit()
-
-
+            
