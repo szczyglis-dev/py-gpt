@@ -23,7 +23,7 @@ class Plugins:
         :param window: Window instance
         """
         self.window = window
-        self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output', 'vision']
+        self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output', 'vision', 'schedule']
         self.plugins = {}
 
     def is_registered(self, id: str) -> bool:
