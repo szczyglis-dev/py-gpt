@@ -23,7 +23,7 @@ class Notepad:
         :param window: Window instance
         """
         self.window = window
-        self.default_num_notepads = 3
+        self.default_num_notepads = 1
         self.start_tab_idx = 3  # tab idx from notepad starts
 
     def load(self):
