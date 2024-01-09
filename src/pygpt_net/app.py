@@ -14,7 +14,7 @@ import sys
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
 from PySide6.QtGui import QScreen, QIcon
-from PySide6.QtWidgets import (QApplication, QMainWindow)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QSystemTrayIcon, QMenu)
 from qt_material import QtStyleTools
 from logging import ERROR, WARNING, INFO, DEBUG
 
@@ -23,7 +23,7 @@ from pygpt_net.controller import Controller
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui import UI
-from pygpt_net.utils import get_app_meta
+from pygpt_net.utils import get_app_meta, trans
 
 from pygpt_net.plugin.audio_azure import Plugin as AudioAzurePlugin
 from pygpt_net.plugin.audio_openai_tts import Plugin as AudioOpenAITTSPlugin
@@ -178,6 +178,21 @@ class Launcher:
         self.window = MainWindow()
         self.app.setWindowIcon(QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico')))
         self.app.aboutToQuit.connect(self.app.quit)
+
+        trayIcon = QSystemTrayIcon(QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico')), self.app)
+        trayIcon.setToolTip("PyGPT")
+        menu = QMenu()
+        tray_menu = {}
+        tray_menu['new'] = menu.addAction(trans("menu.file.new"))
+        tray_menu['new'].triggered.connect(self.window.controller.ctx.new)
+        tray_menu['update'] = menu.addAction(trans("menu.info.updates"))
+        tray_menu['update'].triggered.connect(self.window.controller.launcher.check_updates)
+        tray_menu['github'] = menu.addAction(trans("menu.info.github"))
+        tray_menu['github'].triggered.connect(self.window.controller.dialogs.info.goto_github)
+        tray_menu['exit'] = menu.addAction(trans("menu.file.exit"))
+        tray_menu['exit'].triggered.connect(self.app.quit)
+        trayIcon.setContextMenu(menu)
+        trayIcon.show()
 
     def add_plugin(self, plugin=None):
         """
