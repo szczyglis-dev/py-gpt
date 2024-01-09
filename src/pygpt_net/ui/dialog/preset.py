@@ -73,9 +73,26 @@ class Preset(BaseConfigDialog):
 
         rows = QVBoxLayout()
 
+        ignore_keys = ["chat", "completion", "img", "vision" , "assistant", "langchain"]
+
+        rows1 = QHBoxLayout()
+        rows1.addLayout(options["chat"])
+        rows1.addLayout(options["completion"])
+        rows1.addLayout(options["img"])
+
+        rows2 = QHBoxLayout()
+        rows2.addLayout(options["vision"])
+        rows2.addLayout(options["assistant"])
+        rows2.addLayout(options["langchain"])
+
         # append widgets options layouts to rows
         for key in options:
+            if key in ignore_keys:
+                continue
             rows.addLayout(options[key])
+            if key == "user_name":
+                 rows.addLayout(rows1)
+                 rows.addLayout(rows2)
 
         layout = QVBoxLayout()
         layout.addLayout(rows)

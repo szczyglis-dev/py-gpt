@@ -83,8 +83,16 @@ class Assistant(BaseConfigDialog):
 
         rows = QVBoxLayout()
 
+        ignore_keys = ["tool.code_interpreter", "tool.retrieval"]
+
+        rows1 = QHBoxLayout()
+        rows1.addLayout(options["tool.code_interpreter"])
+        rows1.addLayout(options["tool.retrieval"])
+
         # append widgets options layouts to rows
         for key in options:
+            if key in ignore_keys:
+                continue
             # extra rows  TODO: add tip as extra to settings config
             if key == "id":
                 rows.addWidget(self.window.ui.nodes['assistant.id_tip'])
@@ -94,6 +102,7 @@ class Assistant(BaseConfigDialog):
             # extra rows
             if key == "instructions":
                 rows.addWidget(self.window.ui.nodes['assistant.api.tip'])
+                rows.addLayout(rows1)
 
         layout = QVBoxLayout()
         layout.addLayout(rows)
