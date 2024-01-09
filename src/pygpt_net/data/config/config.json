@@ -63,7 +63,7 @@
   "max_total_tokens": 128000,
   "mode": "chat",
   "model": "gpt-3.5-turbo",
-  "notepad.num": 3,
+  "notepad.num": 1,
   "organization_key": "",
   "output_timestamp": true,
   "plugins": {
