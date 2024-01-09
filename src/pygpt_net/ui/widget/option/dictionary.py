@@ -243,10 +243,10 @@ class OptionDictModel(QAbstractItemModel):
         """
         if not index.isValid():
             return None
-        if role == Qt.CheckStateRole and index.column() == 0:
+        if role == Qt.CheckStateRole and index.column() == 0 and self.headers[index.column()] == "enabled":
             value = self.items[index.row()].get('enabled', False)
             return Qt.Checked if value else Qt.Unchecked
-        if role == Qt.EditRole and index.column() == 0:
+        if role == Qt.EditRole and index.column() == 0 and self.headers[index.column()] == "enabled":
             return self.items[index.row()].get('enabled', False)
         if role == Qt.DisplayRole or role == Qt.EditRole:
             entry = self.items[index.row()]
@@ -262,7 +262,7 @@ class OptionDictModel(QAbstractItemModel):
         :param role: Role
         :return: Set data
         """
-        if role == Qt.CheckStateRole:
+        if index.isValid() and role == Qt.CheckStateRole and self.headers[index.column()] == "enabled":
             self.items[index.row()]['enabled'] = (value == Qt.Checked)
             self.dataChanged.emit(index, index, [Qt.CheckStateRole])
             return True
@@ -283,7 +283,7 @@ class OptionDictModel(QAbstractItemModel):
         """
         if not index.isValid():
             return Qt.NoItemFlags
-        if index.column() == 0:
+        if index.column() == 0 and self.headers[index.column()] == "enabled":
             return super(OptionDictModel, self).flags(index) | Qt.ItemIsUserCheckable | Qt.ItemIsEditable
         return super(OptionDictModel, self).flags(index) | Qt.ItemIsEditable
 
