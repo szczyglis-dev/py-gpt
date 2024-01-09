@@ -19,6 +19,7 @@ from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.element.url import UrlLabel
 from pygpt_net.ui.widget.lists.plugin import PluginList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
@@ -223,7 +224,11 @@ class Plugins:
             elif option['type'] == 'bool':
                 widgets[key] = OptionCheckbox(self.window, parent, key, option)  # checkbox
             elif option['type'] == 'dict':
+                self.window.controller.config.apply_placeholders(option)
                 widgets[key] = OptionDict(self.window, parent, key, option)  # dictionary
+            elif option['type'] == 'combo':
+                self.window.controller.config.apply_placeholders(option)
+                widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
 
         return widgets
 

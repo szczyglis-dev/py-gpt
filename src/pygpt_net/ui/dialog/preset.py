@@ -68,6 +68,8 @@ class Preset(BaseConfigDialog):
                 options[key] = self.add_raw_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
+            elif fields[key]["type"] == 'combo':
+                options[key] = self.add_row_option(widgets[key], fields[key])
 
         rows = QVBoxLayout()
 

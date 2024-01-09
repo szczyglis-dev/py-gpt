@@ -71,6 +71,9 @@ class Presets:
             self.window.core.config.data['current_preset'] = {}
         self.window.core.config.data['current_preset'][mode] = preset
 
+        # select model
+        self.select_model()
+
     def select_current(self):
         """Select preset by current"""
         mode = self.window.core.config.get('mode')
@@ -145,6 +148,22 @@ class Presets:
             self.window.core.config.set('prompt', self.window.core.config.get('default_prompt'))
         else:
             self.window.core.config.set('prompt', None)
+
+    def select_model(self):
+        """Select model by current preset"""
+        mode = self.window.core.config.get('mode')
+        id = self.window.core.config.get('preset')
+        if id is not None and id != "":
+            if id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[id]
+                if preset.model is not None and preset.model != "" and preset.model != "_":
+                    if preset.model in self.window.core.models.items:
+                        if self.window.core.models.has(preset.model) \
+                                and self.window.core.models.is_allowed(preset.model, mode):
+                            self.window.core.config.set('model', preset.model)
+                            self.window.controller.model.set(mode, preset.model)
+                            self.window.controller.model.update_list()
+                            self.window.controller.model.select_current()
 
     def refresh(self):
         """Refresh presets"""

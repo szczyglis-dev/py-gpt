@@ -10,6 +10,7 @@
 # ================================================== #
 
 from .field.checkbox import Checkbox
+from .field.combo import Combo
 from .field.dictionary import Dictionary
 from .field.input import Input
 from .field.slider import Slider
@@ -25,6 +26,7 @@ class Config:
         """
         self.window = window
         self.checkbox = Checkbox(window)
+        self.combo = Combo(window)
         self.dictionary = Dictionary(window)
         self.input = Input(window)
         self.slider = Slider(window)
@@ -63,6 +65,8 @@ class Config:
             self.checkbox.apply(parent_id, key, option)
         elif option['type'] == 'dict':
             self.dictionary.apply(parent_id, key, option)
+        elif option['type'] == 'combo':
+            self.combo.apply(parent_id, key, option)
 
     def apply_value(self, parent_id: str, key: str, option: dict, value):
         """
@@ -98,3 +102,57 @@ class Config:
             return self.checkbox.get_value(parent_id, key, option)
         elif option['type'] == 'dict':
             return self.dictionary.get_value(parent_id, key, option)
+        elif option['type'] == 'combo':
+            return self.combo.get_value(parent_id, key, option)
+
+    def apply_placeholders(self, option: dict):
+        """
+        Apply placeholders to option
+
+        :param option: Option dict
+        """
+        if option['type'] == 'dict':
+            for key in option['keys']:
+                item = option['keys'][key]
+                if type(item) is dict:
+                    if "type" in item:
+                        if item["type"] == "combo":
+                            if "use" in item:
+                                if item["use"] == "presets":
+                                    item["keys"] = self.get_placeholder_presets()
+                                elif item["use"] == "models":
+                                    item["keys"] = self.get_placeholder_models()
+        elif option['type'] == 'combo':
+            if "use" in option:
+                if option["use"] == "presets":
+                    option["keys"] = self.get_placeholder_presets()
+                elif option["use"] == "models":
+                    option["keys"] = self.get_placeholder_models()
+
+    def get_placeholder_presets(self) -> list:
+        """
+        Get presets placeholders list
+
+        :return: Presets placeholders list
+        """
+        presets = self.window.core.presets.get_all()
+        data = []
+        data.append({'_': '---'})
+        for id in presets:
+            if id.startswith("current."):
+                continue
+            data.append({id: id})  # TODO: name
+        return data
+
+    def get_placeholder_models(self) -> list:
+        """
+        Get models placeholders list
+
+        :return: Models placeholders list
+        """
+        models = self.window.core.models.get_all()
+        data = []
+        data.append({'_': '---'})
+        for id in models:
+            data.append({id: id})  # TODO: name
+        return data
