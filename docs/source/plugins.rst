@@ -16,7 +16,7 @@ The following plugins are currently available, and GPT can use them instantly:
 * ``Real Time`` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 * ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
 * ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
-
+* ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
 
 Command: Files I/O
@@ -500,6 +500,22 @@ Only for Completion/Langchain modes.
 If enabled, this option reverses the roles (AI <> user) with each iteration. For example, 
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
+
+rontab / Task scheduler
+-----------------------
+
+Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+
+- ``Your tasks`` *crontab*
+
+
+Add your cron-style tasks here. 
+They will be executed automatically at the times you specify in the cron-based job format. 
+If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
+
+- ``Create a new context on job run`` *new_ctx*
+
+If enabled, then a new context will be created on every run of the job." *Default:* ``True``
 
 
 Real Time

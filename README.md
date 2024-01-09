@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.90** | build: **2024.01.08** | Python: **3.10+**
+Release: **2.0.91** | build: **2024.01.09** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -46,6 +46,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Speech synthesis via `Microsoft Azure TTS` and `OpenAI TTS`.
 - Speech recognition via `OpenAI Whisper`.
 - Image analysis via `GPT-4 Vision`.
+- Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
@@ -636,6 +637,8 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
+- `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+
 ## Command: Files I/O
 
 The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `output` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
@@ -1107,6 +1110,22 @@ If enabled, this option reverses the roles (AI <> user) with each iteration. For
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
+## Crontab / Task scheduler
+
+Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+
+- `Your tasks` *crontab*
+
+
+Add your cron-style tasks here. 
+They will be executed automatically at the times you specify in the cron-based job format. 
+If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
+
+- `Create a new context on job run` *new_ctx*
+
+If enabled, then a new context will be created on every run of the job." *Default:* `True`
+
+
 ## Real Time
 
 This plugin automatically adds the current date and time to each system prompt you send. 
@@ -1486,6 +1505,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.91 (2024-01-09)
+
+- Added new plugin: Crontab / Task scheduler: the plugin provides cron-based job scheduling - you can now schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+- Added combo-box to configuration option types
+- Fixed incorrect contexts count in date calculation when timezone is different from UTC
+- Fixed incorrect paragraph formatting after command DIV in the last line of response
+- Other small fixes and improvements
 
 ## 2.0.90 (2024-01-08)
 

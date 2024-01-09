@@ -32,6 +32,7 @@ Features
 * Speech synthesis via ``Microsoft Azure TTS`` and ``OpenAI TTS``.
 * Speech recognition through ``OpenAI Whisper``.
 * Image analysis via ``GPT-4 Vision``.
+* Crontab / Task scheduler included
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
 * Integrated calendar, day notes and search in contexts by selected date
 * Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
