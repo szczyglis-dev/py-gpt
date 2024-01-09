@@ -53,7 +53,7 @@ class BasePlugin:
                    multiplier: int = 1,  # option float value multiplier (for sliders)
                    step: int = 1,  # option step value (for sliders)
                    slider: bool = False,  # option slider (True/False)
-                   keys: dict = None,  # option keys (for dict type)
+                   keys: dict or list = None,  # option keys dict (dict type) or key-value pairs list (combo type)
                    advanced: bool = False,  # option is advanced (True/False)
                    secret: bool = False,  # option is secret (True/False)
                    persist: bool = False,  # option is persistent on reset to defaults (True/False)
@@ -146,6 +146,24 @@ class BasePlugin:
         Handle event
 
         :param event: event name
+        :param args: arguments
+        :param kwargs: keyword arguments
+        """
+        return
+
+    def on_update(self, *args, **kwargs):
+        """
+        Called on update
+
+        :param args: arguments
+        :param kwargs: keyword arguments
+        """
+        return
+
+    def on_post_update(self, *args, **kwargs):
+        """
+        Called on post-update
+
         :param args: arguments
         :param kwargs: keyword arguments
         """
