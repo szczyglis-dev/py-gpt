@@ -14,6 +14,7 @@ certifi==2022.12.7
 cffi==1.15.1
 charset-normalizer==3.1.0
 click==8.1.7
+croniter==2.0.1
 cryptography==40.0.1
 dataclasses-json==0.6.3
 distro==1.8.0
@@ -66,6 +67,8 @@ PySide6==6.4.2
 PySide6-Addons==6.4.2
 PySide6-Essentials==6.4.2
 pytest==7.4.3
+python-dateutil==2.8.2
+pytz==2023.3.post1
 pyxdg==0.28
 PyYAML==6.0.1
 qt-material==2.14

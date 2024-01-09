@@ -27,6 +27,7 @@ setup(
     install_requires=[
         'azure-cognitiveservices-speech>=1.27.0',
         'beautifulsoup4>=4.12.2',
+        'croniter>=2.0.1',
         'docker>=7.0.0',
         'langchain>=0.0.345',
         'langchain-experimental>=0.0.44',
