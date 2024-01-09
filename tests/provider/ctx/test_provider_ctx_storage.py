@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch, mock_open, Mock
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from tests.mocks import mock_window
 from pygpt_net.provider.ctx.db_sqlite.storage import Storage
-
+from pygpt_net.provider.ctx.db_sqlite.utils import *
 
 def test_get_meta(mock_window):
     """Test get meta"""
@@ -281,7 +281,7 @@ def test_unpack_meta(mock_window):
         'label': 0,
     }
     meta = CtxMeta()
-    storage.unpack_meta(meta, row)
+    unpack_meta(meta, row)
     assert meta.id == 1
     assert meta.external_id == 'external_id'
     assert meta.uuid == 'uuid'
@@ -336,7 +336,7 @@ def test_unpack_item(mock_window):
         'is_internal': 1
     }
     item = CtxItem()
-    storage.unpack_item(item, row)
+    unpack_item(item, row)
     assert item.id == 1
     assert item.meta_id == 1
     assert item.external_id == 'external_id'
@@ -367,18 +367,18 @@ def test_unpack_item(mock_window):
 def test_pack_item_value():
     """Test pack item value"""
     storage = Storage()
-    assert storage.pack_item_value(None) is None
-    assert storage.pack_item_value(1) == 1
-    assert storage.pack_item_value('1') == '1'
-    assert storage.pack_item_value([1, 2, 3]) == '[1, 2, 3]'
-    assert storage.pack_item_value({'a': 1, 'b': 2}) == '{"a": 1, "b": 2}'
+    assert pack_item_value(None) is None
+    assert pack_item_value(1) == 1
+    assert pack_item_value('1') == '1'
+    assert pack_item_value([1, 2, 3]) == '[1, 2, 3]'
+    assert pack_item_value({'a': 1, 'b': 2}) == '{"a": 1, "b": 2}'
 
 
 def test_unpack_item_value():
     """Test unpack item value"""
     storage = Storage()
-    assert storage.unpack_item_value(None) is None
-    assert storage.unpack_item_value(1) == 1
-    assert storage.unpack_item_value('1') == 1
-    assert storage.unpack_item_value('[1, 2, 3]') == [1, 2, 3]
-    assert storage.unpack_item_value('{"a": 1, "b": 2}') == {'a': 1, 'b': 2}
+    assert unpack_item_value(None) is None
+    assert unpack_item_value(1) == 1
+    assert unpack_item_value('1') == 1
+    assert unpack_item_value('[1, 2, 3]') == [1, 2, 3]
+    assert unpack_item_value('{"a": 1, "b": 2}') == {'a': 1, 'b': 2}
