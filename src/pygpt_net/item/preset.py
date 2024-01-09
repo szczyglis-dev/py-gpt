@@ -24,6 +24,7 @@ class PresetItem:
         self.assistant = False
         self.temperature = 1.0
         self.filename = None
+        self.model = None
         self.version = None
 
     def to_dict(self):
@@ -40,6 +41,7 @@ class PresetItem:
             "assistant": self.assistant,
             "temperature": self.temperature,
             "filename": self.filename,
+            "model": self.model,
         }
 
     def from_dict(self, data):
@@ -55,4 +57,5 @@ class PresetItem:
         self.assistant = data["assistant"]
         self.temperature = data["temperature"]
         self.filename = data["filename"]
+        self.model = data["model"]
         return self
