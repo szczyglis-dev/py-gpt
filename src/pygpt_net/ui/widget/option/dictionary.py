@@ -11,7 +11,8 @@
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
+    QCheckBox
 
 from pygpt_net.utils import trans
 
@@ -51,6 +52,8 @@ class OptionDict(QWidget):
 
         # setup dict model
         headers = list(self.keys.keys())
+        # remove items with "hidden" type
+        headers = [header for header in headers if self.keys[header] != "hidden"]
 
         self.list = OptionDictItems(self)
         self.model = OptionDictModel(self.items, headers)
@@ -158,6 +161,24 @@ class OptionDictItems(QTreeView):
         self.setIndentation(0)
         self.setHeaderHidden(False)
 
+        # setup fields
+        keys = self.parent.keys
+        idx = 0
+        for key in keys:
+            item = keys[key]
+            if type(item) is dict:
+                if "type" in item:
+                    if item["type"] == "combo":
+                        handler = ComboBoxDelegate(self, item["keys"])
+                        self.setItemDelegateForColumn(idx, handler)
+            elif type(item) is str:
+                if item == "bool":
+                    handler = CheckBoxDelegate(self)
+                    self.setItemDelegateForColumn(idx, handler)
+                elif item == "hidden":
+                    continue
+            idx += 1
+
     def contextMenuEvent(self, event):
         """
         Context menu event
@@ -183,6 +204,7 @@ class OptionDictModel(QAbstractItemModel):
         super(OptionDictModel, self).__init__(parent)
         self.items = items
         self.headers = headers
+        self.checkbox_key = 'enabled'
 
     def headerData(self, section, orientation, role):
         """
@@ -221,6 +243,11 @@ class OptionDictModel(QAbstractItemModel):
         """
         if not index.isValid():
             return None
+        if role == Qt.CheckStateRole and index.column() == 0:
+            value = self.items[index.row()].get('enabled', False)
+            return Qt.Checked if value else Qt.Unchecked
+        if role == Qt.EditRole and index.column() == 0:
+            return self.items[index.row()].get('enabled', False)
         if role == Qt.DisplayRole or role == Qt.EditRole:
             entry = self.items[index.row()]
             key = self.headers[index.column()]
@@ -235,6 +262,11 @@ class OptionDictModel(QAbstractItemModel):
         :param role: Role
         :return: Set data
         """
+        if role == Qt.CheckStateRole:
+            self.items[index.row()]['enabled'] = (value == Qt.Checked)
+            self.dataChanged.emit(index, index, [Qt.CheckStateRole])
+            return True
+
         if index.isValid() and role == Qt.EditRole:
             entry = self.items[index.row()]
             key = self.headers[index.column()]
@@ -251,6 +283,8 @@ class OptionDictModel(QAbstractItemModel):
         """
         if not index.isValid():
             return Qt.NoItemFlags
+        if index.column() == 0:
+            return super(OptionDictModel, self).flags(index) | Qt.ItemIsUserCheckable | Qt.ItemIsEditable
         return super(OptionDictModel, self).flags(index) | Qt.ItemIsEditable
 
     def parent(self, index):
@@ -287,3 +321,44 @@ class OptionDictModel(QAbstractItemModel):
         self.beginResetModel()
         self.items = data
         self.endResetModel()
+
+
+class CheckBoxDelegate(QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        editor = QCheckBox(parent)
+        return editor
+
+    def setEditorData(self, editor, index):
+        checked = index.model().data(index, Qt.EditRole)
+        if type(checked) is str:
+            checked = checked == 'true'
+        editor.setChecked(checked)
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.isChecked(), Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
+
+
+class ComboBoxDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None, keys=None):
+        super(ComboBoxDelegate, self).__init__(parent)
+        self.keys = keys
+
+    def createEditor(self, parent, option, index):
+        editor = QComboBox(parent)
+        for item in self.keys:
+            if type(item) is dict:
+                for key, value in item.items():
+                    editor.addItem(value, key)
+            else:
+                editor.addItem(item)
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.model().data(index, Qt.EditRole)
+        editor.setCurrentText(value)
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.currentText(), Qt.EditRole)
