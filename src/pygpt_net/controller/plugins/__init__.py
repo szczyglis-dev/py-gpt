@@ -261,6 +261,29 @@ class Plugins:
                     # self.window.ui.plugin_addon['audio.output'].setVisible(True)
                 else:
                     self.window.ui.plugin_addon['audio.output'].setVisible(False)
+            elif type == 'schedule':
+                if self.is_type_enabled(type):
+                    self.window.ui.plugin_addon['schedule'].setVisible(True)
+                else:
+                    self.window.ui.plugin_addon['schedule'].setVisible(False)
+
+    def on_update(self):
+        """Called on update"""
+        for id in self.window.core.plugins.get_ids():
+            if self.is_enabled(id):
+                try:
+                    self.window.core.plugins.get(id).on_update()
+                except AttributeError:
+                    pass
+
+    def on_post_update(self):
+        """Called on post update"""
+        for id in self.window.core.plugins.get_ids():
+            if self.is_enabled(id):
+                try:
+                    self.window.core.plugins.get(id).on_post_update()
+                except AttributeError:
+                    pass
 
     def update_info(self):
         """Update plugins info"""
