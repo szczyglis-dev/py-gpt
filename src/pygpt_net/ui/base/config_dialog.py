@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWi
 
 from pygpt_net.ui.widget.element.url import UrlLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
+from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.dictionary import OptionDict
 from pygpt_net.ui.widget.option.input import OptionInput, PasswordInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
@@ -58,7 +59,11 @@ class BaseConfigDialog:
             elif option['type'] == 'bool':
                 widgets[key] = OptionCheckbox(self.window, id, key, option)  # checkbox
             elif option['type'] == 'dict':
+                self.window.controller.config.apply_placeholders(option)
                 widgets[key] = OptionDict(self.window, id, key, option)  # dictionary
+            elif option['type'] == 'combo':
+                self.window.controller.config.apply_placeholders(option)
+                widgets[key] = OptionCombo(self.window, id, key, option)  # combobox
 
         return widgets
 
