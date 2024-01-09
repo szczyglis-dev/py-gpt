@@ -99,8 +99,11 @@ class Output:
         self.window.ui.nodes['chat.plugins'].setAlignment(Qt.AlignCenter)
 
         header = QHBoxLayout()
+        # schedule plugins addon
+        self.window.ui.plugin_addon['schedule'] = QLabel("")
         header.addWidget(self.window.ui.nodes['chat.label'])
         header.addWidget(self.window.ui.nodes['chat.plugins'])
+        header.addWidget(self.window.ui.plugin_addon['schedule'])
         header.addWidget(self.window.ui.nodes['chat.model'])
 
         return header
