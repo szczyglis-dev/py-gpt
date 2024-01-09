@@ -594,6 +594,12 @@ class JsonFileProvider(BaseProvider):
                 data['plugins']['self_loop']['prompt'] = prompt  # fixed prompt
                 updated = True
 
+            # < 2.0.91
+            if old < parse_version("2.0.91"):
+                print("Migrating config from < 2.0.91...")
+                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                updated = True
+
         # update file
         migrated = False
         if updated:
