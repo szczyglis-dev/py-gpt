@@ -74,6 +74,12 @@ class Editor:
                 "step": 1,
                 "multiplier": 100,
             },
+            "model": {
+                "label": "toolbox.model.label",
+                "type": "combo",
+                "use": "models",
+                "keys": [],
+            },
             "prompt": {
                 "type": "textarea",
                 "label": "preset.prompt",

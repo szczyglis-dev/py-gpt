@@ -182,6 +182,7 @@ class JsonFileProvider(BaseProvider):
             'assistant': item.assistant,
             'temperature': item.temperature,
             'filename': item.filename,
+            'model': item.model,
         }
 
     @staticmethod
@@ -216,6 +217,8 @@ class JsonFileProvider(BaseProvider):
             item.temperature = data['temperature']
         if 'filename' in data:
             item.filename = data['filename']
+        if 'model' in data:
+            item.model = data['model']
         if '__meta__' in data and 'version' in data['__meta__']:
             item.version = data['__meta__']['version']
 
