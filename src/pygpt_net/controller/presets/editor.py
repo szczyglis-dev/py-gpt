@@ -267,6 +267,8 @@ class Editor:
                                                   self.window.core.config.get('prompt'))
         self.window.controller.config.apply_value(self.id, "temperature", self.options["temperature"],
                                                   self.window.core.config.get('temperature'))
+        self.window.controller.config.apply_value(self.id, "model", self.options["model"],
+                                                  self.window.core.config.get('model'))
 
     def update_from_global(self, key, value):
         """Update field from global config"""
