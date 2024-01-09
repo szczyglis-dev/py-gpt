@@ -45,6 +45,27 @@ class Models:
         if model in self.items:
             return self.items[model]
 
+    def has(self, model: str) -> bool:
+        """
+        Check if model exists
+
+        :param model: model name
+        :return: True if model exists
+        """
+        return model in self.items
+
+    def is_allowed(self, model: str, mode: str) -> bool:
+        """
+        Check if model is allowed for mode
+
+        :param model: model name
+        :param mode: mode name
+        :return: True if model is allowed for mode
+        """
+        if model in self.items:
+            return mode in self.items[model].mode
+        return False
+
     def get_by_idx(self, idx: int, mode: str) -> str:
         """
         Return model by index
@@ -68,6 +89,14 @@ class Models:
             if mode in self.items[key].mode:
                 items[key] = self.items[key]
         return items
+
+    def get_all(self) -> dict:
+        """
+        Return all models
+
+        :return: all models
+        """
+        return self.items
 
     def has_model(self, mode: str, model: str) -> bool:
         """

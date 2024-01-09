@@ -107,6 +107,39 @@ class Presets:
             **self.items
         }
 
+    def exists(self, id: str) -> bool:
+        """
+        Check if preset exists
+
+        :param id: preset id
+        :return: bool
+        """
+        if id in self.items:
+            return True
+        return False
+
+    def get_first_mode(self, id: str) -> str:
+        """
+        Return first mode for preset
+
+        :param id: preset id
+        :return: mode name
+        """
+        preset = self.items[id]
+        if preset.chat:
+            return 'chat'
+        if preset.completion:
+            return 'completion'
+        if preset.img:
+            return 'img'
+        if preset.vision:
+            return 'vision'
+        if preset.langchain:
+            return 'langchain'
+        if preset.assistant:
+            return 'assistant'
+        return None
+
     def has(self, mode: str, id: str) -> bool:
         """
         Check if preset for mode exists
@@ -225,6 +258,14 @@ class Presets:
         Sort presets by name
         """
         self.items = dict(sorted(self.items.items(), key=lambda item: item[1].name))
+
+    def get_all(self) -> dict:
+        """
+        Return all presets
+
+        :return: presets dict
+        """
+        return self.items
 
     def load(self):
         """Load presets templates"""
