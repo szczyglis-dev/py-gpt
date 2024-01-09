@@ -152,6 +152,10 @@ class Updater:
             dst = os.path.join(self.window.core.config.path, filename)
             if not os.path.exists(dst) or force:
                 src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', filename)
+                # make backup of old file
+                if os.path.exists(dst):
+                    shutil.copyfile(dst, dst + '.bak')
+                    print("Backup file: {}.".format(dst + '.bak'))
                 shutil.copyfile(src, dst)
                 print("Patched file: {}.".format(dst))
         except Exception as e:
@@ -169,6 +173,10 @@ class Updater:
             dst = os.path.join(self.window.core.config.path, 'css', filename)
             if not os.path.exists(dst) or force:
                 src = os.path.join(self.window.core.config.get_app_path(), 'data', 'css', filename)
+                # make backup of old file
+                if os.path.exists(dst):
+                    shutil.copyfile(dst, dst + '.bak')
+                    print("Backup css file: {}.".format(dst + '.bak'))
                 shutil.copyfile(src, dst)
                 print("Patched css file: {}.".format(dst))
         except Exception as e:
