@@ -36,6 +36,7 @@ from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
+from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 
 from pygpt_net.llm.Anthropic import AnthropicLLM
 from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
@@ -120,10 +121,12 @@ class MainWindow(QMainWindow, QtStyleTools):
     def update(self):
         """Called on every update"""
         self.controller.on_update()
+        self.controller.plugins.on_update()
 
     def post_update(self):
         """Called on post-update (slow)"""
         self.controller.debug.on_update()
+        self.controller.plugins.on_post_update()
 
     @Slot(str)
     def update_status(self, text: str):
@@ -261,6 +264,7 @@ def run(plugins: list = None, llms: list = None):
     launcher.add_plugin(CmdCustomCommandPlugin())
     launcher.add_plugin(OpenAIDallePlugin())
     launcher.add_plugin(OpenAIVisionPlugin())
+    launcher.add_plugin(CrontabPlugin())
 
     # register custom plugins
     if plugins is not None:
