@@ -31,3 +31,7 @@ QMenu::indicator:checked {{
 QMenu::indicator:unchecked {{ 
   background-color: {QTMATERIAL_SECONDARYCOLOR}; 
 }}
+
+QComboBox {{
+  color: #fff;
+}}
