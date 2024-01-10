@@ -55,6 +55,7 @@ class Prompt:
         header = QHBoxLayout()
         header.addWidget(self.window.ui.nodes['toolbox.prompt.label'])
         header.addWidget(self.window.ui.nodes['cmd.enabled'])
+        header.addStretch(1)
         header.addWidget(self.window.ui.nodes['preset.use'], alignment=Qt.AlignRight)
         header.addWidget(self.window.ui.nodes['preset.clear'], alignment=Qt.AlignRight)
 
