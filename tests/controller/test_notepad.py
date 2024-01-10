@@ -61,7 +61,7 @@ def test_update_name(mock_window):
     mock_window.core.notepad.get_by_id = MagicMock(return_value=None)
     mock_window.core.notepad.update = MagicMock()
     notepad.update_name(1, 'test')
-    mock_window.ui.tabs['output'].setTabText.assert_called_once_with(3, 'test')
+    mock_window.ui.tabs['output'].setTabText.assert_called_once_with(4, 'test')
     mock_window.core.notepad.update.assert_called_once()
 
 

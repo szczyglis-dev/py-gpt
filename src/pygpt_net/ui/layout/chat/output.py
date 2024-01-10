@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidg
 
 from pygpt_net.ui.layout.chat.input import Input
 from pygpt_net.ui.layout.chat.calendar import Calendar
+from pygpt_net.ui.layout.chat.painter import Painter
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
@@ -34,6 +35,7 @@ class Output:
         self.window = window
         self.input = Input(window)
         self.calendar = Calendar(window)
+        self.painter = Painter(window)
 
     def setup(self) -> QWidget:
         """
@@ -65,6 +67,10 @@ class Output:
         calendar = self.calendar.setup()
         self.window.ui.tabs['output'].addTab(calendar, trans('output.tab.calendar'))
 
+        # painter
+        painter = self.painter.setup()
+        self.window.ui.tabs['output'].addTab(painter, trans('output.tab.painter'))
+
         # append notepads
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
@@ -72,7 +78,7 @@ class Output:
                                                      trans('output.tab.notepad') + " " + str(i))
 
         layout = QVBoxLayout()
-        layout.addLayout(self.setup_header())
+        #layout.addLayout(self.setup_header())
         layout.addWidget(self.window.ui.tabs['output'])
         layout.addLayout(self.setup_bottom())
 
@@ -115,6 +121,18 @@ class Output:
         :return: QHBoxLayout
         :rtype: QHBoxLayout
         """
+        self.window.ui.nodes['chat.label'] = QLabel("")
+        self.window.ui.nodes['chat.label'].setAlignment(Qt.AlignRight)
+        self.window.ui.nodes['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+
+        self.window.ui.nodes['chat.model'] = QLabel("")
+        self.window.ui.nodes['chat.model'].setAlignment(Qt.AlignRight)
+        self.window.ui.nodes['chat.model'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+
+        self.window.ui.nodes['chat.plugins'] = QLabel("")
+        self.window.ui.nodes['chat.plugins'].setAlignment(Qt.AlignRight)
+        self.window.ui.nodes['chat.plugins'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+
         # add timestamp checkbox
         self.window.ui.nodes['output.timestamp'] = QCheckBox(trans('output.timestamp'))
         self.window.ui.nodes['output.timestamp'].stateChanged.connect(
@@ -133,6 +151,7 @@ class Output:
             lambda: self.window.controller.chat.vision.toggle(
                 self.window.ui.nodes['inline.vision'].isChecked()))
         self.window.ui.nodes['inline.vision'].setVisible(False)
+        self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
 
         # tokens info
         self.window.ui.nodes['prompt.context'] = QLabel("")
@@ -142,19 +161,27 @@ class Output:
 
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
+        self.window.ui.plugin_addon['schedule'] = QLabel("")
+        self.window.ui.plugin_addon['schedule'].setAlignment(Qt.AlignRight)
+        self.window.ui.plugin_addon['schedule'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
 
         opts_layout = QHBoxLayout()
-        opts_layout.setSpacing(2)  #
+        # opts_layout.setSpacing(2)  #
         opts_layout.setContentsMargins(0, 0, 0, 0)
         opts_layout.addWidget(self.window.ui.nodes['output.timestamp'])
         opts_layout.addWidget(self.window.ui.nodes['output.raw'])
-        # opts_layout.addStretch(1)
         opts_layout.addWidget(self.window.ui.nodes['inline.vision'])
-        opts_layout.addStretch(1)
+        opts_layout.setAlignment(Qt.AlignLeft)
 
         layout = QHBoxLayout()
         layout.addLayout(opts_layout)
-        layout.addWidget(self.window.ui.plugin_addon['audio.output'])
+        #layout.addWidget(self.window.ui.plugin_addon['audio.output'])
+
+        layout.addWidget(self.window.ui.plugin_addon['schedule'])
+        layout.addWidget(self.window.ui.nodes['chat.plugins'])
+        layout.addWidget(self.window.ui.nodes['chat.label'])
+        layout.addWidget(self.window.ui.nodes['chat.model'])
         layout.addWidget(self.window.ui.nodes['prompt.context'])
+        layout.setContentsMargins(0, 0, 0, 0)
 
         return layout

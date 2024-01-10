@@ -64,6 +64,7 @@ class Lang:
         self.window.ui.tabs['output'].setTabText(0, trans('output.tab.chat'))
         self.window.ui.tabs['output'].setTabText(1, trans('output.tab.files'))
         self.window.ui.tabs['output'].setTabText(2, trans('output.tab.calendar'))
+        self.window.ui.tabs['output'].setTabText(3, trans('output.tab.painter'))
 
         # notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()
@@ -75,6 +76,12 @@ class Lang:
 
         # calendar
         self.window.controller.calendar.update_current_note_label()
+
+        # painter
+        self.window.ui.nodes['painter.btn.brush'].setText(trans('painter.mode.paint'))
+        self.window.ui.nodes['painter.btn.erase'].setText(trans('painter.mode.erase'))
+        self.window.ui.nodes['painter.btn.capture'].setText(trans('painter.btn.capture'))
+        self.window.ui.nodes['painter.btn.clear'].setText(trans('painter.btn.clear'))
 
         # context
         self.window.ui.nodes['ctx.label'].setText(trans("ctx.list.label"))
@@ -88,10 +95,10 @@ class Lang:
         self.window.ui.nodes['preset.presets.new'].setText(trans('preset.new'))
         self.window.ui.nodes['preset.clear'].setText(trans('preset.clear'))
         self.window.ui.nodes['preset.use'].setText(trans('preset.use'))
-        self.window.ui.nodes['toolbox.preset.ai_name.label'].setText(trans('toolbox.name.ai'))
-        self.window.ui.nodes['toolbox.preset.user_name.label'].setText(trans('toolbox.name.user'))
+        # self.window.ui.nodes['toolbox.preset.ai_name.label'].setText(trans('toolbox.name.ai'))
+        # self.window.ui.nodes['toolbox.preset.user_name.label'].setText(trans('toolbox.name.user'))
         self.window.ui.nodes['toolbox.prompt.label'].setText(trans("toolbox.prompt"))
-        self.window.ui.nodes['temperature.label'].setText(trans("toolbox.temperature.label"))
+        # self.window.ui.nodes['temperature.label'].setText(trans("toolbox.temperature.label"))
 
         # input
         self.window.ui.nodes['input.label'].setText(trans("input.label"))
