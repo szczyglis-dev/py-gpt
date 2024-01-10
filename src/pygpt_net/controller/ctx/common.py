@@ -74,5 +74,5 @@ class Common:
 
     def focus_chat(self):
         """Focus chat"""
-        if self.window.ui.tabs['output'].currentIndex() != 0:
+        if self.window.controller.ui.output_tab_idx != 0:
             self.window.ui.tabs['output'].setCurrentIndex(0)  # set tab index to 0:

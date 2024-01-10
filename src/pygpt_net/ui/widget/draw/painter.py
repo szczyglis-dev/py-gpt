@@ -56,6 +56,15 @@ class PainterWidget(QWidget):
         menu.addAction(actions['clear'])
         menu.exec_(event.globalPos())
 
+    def set_image(self, image):
+        """
+        Set image
+        :param image: Image
+        """
+        self.scale_to_fit(image)
+        self.originalImage = self.image
+        self.update()
+
     def action_open(self):
         """Open the image"""
         path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")

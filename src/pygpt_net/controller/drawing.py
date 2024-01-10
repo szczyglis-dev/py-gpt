@@ -13,7 +13,7 @@ import datetime
 import os
 
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QImage
 
 from pygpt_net.utils import trans
 
@@ -36,6 +36,10 @@ class Drawing:
         self.window.ui.nodes['painter.select.canvas.size'].setCurrentText(size)
         self.change_canvas_size(size)
 
+    def is_drawing(self):
+        """Check if drawing is enabled"""
+        return self.window.controller.ui.output_tab_idx == 3
+
     def convert_to_size(self, canvas_size: str) -> tuple:
         """
         Convert string to size
@@ -53,6 +57,19 @@ class Drawing:
         :param height: int
         """
         self.window.ui.painter.setFixedSize(QSize(width, height))
+
+    def from_camera(self):
+        """Get image from camera"""
+        if not self.window.controller.camera.is_enabled():
+            self.window.controller.camera.enable_capture()
+            self.window.controller.camera.setup_ui()
+        frame = self.window.controller.camera.get_current_frame(False)
+        if frame is None:
+            return
+        height, width, channel = frame.shape
+        bytes = 3 * width
+        image = QImage(frame.data, width, height, bytes, QImage.Format_RGB888)
+        self.window.ui.painter.set_image(image)
 
     def restore_current(self):
         """Restore previous image"""

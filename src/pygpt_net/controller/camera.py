@@ -139,6 +139,15 @@ class Camera:
         else:
             self.window.statusChanged.emit(trans('vision.capture.auto.click'))
 
+    def get_current_frame(self, flip_colors: bool = True):
+        """Get current frame"""
+        if self.frame is None:
+            return None
+        if flip_colors:
+            return cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+        else:
+            return self.frame
+
     def capture_frame(self, switch: bool = True) -> bool:
         """
         Capture frame and save it as attachment
@@ -160,7 +169,9 @@ class Camera:
 
             # capture frame
             compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.core.config.get('vision.capture.quality'))]
-            frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+            frame = self.get_current_frame()
+            self.window.controller.drawing.from_camera()  # capture to draw
+
             cv2.imwrite(path, frame, compression_params)
             mode = self.window.core.config.get('mode')
 
@@ -206,7 +217,8 @@ class Camera:
     def enable_capture(self):
         """Enable capture"""
         if self.window.core.config.get('mode') != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision'):
+                and not self.window.controller.plugins.is_type_enabled('vision')\
+                and not self.window.controller.drawing.is_drawing():
             return
 
         self.is_capture = True
@@ -219,7 +231,8 @@ class Camera:
     def disable_capture(self):
         """Disable capture"""
         if self.window.core.config.get('mode') != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision'):
+                and not self.window.controller.plugins.is_type_enabled('vision')\
+                and not self.window.controller.drawing.is_drawing():
             return
 
         self.is_capture = False
@@ -245,7 +258,8 @@ class Camera:
     def enable_auto(self):
         """Enable capture"""
         if self.window.core.config.data['mode'] != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision'):
+                and not self.window.controller.plugins.is_type_enabled('vision')\
+                and not self.window.controller.drawing.is_drawing():
             return
 
         self.auto = True
@@ -260,7 +274,8 @@ class Camera:
     def disable_auto(self):
         """Disable capture"""
         if self.window.core.config.get('mode') != 'vision' \
-                and not self.window.controller.plugins.is_type_enabled('vision'):
+                and not self.window.controller.plugins.is_type_enabled('vision')\
+                and not self.window.controller.drawing.is_drawing():
             return
 
         self.auto = False

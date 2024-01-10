@@ -77,6 +77,8 @@ class Output:
                 self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i],
                                                      trans('output.tab.notepad') + " " + str(i))
 
+        self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)
+
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.tabs['output'])
         layout.addLayout(self.setup_bottom())

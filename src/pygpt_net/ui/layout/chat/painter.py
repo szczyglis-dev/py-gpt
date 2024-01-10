@@ -89,6 +89,10 @@ class Painter:
         self.window.ui.nodes['painter.btn.capture'].clicked.connect(self.window.controller.drawing.capture)
         top.addWidget(self.window.ui.nodes['painter.btn.capture'])
 
+        self.window.ui.nodes['painter.btn.camera.capture'] = QPushButton(trans('painter.btn.camera.capture'))
+        self.window.ui.nodes['painter.btn.camera.capture'].clicked.connect(self.window.controller.drawing.from_camera)
+        top.addWidget(self.window.ui.nodes['painter.btn.camera.capture'])
+
         self.window.ui.nodes['painter.btn.clear'] = QPushButton(trans('painter.btn.clear'))
         self.window.ui.nodes['painter.btn.clear'].clicked.connect(self.window.ui.painter.clear_image)
         top.addWidget(self.window.ui.nodes['painter.btn.clear'])
