@@ -24,7 +24,7 @@ class Notepad:
         """
         self.window = window
         self.default_num_notepads = 3
-        self.start_tab_idx = 3  # tab idx from notepad starts
+        self.start_tab_idx = 4  # tab idx from notepad starts
 
     def load(self):
         """Load all notepads contents"""
