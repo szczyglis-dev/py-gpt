@@ -91,16 +91,19 @@ class Assistant(BaseConfigDialog):
         rows_up.addLayout(options["model"])
         rows_up.addLayout(options["instructions"])
         rows_up.addWidget(self.window.ui.nodes['assistant.api.tip'])
+        rows_up.setContentsMargins(0, 0, 0, 0)
 
         options["tool.code_interpreter"].setAlignment(Qt.AlignCenter)
         options["tool.retrieval"].setAlignment(Qt.AlignCenter)
         rows_tools = QHBoxLayout()
         rows_tools.addLayout(options["tool.code_interpreter"])
         rows_tools.addLayout(options["tool.retrieval"])
+        rows_tools.setContentsMargins(0, 0, 0, 0)
 
         tools = QVBoxLayout()
         tools.addLayout(rows_tools)
         tools.addLayout(options["tool.function"])
+        tools.setContentsMargins(0, 0, 0, 0)
 
         widget_up = QWidget()
         widget_up.setLayout(rows_up)

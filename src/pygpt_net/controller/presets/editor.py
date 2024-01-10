@@ -115,9 +115,13 @@ class Editor:
         """
         Hook: on settings update
         """
+        mode = self.window.core.config.get('mode')
         if key == "prompt":
             self.window.core.config.set('prompt', value)
-            self.window.controller.presets.from_global()
+            if mode == 'assistant':
+                self.window.controller.assistant.from_global()
+            else:
+                self.window.controller.presets.from_global()
 
     def edit(self, idx: int = None):
         """

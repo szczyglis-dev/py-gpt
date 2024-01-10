@@ -284,7 +284,7 @@ class UI:
             # self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
-            self.window.ui.nodes['presets.widget'].setVisible(True)
+            self.window.ui.nodes['presets.widget'].setVisible(False)
             # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
             # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(True)
