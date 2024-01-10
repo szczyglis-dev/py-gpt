@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.93** | build: **2024.01.10** | Python: **3.10+**
+Release: **2.0.94** | build: **2024.01.10** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1506,6 +1506,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.94 (2024-01-10)
+
+- Improved drawing: added canvas, image load/save, store and restore drawing on start and more
+- Improved dict option editor: added type fields
 
 ## 2.0.93 (2024-01-10)
 

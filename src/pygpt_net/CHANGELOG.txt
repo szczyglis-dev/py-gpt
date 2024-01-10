@@ -1,3 +1,8 @@
+2.0.94 (2024-01-10)
+
+- Improved drawing: added canvas, image load/save, store and restore drawing on start and more
+- Improved dict option editor: added type fields
+
 2.0.93 (2024-01-10)
 
 - Added painter (simple image drawing) - it allows to quick draw images and provide them into vision model
