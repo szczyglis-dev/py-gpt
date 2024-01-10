@@ -78,6 +78,7 @@ class Controller:
         self.assistant.setup()
         self.chat.setup()
         self.ctx.setup()
+        self.presets.setup()
         self.ui.update_tokens()
         self.dialogs.setup()
         self.audio.setup()
