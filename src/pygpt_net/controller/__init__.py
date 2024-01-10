@@ -19,8 +19,9 @@ from pygpt_net.controller.command import Command
 from pygpt_net.controller.config import Config
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
-from pygpt_net.controller.files import Files
 from pygpt_net.controller.dialogs import Dialogs
+from pygpt_net.controller.drawing import Drawing
+from pygpt_net.controller.files import Files
 from pygpt_net.controller.lang import Lang
 from pygpt_net.controller.launcher import Launcher
 from pygpt_net.controller.layout import Layout
@@ -53,6 +54,7 @@ class Controller:
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
+        self.drawing = Drawing(window)
         self.files = Files(window)
         self.lang = Lang(window)
         self.launcher = Launcher(window)
