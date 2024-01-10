@@ -103,6 +103,9 @@ class Assistant:
                 if model in self.window.core.models.items:
                     self.window.core.config.set('model', model)
                     self.window.core.config.data['current_model'][mode] = model
+                    self.window.controller.model.set(mode, model)
+                    self.window.controller.model.update_list()
+                    self.window.controller.model.select_current()
                     self.refresh()
 
         self.window.controller.ctx.update_ctx()  # update current ctx info
