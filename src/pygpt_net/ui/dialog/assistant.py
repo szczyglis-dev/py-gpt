@@ -80,6 +80,8 @@ class Assistant(BaseConfigDialog):
                 options[key] = self.add_row_option(widgets[key], fields[key])
                 if key == "tool.function":
                     widgets[key].setMinimumHeight(150)
+            elif fields[key]["type"] == 'combo':
+                options[key] = self.add_option(widgets[key], fields[key])
 
         rows_up = QVBoxLayout()
         rows_up.addWidget(self.window.ui.nodes['assistant.id_tip'])
@@ -87,6 +89,8 @@ class Assistant(BaseConfigDialog):
         rows_up.addLayout(options["name"])
         rows_up.addLayout(options["description"])
         rows_up.addLayout(options["model"])
+        rows_up.addLayout(options["instructions"])
+        rows_up.addWidget(self.window.ui.nodes['assistant.api.tip'])
 
         options["tool.code_interpreter"].setAlignment(Qt.AlignCenter)
         options["tool.retrieval"].setAlignment(Qt.AlignCenter)
@@ -98,22 +102,14 @@ class Assistant(BaseConfigDialog):
         tools.addLayout(rows_tools)
         tools.addLayout(options["tool.function"])
 
-        rows_instructions = QVBoxLayout()
-        rows_instructions.addLayout(options["instructions"])
-        rows_instructions.addWidget(self.window.ui.nodes['assistant.api.tip'])
-
         widget_up = QWidget()
         widget_up.setLayout(rows_up)
 
         widget_tools = QWidget()
         widget_tools.setLayout(tools)
 
-        widget_instructions = QWidget()
-        widget_instructions.setLayout(rows_instructions)
-
         self.window.ui.splitters['editor.assistant'] = QSplitter(Qt.Vertical)
         self.window.ui.splitters['editor.assistant'].addWidget(widget_up)
-        self.window.ui.splitters['editor.assistant'].addWidget(widget_instructions)
         self.window.ui.splitters['editor.assistant'].addWidget(widget_tools)
 
         layout = QVBoxLayout()

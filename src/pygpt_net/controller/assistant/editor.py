@@ -35,7 +35,9 @@ class Editor:
                 "label": "assistant.description",
             },
             "model": {
-                "type": "text",
+                "type": "combo",
+                "use": "models",
+                "keys": [],
                 "label": "assistant.model",
             },
             "instructions": {
@@ -202,8 +204,11 @@ class Editor:
 
         :param assistant: assistant
         """
+        model = self.window.controller.config.get_value(self.id, 'model', self.options['model'])
+        if model == '_':
+            model = None
         assistant.name = self.window.controller.config.get_value(self.id, 'name', self.options['name'])
-        assistant.model = self.window.controller.config.get_value(self.id, 'model', self.options['model'])
+        assistant.model = model
         assistant.description = self.window.controller.config.get_value(self.id, 'description',
                                                                         self.options['description'])
         assistant.instructions = self.window.controller.config.get_value(self.id, 'instructions',
