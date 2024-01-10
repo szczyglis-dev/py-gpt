@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -30,7 +30,7 @@ class Assistant(BaseConfigDialog):
         self.dialog_id = "assistants"
 
     def setup(self):
-        """Setup assistant editor dialog"""
+        """Setups assistant editor dialog"""
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.editor.save())
@@ -81,33 +81,44 @@ class Assistant(BaseConfigDialog):
                 if key == "tool.function":
                     widgets[key].setMinimumHeight(150)
 
-        rows = QVBoxLayout()
+        rows_up = QVBoxLayout()
+        rows_up.addWidget(self.window.ui.nodes['assistant.id_tip'])
+        rows_up.addLayout(options["id"])
+        rows_up.addLayout(options["name"])
+        rows_up.addLayout(options["description"])
+        rows_up.addLayout(options["model"])
 
-        ignore_keys = ["tool.code_interpreter", "tool.retrieval"]
+        options["tool.code_interpreter"].setAlignment(Qt.AlignCenter)
+        options["tool.retrieval"].setAlignment(Qt.AlignCenter)
+        rows_tools = QHBoxLayout()
+        rows_tools.addLayout(options["tool.code_interpreter"])
+        rows_tools.addLayout(options["tool.retrieval"])
 
-        rows1 = QHBoxLayout()
-        rows1.addLayout(options["tool.code_interpreter"])
-        rows1.addLayout(options["tool.retrieval"])
+        tools = QVBoxLayout()
+        tools.addLayout(rows_tools)
+        tools.addLayout(options["tool.function"])
 
-        # append widgets options layouts to rows
-        for key in options:
-            if key in ignore_keys:
-                continue
-            # extra rows  TODO: add tip as extra to settings config
-            if key == "id":
-                rows.addWidget(self.window.ui.nodes['assistant.id_tip'])
+        rows_instructions = QVBoxLayout()
+        rows_instructions.addLayout(options["instructions"])
+        rows_instructions.addWidget(self.window.ui.nodes['assistant.api.tip'])
 
-            rows.addLayout(options[key])
+        widget_up = QWidget()
+        widget_up.setLayout(rows_up)
 
-            # extra rows
-            if key == "instructions":
-                rows.addWidget(self.window.ui.nodes['assistant.api.tip'])
-                rows.addLayout(rows1)
+        widget_tools = QWidget()
+        widget_tools.setLayout(tools)
+
+        widget_instructions = QWidget()
+        widget_instructions.setLayout(rows_instructions)
+
+        self.window.ui.splitters['editor.assistant'] = QSplitter(Qt.Vertical)
+        self.window.ui.splitters['editor.assistant'].addWidget(widget_up)
+        self.window.ui.splitters['editor.assistant'].addWidget(widget_instructions)
+        self.window.ui.splitters['editor.assistant'].addWidget(widget_tools)
 
         layout = QVBoxLayout()
-        layout.addLayout(rows)
+        layout.addWidget(self.window.ui.splitters['editor.assistant'])
         layout.addLayout(footer)
-        layout.setStretch(1, 1)
 
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
         self.window.ui.dialog['editor.' + self.dialog_id].setLayout(layout)
