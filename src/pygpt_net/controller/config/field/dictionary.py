@@ -88,7 +88,7 @@ class Dictionary:
             if isinstance(item, str):
                 item = {
                     'label': parent_id + '.' + key,
-                    'type': item,
+                    'type': item,  # field type is provided as value in this case
                 }
             options[key] = item
             if 'label' not in options[key]:
