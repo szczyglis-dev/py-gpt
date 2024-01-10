@@ -332,9 +332,9 @@ class UI:
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         if model is None or model == "":
-            model_str = "{}".format(trans("mode." + mode))
+            model_str = ""
         else:
-            model_str = "{} ({})".format(trans("mode." + mode), model)
+            model_str = str(model)
         self.window.ui.nodes['chat.model'].setText(model_str)
 
     def update_ctx_label(self, label: str = None):
