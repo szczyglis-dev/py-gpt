@@ -266,10 +266,10 @@ class Editor:
         data_dict = {}
         for key in self.options:
             data_dict[key] = self.window.controller.config.get_value(self.id, key, self.options[key])
-            if data_dict['model'] == '_':
-                data_dict['model'] = None
         if data_dict['name'] is None or data_dict['name'] == "":
             data_dict['name'] = id + " " + trans('preset.untitled')
+        if data_dict['model'] == '_':
+            data_dict['model'] = None
         self.window.core.presets.items[id].from_dict(data_dict)
 
     def to_current(self, preset: PresetItem):
