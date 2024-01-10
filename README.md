@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.91** | build: **2024.01.09** | Python: **3.10+**
+Release: **2.0.92** | build: **2024.01.10** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1505,6 +1505,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.92 (2024-01-10)
+
+- Fixed bug with system prompt append from main window
+- Added editor for list options (via RMB -> Edit...)
+- User/AI names and temperature removed from main window
+- UI fixes
 
 ## 2.0.91 (2024-01-09)
 

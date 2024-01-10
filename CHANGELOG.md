@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.0.92 (2024-01-10)
+
+- Fixed bug with system prompt append from main window
+- Added editor for list options (via RMB -> Edit...)
+- User/AI names and temperature removed from main window
+- UI fixes
+
 # 2.0.91 (2024-01-09)
 
 - Added new plugin: Crontab / Task scheduler: the plugin provides cron-based job scheduling - you can now schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
