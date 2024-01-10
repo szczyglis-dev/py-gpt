@@ -34,7 +34,7 @@ class Plugin(BasePlugin):
         keys = {
             "enabled": "bool",
             "crontab": "text",
-            "prompt": "text",
+            "prompt": "textarea",
             "preset": {
                 "type": "combo",
                 "use": "presets",

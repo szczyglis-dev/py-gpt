@@ -88,11 +88,9 @@ class Dictionary:
             if isinstance(item, str):
                 item = {
                     'label': parent_id + '.' + key,
-                    'type': 'text',
+                    'type': item,
                 }
             options[key] = item
-            if options[key]["type"] == "text":
-                options[key]["type"] = "textarea"  # convert text fields to textarea fields
             if 'label' not in options[key]:
                 options[key]['label'] = key
                 options[key]['label'] = parent_id + '.' + options[key]['label']

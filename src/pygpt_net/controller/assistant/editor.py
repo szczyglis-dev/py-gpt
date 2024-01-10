@@ -59,8 +59,8 @@ class Editor:
                 "label": "assistant.tool.function",
                 "keys": {
                     'name': 'text',
-                    'params': 'text',
-                    'desc': 'text',
+                    'params': 'textarea',
+                    'desc': 'textarea',
                 },
             },
         }

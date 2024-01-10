@@ -52,7 +52,7 @@ class Placeholder:
         data = []
         data.append({'_': '---'})
         for id in presets:
-            if id.startswith("current."):
+            if id.startswith("current."):  # ignore "current" preset
                 continue
             data.append({id: id})  # TODO: name
         return data

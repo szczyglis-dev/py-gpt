@@ -30,9 +30,9 @@ class Plugin(BasePlugin):
         """Initialize options"""
         keys = {
             "name": "text",
-            "instruction": "text",
-            "params": "text",
-            "cmd": "text",
+            "instruction": "textarea",
+            "params": "textarea",
+            "cmd": "textarea",
         }
         value = [
             {
