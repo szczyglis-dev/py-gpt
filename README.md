@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.94** | build: **2024.01.10** | Python: **3.10+**
+Release: **2.0.95** | build: **2024.01.10** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1506,6 +1506,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.95 (2024-01-10)
+
+- Added capture from camera feature in image drawing mode
 
 ## 2.0.94 (2024-01-10)
 

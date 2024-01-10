@@ -149,7 +149,7 @@ def test_update_vision_inline(mock_window):
     mock_window.controller.camera.setup.assert_called()
     mock_window.controller.camera.show_camera.assert_called()
     mock_window.controller.camera.hide_camera.assert_not_called()
-    mock_window.controller.chat.vision.show_inline.assert_called()
+    mock_window.controller.chat.vision.show_inline.assert_not_called()
     mock_window.controller.chat.vision.hide_inline.assert_not_called()
 
 
@@ -158,6 +158,7 @@ def test_update_vision_no_vision(mock_window):
     ui = UI(mock_window)
     mock_window.core.config.data['mode'] = 'chat'
     mock_window.controller.plugins.is_type_enabled = MagicMock(return_value=False)
+    mock_window.controller.drawing.is_drawing = MagicMock(return_value=False)
     mock_window.controller.camera.setup = MagicMock()
     mock_window.controller.camera.show_camera = MagicMock()
     mock_window.controller.camera.hide_camera = MagicMock()
@@ -194,7 +195,7 @@ def test_update_chat_label(mock_window):
     mock_window.core.config.data['model'] = 'test_model'
     mock_window.ui.nodes['chat.model'].setText = MagicMock()
     ui.update_chat_label()
-    mock_window.ui.nodes['chat.model'].setText.assert_called_with('mode.test_mode (test_model)')
+    mock_window.ui.nodes['chat.model'].setText.assert_called_with('test_model')
 
 
 def test_update_ctx_label_allowed(mock_window):

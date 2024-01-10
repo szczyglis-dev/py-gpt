@@ -35,8 +35,6 @@ class Vision:
         """
         if not value:
             self.disable()  # disable vision
-            # if clear:
-                # self.window.controller.attachment.clear(True)  # clear attachments on disable
         else:
             self.enable()  # enable vision keep
 

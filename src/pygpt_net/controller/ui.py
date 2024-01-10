@@ -21,6 +21,7 @@ class UI:
         :param window: Window instance
         """
         self.window = window
+        self.output_tab_idx = 0
 
     def setup(self):
         """Setup UI"""
@@ -77,6 +78,8 @@ class UI:
     def update_active(self):
         """Update mode, model, preset and rest of the toolbox"""
 
+        force_vision_allowed = self.window.controller.drawing.is_drawing()
+
         mode = self.window.core.config.data['mode']
         if mode == 'chat':
             # temperature
@@ -103,6 +106,8 @@ class UI:
             })
             self.window.core.dispatcher.dispatch(event)
             value = event.data['value']
+            if force_vision_allowed:
+                value = True
 
             # vision capture
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
@@ -144,9 +149,13 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(True)
 
+            value = False
+            if force_vision_allowed:
+                value = True
+
             # vision capture
-            self.window.ui.nodes['vision.capture.options'].setVisible(False)
-            self.window.ui.nodes['attachments.capture_clear'].setVisible(False)
+            self.window.ui.nodes['vision.capture.options'].setVisible(value)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
             # files tabs
             self.window.ui.tabs['input'].setTabVisible(1, False)  # files
@@ -181,6 +190,8 @@ class UI:
             })
             self.window.core.dispatcher.dispatch(event)
             value = event.data['value']
+            if force_vision_allowed:
+                value = True
 
             # vision capture
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
@@ -219,9 +230,13 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
+            value = False
+            if force_vision_allowed:
+                value = True
+
             # vision capture
-            self.window.ui.nodes['vision.capture.options'].setVisible(True)
-            self.window.ui.nodes['attachments.capture_clear'].setVisible(True)
+            self.window.ui.nodes['vision.capture.options'].setVisible(value)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
             # files tabs
             self.window.ui.tabs['input'].setTabVisible(1, True)  # files
@@ -255,6 +270,8 @@ class UI:
             })
             self.window.core.dispatcher.dispatch(event)
             value = event.data['value']
+            if force_vision_allowed:
+                value = True
 
             # vision capture
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
@@ -307,17 +324,21 @@ class UI:
     def update_vision(self):
         # vision camera
         mode = self.window.core.config.data['mode']
-        if self.window.controller.plugins.is_type_enabled('vision'):
+        if self.window.controller.drawing.is_drawing():
             self.window.controller.camera.setup()
             self.window.controller.camera.show_camera()
-
-            # if attachments then show enabled checkbox
-            if mode != 'vision' and mode in self.window.controller.chat.vision.allowed_modes:
-                self.window.controller.chat.vision.show_inline()  # show enabled checkbox
         else:
-            self.window.controller.camera.hide_camera()
-            if mode != 'vision' or mode not in self.window.controller.chat.vision.allowed_modes:
-                self.window.controller.chat.vision.hide_inline()  # hide enabled checkbox
+            if self.window.controller.plugins.is_type_enabled('vision'):
+                self.window.controller.camera.setup()
+                self.window.controller.camera.show_camera()
+
+                # if attachments then show enabled checkbox
+                if mode != 'vision' and mode in self.window.controller.chat.vision.allowed_modes:
+                    self.window.controller.chat.vision.show_inline()  # show enabled checkbox
+            else:
+                self.window.controller.camera.hide_camera()
+                if mode != 'vision' or mode not in self.window.controller.chat.vision.allowed_modes:
+                    self.window.controller.chat.vision.hide_inline()  # hide enabled checkbox
 
     def store_state(self):
         """Store UI state"""
@@ -352,3 +373,16 @@ class UI:
         if allowed:
             label += ' (+)'
         self.window.ui.nodes['chat.label'].setText(str(label))
+
+    def output_tab_changed(self, idx: int):
+        """
+        Output tab changed
+
+        :param idx: tab index
+        :type idx: int
+        """
+        self.output_tab_idx = idx
+        self.window.controller.ui.update_active()
+        if idx == 3:  # drawing
+            if self.window.core.config.get('vision.capture.enabled'):
+                self.window.controller.camera.enable_capture()

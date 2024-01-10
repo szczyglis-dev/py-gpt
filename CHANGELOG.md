@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.95 (2024-01-10)
+
+- Added capture from camera feature in image drawing mode
+
 # 2.0.94 (2024-01-10)
 
 - Improved drawing: added canvas, image load/save, store and restore drawing on start and more
