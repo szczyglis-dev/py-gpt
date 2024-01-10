@@ -27,7 +27,29 @@ class Drawing:
         """
         self.window = window
 
-    def set_brush_mode(self, enabled):
+    def setup(self):
+        """Setup drawing"""
+        self.restore_current()
+
+    def restore_current(self):
+        """Restore previous image"""
+        path = os.path.join(self.window.core.config.path, 'capture', '_current.png')
+        if os.path.exists(path):
+            self.window.ui.painter.image.load(path)
+            self.window.ui.painter.update()
+
+    def save_all(self):
+        """Save all (on exit)"""
+        self.save_current()
+
+    def save_current(self):
+        """
+        Store current image
+        """
+        path = os.path.join(self.window.core.config.path, 'capture', '_current.png')
+        self.window.ui.painter.image.save(path)
+
+    def set_brush_mode(self, enabled: bool):
         """
         Set the paint mode
 
@@ -36,7 +58,7 @@ class Drawing:
         if enabled:
             self.window.ui.painter.setBrushColor(Qt.black)
 
-    def set_erase_mode(self, enabled):
+    def set_erase_mode(self, enabled: bool):
         """
         Set the erase mode
 
@@ -83,6 +105,7 @@ class Drawing:
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
             title = trans('painter.capture.name.prefix') + ' ' + name
             title = title.replace('cap-', '').replace('_', ' ')
+
             self.window.core.attachments.new(mode, title, path, False)
             self.window.core.attachments.save()
             self.window.controller.attachment.update()

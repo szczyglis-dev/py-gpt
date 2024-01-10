@@ -93,6 +93,7 @@ class Controller:
         self.plugins.settings.setup()
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
+        self.drawing.setup()  # load previous image if exists
 
     def on_update(self):
         """On app main loop update"""

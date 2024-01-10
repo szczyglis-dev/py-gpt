@@ -41,7 +41,7 @@ class Painter:
 
         :return: QVBoxLayout
         """
-        self.window.ui.painter = PainterWidget()
+        self.window.ui.painter = PainterWidget(self.window)
 
         top = QHBoxLayout()
 
@@ -61,6 +61,8 @@ class Painter:
             self.window.controller.drawing.change_brush_size)
         self.window.ui.nodes['painter.select.brush.size'].setMinimumContentsLength(10)
         self.window.ui.nodes['painter.select.brush.size'].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
+            self.window.ui.nodes['painter.select.brush.size'].findText('3'))
         top.addWidget(self.window.ui.nodes['painter.select.brush.size'])
 
         self.window.ui.nodes['painter.select.brush.color'] = QComboBox()

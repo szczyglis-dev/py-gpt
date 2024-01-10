@@ -152,6 +152,8 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.notepad.save_all()
         print("Saving calendar...")
         self.controller.calendar.save_all()
+        print("Saving drawing...")
+        self.controller.drawing.save_all()
         print("Saving layout state...")
         self.controller.layout.save()
         print("Stopping timers...")
