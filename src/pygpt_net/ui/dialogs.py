@@ -168,7 +168,6 @@ class Dialogs:
 
         :param id: debug dialog id
         """
-        print("Closing dialog:", id)
         if id not in self.window.ui.dialog:
             return
         self.window.ui.dialog[id].close()
