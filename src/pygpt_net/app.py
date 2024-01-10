@@ -181,7 +181,7 @@ class Launcher:
         self.app.setWindowIcon(icon)
         self.app.aboutToQuit.connect(self.app.quit)
         tray = QSystemTrayIcon(icon, self.app)
-        tray.setToolTip("PyGPT")
+        tray.setToolTip("PyGPT v.{}".format(self.window.meta['version']))
         menu = QMenu()
         tray_menu = {}
         tray_menu['new'] = menu.addAction(trans("menu.file.new"))
