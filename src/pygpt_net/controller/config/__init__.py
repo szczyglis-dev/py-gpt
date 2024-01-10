@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.10 17:00:00                  #
 # ================================================== #
 
 from .field.checkbox import Checkbox
@@ -31,7 +31,6 @@ class Config:
         self.input = Input(window)
         self.slider = Slider(window)
         self.textarea = Textarea(window)
-        self.hooks = {}
 
     def load_options(self, parent_id: str, options: dict):
         """
@@ -80,6 +79,20 @@ class Config:
         option['value'] = value
         self.apply(parent_id, key, option)
 
+    def apply_to_dict_editor(self, id, option, data):
+        """
+        Apply dict item option sub-values to dict editor
+
+        :param id: Owner object ID
+        :param option: Option dict
+        :param data: Option data
+        """
+        parent_id = "dictionary." + id
+        sub_options = self.dict_option_to_options(id, option)
+        for key in sub_options:
+            sub_option = sub_options[key]
+            self.apply_value(parent_id, key, sub_option, data[key])
+
     def get_value(self, parent_id: str, key: str, option: dict) -> any:
         """
         Get value from field handler based on type
@@ -105,13 +118,61 @@ class Config:
         elif option['type'] == 'combo':
             return self.combo.get_value(parent_id, key, option)
 
+    def dict_option_to_options(self, parent_id: str, option: dict) -> dict:
+        """
+        Convert dictionary items option to options
+
+        :param parent_id: Parent ID
+        :param option: dictionary items option
+        :return: options dict
+        """
+        if "keys" not in option:
+            return {}
+        options = {}
+        for key in option["keys"]:
+            item = option["keys"][key]
+            if isinstance(item, str):
+                item = {
+                    'label': parent_id + '.' + key,
+                    'type': 'text',
+                }
+            options[key] = item
+            if options[key]["type"] == "text":
+                options[key]["type"] = "textarea"  # convert text fields to textarea fields
+            if 'label' not in options[key]:
+                options[key]['label'] = key
+                options[key]['label'] = parent_id + '.' + options[key]['label']
+        return options
+
+    def save_dict_editor(self, option_key: str, parent: str, fields: dict):
+        """
+        Save dict editor (called from dict editor dialog save button)
+
+        :param option_key: Option key
+        :param parent: Parent ID
+        :param fields: Fields dict
+        """
+        values = {}
+        dict_id = parent + "." + option_key
+        dialog_id = "dictionary." + parent + "." + option_key  # dictionary parent ID
+        idx = self.window.ui.dialog['editor.' + dialog_id].idx  # editing record idx is stored in dialog idx
+        for key in fields:
+            value = self.get_value("dictionary." + dict_id, key, fields[key])
+            values[key] = value
+
+        # update values in dictionary item on list in parent
+        self.dictionary.apply_row(parent, option_key, values, idx)
+
+        # close dialog
+        self.window.ui.dialog['editor.' + dialog_id].close()
+
     def apply_placeholders(self, option: dict):
         """
         Apply placeholders to option
 
         :param option: Option dict
         """
-        if option['type'] == 'dict':
+        if option['type'] == 'dict' and 'keys' in option:
             for key in option['keys']:
                 item = option['keys'][key]
                 if type(item) is dict:

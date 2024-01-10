@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.10 04:00:00                  #
 # ================================================== #
 
 import json
@@ -47,6 +47,30 @@ class Locale:
             self.lang = self.config.get('lang')
         self.load(self.lang, domain)
 
+    def load_fallback(self, domain: str = None):
+        """
+        Load base translations (fallback to en)
+        """
+        lang = 'en'
+        locale_id = 'locale'
+        if domain is not None:
+            locale_id = domain
+
+        # at first check if file exists in user data dir (override)
+        path = os.path.join(self.config.get_user_path(), 'locale', locale_id + '.' + lang + '.ini')
+        if not os.path.exists(path):
+            # if not check to file exists in app data dir
+            path = os.path.join(self.config.get_app_path(), 'data', 'locale', locale_id + '.' + lang + '.ini')
+        if not os.path.exists(path):
+            return None
+        try:
+            ini = configparser.ConfigParser()
+            data = io.open(path, mode="r", encoding="utf-8")
+            ini.read_string(data.read())
+            self.data[locale_id] = dict(ini.items('LOCALE'))
+        except Exception as e:
+            print(e)
+
     def load(self, lang: str, domain: str = None):
         """
         Load translation ini file
@@ -54,6 +78,8 @@ class Locale:
         :param lang: language code
         :param domain: translation domain
         """
+        self.load_fallback(domain)  # always load base translations (fallback to en)
+
         if type(lang) is not str:
             lang = 'en'
         locale_id = 'locale'
@@ -63,19 +89,19 @@ class Locale:
         # at first check if file exists in user data dir (override)
         path = os.path.join(self.config.get_user_path(), 'locale', locale_id + '.' + lang + '.ini')
         if not os.path.exists(path):
-            # if not check if file exists in app data dir
+            # if not check to file exists in app data dir
             path = os.path.join(self.config.get_app_path(), 'data', 'locale', locale_id + '.' + lang + '.ini')
         if not os.path.exists(path):
-            # fallback to english
-            path = os.path.join(self.config.get_app_path(), 'data', 'locale', locale_id + '.en.ini')
-            if not os.path.exists(path):
-                print("FATAL ERROR: {} not found!".format(path))
-                return None
+            return None
         try:
             ini = configparser.ConfigParser()
             data = io.open(path, mode="r", encoding="utf-8")
             ini.read_string(data.read())
-            self.data[locale_id] = dict(ini.items('LOCALE'))
+            parsed = dict(ini.items('LOCALE'))
+            if locale_id not in self.data:
+                self.data[locale_id] = {}
+            for key in parsed:
+                self.data[locale_id][key] = parsed[key]  # update translations
         except Exception as e:
             print(e)
 
@@ -86,7 +112,6 @@ class Locale:
         :param key: translation key
         :param domain: translation domain
         :return: translated string
-        :rtype: str
         """
         locale_id = 'locale'
         if domain is not None:

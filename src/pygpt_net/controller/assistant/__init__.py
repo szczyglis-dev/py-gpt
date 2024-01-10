@@ -34,6 +34,7 @@ class Assistant:
     def setup(self):
         """Setup assistants"""
         self.window.core.assistants.load()
+        self.editor.setup()
         self.update()
 
     def update(self, update_list: bool = True):

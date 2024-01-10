@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.10 21:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
@@ -52,8 +52,6 @@ class OptionDict(QWidget):
 
         # setup dict model
         headers = list(self.keys.keys())
-        # remove items with "hidden" type
-        headers = [header for header in headers if self.keys[header] != "hidden"]
 
         self.list = OptionDictItems(self)
         self.model = OptionDictModel(self.items, headers)
@@ -95,6 +93,29 @@ class OptionDict(QWidget):
         self.list.setCurrentIndex(new_index)
         self.list.scrollTo(new_index)
 
+    def edit_item(self, event):
+        """
+        Open item editor dialog
+
+        :param event: Menu event
+        """
+        index = self.list.indexAt(event.pos())
+        if index.isValid():
+            idx = index.row()
+            data = self.model.items[idx]
+            id = self.parent_id + "." + self.id  # dictionary id
+            self.window.ui.dialogs.open_dictionary_editor(id, self.option, data, idx)
+
+    def update_item(self, idx, data):
+        """
+        Update item data in model by idx
+
+        :param idx: Index of item
+        :param data: Item data dict (key: value)
+        """
+        self.model.items[idx] = data
+        self.model.updateData(self.model.items)
+
     def delete_item(self, event):
         """
         Delete item (show confirm)
@@ -103,7 +124,6 @@ class OptionDict(QWidget):
         """
         index = self.list.indexAt(event.pos())
         if index.isValid():
-            # remove item
             idx = index.row()
             self.window.controller.config.dictionary.delete_item(self, idx)
 
@@ -186,10 +206,14 @@ class OptionDictItems(QTreeView):
         :param event: context menu event
         """
         actions = {}
+        actions['edit'] = QAction(QIcon.fromTheme("edit"), trans('action.edit'), self)
+        actions['edit'].triggered.connect(
+            lambda: self.parent.edit_item(event))
         actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.parent.delete_item(event))
         menu = QMenu(self)
+        menu.addAction(actions['edit'])
         menu.addAction(actions['delete'])
 
         # get index of item

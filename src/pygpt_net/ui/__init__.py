@@ -94,6 +94,10 @@ class UI:
         self.window.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
                                    format(self.window.meta['version'], self.window.meta['build']))
 
+    def post_setup(self):
+        """Post setup UI (just before show)"""
+        self.dialogs.post_setup()
+
     def status(self, text):
         """
         Update status text

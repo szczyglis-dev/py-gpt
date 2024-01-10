@@ -45,7 +45,7 @@ class Preset(BaseConfigDialog):
         footer.addWidget(self.window.ui.nodes['preset.btn.save'])
 
         # fields
-        self.window.ui.paths[id] = QLabel(str(self.window.core.config.path))
+        self.window.ui.paths[self.id] = QLabel(str(self.window.core.config.path))
 
         # get option fields config
         fields = self.window.controller.presets.editor.get_options()

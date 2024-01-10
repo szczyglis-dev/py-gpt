@@ -117,6 +117,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.post_timer = QTimer()
         self.post_timer.timeout.connect(self.post_update)
         self.post_timer.start(self.post_timer_interval)
+        self.ui.post_setup()
 
     def update(self):
         """Called on every update"""
@@ -176,11 +177,11 @@ class Launcher:
 
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
-        self.app.setWindowIcon(QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico')))
+        icon = QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico'))
+        self.app.setWindowIcon(icon)
         self.app.aboutToQuit.connect(self.app.quit)
-
-        trayIcon = QSystemTrayIcon(QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico')), self.app)
-        trayIcon.setToolTip("PyGPT")
+        tray = QSystemTrayIcon(icon, self.app)
+        tray.setToolTip("PyGPT")
         menu = QMenu()
         tray_menu = {}
         tray_menu['new'] = menu.addAction(trans("menu.file.new"))
@@ -191,8 +192,8 @@ class Launcher:
         tray_menu['github'].triggered.connect(self.window.controller.dialogs.info.goto_github)
         tray_menu['exit'] = menu.addAction(trans("menu.file.exit"))
         tray_menu['exit'].triggered.connect(self.app.quit)
-        trayIcon.setContextMenu(menu)
-        trayIcon.show()
+        tray.setContextMenu(menu)
+        tray.show()
 
     def add_plugin(self, plugin=None):
         """

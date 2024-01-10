@@ -72,6 +72,22 @@ class Editor:
         """
         return self.options
 
+    def get_option(self, key: str):
+        """
+        Get option by key
+
+        :param key: option key
+        :return: option
+        """
+        if key in self.options:
+            return self.options[key]
+
+    def setup(self):
+        """Setup editor"""
+        parent = "assistant"
+        key = "tool.function"
+        self.window.ui.dialogs.register_dictionary(key, parent, self.get_option('tool.function'))
+
     def edit(self, idx: int = None):
         """
         Open assistant editor

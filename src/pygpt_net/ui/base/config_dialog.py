@@ -87,7 +87,10 @@ class BaseConfigDialog:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
 
-        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        # set resizable if textarea
+        if option['type'] == 'textarea':
+            widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
         layout = QHBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(widget)

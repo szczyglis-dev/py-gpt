@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.09 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -24,8 +24,11 @@ class EditorDialog(QDialog):
         """
         super(EditorDialog, self).__init__(window)
         self.window = window
-        self.id = id
-        self.data_id = data_id
+        self.id = id  # configurator id
+        self.data_id = data_id  # current data id
+        self.data = None  # data values
+        self.options = None  # options dict
+        self.idx = None  # current editing idx
 
     def closeEvent(self, event):
         """

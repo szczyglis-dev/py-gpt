@@ -30,7 +30,7 @@ class Assistant(BaseConfigDialog):
         self.dialog_id = "assistants"
 
     def setup(self):
-        """Setups assistant editor dialog"""
+        """Setup assistant editor dialog"""
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
             lambda: self.window.controller.assistant.editor.save())

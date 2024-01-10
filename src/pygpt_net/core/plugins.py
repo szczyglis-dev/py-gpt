@@ -82,10 +82,27 @@ class Plugins:
                 for key in plugins[id]:
                     if key in self.plugins[id].options:
                         self.plugins[id].options[key]['value'] = plugins[id][key]
+
+            # register options (configure dict editors, etc.)
+            self.register_options(id, self.plugins[id].options)
             # print("Loaded plugin: {}".format(plugin.name))
         except Exception as e:
             self.window.core.debug.log(e)
             print('Error while loading plugin options: {}'.format(id))
+
+    def register_options(self, id: str, options: dict):
+        """
+        Register plugin options
+
+        :param id: plugin id
+        :param options: options dict
+        """
+        for key in options:
+            option = options[key]
+            if 'type' in option and option['type'] == 'dict':
+                parent = "plugin." + id
+                option['label'] = key
+                self.window.ui.dialogs.register_dictionary(key, parent, option)
 
     def unregister(self, id: str):
         """

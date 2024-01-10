@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.10 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -32,6 +32,17 @@ class Dictionary:
         values = list(option["value"])
         self.window.ui.config[parent_id][key].items = values  # replace model data list
         self.window.ui.config[parent_id][key].model.updateData(values)  # update model data
+
+    def apply_row(self, parent_id: str, key: str, values: dict, idx: int):
+        """
+        Apply data values to dictionary
+
+        :param parent_id: Options parent ID
+        :param key: Option key
+        :param values: dictionary data values
+        :param idx: row index
+        """
+        self.window.ui.config[parent_id][key].update_item(idx, values)
 
     def get_value(self, parent_id: str, key: str, option: dict) -> list:
         """

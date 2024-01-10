@@ -80,7 +80,6 @@ class Settings(BaseConfigDialog):
         for key in widgets:
             if fields[key]["type"] == 'text' or fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
                 options[key] = self.add_option(widgets[key], fields[key])
-                widgets[key].setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)  # fix for api key field
             elif fields[key]["type"] == 'textarea':
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
