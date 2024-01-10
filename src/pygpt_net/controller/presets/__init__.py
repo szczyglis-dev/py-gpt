@@ -25,6 +25,10 @@ class Presets:
         self.window = window
         self.editor = Editor(window)
 
+    def setup(self):
+        """Setup presets"""
+        self.editor.setup()
+
     def select(self, idx: int):
         """
         Select preset
@@ -118,8 +122,8 @@ class Presets:
         # update preset fields
         data = self.window.core.presets.items[id]
         self.window.ui.nodes['preset.prompt'].setPlainText(data.prompt)
-        self.window.ui.nodes['preset.ai_name'].setText(data.ai_name)
-        self.window.ui.nodes['preset.user_name'].setText(data.user_name)
+        # self.window.ui.nodes['preset.ai_name'].setText(data.ai_name)
+        # self.window.ui.nodes['preset.user_name'].setText(data.user_name)
 
         # update current data
         self.window.core.config.set('prompt', data.prompt)
@@ -148,6 +152,15 @@ class Presets:
             self.window.core.config.set('prompt', self.window.core.config.get('default_prompt'))
         else:
             self.window.core.config.set('prompt', None)
+
+    def from_global(self):
+        """Update current preset from global prompt"""
+        id = self.window.core.config.get('preset')
+        if id is not None and id != "":
+            if id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[id]
+                preset.prompt = self.window.core.config.get('prompt')
+                self.window.core.presets.save(preset)
 
     def select_model(self):
         """Select model by current preset"""
@@ -183,8 +196,8 @@ class Presets:
     def reset(self):
         """Reset preset data"""
         self.window.ui.nodes['preset.prompt'].setPlainText("")
-        self.window.ui.nodes['preset.ai_name'].setText("")
-        self.window.ui.nodes['preset.user_name'].setText("")
+        # self.window.ui.nodes['preset.ai_name'].setText("")
+        # self.window.ui.nodes['preset.user_name'].setText("")
 
     def make_filename(self, name: str) -> str:
         """
