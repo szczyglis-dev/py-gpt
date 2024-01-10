@@ -106,9 +106,18 @@ class Assistant:
                     self.window.controller.model.set(mode, model)
                     self.window.controller.model.update_list()
                     self.window.controller.model.select_current()
+                    self.window.ui.nodes['preset.prompt'].setPlainText(assistant.instructions)
                     self.refresh()
 
         self.window.controller.ctx.update_ctx()  # update current ctx info
+
+    def from_global(self):
+        """Update current preset from global prompt"""
+        id = self.window.core.config.get('assistant')
+        if id is not None and id != "":
+            if self.window.core.assistants.has(id):
+                assistant = self.window.core.assistants.get_by_id(id)
+                assistant.instructions = self.window.core.config.get('prompt')
 
     def select_current(self):
         """Select assistant by current"""
