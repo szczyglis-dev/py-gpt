@@ -12,7 +12,7 @@
 import datetime
 import os
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QColor
 
 from pygpt_net.utils import trans
@@ -30,6 +30,29 @@ class Drawing:
     def setup(self):
         """Setup drawing"""
         self.restore_current()
+        size = "800x600"  # default size
+        if self.window.core.config.has('painter.canvas.size'):
+            size = self.window.core.config.get('painter.canvas.size')
+        self.window.ui.nodes['painter.select.canvas.size'].setCurrentText(size)
+        self.change_canvas_size(size)
+
+    def convert_to_size(self, canvas_size: str) -> tuple:
+        """
+        Convert string to size
+
+        :param canvas_size: Canvas size string
+        :return: tuple (width, height)
+        """
+        return tuple(map(int, canvas_size.split('x'))) if canvas_size else (0, 0)
+
+    def set_canvas_size(self, width: int, height: int):
+        """
+        Set canvas size
+
+        :param width: int
+        :param height: int
+        """
+        self.window.ui.painter.setFixedSize(QSize(width, height))
 
     def restore_current(self):
         """Restore previous image"""
@@ -56,7 +79,7 @@ class Drawing:
         :param enabled: bool
         """
         if enabled:
-            self.window.ui.painter.setBrushColor(Qt.black)
+            self.window.ui.painter.set_brush_color(Qt.black)
 
     def set_erase_mode(self, enabled: bool):
         """
@@ -65,7 +88,17 @@ class Drawing:
         :param enabled: bool
         """
         if enabled:
-            self.window.ui.painter.setBrushColor(Qt.white)
+            self.window.ui.painter.set_brush_color(Qt.white)
+
+    def change_canvas_size(self, selected=None):
+        """Change the canvas size"""
+        if not selected:
+            selected = self.window.ui.nodes['painter.select.canvas.size'].currentData()
+        if selected:
+            size = self.convert_to_size(selected)
+            self.set_canvas_size(size[0], size[1])
+            self.window.core.config.set('painter.canvas.size', selected)
+            self.window.core.config.save()
 
     def change_brush_size(self, size):
         """
@@ -73,7 +106,7 @@ class Drawing:
 
         :param size: Brush size
         """
-        self.window.ui.painter.setBrushSize(int(size))
+        self.window.ui.painter.set_brush_size(int(size))
 
     def change_brush_color(self):
         """
@@ -82,7 +115,7 @@ class Drawing:
         :param color_name: Color name
         """
         color = self.window.ui.nodes['painter.select.brush.color'].currentData()
-        self.window.ui.painter.setBrushColor(color)
+        self.window.ui.painter.set_brush_color(color)
 
     def capture(self):
         """Capture current image"""
@@ -126,6 +159,7 @@ class Drawing:
         """
         return {
             "Black": Qt.black,
+            "White": Qt.white,
             "Red": Qt.red,
             "Orange": QColor('orange'),
             "Yellow": Qt.yellow,
@@ -138,3 +172,10 @@ class Drawing:
     def get_sizes(self) -> list:
         """Get brush sizes"""
         return ['1', '2', '3', '5', '8', '12', '15', '20', '25', '30', '50', '100', '200']
+
+    def get_canvas_sizes(self):
+        """Get canvas sizes"""
+        return [
+            "640x480", "800x600", "1024x768", "1280x720", "1600x900",
+            "1920x1080", "2560x1440", "3840x2160", "4096x2160"
+        ]

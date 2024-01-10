@@ -66,6 +66,7 @@
   "notepad.num": 3,
   "organization_key": "",
   "output_timestamp": true,
+  "painter.canvas.size": "800x600",
   "plugins": {
     "real_time": {
       "date": true,

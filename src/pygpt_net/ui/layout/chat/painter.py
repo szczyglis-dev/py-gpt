@@ -9,7 +9,7 @@
 # Updated Date: 2024.01.10 10:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
 from pygpt_net.utils import trans
@@ -75,18 +75,31 @@ class Painter:
         self.window.ui.nodes['painter.select.brush.color'].setSizeAdjustPolicy(QComboBox.AdjustToContents)
         top.addWidget(self.window.ui.nodes['painter.select.brush.color'])
 
+        canvas_sizes = self.window.controller.drawing.get_canvas_sizes()
+        self.window.ui.nodes['painter.select.canvas.size'] = QComboBox()
+        self.window.ui.nodes['painter.select.canvas.size'].addItems(canvas_sizes)
+        self.window.ui.nodes['painter.select.canvas.size'].setMinimumContentsLength(20)
+        self.window.ui.nodes['painter.select.canvas.size'].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.window.ui.nodes['painter.select.canvas.size'].currentTextChanged.connect(
+            self.window.controller.drawing.change_canvas_size)
+        top.addWidget(self.window.ui.nodes['painter.select.canvas.size'])
+
         top.addStretch(1)
         self.window.ui.nodes['painter.btn.capture'] = QPushButton(trans('painter.btn.capture'))
         self.window.ui.nodes['painter.btn.capture'].clicked.connect(self.window.controller.drawing.capture)
         top.addWidget(self.window.ui.nodes['painter.btn.capture'])
 
         self.window.ui.nodes['painter.btn.clear'] = QPushButton(trans('painter.btn.clear'))
-        self.window.ui.nodes['painter.btn.clear'].clicked.connect(self.window.ui.painter.clearImage)
+        self.window.ui.nodes['painter.btn.clear'].clicked.connect(self.window.ui.painter.clear_image)
         top.addWidget(self.window.ui.nodes['painter.btn.clear'])
+
+        self.window.ui.painter_scroll = QScrollArea()
+        self.window.ui.painter_scroll.setWidget(self.window.ui.painter)
+        self.window.ui.painter_scroll.setWidgetResizable(True)
 
         layout = QVBoxLayout()
         layout.addLayout(top)
-        layout.addWidget(self.window.ui.painter)
+        layout.addWidget( self.window.ui.painter_scroll)
         layout.setContentsMargins(0, 0, 0, 0)
 
         return layout

@@ -28,6 +28,7 @@ class PainterWidget(QWidget):
         self.brushSize = 3
         self.brushColor = Qt.black
         self.lastPoint = QPoint()
+        self.originalImage = None
 
     def contextMenuEvent(self, event):
         """
@@ -57,27 +58,33 @@ class PainterWidget(QWidget):
 
     def action_open(self):
         """Open the image"""
-        filePath, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")
-        if filePath:
-            loadedImage = QImage(filePath)
-            if loadedImage.isNull():
+        path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")
+        if path:
+            img = QImage(path)
+            if img.isNull():
                 QMessageBox.information(self, "Image Loader", "Cannot load file.")
                 return
-            self.scaleImageToFit(loadedImage)
+            self.scale_to_fit(img)
 
-    def scaleImageToFit(self, image):
+    def scale_to_fit(self, image):
+        """
+        Scale image to fit the widget
+
+        :param image: Image
+        """
         if image.width() == self.width():
-            newImage = image
+            new = image
         else:
-            newHeight = (image.height() * self.width()) / image.width()
-            newImage = image.scaled(self.width(), int(newHeight), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+            height = (image.height() * self.width()) / image.width()
+            new = image.scaled(self.width(), int(height), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
 
         self.image = QImage(self.width(), self.height(), QImage.Format_RGB32)
         self.image.fill(Qt.white)
         painter = QPainter(self.image)
-        painter.drawImage(0, 0, newImage)
+        painter.drawImage(0, 0, new)
         painter.end()
         self.update()
+        self.originalImage = self.image
 
     def action_capture(self):
         """Capture the image"""
@@ -86,14 +93,15 @@ class PainterWidget(QWidget):
     def action_save(self):
         """Save image to file"""
         name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
-        filePath, _ = QFileDialog.getSaveFileName(self, "Save Image", name,
-                                                  "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
-        if filePath:
-            self.image.save(filePath)
+        path, _ = QFileDialog.getSaveFileName(self, "Save Image", name,
+                                              "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
+        if path:
+            self.image.save(path)
 
     def action_clear(self):
         """Clear the image"""
-        self.clearImage()
+        self.clear_image()
+        self.originalImage = self.image
 
     def mousePressEvent(self, event):
         """
@@ -104,7 +112,7 @@ class PainterWidget(QWidget):
         self.drawing = True
         self.lastPoint = event.pos()
 
-    def setBrushColor(self, color):
+    def set_brush_color(self, color):
         """
         Set the brush color
 
@@ -112,12 +120,12 @@ class PainterWidget(QWidget):
         """
         self.brushColor = color
 
-    def clearImage(self):
+    def clear_image(self):
         """Clear the image"""
         self.image.fill(Qt.white)
         self.update()
 
-    def setBrushSize(self, size):
+    def set_brush_size(self, size):
         """
         Set the brush size
 
@@ -152,18 +160,18 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
-        canvasPainter = QPainter(self)
-        canvasPainter.drawImage(self.rect(), self.image, self.image.rect())
+        painter = QPainter(self)
+        painter.drawImage(self.rect(), self.image, self.image.rect())
+        self.originalImage = self.image
 
     def resizeEvent(self, event):
         """
-        Resize event (on window resize)
-
+        Update coords on resize
         :param event: Event
         """
         if self.image.size() != self.size():
-            newImage = QImage(self.size(), QImage.Format_RGB32)
-            newImage.fill(Qt.white)
-            painter = QPainter(newImage)
+            new = QImage(self.size(), QImage.Format_RGB32)
+            new.fill(Qt.white)
+            painter = QPainter(new)
             painter.drawImage(QPoint(0, 0), self.image)
-            self.image = newImage
+            self.image = new

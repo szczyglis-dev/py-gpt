@@ -78,7 +78,6 @@ class Output:
                                                      trans('output.tab.notepad') + " " + str(i))
 
         layout = QVBoxLayout()
-        #layout.addLayout(self.setup_header())
         layout.addWidget(self.window.ui.tabs['output'])
         layout.addLayout(self.setup_bottom())
 
@@ -86,33 +85,6 @@ class Output:
         widget.setLayout(layout)
 
         return widget
-
-    def setup_header(self) -> QHBoxLayout:
-        """
-        Setup header bar
-
-        :return: QHBoxLayout
-        :rtype: QHBoxLayout
-        """
-        self.window.ui.nodes['chat.label'] = QLabel('')
-        self.window.ui.nodes['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
-
-        self.window.ui.nodes['chat.model'] = QLabel("")
-        self.window.ui.nodes['chat.model'].setAlignment(Qt.AlignRight)
-        self.window.ui.nodes['chat.model'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
-
-        self.window.ui.nodes['chat.plugins'] = QLabel("")
-        self.window.ui.nodes['chat.plugins'].setAlignment(Qt.AlignCenter)
-
-        header = QHBoxLayout()
-        # schedule plugins addon
-        self.window.ui.plugin_addon['schedule'] = QLabel("")
-        header.addWidget(self.window.ui.nodes['chat.label'])
-        header.addWidget(self.window.ui.nodes['chat.plugins'])
-        header.addWidget(self.window.ui.plugin_addon['schedule'])
-        header.addWidget(self.window.ui.nodes['chat.model'])
-
-        return header
 
     def setup_bottom(self) -> QHBoxLayout:
         """
