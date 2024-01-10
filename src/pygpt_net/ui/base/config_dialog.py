@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.10 10:00:00                  #
 # ================================================== #
+# 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWidget, QFrame
 
@@ -59,10 +60,10 @@ class BaseConfigDialog:
             elif option['type'] == 'bool':
                 widgets[key] = OptionCheckbox(self.window, id, key, option)  # checkbox
             elif option['type'] == 'dict':
-                self.window.controller.config.apply_placeholders(option)
+                self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionDict(self.window, id, key, option)  # dictionary
             elif option['type'] == 'combo':
-                self.window.controller.config.apply_placeholders(option)
+                self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionCombo(self.window, id, key, option)  # combobox
 
         return widgets

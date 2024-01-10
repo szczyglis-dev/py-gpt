@@ -55,7 +55,7 @@ class Dictionary(BaseConfigDialog):
             self.window.ui.config[parent_id] = {}
 
             # widgets
-            fields = self.window.controller.config.dict_option_to_options(parent_id, fields)  # item to options
+            fields = self.window.controller.config.dictionary.to_options(parent_id, fields)  # item to options
             widgets = self.build_widgets(parent_id, fields)  # from base config dialog
 
             for key in widgets:
@@ -83,7 +83,7 @@ class Dictionary(BaseConfigDialog):
             self.window.ui.nodes[parent_id + '.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
             self.window.ui.nodes[parent_id + '.btn.save'].clicked.connect(
                 lambda checked=True, option_key=option_key, parent=parent, fields=fields:
-                self.window.controller.config.save_dict_editor(option_key, parent, fields))
+                self.window.controller.config.dictionary.save_editor(option_key, parent, fields))
             self.window.ui.nodes[parent_id + '.btn.save'].setAutoDefault(True)
 
             self.window.ui.nodes[parent_id + '.btn.dismiss'] = QPushButton(trans("dialog.rename.dismiss"))

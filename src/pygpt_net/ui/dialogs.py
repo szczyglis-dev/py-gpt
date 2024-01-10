@@ -128,10 +128,10 @@ class Dialogs:
         if dialog_id not in self.window.ui.dialog:
             print("Dialog not found: " + dialog_id)
             return
-        self.window.controller.config.apply_to_dict_editor(id, option, data)
+        self.window.controller.config.dictionary.append_editor(id, option, data)
         self.window.ui.dialog[dialog_id].resize(width, height)
-        self.window.ui.dialog[dialog_id].data = data  # store data
-        self.window.ui.dialog[dialog_id].idx = idx  # store current index on list
+        self.window.ui.dialog[dialog_id].data = data  # store editing data
+        self.window.ui.dialog[dialog_id].idx = idx  # store editing record idx
         self.window.ui.dialog[dialog_id].show()
 
     def register_dictionary(self, key: str, parent: str, option: dict):
