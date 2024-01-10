@@ -95,6 +95,30 @@ class Editor:
         """
         return self.options
 
+    def get_option(self, id: str):
+        """
+        Get preset option
+
+        :param id: option id
+        :return: preset option
+        """
+        return self.options[id]
+
+    def setup(self):
+        """
+        Setup preset editor
+        """
+        # add hooks for config update in real-time
+        self.window.ui.add_hook("update.preset.prompt", self.hook_update)
+
+    def hook_update(self, key, value, caller, *args, **kwargs):
+        """
+        Hook: on settings update
+        """
+        if key == "prompt":
+            self.window.core.config.set('prompt', value)
+            self.window.controller.presets.from_global()
+
     def edit(self, idx: int = None):
         """
         Open preset editor
