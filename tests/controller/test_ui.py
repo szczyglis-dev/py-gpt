@@ -82,9 +82,9 @@ def test_update_active(mock_window):
     """Test update active"""
     ui = UI(mock_window)
     mock_window.core.config.data['mode'] = 'chat'
-    mock_window.ui.config['global']['current_temperature'].slider.setDisabled = MagicMock()
-    mock_window.ui.config['global']['current_temperature'].input.setDisabled = MagicMock()
-    mock_window.ui.config['global']['current_temperature'].setVisible = MagicMock()
+    # mock_window.ui.config['global']['current_temperature'].slider.setDisabled = MagicMock()
+    # mock_window.ui.config['global']['current_temperature'].input.setDisabled = MagicMock()
+    # mock_window.ui.config['global']['current_temperature'].setVisible = MagicMock()
     mock_window.ui.nodes['temperature.label'].setVisible = MagicMock()
     mock_window.ui.nodes['presets.widget'].setVisible = MagicMock()
     mock_window.ui.nodes['preset.ai_name'].setDisabled = MagicMock()

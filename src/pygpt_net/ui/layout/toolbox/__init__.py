@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QSplitter
+from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
 
 from pygpt_net.ui.layout.toolbox.assistants import Assistants
 from pygpt_net.ui.layout.toolbox.mode import Mode
@@ -52,11 +52,17 @@ class ToolboxMain:
         self.window.ui.splitters['toolbox.presets'].addWidget(self.presets.setup())  # prompts
         self.window.ui.splitters['toolbox.presets'].addWidget(self.assistants.setup())  # assistants
 
+        bottom = QVBoxLayout()
+        bottom.addWidget(self.prompt.setup())
+        bottom.addWidget(self.footer.setup())
+
+        bottom_widget = QWidget()
+        bottom_widget.setLayout(bottom)
+
         # rows
         self.window.ui.splitters['toolbox'] = QSplitter(Qt.Vertical)
         self.window.ui.splitters['toolbox'].addWidget(self.window.ui.splitters['toolbox.mode'])  # mode/model
         self.window.ui.splitters['toolbox'].addWidget(self.window.ui.splitters['toolbox.presets'])  # presets/assists.
-        self.window.ui.splitters['toolbox'].addWidget(self.prompt.setup())  # system prompt
-        self.window.ui.splitters['toolbox'].addWidget(self.footer.setup())  # footer (names, temp, logo, etc.)
+        self.window.ui.splitters['toolbox'].addWidget(bottom_widget)  # system prompt, footer (names, temp, logo, etc.)
 
         return self.window.ui.splitters['toolbox']

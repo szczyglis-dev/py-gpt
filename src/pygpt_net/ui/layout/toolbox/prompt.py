@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
@@ -59,15 +59,20 @@ class Prompt:
         header.addWidget(self.window.ui.nodes['preset.clear'], alignment=Qt.AlignRight)
 
         # prompt
-        self.window.ui.nodes['preset.prompt'] = OptionTextarea(self.window, 'preset.prompt', True)
+        option = self.window.controller.presets.editor.get_option('prompt')
+        self.window.ui.nodes['preset.prompt'] = OptionTextarea(self.window, 'preset', 'prompt', option)
+        self.window.ui.nodes['preset.prompt'].real_time = True
         self.window.ui.nodes['preset.prompt'].update_ui = False
+        self.window.ui.nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # rows
         layout = QVBoxLayout()
         layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes['preset.prompt'])
+        layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()
         widget.setLayout(layout)
+        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         return widget

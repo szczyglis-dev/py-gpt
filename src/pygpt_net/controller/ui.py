@@ -80,15 +80,15 @@ class UI:
         mode = self.window.core.config.data['mode']
         if mode == 'chat':
             # temperature
-            self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].setVisible(True)
-            self.window.ui.nodes['temperature.label'].setVisible(True)
+            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].setVisible(True)
+            # self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(False)
-            self.window.ui.nodes['preset.user_name'].setDisabled(False)
+            # self.window.ui.nodes['preset.ai_name'].setDisabled(False)
+            # self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -128,16 +128,16 @@ class UI:
 
         elif mode == 'img':
             # temperature
-            self.window.ui.config['global']['current_temperature'].slider.setDisabled(True)
-            self.window.ui.config['global']['current_temperature'].input.setDisabled(True)
-            self.window.ui.config['global']['current_temperature'].setVisible(False)
-            self.window.ui.nodes['temperature.label'].setVisible(False)
+            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(True)
+            # self.window.ui.config['global']['current_temperature'].input.setDisabled(True)
+            # self.window.ui.config['global']['current_temperature'].setVisible(False)
+            # self.window.ui.nodes['temperature.label'].setVisible(False)
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
             self.window.ui.nodes['preset.prompt'].setDisabled(False)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            self.window.ui.nodes['preset.user_name'].setDisabled(True)
+            # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
+            # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(False)
             self.window.ui.nodes['preset.use'].setVisible(True)
 
@@ -157,16 +157,16 @@ class UI:
 
         elif mode == 'completion':
             # temperature
-            self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].setVisible(True)
-            self.window.ui.nodes['temperature.label'].setVisible(True)
+            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].setVisible(True)
+            # self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
             self.window.ui.nodes['preset.prompt'].setDisabled(False)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(False)
-            self.window.ui.nodes['preset.user_name'].setDisabled(False)
+            # self.window.ui.nodes['preset.ai_name'].setDisabled(False)
+            # self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -204,15 +204,15 @@ class UI:
 
         elif mode == 'vision':
             # temperature
-            self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].setVisible(False)
-            self.window.ui.nodes['temperature.label'].setVisible(False)
+            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].setVisible(False)
+            # self.window.ui.nodes['temperature.label'].setVisible(False)
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            self.window.ui.nodes['preset.user_name'].setDisabled(True)
+            # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
+            # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -232,15 +232,15 @@ class UI:
 
         elif mode == 'langchain':
             # temperature
-            self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].setVisible(True)
-            self.window.ui.nodes['temperature.label'].setVisible(True)
+            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].setVisible(True)
+            # self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(False)
-            self.window.ui.nodes['preset.user_name'].setDisabled(False)
+            # self.window.ui.nodes['preset.ai_name'].setDisabled(False)
+            # self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -278,15 +278,15 @@ class UI:
 
         elif mode == 'assistant':
             # temperature
-            self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            self.window.ui.config['global']['current_temperature'].setVisible(True)
-            self.window.ui.nodes['temperature.label'].setVisible(True)
+            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
+            # self.window.ui.config['global']['current_temperature'].setVisible(True)
+            # self.window.ui.nodes['temperature.label'].setVisible(True)
 
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            self.window.ui.nodes['preset.user_name'].setDisabled(True)
+            # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
+            # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 

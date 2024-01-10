@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.10 04:00:00                  #
 # ================================================== #
 
 import os
@@ -40,9 +40,9 @@ class Footer:
         :return: QHBoxLayout
         """
         # AI and users names
-        names_layout = QHBoxLayout()
-        names_layout.addLayout(self.setup_name_input('preset.ai_name', trans("toolbox.name.ai")))
-        names_layout.addLayout(self.setup_name_input('preset.user_name', trans("toolbox.name.user")))
+        # names_layout = QHBoxLayout()
+        # names_layout.addLayout(self.setup_name_input('preset.ai_name', trans("toolbox.name.ai")))
+        # names_layout.addLayout(self.setup_name_input('preset.user_name', trans("toolbox.name.user")))
 
         # bottom
         option = dict(self.window.controller.settings.editor.get_options()["temperature"])
@@ -53,31 +53,31 @@ class Footer:
 
         # per mode options
         rows = QVBoxLayout()
-        rows.addStretch(1)
-        rows.addWidget(self.window.ui.nodes['temperature.label'])
-        rows.addWidget(self.window.ui.config['global']['current_temperature'])
+        # rows.addWidget(self.window.ui.nodes['temperature.label'])
+        # rows.addWidget(self.window.ui.config['global']['current_temperature'])
         rows.addWidget(self.image.setup())
         rows.addWidget(self.vision.setup())
+        rows.setContentsMargins(0, 0, 0, 0)
 
         # logo
         logo_button = self.setup_logo()
 
         # bottom (options and logo)
-        bottom = QHBoxLayout()
-        bottom.addLayout(rows, 80)
-        bottom.addWidget(logo_button, 20)
-        bottom.setStretchFactor(logo_button, 1)
-        bottom.setAlignment(logo_button, Qt.AlignRight | Qt.AlignBottom)
-        bottom_widget = QWidget()
-        bottom_widget.setLayout(bottom)
+        # bottom = QHBoxLayout()
+        # bottom.addLayout(rows, 80)
+        # bottom.addWidget(logo_button, 20)
+        # bottom.setStretchFactor(logo_button, 1)
+        # bottom.setAlignment(logo_button, Qt.AlignRight | Qt.AlignBottom)
+        # bottom_widget = QWidget()
+        # bottom_widget.setLayout(bottom)
 
         # layout rows
-        layout = QVBoxLayout()
-        layout.addLayout(names_layout)
-        layout.addWidget(bottom_widget)
+        # layout = QVBoxLayout()
+        # layout.addLayout(names_layout)
+        # layout.addWidget(bottom_widget)
 
         widget = QWidget()
-        widget.setLayout(layout)
+        widget.setLayout(rows)
 
         return widget
 

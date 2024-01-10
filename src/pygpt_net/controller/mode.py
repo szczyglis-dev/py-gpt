@@ -107,8 +107,10 @@ class Mode:
                 if id in self.window.core.presets.items:
                     temperature = float(self.window.core.presets.items[id].temperature or 1.0)
         option = self.window.controller.settings.editor.get_options()["temperature"]
+        '''
         self.window.controller.config.slider.on_update("global", "current_temperature", option, temperature,
                                                        hooks=False)  # disable hooks to prevent circular update
+        '''
 
     def hook_global_temperature(self, key, value, caller, *args, **kwargs):
         """
