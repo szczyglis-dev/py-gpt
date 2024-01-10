@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.93 (2024-01-10)
+
+- Added painter (simple image drawing) - it allows to quick draw images and provide them into vision model
+- Small UI fixes
+
 # 2.0.92 (2024-01-10)
 
 - Fixed bug with system prompt append from main window
