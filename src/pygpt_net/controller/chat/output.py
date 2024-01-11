@@ -33,8 +33,10 @@ class Output:
         :param mode: mode
         :param stream_mode: async stream mode
         """
+        not_async_modes = ['assistant', 'img', 'llama_index']
+
         # if async stream mode
-        if stream_mode and mode != 'assistant':
+        if stream_mode and mode not in not_async_modes:
             output = ""
             output_tokens = 0
             begin = True

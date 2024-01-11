@@ -82,16 +82,8 @@ class UI:
 
         mode = self.window.core.config.data['mode']
         if mode == 'chat':
-            # temperature
-            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].setVisible(True)
-            # self.window.ui.nodes['temperature.label'].setVisible(True)
-
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            # self.window.ui.nodes['preset.ai_name'].setDisabled(False)
-            # self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -132,17 +124,9 @@ class UI:
             self.window.ui.nodes['input.stream'].setVisible(True)
 
         elif mode == 'img':
-            # temperature
-            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(True)
-            # self.window.ui.config['global']['current_temperature'].input.setDisabled(True)
-            # self.window.ui.config['global']['current_temperature'].setVisible(False)
-            # self.window.ui.nodes['temperature.label'].setVisible(False)
-
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
             self.window.ui.nodes['preset.prompt'].setDisabled(False)
-            # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(False)
             self.window.ui.nodes['preset.use'].setVisible(True)
 
@@ -165,17 +149,9 @@ class UI:
             self.window.ui.nodes['input.stream'].setVisible(False)
 
         elif mode == 'completion':
-            # temperature
-            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].setVisible(True)
-            # self.window.ui.nodes['temperature.label'].setVisible(True)
-
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
             self.window.ui.nodes['preset.prompt'].setDisabled(False)
-            # self.window.ui.nodes['preset.ai_name'].setDisabled(False)
-            # self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -214,16 +190,8 @@ class UI:
             self.window.ui.nodes['input.stream'].setVisible(True)
 
         elif mode == 'vision':
-            # temperature
-            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].setVisible(False)
-            # self.window.ui.nodes['temperature.label'].setVisible(False)
-
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -246,16 +214,8 @@ class UI:
             self.window.ui.nodes['input.stream'].setVisible(True)
 
         elif mode == 'langchain':
-            # temperature
-            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].setVisible(True)
-            # self.window.ui.nodes['temperature.label'].setVisible(True)
-
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(True)
-            # self.window.ui.nodes['preset.ai_name'].setDisabled(False)
-            # self.window.ui.nodes['preset.user_name'].setDisabled(False)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -294,16 +254,8 @@ class UI:
             self.window.ui.nodes['input.stream'].setVisible(True)
 
         elif mode == 'assistant':
-            # temperature
-            # self.window.ui.config['global']['current_temperature'].slider.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].input.setDisabled(False)
-            # self.window.ui.config['global']['current_temperature'].setVisible(True)
-            # self.window.ui.nodes['temperature.label'].setVisible(True)
-
             # presets
             self.window.ui.nodes['presets.widget'].setVisible(False)
-            # self.window.ui.nodes['preset.ai_name'].setDisabled(True)
-            # self.window.ui.nodes['preset.user_name'].setDisabled(True)
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
@@ -321,6 +273,31 @@ class UI:
             # files tabs
             self.window.ui.tabs['input'].setTabVisible(1, True)  # files
             self.window.ui.tabs['input'].setTabVisible(2, True)  # uploaded files
+
+            # stream checkbox
+            self.window.ui.nodes['input.stream'].setVisible(False)
+
+        elif mode == 'llama_index':
+            # presets
+            self.window.ui.nodes['presets.widget'].setVisible(True)
+            self.window.ui.nodes['preset.prompt'].setDisabled(False)
+            self.window.ui.nodes['preset.clear'].setVisible(False)
+            self.window.ui.nodes['preset.use'].setVisible(False)
+
+            self.window.ui.nodes['assistants.widget'].setVisible(False)
+            self.window.ui.nodes['dalle.options'].setVisible(False)
+
+            value = False
+            if force_vision_allowed:
+                value = True
+
+            # vision capture
+            self.window.ui.nodes['vision.capture.options'].setVisible(value)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
+
+            # files tabs
+            self.window.ui.tabs['input'].setTabVisible(1, False)  # files
+            self.window.ui.tabs['input'].setTabVisible(2, False)  # uploaded files
 
             # stream checkbox
             self.window.ui.nodes['input.stream'].setVisible(False)

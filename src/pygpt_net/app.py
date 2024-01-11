@@ -36,6 +36,7 @@ from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
+from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 
 from pygpt_net.llm.Anthropic import AnthropicLLM
@@ -282,6 +283,7 @@ def run(plugins: list = None, llms: list = None):
     launcher.add_plugin(CmdCustomCommandPlugin())
     launcher.add_plugin(OpenAIDallePlugin())
     launcher.add_plugin(OpenAIVisionPlugin())
+    launcher.add_plugin(IdxLlamaIndexPlugin())
     launcher.add_plugin(CrontabPlugin())
 
     # register custom plugins

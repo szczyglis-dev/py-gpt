@@ -113,7 +113,7 @@ class Input:
             return
 
         # check API key, show monit if not set
-        if mode != 'langchain':
+        if mode != 'langchain' and mode != 'llama_index':  # TODO: to config allowed modes
             if not self.window.controller.chat.common.check_api_key():
                 self.generating = False
                 return
@@ -139,6 +139,8 @@ class Input:
         # send input to API, return ctx
         if self.window.core.config.get('mode') == 'img':
             ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
+        elif self.window.core.config.get('mode') == 'llama_index':
+            ctx = self.window.controller.chat.idx.send(text)  # Llama-index query
         else:
             ctx = self.window.controller.chat.text.send(text, internal=internal)  # text mode: OpenAI or LangChain
 

@@ -46,6 +46,7 @@ class Ctx:
             'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'assistant': ['assistant'],
+            'llama_index': ['llama_index'],
         }
 
     def install(self):

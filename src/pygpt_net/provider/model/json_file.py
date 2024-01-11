@@ -154,6 +154,14 @@ class JsonFileProvider(BaseProvider):
                 data = self.window.core.models.items
                 updated = True
 
+            # < 2.0.96  <--- patch for llama-index modes
+            if old < parse_version("2.0.96"):
+                print("Migrating models from < 2.0.96...")
+                self.window.core.updater.patch_file('models.json', True)  # force replace file
+                self.window.core.models.load()
+                data = self.window.core.models.items
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

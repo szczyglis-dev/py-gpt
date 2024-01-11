@@ -11,6 +11,7 @@
 
 from pygpt_net.controller.chat.common import Common
 from pygpt_net.controller.chat.files import Files
+from pygpt_net.controller.chat.idx import Idx
 from pygpt_net.controller.chat.image import Image
 from pygpt_net.controller.chat.input import Input
 from pygpt_net.controller.chat.output import Output
@@ -29,6 +30,7 @@ class Chat:
         self.window = window
         self.common = Common(window)
         self.files = Files(window)
+        self.idx = Idx(window)
         self.image = Image(window)
         self.input = Input(window)
         self.output = Output(window)

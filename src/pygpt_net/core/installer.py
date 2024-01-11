@@ -40,6 +40,9 @@ class Installer:
             # install presets
             self.window.core.presets.install()
 
+            # install indexes
+            self.window.core.idx.install()
+
             # install history
             self.window.core.history.install()
 

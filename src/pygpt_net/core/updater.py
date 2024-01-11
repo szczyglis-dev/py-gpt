@@ -42,6 +42,7 @@ class Updater:
             self.patch_models(version)
             self.patch_presets(version)
             self.patch_ctx(version)
+            self.patch_indexes(version)
             self.patch_assistants(version)
             self.patch_attachments(version)
             self.patch_notepad(version)
@@ -110,6 +111,15 @@ class Updater:
         """
         if self.window.core.attachments.patch(version):
             print("Migrated attachments. [OK]")
+
+    def patch_indexes(self, version: Version):
+        """
+        Migrate indexes to current app version
+
+        :param version: current app version
+        """
+        if self.window.core.idx.patch(version):
+            print("Migrated indexes. [OK]")
 
     def patch_notepad(self, version: Version):
         """

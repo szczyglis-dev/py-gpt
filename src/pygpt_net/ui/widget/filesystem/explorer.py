@@ -6,43 +6,70 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.11 09:00:00                  #
 # ================================================== #
+import datetime
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QModelIndex
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
-from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel
+from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
+    QPushButton, QSizePolicy
 
 from pygpt_net.utils import trans
 
 
 class FileExplorer(QWidget):
-    def __init__(self, window, directory):
+    def __init__(self, window, directory, index_data):
         """
         File explorer widget
 
         :param window: Window instance
         :param directory: directory to explore
+        :param index_data: index data
         """
         super().__init__()
 
         self.window = window
-        self.model = QFileSystemModel()
+        self.index_data = index_data
+        self.model = IndexedFileSystemModel(self.index_data)
         self.model.setRootPath(directory)
 
         self.treeView = QTreeView()
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(directory))
 
-        self.path_label = QLabel(directory)
+        header = QHBoxLayout()
+
+        self.btn_upload = QPushButton(trans('files.local.upload'))
+        self.btn_upload.setMaximumHeight(40)
+        self.btn_upload.clicked.connect(self.window.controller.files.upload_local)
+        self.btn_upload.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        self.btn_idx = QPushButton(trans('idx.btn.index_all'))
+        self.btn_idx.setMaximumHeight(40)
+        self.btn_idx.clicked.connect(self.window.controller.idx.index_all)
+        self.btn_idx.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        self.btn_clear = QPushButton(trans('idx.btn.clear'))
+        self.btn_clear.setMaximumHeight(40)
+        self.btn_clear.clicked.connect(self.window.controller.idx.clear)
+        self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        self.path_label = QLabel(trans('files.local.dir.prefix') + ': ' + directory)
         self.path_label.setMaximumHeight(40)
-        self.path_label.setAlignment(Qt.AlignRight)
+        self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_small'))
+
+        header.addWidget(self.btn_upload)
+        header.addWidget(self.btn_idx)
+        header.addWidget(self.btn_clear)
+        header.addStretch()
+        header.addWidget(self.path_label)
 
         layout = QVBoxLayout()
 
-        layout.addWidget(self.path_label)
         layout.addWidget(self.treeView)
+        layout.addLayout(header)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
@@ -103,6 +130,10 @@ class FileExplorer(QWidget):
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
 
+            actions['index_path'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.index_path'), self)
+            actions['index_path'].triggered.connect(
+                lambda: self.action_idx(path))
+
             actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
             actions['rename'].triggered.connect(
                 lambda: self.action_rename(path))
@@ -115,6 +146,7 @@ class FileExplorer(QWidget):
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
             menu.addAction(actions['rename'])
+            menu.addAction(actions['index_path'])
             menu.addAction(actions['delete'])
 
             menu.exec(QCursor.pos())
@@ -126,6 +158,14 @@ class FileExplorer(QWidget):
         :param path: path to open
         """
         self.window.controller.files.open(path)
+
+    def action_idx(self, path):
+        """
+        Index file or dir handler
+
+        :param path: path to open
+        """
+        self.window.controller.idx.index_path(path)
 
     def action_open_dir(self, path):
         """
@@ -150,3 +190,63 @@ class FileExplorer(QWidget):
         :param path: path to open
         """
         self.window.controller.files.delete(path)
+
+
+class IndexedFileSystemModel(QFileSystemModel):
+    def __init__(self, index_dict, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.index_dict = index_dict
+
+    def columnCount(self, parent=QModelIndex()):
+        """
+        Return column count
+
+        :param parent: parent
+        :return: column count
+        """
+        return super().columnCount(parent) + 1
+
+    def data(self, index, role=Qt.DisplayRole):
+        """
+        Data handler
+
+        :param index: row index
+        :param role: role
+        :return: data
+        """
+        if index.column() == self.columnCount() - 1:
+            if role == Qt.DisplayRole:
+                file_path = self.filePath(index.siblingAtColumn(0))
+                if self.index_dict.get(file_path):
+                    # show status and date from timestamp:
+                    return "Yes" + " (" + datetime.datetime.fromtimestamp(self.index_dict[file_path]['indexed_ts']).strftime(
+                        "%Y-%m-%d %H:%M") + ")"
+                else:
+                    return "No"
+        return super().data(index, role)
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """
+        Prepare Header data (append Indexed column)
+
+        :param section: Section
+        :param orientation: Orientation
+        :param role: Role
+        :return: Header data
+        """
+        if section == self.columnCount() - 1 and orientation == Qt.Horizontal:
+            if role == Qt.DisplayRole:
+                return "Llama-indexed"
+        return super().headerData(section, orientation, role)
+
+    def update_idx_status(self, new_index_dict):
+        """
+        Update index status
+
+        :param new_index_dict: new index dict
+        """
+        self.index_dict = new_index_dict
+        top_left_index = self.index(0, 0)
+        bottom_right_index = self.index(self.rowCount() - 1, self.columnCount() - 1)
+        self.dataChanged.emit(top_left_index, bottom_right_index, [Qt.DisplayRole])
+        self.layoutChanged.emit()

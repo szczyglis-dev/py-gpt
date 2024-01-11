@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.11 09:00:00                  #
 # ================================================== #
 
 import os
@@ -47,9 +47,12 @@ class Output:
         # chat output
         self.window.ui.nodes['output'] = ChatOutput(self.window)
 
+        # index status data
+        index_data = self.window.core.idx.get_idx_data()
+
         # file explorer
         path = os.path.join(self.window.core.config.path, 'output')
-        self.window.ui.nodes['output_files'] = FileExplorer(self.window, path)
+        self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
 
         # notepads
         num_notepads = self.window.controller.notepad.get_num_notepads()

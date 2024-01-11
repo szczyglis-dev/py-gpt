@@ -14,7 +14,9 @@ import os
 from pathlib import PurePath
 
 from PySide6.QtGui import QDesktopServices
+from PySide6.QtWidgets import QFileDialog
 from showinfm import show_in_file_manager
+from shutil import copy2
 
 from pygpt_net.utils import trans
 
@@ -45,6 +47,24 @@ class Files:
             return
 
         os.remove(path)
+
+    def upload_local(self):
+        """
+        Upload local file(s)
+        """
+        files, _ = QFileDialog.getOpenFileNames(self.window, "Select files to upload", "")
+        if files:
+            target_directory = os.path.join(self.window.core.config.path, 'output')
+            num = 0
+            for file_path in files:
+                try:
+                    os.makedirs(target_directory, exist_ok=True)
+                    copy2(file_path, target_directory)
+                    num += 1
+                except Exception as e:
+                    print(f'Error copying file {file_path}: {e}')
+            if num > 0:
+                self.window.update_status(f'[OK] Uploaded: {num} files.')
 
     def rename(self, path: str):
         """

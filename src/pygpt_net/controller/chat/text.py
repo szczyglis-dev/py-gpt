@@ -112,6 +112,15 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
+        # event: post.prompt (post-handle system prompt)
+        event = Event('post.prompt', {
+            'mode': mode,
+            'value': sys_prompt,
+        })
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
+        sys_prompt = event.data['value']
+
         # event: cmd.syntax (if commands enabled then append commands prompt)
         if self.window.core.config.get('cmd'):
             sys_prompt += " " + self.window.core.command.get_prompt()

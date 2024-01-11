@@ -57,7 +57,8 @@ class BasePlugin:
                    advanced: bool = False,  # option is advanced (True/False)
                    secret: bool = False,  # option is secret (True/False)
                    persist: bool = False,  # option is persistent on reset to defaults (True/False)
-                   urls: dict = None):  # option URLs (API keys, docs, etc.)
+                   urls: dict = None,  # option URLs (API keys, docs, etc.)
+                   use: str = None):  # placeholders to use in combo type items
         """
         Add plugin configuration option
 
@@ -77,6 +78,7 @@ class BasePlugin:
         :param secret: Option secret (True/False)
         :param persist: Option persist (True/False)
         :param urls: Option URLs
+        :param use: Placeholders to use in combo type
         """
         if tooltip is None:
             tooltip = description
@@ -98,6 +100,7 @@ class BasePlugin:
             "secret": secret,
             "persist": persist,
             "urls": urls,
+            "use": use,
         }
         self.options[name] = option
 
@@ -210,7 +213,7 @@ class BasePlugin:
         self.window.ui.status(msg)
         print(msg)
 
-    @Slot(object)
+    @Slot(object, object)
     def handle_finished(self, response: dict, ctx: CtxItem = None):
         """
         Handle finished response signal
