@@ -222,7 +222,6 @@ class IndexedFileSystemModel(QFileSystemModel):
             if role == Qt.DisplayRole:
                 file_path = self.filePath(index.siblingAtColumn(0))
                 file_id = self.window.core.idx.to_file_id(file_path)
-                print(file_path, file_id)
                 if self.index_dict.get(file_id):
                     # show status and date from timestamp:
                     return "Yes" + " (" + datetime.datetime.fromtimestamp(self.index_dict[file_id]['indexed_ts']).strftime(
