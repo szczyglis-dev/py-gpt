@@ -245,8 +245,9 @@ class ImageWorker(QRunnable):
                 res = requests.get(url)
 
                 # generate filename
-                name = self.make_safe_filename(self.input_prompt) + "-" + datetime.date.today().strftime(
-                    "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" + str(i + 1) + ".png"
+                name = datetime.date.today().strftime(
+                    "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" \
+                       + self.make_safe_filename(self.input_prompt) + "-" + str(i + 1) + ".png"
                 path = os.path.join(self.window.core.config.path, self.dirname, name)
 
                 msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + path
