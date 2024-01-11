@@ -68,13 +68,13 @@ class Idx:
 
     def clear(self, force: bool = False):
         """
-        Clear index
+        Clear index data
 
-        :param force: force index
+        :param force: force clear
         """
-        path = os.path.join(self.window.core.config.path, 'output')
+        path = os.path.join(self.window.core.config.path, 'output', 'idx', self.current_idx)
         if not force:
-            self.window.ui.dialogs.confirm('idx.reindex_all', -1, trans('idx.confirm.clear.content').
+            self.window.ui.dialogs.confirm('idx.clear', -1, trans('idx.confirm.clear.content').
                                            replace('{dir}', path))
             return
 

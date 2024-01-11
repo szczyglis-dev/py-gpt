@@ -66,7 +66,7 @@ class Confirm:
             self.window.controller.plugins.settings.load_defaults_app(True)
         elif type == 'idx.index_all':
             self.window.controller.idx.index_all(True)
-        elif type == 'idx.reindex_all':
+        elif type == 'idx.clear':
             self.window.controller.idx.clear(True)
 
         self.window.ui.dialog['confirm'].close()
