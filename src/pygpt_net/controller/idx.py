@@ -74,7 +74,7 @@ class Idx:
         """
         path = os.path.join(self.window.core.config.path, 'output')
         if not force:
-            self.window.ui.dialogs.confirm('idx.reindex_all', -1, trans('idx.confirm.reindex.content').
+            self.window.ui.dialogs.confirm('idx.reindex_all', -1, trans('idx.confirm.clear.content').
                                            replace('{dir}', path))
             return
 
