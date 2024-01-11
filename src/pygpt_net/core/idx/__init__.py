@@ -26,6 +26,14 @@ from pathlib import Path
 from pygpt_net.item.index import IndexItem
 from pygpt_net.provider.index.json_file import JsonFileProvider
 
+from pygpt_net.core.idx.loader.pdf.base import PDFReader
+from pygpt_net.core.idx.loader.docx.base import DocxReader
+from pygpt_net.core.idx.loader.markdown.base import MarkdownReader
+from pygpt_net.core.idx.loader.json.base import JSONReader
+from pygpt_net.core.idx.loader.simple_csv.base import SimpleCSVReader
+from pygpt_net.core.idx.loader.epub.base import EpubReader
+from pygpt_net.core.idx.loader.pandas_excel.base import PandasExcelReader
+
 
 class Idx:
     def __init__(self, window=None):
@@ -36,14 +44,14 @@ class Idx:
         """
         self.window = window
         self.indexes = {}
-        self.loaders = {
-            "pdf": "PDFReader",
-            "docx": "DocxReader",
-            "md": "MarkdownReader",
-            "json": "JsonReader",
-            "csv": "SimpleCSVReader",
-            "epub": "EpubReader",
-            "xlsx": "PandasExcelReader",
+        self.loaders = {  # offline versions
+            "pdf": PDFReader(),
+            "docx": DocxReader(),
+            "md": MarkdownReader(),
+            "json": JSONReader(),
+            "csv": SimpleCSVReader(),
+            "epub": EpubReader(),
+            "xlsx": PandasExcelReader(),
         }  # TODO: add adding custom loaders via dict config in settings
         self.current = "base"
         self.provider = JsonFileProvider(window)
@@ -82,8 +90,9 @@ class Idx:
             # get data loader by file extension
             ext = os.path.splitext(data_path)[1][1:]
             if ext in self.loaders:
-                loader = download_loader(self.loaders[ext])  # download loader from hub
-                reader = loader()
+                # loader cause problems in compiled version, so we use offline version :(
+                # loader = download_loader(self.loaders[ext])
+                reader = self.loaders[ext]
                 documents = reader.load_data(file=Path(data_path))
             else:
                 reader = SimpleDirectoryReader(input_files=[data_path])
