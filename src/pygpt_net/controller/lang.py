@@ -81,6 +81,7 @@ class Lang:
         self.window.ui.nodes['painter.btn.brush'].setText(trans('painter.mode.paint'))
         self.window.ui.nodes['painter.btn.erase'].setText(trans('painter.mode.erase'))
         self.window.ui.nodes['painter.btn.capture'].setText(trans('painter.btn.capture'))
+        self.window.ui.nodes['painter.btn.camera.capture'].setText(trans('painter.btn.camera.capture'))
         self.window.ui.nodes['painter.btn.clear'].setText(trans('painter.btn.clear'))
 
         # context

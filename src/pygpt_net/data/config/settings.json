@@ -277,7 +277,7 @@
         "advanced": false
     },
     "img_resolution": {
-        "type": "text",
+        "type": "combo",
         "slider": false,
         "label": "settings.img_resolution",
         "value": "",
@@ -285,7 +285,31 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": false,
+        "keys": [
+            {"1792x1024": "[DALL-E 3] 1792x1024"},
+            {"1024x1792": "[DALL-E 3] 1024x1792"},
+            {"1024x1024": "[DALL-E 3] 1024x1024"},
+            {"1024x1024": "[DALL-E 2] 1024x1024"},
+            {"512x512": "[DALL-E 2] 512x512"},
+            {"256x256": "[DALL-E 2] 256x256"}
+        ]
+    },
+    "img_quality": {
+        "type": "combo",
+        "slider": false,
+        "label": "settings.img_quality",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "keys": [
+            {"standard": "[DALL-E 3] standard"},
+            {"hd": "[DALL-E 3] hd"},
+            {"standard": "[DALL-E 2] standard"}
+        ]
     },
     "notepad.num": {
         "type": "int",

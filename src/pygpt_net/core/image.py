@@ -113,12 +113,17 @@ class Image:
         worker.raw = self.window.core.config.get('img_raw')
         worker.model = model
         worker.model_prompt = self.window.core.config.get('img_prompt_model')
-        worker.resolution = self.window.core.config.get('img_resolution')
         worker.dirname = self.DIRNAME
         worker.input_prompt = prompt
         worker.system_prompt = self.get_prompt()
         worker.num = num
         worker.inline = inline
+
+        # config
+        if self.window.core.config.has('img_quality'):
+            worker.quality = self.window.core.config.get('img_quality')
+        if self.window.core.config.has('img_resolution'):
+            worker.resolution = self.window.core.config.get('img_resolution')
 
         # signals
         worker.signals.finished.connect(self.handle_finished)
@@ -154,13 +159,30 @@ class ImageWorker(QRunnable):
         self.ctx = None
         self.raw = False
         self.model = "dall-e-3"
-        self.resolution = None
+        self.quality = "standard"
+        self.resolution = "1792×1024"
         self.dirname = None
         self.model_prompt = None
         self.input_prompt = None
         self.system_prompt = None
         self.inline = False
         self.num = 1
+        self.allowed_max_num = {
+            "dall-e-2": 4,
+            "dall-e-3": 1,
+        }
+        self.allowed_resolutions = {
+            "dall-e-2": [
+                "1024x1024",
+                "512x512",
+                "256x256",
+            ],
+            "dall-e-3": [
+                "1792x1024",
+                "1024x1792",
+                "1024x1024",
+            ],
+        }
 
     @Slot()
     def run(self):
@@ -181,13 +203,39 @@ class ImageWorker(QRunnable):
         self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
         paths = []
         try:
+            # check if number of images is supported
+            if self.model in self.allowed_max_num:
+                if self.num > self.allowed_max_num[self.model]:
+                    self.num = self.allowed_max_num[self.model]
+
+            # check if resolution is supported
+            resolution = self.resolution
+            if self.model in self.allowed_resolutions:
+                if resolution not in self.allowed_resolutions[self.model]:
+                    resolution = self.allowed_resolutions[self.model][0]
+
             # send to API
-            response = self.client.images.generate(
-                model=self.model,
-                prompt=self.input_prompt,
-                n=self.num,
-                size=self.window.core.config.get('img_resolution'),
-            )
+            response = None
+            if self.model == "dall-e-2":
+                response = self.client.images.generate(
+                    model=self.model,
+                    prompt=self.input_prompt,
+                    n=self.num,
+                    size=resolution,
+                )
+            elif self.model == "dall-e-3":
+                response = self.client.images.generate(
+                    model=self.model,
+                    prompt=self.input_prompt,
+                    n=self.num,
+                    quality=self.quality,
+                    size=resolution,
+                )
+
+            # check response
+            if response is None:
+                self.signals.status.emit("API Error: empty response")
+                return
 
             # download images
             for i in range(self.num):
