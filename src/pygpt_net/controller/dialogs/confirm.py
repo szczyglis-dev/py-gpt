@@ -26,6 +26,8 @@ class Confirm:
         :param id: dialog object id
         :param parent_object: dialog parent object
         """
+        self.window.ui.dialog['confirm'].close()
+
         if type == 'preset_exists':
             self.window.controller.presets.editor.save(True)
         elif type == 'preset_delete':
@@ -68,8 +70,6 @@ class Confirm:
             self.window.controller.idx.index_all(True)
         elif type == 'idx.clear':
             self.window.controller.idx.clear(True)
-
-        self.window.ui.dialog['confirm'].close()
 
     def dismiss(self, type: str, id: any):
         """
