@@ -34,7 +34,7 @@ class Plugin(BasePlugin):
                  'Additional knowledge will be prefixed with an "Additional data:" prefix. ' \
                  'You can also provide a command to query my knowledge database anytime you need any additional data ' \
                  '- to do this, return to me the prepared prompt in JSON format, all in one line, using the following' \
-                 ' syntax: ~###~{"cmd": "get_knowledge", "params": {"query": "simple and concrete query here"}}~###~. ' \
+                 ' syntax: ~###~{"cmd": "get_knowledge", "params": {"question": "simple and concrete question here"}}~###~. ' \
                  'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other' \
                  ' syntax. When making query use language that I spoke to you.'
         self.add_option("prompt", "textarea", prompt,
@@ -93,7 +93,7 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        full_msg = '[DALL-E] ' + str(msg)
+        full_msg = '[LLAMA-INDEX] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
         print(full_msg)
@@ -126,11 +126,11 @@ class Plugin(BasePlugin):
         prompt += "\nADDITIONAL KNOWLEDGE: " + response
         return prompt
 
-    def query(self, query: str):
+    def query(self, question: str):
         """
         Query Llama-index
 
-        :param query: query
+        :param question: question
         :return: response
         """
         model = "gpt-3.5-turbo"
@@ -139,7 +139,7 @@ class Plugin(BasePlugin):
             idx = "base"  # <-- TMP: before multiple indexes support
         if self.get_option_value("model_query") is not None:
             model = self.get_option_value("model_query")
-        return self.window.core.idx.query(query, idx=idx, model=model)
+        return self.window.core.idx.query(question, idx=idx, model=model)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -161,9 +161,9 @@ class Plugin(BasePlugin):
         for item in my_commands:
             try:
                 if item["cmd"] == "get_knowledge":
-                    query = item["params"]["query"]
+                    question = item["params"]["question"]
                     request = {"cmd": item["cmd"]}
-                    data = self.query(query)  # send query to Llama-index
+                    data = self.query(question)  # send question to Llama-index
                     response = {"request": request, "result": data}
                     ctx.results.append(response)
                     ctx.reply = True
