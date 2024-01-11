@@ -12,7 +12,7 @@
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy
 
 from pygpt_net.ui.layout.chat.input import Input
 from pygpt_net.ui.layout.chat.calendar import Calendar
@@ -98,14 +98,17 @@ class Output:
         self.window.ui.nodes['chat.label'] = QLabel("")
         self.window.ui.nodes['chat.label'].setAlignment(Qt.AlignRight)
         self.window.ui.nodes['chat.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+        self.window.ui.nodes['chat.label'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.window.ui.nodes['chat.model'] = QLabel("")
         self.window.ui.nodes['chat.model'].setAlignment(Qt.AlignRight)
         self.window.ui.nodes['chat.model'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+        self.window.ui.nodes['chat.model'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.window.ui.nodes['chat.plugins'] = QLabel("")
         self.window.ui.nodes['chat.plugins'].setAlignment(Qt.AlignRight)
         self.window.ui.nodes['chat.plugins'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+        self.window.ui.nodes['chat.plugins'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # add timestamp checkbox
         self.window.ui.nodes['output.timestamp'] = QCheckBox(trans('output.timestamp'))
@@ -132,6 +135,7 @@ class Output:
         self.window.ui.nodes['prompt.context'].setAlignment(Qt.AlignRight)
         self.window.ui.nodes['prompt.context'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
         self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
+        self.window.ui.nodes['prompt.context'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
@@ -149,12 +153,16 @@ class Output:
 
         layout = QHBoxLayout()
         layout.addLayout(opts_layout)
-        #layout.addWidget(self.window.ui.plugin_addon['audio.output'])
-
+        # layout.addWidget(self.window.ui.plugin_addon['audio.output'])
+        layout.addStretch(1)
         layout.addWidget(self.window.ui.plugin_addon['schedule'])
+        layout.addWidget(QLabel(" "))
         layout.addWidget(self.window.ui.nodes['chat.plugins'])
+        layout.addWidget(QLabel(" "))
         layout.addWidget(self.window.ui.nodes['chat.label'])
+        layout.addWidget(QLabel("  "))
         layout.addWidget(self.window.ui.nodes['chat.model'])
+        layout.addWidget(QLabel("  "))
         layout.addWidget(self.window.ui.nodes['prompt.context'])
         layout.setContentsMargins(0, 0, 0, 0)
 
