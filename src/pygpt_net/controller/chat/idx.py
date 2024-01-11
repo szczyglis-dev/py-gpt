@@ -79,8 +79,8 @@ class Idx:
             # make query to llama index
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
-
-                ctx.output = self.window.core.idx.query(ctx.input, model)  # query llama index
+                idx = self.window.controller.idx.current_idx
+                ctx.output = self.window.core.idx.query(ctx.input, idx=idx, model=model)  # query llama index
 
                 # update context in DB
                 ctx.current = False  # reset current state
