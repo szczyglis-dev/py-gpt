@@ -46,7 +46,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated `Llama-index` support (experimental).
+- Integrated experimental `Llama-index` support: chat with `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub` and `xlsx`.
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
@@ -355,9 +355,11 @@ You have the ability to add custom model wrappers for models that are not availa
 
 ##  Index (llama-index)
 
-This mode enables direct interaction with your documents through conversation. It seamlessly incorporates Llama-index into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the 'output' directory and initiate indexing by clicking the 'Index all' button, or right-click on a file and select 'Index...'. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Llama-index (inline)` plugin.
+This mode enables direct interaction with your documents through conversation. It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the `output` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Llama-index (inline)` plugin.
 
-`This mode is experimental (from version 2.0.96)`
+Built-in file loaders: `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`.
+
+**This mode is currently experimental (from version 2.0.96) and it will be extended soon.**
 
 # Files and attachments
 
@@ -1539,6 +1541,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added integration with `Llama-index` (experimental): you can now index/embed files from the data directory and use them as additional data in context.
 - Added an inline plugin for `Llama-index` (allows providing additional context from `Llama-index` in any chat mode).
+- Built-in file loaders: `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`
 - Added a new mode: `Index (llama-index)`, it is a mode for querying the index directly.
 - Improved `DALL-E 3` configuration, 16:9 images set as default, added config option for standard and HD mode.
 - Improved drawing mode.

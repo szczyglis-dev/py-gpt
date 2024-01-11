@@ -126,6 +126,8 @@ You have the ability to add custom model wrappers for models that are not availa
 Index (llama-index)
 -------------------
 
-This mode enables direct interaction with your documents through conversation. It seamlessly incorporates Llama-index into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the 'output' directory and initiate indexing by clicking the 'Index all' button, or right-click on a file and select 'Index...'. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Llama-index (inline)`` plugin.
+This mode enables direct interaction with your documents through conversation. It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the ``output`` directory and initiate indexing by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Llama-index (inline)`` plugin.
 
-``This mode is experimental (from version 2.0.96)``
+Built-in file loaders: ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``.
+
+**This mode is currently experimental (from version 2.0.96) and it will be extended soon.**
