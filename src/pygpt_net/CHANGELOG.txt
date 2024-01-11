@@ -1,3 +1,7 @@
+2.0.97 (2024-01-11)
+
+- DALL-E config fix
+
 2.0.96 (2024-01-11)
 
 - Added integration with Llama-index (experimental): you can now index/embed files from the data directory and use them as additional data in context.
