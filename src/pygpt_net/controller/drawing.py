@@ -96,6 +96,7 @@ class Drawing:
         :param enabled: bool
         """
         if enabled:
+            self.window.ui.nodes['painter.select.brush.color'].setCurrentText("Black")
             self.window.ui.painter.set_brush_color(Qt.black)
 
     def set_erase_mode(self, enabled: bool):
@@ -105,6 +106,7 @@ class Drawing:
         :param enabled: bool
         """
         if enabled:
+            self.window.ui.nodes['painter.select.brush.color'].setCurrentText("White")
             self.window.ui.painter.set_brush_color(Qt.white)
 
     def change_canvas_size(self, selected=None):
