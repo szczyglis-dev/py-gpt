@@ -68,7 +68,7 @@ class Idx:
 
     def clear(self, force: bool = False):
         """
-        Re-index all files in output directory (remove old index)
+        Clear index
 
         :param force: force index
         """
