@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.0.95",
-        "app.version": "2.0.95",
-        "updated_at": "2024-01-10T22:36:23"
+        "version": "2.0.96",
+        "app.version": "2.0.96",
+        "updated_at": "2024-01-11T03:36:23"
     },
     "items": {
         "dall-e-2": {
@@ -33,7 +33,8 @@
             "mode": [
                 "chat",
                 "assistant",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",
@@ -75,7 +76,8 @@
             "mode": [
                 "chat",
                 "assistant",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",
@@ -96,7 +98,8 @@
             "mode": [
                 "chat",
                 "assistant",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",
@@ -138,7 +141,8 @@
             "mode": [
                 "chat",
                 "assistant",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",
@@ -169,7 +173,8 @@
             "name": "gpt-3 (davinci-002)",
             "mode": [
                 "completion",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",
@@ -189,7 +194,8 @@
             "name": "gpt-3.5 (davinci-003)",
             "mode": [
                 "completion",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",
