@@ -255,6 +255,19 @@ class Idx:
             return file in self.items[idx].items
         return False
 
+    def to_file_id(self, path: str) -> str:
+        """
+        Prepare file id
+
+        :param path: file path
+        :return: file id
+        """
+        path = os.path.normpath(path)
+        root_path = os.path.normpath(os.path.join(self.window.core.config.path, 'output'))
+        path = path.replace(root_path, '')
+        path = path.replace("\\", "/").strip(r'\/')
+        return path
+
     def append(self, idx: str, files: dict):
         """
         Append indexed files to index
@@ -265,7 +278,8 @@ class Idx:
         if idx in self.items:
             for path in files:
                 file = files[path]
-                self.items[idx].items[path] = {
+                file_id = self.to_file_id(path)
+                self.items[idx].items[file_id] = {
                     "path": path,
                     "indexed_ts": datetime.datetime.now().timestamp(),
                     "id": file,

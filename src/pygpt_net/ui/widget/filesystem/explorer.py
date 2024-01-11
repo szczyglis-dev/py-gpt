@@ -8,7 +8,9 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.11 09:00:00                  #
 # ================================================== #
+
 import datetime
+from pathlib import Path
 
 from PySide6.QtCore import Qt, QModelIndex
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent
@@ -32,7 +34,7 @@ class FileExplorer(QWidget):
         self.window = window
         self.index_data = index_data
         self.directory = directory
-        self.model = IndexedFileSystemModel(self.index_data)
+        self.model = IndexedFileSystemModel(self.window, self.index_data)
         self.model.setRootPath(directory)
 
         self.treeView = QTreeView()
@@ -194,8 +196,9 @@ class FileExplorer(QWidget):
 
 
 class IndexedFileSystemModel(QFileSystemModel):
-    def __init__(self, index_dict, *args, **kwargs):
+    def __init__(self, window, index_dict, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.window = window
         self.index_dict = index_dict
 
     def columnCount(self, parent=QModelIndex()):
@@ -218,9 +221,11 @@ class IndexedFileSystemModel(QFileSystemModel):
         if index.column() == self.columnCount() - 1:
             if role == Qt.DisplayRole:
                 file_path = self.filePath(index.siblingAtColumn(0))
-                if self.index_dict.get(file_path):
+                file_id = self.window.core.idx.to_file_id(file_path)
+                print(file_path, file_id)
+                if self.index_dict.get(file_id):
                     # show status and date from timestamp:
-                    return "Yes" + " (" + datetime.datetime.fromtimestamp(self.index_dict[file_path]['indexed_ts']).strftime(
+                    return "Yes" + " (" + datetime.datetime.fromtimestamp(self.index_dict[file_id]['indexed_ts']).strftime(
                         "%Y-%m-%d %H:%M") + ")"
                 else:
                     return "No"
