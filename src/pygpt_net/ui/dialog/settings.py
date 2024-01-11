@@ -84,6 +84,8 @@ class Settings(BaseConfigDialog):
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
                 options[key] = self.add_raw_option(widgets[key], fields[key])
+            elif fields[key]['type'] == 'combo':
+                options[key] = self.add_option(widgets[key], fields[key])  # combobox
 
         fixed_keys = [
             'api_key',
