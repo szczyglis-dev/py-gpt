@@ -24,8 +24,8 @@ a = Analysis(
         ('src\\pygpt_net\\CHANGELOG.txt', '.'),
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
-        ('venv\\lib\\python3.10\\site-packages\\llama_index\\VERSION', 'llama_index\\'),  # llama-index hack
-        ('venv\\lib\\python3.10\\site-packages\\langchain\\chains', 'langchain\\chains'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\VERSION', 'llama_index\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # llama-index hack
     ],
     hiddenimports=[
     'tiktoken_ext', 
