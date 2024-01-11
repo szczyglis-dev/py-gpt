@@ -2,15 +2,13 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.95** | build: **2024.01.10** | Python: **3.10+**
+Release: **2.0.96** | build: **2024.01.11** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
 Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
 
 Compiled version for Linux (tar.gz) and Windows 10/11 (msi) 64-bit: https://pygpt.net/#download
-
-**Tip: From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.**
 
 ## Overview
 
@@ -48,6 +46,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
+- Integrated `Llama-index` support (experimental).
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
@@ -354,6 +353,12 @@ Available LLMs providers supported by **PyGPT**:
 
 You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
+##  Index (llama-index)
+
+This mode enables direct interaction with your documents through conversation. It seamlessly incorporates Llama-index into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the 'output' directory and initiate indexing by clicking the 'Index all' button, or right-click on a file and select 'Index...'. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Llama-index (inline)` plugin.
+
+`This mode is experimental (from version 2.0.96)`
+
 # Files and attachments
 
 ## Input (upload)
@@ -637,6 +642,8 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 - `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
 
 - `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+
+- `Llama-index (inline)` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files). `Experimental`.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
@@ -1159,7 +1166,7 @@ Integrates DALL-E 3 image generation with any chat and mode. Just enable and ask
 
 Prompt used for generating a query for DALL-E in background.
 
-## GPT-4 Vision (inline - in any chat)
+## GPT-4 Vision (inline)
 
 Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
@@ -1168,6 +1175,25 @@ Plugin integrates vision capabilities with any chat mode, not just Vision mode. 
 - `Model` *model*
 
 The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
+
+## Llama-index (inline)
+
+Plugin integrates Llama-index storage in any chat and provides additional knowledge into context.
+
+- `Ask Llama-index first` *ask_llama_first*
+
+
+When enabled, then Llama-index will be asked first, and response will be used as additional knowledge in prompt. When disabled, then Llama-index will be asked only when needed.
+
+- `Model` *model_query*
+
+
+Model used for querying Llama-index, default: gpt-3.5-turbo
+
+- `Index name` *idx*
+
+
+Index to use, default: base, support for multiple indexes coming soon
 
 # Creating Your Own Plugins
 
@@ -1432,10 +1458,12 @@ You can manually edit the configuration files in this directory:
 - `assistants.json` - contains the list of assistants.
 - `attachments.json` - keeps track of the current attachments.
 - `config.json` - holds the main configuration settings.
+- `indexes.json` - holds information about `Llama-index` indexes
 - `models.json` - stores models configurations.
 - `capture` - a directory for captured images from camera
 - `css` - a directory for CSS stylesheets (user override)
 - `history` - a directory for history logs in `.txt` format.
+- `idx` - `Llama-index` indexes
 - `img` - a directory for images generated with `DALL-E 3` and `DALL-E 2`, saved as `.png` files.
 - `locale` - a directory for locales (user override)
 - `output` - a directory for output files and files downloaded/generated by GPT.
@@ -1507,6 +1535,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+## 2.0.96 (2024-01-11)
+
+- Added integration with `Llama-index` (experimental): you can now index/embed files from the data directory and use them as additional data in context.
+- Added an inline plugin for `Llama-index` (allows providing additional context from `Llama-index` in any chat mode).
+- Added a new mode: `Index (llama-index)`, it is a mode for querying the index directly.
+- Improved `DALL-E 3` configuration, 16:9 images set as default, added config option for standard and HD mode.
+- Improved drawing mode.
+
 ## 2.0.95 (2024-01-10)
 
 - Added capture from camera feature in image drawing mode
@@ -1535,108 +1571,6 @@ may consume additional tokens that are not displayed in the main window.
 - Fixed incorrect contexts count in date calculation when timezone is different from UTC
 - Fixed incorrect paragraph formatting after command DIV in the last line of response
 - Other small fixes and improvements
-
-## 2.0.90 (2024-01-08)
-
-- Fixed config load defaults bug
-- Refactored configurations core
-- Small UI fixes
-
-## 2.0.89 (2024-01-07)
-
-- Added secondary, extended prompt to autonomous mode configuration (it allows quick switching between standard and more extended reasoning).
-- Fixed user input disappearance in history when appending inside autonomous mode.
-
-## 2.0.88 (2024-01-07)
-
-- Added color labels to context items (you can now mark item on list with 'Set label color...' context menu option)
-- Improved storage of notepad and calendar items
-
-## 2.0.87 (2024-01-07)
-
-- Fixed paragraph formatting and font color.
-- Implemented automatic database backup creation prior to all migrations.
-- Added functionality to search contexts using both fields in a single query: search string and date range.
-
-## 2.0.86 (2024-01-07)
-
-- Fixed window state saving on exit
-- Added focus on input on creating new context
-
-### 2.0.85 (2024-01-07)
-
-- Improved Autonomous mode
-- Added synchronous command execution from plugins, which now allows the Autonomous mode to use the output of other plugins (such as access to the websearch engine, access to filesystem and code execution or generating images in DALL-E) and retrieve and use response from them internally
-- Fixed system prompt for Autonomous mode: resolved the problem of command generation interruptions between responses, and incorporated the capability for user to send additional instructions and update goals in real-time
-- Fixed loss of selection on the modes and models list in Autonomous mode
-
-### 2.0.84 (2024-01-06)
-
-- The "Self-Loop" plugin has been completely redesigned, improved, and renamed to the Autonomous Mode, which enables the launch of autonomous reasoning in a looped AI-with-AI conversation mode.
-- A system prompt option has been added to the plugin configuration with instructions for the autonomous mode.
-- Auto-stop after goal is reached option is added also to plugin settings.
-
-### 2.0.83 (2024-01-06)
-
-- Added calendar, day notes (memos) and color labels
-- Added context search filter by date (days selected in calendar)
-- Added 'clear' icon in search input
-- Small fixes and improvements
-
-### 2.0.82 (2024-01-05)
-
-- Plain text append scroll fix
-
-### 2.0.81 (2024-01-05)
-
-- Added Edit context menu option in models list (JSON file edit)
-- Fixed link color in light theme css
-- Fixed font color restore when switching to plain text
-
-### 2.0.80 (2024-01-05)
-
-- Added Plain Text checkbox at the bottom of chat window
-- Removed datetime append when copying text to notepad
-- Improved plain-text mode
-
-### 2.0.79 (2024-01-05)
-
-- Fixed bug: notepad save/load content from DB
-
-### 2.0.78 (2024-01-05)
-
-- Improved markdown formatting
-- Output text renderers moved to separated modules
-- Added plain-text render option in settings
-- Vision inline disabled in unsupported modes (Image generation and Assistant) and hidden in Vision (always enabled here)
-- Updated OpenAI Chat Completion API
-
-### 2.0.77 (2024-01-05)
-
-- Fixed inline plugins disable when pausing command plugins by unchecking 'Execute commands' checkbox
-- Added real-time image appending into chat window when generating images in Image Generation mode
-- Added automatic creation of context after deletion from the list when no other context is selected
-- Updated docs
-
-### 2.0.76 (2024-01-04)
-
-- Markdown post-process changed from markdown extension to BS4 html parser.
-
-### 2.0.75 (2024-01-04)
-
-- Improved default theme for markdown styling
-- Added "Check for updates on start-up" config option in updater dialog
-- Added custom CSS stylesheets editor in Config menu
-- Added password show/hide in password/secret input fields (click on the right corner of input reveals plain text)
-- Fixed JSON files editing (added data reloading after save to prevent overwrite on exit)
-- Added tests for plugins and extended tests for core/controllers
-
-### 2.0.74 (2024-01-04)
-
-- Fixed timestamp position when appending input to the chat window.
-- Extended the Markdown parser with an extension for converting `li` to `p` (it allows copying lists bullets with Ctrl-C).
-- Added notebook titles to the "Copy to..." context menu.
-- Added an "Open file" option in the file explorer and attachments list.
 
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.

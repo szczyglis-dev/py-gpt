@@ -121,3 +121,11 @@ Available LLMs providers supported by **PyGPT**:
    :width: 800
 
 You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.
+
+
+Index (llama-index)
+-------------------
+
+This mode enables direct interaction with your documents through conversation. It seamlessly incorporates Llama-index into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the 'output' directory and initiate indexing by clicking the 'Index all' button, or right-click on a file and select 'Index...'. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Llama-index (inline)`` plugin.
+
+``This mode is experimental (from version 2.0.96)``

@@ -1,3 +1,11 @@
+2.0.96 (2024-01-11)
+
+- Added integration with Llama-index (experimental): you can now index/embed files from the data directory and use them as additional data in context.
+- Added an inline plugin for Llama-index (allows providing additional context from Llama-index in any chat mode).
+- Added a new mode: Index (llama-index), it is a mode for querying the index directly.
+- Improved DALL-E 3 configuration, 16:9 images set as default, added config option for standard and HD mode.
+- Improved drawing mode.
+
 2.0.95 (2024-01-10)
 
 - Added capture from camera feature in image drawing mode

@@ -4,9 +4,6 @@ Introduction
 Overview
 ----------------
 
-**TIP:** From version 2.0.71 (2024-01-01), Vision and Image Generation have been internally integrated into the standard Chat mode through plugins named DALL-E and Vision Inline. There is no longer any need to use a separate mode for these functions.
-
-
 **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including ``GPT-4``, ``GPT-4 Vision``, and ``GPT-3.5``, through the ``OpenAI API``. The application also integrates with alternative LLMs, like those available on ``HuggingFace``, by utilizing ``Langchain``.
 
 This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using ``DALL-E 3`` for generation and ``GPT-4 Vision`` for analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, and manage file transfers. It also allows models to perform web searches with the ``Google Custom Search API``.
@@ -34,6 +31,7 @@ Features
 * Image analysis via ``GPT-4 Vision``.
 * Crontab / Task scheduler included
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
+* Integrated ``Llama-index`` support (experimental).
 * Integrated calendar, day notes and search in contexts by selected date
 * Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 * Custom commands creation and execution
