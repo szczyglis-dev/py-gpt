@@ -36,12 +36,13 @@ class FileExplorer(QWidget):
 
         self.path_label = QLabel(directory)
         self.path_label.setMaximumHeight(40)
-        self.path_label.setAlignment(Qt.AlignCenter)
-        self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+        self.path_label.setAlignment(Qt.AlignRight)
+        self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_small'))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.treeView)
+
         layout.addWidget(self.path_label)
+        layout.addWidget(self.treeView)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
