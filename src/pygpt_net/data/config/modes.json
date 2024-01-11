@@ -40,6 +40,12 @@
             "name": "langchain",
             "label": "mode.langchain",
             "default": false
+        },
+        "llama_index": {
+            "id": "llama_index",
+            "name": "Index (Llama-index)",
+            "label": "mode.llama_index",
+            "default": false
         }
     }
 }
