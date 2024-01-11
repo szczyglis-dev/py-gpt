@@ -31,6 +31,7 @@ class FileExplorer(QWidget):
 
         self.window = window
         self.index_data = index_data
+        self.directory = directory
         self.model = IndexedFileSystemModel(self.index_data)
         self.model.setRootPath(directory)
 
@@ -55,7 +56,7 @@ class FileExplorer(QWidget):
         self.btn_clear.clicked.connect(self.window.controller.idx.clear)
         self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.path_label = QLabel(trans('files.local.dir.prefix') + ': ' + directory)
+        self.path_label = QLabel(trans('files.local.dir.prefix') + ': ' + self.directory)
         self.path_label.setMaximumHeight(40)
         self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_small'))
@@ -130,7 +131,7 @@ class FileExplorer(QWidget):
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
 
-            actions['index_path'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.index_path'), self)
+            actions['index_path'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.idx'), self)
             actions['index_path'].triggered.connect(
                 lambda: self.action_idx(path))
 
