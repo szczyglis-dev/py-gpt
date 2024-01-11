@@ -116,7 +116,7 @@ class Idx:
         if num > 0:
             self.window.core.idx.append(self.current_idx, files)
             self.update_explorer()  # update file explorer view
-            self.window.update_status(trans('idx.status.success') + f" ({num})")
+            self.window.update_status(trans('idx.status.success') + f" {num}")
         else:
             self.window.update_status(trans('idx.status.empty'))
 

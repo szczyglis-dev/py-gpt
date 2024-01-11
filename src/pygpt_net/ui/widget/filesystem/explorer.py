@@ -131,7 +131,7 @@ class FileExplorer(QWidget):
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
 
-            actions['index_path'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.idx'), self)
+            actions['index_path'] = QAction(QIcon.fromTheme("search"), trans('action.idx'), self)
             actions['index_path'].triggered.connect(
                 lambda: self.action_idx(path))
 
