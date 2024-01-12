@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 06:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -77,7 +77,7 @@ class Drawing:
 
     def restore_current(self):
         """Restore previous image"""
-        path = os.path.join(self.window.core.config.path, 'capture', '_current.png')
+        path = os.path.join(self.window.core.config.get_user_dir('capture'), '_current.png')
         if os.path.exists(path):
             self.window.ui.painter.image.load(path)
             self.window.ui.painter.update()
@@ -88,7 +88,7 @@ class Drawing:
 
     def save_current(self):
         """Store current image"""
-        path = os.path.join(self.window.core.config.path, 'capture', '_current.png')
+        path = os.path.join(self.window.core.config.get_user_dir('capture'), '_current.png')
         self.window.ui.painter.image.save(path)
 
     def set_brush_mode(self, enabled: bool):
@@ -149,7 +149,7 @@ class Drawing:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
-            path = os.path.join(self.window.core.config.path, 'capture', name + '.png')
+            path = os.path.join(self.window.core.config.get_user_dir('capture'), name + '.png')
 
             # capture
             self.window.ui.painter.image.save(path)

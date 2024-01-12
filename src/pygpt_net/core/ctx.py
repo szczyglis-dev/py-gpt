@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -363,7 +363,7 @@ class Ctx:
         self.provider.truncate()
 
         # delete all txt history files from history dir
-        path = os.path.join(self.window.core.config.path, 'history')
+        path = self.window.core.config.get_user_dir('history')
         for file in os.listdir(path):
             if file.endswith('.txt'):
                 try:

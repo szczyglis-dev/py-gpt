@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,6 +14,7 @@ import datetime
 import os
 import re
 from pathlib import Path
+from packaging.version import Version
 
 from pygpt_net.provider.config.json_file import JsonFileProvider
 
@@ -32,7 +33,6 @@ class Config:
         :param window: Window instance
         """
         self.window = window
-        
         self.path = str(Path(os.path.join(Path.home(), '.config', self.CONFIG_DIR)))
         self.initialized = False
         self.initialized_base = False
@@ -40,7 +40,16 @@ class Config:
         self.data = {}
         self.data_base = {}
         self.version = self.get_version()
-
+        self.dirs = {
+            'data': 'data',
+            'img': 'img',
+            'presets': 'presets',
+            'idx': 'idx',
+            'capture': 'capture',
+            'history': 'history',
+            'css': 'css',
+            'locale': 'locale',
+        }
         self.provider = JsonFileProvider(window)
         self.provider.path = self.get_user_path()
         self.provider.path_app = self.get_app_path()
@@ -50,10 +59,9 @@ class Config:
         """
         Return True if compiled version
 
-        :return: True if compiled
-        :rtype: bool
+        :return: True if compiled version
         """
-        return  __file__.endswith('.pyc')
+        return __file__.endswith('.pyc')
 
     def install(self):
         """Install database and provider data"""
@@ -64,9 +72,24 @@ class Config:
         # install provider configs
         self.provider.install()
 
-    def patch(self, app_version):
-        """Patch provider data"""
+    def patch(self, app_version: Version):
+        """
+        Patch provider data
+
+        :param app_version: app version
+        """
         self.provider.patch(app_version)
+
+    def get_user_dir(self, dir: str) -> str:
+        """
+        Return user dir
+
+        :param dir: dir name
+        :return: user dir
+        """
+        if dir not in self.dirs:
+            raise Exception('Unknown dir: {}'.format(dir))
+        return os.path.join(self.get_user_path(), self.dirs[dir])
 
     def get_app_path(self) -> str:
         """

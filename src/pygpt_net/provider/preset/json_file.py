@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import json
@@ -26,20 +26,18 @@ class JsonFileProvider(BaseProvider):
         self.patcher = Patch(window)
         self.id = "json_file"
         self.type = "preset"
-        self.config_dir = 'presets'
 
     def install(self):
         """
         Install provider data
         """
         # install presets
-        presets_dir = os.path.join(self.window.core.config.path, self.config_dir)
+        presets_dir = self.window.core.config.get_user_dir('presets')
+        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets')
         if not os.path.exists(presets_dir):
-            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_dir)
             shutil.copytree(src, presets_dir)
         else:
             # copy missing presets
-            src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_dir)
             for file in os.listdir(src):
                 src_file = os.path.join(src, file)
                 dst_file = os.path.join(presets_dir, file)
@@ -53,14 +51,14 @@ class JsonFileProvider(BaseProvider):
         :return: dict or None
         """
         items = {}
-        path = os.path.join(self.window.core.config.path, self.config_dir)
+        path = self.window.core.config.get_user_dir('presets')
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
         try:
             for filename in os.listdir(path):
                 if filename.endswith(".json"):
-                    path = os.path.join(self.window.core.config.path, self.config_dir, filename)
+                    path = os.path.join(self.window.core.config.get_user_dir('presets'), filename)
                     with open(path, 'r', encoding="utf-8") as f:
                         preset = PresetItem()
                         self.deserialize(json.load(f), preset)
@@ -77,7 +75,7 @@ class JsonFileProvider(BaseProvider):
         :param id: preset id
         :param item: PresetItem
         """
-        path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
+        path = os.path.join(self.window.core.config.get_user_dir('presets'), id + '.json')
         data = self.serialize(item)
         data['__meta__'] = self.window.core.config.append_meta()
         dump = json.dumps(data, indent=4)
@@ -94,7 +92,7 @@ class JsonFileProvider(BaseProvider):
         :param items: items dict
         """
         for id in items:
-            path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
+            path = os.path.join(self.window.core.config.get_user_dir('presets'), id + '.json')
 
             # serialize
             data = self.serialize(items[id])
@@ -112,7 +110,7 @@ class JsonFileProvider(BaseProvider):
 
         :param id: preset id
         """
-        path = os.path.join(self.window.core.config.path, self.config_dir, id + '.json')
+        path = os.path.join(self.window.core.config.get_user_dir('presets'), id + '.json')
         if os.path.exists(path):
             try:
                 os.remove(path)

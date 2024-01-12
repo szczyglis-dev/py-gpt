@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os
@@ -29,7 +29,7 @@ class Camera:
 
     def install(self):
         """Install provider data"""
-        img_dir = os.path.join(self.window.core.config.path, 'capture')
+        img_dir = self.window.core.config.get_user_dir('capture')
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
 
@@ -62,6 +62,7 @@ class CaptureWorker(QRunnable):
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.core.config.get('vision.capture.width'))
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.core.config.get('vision.capture.height'))
         except Exception as e:
+            # TODO: handle snap info
             self.signals.error.emit(e)
             print("Camera thread setup exception", e)
             self.signals.finished.emit(e)

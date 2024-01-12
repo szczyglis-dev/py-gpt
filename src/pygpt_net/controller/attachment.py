@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os
@@ -276,13 +276,13 @@ class Attachment:
 
             # prepare path to download file
             data.filename = os.path.basename(data.filename)
-            path = os.path.join(self.window.core.config.path, 'output', data.filename)
+            path = os.path.join(self.window.core.config.get_user_dir('data'), data.filename)
 
             # check if file exists, if yes, append timestamp prefix
             if os.path.exists(path):
                 # append timestamp prefix to filename
                 filename = f'{datetime.now().strftime("%Y%m%d%H%M%S")}_{data.filename}'
-                path = os.path.join(self.window.core.config.path, 'output', filename)
+                path = os.path.join(self.window.core.config.get_user_dir('data'), filename)
 
             # download file
             self.window.core.gpt.assistants.file_download(file_id, path)

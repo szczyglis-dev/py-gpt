@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os.path
@@ -89,7 +89,7 @@ class Runner:
         :return: docker volumes
         :rtype: dict
         """
-        path = os.path.join(self.plugin.window.core.config.path, 'output')
+        path = self.plugin.window.core.config.get_user_dir('data')
         mapping = {}
         mapping[path] = {
             "bind": "/data",
@@ -135,7 +135,7 @@ class Runner:
         """
         msg = "Saving Python file: {}".format(item["params"]['filename'])
         self.log(msg, sandbox=True)
-        path = os.path.join(self.plugin.window.core.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['filename'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -175,7 +175,7 @@ class Runner:
         """
         msg = "Executing Python file: {}".format(item["params"]['filename'])
         self.log(msg)
-        path = os.path.join(self.plugin.window.core.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['filename'])
 
         # check if file exists
         if not os.path.isfile(path):
@@ -203,7 +203,7 @@ class Runner:
         # write code to file
         msg = "Saving Python file: {}".format(item["params"]['filename'])
         self.log(msg)
-        path = os.path.join(self.plugin.window.core.config.path, 'output', item["params"]['filename'])
+        path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['filename'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)

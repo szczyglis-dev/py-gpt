@@ -160,7 +160,7 @@ class ImageWorker(QRunnable):
         self.raw = False
         self.model = "dall-e-3"
         self.quality = "standard"
-        self.resolution = "1792×1024"
+        self.resolution = "1792x1024"
         self.dirname = None
         self.model_prompt = None
         self.input_prompt = None

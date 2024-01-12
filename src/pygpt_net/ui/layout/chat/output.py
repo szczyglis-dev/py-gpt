@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os
@@ -51,7 +51,7 @@ class Output:
         index_data = self.window.core.idx.get_idx_data()
 
         # file explorer
-        path = os.path.join(self.window.core.config.path, 'output')
+        path = self.window.core.config.get_user_dir('data')
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
 
         # notepads

@@ -24,13 +24,12 @@ class TxtFileProvider(BaseProvider):
         self.patcher = Patch(window)
         self.id = "txt_file"
         self.type = "history"
-        self.dir_name = 'history'
 
     def install(self):
         """
         Install provider data
         """
-        history_dir = os.path.join(self.window.core.config.path, self.dir_name)
+        history_dir = self.window.core.config.get_user_dir('history')
         if not os.path.exists(history_dir):
             os.mkdir(history_dir)
 
@@ -51,7 +50,7 @@ class TxtFileProvider(BaseProvider):
         if text is None or text.strip() == "":
             return
 
-        path = os.path.join(self.window.core.config.path, self.dir_name)
+        path = self.window.core.config.get_user_dir('history')
         name = datetime.date.today().strftime("%Y_%m_%d") + ".txt"
 
         # check directory
@@ -77,7 +76,7 @@ class TxtFileProvider(BaseProvider):
 
     def truncate(self):
         """Delete all"""
-        path = os.path.join(self.window.core.config.path, self.dir_name)
+        path = self.window.core.config.get_user_dir('history')
         try:
             if not os.path.exists(path):
                 return

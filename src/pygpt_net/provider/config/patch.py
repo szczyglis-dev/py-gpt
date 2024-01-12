@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
+import os
 
 from packaging.version import parse as parse_version, Version
 
@@ -522,6 +523,23 @@ class Patch:
                             data['layout.splitters']['calendar'] = [100, 100]
                 if data['layout.density'] == 0:
                     data['layout.density'] = -1
+                updated = True
+
+            # < 2.0.100
+            if old < parse_version("2.0.100"):
+                print("Migrating config from < 2.0.100...")
+                # rename output dir to data dir
+                src = os.path.join(self.window.core.config.path, 'output')
+                dst = os.path.join(self.window.core.config.path, 'data')
+
+                # backup old data dir
+                if os.path.exists(dst):
+                    backup = os.path.join(self.window.core.config.path, 'data.backup')
+                    os.rename(dst, backup)
+
+                # rename "output" to "data"
+                if os.path.exists(src):
+                    os.rename(src, dst)
                 updated = True
 
         # update file

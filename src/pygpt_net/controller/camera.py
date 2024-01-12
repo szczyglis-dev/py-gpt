@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -165,7 +165,7 @@ class Camera:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
-            path = os.path.join(self.window.core.config.path, 'capture', name + '.jpg')
+            path = os.path.join(self.window.core.config.get_user_dir('capture'), name + '.jpg')
 
             # capture frame
             compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.core.config.get('vision.capture.quality'))]
@@ -207,7 +207,7 @@ class Camera:
         """
         Hide camera
 
-        :param stop: true if stop capture thread
+        :param stop: True if stop capture thread
         """
         self.window.ui.nodes['video.preview'].setVisible(False)
 

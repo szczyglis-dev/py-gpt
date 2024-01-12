@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
+
 import os
 import shutil
 
@@ -43,7 +44,7 @@ class Patch:
                 # < 2.0.53
                 if old < parse_version("2.0.53") and k == 'current.assistant':
                     print("Migrating preset file from < 2.0.53...")
-                    dst = os.path.join(self.window.core.config.path, 'presets', 'current.assistant.json')
+                    dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.assistant.json')
                     src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
                                        'current.assistant.json')
                     shutil.copyfile(src, dst)

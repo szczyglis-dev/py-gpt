@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os
@@ -59,7 +59,7 @@ class Idx:
 
         :param force: force index
         """
-        path = os.path.join(self.window.core.config.path, 'output')
+        path = self.window.core.config.get_user_dir('data')
         if not force:
             self.window.ui.dialogs.confirm('idx.index_all', -1, trans('idx.confirm.content').
                                            replace('{dir}', path))
@@ -72,7 +72,7 @@ class Idx:
 
         :param force: force clear
         """
-        path = os.path.join(self.window.core.config.path, 'output', 'idx', self.current_idx)
+        path = os.path.join(self.window.core.config.get_user_dir('idx'), self.current_idx)
         if not force:
             self.window.ui.dialogs.confirm('idx.clear', -1, trans('idx.confirm.clear.content').
                                            replace('{dir}', path))

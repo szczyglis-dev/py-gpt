@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os
@@ -54,7 +54,7 @@ class Files:
         """
         files, _ = QFileDialog.getOpenFileNames(self.window, "Select files to upload", "")
         if files:
-            target_directory = os.path.join(self.window.core.config.path, 'output')
+            target_directory = self.window.core.config.get_user_dir('data')
             num = 0
             for file_path in files:
                 try:

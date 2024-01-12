@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 09:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -107,7 +107,7 @@ class Idx:
         :param model: Model name
         """
         service_context = self.get_service_context(model=model)
-        idx_path = os.path.join(self.window.core.config.path, "idx", idx)
+        idx_path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
         if not os.path.exists(idx_path):
             self.indexes[idx] = VectorStoreIndex([])  # create empty index
             self.store_index(idx=idx)
@@ -121,7 +121,7 @@ class Idx:
 
         :param idx: Index name
         """
-        idx_path = os.path.join(self.window.core.config.path, "idx", idx)
+        idx_path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
         self.indexes[idx].storage_context.persist(persist_dir=idx_path)
 
     def remove_index(self, idx: str = "base") -> bool:
@@ -132,7 +132,7 @@ class Idx:
         :return: True if success
         """
         self.indexes[idx] = None
-        idx_path = os.path.join(self.window.core.config.path, "idx", idx)
+        idx_path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
         if os.path.exists(idx_path):
             for f in os.listdir(idx_path):
                 os.remove(os.path.join(idx_path, f))
@@ -263,7 +263,7 @@ class Idx:
         :return: file id
         """
         path = os.path.normpath(path)
-        root_path = os.path.normpath(os.path.join(self.window.core.config.path, 'output'))
+        root_path = os.path.normpath(self.window.core.config.get_user_dir('data'))
         path = path.replace(root_path, '')
         path = path.replace("\\", "/").strip(r'\/')
         return path

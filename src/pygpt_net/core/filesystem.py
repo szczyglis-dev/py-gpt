@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 22:00:00                  #
+# Updated Date: 2024.01.12 10:00:00                  #
 # ================================================== #
 
 import os
@@ -25,7 +25,7 @@ class Filesystem:
     def install(self):
         """Install provider data"""
         # output data directory
-        data_dir = os.path.join(self.window.core.config.path, 'output')
+        data_dir = self.window.core.config.get_user_dir('data')
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
 
