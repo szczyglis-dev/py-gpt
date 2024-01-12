@@ -451,6 +451,7 @@ class Theme:
 
         :return: stylesheet fix
         """
+        # TODO: move to external css file
         return """
         QCheckBox::indicator:checked {{
           background-color: {QTMATERIAL_PRIMARYCOLOR}; 
