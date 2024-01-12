@@ -13,7 +13,7 @@ import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QSplitter
+from PySide6.QtWidgets import QSplitter, QMessageBox
 
 from pygpt_net.ui.dialogs import Dialogs
 from pygpt_net.ui.layout.chat import ChatMain
@@ -114,6 +114,18 @@ class UI:
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:
             print("Error loading font file {}".format(path))
+
+    def msg(self, msg: str):
+        """
+        Show message box
+
+        :param msg: Message
+        """
+        msg_box = QMessageBox()
+        msg_box.setText(msg)
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.setDefaultButton(QMessageBox.Ok)
+        msg_box.exec_()
 
     def add_hook(self, name: str, callback: callable):
         """

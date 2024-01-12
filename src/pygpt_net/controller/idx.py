@@ -102,6 +102,7 @@ class Idx:
         :param e: error message
         """
         self.window.ui.dialogs.alert(str(e))
+        self.window.update_status(str(e))
         print(e)
 
     @Slot(object, object)
@@ -114,9 +115,11 @@ class Idx:
         """
         num = len(files)
         if num > 0:
+            msg = trans('idx.status.success') + f" {num}"
             self.window.core.idx.append(self.current_idx, files)
             self.update_explorer()  # update file explorer view
-            self.window.update_status(trans('idx.status.success') + f" {num}")
+            self.window.update_status(msg)
+            self.window.ui.msg(msg)
         else:
             self.window.update_status(trans('idx.status.empty'))
 
