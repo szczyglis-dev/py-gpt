@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
 import time
@@ -57,6 +57,8 @@ class Storage:
         """
         Return dict with CalendarNoteItem objects, indexed by YYYY-MM-DD
 
+        :param year: year
+        :param month: month
         :return: dict of CalendarNoteItem objects
         """
         stmt = text("""
@@ -93,8 +95,14 @@ class Storage:
                 self.unpack(notepad, row._asdict())
         return notepad
 
-    def get_notes_existence_by_day(self, year, month):
-        """Return a dict of days with the count of notes for the given year and month."""
+    def get_notes_existence_by_day(self, year: int, month: int) -> dict:
+        """
+        Return a dict of days with the count of notes for the given year and month.
+
+        :param year: year
+        :param month: month
+        :return: dict of days with the count of notes
+        """
         db = self.window.core.db.get_db()
         with db.connect() as conn:
             result = conn.execute(text("""
@@ -300,7 +308,7 @@ class Storage:
 
         :param note: CalendarNoteItem item
         :param row: DB row
-        :return: Notepad item
+        :return: CalendarNoteItem item
         """
         note.id = int(row['id'])
         note.idx = int(row['idx'] or 0)

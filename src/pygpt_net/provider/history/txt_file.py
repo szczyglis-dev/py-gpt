@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,12 +14,14 @@ import os
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.history.base import BaseProvider
+from .patch import Patch
 
 
 class TxtFileProvider(BaseProvider):
     def __init__(self, window=None):
         super(TxtFileProvider, self).__init__(window)
         self.window = window
+        self.patcher = Patch(window)
         self.id = "txt_file"
         self.type = "history"
         self.dir_name = 'history'

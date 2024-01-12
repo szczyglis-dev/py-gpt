@@ -6,17 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
-import datetime
-import os
-import sys
 import time
-import shutil
 from uuid import uuid4
+from packaging.version import Version
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem
+from .patch import Patch
 from .storage import Storage
 from pygpt_net.provider.ctx.base import BaseProvider
 
@@ -25,6 +23,7 @@ class DbSqliteProvider(BaseProvider):
     def __init__(self, window=None):
         super(DbSqliteProvider, self).__init__(window)
         self.window = window
+        self.patcher = Patch(window, self)
         self.storage = Storage(window)
         self.id = "db_sqlite"
         self.type = "ctx"
@@ -33,26 +32,17 @@ class DbSqliteProvider(BaseProvider):
         self.window = window
         self.storage.attach(window)
 
-    def patch(self, version: str):
+    def patch(self, version: Version):
         """
         Patch versions
 
         :param version: current app version
         """
-        # return
-        # if old version is 2.0.59 or older and if json file exists
-        path = os.path.join(self.window.core.config.path, 'context.json')
-        if os.path.exists(path):
-            self.truncate()
-            self.import_from_json()
-            # rename context.json to context.json.old:
-            os.rename(path, path + ".old")
+        return self.patcher.execute(version)
 
     def create_id(self, meta: CtxMeta) -> int:
         """
-        Create unique ctx ID
-
-        Format: YYYYMMDDHHMMSS.MICROSECONDS.json
+        Create ctx ID
 
         :return: generated ID
         """
@@ -161,57 +151,3 @@ class DbSqliteProvider(BaseProvider):
         :return: True if truncated
         """
         return self.storage.truncate_all()
-
-    def import_from_json(self) -> bool:
-        """
-        Import ctx from JSON
-
-        :return: True if imported
-        """
-        # use json provider to load old contexts
-        provider = self.window.core.ctx.providers['json_file']
-        provider.attach(self.window)
-
-        print("[DB] Migrating into database storage...")
-        print("[DB] Importing old contexts from JSON files... this may take a while. Please wait...")
-        i = 0
-        metas = provider.get_meta()
-        cols, _ = shutil.get_terminal_size()
-        c = len(metas)
-        for id in metas:
-            meta = metas[id]
-            line = "[DB] Importing context %s/%s: %s" % (i + 1, c, meta.name)
-            print(f"{line:<{cols}}", end='\r')
-            sys.stdout.flush()
-
-            # update timestamp
-            if len(id) == 21:
-                date_format = "%Y%m%d%H%M%S.%f"
-                dt = datetime.datetime.strptime(id, date_format)
-                ts = dt.timestamp()
-                meta.created = ts
-                meta.updated = ts
-
-            # load items
-            items = provider.load(id)
-            self.import_ctx(meta, items)
-            i += 1
-
-        print()  # new line
-
-        if i > 0:
-            print("[DB][DONE] Imported %s contexts." % i)
-            return True
-
-    def import_ctx(self, meta: CtxMeta, items: list):
-        """
-        Import ctx from JSON
-
-        :param meta: ctx meta (CtxMeta)
-        :param items: list of ctx items (CtxItem)
-        :return: True if imported
-        """
-        meta.id = None  # reset old meta ID to allow creating new
-        self.create(meta)  # create new meta and get its new ID
-        for item in items:
-            self.storage.insert_item(meta, item)  # append items to new meta

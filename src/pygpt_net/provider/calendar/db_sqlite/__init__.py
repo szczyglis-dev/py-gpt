@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
 import uuid
@@ -15,6 +15,7 @@ from packaging.version import Version
 
 from pygpt_net.item.calendar_note import CalendarNoteItem
 from pygpt_net.provider.calendar.base import BaseProvider
+from .patch import Patch
 from .storage import Storage
 
 
@@ -22,11 +23,17 @@ class DbSqliteProvider(BaseProvider):
     def __init__(self, window=None):
         super(DbSqliteProvider, self).__init__(window)
         self.window = window
+        self.patcher = Patch(window)
         self.storage = Storage(window)
         self.id = "db_sqlite"
         self.type = "calendar_note"
 
     def attach(self, window):
+        """
+        Attach window instance to provider
+
+        :param window: window instance
+        """
         self.window = window
         self.storage.attach(window)
 
@@ -37,7 +44,7 @@ class DbSqliteProvider(BaseProvider):
         :param version: current app version
         :return: True if migrated
         """
-        pass
+        return self.patcher.execute(version)
 
     def create_id(self) -> str:
         """
@@ -47,7 +54,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return str(uuid.uuid4())
 
-    def create(self, note: CalendarNoteItem) -> str:
+    def create(self, note: CalendarNoteItem) -> int:
         """
         Create new and return its ID
 
@@ -62,7 +69,7 @@ class DbSqliteProvider(BaseProvider):
         """
         Load notes from DB
 
-        :return: notes
+        :return: dict with notes
         """
         return self.storage.get_all()
 
@@ -81,7 +88,7 @@ class DbSqliteProvider(BaseProvider):
         :param year: year
         :param month: month
         :param day: day
-        :return: notepad
+        :return: CalendarNoteItem object
         """
         return self.storage.get_by_date(year, month, day)
 

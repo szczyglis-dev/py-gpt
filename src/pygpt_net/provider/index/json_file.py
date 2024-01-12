@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
 import json
@@ -17,12 +17,14 @@ from packaging.version import Version
 
 from pygpt_net.provider.index.base import BaseProvider
 from pygpt_net.item.index import IndexItem
+from .patch import Patch
 
 
 class JsonFileProvider(BaseProvider):
     def __init__(self, window=None):
         super(JsonFileProvider, self).__init__(window)
         self.window = window
+        self.patcher = Patch(window)
         self.id = "json_file"
         self.type = "index"
         self.config_file = 'indexes.json'
@@ -138,7 +140,7 @@ class JsonFileProvider(BaseProvider):
         :param version: current app version
         :return: True if migrated
         """
-        return False
+        return self.patcher.execute(version)
 
     @staticmethod
     def serialize(index: IndexItem) -> dict:
