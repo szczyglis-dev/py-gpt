@@ -532,14 +532,41 @@ class Patch:
                 src = os.path.join(self.window.core.config.path, 'output')
                 dst = os.path.join(self.window.core.config.path, 'data')
 
-                # backup old data dir
-                if os.path.exists(dst):
-                    backup = os.path.join(self.window.core.config.path, 'data.backup')
-                    os.rename(dst, backup)
-
-                # rename "output" to "data"
+                # migrate data dir name
                 if os.path.exists(src):
-                    os.rename(src, dst)
+                    # backup old data dir
+                    if os.path.exists(dst):
+                        backup = os.path.join(self.window.core.config.path, 'data.backup')
+                        os.rename(dst, backup)
+                    # rename "output" to "data"
+                    if os.path.exists(src):
+                        os.rename(src, dst)
+
+                # add llama-index config keys:
+                if "llama.idx.auto" not in data:
+                    data["llama.idx.auto"] = False
+                if "llama.idx.auto.index" not in data:
+                    data["llama.idx.auto.index"] = "base"
+                if "llama.idx.current" not in data:
+                    data["llama.idx.current"] = "base"
+                if "llama.idx.db.index" not in data:
+                    data["llama.idx.db.index"] = ""
+                if "llama.idx.db.last" not in data:
+                    data["llama.idx.db.last"] = 0
+                if "llama.idx.list" not in data:
+                    data["llama.idx.list"] = [
+                        {
+                            "id": "base",
+                            "name": "Base",
+                            "model_embed": "gpt-3.5-turbo"
+                        }
+                    ]
+                if "llama.idx.status" not in data:
+                    data["llama.idx.status"] = {}
+
+                if "llama.log" not in data:
+                    data["llama.log"] = False
+
                 updated = True
 
         # update file

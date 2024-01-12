@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.12 21:00:00                  #
 # ================================================== #
 
 import os.path
+from pathlib import Path
+from sqlalchemy import text
 from llama_index import (
     SimpleDirectoryReader,
 )
-from pathlib import Path
-
+from llama_index.readers.schema.base import Document
 from pygpt_net.core.idx.loaders.pdf.base import PDFReader
 from pygpt_net.core.idx.loaders.docx.base import DocxReader
 from pygpt_net.core.idx.loaders.markdown.base import MarkdownReader
@@ -99,3 +100,70 @@ class Indexing:
                 continue
 
         return indexed, errors
+
+    def get_db_data_from_ts(self, updated_ts: int = 0):
+        db = self.window.core.db.get_db()
+        documents = []
+        query = f"""
+        SELECT
+            'User: ' || ctx_item.input || '; Assistant: ' || ctx_item.output AS text
+        FROM 
+            ctx_item
+        LEFT JOIN
+            ctx_meta
+        ON
+            ctx_item.meta_id = ctx_meta.id
+        WHERE
+            ctx_meta.updated_ts >= {updated_ts}
+        """
+        with db.connect() as connection:
+            result = connection.execute(text(query))
+            for item in result.fetchall():
+                doc_str = ", ".join([str(entry) for entry in item])
+                documents.append(Document(text=doc_str))
+        return documents
+
+    def get_db_data_by_id(self, id: int = 0):
+        db = self.window.core.db.get_db()
+        documents = []
+        query = f"""
+        SELECT
+            'User: ' || input || '; Assistant: ' || output AS text
+        FROM ctx_item
+        WHERE meta_id = {id}
+        """
+        with db.connect() as connection:
+            result = connection.execute(text(query))
+            for item in result.fetchall():
+                print(item)
+                doc_str = ", ".join([str(entry) for entry in item])
+                documents.append(Document(text=doc_str))
+        return documents
+
+    def index_db_by_meta_id(self, index, id: int = 0):
+        errors = []
+        n = 0
+        try:
+            documents = self.get_db_data_by_id(id)
+            for d in documents:
+                index.insert(document=d)
+                n += 1
+        except Exception as e:
+            errors.append(str(e))
+            print(e)
+            self.window.core.debug.log(e)
+        return n, errors
+
+    def index_db_from_updated_ts(self, index, updated_ts: int = 0):
+        errors = []
+        n = 0
+        try:
+            documents = self.get_db_data_from_ts(updated_ts)
+            for d in documents:
+                index.insert(document=d)
+                n += 1
+        except Exception as e:
+            errors.append(str(e))
+            print(e)
+            self.window.core.debug.log(e)
+        return n, errors

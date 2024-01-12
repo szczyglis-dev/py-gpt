@@ -62,6 +62,8 @@ class BaseConfigDialog:
             elif option['type'] == 'dict':
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionDict(self.window, id, key, option)  # dictionary
+                widgets[key].setMinimumHeight(200)
+                widgets[key].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             elif option['type'] == 'combo':
                 self.window.controller.config.placeholder.apply(option)
                 widgets[key] = OptionCombo(self.window, id, key, option)  # combobox

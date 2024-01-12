@@ -48,7 +48,7 @@ class Output:
         self.window.ui.nodes['output'] = ChatOutput(self.window)
 
         # index status data
-        index_data = self.window.core.idx.get_idx_data()
+        index_data = self.window.core.idx.get_idx_data()  # get all idx data
 
         # file explorer
         path = self.window.core.config.get_user_dir('data')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.12 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -50,7 +50,7 @@ class Idx:
         """
         return self.storage.remove(idx)
 
-    def index(self, idx: str = "base", path: str = None, model: str = "gpt-3.5-turbo") -> tuple:
+    def index_files(self, idx: str = "base", path: str = None, model: str = "gpt-3.5-turbo") -> tuple:
         """
         Index file or directory of files
 
@@ -65,6 +65,36 @@ class Idx:
             self.storage.store(id=idx, index=index)  # store index
         return files, errors
 
+    def index_db_by_meta_id(self, idx: str = "base", id: int = 0, model: str = "gpt-3.5-turbo") -> tuple:
+        """
+        Index records from db by meta id
+
+        :param idx: Index name
+        :param id: Meta id
+        :param model: Model used for indexing
+        :return: dict with indexed files, errors
+        """
+        index = self.storage.get(idx, model=model)  # get or create index
+        num, errors = self.indexing.index_db_by_meta_id(index, id)  # index db records
+        if num > 0:
+            self.storage.store(id=idx, index=index)  # store index
+        return num, errors
+
+    def index_db_from_updated_ts(self, idx: str = "base", from_ts: int = 0, model: str = "gpt-3.5-turbo") -> tuple:
+        """
+        Index records from db by meta id
+
+        :param idx: Index name
+        :param from_ts: From timestamp
+        :param model: Model used for indexing
+        :return: dict with indexed files, errors
+        """
+        index = self.storage.get(idx, model=model)  # get or create index
+        num, errors = self.indexing.index_db_from_updated_ts(index, from_ts)  # index db records
+        if num > 0:
+            self.storage.store(id=idx, index=index)  # store index
+        return num, errors
+
     def query(self, query, idx: str = "base", model: str = "gpt-3.5-turbo") -> str:
         """
         Query index
@@ -74,21 +104,84 @@ class Idx:
         :param model: Model name
         :return: Response
         """
+        # log query
+        if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
+            print("[LLAMA-INDEX] Query index...")
+            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model))
+        # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
         index = self.storage.get(idx, model=model)  # get index
         response = index.as_query_engine().query(query)  # query index
         return str(response)  # TODO: handle stream response
 
-    def get_idx_data(self, idx: str = "base") -> dict:
+    def sync_items(self):
+        """
+        Sync from config
+        """
+        items = self.window.core.config.get('llama.idx.list')
+        if items is not None:
+            for item in items:
+                idx = item['id']
+                if idx not in self.items:
+                    self.items[idx] = IndexItem()
+                    self.items[idx].id = idx
+                    self.items[idx].name = idx
+                else:
+                    self.items[idx].id = idx
+                    self.items[idx].name = idx
+            self.save()
+
+    def get_idx_data(self, idx: str = None) -> dict:
         """
         Get indexed files data
         :param idx: Index name
         :return: Indexed files data
         """
-        if idx in self.items:
-            return self.items[idx].items
-        return {}
+        indexes = {}
+        if idx is not None:
+            if idx in self.items:
+                indexes[idx] = self.items[idx].items
+        else:
+            # all indexes
+            for idx in self.items:
+                indexes[idx] = self.items[idx].items
+
+        return indexes
+
+    def get_by_idx(self, idx: int) -> str:
+        """
+        Return idx by list index
+
+        :param idx: idx
+        :return: idx name
+        """
+        items = self.window.core.config.get('llama.idx.list')
+        if items is not None:
+            if idx < len(items):
+                return items[idx]['id']
+
+    def get_idx_by_name(self, name: str) -> int:
+        """
+        Return idx by name
+
+        :param name: idx name
+        :return: idx on list
+        """
+        items = self.window.core.config.get('llama.idx.list')
+        if items is not None:
+            for idx, item in enumerate(items):
+                if item['id'] == name:
+                    return idx
+
+    def get_default_idx(self) -> str:
+        """
+        Return default idx
+
+        :return: idx name
+        """
+        if len(self.items) > 0:
+            return self.get_by_idx(0)
 
     def install(self):
         """Install provider data"""
@@ -125,6 +218,19 @@ class Idx:
         :return: all indexes
         """
         return self.items
+
+    def get_idx_config(self, idx: str) -> dict:
+        """
+        Return index config
+
+        :param idx: index id
+        :return: index config
+        """
+        indexes = self.window.core.config.get('llama.idx.list')
+        if indexes is not None:
+            for item in indexes:
+                if item['id'] == idx:
+                    return item
 
     def has(self, idx: str) -> bool:
         """
@@ -167,16 +273,20 @@ class Idx:
         :param idx: index id
         :param files: dict of indexed files
         """
-        if idx in self.items:
-            for path in files:
-                file = files[path]
-                file_id = self.to_file_id(path)
-                self.items[idx].items[file_id] = {
-                    "path": path,
-                    "indexed_ts": datetime.datetime.now().timestamp(),
-                    "id": file,
-                }
-            self.save()
+        if idx not in self.items:
+            self.items[idx] = IndexItem()
+            self.items[idx].id = idx
+            self.items[idx].name = idx  # use index id as name
+
+        for path in files:
+            file = files[path]
+            file_id = self.to_file_id(path)
+            self.items[idx].items[file_id] = {
+                "path": path,
+                "indexed_ts": datetime.datetime.now().timestamp(),
+                "id": file,
+            }
+        self.save()
 
     def clear(self, idx: str):
         """

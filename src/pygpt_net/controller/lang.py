@@ -267,6 +267,11 @@ class Lang:
         self.window.ui.nodes['output_files'].btn_upload.setText(trans('files.local.upload'))
         self.window.ui.nodes['output_files'].btn_idx.setText(trans('idx.btn.index_all'))
         self.window.ui.nodes['output_files'].btn_clear.setText(trans('idx.btn.clear'))
+        self.window.ui.nodes['idx.btn.db.index_all'].setText(trans('settings.llama.extra.btn.idx_db_all'))
+        self.window.ui.nodes['idx.btn.db.index_update'].setText(trans('settings.llama.extra.btn.idx_db_update'))
+        self.window.ui.nodes['idx.btn.db.index_files'].setText(trans('settings.llama.extra.btn.idx_files_all'))
+        self.window.ui.nodes['idx.db.settings.legend'].setText(trans('settings.llama.extra.legend'))
+        self.window.ui.nodes['idx.db.settings.legend.head'].setText(trans('settings.llama.extra.btn.idx_head'))
 
         # tabs
         mode = self.window.core.config.get('mode')

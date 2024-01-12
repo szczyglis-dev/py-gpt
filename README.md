@@ -46,7 +46,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated experimental `Llama-index` support: chat with `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub` and `xlsx`.
+- Integrated experimental `Llama-index` support: chat with `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx` or use previous conversations as additional context provided to model.
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
@@ -355,11 +355,11 @@ You have the ability to add custom model wrappers for models that are not availa
 
 ##  Index (llama-index)
 
-This mode enables direct interaction with your documents through conversation. It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the `output` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Llama-index (inline)` plugin.
+This mode enables direct interaction with your documents through conversation. It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Llama-index (inline)` plugin.
 
 Built-in file loaders: `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`.
 
-**This mode is currently experimental (from version 2.0.96) and it will be extended soon.**
+**From version `2.0.100` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion.**
 
 # Files and attachments
 
@@ -371,13 +371,13 @@ Built-in file loaders: `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`,
 
 The attachment feature is available in both the `Assistant` and `Vision` modes.
 
-## Output (download, generation)
+## Files (download, generation)
 
-**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `output` folder located within the user's working directory. To view or manage these files, users can navigate to the `Output` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
+**PyGPT** enables the automatic download and saving of files created by the model. This is carried out in the background, with the files being saved to an `data` folder located within the user's working directory. To view or manage these files, users can navigate to the `Files` tab which features a file browser for this specific directory. Here, users have the interface to handle all files sent by the AI.
 
-This `output` directory is also where the application stores files that are generated locally by the AI, such as code files or any other outputs requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands.
+This `data` directory is also where the application stores files that are generated locally by the AI, such as code files or any other data requested from the model. Users have the option to execute code directly from the stored files and read their contents, with the results fed back to the AI. This hands-off process is managed by the built-in plugin system and model-triggered commands. You can also indexing files from this directory (using integrated Llama-index) and use it's contents as additional context provided to discussion.
 
-The `Command: Files I/O` plugin takes care of file operations in the `output` directory, while the `Command: Code Interpreter` plugin allows for the execution of code from these files.
+The `Command: Files I/O` plugin takes care of file operations in the `data` directory, while the `Command: Code Interpreter` plugin allows for the execution of code from these files.
 
 ![v2_file_output](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c01ca3fc-c7dd-4532-ae4c-e9c75e2c005c)
 
@@ -645,13 +645,13 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
-- `Llama-index (inline)` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files). `Experimental`.
+- `Llama-index (inline)` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files and previous context from database). `Experimental`.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
 ## Command: Files I/O
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `output` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
 
 Plugin capabilities include:
 
@@ -739,7 +739,7 @@ Allows `file_info` command. *Default:* `True`
 
 ### Executing Code
 
-The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `output` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
+The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `data` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
 
 ### Executing system commands
 
@@ -1192,10 +1192,10 @@ When enabled, then Llama-index will be asked first, and response will be used as
 
 Model used for querying Llama-index, default: gpt-3.5-turbo
 
-- `Index name` *idx*
+- `Indexes IDs` *idx*
 
 
-Index to use, default: base, support for multiple indexes coming soon
+Indexes to use, default: base, if you want to use multiple indexes at once then separate them by comma.
 
 # Creating Your Own Plugins
 
@@ -1468,7 +1468,7 @@ You can manually edit the configuration files in this directory:
 - `idx` - `Llama-index` indexes
 - `img` - a directory for images generated with `DALL-E 3` and `DALL-E 2`, saved as `.png` files.
 - `locale` - a directory for locales (user override)
-- `output` - a directory for output files and files downloaded/generated by GPT.
+- `data` - a directory for data files and files downloaded/generated by GPT.
 - `presets` - a directory for presets stored as `.json` files.
 - `db.sqlite` - database with contexts and notepads data
 

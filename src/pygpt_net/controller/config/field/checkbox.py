@@ -27,6 +27,8 @@ class Checkbox:
         :param option: Option data
         """
         value = option["value"]
+        if value is None:
+            value = False
         self.window.ui.config[parent_id][key].box.setChecked(value)
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 21:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -66,10 +66,12 @@ class Confirm:
             self.window.controller.plugins.settings.load_defaults_user(True)
         elif type == 'plugin.settings.defaults.app':
             self.window.controller.plugins.settings.load_defaults_app(True)
-        elif type == 'idx.index_all':
-            self.window.controller.idx.index_all(True)
+        elif type == 'idx.index.files.all':
+            self.window.controller.idx.indexer.index_all_files(id, True)
+        elif type == 'idx.index.db.all':
+            self.window.controller.idx.indexer.index_ctx_from_ts_confirm(id)
         elif type == 'idx.clear':
-            self.window.controller.idx.clear(True)
+            self.window.controller.idx.indexer.clear(id, True)
 
     def dismiss(self, type: str, id: any):
         """

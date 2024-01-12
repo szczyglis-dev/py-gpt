@@ -64,6 +64,9 @@ class Threads:
                 # update ctx
                 self.window.core.ctx.update_item(ctx)
 
+                # index ctx (llama-index)
+                self.window.controller.idx.on_ctx_end(ctx)
+
                 # update ctx list
                 self.window.controller.ctx.update()
                 break

@@ -27,6 +27,7 @@ class Input:
         self.stop = False
         self.generating = False
         self.no_api_key_allowed = ['langchain', 'llama_index']
+        self.no_ctx_idx_modes = ['img', 'assistant', 'llama_index']  # assistant handled in async
 
     def send_input(self):
         """
@@ -161,6 +162,10 @@ class Input:
                  format(self.window.core.ctx.dump(ctx)))  # log
         self.window.controller.ui.update_tokens()  # update UI
         self.generating = False  # unlock
+
+        if mode not in self.no_ctx_idx_modes:
+            # update ctx DB index
+            self.window.controller.idx.on_ctx_end(ctx)
 
     def log(self, data: any):
         """

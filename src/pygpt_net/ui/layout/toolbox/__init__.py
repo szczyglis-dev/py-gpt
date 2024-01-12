@@ -13,6 +13,7 @@ from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
 
 from pygpt_net.ui.layout.toolbox.assistants import Assistants
+from pygpt_net.ui.layout.toolbox.indexes import Indexes
 from pygpt_net.ui.layout.toolbox.mode import Mode
 from pygpt_net.ui.layout.toolbox.model import Model
 from pygpt_net.ui.layout.toolbox.presets import Presets
@@ -29,6 +30,7 @@ class ToolboxMain:
         """
         self.window = window
         self.assistants = Assistants(window)
+        self.indexes = Indexes(window)
         self.footer = Footer(window)
         self.mode = Mode(window)
         self.model = Model(window)
@@ -49,6 +51,7 @@ class ToolboxMain:
 
         # presets / assistants
         self.window.ui.splitters['toolbox.presets'] = QSplitter(Qt.Horizontal)
+        self.window.ui.splitters['toolbox.presets'].addWidget(self.indexes.setup())  # indexes
         self.window.ui.splitters['toolbox.presets'].addWidget(self.presets.setup())  # prompts
         self.window.ui.splitters['toolbox.presets'].addWidget(self.assistants.setup())  # assistants
 

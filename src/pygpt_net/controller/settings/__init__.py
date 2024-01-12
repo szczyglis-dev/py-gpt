@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 08:00:00                  #
+# Updated Date: 2024.01.12 21:00:00                  #
 # ================================================== #
 
 import os
@@ -60,9 +60,27 @@ class Settings:
                 else:
                     self.window.ui.menu['config.' + id].setChecked(False)
 
+    def open_section(self, section: str):
+        """
+        Open settings section
+
+        :param section: section id
+        """
+        id = 'settings'
+        tab = self.get_tab_idx(section)
+        if tab is not None:
+            self.set_by_tab(tab)
+        self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
+        self.editor.init(id)
+        self.window.core.settings.active[id] = True
+        self.window.controller.layout.restore_settings()
+
+        # update menu
+        self.update()
+
     def toggle_editor(self, id: str):
         """
-        Toggle settings
+        Toggle settings dialog
 
         :param id: settings id
         """
@@ -95,6 +113,7 @@ class Settings:
             section_idx += 1
         current = self.window.ui.models['settings.section.list'].index(idx, 0)
         self.window.ui.nodes['settings.section.list'].setCurrentIndex(current)
+        self.window.ui.tabs['settings.section'].setCurrentIndex(idx)
 
     def get_tab_idx(self, section_id: str) -> int:
         """
@@ -166,6 +185,6 @@ class Settings:
             self.window.ui.status('Config directory not exists: {}'.format(self.window.core.config.path))
 
     def welcome_settings(self):
-        """Open settings at first launch (no API key)"""
+        """Open settings at first launch (if no API key yet)"""
         self.toggle_editor('settings')
         self.window.ui.dialogs.close('info.start')

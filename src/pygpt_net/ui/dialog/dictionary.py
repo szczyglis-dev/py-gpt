@@ -95,6 +95,8 @@ class Dictionary(BaseConfigDialog):
             footer.addWidget(self.window.ui.nodes[parent_id + '.btn.dismiss'])
             footer.addWidget(self.window.ui.nodes[parent_id + '.btn.save'])
 
+            rows.addStretch()
+
             # scroll area
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)

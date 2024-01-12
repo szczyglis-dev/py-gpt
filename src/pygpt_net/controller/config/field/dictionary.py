@@ -29,6 +29,8 @@ class Dictionary:
         :param key: Option key
         :param option: Option data
         """
+        if option["value"] is None:
+            option["value"] = []
         values = list(option["value"])
         self.window.ui.config[parent_id][key].items = values  # replace model data list
         self.window.ui.config[parent_id][key].model.updateData(values)  # update model data
@@ -55,13 +57,14 @@ class Dictionary:
         """
         return self.window.ui.config[parent_id][key].model.items
 
-    def delete_item(self, parent_object, id: str, force: bool = False):
+    def delete_item(self, parent_object, id: str, force: bool = False, hooks: bool = True):
         """
         Show delete item (from dict list) confirmation dialog or executes delete
 
         :param parent_object: parent object
         :param id: item id
         :param force: force delete
+        :param hooks: run hooks
         """
         if not force:
             self.window.ui.dialogs.confirm('settings.dict.delete', id, trans('settings.dict.delete.confirm'),
@@ -71,6 +74,16 @@ class Dictionary:
         # delete item
         if parent_object is not None:
             parent_object.delete_item_execute(id)
+
+            # on update hooks
+            if hooks:
+                hook_name = "update.{}.{}".format(parent_object, id)
+                if self.window.ui.has_hook(hook_name):
+                    hook = self.window.ui.get_hook(hook_name)
+                    try:
+                        hook(id, {}, 'dictionary')
+                    except Exception as e:
+                        self.window.core.debug.log(e)
 
     def to_options(self, parent_id: str, option: dict) -> dict:
         """
@@ -111,13 +124,14 @@ class Dictionary:
             sub_option['value'] = data[key]
             self.window.controller.config.apply(parent_id, key, sub_option)
 
-    def save_editor(self, option_key: str, parent: str, fields: dict):
+    def save_editor(self, option_key: str, parent: str, fields: dict, hooks: bool = True):
         """
         Save dict editor (called from dict editor dialog save button)
 
         :param option_key: Option key
         :param parent: Parent ID
         :param fields: Fields dict
+        :param hooks: run hooks
         """
         values = {}
         dict_id = parent + "." + option_key
@@ -132,3 +146,13 @@ class Dictionary:
 
         # close dialog
         self.window.ui.dialog['editor.' + dialog_id].close()
+
+        # on update hooks
+        if hooks:
+            hook_name = "update.{}.{}".format(parent, option_key)
+            if self.window.ui.has_hook(hook_name):
+                hook = self.window.ui.get_hook(hook_name)
+                try:
+                    hook(option_key, [values], 'dictionary')  # value must be list here
+                except Exception as e:
+                    self.window.core.debug.log(e)

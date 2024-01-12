@@ -42,8 +42,9 @@ class Plugin(BasePlugin):
                         "Prompt used for instruct how to use additional data provided from Llama-index",
                         tooltip="Prompt", advanced=True)
         self.add_option("idx", "text", "base",
-                        "Index name",
-                        "Index to use, default: base, support for multiple indexes coming soon",
+                        "Indexes to use",
+                        "ID's of indexes to use, default: base, "
+                        "separate by comma if you want to use more than one index at once",
                         tooltip="Index name")
         self.add_option("ask_llama_first", "bool", False,
                         "Ask Llama-index first",
@@ -135,11 +136,16 @@ class Plugin(BasePlugin):
         """
         model = "gpt-3.5-turbo"
         idx = self.get_option_value("idx")
-        if idx != "base":
-            idx = "base"  # <-- TMP: before multiple indexes support
         if self.get_option_value("model_query") is not None:
             model = self.get_option_value("model_query")
-        return self.window.core.idx.query(question, idx=idx, model=model)
+        indexes = idx.split(",")
+        if len(indexes) > 1:
+            responses = []
+            for index in indexes:
+                responses.append(self.window.core.idx.query(question, idx=index.strip(), model=model))
+            return "\n".join(responses)
+        else:
+            return self.window.core.idx.query(question, idx=idx, model=model)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

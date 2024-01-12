@@ -52,6 +52,7 @@ class Editor:
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
+        # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
         if id == 'settings':
             options = {}
@@ -106,6 +107,9 @@ class Editor:
         self.window.ui.status(trans('info.settings.saved'))
         self.window.controller.ui.update_font_size()
         self.window.controller.ui.update()
+
+        self.window.core.idx.sync_items()
+        self.window.controller.idx.update()
 
         # update layout if needed
         if self.before_config['layout.density'] != self.window.core.config.get('layout.density'):

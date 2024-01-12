@@ -350,7 +350,7 @@
         "advanced": false
     },
     "vision.capture.enabled": {
-        "section": "video",
+        "section": "vision",
         "type": "bool",
         "slider": false,
         "label": "settings.vision.capture.enabled",
@@ -362,7 +362,7 @@
         "advanced": false
     }, 
     "vision.capture.auto": {
-        "section": "video",
+        "section": "vision",
         "type": "bool",
         "slider": false,
         "label": "settings.vision.capture.auto",
@@ -374,7 +374,7 @@
         "advanced": false
     },
     "vision.capture.width": {
-        "section": "video",
+        "section": "vision",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.width",
@@ -386,7 +386,7 @@
         "advanced": false
     },
     "vision.capture.height": {
-        "section": "video",
+        "section": "vision",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.height",
@@ -398,7 +398,7 @@
         "advanced": false
     },
     "vision.capture.idx": {
-        "section": "video",
+        "section": "vision",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.idx",
@@ -410,7 +410,7 @@
         "advanced": false
     },
     "vision.capture.quality": {
-        "section": "video",
+        "section": "vision",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.quality",
@@ -494,5 +494,70 @@
         "multiplier": null,
         "step": null,
         "advanced": true
+    },
+    "llama.idx.list": {
+        "section": "llama-index",
+        "type": "dict",
+        "use": "models",
+        "keys": {
+            "id": "text",
+            "name": "text",
+            "model_embed": {
+                "type": "combo",
+                "use": "models",
+                "value" : "gpt-3.5-turbo"
+            }
+        },
+        "slider": false,
+        "label": "settings.llama.idx.list",
+        "value": [
+            {
+              "id": "base",
+              "name": "Base",
+              "model_embed": "gpt-3.5-turbo",
+              "model_query": "gpt-3.5-turbo"
+            }
+        ],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "llama.idx.auto.index": {
+        "section": "llama-index",
+        "type": "text",
+        "slider": false,
+        "label": "settings.llama.extra.btn.idx_auto.index",
+        "value": "base",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "llama.idx.auto": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.extra.btn.idx_auto",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "llama.log": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "Log (console)",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
     }
 }

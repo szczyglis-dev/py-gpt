@@ -59,6 +59,7 @@ class UI:
         self.window.controller.model.update()
         self.window.controller.presets.refresh()
         self.window.controller.assistant.refresh()
+        self.window.controller.idx.refresh()
 
     def update_tokens(self):
         """Update tokens counter in real-time"""
@@ -93,6 +94,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
@@ -136,6 +138,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(False)
             self.window.ui.nodes['preset.use'].setVisible(True)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(True)
 
@@ -161,6 +164,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
@@ -201,6 +205,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
@@ -225,6 +230,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
@@ -265,6 +271,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(True)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(True)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
@@ -290,6 +297,7 @@ class UI:
             self.window.ui.nodes['preset.clear'].setVisible(False)
             self.window.ui.nodes['preset.use'].setVisible(False)
 
+            self.window.ui.nodes['indexes.widget'].setVisible(True)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 

@@ -16,6 +16,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.settings import SettingsDialog
+from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.group import CollapsedGroup
 from pygpt_net.ui.widget.lists.settings import SettingsSectionList
 from pygpt_net.utils import trans
@@ -102,6 +103,10 @@ class Settings(BaseConfigDialog):
                     options[key] = self.add_row_option(widgets[key], fields[key])
                 elif fields[key]["type"] == 'bool':
                     options[key] = self.add_raw_option(widgets[key], fields[key])
+                elif fields[key]['type'] == 'dict':
+                    options[key] = self.add_row_option(widgets[key], fields[key])  # dict
+                    # register dict to editor:
+                    self.window.ui.dialogs.register_dictionary(key, parent="config", option=fields[key])
                 elif fields[key]['type'] == 'combo':
                     options[key] = self.add_option(widgets[key], fields[key])  # combobox
 
@@ -174,14 +179,17 @@ class Settings(BaseConfigDialog):
 
             line = self.add_line()
 
+            # add extra features buttons
+            self.append_extra(content, section_id, options, fields)
+
             content.addStretch()
+            content.addWidget(line)
 
             widget = QWidget()
             widget.setLayout(content)
             scroll.setWidget(widget)
 
             area = QVBoxLayout()
-            area.addWidget(line)
             area.addWidget(scroll)
 
             area_widget = QWidget()
@@ -232,6 +240,12 @@ class Settings(BaseConfigDialog):
                 print('Failed restore settings tab: {}'.format(idx))
         else:
             self.window.controller.settings.set_by_tab(0)
+
+    def append_extra(self, content, section_id, options, fields):
+        if section_id == 'llama-index':
+            line = self.add_line()
+            content.addWidget(line)
+            self.window.controller.idx.settings.append(content, options, fields)
 
     def create_model(self, parent) -> QStandardItemModel:
         """

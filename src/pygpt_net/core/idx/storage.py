@@ -53,12 +53,16 @@ class Storage:
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         return os.path.exists(path)
 
-    def create(self, id: str):
+    def create(self, id: str, model: str = "gpt-3.5-turbo"):
         """
         Create empty index
 
         :param id: Index name
+        :param model: Model name
         """
+        # ctx create is required to set environment variables here:
+        self.get_service_context(model=model)
+
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         if not os.path.exists(path):
             index = VectorStoreIndex([])  # create empty index
@@ -73,7 +77,8 @@ class Storage:
         :return: Index
         """
         if not self.exists(id=id):
-            self.create(id=id)
+            self.create(id=id, model=model)
+
         service_context = self.get_service_context(model=model)
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         storage_context = StorageContext.from_defaults(persist_dir=path)

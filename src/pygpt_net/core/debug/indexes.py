@@ -26,6 +26,7 @@ class IndexesDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
+        self.window.core.debug.add(self.id, 'Current idx:', str(self.window.controller.idx.current_idx))
         self.window.core.debug.add(self.id, 'Storage:', str(list(self.window.core.idx.storage.indexes.keys())))
 
         # indexes

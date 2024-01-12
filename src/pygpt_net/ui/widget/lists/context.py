@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.12 21:00:00                  #
 # ================================================== #
 import os
 
@@ -82,9 +82,32 @@ class ContextList(BaseList):
                 lambda checked=False, s_id=status_id: self.window.controller.ctx.set_label(idx, s_id))
             set_label_menu.addAction(status_action)
 
+        idx_menu = QMenu(trans('action.idx'), self)
+
+        # indexes list
+        idxs = self.window.core.config.get('llama.idx.list')
+        if len(idxs) > 0:
+            for index in idxs:
+                id = index['id']
+                name = index['name'] + " (" + index['id'] + ")"
+                action = idx_menu.addAction("IDX: " + name)
+                action.triggered.connect(lambda checked=False, idx=idx, index=id:
+                                         self.action_idx(idx, index))
+
+            menu.addMenu(idx_menu)
+
         if idx >= 0:
             self.window.controller.ctx.select_by_idx(item.row())
             menu.exec_(event.globalPos())
+
+    def action_idx(self, ctx_idx, idx):
+        """
+        Index with llama context action handler
+
+        :param ctx_idx: row idx in context list
+        :param idx: index id
+        """
+        self.window.controller.idx.indexer.index_ctx_meta(ctx_idx, idx)
 
     def action_rename(self, event):
         """

@@ -79,7 +79,7 @@ def test_save(mock_window):
     item.temperature = 1.0
     item.filename = None
 
-    path = os.path.join(mock_window.core.config.path, provider.config_dir, 'test.json')
+    path = os.path.join(mock_window.core.config.path, 'presets', 'test.json')
     data = provider.serialize(item)
     data['__meta__'] = mock_window.core.config.append_meta()
     dump = json.dumps(data, indent=4)
@@ -110,7 +110,7 @@ def test_save_all(mock_window):
     items = {
         'test': item
     }
-    path = os.path.join(mock_window.core.config.path, provider.config_dir, 'test.json')
+    path = os.path.join(mock_window.core.config.path, 'presets', 'test.json')
     data = provider.serialize(item)
     data['__meta__'] = mock_window.core.config.append_meta()
     dump = json.dumps(data, indent=4)

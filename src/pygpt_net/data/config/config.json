@@ -58,6 +58,20 @@
   "layout.splitters": {},
   "layout.tabs": {},
   "layout.window": {},
+  "llama.idx.auto": false,
+  "llama.idx.auto.index": "base",
+  "llama.idx.current": "base",
+  "llama.idx.db.index": "base",
+  "llama.idx.db.last": 0,
+  "llama.idx.list": [
+      {
+          "id": "base",
+          "name": "Base",
+          "model_embed": "gpt-3.5-turbo"
+      }
+  ],
+  "llama.idx.status": {},
+  "llama.log": false,
   "lock_modes": true,
   "max_context_history_items": 100,
   "max_output_tokens": 1024,
@@ -67,7 +81,7 @@
   "model": "gpt-3.5-turbo",
   "notepad.num": 1,
   "organization_key": "",
-  "output_timestamp": true,
+  "output_timestamp": false,
   "painter.canvas.size": "800x600",
   "plugins": {
     "real_time": {

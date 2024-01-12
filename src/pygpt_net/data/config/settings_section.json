@@ -14,7 +14,10 @@
     "images": {
         "label": "settings.section.images"
     },
-    "video": {
-        "label": "settings.section.video"
+    "vision": {
+        "label": "settings.section.vision"
+    },
+    "llama-index": {
+        "label": "settings.section.llama_index"
     }
 }
