@@ -83,9 +83,8 @@ class FileExplorer(QWidget):
         self.header = self.treeView.header()
         self.header.setStretchLastSection(True)
         self.header.setContentsMargins(0, 0, 0, 0)
-        #self.header.setMaximumHeight(40)
 
-        self.column_proportion = 0.5
+        self.column_proportion = 0.3
         self.adjustColumnWidths()
 
         self.header.setStyleSheet("""
@@ -238,9 +237,17 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param role: Role
         :return: Header data
         """
-        if section == self.columnCount() - 1 and orientation == Qt.Horizontal:
-            if role == Qt.DisplayRole:
-                return "Indexed"
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            if section == 0:
+                return trans('files.explorer.header.name')
+            elif section == 1:
+                return trans('files.explorer.header.size')
+            elif section == 2:
+                return trans('files.explorer.header.type')
+            elif section == 3:
+                return trans('files.explorer.header.modified')
+            elif section == 4:
+                return trans('files.explorer.header.indexed')
         return super().headerData(section, orientation, role)
 
     def update_idx_status(self, new_index_dict):
