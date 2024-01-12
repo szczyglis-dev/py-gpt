@@ -26,6 +26,7 @@ class Input:
         self.locked = False
         self.stop = False
         self.generating = False
+        self.no_api_key_allowed = ['langchain', 'llama_index']
 
     def send_input(self):
         """
@@ -113,7 +114,7 @@ class Input:
             return
 
         # check API key, show monit if not set
-        if mode != 'langchain' and mode != 'llama_index':  # TODO: to config allowed modes
+        if mode not in self.no_api_key_allowed:
             if not self.window.controller.chat.common.check_api_key():
                 self.generating = False
                 return
