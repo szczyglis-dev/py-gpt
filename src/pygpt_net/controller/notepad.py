@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.11 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -23,7 +23,7 @@ class Notepad:
         :param window: Window instance
         """
         self.window = window
-        self.default_num_notepads = 3
+        self.default_num_notepads = 1
         self.start_tab_idx = 4  # tab idx from notepad starts
 
     def load(self):
