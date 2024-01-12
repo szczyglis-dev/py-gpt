@@ -58,7 +58,7 @@ class FileExplorer(QWidget):
         self.btn_clear.clicked.connect(self.window.controller.idx.clear)
         self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.path_label = QLabel(trans('files.local.dir.prefix') + ': ' + self.directory)
+        self.path_label = QLabel(self.directory)
         self.path_label.setMaximumHeight(40)
         self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_small'))
@@ -83,14 +83,13 @@ class FileExplorer(QWidget):
         self.header = self.treeView.header()
         self.header.setStretchLastSection(True)
         self.header.setContentsMargins(0, 0, 0, 0)
-        self.header.setMaximumHeight(40)
+        #self.header.setMaximumHeight(40)
 
         self.column_proportion = 0.5
         self.adjustColumnWidths()
 
         self.header.setStyleSheet("""
            QHeaderView::section {
-               padding-top: 0.8em;
                text-align: center;
                vertical-align: middle;
            }
@@ -224,10 +223,10 @@ class IndexedFileSystemModel(QFileSystemModel):
                 file_id = self.window.core.idx.to_file_id(file_path)
                 if self.index_dict.get(file_id):
                     # show status and date from timestamp:
-                    return "Yes" + " (" + datetime.datetime.fromtimestamp(self.index_dict[file_id]['indexed_ts']).strftime(
-                        "%Y-%m-%d %H:%M") + ")"
+                    return datetime.datetime.fromtimestamp(self.index_dict[file_id]['indexed_ts']).strftime(
+                        "%Y-%m-%d %H:%M")
                 else:
-                    return "No"
+                    return "-"
         return super().data(index, role)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -241,7 +240,7 @@ class IndexedFileSystemModel(QFileSystemModel):
         """
         if section == self.columnCount() - 1 and orientation == Qt.Horizontal:
             if role == Qt.DisplayRole:
-                return "Llama-indexed"
+                return "Indexed"
         return super().headerData(section, orientation, role)
 
     def update_idx_status(self, new_index_dict):
