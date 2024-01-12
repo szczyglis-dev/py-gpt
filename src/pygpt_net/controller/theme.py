@@ -184,7 +184,35 @@ class Theme:
                 if os.path.exists(path):
                     with open(path) as file:
                         try:
-                            self.window.setStyleSheet(stylesheet + file.read().format(**os.environ))
+                            content = file.read()
+                            # windows checkbox + radio fix
+                            if self.window.core.platforms.is_windows():
+                                content += """
+                                QCheckBox::indicator:checked {{
+                                  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+                                }}
+                                QCheckBox::indicator:unchecked {{ 
+                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+                                }}
+                                
+                                QRadioButton::indicator:checked {{
+                                  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+                                }} 
+                                QCheckBox::indicator:unchecked {{ 
+                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+                                }}
+                                QRadioButton::indicator:unchecked {{
+                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+                                }}
+                                
+                                QMenu::indicator:checked {{ 
+                                  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+                                }} 
+                                QMenu::indicator:unchecked {{ 
+                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+                                }}
+                                """
+                            self.window.setStyleSheet(stylesheet + content.format(**os.environ))
                         except KeyError as e:
                             pass  # ignore missing env variables
                     break
