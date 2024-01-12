@@ -17,6 +17,7 @@ a = Analysis(
         ('src/pygpt_net/data/config/models.json', 'data/config'),
         ('src/pygpt_net/data/config/modes.json', 'data/config'),
         ('src/pygpt_net/data/config/settings.json', 'data/config'),
+        ('src/pygpt_net/data/config/settings_section.json', 'data/config'),
         ('src/pygpt_net/data/locale/*', 'data/locale'),
         ('src/pygpt_net/data/css/*', 'data/css'),
         ('src/pygpt_net/data/fonts/Lato/*', 'data/fonts/Lato'),

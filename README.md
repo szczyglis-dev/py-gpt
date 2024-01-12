@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.98** | build: **2024.01.12** | Python: **3.10+**
+Release: **2.0.99** | build: **2024.01.12** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1536,6 +1536,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.99 (2024-01-12)
+
+- Added configuration sections in settings dialog
+- Added translations to file explorer
+- Langchain migrated to langchain community
+- Config patchers moved to separated classes
+- Fixed some UI issues
 
 ## 2.0.98 (2024-01-12)
 

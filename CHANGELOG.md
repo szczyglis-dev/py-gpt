@@ -1,5 +1,13 @@
 # CHANGELOG
 
+# 2.0.99 (2024-01-12)
+
+- Added configuration sections in settings dialog
+- Added translations to file explorer
+- Langchain migrated to langchain community
+- Config patchers moved to separated classes
+- Fixed some UI issues
+
 # 2.0.98 (2024-01-12)
 
 - UI fixes
