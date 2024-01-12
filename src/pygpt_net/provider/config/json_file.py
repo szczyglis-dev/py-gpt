@@ -614,6 +614,15 @@ class JsonFileProvider(BaseProvider):
                 data['img_resolution'] = "1792x1024"  # char fix
                 updated = True
 
+            # < 2.0.98
+            if old < parse_version("2.0.98"):
+                print("Migrating config from < 2.0.98...")
+                data['img_resolution'] = "1792x1024"  # char fix
+                self.window.core.updater.patch_css('style.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.light.css', True)  # force replace file
+                self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
+                updated = True
+
         # update file
         migrated = False
         if updated:
