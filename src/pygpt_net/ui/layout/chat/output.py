@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 09:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
 import os
@@ -79,7 +79,7 @@ class Output:
             for i in range(1, num_notepads + 1):
                 title = trans('output.tab.notepad')
                 if num_notepads > 1:
-                    title += " (" + str(i) + ")"
+                    title += " " + str(i)
                 self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i], title)
 
         self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)

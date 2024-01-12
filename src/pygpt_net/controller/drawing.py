@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.12 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -36,9 +36,13 @@ class Drawing:
         self.window.ui.nodes['painter.select.canvas.size'].setCurrentText(size)
         self.change_canvas_size(size)
 
-    def is_drawing(self):
-        """Check if drawing is enabled"""
-        return self.window.controller.ui.output_tab_idx == 3
+    def is_drawing(self) -> bool:
+        """
+        Check if drawing is enabled
+
+        :return: True if drawing is current active tab
+        """
+        return self.window.controller.ui.current_tab == self.window.controller.ui.tab_idx['draw']
 
     def convert_to_size(self, canvas_size: str) -> tuple:
         """
@@ -83,9 +87,7 @@ class Drawing:
         self.save_current()
 
     def save_current(self):
-        """
-        Store current image
-        """
+        """Store current image"""
         path = os.path.join(self.window.core.config.path, 'capture', '_current.png')
         self.window.ui.painter.image.save(path)
 
@@ -110,7 +112,11 @@ class Drawing:
             self.window.ui.painter.set_brush_color(Qt.white)
 
     def change_canvas_size(self, selected=None):
-        """Change the canvas size"""
+        """
+        Change the canvas size
+
+        :param selected: Selected size
+        """
         if not selected:
             selected = self.window.ui.nodes['painter.select.canvas.size'].currentData()
         if selected:
@@ -128,11 +134,7 @@ class Drawing:
         self.window.ui.painter.set_brush_size(int(size))
 
     def change_brush_color(self):
-        """
-        Change the brush color
-
-        :param color_name: Color name
-        """
+        """Change the brush color"""
         color = self.window.ui.nodes['painter.select.brush.color'].currentData()
         self.window.ui.painter.set_brush_color(color)
 
@@ -189,11 +191,19 @@ class Drawing:
         }
 
     def get_sizes(self) -> list:
-        """Get brush sizes"""
+        """
+        Get brush sizes
+
+        :return: list of sizes
+        """
         return ['1', '2', '3', '5', '8', '12', '15', '20', '25', '30', '50', '100', '200']
 
-    def get_canvas_sizes(self):
-        """Get canvas sizes"""
+    def get_canvas_sizes(self) -> list:
+        """
+        Get canvas sizes
+
+        :return: list of sizes
+        """
         return [
             "640x480", "800x600", "1024x768", "1280x720", "1600x900",
             "1920x1080", "2560x1440", "3840x2160", "4096x2160"
