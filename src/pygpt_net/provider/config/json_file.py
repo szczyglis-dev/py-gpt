@@ -603,15 +603,8 @@ class JsonFileProvider(BaseProvider):
             # < 2.0.96
             if old < parse_version("2.0.96"):
                 print("Migrating config from < 2.0.96...")
-                data['img_resolution'] = "1792×1024"  # 16:9 default
                 if 'img_quality' not in data:
                     data['img_quality'] = "standard"
-                updated = True
-
-            # < 2.0.97
-            if old < parse_version("2.0.97"):
-                print("Migrating config from < 2.0.97...")
-                data['img_resolution'] = "1792x1024"  # char fix
                 updated = True
 
             # < 2.0.98
