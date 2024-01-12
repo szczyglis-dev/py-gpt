@@ -511,6 +511,16 @@ class Patch:
                 self.window.core.updater.patch_css('style.dark.css', True)  # force replace file
                 updated = True
 
+            # < 2.0.99
+            if old < parse_version("2.0.99"):
+                print("Migrating config from < 2.0.99...")
+                if 'layout.splitters' in data:
+                    if 'calendar' in data['layout.splitters']:
+                        # restore if was hidden at < 2.0.99
+                        if data['layout.splitters']['calendar'][1] == 0:
+                            data['layout.splitters']['calendar'] = [100, 100]
+                updated = True
+
         # update file
         migrated = False
         if updated:
