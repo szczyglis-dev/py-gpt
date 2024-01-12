@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 03:00:00                  #
+# Updated Date: 2024.01.12 03:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ import os
 from PySide6.QtGui import QAction
 
 from pygpt_net.utils import trans
+
 
 class Theme:
     def __init__(self, window=None):
@@ -184,33 +185,14 @@ class Theme:
                     with open(path) as file:
                         try:
                             content = file.read()
-                            # windows checkbox + radio fix
+
+                            # Windows checkbox button + radio button fix:
+                            # without this fix, the checkboxes and radio buttons are not visible in Python version
+                            # (compiled version works fine)
                             if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
-                                content += """
-                                QCheckBox::indicator:checked {{
-                                  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-                                }}
-                                QCheckBox::indicator:unchecked {{ 
-                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-                                }}
-                                
-                                QRadioButton::indicator:checked {{
-                                  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-                                }} 
-                                QCheckBox::indicator:unchecked {{ 
-                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-                                }}
-                                QRadioButton::indicator:unchecked {{
-                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-                                }}
-                                
-                                QMenu::indicator:checked {{ 
-                                  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-                                }} 
-                                QMenu::indicator:unchecked {{ 
-                                  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-                                }}
-                                """
+                                content += self.get_windows_fix()
+
+                            # apply stylesheet
                             self.window.setStyleSheet(stylesheet + content.format(**os.environ))
                         except KeyError as e:
                             pass  # ignore missing env variables
@@ -462,3 +444,33 @@ class Theme:
             'light_teal',
             'light_yellow'
         ]
+
+    def get_windows_fix(self) -> str:
+        """
+        Return Windows checkbox button + radio button fix
+
+        :return: stylesheet fix
+        """
+        return """
+        QCheckBox::indicator:checked {{
+          background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+        }}
+        QCheckBox::indicator:unchecked {{ 
+          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+        }}                                
+        QRadioButton::indicator:checked {{
+          background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+        }} 
+        QCheckBox::indicator:unchecked {{ 
+          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+        }}
+        QRadioButton::indicator:unchecked {{
+          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+        }}                                
+        QMenu::indicator:checked {{ 
+          background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+        }} 
+        QMenu::indicator:unchecked {{ 
+          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+        }}
+        """
