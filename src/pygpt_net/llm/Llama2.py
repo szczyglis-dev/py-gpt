@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
 
-from langchain.llms import HuggingFaceTextGenInference
+from langchain_community.llms import HuggingFaceTextGenInference
 from langchain_experimental.chat_models import Llama2Chat
 
 
