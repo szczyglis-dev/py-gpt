@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.98 (2024-01-12)
+
+- UI fixes
+
 # 2.0.97 (2024-01-11)
 
 - DALL-E config fix
