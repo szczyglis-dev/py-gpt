@@ -1,0 +1,8 @@
+{
+    "general": {
+        "label": "settings.section.general"
+    },
+    "layout": {
+        "label": "settings.section.layout"
+    }
+}

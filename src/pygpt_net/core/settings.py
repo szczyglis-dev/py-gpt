@@ -27,6 +27,7 @@ class Settings:
         self.ids = ['settings', 'editor']
         self.active = {}
         self.options = {}
+        self.sections = {}
         self.initialized = False
 
         # prepare active
@@ -47,6 +48,20 @@ class Settings:
         if id in self.options:
             return self.options[id]
 
+    def get_sections(self, id: str = None) -> dict:
+        """
+        Return sections for given id
+
+        :param id: settings id
+        :return: dictionary of options
+        """
+        if not self.initialized:
+            self.load()
+        if id is None:
+            return self.sections
+        if id in self.sections:
+            return self.sections[id]
+
     def get_persist_options(self) -> list:
         """
         Return persist options keys (options that should be persisted when loading defaults)
@@ -66,6 +81,7 @@ class Settings:
         Load settings options
         """
         self.options = self.window.core.config.get_options()
+        self.sections = self.window.core.config.get_sections()
         self.initialized = True
 
     def load_user_settings(self):

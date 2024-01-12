@@ -142,6 +142,14 @@ class Config:
         """
         return self.provider.get_options()
 
+    def get_sections(self) -> dict:
+        """
+        Return settings sections
+
+        :return: settings sections
+        """
+        return self.provider.get_sections()
+
     def get(self, key: str) -> any:
         """
         Return config value by key

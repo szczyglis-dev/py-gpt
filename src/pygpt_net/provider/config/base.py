@@ -42,5 +42,8 @@ class BaseProvider:
     def get_options(self) -> dict:
         pass
 
+    def get_sections(self) -> dict:
+        pass
+
     def get_version(self) -> str:
         pass

@@ -23,6 +23,7 @@ class Editor:
         """
         self.window = window
         self.options = {}
+        self.sections = {}
         self.before_config = {}
         self.initialized = False
 
@@ -67,6 +68,7 @@ class Editor:
         :param initialize: True if marks settings as initialized
         """
         self.options = self.window.core.settings.get_options()
+        self.sections = self.window.core.settings.get_sections()
         if initialize:
             self.initialized = True
 

@@ -1,5 +1,6 @@
 {
     "api_key": {
+        "section": "general",
         "type": "text",
         "slider": false,
         "label": "settings.api_key",
@@ -16,6 +17,7 @@
         "advanced": false
     },
     "organization_key": {
+        "section": "general",
         "type": "text",
         "slider": false,
         "label": "settings.organization_key",
@@ -35,6 +37,7 @@
         "advanced": false
     },
     "font_size": {
+        "section": "layout",
         "type": "int",
         "slider": true,
         "label": "settings.font_size",
@@ -46,6 +49,7 @@
         "advanced": false
     },
     "font_size.input": {
+        "section": "layout",
         "type": "int",
         "slider": true,
         "label": "settings.font_size.input",
@@ -57,6 +61,7 @@
         "advanced": false
     },
     "font_size.ctx": {
+        "section": "layout",
         "type": "int",
         "slider": true,
         "label": "settings.font_size.ctx",
@@ -68,6 +73,7 @@
         "advanced": false
     },
     "font_size.toolbox": {
+        "section": "layout",
         "type": "int",
         "slider": true,
         "label": "settings.font_size.toolbox",
@@ -79,6 +85,7 @@
         "advanced": false
     },
     "layout.density": {
+        "section": "layout",
         "type": "int",
         "slider": true,
         "label": "settings.layout.density",
@@ -90,6 +97,7 @@
         "advanced": false
     },
     "layout.dpi.scaling": {
+        "section": "layout",
         "type": "bool",
         "slider": false,
         "label": "settings.layout.dpi.scaling",
@@ -101,6 +109,7 @@
         "advanced": false
     },
     "layout.dpi.factor": {
+        "section": "layout",
         "type": "float",
         "slider": true,
         "label": "settings.layout.dpi.factor",
@@ -112,6 +121,7 @@
         "advanced": false
     },
     "theme.markdown": {
+        "section": "layout",
         "type": "bool",
         "slider": false,
         "label": "settings.theme.markdown",
@@ -123,6 +133,7 @@
         "advanced": false
     },
     "render.plain": {
+        "section": "layout",
         "type": "bool",
         "slider": false,
         "label": "settings.render.plain",
@@ -134,6 +145,7 @@
         "advanced": false
     },
     "max_output_tokens": {
+        "section": "model",
         "type": "int",
         "slider": true,
         "label": "settings.max_output_tokens",
@@ -145,6 +157,7 @@
         "advanced": false
     },
     "max_total_tokens": {
+        "section": "model",
         "type": "int",
         "slider": true,
         "label": "settings.max_total_tokens",
@@ -156,6 +169,7 @@
         "advanced": false
     },
     "context_threshold": {
+        "section": "model",
         "type": "int",
         "slider": true,
         "label": "settings.context_threshold",
@@ -167,6 +181,7 @@
         "advanced": false
     },
     "ctx.records.limit": {
+        "section": "ctx",
         "type": "int",
         "slider": true,
         "label": "settings.ctx.records.limit",
@@ -178,6 +193,7 @@
         "advanced": false
     },
     "use_context": {
+        "section": "ctx",
         "type": "bool",
         "slider": false,
         "label": "settings.use_context",
@@ -189,6 +205,7 @@
         "advanced": false
     },
     "store_history": {
+        "section": "ctx",
         "type": "bool",
         "slider": false,
         "label": "settings.store_history",
@@ -200,6 +217,7 @@
         "advanced": false
     },
     "store_history_time": {
+        "section": "ctx",
         "type": "bool",
         "slider": false,
         "label": "settings.store_history_time",
@@ -211,6 +229,7 @@
         "advanced": false
     },
     "ctx.auto_summary": {
+        "section": "ctx",
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.auto_summary",
@@ -222,6 +241,7 @@
         "advanced": false
     }, 
     "lock_modes": {
+        "section": "behaviour",
         "type": "bool",
         "slider": false,
         "label": "settings.lock_modes",
@@ -233,6 +253,7 @@
         "advanced": false
     },
     "temperature": {
+        "section": "model",
         "type": "float",
         "slider": true,
         "label": "settings.temperature",
@@ -244,6 +265,7 @@
         "advanced": false
     },
     "top_p": {
+        "section": "model",
         "type": "float",
         "slider": true,
         "label": "settings.top_p",
@@ -255,6 +277,7 @@
         "advanced": false
     },
     "frequency_penalty": {
+        "section": "model",
         "type": "float",
         "slider": true,
         "label": "settings.frequency_penalty",
@@ -266,6 +289,7 @@
         "advanced": false
     },
     "presence_penalty": {
+        "section": "model",
         "type": "float",
         "slider": true,
         "label": "settings.presence_penalty",
@@ -277,6 +301,7 @@
         "advanced": false
     },
     "img_resolution": {
+        "section": "images",
         "type": "combo",
         "slider": false,
         "label": "settings.img_resolution",
@@ -296,6 +321,7 @@
         ]
     },
     "img_quality": {
+        "section": "images",
         "type": "combo",
         "slider": false,
         "label": "settings.img_quality",
@@ -312,6 +338,7 @@
         ]
     },
     "notepad.num": {
+        "section": "layout",
         "type": "int",
         "slider": true,
         "label": "settings.notepad.num",
@@ -323,6 +350,7 @@
         "advanced": false
     },
     "vision.capture.enabled": {
+        "section": "video",
         "type": "bool",
         "slider": false,
         "label": "settings.vision.capture.enabled",
@@ -334,6 +362,7 @@
         "advanced": false
     }, 
     "vision.capture.auto": {
+        "section": "video",
         "type": "bool",
         "slider": false,
         "label": "settings.vision.capture.auto",
@@ -345,6 +374,7 @@
         "advanced": false
     },
     "vision.capture.width": {
+        "section": "video",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.width",
@@ -356,6 +386,7 @@
         "advanced": false
     },
     "vision.capture.height": {
+        "section": "video",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.height",
@@ -367,6 +398,7 @@
         "advanced": false
     },
     "vision.capture.idx": {
+        "section": "video",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.idx",
@@ -378,6 +410,7 @@
         "advanced": false
     },
     "vision.capture.quality": {
+        "section": "video",
         "type": "int",
         "slider": true,
         "label": "settings.vision.capture.quality",
@@ -389,6 +422,7 @@
         "advanced": false
     },
     "ctx.auto_summary.model": {
+        "section": "ctx",
         "type": "text",
         "slider": false,
         "label": "settings.ctx.auto_summary.model",
@@ -400,6 +434,7 @@
         "advanced": true
     },
     "ctx.auto_summary.system": {
+        "section": "ctx",
         "type": "textarea",
         "slider": false,
         "label": "settings.ctx.auto_summary.system",
@@ -411,6 +446,7 @@
         "advanced": true
     },
     "ctx.auto_summary.prompt": {
+        "section": "ctx",
         "type": "textarea",
         "slider": false,
         "label": "settings.ctx.auto_summary.prompt",
@@ -422,6 +458,7 @@
         "advanced": true
     },
     "cmd.prompt": {
+        "section": "model",
         "type": "textarea",
         "slider": false,
         "label": "settings.cmd.prompt",
@@ -433,6 +470,7 @@
         "advanced": true
     },
     "img_prompt": {
+        "section": "images",
         "type": "textarea",
         "slider": false,
         "label": "settings.img_prompt",
@@ -444,6 +482,7 @@
         "advanced": true
     },
     "img_prompt_model": {
+        "section": "images",
         "type": "text",
         "slider": false,
         "label": "settings.img_prompt_model",

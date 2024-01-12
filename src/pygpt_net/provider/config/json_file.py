@@ -27,6 +27,7 @@ class JsonFileProvider(BaseProvider):
         self.type = "config"
         self.config_file = 'config.json'
         self.settings_file = 'settings.json'
+        self.sections_file = 'settings_section.json'
 
     def install(self):
         """
@@ -113,6 +114,24 @@ class JsonFileProvider(BaseProvider):
         """
         data = {}
         path = os.path.join(self.path_app, 'data', 'config', self.settings_file)
+        if not os.path.exists(path):
+            print("FATAL ERROR: {} not found!".format(path))
+            return None
+        try:
+            with open(path, 'r', encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            print("FATAL ERROR: {}".format(e))
+        return data
+
+    def get_sections(self) -> dict | None:
+        """
+        Load config sections from JSON file
+
+        :return: dict with data or None if file not found
+        """
+        data = {}
+        path = os.path.join(self.path_app, 'data', 'config', self.sections_file)
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
