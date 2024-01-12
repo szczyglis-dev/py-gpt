@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.0.99",
-        "app.version": "2.0.99",
-        "updated_at": "2024-01-11T00:00:00"
+        "version": "2.0.100",
+        "app.version": "2.0.100",
+        "updated_at": "2024-01-13T00:00:00"
     },
     "items": {
         "chat": {
