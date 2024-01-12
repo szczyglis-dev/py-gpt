@@ -17,6 +17,7 @@ from pygpt_net.core.debug.assistants import AssistantsDebug
 from pygpt_net.core.debug.attachments import AttachmentsDebug
 from pygpt_net.core.debug.config import ConfigDebug
 from pygpt_net.core.debug.context import ContextDebug
+from pygpt_net.core.debug.indexes import IndexesDebug
 from pygpt_net.core.debug.models import ModelsDebug
 from pygpt_net.core.debug.plugins import PluginsDebug
 from pygpt_net.core.debug.presets import PresetsDebug
@@ -40,6 +41,7 @@ class Debug:
         self.workers['attachments'] = AttachmentsDebug(self.window)
         self.workers['config'] = ConfigDebug(self.window)
         self.workers['context'] = ContextDebug(self.window)
+        self.workers['indexes'] = IndexesDebug(self.window)
         self.workers['models'] = ModelsDebug(self.window)
         self.workers['plugins'] = PluginsDebug(self.window)
         self.workers['presets'] = PresetsDebug(self.window)

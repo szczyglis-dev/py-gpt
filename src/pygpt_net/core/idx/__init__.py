@@ -11,28 +11,12 @@
 
 import datetime
 import os.path
-from llama_index import (
-    VectorStoreIndex,
-    SimpleDirectoryReader,
-    ServiceContext,
-    StorageContext,
-    load_index_from_storage,
-    download_loader
-)
-from llama_index.llms import OpenAI
 from packaging.version import Version
-from pathlib import Path
 
 from pygpt_net.item.index import IndexItem
 from pygpt_net.provider.index.json_file import JsonFileProvider
-
-from pygpt_net.core.idx.loader.pdf.base import PDFReader
-from pygpt_net.core.idx.loader.docx.base import DocxReader
-from pygpt_net.core.idx.loader.markdown.base import MarkdownReader
-from pygpt_net.core.idx.loader.json.base import JSONReader
-from pygpt_net.core.idx.loader.simple_csv.base import SimpleCSVReader
-from pygpt_net.core.idx.loader.epub.base import EpubReader
-from pygpt_net.core.idx.loader.pandas_excel.base import PandasExcelReader
+from .indexing import Indexing
+from .storage import Storage
 
 
 class Idx:
@@ -43,77 +27,11 @@ class Idx:
         :param window: Window instance
         """
         self.window = window
-        self.indexes = {}
-        self.loaders = {  # offline versions
-            "pdf": PDFReader(),
-            "docx": DocxReader(),
-            "md": MarkdownReader(),
-            "json": JSONReader(),
-            "csv": SimpleCSVReader(),
-            "epub": EpubReader(),
-            "xlsx": PandasExcelReader(),
-        }  # TODO: add adding custom loaders via dict config in settings
-        self.current = "base"
+        self.indexing = Indexing(window)
+        self.storage = Storage(window)
         self.provider = JsonFileProvider(window)
         self.items = {}
         self.initialized = False
-
-    def get_service_context(self, model: str = "gpt-3.5-turbo"):
-        """
-        Get service context
-
-        :param model: Model name
-        :return: Service context
-        """
-        # GPT
-        if model.startswith("gpt-") or model.startswith("text-davinci-"):
-            os.environ['OPENAI_API_KEY'] = self.window.core.config.get("api_key")
-            llm = OpenAI(temperature=0.0, model=model)
-            return ServiceContext.from_defaults(llm=llm)
-        # TODO: add other models
-
-    def get_documents(self, data_path):
-        """
-        Get documents from path
-
-        :param data_path: Path to data
-        :return: List of documents
-        """
-        if os.path.isdir(data_path):
-            reader = SimpleDirectoryReader(
-                input_dir=data_path,
-                recursive=True,
-                exclude_hidden=False
-            )
-            documents = reader.load_data()
-        else:
-            # get data loader by file extension
-            ext = os.path.splitext(data_path)[1][1:]
-            if ext in self.loaders:
-                # loader cause problems in compiled version, so we use offline version :(
-                # loader = download_loader(self.loaders[ext])
-                reader = self.loaders[ext]
-                documents = reader.load_data(file=Path(data_path))
-            else:
-                reader = SimpleDirectoryReader(input_files=[data_path])
-                documents = reader.load_data()
-        return documents
-
-    def prepare(self, idx: str = "base", model: str = "gpt-3.5-turbo"):
-        """
-        Prepare index
-
-        :param idx: Index name
-        :param model: Model name
-        """
-        service_context = self.get_service_context(model=model)
-        idx_path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
-        if not os.path.exists(idx_path):
-            self.indexes[idx] = VectorStoreIndex([])  # create empty index
-            self.store_index(idx=idx)
-        else:
-            storage_context = StorageContext.from_defaults(persist_dir=idx_path)
-            self.indexes[idx] = load_index_from_storage(storage_context, service_context=service_context)
 
     def store_index(self, idx: str = "base"):
         """
@@ -121,8 +39,7 @@ class Idx:
 
         :param idx: Index name
         """
-        idx_path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
-        self.indexes[idx].storage_context.persist(persist_dir=idx_path)
+        self.storage.store(idx)
 
     def remove_index(self, idx: str = "base") -> bool:
         """
@@ -131,51 +48,22 @@ class Idx:
         :param idx: Index name
         :return: True if success
         """
-        self.indexes[idx] = None
-        idx_path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
-        if os.path.exists(idx_path):
-            for f in os.listdir(idx_path):
-                os.remove(os.path.join(idx_path, f))
-            os.rmdir(idx_path)
-        return True
+        return self.storage.remove(idx)
 
-    def index(self, idx: str = "base", data_path: str = None, model: str = "gpt-3.5-turbo") -> tuple:
+    def index(self, idx: str = "base", path: str = None, model: str = "gpt-3.5-turbo") -> tuple:
         """
-        Index all files in directory
+        Index file or directory of files
 
         :param idx: Index name
-        :param data_path: Path to data directory
-        :param model: Model name
-        :return: number of indexed files, errors
+        :param path: Path to file or directory
+        :param model: Model used for indexing
+        :return: dict with indexed files, errors
         """
-        self.prepare(idx, model=model)
-
-        indexed_files = {}
-        errors = []
-        files = []
-        if os.path.isdir(data_path):
-            files = [os.path.join(data_path, f) for f in os.listdir(data_path) if os.path.isfile(os.path.join(data_path, f))]
-        elif os.path.isfile(data_path):
-            files = [data_path]
-        n = 0
-        for file in files:   # per file to allow use of multiple loaders
-            try:
-                documents = self.get_documents(file)
-                for d in documents:
-                    self.indexes[idx].insert(document=d)
-                    n += 1
-                    indexed_files[file] = d.id_
-            except Exception as e:
-                errors.append(str(e))
-                print(e)
-                print("Error while indexing file: " + file)
-                self.window.core.debug.log(e)
-                continue
-
-        if n > 0:
-            self.store_index(idx=idx)  # save index
-
-        return indexed_files, errors
+        index = self.storage.get(idx, model=model)  # get or create index
+        files, errors = self.indexing.index_files(index, path)  # index files
+        if len(files) > 0:
+            self.storage.store(id=idx, index=index)  # store index
+        return files, errors
 
     def query(self, query, idx: str = "base", model: str = "gpt-3.5-turbo") -> str:
         """
@@ -186,10 +74,10 @@ class Idx:
         :param model: Model name
         :return: Response
         """
-        self.prepare(idx=idx, model=model)
-        if idx not in self.indexes or self.indexes[idx] is None:
+        if not self.storage.exists(idx):
             raise Exception("Index not prepared")
-        response = self.indexes[idx].as_query_engine().query(query)
+        index = self.storage.get(idx, model=model)  # get index
+        response = index.as_query_engine().query(query)  # query index
         return str(response)  # TODO: handle stream response
 
     def get_idx_data(self, idx: str = "base") -> dict:
@@ -207,7 +95,11 @@ class Idx:
         self.provider.install()
 
     def patch(self, app_version: Version):
-        """Patch provider data"""
+        """
+        Patch provider data
+
+        :param app_version: App version
+        """
         self.provider.patch(app_version)
 
     def init(self):
@@ -216,15 +108,15 @@ class Idx:
             self.load()
             self.initialized = True
 
-    def get(self, index: str) -> IndexItem:
+    def get(self, idx: str) -> IndexItem:
         """
         Return index data
 
-        :param index: index id
-        :return: index object
+        :param idx: index id
+        :return: IndexItem object
         """
-        if index in self.items:
-            return self.items[index]
+        if idx in self.items:
+            return self.items[idx]
 
     def get_all(self) -> dict:
         """
@@ -234,14 +126,14 @@ class Idx:
         """
         return self.items
 
-    def has(self, index: str) -> bool:
+    def has(self, idx: str) -> bool:
         """
         Check if index exists
 
-        :param index: index id
+        :param idx: index id
         :return: True if index exists
         """
-        return index in self.items
+        return idx in self.items
 
     def is_indexed(self, idx: str, file: str) -> bool:
         """

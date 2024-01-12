@@ -158,6 +158,7 @@ class Menu:
         self.window.ui.menu['debug.plugins'] = QAction(trans("menu.debug.plugins"), self.window, checkable=True)
         self.window.ui.menu['debug.attachments'] = QAction(trans("menu.debug.attachments"), self.window, checkable=True)
         self.window.ui.menu['debug.assistants'] = QAction(trans("menu.debug.assistants"), self.window, checkable=True)
+        self.window.ui.menu['debug.indexes'] = QAction(trans("menu.debug.indexes"), self.window, checkable=True)
         self.window.ui.menu['debug.ui'] = QAction(trans("menu.debug.ui"), self.window, checkable=True)
         self.window.ui.menu['debug.logger'] = QAction(trans("menu.debug.logger"), self.window, checkable=True)
 
@@ -175,6 +176,8 @@ class Menu:
             lambda: self.window.controller.debug.toggle('attachments'))
         self.window.ui.menu['debug.assistants'].triggered.connect(
             lambda: self.window.controller.debug.toggle('assistants'))
+        self.window.ui.menu['debug.indexes'].triggered.connect(
+            lambda: self.window.controller.debug.toggle('indexes'))
         self.window.ui.menu['debug.logger'].triggered.connect(
             lambda: self.window.controller.debug.toggle_logger())
         self.window.ui.menu['debug.ui'].triggered.connect(
@@ -188,6 +191,7 @@ class Menu:
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.plugins'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.attachments'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.assistants'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.indexes'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.ui'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
 
