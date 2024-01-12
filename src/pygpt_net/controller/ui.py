@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.12 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -21,7 +21,13 @@ class UI:
         :param window: Window instance
         """
         self.window = window
-        self.output_tab_idx = 0
+        self.current_tab = 0
+        self.tab_idx = {
+            'chat': 0,
+            'files': 1,
+            'calendar': 2,
+            'draw': 3,
+        }
 
     def setup(self):
         """Setup UI"""
@@ -331,7 +337,6 @@ class UI:
 
     def update_chat_label(self):
         """Update chat label"""
-        mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         if model is None or model == "":
             model_str = ""
@@ -350,7 +355,7 @@ class UI:
         if label is None:
             label = ''
 
-        # add (+) if allowed to append data to this context
+        # add (+) if allowed appending data to this context
         if allowed:
             label += ' (+)'
         self.window.ui.nodes['chat.label'].setText(str(label))
@@ -362,10 +367,11 @@ class UI:
         :param idx: tab index
         :type idx: int
         """
-        self.output_tab_idx = idx
+        self.current_tab = idx
         self.window.controller.ui.update_active()
-        if idx == 2:
+
+        if idx == self.tab_idx['calendar']:
             self.window.controller.notepad.opened_once = True
-        if idx == 3:  # drawing
+        elif idx == self.tab_idx['draw']:
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()
