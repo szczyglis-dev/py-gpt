@@ -3,6 +3,7 @@
 - Llama-index integrated with database - you can now indexing all conversations and use them as additional context
 - Added support for multiple indexes at once
 - Added configuration for llama-indexes
+- Data-dir in home directory changed name from 'output' to 'data'
 
 2.0.99 (2024-01-12)
 
