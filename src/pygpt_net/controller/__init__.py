@@ -93,6 +93,7 @@ class Controller:
 
     def post_setup(self):
         """Post-setup, after plugins are loaded"""
+        self.settings.setup()
         self.plugins.settings.setup()
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded

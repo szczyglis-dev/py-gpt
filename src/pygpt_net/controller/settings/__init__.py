@@ -24,8 +24,12 @@ class Settings:
         """
         self.window = window
         self.editor = Editor(window)
-        self.width = 500
-        self.height = 600
+        self.width = 800
+        self.height = 500
+
+    def setup(self):
+        """Set up settings editor"""
+        self.editor.setup()
 
     def load(self):
         """Load settings"""
@@ -71,10 +75,42 @@ class Settings:
 
             # if no API key, focus on API key input
             if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-                self.window.ui.config_option['api_key'].setFocus()
+                self.window.ui.config['config']['api_key'].setFocus()
+
+            self.window.controller.layout.restore_settings()  # restore previous selected settings tab
 
         # update menu
         self.update()
+
+    def set_by_tab(self, idx: int):
+        """
+        Set current section by tab index
+
+        :param idx: tab index
+        """
+        section_idx = 0
+        for section_id in self.editor.get_sections():
+            if section_idx == idx:
+                break
+            section_idx += 1
+        current = self.window.ui.models['settings.section.list'].index(idx, 0)
+        self.window.ui.nodes['settings.section.list'].setCurrentIndex(current)
+
+    def get_tab_idx(self, section_id: str) -> int:
+        """
+        Get section tab index
+
+        :param section_id: plugin id
+        :return: tab index
+        """
+        section_idx = None
+        i = 0
+        for id in self.editor.get_sections():
+            if id == section_id:
+                section_idx = i
+                break
+            i += 1
+        return section_idx
 
     def toggle_file_editor(self, file: str = None):
         """

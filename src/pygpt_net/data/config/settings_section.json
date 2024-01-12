@@ -4,5 +4,17 @@
     },
     "layout": {
         "label": "settings.section.layout"
+    },
+    "ctx": {
+        "label": "settings.section.ctx"
+    },
+    "model": {
+        "label": "settings.section.model"
+    },
+    "images": {
+        "label": "settings.section.images"
+    },
+    "video": {
+        "label": "settings.section.video"
     }
 }

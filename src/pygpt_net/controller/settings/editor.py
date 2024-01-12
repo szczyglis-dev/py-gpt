@@ -27,6 +27,14 @@ class Editor:
         self.before_config = {}
         self.initialized = False
 
+    def setup(self):
+        """Set up plugin settings"""
+        idx = None
+        # restore previous selected or restored tab on dialog create
+        if 'settings.section' in self.window.ui.tabs:
+            idx = self.window.ui.tabs['settings.section'].currentIndex()
+        self.window.settings.setup(idx)  # widget dialog Plugins
+
     def init(self, id: str):
         """
         Initialize settings
@@ -200,30 +208,29 @@ class Editor:
         self.init('settings')
         self.window.ui.dialogs.alert(trans('dialog.settings.defaults.app.result'))
 
-    def delete_item(self, parent_object, id: str, force: bool = False):
+    def get_sections(self) -> dict:
         """
-        Load delete item (from dict list) confirmation dialog or executes delete
+        Return settings sections dict
 
-        :param parent_object: parent object
-        :param id: item id
-        :param force: force delete
+        :return: dict Sections dict
         """
-        if not force:
-            self.window.ui.dialogs.confirm('settings.dict.delete', id, trans('settings.dict.delete.confirm'),
-                                           parent_object)
-            return
+        return self.sections
 
-        # delete item
-        if parent_object is not None:
-            parent_object.delete_item_execute(id)
-
-    def get_options(self) -> dict:
+    def get_options(self, section: str = None) -> dict:
         """
         Return settings options dict
 
+        :param section: section ID
         :return: dict Options dict
         """
-        return self.options
+        if section is None:
+            return self.options
+        else:
+            options = {}
+            for key in self.options:
+                if 'section' in self.options[key] and self.options[key]['section'] == section:
+                    options[key] = self.options[key]
+            return options
 
     def get_option(self, key: str) -> dict:
         """

@@ -517,8 +517,11 @@ class Patch:
                 if 'layout.splitters' in data:
                     if 'calendar' in data['layout.splitters']:
                         # restore if was hidden at < 2.0.99
-                        if data['layout.splitters']['calendar'][1] == 0:
+                        if len(data['layout.splitters']['calendar']) == 2 \
+                                and data['layout.splitters']['calendar'][1] == 0:
                             data['layout.splitters']['calendar'] = [100, 100]
+                if data['layout.density'] == 0:
+                    data['layout.density'] = -1
                 updated = True
 
         # update file

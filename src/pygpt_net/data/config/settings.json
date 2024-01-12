@@ -241,7 +241,7 @@
         "advanced": false
     }, 
     "lock_modes": {
-        "section": "behaviour",
+        "section": "general",
         "type": "bool",
         "slider": false,
         "label": "settings.lock_modes",
@@ -338,7 +338,7 @@
         ]
     },
     "notepad.num": {
-        "section": "layout",
+        "section": "general",
         "type": "int",
         "slider": true,
         "label": "settings.notepad.num",
@@ -423,7 +423,8 @@
     },
     "ctx.auto_summary.model": {
         "section": "ctx",
-        "type": "text",
+        "type": "combo",
+        "use": "models",
         "slider": false,
         "label": "settings.ctx.auto_summary.model",
         "value": "gpt-3.5-turbo-1106",
@@ -483,7 +484,8 @@
     },
     "img_prompt_model": {
         "section": "images",
-        "type": "text",
+        "type": "combo",
+        "use": "models",
         "slider": false,
         "label": "settings.img_prompt_model",
         "value": "gpt-4-1106-preview",

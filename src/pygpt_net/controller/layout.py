@@ -204,3 +204,16 @@ class Layout:
                 except Exception as e:
                     print("Error while restoring group state: " + str(e))
                     self.window.core.debug.log(e)
+
+    def restore_settings(self):
+        """Restore groups state"""
+        if not self.window.core.config.has('layout.groups'):
+            return
+        data = self.window.core.config.get('layout.groups')
+        for id in self.window.ui.groups:
+            if id in data and id.startswith('settings.advanced.'):
+                try:
+                    self.window.ui.groups[id].collapse(data[id])
+                except Exception as e:
+                    print("Error while restoring group state: " + str(e))
+                    self.window.core.debug.log(e)

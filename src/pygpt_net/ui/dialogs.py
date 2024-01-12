@@ -45,7 +45,6 @@ class Dialogs:
         self.logger = Logger(self.window)
         self.preset = Preset(self.window)
         self.rename = Rename(self.window)
-        self.settings = Settings(self.window)
         self.start = Start(self.window)
         self.update = Update(self.window)
 
@@ -56,7 +55,6 @@ class Dialogs:
 
         self.about.setup()
         self.changelog.setup()
-        self.settings.setup()
         self.preset.setup()
         self.assistant.setup()
         self.editor.setup()
@@ -66,6 +64,7 @@ class Dialogs:
         self.image.setup()
         self.logger.setup()
 
+        self.window.settings = Settings(self.window)
         self.window.plugin_settings = Plugins(self.window)
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
         self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)

@@ -194,6 +194,8 @@ class Plugins:
                 self.window.controller.plugins.set_by_tab(idx)
             except Exception as e:
                 print('Failed restore plugin settings tab: {}'.format(idx))
+        else:
+            self.window.controller.plugins.set_by_tab(0)
 
     def build_widgets(self, plugin: BasePlugin, options: dict) -> dict:
         """

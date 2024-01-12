@@ -23,6 +23,8 @@ class Settings:
         self.config_dialog = False
         self.config_initialized = False
         self.current_plugin = None
+        self.width = 800
+        self.height = 500
 
     def setup(self):
         """Set up plugin settings"""
@@ -46,7 +48,7 @@ class Settings:
             self.config_initialized = True
         if not self.config_dialog:
             self.init()
-            self.window.ui.dialogs.open('plugin_settings', width=800, height=500)
+            self.window.ui.dialogs.open('plugin_settings', width=self.width, height=self.height)
             self.config_dialog = True
 
     def init(self):
