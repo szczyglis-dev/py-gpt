@@ -44,31 +44,17 @@ QTextEdit {{
   border: 1px solid #c0c0c0;
   background-color: #fff;
 }}
-
-QCheckBox::indicator:checked {{
-  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-}}
-QCheckBox::indicator:unchecked {{ 
-  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-}}
-
-QRadioButton::indicator:checked {{
-  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-}} 
-QRadioButton::indicator:unchecked {{
-  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-}}
 QMenu {{ 
   background-color: #fff; 
 }} 
-QMenu::indicator:checked {{ 
-  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-}} 
-QMenu::indicator:unchecked {{ 
-  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-}}
 
 QMainWindow::separator:horizontal,
 QSplitter::handle:vertical {{
   width: 5px;
+}}
+QTableView::item,
+QTreeView::item,
+QListView::item {{
+  padding: 4px;
+  min-height: 20px;
 }}

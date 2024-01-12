@@ -19,23 +19,9 @@ QTextEdit {{
   border: 1px solid #5c5c5c;
 }}
 
-QCheckBox::indicator:checked {{
-  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-}}
-QCheckBox::indicator:unchecked {{ 
-  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-}}
-
-QRadioButton::indicator:checked {{
-  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-}} 
-QRadioButton::indicator:unchecked {{
-  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-}}
-
-QMenu::indicator:checked {{ 
-  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-}} 
-QMenu::indicator:unchecked {{ 
-  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+QTableView::item,
+QTreeView::item,
+QListView::item {{
+  padding: 4px;
+  min-height: 28px;
 }}
