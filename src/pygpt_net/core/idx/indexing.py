@@ -135,7 +135,6 @@ class Indexing:
         with db.connect() as connection:
             result = connection.execute(text(query))
             for item in result.fetchall():
-                print(item)
                 doc_str = ", ".join([str(entry) for entry in item])
                 documents.append(Document(text=doc_str))
         return documents
