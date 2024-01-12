@@ -275,7 +275,6 @@ class Lang:
         self.window.ui.nodes['output_files'].btn_upload.setText(trans('files.local.upload'))
         self.window.ui.nodes['output_files'].btn_idx.setText(trans('idx.btn.index_all'))
         self.window.ui.nodes['output_files'].btn_clear.setText(trans('idx.btn.clear'))
-        self.window.ui.nodes['output_files'].path_label.setText(trans('files.local.dir.prefix') + ': ' + self.window.ui.nodes['output_files'].directory)
 
         # tabs
         mode = self.window.core.config.get('mode')
