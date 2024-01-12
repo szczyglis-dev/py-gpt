@@ -15,7 +15,6 @@ from PySide6.QtGui import QAction
 
 from pygpt_net.utils import trans
 
-
 class Theme:
     def __init__(self, window=None):
         """
@@ -186,7 +185,7 @@ class Theme:
                         try:
                             content = file.read()
                             # windows checkbox + radio fix
-                            if self.window.core.platforms.is_windows():
+                            if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
                                 content += """
                                 QCheckBox::indicator:checked {{
                                   background-color: {QTMATERIAL_PRIMARYCOLOR}; 

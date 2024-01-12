@@ -46,6 +46,15 @@ class Config:
         self.provider.path_app = self.get_app_path()
         self.provider.meta = self.append_meta()
 
+    def is_compiled(self) -> bool:
+        """
+        Return True if compiled version
+
+        :return: True if compiled
+        :rtype: bool
+        """
+        return  __file__.endswith('.pyc')
+
     def install(self):
         """Install database and provider data"""
         # install database
@@ -65,7 +74,7 @@ class Config:
 
         :return: app root path
         """
-        if __file__.endswith('.pyc'):  # if compiled with pyinstaller
+        if self.is_compiled():  # if compiled with pyinstaller
             return os.path.abspath('.')
         else:
             return os.path.abspath(os.path.dirname(__file__))
