@@ -67,12 +67,7 @@ class Lang:
         self.window.ui.tabs['output'].setTabText(3, trans('output.tab.painter'))
 
         # notepads
-        num_notepads = self.window.controller.notepad.get_num_notepads()
-        if num_notepads > 0:
-            for i in range(1, num_notepads + 1):
-                tab = (self.window.controller.notepad.start_tab_idx - 1) + i
-                self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
-        self.window.controller.notepad.reload_tab_names()  # <-- reload tab names to restore custom names if present
+        self.window.controller.notepad.reload_tab_names()
 
         # calendar
         self.window.controller.calendar.update_current_note_label()
@@ -96,10 +91,7 @@ class Lang:
         self.window.ui.nodes['preset.presets.new'].setText(trans('preset.new'))
         self.window.ui.nodes['preset.clear'].setText(trans('preset.clear'))
         self.window.ui.nodes['preset.use'].setText(trans('preset.use'))
-        # self.window.ui.nodes['toolbox.preset.ai_name.label'].setText(trans('toolbox.name.ai'))
-        # self.window.ui.nodes['toolbox.preset.user_name.label'].setText(trans('toolbox.name.user'))
         self.window.ui.nodes['toolbox.prompt.label'].setText(trans("toolbox.prompt"))
-        # self.window.ui.nodes['temperature.label'].setText(trans("toolbox.temperature.label"))
 
         # input
         self.window.ui.nodes['input.label'].setText(trans("input.label"))
@@ -298,6 +290,7 @@ class Lang:
             print("Error updating plugin locales", e)
             self.window.core.debug.log(e)
 
+        # reload ui
         self.window.controller.ctx.common.update_label_by_current()
         self.window.controller.ctx.update(True, False)
         self.window.controller.ui.update()  # update all (toolbox, etc.)

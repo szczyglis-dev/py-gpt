@@ -9,8 +9,6 @@
 # Updated Date: 2024.01.11 04:00:00                  #
 # ================================================== #
 
-import datetime
-
 from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.utils import trans
 
@@ -25,6 +23,7 @@ class Notepad:
         self.window = window
         self.default_num_notepads = 1
         self.start_tab_idx = 4  # tab idx from notepad starts
+        self.opened_once = False
 
     def load(self):
         """Load all notepads contents"""
@@ -52,7 +51,17 @@ class Notepad:
 
     def reload_tab_names(self):
         """Reload tab names (after lang change)"""
+        num_notepads = self.get_num_notepads()
         items = self.window.core.notepad.get_all()
+        if num_notepads > 0:
+            for i in range(1, num_notepads + 1):
+                if i not in items or not items[i].initialized:
+                    tab = i + (self.start_tab_idx - 1)
+                    if num_notepads > 1:
+                        self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
+                    else:
+                        self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad'))
+
         for idx in items:
             title = items[idx].title
             if items[idx].initialized and title is not None and len(title) > 0:
@@ -65,7 +74,11 @@ class Notepad:
         :param idx: notepad idx
         :return: notepad name
         """
-        title = trans('text.context_menu.copy_to.notepad') + ' ' + str(idx)
+        num = self.get_num_notepads()
+        if num > 1:
+            title = trans('text.context_menu.copy_to.notepad') + ' ' + str(idx)
+        else:
+            title = trans('text.context_menu.copy_to.notepad')
         item = self.window.core.notepad.get_by_id(idx)
         if item is None:
             return None
@@ -99,6 +112,7 @@ class Notepad:
         :param name: notepad name
         :param close: close dialog
         """
+        num = self.get_num_notepads()
         item = self.window.core.notepad.get_by_id(idx)
         if item is None:
             item = NotepadItem()
@@ -107,10 +121,15 @@ class Notepad:
 
         tab_idx = idx + (self.start_tab_idx - 1)  # calculate tab idx
         if name is None or len(name) == 0:
-            self.window.ui.tabs['output'].setTabText(tab_idx, trans('output.tab.notepad') + " " + str(idx))
+            # set default name
+            if num > 1:
+                self.window.ui.tabs['output'].setTabText(tab_idx, trans('output.tab.notepad') + " " + str(idx))
+            else:
+                self.window.ui.tabs['output'].setTabText(tab_idx, trans('output.tab.notepad'))
             item.title = ""
             item.initialized = False
         else:
+            # set custom name
             self.window.ui.tabs['output'].setTabText(tab_idx, name)
             item.title = name
             item.initialized = True

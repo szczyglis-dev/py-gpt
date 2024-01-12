@@ -99,6 +99,9 @@ class Layout:
         """Save splitters state"""
         data = {}
         for splitter in self.splitters:
+            # do not save main splitter state if notepad was not opened yet
+            if splitter == "calendar" and not self.window.controller.notepad.opened_once:
+                continue
             data[splitter] = self.window.ui.splitters[splitter].sizes()
         self.window.core.config.set('layout.splitters', data)
 

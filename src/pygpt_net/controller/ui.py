@@ -364,6 +364,8 @@ class UI:
         """
         self.output_tab_idx = idx
         self.window.controller.ui.update_active()
+        if idx == 2:
+            self.window.controller.notepad.opened_once = True
         if idx == 3:  # drawing
             if self.window.core.config.get('vision.capture.enabled'):
                 self.window.controller.camera.enable_capture()

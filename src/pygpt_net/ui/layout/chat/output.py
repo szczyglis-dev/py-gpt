@@ -77,8 +77,10 @@ class Output:
         # append notepads
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
-                self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i],
-                                                     trans('output.tab.notepad') + " " + str(i))
+                title = trans('output.tab.notepad')
+                if num_notepads > 1:
+                    title += " (" + str(i) + ")"
+                self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i], title)
 
         self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)
 
