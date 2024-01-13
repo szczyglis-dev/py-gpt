@@ -65,6 +65,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.assistant",
             },
+            "llama_index": {
+                "type": "bool",
+                "label": "preset.llama_index",
+            },
             "temperature": {
                 "type": "float",
                 "slider": True,
@@ -177,6 +181,8 @@ class Editor:
                 data.langchain = True
             elif mode == 'assistant':
                 data.assistant = True
+            elif mode == 'llama_index':
+                data.llama_index = True
 
         options = {}
         data_dict = data.to_dict()
