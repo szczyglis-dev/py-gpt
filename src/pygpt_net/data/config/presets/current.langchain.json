@@ -10,9 +10,10 @@
   "vision": false,
   "langchain": true,
   "assistant": false,
+  "llama_index": false,
   "__meta__": {
-    "version": "2.0.0",
-    "app.version": "2.0.0",
-    "updated_at": "2023-12-05T22:00:00"
+    "version": "2.0.102",
+    "app.version": "2.0.102",
+    "updated_at": "2024-01-13T11:00:00"
   }
 }
