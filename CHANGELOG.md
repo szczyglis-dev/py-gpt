@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.0.102 (2024-01-13)
+
+- Added presets for llama-index mode
+- Added custom system prompt in llama-index mode
+- Added option to use online data loaders in settings
+- Added hiding of chat footer in non-chat tabs
+
 # 2.0.101 (2024-01-13)
 
 - User interface improvements
