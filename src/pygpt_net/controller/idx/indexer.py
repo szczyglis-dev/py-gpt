@@ -307,26 +307,17 @@ class IndexWorker(QRunnable):
             is_log = False
             if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
                 is_log = True
-            model = "gpt-3.5-turbo"  # prepare model for indexing
-            config = self.window.core.idx.get_idx_config(self.idx)
-            if config is not None and 'model_embed' in config:
-                tmp_model = config['model_embed']
-                if tmp_model is not None \
-                        and tmp_model != "" \
-                        and tmp_model != "---" \
-                        and tmp_model != "_":
-                    model = tmp_model
             # log indexing
             if is_log:
                 print("[LLAMA-INDEX] Indexing data...")
-                print("[LLAMA-INDEX] Idx: {}, type: {}, content: {}, model: {}".format(self.idx, self.type, self.content, model))
+                print("[LLAMA-INDEX] Idx: {}, type: {}, content: {}".format(self.idx, self.type, self.content))
             # execute indexing
             if self.type == "file":
-                result, errors = self.window.core.idx.index_files(self.idx, self.content, model=model)
+                result, errors = self.window.core.idx.index_files(self.idx, self.content)
             elif self.type == "db_meta":
-                result, errors = self.window.core.idx.index_db_by_meta_id(self.idx, self.content, model=model)
+                result, errors = self.window.core.idx.index_db_by_meta_id(self.idx, self.content)
             elif self.type == "db_current":
-                result, errors = self.window.core.idx.index_db_from_updated_ts(self.idx, self.content, model=model)
+                result, errors = self.window.core.idx.index_db_from_updated_ts(self.idx, self.content)
             if is_log:
                 print("[LLAMA-INDEX] Finished indexing.")
             self.signals.finished.emit(self.idx, result, errors, self.silent)
