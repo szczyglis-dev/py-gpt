@@ -576,6 +576,22 @@ class Patch:
                     data['layout.tooltips'] = True
                 updated = True
 
+            # < 2.0.102
+            if old < parse_version("2.0.102"):
+                print("Migrating config from < 2.0.102...")
+                if 'llama.hub.loaders' not in data:
+                    data['llama.hub.loaders'] = [
+                        {
+                            "ext": "pptx",
+                            "loader": "PptxReader"
+                        },
+                        {
+                            "ext": "png,jpg,jpeg",
+                            "loader": "ImageReader"
+                        }
+                    ]
+                updated = True
+
         # update file
         migrated = False
         if updated:
