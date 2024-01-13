@@ -42,11 +42,11 @@ class Ctx:
         self.last_model = None
         self.search_string = None
         self.allowed_modes = {
-            'chat': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
+            'chat': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
+            'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
             'img': ['img'],
-            'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
-            'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
+            'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
+            'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
             'assistant': ['assistant'],
             'llama_index': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
         }
