@@ -54,6 +54,7 @@ class Presets:
         curr_vision = self.build()
         curr_langchain = self.build()
         curr_assistant = self.build()
+        curr_llama = self.build()
 
         # prepare ids
         id_chat = 'current.chat'
@@ -62,6 +63,7 @@ class Presets:
         id_vision = 'current.vision'
         id_langchain = 'current.langchain'
         id_assistant = 'current.assistant'
+        id_llama = 'current.llama_index'
 
         # set default initial prompt for chat mode
         curr_chat.prompt = self.window.core.config.get('default_prompt')
@@ -79,6 +81,8 @@ class Presets:
             curr_langchain = self.items[id_langchain]
         if id_assistant in self.items:
             curr_assistant = self.items[id_assistant]
+        if id_llama in self.items:
+            curr_llama = self.items[id_llama]
 
         # allow usage in specific mode
         curr_chat.chat = True
@@ -87,6 +91,7 @@ class Presets:
         curr_vision.vision = True
         curr_langchain.langchain = True
         curr_assistant.assistant = True
+        curr_llama.llama_index = True
 
         # always apply default name
         curr_chat.name = '*'
@@ -95,6 +100,7 @@ class Presets:
         curr_vision.name = '*'
         curr_langchain.name = '*'
         curr_assistant.name = '*'
+        curr_llama.name = '*'
 
         # append at first position
         self.items = {
@@ -104,6 +110,7 @@ class Presets:
             id_vision: curr_vision,
             id_langchain: curr_langchain,
             id_assistant: curr_assistant,
+            id_llama: curr_llama,
             **self.items
         }
 
@@ -138,6 +145,8 @@ class Presets:
             return 'langchain'
         if preset.assistant:
             return 'assistant'
+        if preset.llama_index:
+            return 'llama_index'
         return None
 
     def has(self, mode: str, id: str) -> bool:
@@ -178,7 +187,8 @@ class Presets:
                     or (mode == 'img' and self.items[id].img) \
                     or (mode == 'vision' and self.items[id].vision) \
                     or (mode == 'langchain' and self.items[id].langchain) \
-                    or (mode == 'assistant' and self.items[id].assistant):
+                    or (mode == 'assistant' and self.items[id].assistant) \
+                    or (mode == 'llama_index' and self.items[id].llama_index):
                 presets[id] = self.items[id]
         return presets
 

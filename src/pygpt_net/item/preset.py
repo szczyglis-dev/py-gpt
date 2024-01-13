@@ -22,6 +22,7 @@ class PresetItem:
         self.vision = False
         self.langchain = False
         self.assistant = False
+        self.llama_index = False
         self.temperature = 1.0
         self.filename = None
         self.model = None
@@ -39,23 +40,39 @@ class PresetItem:
             "vision": self.vision,
             "langchain": self.langchain,
             "assistant": self.assistant,
+            "llama_index": self.llama_index,
             "temperature": self.temperature,
             "filename": self.filename,
             "model": self.model,
         }
 
     def from_dict(self, data):
-        self.name = data["name"]
-        self.ai_name = data["ai_name"]
-        self.user_name = data["user_name"]
-        self.prompt = data["prompt"]
-        self.chat = data["chat"]
-        self.completion = data["completion"]
-        self.img = data["img"]
-        self.vision = data["vision"]
-        self.langchain = data["langchain"]
-        self.assistant = data["assistant"]
-        self.temperature = data["temperature"]
-        self.filename = data["filename"]
-        self.model = data["model"]
+        if "name" in data:
+            self.name = data["name"]
+        if "ai_name" in data:
+            self.ai_name = data["ai_name"]
+        if "user_name" in data:
+            self.user_name = data["user_name"]
+        if "prompt" in data:
+            self.prompt = data["prompt"]
+        if "chat" in data:
+            self.chat = data["chat"]
+        if "completion" in data:
+            self.completion = data["completion"]
+        if "img" in data:
+            self.img = data["img"]
+        if "vision" in data:
+            self.vision = data["vision"]
+        if "langchain" in data:
+            self.langchain = data["langchain"]
+        if "assistant" in data:
+            self.assistant = data["assistant"]
+        if "llama_index" in data:
+            self.llama_index = data["llama_index"]
+        if "temperature" in data:
+            self.temperature = data["temperature"]
+        if "filename" in data:
+            self.filename = data["filename"]
+        if "model" in data:
+            self.model = data["model"]
         return self

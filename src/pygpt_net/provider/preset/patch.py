@@ -27,6 +27,7 @@ class Patch:
         :return: True if migrated
         """
         migrated = False
+        is_llama = False
         for k in self.window.core.presets.items:
             data = self.window.core.presets.items[k]
             updated = False
@@ -50,6 +51,18 @@ class Patch:
                     shutil.copyfile(src, dst)
                     updated = True
                     print("Patched file: {}.".format(dst))
+
+                # < 2.0.102
+                if old < parse_version("2.0.102"):
+                    print("Migrating preset file from < 2.0.102...")
+                    if 'current.llama_index' not in self.window.core.presets.items and not is_llama:
+                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.llama_index.json')
+                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
+                                           'current.llama_index.json')
+                        shutil.copyfile(src, dst)
+                        updated = True
+                        is_llama = True  # prevent multiple copies
+                        print("Patched file: {}.".format(dst))
 
             # update file
             if updated:

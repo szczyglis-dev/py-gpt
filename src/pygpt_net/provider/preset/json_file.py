@@ -148,6 +148,7 @@ class JsonFileProvider(BaseProvider):
             'vision': item.vision,
             'langchain': item.langchain,
             'assistant': item.assistant,
+            "llama_index": item.llama_index,
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
@@ -181,6 +182,8 @@ class JsonFileProvider(BaseProvider):
             item.langchain = data['langchain']
         if 'assistant' in data:
             item.assistant = data['assistant']
+        if 'llama_index' in data:
+            item.llama_index = data['llama_index']
         if 'temperature' in data:
             item.temperature = data['temperature']
         if 'filename' in data:
