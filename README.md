@@ -1543,6 +1543,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added custom system prompt in llama-index mode
 - Added option to use online data loaders in settings
 - Added hiding of chat footer in non-chat tabs
+- Added missing libraryfor epub data loader
 
 ## 2.0.101 (2024-01-13)
 
