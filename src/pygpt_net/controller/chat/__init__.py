@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.13 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.chat.common import Common
 from pygpt_net.controller.chat.files import Files
-from pygpt_net.controller.chat.idx import Idx
 from pygpt_net.controller.chat.image import Image
 from pygpt_net.controller.chat.input import Input
 from pygpt_net.controller.chat.output import Output
@@ -30,7 +29,6 @@ class Chat:
         self.window = window
         self.common = Common(window)
         self.files = Files(window)
-        self.idx = Idx(window)
         self.image = Image(window)
         self.input = Input(window)
         self.output = Output(window)

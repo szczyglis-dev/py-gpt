@@ -25,6 +25,7 @@ class Plugin(BasePlugin):
         ]
         self.order = 100
         self.use_locale = True
+        self.mode = None  # current mode
         self.init_options()
 
     def init_options(self):
@@ -81,11 +82,22 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
+        # disable events in llama_index mode!
+
         if name == 'system.prompt':
+            if self.mode == "llama_index":  # ignore
+                return
             data['value'] = self.on_system_prompt(data['value'])
-        if name == 'post.prompt':
+        elif name == "input.before":  # get only mode
+            if "mode" in data:
+                self.mode = data['mode']
+        elif name == 'post.prompt':
+            if self.mode == "llama_index":  # ignore
+                return
             data['value'] = self.on_post_prompt(data['value'], ctx)
         elif name == 'cmd.only' or name == 'cmd.execute':
+            if self.mode == "llama_index":  # ignore
+                return
             self.cmd(ctx, data['commands'])
 
     def log(self, msg: str):
@@ -142,10 +154,10 @@ class Plugin(BasePlugin):
         if len(indexes) > 1:
             responses = []
             for index in indexes:
-                responses.append(self.window.core.idx.query(question, idx=index.strip(), model=model))
+                responses.append(self.window.core.idx.query.query(question, idx=index.strip(), model=model))
             return "\n".join(responses)
         else:
-            return self.window.core.idx.query(question, idx=idx, model=model)
+            return self.window.core.idx.query.query(question, idx=idx, model=model)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

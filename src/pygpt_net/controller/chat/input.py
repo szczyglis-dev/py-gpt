@@ -97,6 +97,7 @@ class Input:
         # event: input.before
         event = Event('input.before', {
             'value': text,
+            'mode': mode,
         })
         self.window.core.dispatcher.dispatch(event)
         text = event.data['value']
@@ -141,8 +142,6 @@ class Input:
         # send input to API, return ctx
         if self.window.core.config.get('mode') == 'img':
             ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
-        elif self.window.core.config.get('mode') == 'llama_index':
-            ctx = self.window.controller.chat.idx.send(text)  # Llama-index query
         else:
             ctx = self.window.controller.chat.text.send(text, internal=internal)  # text mode: OpenAI or LangChain
 

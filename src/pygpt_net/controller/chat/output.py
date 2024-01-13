@@ -33,7 +33,7 @@ class Output:
         :param mode: mode
         :param stream_mode: async stream mode
         """
-        not_async_modes = ['assistant', 'img', 'llama_index']
+        not_async_modes = ['assistant', 'img']
 
         # if async stream mode
         if stream_mode and mode not in not_async_modes:
@@ -73,6 +73,10 @@ class Output:
                         elif mode == "completion":
                             if chunk.choices[0].text is not None:
                                 response = chunk.choices[0].text
+
+                        elif mode == "llama_index":
+                            if chunk is not None:
+                                response = chunk
 
                         # langchain can provide different modes itself
                         elif mode == "langchain":

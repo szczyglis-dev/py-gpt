@@ -13,6 +13,8 @@ import tiktoken
 
 from pygpt_net.item.ctx import CtxItem
 
+CHAT_MODES = ["chat", "vision", "langchain", "assistant", "llama_index"]
+
 
 class Tokens:
     def __init__(self, window=None):
@@ -134,6 +136,25 @@ class Tokens:
         return num
 
     @staticmethod
+    def from_llama_messages(query: str, messages: list, model: str = "gpt-4") -> int:
+        """
+        Return number of tokens from prompt
+
+        :param query: query
+        :param messages: messages
+        :param model: model name
+        :return: number of tokens
+        """
+        model, per_message, per_name = Tokens.get_config(model)
+        num = 0
+        num += Tokens.from_str(query)
+        for message in messages:
+            num += per_message
+            num += Tokens.from_str(message.content)
+        num += 3  # every reply is primed with <|start|>assistant<|message|>
+        return num
+
+    @staticmethod
     def from_ctx(ctx: CtxItem, mode: str = "chat", model: str = "gpt-4") -> int:
         """
         Return number of tokens from context ctx
@@ -146,7 +167,7 @@ class Tokens:
         model, per_message, per_name = Tokens.get_config(model)
         num = 0
 
-        if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
+        if mode in CHAT_MODES:
             # input message
             try:
                 num += Tokens.from_str(str(ctx.input), model)
@@ -230,7 +251,7 @@ class Tokens:
         max_total_tokens = self.window.core.config.get('max_total_tokens')
         extra_tokens = self.get_extra(model)
 
-        if mode == "chat" or mode == "vision" or mode == "langchain" or mode == "assistant":
+        if mode in CHAT_MODES:
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons

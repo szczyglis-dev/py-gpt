@@ -314,7 +314,7 @@ class UI:
             self.window.ui.tabs['input'].setTabVisible(2, False)  # uploaded files
 
             # stream checkbox
-            self.window.ui.nodes['input.stream'].setVisible(False)
+            self.window.ui.nodes['input.stream'].setVisible(True)
 
         # toggle chat bottom footer
         if self.current_tab != self.tab_idx['chat']:

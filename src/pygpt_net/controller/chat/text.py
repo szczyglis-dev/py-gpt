@@ -168,7 +168,13 @@ class Text:
                     self.window.core.chain.user_name = ctx.input_name
                     self.window.core.chain.ai_name = ctx.output_name
                     result = self.window.core.chain.call(text, ctx, stream_mode)
+
+                elif mode == "llama_index":
+                    idx = self.window.controller.idx.current_idx
+                    result = self.window.core.idx.query.chat(
+                        ctx, idx=idx, model=model, sys_prompt=sys_prompt, stream=stream_mode)
                 else:
+
                     self.log("Calling OpenAI API...")  # log
                     self.window.core.gpt.system_prompt = sys_prompt
                     self.window.core.gpt.user_name = ctx.input_name

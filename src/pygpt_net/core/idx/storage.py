@@ -29,6 +29,19 @@ class Storage:
         self.window = window
         self.indexes = {}
 
+    def get_llm(self, model: str = "gpt-3.5-turbo"):
+        """
+        Get LLM
+
+        :param model: Model name
+        :return: LLM
+        """
+        # GPT
+        if model.startswith("gpt-") or model.startswith("text-davinci-"):
+            os.environ['OPENAI_API_KEY'] = self.window.core.config.get("api_key")
+            llm = OpenAI(temperature=0.0, model=model)
+            return llm
+
     def get_service_context(self, model: str = "gpt-3.5-turbo"):
         """
         Get service context
@@ -37,10 +50,7 @@ class Storage:
         :return: Service context
         """
         # GPT
-        if model.startswith("gpt-") or model.startswith("text-davinci-"):
-            os.environ['OPENAI_API_KEY'] = self.window.core.config.get("api_key")
-            llm = OpenAI(temperature=0.0, model=model)
-            return ServiceContext.from_defaults(llm=llm)
+        return ServiceContext.from_defaults(llm=self.get_llm(model=model))
         # TODO: add other models
 
     def exists(self, id: str):

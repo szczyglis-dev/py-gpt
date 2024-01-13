@@ -13,14 +13,12 @@ import datetime
 import os.path
 from packaging.version import Version
 
-from llama_index.llms import ChatMessage, MessageRole
-from llama_index.prompts import ChatPromptTemplate
-
 from pygpt_net.item.index import IndexItem
 from pygpt_net.provider.index.json_file import JsonFileProvider
 
 from .indexing import Indexing
 from .storage import Storage
+from .query import Query
 
 
 class Idx:
@@ -33,6 +31,7 @@ class Idx:
         self.window = window
         self.indexing = Indexing(window)
         self.storage = Storage(window)
+        self.query = Query(window, self.storage)
         self.provider = JsonFileProvider(window)
         self.items = {}
         self.initialized = False
@@ -95,71 +94,6 @@ class Idx:
         if num > 0:
             self.storage.store(id=idx, index=index)  # store index
         return num, errors
-
-    def get_custom_prompt(self, prompt: str = None) -> ChatPromptTemplate or None:
-        """
-        Get custom prompt template if sys prompt is not empty
-
-        :param prompt: System prompt
-        :return: ChatPromptTemplate
-        """
-        if prompt is None or prompt.strip() == "":
-            return None
-
-        qa_msgs = [
-            ChatMessage(
-                role=MessageRole.SYSTEM,
-                content=prompt,
-            ),
-            ChatMessage(
-                role=MessageRole.USER,
-                content=(
-                    "Context information is below.\n"
-                    "---------------------\n"
-                    "{context_str}\n"
-                    "---------------------\n"
-                    "Given the context information and not prior knowledge, "
-                    "answer the question: {query_str}\n"
-                ),
-            ),
-        ]
-        return ChatPromptTemplate(qa_msgs)
-
-    def query(self, query, idx: str = "base", model: str = "gpt-3.5-turbo", sys_prompt: str = None) -> str:
-        """
-        Query index
-
-        :param query: Query string
-        :param idx: Index name
-        :param model: Model name
-        :param sys_prompt: System prompt
-        :return: Response
-        """
-        # log query
-        is_log = False
-        if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
-            is_log = True
-
-        if is_log:
-            print("[LLAMA-INDEX] Query index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model))
-
-        # check if index exists
-        if not self.storage.exists(idx):
-            raise Exception("Index not prepared")
-        index = self.storage.get(idx, model=model)  # get index
-
-        # query index
-        tpl = self.get_custom_prompt(sys_prompt)
-        if tpl is not None:
-            if is_log:
-                print("[LLAMA-INDEX] Query index with custom prompt: {}...".format(sys_prompt))
-            response = index.as_query_engine(
-                text_qa_template=tpl
-            ).query(query)  # query with custom sys prompt
-        else:
-            response = index.as_query_engine().query(query)  # query with default prompt
-        return str(response)  # TODO: handle stream response
 
     def sync_items(self):
         """
