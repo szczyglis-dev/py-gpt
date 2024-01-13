@@ -316,6 +316,20 @@ class UI:
             # stream checkbox
             self.window.ui.nodes['input.stream'].setVisible(False)
 
+        # toggle chat bottom footer
+        if self.current_tab != self.tab_idx['chat']:
+            self.hide_chat_footer()
+        else:
+            self.show_chat_footer()
+
+    def show_chat_footer(self):
+        """Show chat footer."""
+        self.window.ui.nodes['chat.footer'].setVisible(True)
+
+    def hide_chat_footer(self):
+        """Hide chat footer."""
+        self.window.ui.nodes['chat.footer'].setVisible(False)
+
     def update_vision(self):
         # vision camera
         mode = self.window.core.config.data['mode']
