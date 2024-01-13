@@ -35,6 +35,7 @@ class Idx:
         # get mode
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
+        sys_prompt = self.window.core.config.get('prompt')
 
         # create ctx item
         ctx = CtxItem()
@@ -74,7 +75,7 @@ class Idx:
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
                 idx = self.window.controller.idx.current_idx
-                ctx.output = self.window.core.idx.query(ctx.input, idx=idx, model=model)  # query llama index
+                ctx.output = self.window.core.idx.query(ctx.input, idx=idx, model=model, sys_prompt=sys_prompt)  # query
 
                 # update context in DB
                 ctx.current = False  # reset current state
