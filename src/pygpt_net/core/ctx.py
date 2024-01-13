@@ -12,6 +12,8 @@
 import datetime
 import os
 
+from packaging.version import Version
+
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.provider.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
@@ -46,14 +48,14 @@ class Ctx:
             'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant'],
             'assistant': ['assistant'],
-            'llama_index': ['llama_index'],
+            'llama_index': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
         }
 
     def install(self):
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: str):
+    def patch(self, app_version: Version):
         """Patch provider data"""
         self.provider.patch(app_version)
 
