@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.103 (2024-01-13)
+
+- Llama-index mode, now integrated with context from the database, streaming, plugins, and more, can be utilized as any other mode and is no longer limited to just querying indexes.
+
 # 2.0.102 (2024-01-13)
 
 - Added presets for llama-index mode

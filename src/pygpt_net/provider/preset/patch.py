@@ -54,8 +54,8 @@ class Patch:
 
                 # < 2.0.102
                 if old < parse_version("2.0.102"):
-                    print("Migrating preset file from < 2.0.102...")
                     if 'current.llama_index' not in self.window.core.presets.items and not is_llama:
+                        print("Migrating preset file from < 2.0.102...")
                         dst = os.path.join(self.window.core.config.get_user_dir('presets'), 'current.llama_index.json')
                         src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets',
                                            'current.llama_index.json')
