@@ -113,6 +113,8 @@ class Idx:
         items = self.window.core.config.get('llama.idx.list')
         if items is not None:
             idx = self.window.core.idx.get_idx_by_name(idx)
+            if idx is None:
+                return
             current = self.window.ui.models['indexes'].index(idx, 0)
             self.window.ui.nodes['indexes'].setCurrentIndex(current)
 
