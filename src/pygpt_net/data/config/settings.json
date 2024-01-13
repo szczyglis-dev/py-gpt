@@ -513,21 +513,14 @@
         "use": "models",
         "keys": {
             "id": "text",
-            "name": "text",
-            "model_embed": {
-                "type": "combo",
-                "use": "models",
-                "value" : "gpt-3.5-turbo"
-            }
+            "name": "text"
         },
         "slider": false,
         "label": "settings.llama.idx.list",
         "value": [
             {
               "id": "base",
-              "name": "Base",
-              "model_embed": "gpt-3.5-turbo",
-              "model_query": "gpt-3.5-turbo"
+              "name": "Base"
             }
         ],
         "min": null,
@@ -570,6 +563,28 @@
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
+        "advanced": true
+    },
+    "llama.hub.loaders": {
+        "section": "llama-index",
+        "type": "dict",
+        "use": "models",
+        "keys": {
+            "ext": "text",
+            "loader": "text"
+        },
+        "slider": false,
+        "label": "settings.llama.hub.loaders",
+        "value": [
+            {
+              "ext": "pptx",
+              "loader": "PptxReader"
+            }
+        ],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": true
     }
 }

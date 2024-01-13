@@ -13,7 +13,7 @@ import os.path
 from pathlib import Path
 from sqlalchemy import text
 from llama_index import (
-    SimpleDirectoryReader,
+    SimpleDirectoryReader, download_loader,
 )
 from llama_index.readers.schema.base import Document
 from pygpt_net.core.idx.loaders.pdf.base import PDFReader
@@ -41,7 +41,25 @@ class Indexing:
             "csv": SimpleCSVReader(),
             "epub": EpubReader(),
             "xlsx": PandasExcelReader(),
-        }  # TODO: add adding custom loaders via dict config in settings
+        }
+
+    def get_online_loader(self, ext):
+        """
+        Get online loader by extension
+        :param ext: Extension of file
+        """
+        loaders = self.window.core.config.get("llama.hub.loaders")
+        if loaders is None or not isinstance(loaders, list):
+            return None
+        ext = ext.lower()
+        for loader in loaders:
+            check = loader["ext"].lower()
+            if "," in check:
+                exts = check.replace(" ", "").split(",")
+            else:
+                exts = [check.strip()]
+            if ext in exts:
+                return loader["loader"]
 
     def get_documents(self, path):
         """
@@ -58,15 +76,20 @@ class Indexing:
             )
             documents = reader.load_data()
         else:
-            ext = os.path.splitext(path)[1][1:]  # get loader by extension
-            if ext in self.loaders:
-                # download_loader cause problems in compiled version, so we use offline version :(
-                # loader = download_loader(self.loaders[ext])
-                reader = self.loaders[ext]
+            ext = os.path.splitext(path)[1][1:]  # get extension
+            online_loader = self.get_online_loader(ext)  # get online loader
+            if online_loader is not None:
+                loader = download_loader(online_loader)
+                reader = loader()
                 documents = reader.load_data(file=Path(path))
-            else:
-                reader = SimpleDirectoryReader(input_files=[path])
-                documents = reader.load_data()
+            else:  # try offline loaders
+                if ext in self.loaders:
+                    # download_loader at default cause problems in compiled version, so we use offline versions also
+                    reader = self.loaders[ext]
+                    documents = reader.load_data(file=Path(path))
+                else:
+                    reader = SimpleDirectoryReader(input_files=[path])
+                    documents = reader.load_data()
         return documents
 
     def index_files(self, index, path: str = None) -> tuple:

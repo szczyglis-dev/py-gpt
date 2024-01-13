@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu, QSizePolicy
 
 from pygpt_net.ui.widget.element.button import ContextMenuButton
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.utils import trans
 
 
@@ -55,17 +56,21 @@ class Settings:
         btns.addWidget(self.window.ui.nodes['idx.btn.db.index_update'])
         btns.addWidget(self.window.ui.nodes['idx.btn.db.index_files'])
 
+        # offline loaders
+        self.window.ui.nodes['idx.db.settings.loaders'] = \
+            QLabel("\nBuilt-in data loaders: text, " + ", ".join(self.window.core.idx.indexing.loaders.keys()))
+        self.window.ui.nodes['idx.db.settings.loaders'].setWordWrap(True)
         # add to layout
         self.window.ui.nodes['idx.db.settings.legend.head'] = QLabel(trans('settings.llama.extra.btn.idx_head'))
         self.window.ui.nodes['idx.db.settings.legend.head']\
             .setStyleSheet(self.window.controller.theme.get_style('text_bold'))
-        self.window.ui.nodes['idx.db.settings.legend.head'].setAlignment(Qt.AlignCenter)
-        self.window.ui.nodes['idx.db.settings.legend'] = QLabel(trans('settings.llama.extra.legend'))
+        self.window.ui.nodes['idx.db.settings.legend'] = HelpLabel(trans('settings.llama.extra.legend'), self.window)
         self.window.ui.nodes['idx.db.settings.legend'].setWordWrap(True)
         content.addWidget(self.window.ui.nodes['idx.db.settings.legend.head'])
         content.addLayout(btns)
         content.addWidget(self.window.ui.nodes['idx.db.settings.legend'])
         content.addWidget(self.window.ui.nodes['idx.db.last_updated'])
+        content.addWidget(self.window.ui.nodes['idx.db.settings.loaders'])
 
     def idx_db_all_context_menu(self, parent, pos):
         """
