@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.101 (2024-01-13)
+
+- User interface improvements
+- Added help tips
+
 # 2.0.100 (2024-01-13)
 
 - Llama-index integrated with database - you can now indexing all conversations and use them as additional context
