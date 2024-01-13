@@ -120,7 +120,8 @@
             "mode": [
                 "chat",
                 "assistant",
-                "langchain"
+                "langchain",
+                "llama_index"
             ],
             "langchain": {
                 "provider": "openai",

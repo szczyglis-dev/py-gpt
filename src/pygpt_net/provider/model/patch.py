@@ -55,6 +55,14 @@ class Patch:
                 data = self.window.core.models.items
                 updated = True
 
+            # < 2.0.103  <--- patch for llama-index gpt4-turbo
+            if old < parse_version("2.0.103"):
+                print("Migrating models from < 2.0.103...")
+                self.window.core.updater.patch_file('models.json', True)  # force replace file
+                self.window.core.models.load()
+                data = self.window.core.models.items
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))
