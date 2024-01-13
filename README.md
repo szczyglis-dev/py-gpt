@@ -46,7 +46,7 @@ You can download compiled version for Windows and Linux here: https://pygpt.net/
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated experimental `Llama-index` support: chat with `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx` or use previous conversations as additional context provided to model.
+- Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx` or use previous conversations as additional context provided to model.
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
