@@ -171,4 +171,11 @@ class Output:
         layout.addWidget(self.window.ui.nodes['prompt.context'])
         layout.setContentsMargins(0, 0, 0, 0)
 
-        return layout
+        self.window.ui.nodes['chat.footer'] = QWidget()
+        self.window.ui.nodes['chat.footer'].setLayout(layout)
+
+        final_layout = QVBoxLayout()
+        final_layout.addWidget(self.window.ui.nodes['chat.footer'])
+        final_layout.setContentsMargins(0, 0, 0, 0)
+
+        return final_layout
