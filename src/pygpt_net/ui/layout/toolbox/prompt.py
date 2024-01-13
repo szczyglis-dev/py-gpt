@@ -12,6 +12,7 @@
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
 
@@ -66,10 +67,13 @@ class Prompt:
         self.window.ui.nodes['preset.prompt'].update_ui = False
         self.window.ui.nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        self.window.ui.nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), self.window)
+
         # rows
         layout = QVBoxLayout()
         layout.addLayout(header)
         layout.addWidget(self.window.ui.nodes['preset.prompt'])
+        layout.addWidget(self.window.ui.nodes['tip.toolbox.prompt'])
         layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()

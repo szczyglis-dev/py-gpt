@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.13 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.utils import trans
 
 
@@ -101,9 +102,13 @@ class Painter:
         self.window.ui.painter_scroll.setWidget(self.window.ui.painter)
         self.window.ui.painter_scroll.setWidgetResizable(True)
 
+        self.window.ui.nodes['tip.output.tab.draw'] = HelpLabel(trans('tip.output.tab.draw'), self.window)
+
         layout = QVBoxLayout()
+
         layout.addLayout(top)
         layout.addWidget( self.window.ui.painter_scroll)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.draw'])
         layout.setContentsMargins(0, 0, 0, 0)
 
         return layout

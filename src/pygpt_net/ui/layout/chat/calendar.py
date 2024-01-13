@@ -10,9 +10,10 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
 
@@ -56,11 +57,14 @@ class Calendar:
 
         self.window.ui.calendar['note'] = CalendarNote(self.window)
 
+        self.window.ui.nodes['tip.output.tab.calendar'] = HelpLabel(trans('tip.output.tab.calendar'), self.window)
+
         # note
         self.window.ui.calendar['note.label'] = QLabel(trans('calendar.note.label'))
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.calendar['note.label'])
         layout.addWidget(self.window.ui.calendar['note'])
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.calendar'])
         layout.setContentsMargins(0, 0, 0, 0)
 
         widget = QWidget()

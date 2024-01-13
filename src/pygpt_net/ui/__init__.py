@@ -79,7 +79,10 @@ class UI:
         self.splitters['main'].addWidget(self.parts['ctx'])  # contexts
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
         self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
-        self.splitters['main'].setSizes([1, 8, 1])
+
+        self.splitters['main'].setStretchFactor(0, 3)
+        self.splitters['main'].setStretchFactor(1, 5)
+        self.splitters['main'].setStretchFactor(2, 1)
 
         # menus
         self.menus.setup()

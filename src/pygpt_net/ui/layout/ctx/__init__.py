@@ -14,6 +14,8 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.layout.ctx.ctx_list import CtxList
 from pygpt_net.ui.layout.ctx.video import Video
+from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.utils import trans
 
 
 class CtxMain:
@@ -38,8 +40,12 @@ class CtxMain:
         video = self.video.setup()
         search_input = self.search_input.setup()
 
+        self.window.ui.nodes['tip.toolbox.ctx'] = HelpLabel(trans('tip.toolbox.ctx'), self.window)
+
         layout = QVBoxLayout()
         layout.addWidget(ctx)
+
+        layout.addWidget(self.window.ui.nodes['tip.toolbox.ctx'])
         layout.addWidget(search_input)
         layout.addWidget(video)
 

@@ -13,6 +13,7 @@ from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
 
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.utils import trans
 
@@ -70,10 +71,13 @@ class Indexes:
         self.window.ui.nodes[self.id].selection_locked = self.window.controller.idx.change_locked
         self.window.ui.nodes[self.id].setMinimumWidth(40)
 
+        self.window.ui.nodes['tip.toolbox.indexes'] = HelpLabel(trans('tip.toolbox.indexes'), self.window)
+
         # rows
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[self.id])
+        layout.addWidget(self.window.ui.nodes['tip.toolbox.indexes'])
 
         # model
         self.window.ui.models[self.id] = self.create_model(self.window)

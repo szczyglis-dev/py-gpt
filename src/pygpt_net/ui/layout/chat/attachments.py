@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.13 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QWidget
 
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.lists.attachment import AttachmentList
 from pygpt_net.utils import trans
 
@@ -42,9 +43,13 @@ class Attachments:
         buttons.addWidget(self.setup_send_clear())
         buttons.addWidget(self.setup_capture_clear())
 
+        self.window.ui.nodes['tip.input.attachments'] = HelpLabel(trans('tip.input.attachments'), self.window)
+
         # layout
         layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes['tip.input.attachments'])
         layout.addWidget(self.window.ui.nodes['attachments'])
+
         layout.addLayout(buttons)
 
         return layout

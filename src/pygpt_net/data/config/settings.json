@@ -120,6 +120,18 @@
         "step": 1,
         "advanced": false
     },
+    "layout.tooltips": {
+        "section": "layout",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.layout.tooltips",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "theme.markdown": {
         "section": "layout",
         "type": "bool",

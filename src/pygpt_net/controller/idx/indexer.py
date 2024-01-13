@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.01.13 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -227,7 +227,7 @@ class Indexer:
             self.window.controller.idx.after_index(idx)  # post-actions (update UI, etc.)
             if not silent:
                 self.window.update_status(msg)
-                self.window.ui.msg(msg)
+                self.window.ui.dialogs.alert(msg)
         else:
             self.window.update_status(trans('idx.status.empty'))
 
@@ -250,7 +250,7 @@ class Indexer:
             self.window.controller.idx.after_index(idx)  # post-actions (update UI, etc.)
             if not silent:
                 self.window.update_status(msg)
-                self.window.ui.msg(msg)
+                self.window.ui.dialogs.alert(msg)
         else:
             self.window.update_status(trans('idx.status.empty'))
 
@@ -275,7 +275,7 @@ class Indexer:
             self.window.controller.idx.after_index(idx)  # post-actions (update UI, etc.)
             if not silent:
                 self.window.update_status(msg)
-                self.window.ui.msg(msg)
+                self.window.ui.dialogs.alert(msg)
         else:
             self.window.update_status(trans('idx.status.empty'))
 

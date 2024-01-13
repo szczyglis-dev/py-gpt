@@ -186,5 +186,6 @@ class Settings:
 
     def welcome_settings(self):
         """Open settings at first launch (if no API key yet)"""
-        self.toggle_editor('settings')
+        self.open_section("general")
+        self.window.ui.config['config']['api_key'].setFocus()
         self.window.ui.dialogs.close('info.start')

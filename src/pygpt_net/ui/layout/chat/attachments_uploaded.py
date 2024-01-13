@@ -13,6 +13,7 @@ from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QCheckBox, QLabel, QWidget
 
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.lists.uploaded import UploadedFileList
 from pygpt_net.utils import trans
 
@@ -39,6 +40,9 @@ class AttachmentsUploaded:
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setAlignment(Qt.AlignCenter)
         empty_widget = QWidget()
 
+        self.window.ui.nodes['tip.input.attachments.uploaded'] = HelpLabel(trans('tip.input.attachments.uploaded'),
+                                                                           self.window)
+
         # buttons layout
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.ui.nodes['attachments_uploaded.btn.sync'])
@@ -48,6 +52,7 @@ class AttachmentsUploaded:
 
         # layout
         layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes['tip.input.attachments.uploaded'])
         layout.addWidget(self.window.ui.nodes['attachments_uploaded'])
         layout.addLayout(buttons_layout)
 

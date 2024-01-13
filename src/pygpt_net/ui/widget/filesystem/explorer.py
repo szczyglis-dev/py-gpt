@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.01.13 08:00:00                  #
 # ================================================== #
 
 import datetime
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSyste
     QPushButton, QSizePolicy
 
 from pygpt_net.ui.widget.element.button import ContextMenuButton
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.utils import trans
 
 
@@ -72,7 +73,10 @@ class FileExplorer(QWidget):
 
         layout = QVBoxLayout()
 
+        self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
+
         layout.addWidget(self.treeView)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
         layout.addLayout(header)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)

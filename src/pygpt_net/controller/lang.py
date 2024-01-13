@@ -255,6 +255,7 @@ class Lang:
         self.window.ui.nodes['start.btn'].setText(trans('dialog.start.btn'))
 
         # input tabs
+
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
         self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab'))
         self.window.ui.nodes['attachments.btn.add'].setText(trans('attachments.btn.add'))
@@ -262,6 +263,11 @@ class Lang:
         self.window.ui.nodes['attachments_uploaded.btn.sync'].setText(trans('attachments_uploaded.btn.sync'))
         self.window.ui.nodes['attachments_uploaded.btn.clear'].setText(trans('attachments_uploaded.btn.clear'))
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
+        self.window.ui.nodes['tip.toolbox.presets'].setText(trans('tip.toolbox.presets'))
+        self.window.ui.nodes['tip.toolbox.prompt'].setText(trans('tip.toolbox.prompt'))
+        self.window.ui.nodes['tip.toolbox.assistants'].setText(trans('tip.toolbox.assistants'))
+        self.window.ui.nodes['tip.toolbox.indexes'].setText(trans('tip.toolbox.indexes'))
+        self.window.ui.nodes['tip.toolbox.ctx'].setText(trans('tip.toolbox.ctx'))
 
         # filesystem / idx
         self.window.ui.nodes['output_files'].btn_upload.setText(trans('files.local.upload'))
@@ -278,6 +284,20 @@ class Lang:
         self.window.controller.attachment.update_tab(mode)
         self.window.controller.assistant.files.update_tab()
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
+
+        # tips
+        self.window.ui.nodes['tip.output.tab.files'].setText(trans('tip.output.tab.files'))
+        self.window.ui.nodes['tip.output.tab.draw'].setText(trans('tip.output.tab.draw'))
+        self.window.ui.nodes['tip.output.tab.calendar'].setText(trans('tip.output.tab.calendar'))
+        self.window.ui.nodes['tip.output.tab.notepad'].setText(trans('tip.output.tab.notepad'))
+        self.window.ui.nodes['tip.input.attachments'].setText(trans('tip.input.attachments'))
+        self.window.ui.nodes['tip.input.attachments.uploaded'].setText(trans('tip.input.attachments.uploaded'))
+        self.window.ui.nodes['tip.toolbox.presets'].setText(trans('tip.toolbox.presets'))
+        self.window.ui.nodes['tip.toolbox.prompt'].setText(trans('tip.toolbox.prompt'))
+        self.window.ui.nodes['tip.toolbox.assistants'].setText(trans('tip.toolbox.assistants'))
+        self.window.ui.nodes['tip.toolbox.indexes'].setText(trans('tip.toolbox.indexes'))
+        self.window.ui.nodes['tip.toolbox.ctx'].setText(trans('tip.toolbox.ctx'))
+        self.window.ui.nodes['tip.toolbox.mode'].setText(trans('tip.toolbox.mode'))
 
         # theme menu
         self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))

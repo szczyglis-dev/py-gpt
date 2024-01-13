@@ -569,6 +569,13 @@ class Patch:
 
                 updated = True
 
+            # < 2.0.101
+            if old < parse_version("2.0.101"):
+                print("Migrating config from < 2.0.101...")
+                if 'layout.tooltips' not in data:
+                    data['layout.tooltips'] = True
+                updated = True
+
         # update file
         migrated = False
         if updated:

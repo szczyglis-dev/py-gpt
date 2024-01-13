@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.0.100",
-    "app.version": "2.0.100",
+    "version": "2.0.101",
+    "app.version": "2.0.101",
     "updated_at": "2024-01-13T00:00:00"
   },
   "ai_name": "",
@@ -57,6 +57,7 @@
   "layout.groups": {},
   "layout.splitters": {},
   "layout.tabs": {},
+  "layout.tooltips": true,
   "layout.window": {},
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",

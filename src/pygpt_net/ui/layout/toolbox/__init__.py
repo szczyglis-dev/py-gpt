@@ -19,6 +19,8 @@ from pygpt_net.ui.layout.toolbox.model import Model
 from pygpt_net.ui.layout.toolbox.presets import Presets
 from pygpt_net.ui.layout.toolbox.prompt import Prompt
 from pygpt_net.ui.layout.toolbox.footer import Footer
+from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.utils import trans
 
 
 class ToolboxMain:
@@ -62,9 +64,21 @@ class ToolboxMain:
         bottom_widget = QWidget()
         bottom_widget.setLayout(bottom)
 
+        self.window.ui.nodes['tip.toolbox.mode'] = HelpLabel(trans('tip.toolbox.mode'), self.window)
+        self.window.ui.nodes['tip.toolbox.mode'].setAlignment(Qt.AlignCenter)
+
+        layout_top = QVBoxLayout()
+        layout_top.addWidget(self.window.ui.splitters['toolbox.mode'])
+        layout_top.addWidget(self.window.ui.nodes['tip.toolbox.mode'])
+        layout_top.setContentsMargins(0, 0, 0, 0)
+        layout_top.setStretch(0, 1)
+
+        widget_top = QWidget()
+        widget_top.setLayout(layout_top)
+
         # rows
         self.window.ui.splitters['toolbox'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['toolbox'].addWidget(self.window.ui.splitters['toolbox.mode'])  # mode/model
+        self.window.ui.splitters['toolbox'].addWidget(widget_top)  # mode/model
         self.window.ui.splitters['toolbox'].addWidget(self.window.ui.splitters['toolbox.presets'])  # presets/assists.
         self.window.ui.splitters['toolbox'].addWidget(bottom_widget)  # system prompt, footer (names, temp, logo, etc.)
 

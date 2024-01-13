@@ -20,7 +20,7 @@ from pygpt_net.ui.layout.chat.painter import Painter
 from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
-from pygpt_net.ui.widget.textarea.notepad import NotepadOutput
+from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
 from pygpt_net.ui.widget.filesystem.explorer import FileExplorer
 from pygpt_net.utils import trans
 
@@ -58,7 +58,7 @@ class Output:
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
-                self.window.ui.notepad[i] = NotepadOutput(self.window)
+                self.window.ui.notepad[i] = NotepadWidget(self.window)
                 self.window.ui.notepad[i].id = i
 
         # tabs

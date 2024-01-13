@@ -52,6 +52,7 @@ class Editor:
         self.window.ui.add_hook("update.config.vision.capture.auto", self.hook_update)
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
+        self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
         if id == 'settings':
@@ -134,6 +135,11 @@ class Editor:
         elif key == "theme.markdown":
             self.window.core.config.set(key, value)
             self.window.controller.theme.update_markdown(force=True)
+
+        # update layout tooltips
+        elif key == "layout.tooltips":
+            self.window.core.config.set(key, value)
+            self.window.controller.theme.toggle_tooltips()
 
         # update raw output
         elif key == "render.plain":

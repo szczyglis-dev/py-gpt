@@ -138,7 +138,7 @@ class Layout:
         # notepads
         for id in self.window.ui.notepad:
             scroll_id = "notepad." + str(id)
-            data[scroll_id] = self.window.ui.notepad[id].verticalScrollBar().value()
+            data[scroll_id] = self.window.ui.notepad[id].textarea.verticalScrollBar().value()
         self.window.core.config.set('layout.scroll', data)
 
     def scroll_restore(self):
@@ -152,7 +152,7 @@ class Layout:
                 id = int(scroll_id.replace("notepad.", ""))
                 if id in self.window.ui.notepad:
                     try:
-                        self.window.ui.notepad[id].verticalScrollBar().setValue(data[scroll_id])
+                        self.window.ui.notepad[id].textarea.verticalScrollBar().setValue(data[scroll_id])
                     except Exception as e:
                         print("Error while restoring scroll state: " + str(e))
                         self.window.core.debug.log(e)

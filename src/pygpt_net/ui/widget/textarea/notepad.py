@@ -6,13 +6,40 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 08:00:00                  #
+# Updated Date: 2024.01.12 08:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QTextEdit, QMenu
+from PySide6.QtWidgets import QTextEdit, QMenu, QWidget, QVBoxLayout
 
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.utils import trans
+
+
+class NotepadWidget(QWidget):
+    def __init__(self, window=None):
+        """
+        Notepad
+
+        :param window: main window
+        """
+        super(NotepadWidget, self).__init__(window)
+        self.window = window
+        self.id = 1
+        self.textarea = NotepadOutput(self.window)
+        self.window.ui.nodes['tip.output.tab.notepad'] = HelpLabel(trans('tip.output.tab.notepad'), self.window)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.textarea)
+        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'])
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+    def setText(self, text):
+        self.textarea.setText(text)
+
+    def toPlainText(self):
+        return self.textarea.toPlainText()
 
 
 class NotepadOutput(QTextEdit):

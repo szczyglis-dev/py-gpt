@@ -40,6 +40,8 @@ class Theme:
                 lambda checked=None, theme=theme: self.window.controller.theme.toggle(theme))
             self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
+        self.toggle_tooltips()
+
         # apply current theme to nodes
         self.reload(force=False)
 
@@ -50,6 +52,33 @@ class Theme:
         current = self.window.core.config.get('theme')
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
+
+    def toggle_tooltips(self):
+        """Toggle visibility of static tooltips"""
+        nodes = [
+            'tip.output.tab.files',
+            'tip.output.tab.draw',
+            'tip.output.tab.calendar',
+            'tip.output.tab.notepad',
+            'tip.input.attachments',
+            'tip.input.attachments.uploaded',
+            'tip.toolbox.presets',
+            'tip.toolbox.prompt',
+            'tip.toolbox.assistants',
+            'tip.toolbox.indexes',
+            'tip.toolbox.ctx',
+            'tip.toolbox.mode',
+        ]
+        if not self.window.core.config.has('layout.tooltips'):
+            return
+
+        state = self.window.core.config.get('layout.tooltips')
+        if state:
+            for node in nodes:
+                self.window.ui.nodes[node].setVisible(True)
+        else:
+            for node in nodes:
+                self.window.ui.nodes[node].setVisible(False)
 
     def toggle(self, name: str, force: bool = True):
         """
@@ -167,7 +196,8 @@ class Theme:
         """
         inverse = False
         if theme.startswith('light'):
-            inverse = True
+            pass
+            # inverse = True
         extra = {
             'density_scale': self.window.core.config.get('layout.density'),
             'pyside6': True,
@@ -307,10 +337,21 @@ class Theme:
             ],
             'text_faded': [
                 'input.label',
-                'input.counter',
                 'prompt.context',
                 'chat.label',
                 'chat.model',
+                'tip.output.tab.files',
+                'tip.output.tab.draw',
+                'tip.output.tab.calendar',
+                'tip.output.tab.notepad',
+                'tip.input.attachments',
+                'tip.input.attachments.uploaded',
+                'tip.toolbox.presets',
+                'tip.toolbox.prompt',
+                'tip.toolbox.assistants',
+                'tip.toolbox.indexes',
+                'tip.toolbox.ctx',
+                'tip.toolbox.mode',
             ],
         }
 
@@ -324,7 +365,7 @@ class Theme:
         if num_notepads > 0:
             for id in range(1, num_notepads + 1):
                 if id in self.window.ui.notepad:
-                    self.window.ui.notepad[id].setStyleSheet(self.get_style('chat_output'))
+                    self.window.ui.notepad[id].textarea.setStyleSheet(self.get_style('chat_output'))
 
     def get_style(self, element: str) -> str:
         """
@@ -369,7 +410,7 @@ class Theme:
                 "code": "#fff",
             },
             "light": {
-                "a": "#fff",
+                "a": "#000",
                 "msg-user": "#444444",
                 "msg-bot": "#000",
                 "cmd": "#4d4d4d",

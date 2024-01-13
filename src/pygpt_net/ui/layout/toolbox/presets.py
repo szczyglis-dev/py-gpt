@@ -13,6 +13,7 @@ from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget
 
+from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 from pygpt_net.ui.layout.toolbox.footer import Footer
 from pygpt_net.utils import trans
@@ -70,9 +71,14 @@ class Presets:
         self.window.ui.nodes[self.id] = PresetList(self.window, self.id)
         self.window.ui.nodes[self.id].selection_locked = self.window.controller.presets.preset_change_locked
 
+        self.window.ui.nodes['tip.toolbox.presets'] = HelpLabel(trans('tip.toolbox.presets'), self.window)
+
         layout = QVBoxLayout()
         layout.addWidget(header_widget)
         layout.addWidget(self.window.ui.nodes[self.id])
+        layout.addWidget(self.window.ui.nodes['tip.toolbox.presets'])
+
+
 
         self.window.ui.models[self.id] = self.create_model(self.window)
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
