@@ -2,7 +2,7 @@
   "name": "*",
   "ai_name": "Assistant",
   "user_name": "Human",
-  "prompt": "Human: Hello\nAssistant: Hi!\nHuman: ",
+  "prompt": "",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
@@ -12,8 +12,8 @@
   "assistant": false,
   "llama_index": false,
   "__meta__": {
-    "version": "2.0.102",
-    "app.version": "2.0.102",
+    "version": "2.0.104",
+    "app.version": "2.0.104",
     "updated_at": "2024-01-13T11:00:00"
   }
 }
