@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.14 04:00:00                  #
 # ================================================== #
 
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
 
 from .chat import Chat
 from .completion import Completion
@@ -30,16 +29,6 @@ class Chain:
         self.user_name = None
         self.system_prompt = None
         self.attachments = {}
-        self.llms = {}
-
-    def register(self, id: str, llm):
-        """
-        Register LLM
-
-        :param id: LLM id
-        :param llm: LLM object
-        """
-        self.llms[id] = llm
 
     def call(self, prompt: str, ctx: CtxItem, stream_mode: bool = False) -> bool:
         """
@@ -50,16 +39,16 @@ class Chain:
         :param stream_mode: stream mode
         :return: result
         """
-        model_config = self.window.core.models.get(self.window.core.config.get('model'))
+        model = self.window.core.models.get(self.window.core.config.get('model'))
         response = None
         used_tokens = 0
         mode = 'chat'
 
         # get available modes
-        if 'mode' in model_config.langchain:
-            if 'chat' in model_config.langchain['mode']:
+        if 'mode' in model.langchain:
+            if 'chat' in model.langchain['mode']:
                 mode = 'chat'
-            elif 'completion' in model_config.langchain['mode']:
+            elif 'completion' in model.langchain['mode']:
                 mode = 'completion'
 
         try:
