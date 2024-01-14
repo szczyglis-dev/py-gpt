@@ -212,8 +212,7 @@ class Lang:
 
         self.window.ui.menu['menu.config'].setTitle(trans("menu.config"))
         self.window.ui.menu['config.settings'].setText(trans("menu.config.settings"))
-        self.window.ui.menu['config.edit.config'].setText(trans("menu.config.edit.config"))
-        self.window.ui.menu['config.edit.models'].setText(trans("menu.config.edit.models"))
+        self.window.ui.menu['config.models'].setText(trans("menu.config.models"))
         self.window.ui.menu['config.open_dir'].setText(trans("menu.config.open_dir"))
         self.window.ui.menu['config.save'].setText(trans("menu.config.save"))
 
