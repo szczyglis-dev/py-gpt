@@ -35,6 +35,9 @@ class BaseProvider:
     def load(self) -> dict:
         pass
 
+    def load_base(self) -> dict:
+        pass
+
     def save(self, items: dict):
         pass
 
