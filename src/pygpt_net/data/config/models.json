@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.0.103",
-        "app.version": "2.0.103",
-        "updated_at": "2024-01-13T03:36:23"
+        "version": "2.0.104",
+        "app.version": "2.0.104",
+        "updated_at": "2024-01-14T14:53:56"
     },
     "items": {
         "dall-e-2": {
@@ -11,7 +11,18 @@
             "mode": [
                 "img"
             ],
-            "langchain": {},
+            "langchain": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
+            "llama_index": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
             "ctx": 0,
             "tokens": 0,
             "default": false
@@ -22,7 +33,18 @@
             "mode": [
                 "img"
             ],
-            "langchain": {},
+            "langchain": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
+            "llama_index": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
             "ctx": 0,
             "tokens": 0,
             "default": true
@@ -41,9 +63,38 @@
                 "mode": [
                     "chat"
                 ],
-                "args": {
-                    "model_name": "gpt-3.5-turbo"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-3.5-turbo",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-3.5-turbo",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 4096,
             "tokens": 4096,
@@ -62,9 +113,25 @@
                 "mode": [
                     "chat"
                 ],
-                "args": {
-                    "model_name": "gpt-3.5-turbo-1106"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-3.5-turbo-1106",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
             },
             "ctx": 16385,
             "tokens": 4096,
@@ -84,9 +151,38 @@
                 "mode": [
                     "chat"
                 ],
-                "args": {
-                    "model_name": "gpt-3.5-turbo-16k"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-3.5-turbo-16k",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-3.5-turbo-16k",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 16385,
             "tokens": 4096,
@@ -106,9 +202,38 @@
                 "mode": [
                     "chat"
                 ],
-                "args": {
-                    "model_name": "gpt-4"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 8192,
             "tokens": 4096,
@@ -128,9 +253,38 @@
                 "mode": [
                     "chat"
                 ],
-                "args": {
-                    "model_name": "gpt-4-1106-preview"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-1106-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-1106-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 128000,
             "tokens": 4096,
@@ -150,9 +304,38 @@
                 "mode": [
                     "chat"
                 ],
-                "args": {
-                    "model_name": "gpt-4-32k"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-32k",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-32k",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 32768,
             "tokens": 4096,
@@ -164,7 +347,18 @@
             "mode": [
                 "vision"
             ],
-            "langchain": {},
+            "langchain": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
+            "llama_index": {
+                "provider": null,
+                "mode": [],
+                "args": [],
+                "env": []
+            },
             "ctx": 128000,
             "tokens": 4096,
             "default": false
@@ -182,9 +376,36 @@
                 "mode": [
                     "completion"
                 ],
-                "args": {
-                    "model_name": "text-davinci-002"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "text-davinci-002",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "text-davinci-002",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 4096,
             "tokens": 4096,
@@ -203,9 +424,36 @@
                 "mode": [
                     "completion"
                 ],
-                "args": {
-                    "model_name": "text-davinci-003"
-                }
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "text-davinci-003",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "text-davinci-003",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
             },
             "ctx": 4096,
             "tokens": 4096,
