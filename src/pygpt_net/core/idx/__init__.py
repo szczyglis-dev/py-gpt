@@ -18,7 +18,7 @@ from pygpt_net.provider.index.json_file import JsonFileProvider
 
 from .indexing import Indexing
 from .storage import Storage
-from .query import Query
+from .chat import Chat
 
 
 class Idx:
@@ -31,7 +31,7 @@ class Idx:
         self.window = window
         self.indexing = Indexing(window)
         self.storage = Storage(window)
-        self.query = Query(window, self.storage)
+        self.chat = Chat(window, self.storage)
         self.provider = JsonFileProvider(window)
         self.items = {}
         self.initialized = False
