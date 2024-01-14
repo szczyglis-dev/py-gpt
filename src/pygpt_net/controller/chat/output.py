@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 23:00:00                  #
+# Updated Date: 2024.01.14 09:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -24,6 +24,7 @@ class Output:
         :param window: Window instance
         """
         self.window = window
+        self.not_stream_modes = ['assistant', 'img']
 
     def handle(self, ctx: CtxItem, mode: str, stream_mode: bool = False):
         """
@@ -33,86 +34,9 @@ class Output:
         :param mode: mode
         :param stream_mode: async stream mode
         """
-        not_async_modes = ['assistant', 'img']
-
-        # if async stream mode
-        if stream_mode and mode not in not_async_modes:
-            output = ""
-            output_tokens = 0
-            begin = True
-            sub_mode = None  # sub mode for langchain (chat, completion)
-
-            # get sub mode for langchain
-            if mode == "langchain":
-                config = self.window.core.models.get(self.window.core.config.get('model'))
-                sub_mode = 'chat'
-                # get available modes for langchain
-                if 'mode' in config.langchain:
-                    if 'chat' in config.langchain['mode']:
-                        sub_mode = 'chat'
-                    elif 'completion' in config.langchain['mode']:
-                        sub_mode = 'completion'
-            
-            # chunks: stream begin
-            self.window.controller.chat.render.stream_begin()  # append EOL
-
-            # read stream
-            try:
-                if ctx.stream is not None:
-                    self.window.controller.debug.log("Reading stream...")  # log
-                    for chunk in ctx.stream:
-                        # if force stop then break
-                        if self.window.controller.chat.input.stop:
-                            break
-
-                        response = None
-                        if mode == "chat" or mode == "vision":
-                            if chunk.choices[0].delta.content is not None:
-                                response = chunk.choices[0].delta.content
-
-                        elif mode == "completion":
-                            if chunk.choices[0].text is not None:
-                                response = chunk.choices[0].text
-
-                        elif mode == "llama_index":
-                            if chunk is not None:
-                                response = chunk
-
-                        # langchain can provide different modes itself
-                        elif mode == "langchain":
-                            if sub_mode == 'chat':
-                                # if chat model response is an object
-                                if chunk.content is not None:
-                                    response = chunk.content
-                            elif sub_mode == 'completion':
-                                # if completion response is string
-                                if chunk is not None:
-                                    response = chunk
-
-                        if response is not None:
-                            if begin and response == "":  # prevent empty beginning
-                                continue
-                            output += response
-                            output_tokens += 1
-                            self.window.controller.chat.render.append_chunk(ctx, response, begin)
-                            self.window.controller.ui.update_tokens()  # update UI
-                            QApplication.processEvents()  # process events to update UI after each chunk
-                            begin = False
-
-            except Exception as e:
-                self.window.core.debug.log(e)
-
-            # chunks: stream end
-            self.window.controller.chat.render.stream_end()
-
-            # log
-            self.window.controller.debug.log("End of stream.")  
-
-            # update ctx
-            ctx.output = output
-            ctx.set_tokens(ctx.input_tokens, output_tokens)
-
-            # --- end of stream mode ---
+        # if stream mode then append chunk by chunk
+        if stream_mode and mode not in self.not_stream_modes:
+            self.append_stream(ctx, mode)
 
         # event: ctx.after
         event = Event('ctx.after')
@@ -120,9 +44,8 @@ class Output:
         self.window.core.dispatcher.dispatch(event)
 
         # log
-        self.window.controller.debug.log("Context: output [after plugin: ctx.after]: {}".
-                                         format(self.window.core.ctx.dump(ctx)))
-        self.window.controller.debug.log("Appending output to chat window...")
+        self.log("Context: output [after plugin: ctx.after]: {}".format(self.window.core.ctx.dump(ctx)))
+        self.log("Appending output to chat window...")
 
         # only append output if not in async stream mode, TODO: plugin output add
         if not stream_mode:
@@ -130,6 +53,92 @@ class Output:
             self.window.controller.chat.render.append_extra(ctx)
 
         self.handle_complete(ctx)
+
+    def append_stream(self, ctx: CtxItem, mode: str):
+        """
+        Handle stream response from LLM
+
+        :param ctx: CtxItem
+        :param mode: mode
+        """
+        output = ""
+        output_tokens = 0
+        begin = True
+        sub_mode = None  # sub mode for langchain (chat, completion)
+
+        # get sub mode for langchain
+        if mode == "langchain":
+            model_config = self.window.core.models.get(self.window.core.config.get('model'))
+            sub_mode = 'chat'
+            # get available modes for langchain
+            if 'mode' in model_config.langchain:
+                if 'chat' in model_config.langchain['mode']:
+                    sub_mode = 'chat'
+                elif 'completion' in model_config.langchain['mode']:
+                    sub_mode = 'completion'
+
+        # chunks: stream begin
+        self.window.controller.chat.render.stream_begin()
+
+        # read stream
+        try:
+            if ctx.stream is not None:
+                self.log("Reading stream...")  # log
+                for chunk in ctx.stream:
+                    # if force stop then break
+                    if self.window.controller.chat.input.stop:
+                        break
+
+                    response = None
+
+                    # chat and vision
+                    if mode == "chat" or mode == "vision":
+                        if chunk.choices[0].delta.content is not None:
+                            response = chunk.choices[0].delta.content
+
+                    # completion
+                    elif mode == "completion":
+                        if chunk.choices[0].text is not None:
+                            response = chunk.choices[0].text
+
+                    # llama_index
+                    elif mode == "llama_index":
+                        if chunk is not None:
+                            response = chunk
+
+                    # langchain (can provide different modes itself)
+                    elif mode == "langchain":
+                        if sub_mode == 'chat':
+                            # if chat model response is an object
+                            if chunk.content is not None:
+                                response = chunk.content
+                        elif sub_mode == 'completion':
+                            # if completion response is string
+                            if chunk is not None:
+                                response = chunk
+
+                    if response is not None:
+                        if begin and response == "":  # prevent empty beginning
+                            continue
+                        output += response
+                        output_tokens += 1
+                        self.window.controller.chat.render.append_chunk(ctx, response, begin)
+                        self.window.controller.ui.update_tokens()  # update UI
+                        QApplication.processEvents()  # process events to update UI after each chunk
+                        begin = False
+
+        except Exception as e:
+            self.window.core.debug.log(e)
+
+        # chunks: stream end
+        self.window.controller.chat.render.stream_end()
+
+        # log
+        self.log("End of stream.")
+
+        # update ctx
+        ctx.output = output
+        ctx.set_tokens(ctx.input_tokens, output_tokens)
 
     def handle_complete(self, ctx: CtxItem):
         """
@@ -159,13 +168,20 @@ class Output:
 
         :param ctx: CtxItem
         """
-
         cmds = self.window.core.command.extract_cmds(ctx.output)
         if len(cmds) > 0:
             ctx.cmds = cmds  # append to ctx
             if self.window.core.config.get('cmd'):
-                self.window.controller.debug.log("Executing commands...")
+                self.log("Executing commands...")
                 self.window.ui.status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)
             else:
                 self.window.controller.plugins.apply_cmds_only(ctx, cmds)
+
+    def log(self, data: any):
+        """
+        Log data to debug
+
+        :param data: Data to log
+        """
+        self.window.controller.debug.log(data, True)
