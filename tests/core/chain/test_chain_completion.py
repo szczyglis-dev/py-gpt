@@ -30,9 +30,10 @@ def test_build(mock_window_conf):
     ctx_item.output = 'AI message'
     items.append(ctx_item)
 
+    mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
     completion = Completion(mock_window_conf)
     completion.window.core.config.get.return_value = True
-    completion.window.core.ctx.get_all_items.return_value = items
+    completion.window.core.ctx.get_prompt_items.return_value = items
 
     message = completion.build('test_prompt', 'test_system_prompt')
     assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
@@ -57,7 +58,8 @@ def test_build_with_names(mock_window_conf):
 
     completion = Completion(mock_window_conf)
     completion.window.core.config.get.return_value = True
-    completion.window.core.ctx.get_all_items.return_value = items
+    mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
+    completion.window.core.ctx.get_prompt_items.return_value = items
 
     message = completion.build('test_prompt', 'test_system_prompt', ai_name='AI', user_name='User')
     assert message == 'test_system_prompt\nUser: user message\nAI: AI message\nUser: test_prompt\nAI:'

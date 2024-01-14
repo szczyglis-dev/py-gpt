@@ -34,7 +34,8 @@ def test_build(mock_window_conf):
 
     chat = Chat(mock_window_conf)
     chat.window.core.config.get.return_value = True
-    chat.window.core.ctx.get_all_items.return_value = items
+    mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
+    chat.window.core.ctx.get_prompt_items.return_value = items
 
     messages = chat.build('test_prompt', 'test_system_prompt')
     assert len(messages) == 4
