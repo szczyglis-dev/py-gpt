@@ -45,6 +45,7 @@ class Completion:
                         self.window, model, stream_mode)
                 except Exception as e:
                     self.window.core.debug.log(e)
+                    raise e
         if llm is None:
             raise Exception("Invalid LLM")
 

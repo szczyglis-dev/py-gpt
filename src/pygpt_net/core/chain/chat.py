@@ -48,8 +48,9 @@ class Chat:
                         self.window, model, stream_mode)
                 except Exception as e:
                     self.window.core.debug.log(e)
+                    raise e
 
-        # if no LLM here then raise exception
+                    # if no LLM here then raise exception
         if llm is None:
             raise Exception("Invalid LLM")
 
