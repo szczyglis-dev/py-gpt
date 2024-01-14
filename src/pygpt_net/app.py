@@ -101,7 +101,7 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param llm: LLM wrapper instance
         """
-        self.core.chain.register(llm.id, llm)
+        self.core.llm.register(llm.id, llm)
 
     def setup(self):
         """Setup app"""
