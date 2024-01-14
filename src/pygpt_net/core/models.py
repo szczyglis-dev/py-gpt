@@ -45,6 +45,23 @@ class Models:
         if model in self.items:
             return self.items[model]
 
+    def get_ids(self) -> list:
+        """
+        Return models ids
+
+        :return: model ids list
+        """
+        return list(self.items.keys())
+
+    def get_id_by_idx_all(self, idx: int) -> str:
+        """
+        Return model id by index
+
+        :param idx: model idx
+        :return: model id
+        """
+        return list(self.items.keys())[idx]
+
     def has(self, model: str) -> bool:
         """
         Check if model exists
@@ -65,6 +82,16 @@ class Models:
         if model in self.items:
             return mode in self.items[model].mode
         return False
+
+    def get_id(self, key: str) -> str:
+        """
+        Return model internal ID
+
+        :param key: model key
+        :return: model id
+        """
+        if key in self.items:
+            return self.items[key].id
 
     def get_by_idx(self, idx: int, mode: str) -> str:
         """
@@ -90,6 +117,30 @@ class Models:
                 items[key] = self.items[key]
         return items
 
+    def create_id(self):
+        """
+        Create new model id
+
+        :return: new model id
+        """
+        id = "model-000"
+        while id in self.items:
+            id = "model-" + str(int(id.split("-")[1]) + 1).zfill(3)
+        return id
+
+    def create_empty(self) -> ModelItem:
+        """
+        Create new empty model
+
+        :return: new model
+        """
+        id = self.create_id()
+        model = ModelItem()
+        model.id = id
+        model.name = "New model"
+        self.items[id] = model
+        return model
+
     def get_all(self) -> dict:
         """
         Return all models
@@ -97,6 +148,15 @@ class Models:
         :return: all models
         """
         return self.items
+
+    def delete(self, model: str):
+        """
+        Delete model
+
+        :param model: model name
+        """
+        if model in self.items:
+            del self.items[model]
 
     def has_model(self, mode: str, model: str) -> bool:
         """
@@ -146,12 +206,31 @@ class Models:
             return self.items[model].ctx
         return 4096
 
+    def restore_default(self, model: str = None):
+        """Restore default models"""
+        # restore all models
+        if model is None:
+            self.load_base()
+            return
+
+        # restore single model
+        items = self.provider.load_base()
+        if model in items:
+            self.items[model] = items[model]
+
+    def load_base(self):
+        """Load models base"""
+        self.items = self.provider.load_base()
+        self.sort_items()
+
     def load(self):
-        """
-        Load models
-        """
+        """Load models"""
         self.items = self.provider.load()
-        self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))  # sort by key
+        self.sort_items()
+
+    def sort_items(self):
+        """Sort items"""
+        self.items = dict(sorted(self.items.items(), key=lambda item: item[0]))
 
     def save(self):
         """Save models"""

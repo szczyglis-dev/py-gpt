@@ -17,6 +17,7 @@ from pygpt_net.ui.dialog.dictionary import Dictionary
 from pygpt_net.ui.dialog.editor import Editor
 from pygpt_net.ui.dialog.image import Image
 from pygpt_net.ui.dialog.logger import Logger
+from pygpt_net.ui.dialog.models import Models
 from pygpt_net.ui.dialog.plugins import Plugins
 from pygpt_net.ui.dialog.preset import Preset
 from pygpt_net.ui.dialog.rename import Rename
@@ -66,6 +67,7 @@ class Dialogs:
 
         self.window.settings = Settings(self.window)
         self.window.plugin_settings = Plugins(self.window)
+        self.window.model_settings = Models(self.window)
         self.window.ui.dialog['alert'] = AlertDialog(self.window)
         self.window.ui.dialog['confirm'] = ConfirmDialog(self.window)
 

@@ -95,6 +95,7 @@ class Controller:
         """Post-setup, after plugins are loaded"""
         self.settings.setup()
         self.plugins.settings.setup()
+        self.model.editor.setup()
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
         self.drawing.setup()  # load previous image if exists

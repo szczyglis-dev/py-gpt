@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 06:00:00                  #
+# Updated Date: 2024.01.12 08:00:00                  #
 # ================================================== #
-
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
@@ -16,21 +15,21 @@ from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
 
 
-class ModelList(BaseList):
+class ModelEditorList(BaseList):
     def __init__(self, window=None, id=None):
         """
-        Presets select menu
+        Model select menu (in editor)
 
         :param window: main window
-        :param id: input id
+        :param id: parent id
         """
-        super(ModelList, self).__init__(window)
+        super(ModelEditorList, self).__init__(window)
         self.window = window
         self.id = id
 
     def click(self, val):
-        self.window.controller.model.select(val.row())
-        self.selection = self.selectionModel().selection()
+        idx = val.row()
+        self.window.controller.model.editor.select(idx)
 
     def contextMenuEvent(self, event):
         """
@@ -39,25 +38,26 @@ class ModelList(BaseList):
         :param event: context menu event
         """
         actions = {}
-        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.edit'), self)
-        actions['edit'].triggered.connect(
-            lambda: self.action_edit(event))
+        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'].triggered.connect(
+            lambda: self.action_delete(event))
 
         menu = QMenu(self)
-        menu.addAction(actions['edit'])
+        menu.addAction(actions['delete'])
 
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
             menu.exec_(event.globalPos())
 
-    def action_edit(self, event):
+    def action_delete(self, event):
         """
-        Edit action handler
+        Delete action handler
 
         :param event: mouse event
         """
         item = self.indexAt(event.pos())
         idx = item.row()
         if idx >= 0:
-            self.window.controller.model.editor.open_by_idx(idx)
+            self.window.controller.model.editor.delete_by_idx(idx)
+

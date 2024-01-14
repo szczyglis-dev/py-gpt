@@ -88,7 +88,7 @@ class Editor:
         """Setup editor"""
         parent = "assistant"
         key = "tool.function"
-        self.window.ui.dialogs.register_dictionary(key, parent, self.get_option('tool.function'))
+        self.window.ui.dialogs.register_dictionary(key, parent, self.get_option(key))
 
     def edit(self, idx: int = None):
         """
