@@ -62,7 +62,7 @@ class BaseLLM:
                 elif type == 'dict':
                     args[key] = json.loads(value)
                 elif type == 'list':
-                    args[key] = ",".join(value)
+                    args[key] = value.split(',')
                 elif type == 'None':
                     args[key] = None
                 else:
