@@ -1542,6 +1542,7 @@ may consume additional tokens that are not displayed in the main window.
 - Langchain support refactored and fixed
 - Added editor for models
 - Added options for customize arguments and environment vars passed to langchain and llama providers
+- Added context length limit in modes: langchain and llama-index
 - Models configuration integrated between GPT/Langchain/Llama-index
 
 ## 2.0.103 (2024-01-13)
