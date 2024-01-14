@@ -68,8 +68,16 @@ class Completion:
 
         # tokens config
         model = self.window.core.config.get('model')
-        mode = self.window.core.config.get('mode')
         model_id = self.window.core.models.get_id(model)
+        mode = self.window.core.config.get('mode')
+
+        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)
+        max_tokens = self.window.core.config.get('max_total_tokens')
+        model_ctx = self.window.core.models.get_num_ctx(model_id)
+
+        # fit to max model ctx tokens
+        if max_tokens > model_ctx:
+            max_tokens = model_ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -78,7 +86,7 @@ class Completion:
             message += system_prompt
 
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_all_items()
+            items = self.window.core.ctx.get_prompt_items(model_id, mode, used_tokens, max_tokens)
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \

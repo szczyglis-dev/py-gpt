@@ -114,7 +114,7 @@ class Chat:
         index = self.storage.get(idx, model=model)  # get index
 
         # append context from DB
-        history = self.context.get_messages()
+        history = self.context.get_messages(ctx.input, sys_prompt)
         memory = ChatMemoryBuffer.from_defaults(chat_history=history)
         self.input_tokens = self.window.core.tokens.from_llama_messages(query, history, model.id)
         chat_engine = index.as_chat_engine(

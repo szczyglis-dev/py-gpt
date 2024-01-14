@@ -21,16 +21,31 @@ class Context:
         """
         self.window = window
 
-    def get_messages(self):
+    def get_messages(self, input_prompt, system_prompt):
         """
         Get messages from db
 
+        :param input_prompt: input prompt
+        :param system_prompt: system prompt
         :return: Messages
         """
         messages = []
 
+        # tokens config
+        model = self.window.core.config.get('model')
+        model_id = self.window.core.models.get_id(model)
+        mode = self.window.core.config.get('mode')
+
+        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
+        max_tokens = self.window.core.config.get('max_total_tokens')
+        model_ctx = self.window.core.models.get_num_ctx(model_id)
+
+        # fit to max model tokens
+        if max_tokens > model_ctx:
+            max_tokens = model_ctx
+
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_all_items()
+            items = self.window.core.ctx.get_prompt_items(model_id, mode, used_tokens, max_tokens)
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
