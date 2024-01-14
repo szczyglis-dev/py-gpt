@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.14 12:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -73,7 +74,7 @@ class Preset(BaseConfigDialog):
 
         rows = QVBoxLayout()
 
-        ignore_keys = ["chat", "completion", "img", "vision" , "assistant", "langchain"]
+        ignore_keys = ["chat", "completion", "img", "vision", "assistant", "langchain", "prompt"]
 
         rows1 = QHBoxLayout()
         rows1.addLayout(options["chat"])
@@ -85,6 +86,9 @@ class Preset(BaseConfigDialog):
         rows2.addLayout(options["assistant"])
         rows2.addLayout(options["langchain"])
 
+        rows_bottom = QWidget()
+        rows_bottom.setLayout(options["prompt"])
+
         # append widgets options layouts to rows
         for key in options:
             if key in ignore_keys:
@@ -94,10 +98,17 @@ class Preset(BaseConfigDialog):
                  rows.addLayout(rows1)
                  rows.addLayout(rows2)
 
+        rows.addStretch()
+        rows_top = QWidget()
+        rows_top.setLayout(rows)
+
+        self.window.ui.splitters['editor.presets'] = QSplitter(Qt.Vertical)
+        self.window.ui.splitters['editor.presets'].addWidget(rows_top)
+        self.window.ui.splitters['editor.presets'].addWidget(rows_bottom)
+
         layout = QVBoxLayout()
-        layout.addLayout(rows)
+        layout.addWidget(self.window.ui.splitters['editor.presets'])
         layout.addLayout(footer)
-        layout.setStretch(1, 1)
 
         self.window.ui.dialog['editor.' + self.dialog_id] = EditorDialog(self.window, self.dialog_id)
         self.window.ui.dialog['editor.' + self.dialog_id].setLayout(layout)
