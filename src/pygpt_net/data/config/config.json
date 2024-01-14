@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.103",
-    "app.version": "2.0.103",
-    "updated_at": "2024-01-13T00:00:00"
+    "version": "2.0.104",
+    "app.version": "2.0.104",
+    "updated_at": "2024-01-14T00:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -67,8 +67,7 @@
   "llama.idx.list": [
       {
           "id": "base",
-          "name": "Base",
-          "model_embed": "gpt-3.5-turbo"
+          "name": "Base"
       }
   ],
   "llama.idx.status": {},

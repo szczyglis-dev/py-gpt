@@ -1,3 +1,10 @@
+2.0.104 (2024-01-14)
+
+- Langchain support refactored and fixed
+- Added editor for models
+- Added options for customize arguments and environment vars passed to langchain and llama providers
+- Models configuration integrated between GPT/Langchain/Llama-index
+
 2.0.103 (2024-01-13)
 
 - Llama-index mode, now integrated with context from the database, streaming, plugins, and more, can be utilized as any other mode and is no longer limited to just querying indexes.

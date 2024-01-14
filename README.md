@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.103** | build: **2024.01.13** | Python: **3.10+**
+Release: **2.0.104** | build: **2024.01.14** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1536,6 +1536,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.104 (2024-01-14)
+
+- Langchain support refactored and fixed
+- Added editor for models
+- Added options for customize arguments and environment vars passed to langchain and llama providers
+- Models configuration integrated between GPT/Langchain/Llama-index
 
 ## 2.0.103 (2024-01-13)
 
