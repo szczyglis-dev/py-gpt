@@ -6,42 +6,41 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.14 11:00:00                  #
 # ================================================== #
-
-import os
 
 from langchain_community.llms import HuggingFaceHub
 
 
-class HuggingFaceLLM:
-    def __init__(self):
+from .base import BaseLLM
+from pygpt_net.item.model import ModelItem
+
+
+class HuggingFaceLLM(BaseLLM):
+    def __init__(self, *args, **kwargs):
+        super(HuggingFaceLLM, self).__init__(*args, **kwargs)
         self.id = "huggingface"
+        self.type = ["langchain"]
 
-    def completion(self, config, options: dict, stream: bool = False):
+    def completion(self, window, model: ModelItem, stream: bool = False):
         """
-        Return LLM model for completion
+        Return LLM provider instance for completion
 
-        :param config: Config instance
-        :param options: options dict
+        :param window: window instance
+        :param model: model instance
         :param stream: stream mode
-        :return: LLM model
+        :return: LLM provider instance
         """
-        args = {}
-        if 'args' in options:
-            args = options['args']
-        os.environ['HUGGINGFACEHUB_API_TOKEN'] = options['api_key']
-        os.environ['HUGGINGFACEHUB_API_KEY'] = options['api_key']
-        llm = HuggingFaceHub(**args)
-        return llm
+        args = self.parse_args(model.langchain)
+        return HuggingFaceHub(**args)
 
-    def chat(self, config, options: dict, stream: bool = False):
+    def chat(self, window, model: ModelItem, stream: bool = False):
         """
-        Return LLM model for chat
+        Return LLM provider instance for chat
 
-        :param config: Config instance
-        :param options: options dict
+        :param window: window instance
+        :param model: model instance
         :param stream: stream mode
-        :return: LLM model
+        :return: LLM provider instance
         """
         return None

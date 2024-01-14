@@ -6,45 +6,42 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.14 11:00:00                  #
 # ================================================== #
-
-import os
 
 from langchain_community.llms import Anthropic
 from langchain_community.chat_models import ChatAnthropic
 
+from .base import BaseLLM
+from pygpt_net.item.model import ModelItem
 
-class AnthropicLLM:
-    def __init__(self):
+
+class AnthropicLLM(BaseLLM):
+    def __init__(self, *args, **kwargs):
+        super(AnthropicLLM, self).__init__(*args, **kwargs)
         self.id = "anthropic"
+        self.type = ["langchain"]
 
-    def completion(self, config, options: dict, stream: bool = False):
+    def completion(self, window, model: ModelItem, stream: bool = False):
         """
-        Return LLM model for completion
+        Return LLM provider instance for completion
 
-        :param config: Config instance
-        :param options: options dict
+        :param window: window instance
+        :param model: model instance
         :param stream: stream mode
-        :return: LLM model
+        :return: LLM provider instance
         """
-        args = {}
-        if 'args' in options:
-            args = options['args']
-        llm = Anthropic(**args)
-        return llm
+        args = self.parse_args(model.langchain)
+        return Anthropic(**args)
 
-    def chat(self, config, options: dict, stream: bool = False):
+    def chat(self, window, model: ModelItem, stream: bool = False):
         """
-        Return LLM model for chat
+        Return LLM provider instance for chat
 
-        :param config: Config instance
-        :param options: options dict
+        :param window: window instance
+        :param model: model instance
         :param stream: stream mode
-        :return: LLM model
+        :return: LLM provider instance
         """
-        args = {}
-        if 'args' in options:
-            args = options['args']
-        llm = ChatAnthropic(**args)
-        return llm
+        args = self.parse_args(model.langchain)
+        return ChatAnthropic(**args)

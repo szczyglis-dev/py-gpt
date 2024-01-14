@@ -6,49 +6,56 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.14 11:00:00                  #
 # ================================================== #
 
-import os
-
 from langchain_community.llms import OpenAI
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
+from llama_index.llms import OpenAI as LlamaOpenAI
 
 
-class OpenAILLM:
-    def __init__(self):
+from .base import BaseLLM
+from pygpt_net.item.model import ModelItem
+
+
+class OpenAILLM(BaseLLM):
+    def __init__(self, *args, **kwargs):
+        super(OpenAILLM, self).__init__(*args, **kwargs)
         self.id = "openai"
+        self.type = ["langchain", "llama_index"]
 
-    def completion(self, config, options: dict, stream: bool = False):
+    def completion(self, window, model: ModelItem, stream: bool = False):
         """
-        Return LLM model for completion
+        Return LLM provider instance for completion
 
-        :param config: Config instance
-        :param options: options dict
+        :param window: window instance
+        :param model: model instance
         :param stream: stream mode
-        :return: LLM model
+        :return: LLM provider instance
         """
-        args = {}
-        if 'args' in options:
-            args = options['args']
-        os.environ['OPENAI_API_KEY'] = config["api_key"]
-        os.environ['OPENAI_API_TOKEN'] = config["api_key"]
-        llm = OpenAI(**args)
-        return llm
+        args = self.parse_args(model.langchain)
+        return OpenAI(**args)
 
-    def chat(self, config, options: dict, stream: bool = False):
+    def chat(self, window, model: ModelItem, stream: bool = False):
         """
-        Return LLM model for chat
+        Return LLM provider instance for chat
 
-        :param config: Config instance
-        :param options: options dict
+        :param window: window instance
+        :param model: model instance
         :param stream: stream mode
-        :return: LLM model
+        :return: LLM provider instance
         """
-        args = {}
-        if 'args' in options:
-            args = options['args']
-        os.environ['OPENAI_API_KEY'] = config["api_key"]
-        os.environ['OPENAI_API_TOKEN'] = config["api_key"]
-        llm = ChatOpenAI(**args)
-        return llm
+        args = self.parse_args(model.langchain)
+        return ChatOpenAI(**args)
+
+    def llama(self, window, model: ModelItem, stream: bool = False):
+        """
+        Return LLM provider instance for llama
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: LLM provider instance
+        """
+        args = self.parse_args(model.llama_index)
+        return LlamaOpenAI(**args)
