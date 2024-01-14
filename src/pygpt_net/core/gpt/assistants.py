@@ -121,8 +121,10 @@ class Assistants:
         additional_args = {}
         if instructions is not None and instructions != "":
             additional_args['instructions'] = instructions
-        if self.window.core.config.get('model') is not None:
-            additional_args['model'] = self.window.core.config.get('model')
+        model = self.window.core.config.get('model')
+        if model is not None:
+            model_id = self.window.core.models.get_id(model)
+            additional_args['model'] = model_id
 
         run = client.beta.threads.runs.create(
             thread_id=thread_id,

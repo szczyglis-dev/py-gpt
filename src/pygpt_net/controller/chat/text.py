@@ -59,13 +59,14 @@ class Text:
         # get mode
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
+        model_data = self.window.core.models.get(model)
 
         # create ctx item
         ctx = CtxItem()
         ctx.internal = internal
         ctx.current = True  # mark as current context item
         ctx.mode = mode
-        ctx.model = model
+        ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
@@ -162,6 +163,7 @@ class Text:
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
 
+                # langchain mode
                 if mode == "langchain":
                     self.log("Calling LangChain...")  # log
                     self.window.core.chain.system_prompt = sys_prompt
@@ -169,12 +171,15 @@ class Text:
                     self.window.core.chain.ai_name = ctx.output_name
                     result = self.window.core.chain.call(text, ctx, stream_mode)
 
+                # llama index mode
                 elif mode == "llama_index":
                     idx = self.window.controller.idx.current_idx
-                    result = self.window.core.idx.query.chat(
-                        ctx, idx=idx, model=model, sys_prompt=sys_prompt, stream=stream_mode)
-                else:
+                    # passing real model ID here, not model item key, TODO: pass object instead of ID
+                    result = self.window.core.idx.chat.call(
+                        ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
 
+                # gpt chat mode
+                else:
                     self.log("Calling OpenAI API...")  # log
                     self.window.core.gpt.system_prompt = sys_prompt
                     self.window.core.gpt.user_name = ctx.input_name
@@ -188,6 +193,7 @@ class Text:
                 ctx.current = False  # reset current state
                 self.window.core.ctx.update_item(ctx)
 
+                # launch assistants listener in background
                 if mode == 'assistant':
                     self.window.core.ctx.append_run(ctx.run_id)  # get run ID and save it in ctx
                     self.window.controller.assistant.threads.handle_run(ctx)  # handle assistant run

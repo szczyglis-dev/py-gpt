@@ -72,11 +72,12 @@ class Chat:
 
         # tokens config
         model = self.window.core.config.get('model')
+        model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
 
         used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
-        model_ctx = self.window.core.models.get_num_ctx(model)
+        model_ctx = self.window.core.models.get_num_ctx(model_id)
 
         # fit to max model tokens
         if max_tokens > model_ctx:
@@ -97,7 +98,7 @@ class Chat:
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(model, mode, used_tokens, max_tokens)
+            items = self.window.core.ctx.get_prompt_items(model_id, mode, used_tokens, max_tokens)
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -111,7 +112,7 @@ class Chat:
         messages.append({"role": "user", "content": str(input_prompt)})
 
         # input tokens: update
-        self.input_tokens += self.window.core.tokens.from_messages(messages, model)
+        self.input_tokens += self.window.core.tokens.from_messages(messages, model_id)
 
         return messages
 

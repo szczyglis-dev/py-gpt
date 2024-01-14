@@ -136,6 +136,23 @@ class Tokens:
         return num
 
     @staticmethod
+    def from_langchain_messages(messages: list, model: str = "gpt-4") -> int:
+        """
+        Return number of tokens from prompt
+
+        :param messages: messages
+        :param model: model name
+        :return: number of tokens
+        """
+        model, per_message, per_name = Tokens.get_config(model)
+        num = 0
+        for message in messages:
+            num += per_message
+            num += Tokens.from_str(message.content)
+        num += 3  # every reply is primed with <|start|>assistant<|message|>
+        return num
+
+    @staticmethod
     def from_llama_messages(query: str, messages: list, model: str = "gpt-4") -> int:
         """
         Return number of tokens from prompt
@@ -161,7 +178,7 @@ class Tokens:
 
         :param ctx: CtxItem
         :param mode: mode
-        :param model: model name
+        :param model: model ID
         :return: number of tokens
         """
         model, per_message, per_name = Tokens.get_config(model)
@@ -242,6 +259,7 @@ class Tokens:
                sum_tokens, max_current, threshold)
         """
         model = self.window.core.config.get('model')
+        model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
         user_name = self.window.core.config.get('user_name')
         ai_name = self.window.core.config.get('ai_name')
@@ -257,18 +275,18 @@ class Tokens:
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
 
             if system_prompt is not None and system_prompt != "":
-                system_tokens = self.from_prompt(system_prompt, "", model)
-                system_tokens += self.from_text("system", model)
+                system_tokens = self.from_prompt(system_prompt, "", model_id)
+                system_tokens += self.from_text("system", model_id)
 
             # input prompt
             if input_prompt is not None and input_prompt != "":
-                input_tokens = self.from_prompt(input_prompt, "", model)
-                input_tokens += self.from_text("user", model)
+                input_tokens = self.from_prompt(input_prompt, "", model_id)
+                input_tokens += self.from_text("user", model_id)
         elif mode == "completion":
             # system prompt (without extra tokens)
             system_prompt = str(self.window.core.config.get('prompt')).strip()
             system_prompt = self.window.core.prompt.build_final_system_prompt(system_prompt)  # add addons
-            system_tokens = self.from_text(system_prompt, model)
+            system_tokens = self.from_text(system_prompt, model_id)
 
             # input prompt
             if input_prompt is not None and input_prompt != "":
@@ -281,7 +299,7 @@ class Tokens:
                     message += "\n" + ai_name + ":"
                 else:
                     message += "\n" + str(input_prompt)
-                input_tokens = self.from_text(message, model)
+                input_tokens = self.from_text(message, model_id)
                 extra_tokens = 0  # no extra tokens in completion mode
 
         # used tokens
@@ -289,7 +307,7 @@ class Tokens:
 
         # check model max allowed ctx tokens
         max_current = max_total_tokens
-        model_ctx = self.window.core.models.get_num_ctx(model)
+        model_ctx = self.window.core.models.get_num_ctx(model_id)
         if max_current > model_ctx:
             max_current = model_ctx
 
@@ -299,7 +317,7 @@ class Tokens:
 
         # context tokens
         ctx_len_all = len(self.window.core.ctx.items)
-        ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model, mode, used_tokens, max_to_check)
+        ctx_len, ctx_tokens = self.window.core.ctx.count_prompt_items(model_id, mode, used_tokens, max_to_check)
 
         # empty ctx tokens if context is not used
         if not self.window.core.config.get('use_context'):
@@ -321,19 +339,20 @@ class Tokens:
         :return: used tokens
         """
         model = self.window.core.config.get('model')
+        model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
         tokens = 0
         if mode == "chat" or mode == "vision":
-            tokens += self.from_prompt(system_prompt, "", model)  # system prompt
-            tokens += self.from_text("system", model)
-            tokens += self.from_prompt(input_prompt, "", model)  # input prompt
-            tokens += self.from_text("user", model)
+            tokens += self.from_prompt(system_prompt, "", model_id)  # system prompt
+            tokens += self.from_text("system", model_id)
+            tokens += self.from_prompt(input_prompt, "", model_id)  # input prompt
+            tokens += self.from_text("user", model_id)
         else:
             # rest of modes
-            tokens += self.from_text(system_prompt, model)  # system prompt
-            tokens += self.from_text(input_prompt, model)  # input prompt
+            tokens += self.from_text(system_prompt, model_id)  # system prompt
+            tokens += self.from_text(input_prompt, model_id)  # input prompt
         tokens += self.window.core.config.get('context_threshold')  # context threshold (reserved for output)
-        tokens += self.get_extra(model)  # extra tokens (required for output)
+        tokens += self.get_extra(model_id)  # extra tokens (required for output)
         return tokens
 
     @staticmethod
@@ -341,7 +360,7 @@ class Tokens:
         """
         Return tokens config values
 
-        :param model: model name
+        :param model: model ID
         :return: model, per_message, per_name
         """
         per_message = 4  # message follows <|start|>{role/name}\n{content}<|end|>\n

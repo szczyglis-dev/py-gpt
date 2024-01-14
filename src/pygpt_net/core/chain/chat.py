@@ -35,13 +35,17 @@ class Chat:
         :return: LLM response
         """
         llm = None
-        model_config = self.window.core.models.get(self.window.core.config.get('model'))
-        if 'provider' in model_config.langchain:
-            provider = model_config.langchain['provider']
-            if provider in self.window.core.chain.llms:
+        model = self.window.core.models.get(self.window.core.config.get('model'))
+        if 'provider' in model.langchain:
+            provider = model.langchain['provider']
+            if provider in self.window.core.llm.llms:
                 try:
-                    llm = self.window.core.chain.llms[provider].chat(
-                        self.window.core.config.all(), model_config.langchain, stream_mode)
+                    # init
+                    self.window.core.llm.llms[provider].init(
+                        self.window, model, "langchain", "chat")
+                    # get LLM provider instance
+                    llm = self.window.core.llm.llms[provider].chat(
+                        self.window, model, stream_mode)
                 except Exception as e:
                     self.window.core.debug.log(e)
 
@@ -69,6 +73,7 @@ class Chat:
 
         # tokens config
         model = self.window.core.config.get('model')
+        model_id = self.window.core.models.get_id(model)
 
         # input tokens: reset
         self.reset_tokens()
@@ -92,7 +97,7 @@ class Chat:
         messages.append(HumanMessage(content=str(input_prompt)))
 
         # input tokens: update
-        self.input_tokens += self.window.core.tokens.from_messages(messages, model)
+        self.input_tokens += self.window.core.tokens.from_langchain_messages(messages, model_id)
 
         return messages
 

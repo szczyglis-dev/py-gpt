@@ -18,6 +18,8 @@ from llama_index import (
 )
 from llama_index.llms import OpenAI
 
+from pygpt_net.item.model import ModelItem
+
 
 class Storage:
     def __init__(self, window=None):
@@ -29,31 +31,47 @@ class Storage:
         self.window = window
         self.indexes = {}
 
-    def get_llm(self, model: str = "gpt-3.5-turbo"):
+    def get_llm(self, model: ModelItem = None):
         """
-        Get LLM
+        Get LLM provider
 
-        :param model: Model name
+        :param model: Model item
         :return: LLM
         """
-        # GPT
-        if model.startswith("gpt-") or model.startswith("text-davinci-"):
-            os.environ['OPENAI_API_KEY'] = self.window.core.config.get("api_key")
-            llm = OpenAI(temperature=0.0, model=model)
-            return llm
+        llm = None
+        if model is not None:
+            if 'provider' in model.llama_index:
+                provider = model.llama_index['provider']
+                if provider in self.window.core.llm.llms:
+                    try:
+                        # init
+                        self.window.core.llm.llms[provider].init(
+                            self.window, model, "llama_index", "")
+                        # get llama llm instance
+                        llm = self.window.core.llm.llms[provider].llama(
+                            self.window, model)
+                    except Exception as e:
+                        print(e)
 
-    def get_service_context(self, model: str = "gpt-3.5-turbo"):
+        # create default if model not provided
+        if llm is None:
+            os.environ['OPENAI_API_KEY'] = self.window.core.config.get('api_key')
+            llm = OpenAI(temperature=0.0, model="gpt-3.5-turbo")
+        return llm
+
+    def get_service_context(self, model: ModelItem = None):
         """
         Get service context
 
-        :param model: Model name
+        :param model: Model item
         :return: Service context
         """
-        # GPT
-        return ServiceContext.from_defaults(llm=self.get_llm(model=model))
-        # TODO: add other models
+        llm = self.get_llm(model=model)
+        if llm is None:
+            return ServiceContext.from_defaults()
+        return ServiceContext.from_defaults(llm=llm)
 
-    def exists(self, id: str):
+    def exists(self, id: str = None):
         """
         Check if index exists
 
@@ -63,32 +81,29 @@ class Storage:
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         return os.path.exists(path)
 
-    def create(self, id: str, model: str = "gpt-3.5-turbo"):
+    def create(self, id: str, model: str = None):
         """
         Create empty index
 
         :param id: Index name
-        :param model: Model name
+        :param model: Model key
         """
-        # ctx create is required to set environment variables here:
-        self.get_service_context(model=model)
-
+        self.get_service_context()  # set env vars if needed
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         if not os.path.exists(path):
             index = VectorStoreIndex([])  # create empty index
             self.store(id=id, index=index)
 
-    def get(self, id: str, model: str = "gpt-3.5-turbo"):
+    def get(self, id: str, model: ModelItem = None):
         """
         Get index
 
         :param id: Index name
-        :param model: Model name
+        :param model: Model item
         :return: Index
         """
         if not self.exists(id=id):
-            self.create(id=id, model=model)
-
+            self.create(id=id)
         service_context = self.get_service_context(model=model)
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         storage_context = StorageContext.from_defaults(persist_dir=path)
