@@ -31,16 +31,67 @@ class Placeholder:
                     if "type" in item:
                         if item["type"] == "combo":
                             if "use" in item:
-                                if item["use"] == "presets":
-                                    item["keys"] = self.get_presets()
-                                elif item["use"] == "models":
-                                    item["keys"] = self.get_models()
+                                item["keys"] = self.apply_by_id(item["use"])
         elif option['type'] == 'combo':
             if "use" in option:
-                if option["use"] == "presets":
-                    option["keys"] = self.get_presets()
-                elif option["use"] == "models":
-                    option["keys"] = self.get_models()
+                option["keys"] = self.apply_by_id(option["use"])
+
+    def apply_by_id(self, id: str):
+        """
+        Apply placeholders by id
+
+        :param id: Placeholder options id
+        """
+        if id == "presets":
+            return self.get_presets()
+        elif id == "models":
+            return self.get_models()
+        elif id == "langchain_providers":
+            return self.get_langchain_providers()
+        elif id == "llama_index_providers":
+            return self.get_llama_index_providers()
+        elif id == "var_types":
+            return self.get_var_types()
+        else:
+            return []
+
+    def get_langchain_providers(self) -> list:
+        """
+        Get langchain placeholders list
+
+        :return: placeholders list
+        """
+        ids = self.window.core.llm.get_ids("langchain")
+        data = []
+        data.append({'_': '---'})
+        for id in ids:
+            data.append({id: id})
+        return data
+
+    def get_llama_index_providers(self) -> list:
+        """
+        Get langchain placeholders list
+
+        :return: placeholders list
+        """
+        ids = self.window.core.llm.get_ids("llama_index")
+        data = []
+        data.append({'_': '---'})
+        for id in ids:
+            data.append({id: id})
+        return data
+
+    def get_var_types(self) -> list:
+        """
+        Get langchain placeholders list
+
+        :return: placeholders list
+        """
+        types = ['str', 'int', 'float', 'bool', 'dict', 'list', 'None']
+        data = []
+        for type in types:
+            data.append({type: type})
+        return data
 
     def get_presets(self) -> list:
         """
