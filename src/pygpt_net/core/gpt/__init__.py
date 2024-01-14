@@ -54,16 +54,17 @@ class Gpt:
             organization=self.window.core.config.get('organization_key'),
         )
 
-    def get_model(self, mode: str):
+    def get_model(self, mode: str) -> str:
         # event: model.before
         model = str(self.window.core.config.get('model'))
+        model_id = self.window.core.models.get_id(model)
         event = Event('model.before', {
             'mode': mode,
-            'model': model,
+            'model': model_id,  # ID is provided to event, NOT the key in items! TODO: pass as object
         })
         self.window.core.dispatcher.dispatch(event)
-        model = event.data['model']
-        return model
+        model_id = event.data['model']
+        return model_id
 
     def call(self, prompt: str, ctx: CtxItem = None, stream_mode: bool = False) -> bool:
         """
@@ -76,7 +77,9 @@ class Gpt:
         """
         # prepare max tokens
         mode = self.window.core.config.get('mode')
-        model_tokens = self.window.core.models.get_tokens(self.window.core.config.get('model'))
+        model = self.window.core.config.get('model')
+        model_id = self.window.core.models.get_id(model)
+        model_tokens = self.window.core.models.get_tokens(model_id)
         max_tokens = self.window.core.config.get('max_output_tokens')
 
         # check max output tokens
