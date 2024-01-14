@@ -87,7 +87,7 @@ class Plugin(BasePlugin):
             if self.is_allowed(data['value']):
                 data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
         elif name == 'model.before':
-            data['model'] = self.get_option_value("model")  # force choose correct vision model
+            data['model'] = self.get_option_value("model")  # force choose correct vision model (model.id provided here)
         elif name == 'pre.prompt':
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_pre_prompt(data['value'])
