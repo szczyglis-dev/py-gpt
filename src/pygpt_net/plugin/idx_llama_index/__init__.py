@@ -29,7 +29,7 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """Initialize options"""
+        """Initialize options"""  # TODO: context, not knowledge, fix the prompt, extend the prompt
         prompt = 'ADDITIONAL KNOWLEDGE: I will provide you with additional data about my question. ' \
                  'When it is provided, then use this data as your additional knowledge and use it in your response. ' \
                  'Additional knowledge will be prefixed with an "Additional data:" prefix. ' \
@@ -82,8 +82,7 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        # disable events in llama_index mode!
-
+        # ignore events in llama_index mode
         if name == 'system.prompt':
             if self.mode == "llama_index":  # ignore
                 return
@@ -146,18 +145,19 @@ class Plugin(BasePlugin):
         :param question: question
         :return: response
         """
-        model = "gpt-3.5-turbo"
         idx = self.get_option_value("idx")
+        model = None
         if self.get_option_value("model_query") is not None:
-            model = self.get_option_value("model_query")
+            model = self.window.core.models.get(self.get_option_value("model_query"))
         indexes = idx.split(",")
         if len(indexes) > 1:
             responses = []
             for index in indexes:
-                responses.append(self.window.core.idx.query.query(question, idx=index.strip(), model=model))
+                answer = self.window.core.idx.chat.query(question, idx=index.strip(), model=model)
+                responses.append(answer)
             return "\n".join(responses)
         else:
-            return self.window.core.idx.query.query(question, idx=idx, model=model)
+            return self.window.core.idx.chat.query(question, idx=idx, model=model)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
