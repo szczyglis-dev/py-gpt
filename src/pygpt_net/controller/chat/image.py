@@ -46,7 +46,8 @@ class Image:
 
         # force one image if dall-e-3 model is used
         model = self.window.core.config.get('model')
-        if model == 'dall-e-3':
+        model_id = self.window.core.models.get_id(model)
+        if model_id == 'dall-e-3':
             num = 1
 
         self.window.ui.status(trans('status.sending'))
@@ -74,7 +75,7 @@ class Image:
         # call DALL-E API and generate images
         try:
             # run async worker
-            self.window.core.image.generate(ctx, text, model, num)
+            self.window.core.image.generate(ctx, text, model_id, num)
 
         except Exception as e:
             self.window.core.debug.log(e)
