@@ -86,6 +86,7 @@ class BaseConfigDialog:
 
         self.window.ui.nodes[label_key] = QLabel(trans(label))
         self.window.ui.nodes[label_key].setMinimumWidth(120)
+        self.window.ui.nodes[label_key].setWordWrap(True)
         if 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
         self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
@@ -116,6 +117,7 @@ class BaseConfigDialog:
 
         self.window.ui.nodes[label_key] = QLabel(trans(label))
         self.window.ui.nodes[label_key].setMinimumHeight(30)
+        self.window.ui.nodes[label_key].setWordWrap(True)
         if extra is not None and 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
 
