@@ -110,7 +110,7 @@ class Input:
                 and self.window.controller.attachment.has(mode)  # check if attachment exists
         )
 
-        # allow empty input only for vision mode, otherwise abort
+        # allow empty input only for vision modes, otherwise abort
         if len(text.strip()) == 0 and not camera_captured:
             self.generating = False  # unlock as not generating
             return
@@ -163,8 +163,7 @@ class Input:
         self.generating = False  # unlock
 
         if mode not in self.no_ctx_idx_modes:
-            # update ctx DB index
-            self.window.controller.idx.on_ctx_end(ctx)
+            self.window.controller.idx.on_ctx_end(ctx)  # update ctx DB index
 
     def log(self, data: any):
         """
