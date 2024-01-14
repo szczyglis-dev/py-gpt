@@ -59,7 +59,7 @@ class Settings:
                 self.current_plugin = list(self.window.core.plugins.plugins.keys())[0]
 
         # assign plugins options to config dialog fields
-        for id in self.window.core.plugins.plugins:
+        for id in self.window.core.plugins.plugins.keys():
             plugin = self.window.core.plugins.plugins[id]
             options = plugin.setup()  # get plugin options
 
@@ -70,7 +70,7 @@ class Settings:
 
     def save(self):
         """Save plugin settings"""
-        for id in self.window.core.plugins.plugins:
+        for id in self.window.core.plugins.plugins.keys():
             plugin = self.window.core.plugins.plugins[id]
             options = plugin.setup()  # get plugin options
 
@@ -137,7 +137,7 @@ class Settings:
         """
         Get plugin option
 
-        :param id: option id
+        :param id: plugin id
         :param key: option key
         :return: option value
         """
