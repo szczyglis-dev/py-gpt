@@ -51,12 +51,23 @@ class JsonFileProvider(BaseProvider):
             if '__meta__' in data and 'version' in data['__meta__']:
                 return data['__meta__']['version']
 
-    def load(self) -> dict | None:
+    def load_base(self) -> dict | None:
+        """
+        Load base models config from base JSON file
+
+        :return: models dict
+        """
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', self.config_file)
+        return self.load(path)
+
+    def load(self, path: str = None) -> dict | None:
         """
         Load models config from JSON file
         """
         items = {}
-        path = os.path.join(self.window.core.config.path, self.config_file)
+        if path is None:
+            path = os.path.join(self.window.core.config.path, self.config_file)
+
         if not os.path.exists(path):
             print("FATAL ERROR: {} not found!".format(path))
             return None
@@ -147,6 +158,7 @@ class JsonFileProvider(BaseProvider):
             'name': item.name,
             'mode': item.mode,
             'langchain': item.langchain,
+            'llama_index': item.llama_index,
             'ctx': item.ctx,
             'tokens': item.tokens,
             'default': item.default,
@@ -168,6 +180,8 @@ class JsonFileProvider(BaseProvider):
             item.mode = data['mode']
         if 'langchain' in data:
             item.langchain = data['langchain']
+        if 'llama_index' in data:
+            item.llama_index = data['llama_index']
         if 'ctx' in data:
             item.ctx = data['ctx']
         if 'tokens' in data:
