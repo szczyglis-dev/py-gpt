@@ -27,6 +27,7 @@ from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.core.gpt import Gpt
 from pygpt_net.core.history import History
 from pygpt_net.core.image import Image
+from pygpt_net.core.llm import LLM
 from pygpt_net.core.models import Models
 from pygpt_net.core.modes import Modes
 from pygpt_net.core.notepad import Notepad
@@ -66,6 +67,7 @@ class Container:
         self.history = History(window)
         self.idx = Idx(window)
         self.image = Image(window)
+        self.llm = LLM(window)
         self.installer = Installer(window)
         self.models = Models(window)
         self.modes = Modes(window)
