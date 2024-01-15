@@ -58,7 +58,7 @@ class Theme:
         self.window.core.config.set('theme', name)
         self.window.core.config.save()
         self.nodes.apply_all()
-        self.apply(name + '.xml', self.common.get_custom_css(name))  # style.css = additional custom stylesheet
+        self.apply(name + '.xml', self.common.get_extra_css(name))  # style.css = additional custom stylesheet
 
         # apply markdown CSS
         self.markdown.update(force=False)

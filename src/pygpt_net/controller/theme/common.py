@@ -23,7 +23,7 @@ class Common:
         """
         self.window = window
 
-    def get_custom_css(self, name: str) -> str:
+    def get_extra_css(self, name: str) -> str:
         """
         Return custom css filename for specified theme
 
