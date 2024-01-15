@@ -170,6 +170,7 @@ class Editor:
         elif key == 'layout.density' and caller == "slider":
             self.window.core.config.set(key, value)
             self.window.controller.theme.reload()
+            self.window.controller.theme.update_density_menu()
 
     def toggle_collapsed(self, id: str, value: any, section: str):
         """

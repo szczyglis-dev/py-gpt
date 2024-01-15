@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 03:00:00                  #
+# Updated Date: 2024.01.15 03:00:00                  #
 # ================================================== #
 
 import os
@@ -25,6 +25,7 @@ class Theme:
         """
         self.window = window
         self.css = {}  # external styles
+        self.density_values = [-2, -1, 0, 1, 2]
 
     def setup(self):
         """Setup theme"""
@@ -38,17 +39,45 @@ class Theme:
             self.window.ui.menu['theme'][theme] = QAction(name, self.window, checkable=True)
             self.window.ui.menu['theme'][theme].triggered.connect(
                 lambda checked=None, theme=theme: self.window.controller.theme.toggle(theme))
-            self.window.ui.menu['menu.theme'].addAction(self.window.ui.menu['theme'][theme])
 
+            # append to dark or light menu
+            if theme.startswith('dark'):
+                self.window.ui.menu['theme.dark'].addAction(self.window.ui.menu['theme'][theme])
+            elif theme.startswith('light'):
+                self.window.ui.menu['theme.light'].addAction(self.window.ui.menu['theme'][theme])
+
+        # setup layout density menu
+        current_density = self.window.core.config.get('layout.density')
+        for value in self.density_values:
+            name = str(value)
+            if value > 0:
+                name = '+' + name
+            self.window.ui.menu['theme.layout.density'][value] = QAction(name, self.window, checkable=True)
+            self.window.ui.menu['theme.layout.density'][value].triggered.connect(
+                lambda checked=None, value=value: self.window.controller.theme.toggle_option('layout.density', value))
+            self.window.ui.menu['theme.density'].addAction(self.window.ui.menu['theme.layout.density'][value])
+            if value == current_density:
+                self.window.ui.menu['theme.layout.density'][value].setChecked(True)
+
+        # show / hide tooltips
         self.toggle_tooltips()
 
         # apply current theme to nodes
         self.reload(force=False)
 
+    def update_density_menu(self):
+        """Update layout density menu"""
+        current_density = self.window.core.config.get('layout.density')
+        for value in self.density_values:
+            self.window.ui.menu['theme.layout.density'][value].setChecked(False)
+            if value == current_density:
+                self.window.ui.menu['theme.layout.density'][value].setChecked(True)
+
     def update_menu(self):
         """Update theme menu"""
         for theme in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][theme].setChecked(False)
+
         current = self.window.core.config.get('theme')
         if current in self.window.ui.menu['theme']:
             self.window.ui.menu['theme'][current].setChecked(True)
@@ -69,9 +98,6 @@ class Theme:
             'tip.toolbox.ctx',
             'tip.toolbox.mode',
         ]
-        if not self.window.core.config.has('layout.tooltips'):
-            return
-
         state = self.window.core.config.get('layout.tooltips')
         if state:
             for node in nodes:
@@ -79,6 +105,8 @@ class Theme:
         else:
             for node in nodes:
                 self.window.ui.nodes[node].setVisible(False)
+
+        self.window.ui.menu['theme.tooltips'].setChecked(state)
 
     def toggle(self, name: str, force: bool = True):
         """
@@ -103,6 +131,29 @@ class Theme:
 
         if force:
             self.window.controller.ui.restore_state()  # restore state after theme change
+
+    def toggle_option(self, name: str, value: any = None):
+        """
+        Toggle theme menu option
+
+        :param name: option name
+        :param value: option value
+        """
+        if name == 'layout.tooltips':
+            if self.window.core.config.get(name):
+                state = False
+            else:
+                state = True
+            self.window.core.config.set(name, state)
+            self.window.controller.config.checkbox.apply('config', 'layout.tooltips', {'value': state})
+            self.toggle_tooltips()
+        elif name == 'layout.density':
+            value = int(value)
+            self.window.core.config.set(name, value)
+            self.window.controller.config.slider.apply('config', 'layout.density', {'value': value})
+            self.reload()
+            self.update_density_menu()
+        self.apply_nodes()
 
     def update_markdown(self, force: bool = False):
         """
