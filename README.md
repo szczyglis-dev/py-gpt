@@ -1542,6 +1542,7 @@ may consume additional tokens that are not displayed in the main window.
 - Extended `Theme` menu with new options
 - `Index (llama-index)` mode changed name to `Chat with files` mode
 - Refactored theme controller
+- Fixed model config providing to llama-index mode
 
 ## 2.0.104 (2024-01-14)
 
