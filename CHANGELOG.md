@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.106 (2024-01-15)
+
+- Added "undo" action in drawing window
+- Refactored locale handling
+- Improved locale and theme overriding
+
 # 2.0.105 (2024-01-15)
 
 - Extended `Theme` menu with new options

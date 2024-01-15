@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.105** | build: **2024.01.15** | Python: **3.10+**
+Release: **2.0.106** | build: **2024.01.15** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1536,6 +1536,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.106 (2024-01-15)
+
+- Added "undo" action in drawing window
+- Refactored locale handling
+- Improved locale and theme overriding
 
 ## 2.0.105 (2024-01-15)
 
