@@ -130,7 +130,7 @@ class Locale:
 
         :param domain: translation domain
         :param lang: language code
-        :return: path to translations
+        :return: path to translations file
         """
         return os.path.join(self.config.get_app_path(), 'data', 'locale', domain + '.' + lang + '.ini')
 
@@ -140,6 +140,6 @@ class Locale:
 
         :param domain: translation domain
         :param lang: language code
-        :return: path to translations
+        :return: path to translations file
         """
         return os.path.join(self.config.get_user_path(), 'locale', domain + '.' + lang + '.ini')
