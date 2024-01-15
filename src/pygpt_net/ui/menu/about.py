@@ -10,7 +10,6 @@
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
 

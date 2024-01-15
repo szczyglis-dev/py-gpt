@@ -9,9 +9,6 @@
 # Updated Date: 2024.01.15 03:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QMenu
-
 from pygpt_net.utils import trans
 
 
