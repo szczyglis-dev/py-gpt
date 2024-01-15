@@ -40,15 +40,15 @@ def test_toggle(mock_window):
     lang.update = MagicMock()
     mock_window.controller.plugins.update_info = MagicMock()
     mock_window.controller.notepad.get_num_notepads = MagicMock(return_value=0)
-    lang.toggle_plugins = MagicMock()
+    lang.plugins.apply = MagicMock()
     mock_window.controller.ctx.common.update_label_by_current = MagicMock()
     mock_window.controller.ctx.update = MagicMock()
     mock_window.controller.ui.update = MagicMock()
+    mock_window.settings = MagicMock()
     lang.toggle('en')
     assert mock_window.core.config.data['lang'] == 'en'
     lang.update.assert_called_once()
-    mock_window.controller.plugins.update_info.assert_called_once()
-    lang.toggle_plugins.assert_called_once()
+    lang.plugins.apply.assert_called_once()
     mock_window.controller.ctx.common.update_label_by_current.assert_called_once()
     mock_window.controller.ctx.update.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
@@ -61,7 +61,7 @@ def test_toggle_plugins(mock_window):
     mock_window.core.plugins.plugins = {}
     mock_window.plugin_settings.update_list = MagicMock()
     mock_window.controller.plugins.set_by_tab = MagicMock()
-    lang.toggle_plugins()
+    lang.plugins.apply()
     mock_window.plugin_settings.update_list.assert_called_once()
     mock_window.controller.plugins.set_by_tab.assert_called_once()
 
@@ -69,8 +69,9 @@ def test_toggle_plugins(mock_window):
 def test_update_settings_dialogs(mock_window):
     """Test update settings dialogs"""
     lang = Lang(mock_window)
-    lang.window.controller.settings.editor.initialized = False
-    lang.window.controller.settings.editor.load_config_options = MagicMock()
-    lang.update_settings_dialogs()
-    lang.window.controller.settings.editor.load_config_options.assert_called_once()
-    lang.window.controller.settings.editor.initialized = True
+    mock_window.settings = MagicMock()
+    mock_window.controller.settings.editor.initialized = False
+    mock_window.controller.settings.editor.load_config_options = MagicMock()
+    lang.settings.apply()
+    mock_window.controller.settings.editor.load_config_options.assert_called_once()
+    mock_window.controller.settings.editor.initialized = True

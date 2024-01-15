@@ -269,3 +269,20 @@ class Settings(BaseConfigDialog):
             name = trans(data[n]['label'])
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1
+
+    def refresh_list(self):
+        """
+        Refresh list
+
+        :param id: ID of the list
+        """
+        sections = self.window.core.settings.get_sections()
+        data = {}
+        for section_id in sections:
+            section = sections[section_id]
+            data[section_id] = section
+
+        data_id = 'settings.section.list'
+
+        # update section list
+        self.update_list(data_id, data)
