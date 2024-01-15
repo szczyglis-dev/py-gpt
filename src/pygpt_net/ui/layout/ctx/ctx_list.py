@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.29 21:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore, QtGui
@@ -42,7 +42,7 @@ class CtxList:
         self.window.ui.nodes[id] = ContextList(self.window, id)
         self.window.ui.nodes[id].selection_locked = self.window.controller.ctx.context_change_locked
         self.window.ui.nodes['ctx.label'] = QLabel(trans("ctx.list.label"))
-        self.window.ui.nodes['ctx.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes['ctx.label'].setStyleSheet(self.window.controller.theme.style('text_bold'))
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['ctx.new'])

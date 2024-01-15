@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
+
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QLineEdit, QStyle
 
@@ -23,7 +24,7 @@ class CtxSearchInput(QLineEdit):
         """
         super(CtxSearchInput, self).__init__(window)
         self.window = window
-        self.setStyleSheet(self.window.controller.theme.get_style('line_edit'))
+        self.setStyleSheet(self.window.controller.theme.style('line_edit'))
         self.setPlaceholderText(trans('ctx.list.search.placeholder'))
 
         self.clear_action = QAction(self)

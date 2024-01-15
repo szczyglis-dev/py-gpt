@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
-# 
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWidget, QFrame
 
@@ -88,7 +88,7 @@ class BaseConfigDialog:
         self.window.ui.nodes[label_key].setMinimumWidth(120)
         self.window.ui.nodes[label_key].setWordWrap(True)
         if 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
         self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
 
         # set resizable if textarea
@@ -119,7 +119,7 @@ class BaseConfigDialog:
         self.window.ui.nodes[label_key].setMinimumHeight(30)
         self.window.ui.nodes[label_key].setWordWrap(True)
         if extra is not None and 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])

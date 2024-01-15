@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
+
 import datetime
 
 from PySide6.QtCore import Qt
@@ -63,7 +64,7 @@ class Settings:
         # add to layout
         self.window.ui.nodes['idx.db.settings.legend.head'] = QLabel(trans('settings.llama.extra.btn.idx_head'))
         self.window.ui.nodes['idx.db.settings.legend.head']\
-            .setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+            .setStyleSheet(self.window.controller.theme.style('text_bold'))
         self.window.ui.nodes['idx.db.settings.legend'] = HelpLabel(trans('settings.llama.extra.legend'), self.window)
         self.window.ui.nodes['idx.db.settings.legend'].setWordWrap(True)
         content.addWidget(self.window.ui.nodes['idx.db.settings.legend.head'])

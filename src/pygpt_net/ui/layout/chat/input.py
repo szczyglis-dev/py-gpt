@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -123,7 +123,7 @@ class Input:
         """
         # header (input label + input counter)
         self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
-        self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.get_style('text_faded'))
+        self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.style('text_faded'))
         self.window.ui.nodes['input.counter'] = QLabel("")
         self.window.ui.nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
 

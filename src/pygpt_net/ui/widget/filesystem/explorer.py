@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.13 08:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 import datetime
@@ -63,7 +63,7 @@ class FileExplorer(QWidget):
         self.path_label = QLabel(self.directory)
         self.path_label.setMaximumHeight(40)
         self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.path_label.setStyleSheet(self.window.controller.theme.get_style('text_small'))
+        self.path_label.setStyleSheet(self.window.controller.theme.style('text_small'))
 
         header.addWidget(self.btn_upload)
         header.addWidget(self.btn_idx)

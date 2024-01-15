@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -25,7 +25,7 @@ class RenameInput(QLineEdit):
 
         self.window = window
         self.id = id
-        self.setStyleSheet(self.window.controller.theme.get_style('line_edit'))
+        self.setStyleSheet(self.window.controller.theme.style('line_edit'))
 
     def keyPressEvent(self, event):
         """

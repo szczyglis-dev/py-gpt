@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.26 16:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 import os
@@ -69,7 +69,7 @@ class UpdateDialog(QDialog):
         self.info = QLabel(trans("update.info"))
         self.info.setWordWrap(True)
         self.info.setAlignment(Qt.AlignCenter)
-        self.info.setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.info.setStyleSheet(self.window.controller.theme.style('text_bold'))
         self.info.setStyleSheet("font-weight: bold; font-size: 12px; margin: 20px 0px 20px 0px;")
         self.info.setMaximumHeight(60)
         self.layout.addWidget(logo_label)

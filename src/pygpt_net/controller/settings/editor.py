@@ -134,22 +134,22 @@ class Editor:
         # update markdown
         elif key == "theme.markdown":
             self.window.core.config.set(key, value)
-            self.window.controller.theme.update_markdown(force=True)
+            self.window.controller.theme.markdown.update(force=True)
 
         # update layout tooltips
         elif key == "layout.tooltips":
             self.window.core.config.set(key, value)
-            self.window.controller.theme.toggle_tooltips()
+            self.window.controller.theme.common.toggle_tooltips()
 
         # update raw output
         elif key == "render.plain":
             self.window.core.config.set(key, value)
             if not value:
                 self.window.controller.ctx.refresh()
-                self.window.controller.theme.update_markdown(force=True)
+                self.window.controller.theme.markdown.update(force=True)
                 self.window.ui.nodes['output.raw'].setChecked(False)
             else:
-                self.window.controller.theme.clear_markdown()
+                self.window.controller.theme.markdown.clear()
                 self.window.ui.nodes['output.raw'].setChecked(True)
 
         # call vision checkboxes events
@@ -170,7 +170,7 @@ class Editor:
         elif key == 'layout.density' and caller == "slider":
             self.window.core.config.set(key, value)
             self.window.controller.theme.reload()
-            self.window.controller.theme.update_density_menu()
+            self.window.controller.theme.menu.update_density()
 
     def toggle_collapsed(self, id: str, value: any, section: str):
         """

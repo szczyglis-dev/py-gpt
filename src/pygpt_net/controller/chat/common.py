@@ -165,9 +165,9 @@ class Common:
         self.window.core.config.save()
         if not value:
             self.window.controller.ctx.refresh()
-            self.window.controller.theme.update_markdown(force=True)
+            self.window.controller.theme.markdown.update(force=True)
         else:
-            self.window.controller.theme.clear_markdown()
+            self.window.controller.theme.markdown.clear()
 
         # update checkbox in config dialog
         self.window.controller.config.checkbox.apply('config', 'render.plain', {'value': value})

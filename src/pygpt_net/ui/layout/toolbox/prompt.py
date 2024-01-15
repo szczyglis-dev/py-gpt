@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 02:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -39,7 +39,7 @@ class Prompt:
 
         # label
         self.window.ui.nodes['toolbox.prompt.label'] = QLabel(trans("toolbox.prompt"))
-        self.window.ui.nodes['toolbox.prompt.label'].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes['toolbox.prompt.label'].setStyleSheet(self.window.controller.theme.style('text_bold'))
 
         # clear
         self.window.ui.nodes['preset.clear'] = QPushButton(trans('preset.clear'))

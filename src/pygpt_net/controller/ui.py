@@ -51,7 +51,7 @@ class UI:
 
     def update_font_size(self):
         """Update font size"""
-        self.window.controller.theme.apply_nodes(False)
+        self.window.controller.theme.nodes.apply_all(False)
 
     def update_toolbox(self):
         """Update toolbox"""

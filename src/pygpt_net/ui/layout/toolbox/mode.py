@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.15 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel
@@ -47,7 +47,7 @@ class Mode:
         label_key = self.id + '.label'
 
         self.window.ui.nodes[label_key] = QLabel(trans("toolbox.mode.label"))
-        self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.get_style('text_bold'))
+        self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
         self.window.ui.nodes[self.id] = ModeList(self.window, self.id)
         self.window.ui.nodes[self.id].selection_locked = self.window.controller.mode.change_locked
 

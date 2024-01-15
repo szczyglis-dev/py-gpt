@@ -301,7 +301,7 @@ class Lang:
         # theme menu
         self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))
         for theme in self.window.ui.menu['theme']:
-            name = self.window.controller.theme.trans_theme(theme)
+            name = self.window.controller.theme.common.translate(theme)
             self.window.ui.menu['theme'][theme].setText(name)
 
         # plugins info
