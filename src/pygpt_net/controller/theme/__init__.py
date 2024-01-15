@@ -90,6 +90,8 @@ class Theme:
             self.window.controller.config.slider.apply('config', 'layout.density', {'value': value})
             self.reload()
             self.menu.update_density()
+            
+        self.window.core.config.save()
         self.nodes.apply_all()
 
     def reload(self, force: bool = True):

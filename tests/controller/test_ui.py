@@ -48,9 +48,9 @@ def test_update(mock_window):
 def test_update_font_size(mock_window):
     """Test update font size"""
     ui = UI(mock_window)
-    mock_window.controller.theme.apply_nodes = MagicMock()
+    mock_window.controller.theme.nodes.apply_all = MagicMock()
     ui.update_font_size()
-    mock_window.controller.theme.apply_nodes.assert_called_once_with(False)
+    mock_window.controller.theme.nodes.apply_all.assert_called_once_with(False)
 
 
 def test_update_toolbox(mock_window):
