@@ -122,26 +122,25 @@ class Theme:
 
         # append custom stylesheet
         if custom is not None:
-            stylesheet = self.window.styleSheet()
+            stylesheet = self.window.styleSheet()  # get current stylesheet
             paths = []
-            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', custom))
             paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', custom))
+            paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', custom))
+            content = ''
             for path in paths:
                 if os.path.exists(path):
                     with open(path) as file:
-                        try:
-                            content = file.read()
-                            # Windows checkbox button + radio button fix:
-                            # without this fix, checkboxes and radio buttons are not visible in Windows Python version
-                            # (compiled version works fine)
-                            if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
-                                content += self.common.get_windows_fix()
+                        content += file.read()
 
-                            # apply stylesheet
-                            self.window.setStyleSheet(stylesheet + content.format(**os.environ))
-                        except KeyError as e:
-                            pass  # ignore missing env variables
-                    break
+            # Windows checkbox button + radio button fix:
+            # without this fix, checkboxes and radio buttons are not visible in Windows Python version
+            # (compiled version works fine)
+            if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
+                content += self.common.get_windows_fix()
+            try:
+                self.window.setStyleSheet(stylesheet + content.format(**os.environ))  # apply stylesheet
+            except KeyError as e:
+                pass  # ignore missing env variables
 
     def style(self, element: str) -> str:
         """

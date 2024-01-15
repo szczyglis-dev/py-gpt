@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 03:00:00                  #
+# Updated Date: 2024.01.15 10:00:00                  #
 # ================================================== #
 
 import os
@@ -71,20 +71,20 @@ class Markdown:
             color_name += '.light'
         else:
             color_name += '.dark'
-
         paths = []
-        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css'))
-        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
-        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css'))
         paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', name + '.css'))
+        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', color_name + '.css'))
+        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', name + '.css'))
+        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', color_name + '.css'))
+        content = ''
         for path in paths:
             if os.path.exists(path):
                 with open(path, 'r') as file:
-                    try:
-                        self.css['markdown'] = file.read().format(**os.environ)
-                    except KeyError as e:
-                        pass  # ignore missing env vars
-                break
+                    content += file.read()
+        try:
+            self.css['markdown'] = content.format(**os.environ)
+        except KeyError as e:
+            pass  # ignore missing env vars
 
     def get_default(self):
         """Set default markdown CSS"""
