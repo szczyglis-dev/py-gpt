@@ -12,7 +12,7 @@
 from langchain_community.llms import Anthropic
 from langchain_community.chat_models import ChatAnthropic
 
-from .base import BaseLLM
+from pygpt_net.core.llm.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 

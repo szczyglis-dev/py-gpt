@@ -12,7 +12,7 @@
 from langchain_community.llms import HuggingFaceTextGenInference
 from langchain_experimental.chat_models import Llama2Chat
 
-from .base import BaseLLM
+from pygpt_net.core.llm.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 

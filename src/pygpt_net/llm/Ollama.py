@@ -12,7 +12,7 @@
 from langchain_community.chat_models import ChatOllama
 
 
-from .base import BaseLLM
+from pygpt_net.core.llm.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 

@@ -14,7 +14,7 @@ from langchain_openai import ChatOpenAI
 from llama_index.llms import OpenAI as LlamaOpenAI
 
 
-from .base import BaseLLM
+from pygpt_net.core.llm.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 
