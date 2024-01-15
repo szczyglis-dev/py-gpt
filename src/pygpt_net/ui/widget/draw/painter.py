@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.15 13:00:00                  #
 # ================================================== #
 
 import datetime
 
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon
-from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
 
 from pygpt_net.utils import trans
 
@@ -29,6 +29,10 @@ class PainterWidget(QWidget):
         self.brushColor = Qt.black
         self.lastPoint = QPoint()
         self.originalImage = None
+        self.undoStack = []
+        self.undoLimit = 10
+        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocus()
 
     def contextMenuEvent(self, event):
         """
@@ -36,6 +40,9 @@ class PainterWidget(QWidget):
         :param event: Event
         """
         actions = {}
+        actions['undo'] = QAction(QIcon.fromTheme("undo"), trans('action.undo'), self)
+        actions['undo'].triggered.connect(
+            lambda: self.undo())
         actions['open'] = QAction(QIcon.fromTheme("document-open"), trans('action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open())
@@ -50,6 +57,7 @@ class PainterWidget(QWidget):
             lambda: self.action_clear())
 
         menu = QMenu(self)
+        menu.addAction(actions['undo'])
         menu.addAction(actions['open'])
         menu.addAction(actions['capture'])
         menu.addAction(actions['save'])
@@ -118,8 +126,22 @@ class PainterWidget(QWidget):
 
         :param event: Event
         """
-        self.drawing = True
-        self.lastPoint = event.pos()
+        if event.button() == Qt.LeftButton:
+            self.drawing = True
+            self.lastPoint = event.pos()
+            self.saveForUndo()
+
+    def saveForUndo(self):
+        """Save current state for undo"""
+        if len(self.undoStack) >= self.undoLimit:
+            self.undoStack.pop(0)
+        self.undoStack.append(self.image.copy())
+
+    def undo(self):
+        """Undo the last action"""
+        if self.undoStack:
+            self.image = self.undoStack.pop()
+            self.update()
 
     def set_brush_color(self, color):
         """
@@ -162,6 +184,15 @@ class PainterWidget(QWidget):
         """
         if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
             self.drawing = False
+
+    def keyPressEvent(self, event):
+        """
+        Key press event to handle undo action
+
+        :param event: Event
+        """
+        if event.key() == Qt.Key_Z and QApplication.keyboardModifiers() == Qt.ControlModifier:
+            self.undo()
 
     def paintEvent(self, event):
         """
