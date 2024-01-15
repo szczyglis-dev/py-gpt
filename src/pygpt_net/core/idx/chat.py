@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 13:00:00                  #
+# Updated Date: 2024.01.15 10:00:00                  #
 # ================================================== #
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -21,15 +21,13 @@ from .context import Context
 class Chat:
     def __init__(self, window=None, storage=None):
         """
-        Query index core
+        Chat with index core
 
         :param window: Window instance
         """
         self.window = window
         self.storage = storage
         self.context = Context(window)
-        self.input_tokens = 0
-        self.max_tokens = 0
 
     def call(self, ctx: CtxItem, idx: str, model: ModelItem, sys_prompt: str = None, stream: bool = False) -> any:
         """
@@ -42,6 +40,10 @@ class Chat:
         :param stream: Stream mode
         :return: Response or bool
         """
+        # check if model provided
+        if model is None:
+            raise Exception("Model config not provided")
+
         # check if chat mode is available
         if "chat" in model.llama_index['mode']:
             return self.chat(ctx, idx, model, sys_prompt, stream)
@@ -63,6 +65,9 @@ class Chat:
         is_log = False
         if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
             is_log = True
+
+        if model is None:
+            raise Exception("Model config not provided")
 
         if is_log:
             print("[LLAMA-INDEX] Query index...")
@@ -97,12 +102,14 @@ class Chat:
         :return: True if success
         """
         query = ctx.input
-        self.input_tokens = 0
 
         # log query
         is_log = False
         if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
             is_log = True
+
+        if model is None:
+            raise Exception("Model config not provided")
 
         if is_log:
             print("[LLAMA-INDEX] Chat with index...")
@@ -116,7 +123,7 @@ class Chat:
         # append context from DB
         history = self.context.get_messages(ctx.input, sys_prompt)
         memory = ChatMemoryBuffer.from_defaults(chat_history=history)
-        self.input_tokens = self.window.core.tokens.from_llama_messages(query, history, model.id)
+        input_tokens = self.window.core.tokens.from_llama_messages(query, history, model.id)
         chat_engine = index.as_chat_engine(
             chat_mode="context",
             memory=memory,
@@ -125,13 +132,13 @@ class Chat:
         if stream:
             response = chat_engine.stream_chat(query)
             ctx.stream = response.response_gen
-            ctx.input_tokens = self.input_tokens
+            ctx.input_tokens = input_tokens
             ctx.set_output("", "")
             return True
         else:
             response = chat_engine.chat(query)
 
-        ctx.input_tokens = self.input_tokens
+        ctx.input_tokens = input_tokens
         ctx.output_tokens = self.window.core.tokens.from_llama_messages(response, [], model.id)  # calc from response
         ctx.set_output(str(response), "")
 
@@ -142,7 +149,7 @@ class Chat:
         Get custom prompt template if sys prompt is not empty
 
         :param prompt: System prompt
-        :return: ChatPromptTemplate
+        :return: ChatPromptTemplate or None if prompt is empty
         """
         if prompt is None or prompt.strip() == "":
             return None
