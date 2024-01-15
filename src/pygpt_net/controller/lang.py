@@ -230,6 +230,13 @@ class Lang:
             self.window.ui.menu['debug.assistants'].setText(trans("menu.debug.assistants"))
             self.window.ui.menu['debug.ui'].setText(trans("menu.debug.ui"))
 
+        self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))
+        self.window.ui.menu['theme.dark'].setTitle(trans("menu.theme.dark"))
+        self.window.ui.menu['theme.light'].setTitle(trans("menu.theme.light"))
+        self.window.ui.menu['theme.density'].setTitle(trans("menu.theme.density"))
+        self.window.ui.menu['theme.tooltips'].setText(trans("menu.theme.tooltips"))
+        self.window.ui.menu['theme.settings'].setText(trans("menu.theme.settings"))
+
         self.window.ui.menu['menu.plugins'].setTitle(trans("menu.plugins"))
         self.window.ui.menu['plugins.settings'].setText(trans("menu.plugins.settings"))
 
@@ -254,7 +261,6 @@ class Lang:
         self.window.ui.nodes['start.btn'].setText(trans('dialog.start.btn'))
 
         # input tabs
-
         self.window.ui.tabs['input'].setTabText(0, trans('input.tab'))
         self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab'))
         self.window.ui.nodes['attachments.btn.add'].setText(trans('attachments.btn.add'))
@@ -262,11 +268,6 @@ class Lang:
         self.window.ui.nodes['attachments_uploaded.btn.sync'].setText(trans('attachments_uploaded.btn.sync'))
         self.window.ui.nodes['attachments_uploaded.btn.clear'].setText(trans('attachments_uploaded.btn.clear'))
         self.window.ui.nodes['attachments_uploaded.sync.tip'].setText(trans('attachments_uploaded.sync.tip'))
-        self.window.ui.nodes['tip.toolbox.presets'].setText(trans('tip.toolbox.presets'))
-        self.window.ui.nodes['tip.toolbox.prompt'].setText(trans('tip.toolbox.prompt'))
-        self.window.ui.nodes['tip.toolbox.assistants'].setText(trans('tip.toolbox.assistants'))
-        self.window.ui.nodes['tip.toolbox.indexes'].setText(trans('tip.toolbox.indexes'))
-        self.window.ui.nodes['tip.toolbox.ctx'].setText(trans('tip.toolbox.ctx'))
 
         # filesystem / idx
         self.window.ui.nodes['output_files'].btn_upload.setText(trans('files.local.upload'))
