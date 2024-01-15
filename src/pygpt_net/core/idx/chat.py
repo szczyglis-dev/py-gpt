@@ -66,7 +66,7 @@ class Chat:
 
         if is_log:
             print("[LLAMA-INDEX] Query index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model))
+            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model.id))
 
         # check if index exists
         if not self.storage.exists(idx):
@@ -106,7 +106,7 @@ class Chat:
 
         if is_log:
             print("[LLAMA-INDEX] Chat with index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model))
+            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model.id))
 
         # check if index exists
         if not self.storage.exists(idx):
