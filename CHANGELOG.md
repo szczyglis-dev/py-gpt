@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.105 (2024-01-15)
+
+- Extended `Theme` menu with new options
+- `Index (llama-index)` mode changed name to `Chat with files` mode
+- Refactored theme controller
+
 # 2.0.104 (2024-01-14)
 
 - Langchain support refactored and fixed

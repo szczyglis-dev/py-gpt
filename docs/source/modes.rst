@@ -123,11 +123,11 @@ Available LLMs providers supported by **PyGPT**:
 You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.
 
 
-Index (llama-index)
--------------------
+Chat with files (llama-index)
+-----------------------------
 
-This mode enables direct interaction with your documents through conversation. It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the ``data`` directory and initiate indexing by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Llama-index (inline)`` plugin.
+This mode enables chat interaction with your documents and entire context history through conversation. It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the ``data`` directory and initiate indexing by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Llama-index (inline)`` plugin.
 
-Built-in file loaders: ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``.
+Built-in file loaders: ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``. You can extend it in ``Settings / Llama-index`` by providing list of online loaders (from LlamaHub)
 
-**From version ``2.0.100`` Llama-index is integrated also with database - you can use data from database (your history contexts) as additional context in discussion.**
+**From version ``2.0.100`` Llama-index is integrated also with database - you can use data from database (your history contexts) as additional context in discussion. Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in Settings / Llama-index section.**
