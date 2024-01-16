@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.107'
+VERSION = '2.0.108'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, ' \
               'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
 LONG_DESCRIPTION = 'Package contains a GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 Desktop AI Assistant with chatbot, ' \
@@ -38,9 +38,9 @@ setup(
         'llama-hub>=0.0.69',
         'llama-index>=0.9.29',
         'Markdown>=3.5.1',
-        'openai>=1.3.7',
+        'openai>=1.7.2',
         'opencv-python>=4.8.1.78',
-        'packaging>=23.0',
+        'packaging>=23.2',
         'pandas>=2.1.4',
         'pillow>=10.2.0',
         'PyAudio>=0.2.14',
@@ -54,7 +54,7 @@ setup(
         'SpeechRecognition>=3.10.0',
         'SQLAlchemy>=2.0.23',
         'show-in-file-manager>=1.1.4',
-        'tiktoken>=0.3.3',
+        'tiktoken>=0.5.2',
         'wikipedia>=1.4.0',
     ],
 )

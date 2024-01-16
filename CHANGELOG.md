@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.108 (2024-01-16)
+
+- Added confirmation dialogs on indexing
+- Added missing translations
+- Updated dependencies: openai, cryptography, certifi, urllib, jinja
+
 # 2.0.107 (2024-01-16)
 
 - Fixed model change in vision plugin
