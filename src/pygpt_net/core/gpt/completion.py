@@ -41,7 +41,11 @@ class Completion:
             stop = [user_name + ':']
 
         client = self.window.core.gpt.get_client()
-        model = self.window.core.gpt.get_model('completion')
+        model = self.window.core.gpt.get_model('completion',  allow_change=False)
+
+        # fix for deprecated OpenAI davinci models
+        if model.startswith('text-davinci'):
+            model = 'gpt-3.5-turbo-instruct'
 
         response = client.completions.create(
             prompt=message,

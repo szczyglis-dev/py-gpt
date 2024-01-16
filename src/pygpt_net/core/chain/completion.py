@@ -39,7 +39,7 @@ class Completion:
                 try:
                     # init
                     self.window.core.llm.llms[provider].init(
-                        self.window, model.langchain, "langchain", "completion")
+                        self.window, model, "langchain", "completion")
                     # get LLM provider instance
                     llm = self.window.core.llm.llms[provider].completion(
                         self.window, model, stream_mode)
