@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.107 (2024-01-16)
+
+- Fixed model change in vision plugin
+- Fixed completion API error
+- Removed deprecated davinci and replaced with 3.5-turbo-instruct model
+
 # 2.0.106 (2024-01-15)
 
 - Added "undo" action in drawing window
