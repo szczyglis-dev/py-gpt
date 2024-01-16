@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 22:00:00                  #
+# Updated Date: 2024.01.16 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -87,7 +87,8 @@ class Plugin(BasePlugin):
             if self.is_allowed(data['value']):
                 data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
         elif name == 'model.before':
-            data['model'] = self.get_option_value("model")  # force choose correct vision model (model.id provided here)
+            if "mode" in data and data["mode"] == "vision":
+                data['model'] = self.get_option_value("model")
         elif name == 'pre.prompt':
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_pre_prompt(data['value'])

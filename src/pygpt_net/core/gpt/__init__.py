@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.16 04:00:00                  #
 # ================================================== #
 
 import json
@@ -54,16 +54,23 @@ class Gpt:
             organization=self.window.core.config.get('organization_key'),
         )
 
-    def get_model(self, mode: str) -> str:
-        # event: model.before
+    def get_model(self, mode: str, allow_change: bool = True) -> str:
+        """
+        Get model ID
+
+        :param mode: Mode
+        :param allow_change: Allow change model
+        :return: Model ID
+        """
         model = str(self.window.core.config.get('model'))
         model_id = self.window.core.models.get_id(model)
-        event = Event('model.before', {
-            'mode': mode,
-            'model': model_id,  # ID is provided to event, NOT the key in items! TODO: pass as object
-        })
-        self.window.core.dispatcher.dispatch(event)
-        model_id = event.data['model']
+        if allow_change:
+            event = Event('model.before', {
+                'mode': mode,
+                'model': model_id,  # ID is provided to event, NOT the key in items! TODO: pass as object
+            })
+            self.window.core.dispatcher.dispatch(event)
+            model_id = event.data['model']
         return model_id
 
     def call(self, prompt: str, ctx: CtxItem = None, stream_mode: bool = False) -> bool:

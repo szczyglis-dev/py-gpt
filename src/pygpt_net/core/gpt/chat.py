@@ -33,7 +33,7 @@ class Chat:
         :return: response or stream chunks
         """
         client = self.window.core.gpt.get_client()
-        model = self.window.core.gpt.get_model('chat')
+        model = self.window.core.gpt.get_model('chat',  allow_change=False)
 
         # build chat messages
         messages = self.build(prompt, system_prompt=system_prompt, ai_name=ai_name, user_name=user_name)
