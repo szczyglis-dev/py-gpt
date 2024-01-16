@@ -124,7 +124,7 @@ class Patch:
                             data["text-davinci-003"].langchain["args"][0]["value"] = "gpt-3.5-turbo-instruct"
                     data["text-davinci-003"].llama_index["args"] = []
                     data["text-davinci-003"].llama_index["env"] = []
-                    data["text-davinci-003"].llama_index["provider"] = "openai"
+                    data["text-davinci-003"].llama_index["provider"] = None
                     # replace "text-davinci-003" with "gpt-3.5-turbo-instruct"
                     if "gpt-3.5-turbo-instruct" not in data:
                         data["gpt-3.5-turbo-instruct"] = data["text-davinci-003"]
