@@ -91,8 +91,12 @@ class Confirm:
             self.window.controller.model.editor.load_defaults_app(True)
 
         # index
+        elif type == 'idx.index.file':
+            self.window.controller.idx.indexer.index_file_confirm(id)  # id = path
         elif type == 'idx.index.files.all':
             self.window.controller.idx.indexer.index_all_files(id, True)
+        elif type == 'idx.index.db':
+            self.window.controller.idx.indexer.index_ctx_meta_confirm(id) # id = ctx_id
         elif type == 'idx.index.db.all':
             self.window.controller.idx.indexer.index_ctx_from_ts_confirm(id)
         elif type == 'idx.clear':

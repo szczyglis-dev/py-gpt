@@ -48,6 +48,7 @@ class ConfirmDialog(QDialog):
         self.message.setContentsMargins(10, 10, 10, 10)
         self.message.setAlignment(Qt.AlignCenter)
         self.message.setMinimumWidth(400)
+        self.message.setWordWrap(True)
         self.layout.addWidget(self.message)
         self.layout.addLayout(bottom)
         self.setLayout(self.layout)

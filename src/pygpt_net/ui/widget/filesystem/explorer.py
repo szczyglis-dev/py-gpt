@@ -215,7 +215,7 @@ class FileExplorer(QWidget):
         :param path: path to open
         :param id: index id
         """
-        self.window.controller.idx.indexer.index_path(path, id)
+        self.window.controller.idx.indexer.index_file(path, id)
 
     def action_open_dir(self, path):
         """

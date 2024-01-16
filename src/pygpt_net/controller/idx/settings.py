@@ -37,29 +37,29 @@ class Settings:
         :param fields: settings options config fields
         """
         btns = QHBoxLayout()
-        self.window.ui.nodes['idx.btn.db.index_all'] = ContextMenuButton(trans('settings.llama.extra.btn.idx_db_all'))  # index DB (all)
+        self.window.ui.nodes['idx.btn.db.index_all'] = \
+            ContextMenuButton(trans('settings.llama.extra.btn.idx_db_all'))  # index DB (all)
         self.window.ui.nodes['idx.btn.db.index_all'].action = self.idx_db_all_context_menu
-        self.window.ui.nodes['idx.btn.db.index_update'] = ContextMenuButton(trans('settings.llama.extra.btn.idx_db_update'))  # index DB (only update)
+        self.window.ui.nodes['idx.btn.db.index_update'] = \
+            ContextMenuButton(trans('settings.llama.extra.btn.idx_db_update'))  # index DB (only update)
         self.window.ui.nodes['idx.btn.db.index_update'].action = self.idx_db_update_context_menu
-        self.window.ui.nodes['idx.btn.db.index_files'] = ContextMenuButton(trans('settings.llama.extra.btn.idx_files_all'))  # index files (data)
+        self.window.ui.nodes['idx.btn.db.index_files'] = \
+            ContextMenuButton(trans('settings.llama.extra.btn.idx_files_all'))  # index files (data)
         self.window.ui.nodes['idx.btn.db.index_files'].action = self.idx_data_context_menu
 
-        last_str = '---'
-        if self.window.core.config.has('llama.idx.db.last'):
-            last_ts = int(self.window.core.config.get('llama.idx.db.last'))
-            if last_ts > 0:
-                # convert timestamp to datetime
-                last_str = datetime.datetime.fromtimestamp(last_ts).strftime('%Y-%m-%d %H:%M:%S')
+        self.window.ui.nodes['idx.api.warning'] = QLabel(trans('settings.llama.extra.api.warning'))
+        self.window.ui.nodes['idx.api.warning'].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes['idx.api.warning'].setWordWrap(True)
 
-        txt = trans('idx.last') + ": " + last_str
-        self.window.ui.nodes['idx.db.last_updated'] = QLabel(txt)
+        self.window.ui.nodes['idx.db.last_updated'] = QLabel("")
+        self.update_text_last_updated()
         btns.addWidget(self.window.ui.nodes['idx.btn.db.index_all'])
         btns.addWidget(self.window.ui.nodes['idx.btn.db.index_update'])
         btns.addWidget(self.window.ui.nodes['idx.btn.db.index_files'])
 
         # offline loaders
-        self.window.ui.nodes['idx.db.settings.loaders'] = \
-            QLabel("\nBuilt-in data loaders: text, " + ", ".join(self.window.core.idx.indexing.loaders.keys()))
+        self.window.ui.nodes['idx.db.settings.loaders'] = QLabel("")
+        self.update_text_loaders()
         self.window.ui.nodes['idx.db.settings.loaders'].setWordWrap(True)
         # add to layout
         self.window.ui.nodes['idx.db.settings.legend.head'] = QLabel(trans('settings.llama.extra.btn.idx_head'))
@@ -72,6 +72,29 @@ class Settings:
         content.addWidget(self.window.ui.nodes['idx.db.settings.legend'])
         content.addWidget(self.window.ui.nodes['idx.db.last_updated'])
         content.addWidget(self.window.ui.nodes['idx.db.settings.loaders'])
+        content.addWidget(self.window.ui.nodes['idx.api.warning'])
+
+    def update_text_last_updated(self):
+        """
+        Update last updated text
+        """
+        last_str = trans('settings.llama.extra.db.never')
+        if self.window.core.config.has('llama.idx.db.last'):
+            last_ts = int(self.window.core.config.get('llama.idx.db.last'))
+            if last_ts > 0:
+                # convert timestamp to datetime
+                last_str = datetime.datetime.fromtimestamp(last_ts).strftime('%Y-%m-%d %H:%M:%S')
+
+        txt = trans('idx.last') + ": " + last_str
+        self.window.ui.nodes['idx.db.last_updated'].setText(txt)
+
+    def update_text_loaders(self):
+        """
+        Update text loaders list
+        """
+        str = trans('settings.llama.extra.loaders') + ", " + ", ".join(
+                self.window.core.idx.indexing.loaders.keys())
+        self.window.ui.nodes['idx.db.settings.loaders'].setText(str)
 
     def idx_db_all_context_menu(self, parent, pos):
         """

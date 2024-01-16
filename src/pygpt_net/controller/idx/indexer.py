@@ -48,13 +48,31 @@ class Indexer:
         self.window.core.config.set('llama.idx.status', idx_data)
         self.window.core.config.save()
 
-    def index_ctx_meta(self, ctx_idx, idx):
+    def index_ctx_meta_confirm(self, ctx_idx):
+        """
+        Index context meta (confirm)
+
+        :param ctx_idx: context idx on list
+        """
+        # get stored index name
+        if self.tmp_idx is None:
+            return
+        self.index_ctx_meta(ctx_idx, self.tmp_idx, True)
+
+    def index_ctx_meta(self, ctx_idx, idx, force: bool = False):
         """
         Index context meta (threaded)
 
         :param ctx_idx: context idx on list
         :param idx: index name
+        :param force: force index
         """
+        if not force:
+            self.tmp_idx = idx  # store tmp index name (for confirmation)
+            self.window.ui.dialogs.confirm('idx.index.db',
+                                           ctx_idx, trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn'))
+            return
+
         meta_id = self.window.core.ctx.get_id_by_idx(ctx_idx)
         self.window.update_status(trans('idx.status.indexing'))
 
@@ -106,7 +124,8 @@ class Indexer:
         """
         self.tmp_idx = idx  # store tmp index name (for confirmation)
         if not force:
-            self.window.ui.dialogs.confirm('idx.index.db.all', ts, trans('idx.confirm.db.content'))
+            self.window.ui.dialogs.confirm('idx.index.db.all',
+                                           ts, trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn'))
             return
         worker = IndexWorker()
         worker.window = self.window
@@ -147,7 +166,34 @@ class Indexer:
         path = self.window.core.config.get_user_dir('data')
         if not force:
             self.window.ui.dialogs.confirm('idx.index.files.all', idx, trans('idx.confirm.files.content').
-                                           replace('{dir}', path))
+                                           replace('{dir}', path) + "\n" + trans('idx.token.warn'))
+            return
+        self.index_path(path, idx)
+
+    def index_file_confirm(self, path):
+        """
+        Index file (force execute)
+
+        :param path: path to index
+        """
+        # get stored index name
+        if self.tmp_idx is None:
+            return
+        self.window.update_status(trans('idx.status.indexing'))
+        self.index_path(path, self.tmp_idx)
+
+    def index_file(self, path: str, idx: str = "base", force: bool = False):
+        """
+        Index file or directory (threaded)
+
+        :param path: path to index
+        :param idx: index name
+        :param force: force index
+        """
+        self.tmp_idx = idx  # store tmp index name (for confirmation)
+        if not force:
+            self.window.ui.dialogs.confirm('idx.index.file', path, trans('idx.confirm.file.content').
+                                           replace('{dir}', path) + "\n" + trans('idx.token.warn'))
             return
         self.index_path(path, idx)
 

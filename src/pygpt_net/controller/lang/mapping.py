@@ -84,6 +84,7 @@ class Mapping:
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['toolbox.prompt.label'] = 'toolbox.prompt'
+        nodes["indexes.label"] = "toolbox.indexes.label"
 
         # input
         nodes['input.label'] = 'input.label'
@@ -144,6 +145,10 @@ class Mapping:
         nodes['settings.btn.defaults.user'] = 'dialog.settings.btn.defaults.user'
         nodes['settings.btn.defaults.app'] = 'dialog.settings.btn.defaults.app'
         nodes['settings.btn.save'] = 'dialog.settings.btn.save'
+
+        # extra settings
+        nodes["idx.api.warning"] = "settings.llama.extra.api.warning"
+        nodes["idx.db.settings.legend"] = "settings.llama.extra.btn.idx_head"
 
         # start
         nodes['start.title'] = 'dialog.start.title.text'

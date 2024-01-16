@@ -20,6 +20,7 @@ class Plugin(BasePlugin):
         self.id = "openai_dalle"
         self.name = "DALL-E 3: Image generation"
         self.description = "Integrates DALL-E 3 image generation with any chat"
+        self.allowed_modes = ["chat", "langchain", "vision", "llama_index", "assistant"]
         self.allowed_cmds = [
             "image"
         ]
@@ -77,6 +78,11 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         if name == 'system.prompt':
+            mode = ""
+            if "mode" in data:
+                mode = data["mode"]
+            if mode not in self.allowed_modes:
+                return
             data['value'] = self.on_system_prompt(data['value'])
         elif name == 'cmd.only' or name == 'cmd.execute':
             self.cmd(ctx, data['commands'])

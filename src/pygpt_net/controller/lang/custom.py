@@ -73,6 +73,10 @@ class Custom:
         self.window.ui.nodes['dialog.about.content'].setText(trans(self.window.ui.dialogs.about.prepare_content()))
         self.window.ui.nodes['dialog.about.thanks'].setText(trans('about.thanks') + ":")
 
+        # settings: llama-idx
+        self.window.controller.idx.settings.update_text_last_updated()
+        self.window.controller.idx.settings.update_text_loaders()
+
         # theme menu
         self.window.ui.menu['menu.theme'].setTitle(trans("menu.theme"))
         for theme in self.window.ui.menu['theme']:

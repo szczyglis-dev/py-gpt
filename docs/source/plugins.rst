@@ -16,7 +16,7 @@ The following plugins are currently available, and GPT can use them instantly:
 * ``Real Time`` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
 * ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
 * ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
-* ``Llama-index (inline)`` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files). ``Experimental.``
+* ``Chat with files (Llama-index, inline)`` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files). ``Experimental.``
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
 Command: Files I/O
@@ -565,8 +565,8 @@ Plugin integrates vision capabilities with any chat mode, not just Vision mode. 
 
 The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
 
-Llama-index (inline)
---------------------
+Chat with files (Llama-index, inline)
+-------------------------------------
 
 Plugin integrates Llama-index storage in any chat and provides additional knowledge into context.
 

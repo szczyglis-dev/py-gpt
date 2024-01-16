@@ -281,7 +281,8 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 ![v2_mode_completion](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1c5f80aa-4864-451f-be4d-ee72efd5b0c4)
 
 In this mode, models from the `davinci` family within `GPT-3` are available. 
-**Note:** The `davinci` models are tagged for deprecation in the near future.
+
+**Info:** From version `2.0.107` the davinci models are deprecated and has been replaced with `gpt-3.5-turbo-instruct` model.
 
 ## Assistants
 
@@ -355,11 +356,15 @@ You have the ability to add custom model wrappers for models that are not availa
 
 ##  Chat with files (llama-index)
 
-This mode enables chat interaction with your documents and entire context history through conversation. It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Llama-index (inline)` plugin.
+This mode enables chat interaction with your documents and entire context history through conversation. It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
 
-Built-in file loaders: `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`. You can extend it in `Settings / Llama-index` by providing list of online loaders (from LlamaHub)
+Built-in file loaders (offline): `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`. 
+You can extend this list in `Settings / Llama-index` by providing list of online loaders (from `LlamaHub`).
+All loaders included for offline use are also from `LlamaHub`, but they are attached locally with all necessary library dependencies included.
 
 **From version `2.0.100` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in Settings / Llama-index section.**
+
+**WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
 # Files and attachments
 
@@ -645,7 +650,7 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
-- `Llama-index (inline)` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files and previous context from database). `Experimental`.
+- `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database). `Experimental`.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
@@ -1178,7 +1183,7 @@ Plugin integrates vision capabilities with any chat mode, not just Vision mode. 
 
 The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
 
-## Llama-index (inline)
+## Chat with files (Llama-index, inline)
 
 Plugin integrates Llama-index storage in any chat and provides additional knowledge into context.
 

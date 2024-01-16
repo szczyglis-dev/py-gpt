@@ -42,17 +42,17 @@ class IndexList(BaseList):
         actions['edit'].triggered.connect(
             lambda: self.action_edit(event))
 
-        txt = trans('settings.llama.extra.btn.idx_head') + ': ' + trans('settings.llama.extra.btn.idx_db_all')
+        txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_db_all')
         actions['idx_db_all'] = QAction(QIcon.fromTheme("search"), txt, self)
         actions['idx_db_all'].triggered.connect(
             lambda: self.action_idx_db_all(event))
 
-        txt = trans('settings.llama.extra.btn.idx_head') + ': ' + trans('settings.llama.extra.btn.idx_db_update')
+        txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_db_update')
         actions['idx_db_update'] = QAction(QIcon.fromTheme("search"), txt, self)
         actions['idx_db_update'].triggered.connect(
             lambda: self.action_idx_db_update(event))
 
-        txt = trans('settings.llama.extra.btn.idx_head') + ': ' + trans('settings.llama.extra.btn.idx_files_all')
+        txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_files_all')
         actions['idx_files_all'] = QAction(QIcon.fromTheme("search"), txt, self)
         actions['idx_files_all'].triggered.connect(
             lambda: self.action_idx_files_all(event))
