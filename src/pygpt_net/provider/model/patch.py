@@ -109,6 +109,26 @@ class Patch:
                 updated = True
             '''
 
+            # < 2.0.107  <--- patch for deprecated davinci, replace with gpt-3.5-turbo-instruct
+            if old < parse_version("2.0.107"):
+                print("Migrating models from < 2.0.107...")
+                if "text-davinci-002" in data:
+                    del data["text-davinci-002"]
+                if "text-davinci-003" in data:
+                    data["text-davinci-003"].id = "gpt-3.5-turbo-instruct"
+                    data["text-davinci-003"].name = "gpt-3.5-turbo-instruct"
+                    if len(data["text-davinci-003"].langchain["args"]) > 0:
+                        if data["text-davinci-003"].langchain["args"][0]["name"] == "model_name":
+                            data["text-davinci-003"].langchain["args"][0]["value"] = "gpt-3.5-turbo-instruct"
+                    if len(data["text-davinci-003"].llama_index["args"]) > 0:
+                        if data["text-davinci-003"].llama_index["args"][0]["name"] == "model":
+                            data["text-davinci-003"].llama_index["args"][0]["value"] = "gpt-3.5-turbo-instruct"
+                    # replace "text-davinci-003" with "gpt-3.5-turbo-instruct"
+                    if "gpt-3.5-turbo-instruct" not in data:
+                        data["gpt-3.5-turbo-instruct"] = data["text-davinci-003"]
+                        del data["text-davinci-003"]
+                updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))

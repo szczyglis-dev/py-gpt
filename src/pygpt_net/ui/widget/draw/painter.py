@@ -77,6 +77,7 @@ class PainterWidget(QWidget):
         """Open the image"""
         path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")
         if path:
+            self.saveForUndo()
             img = QImage(path)
             if img.isNull():
                 QMessageBox.information(self, "Image Loader", "Cannot load file.")
@@ -105,6 +106,7 @@ class PainterWidget(QWidget):
 
     def action_capture(self):
         """Capture the image"""
+        self.saveForUndo()
         self.window.controller.drawing.capture()
 
     def action_save(self):
@@ -117,6 +119,7 @@ class PainterWidget(QWidget):
 
     def action_clear(self):
         """Clear the image"""
+        self.saveForUndo()
         self.clear_image()
         self.originalImage = self.image
 

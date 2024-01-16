@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.0.106",
-        "app.version": "2.0.106",
-        "updated_at": "2024-01-15T14:53:56"
+        "version": "2.0.107",
+        "app.version": "2.0.107",
+        "updated_at": "2024-01-16T03:53:56"
     },
     "items": {
         "dall-e-2": {
@@ -363,9 +363,9 @@
             "tokens": 4096,
             "default": false
         },
-        "text-davinci-002": {
-            "id": "text-davinci-002",
-            "name": "gpt-3 (davinci-002)",
+        "gpt-3.5-turbo-instruct": {
+            "id": "gpt-3.5-turbo-instruct",
+            "name": "gpt-3.5-turbo-instruct",
             "mode": [
                 "completion",
                 "langchain",
@@ -379,7 +379,7 @@
                 "args": [
                     {
                         "name": "model_name",
-                        "value": "text-davinci-002",
+                        "value": "gpt-3.5-turbo-instruct",
                         "type": "str"
                     }
                 ],
@@ -396,55 +396,7 @@
                 "args": [
                     {
                         "name": "model",
-                        "value": "text-davinci-002",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    }
-                ]
-            },
-            "ctx": 4096,
-            "tokens": 4096,
-            "default": false
-        },
-        "text-davinci-003": {
-            "id": "text-davinci-003",
-            "name": "gpt-3.5 (davinci-003)",
-            "mode": [
-                "completion",
-                "langchain",
-                "llama_index"
-            ],
-            "langchain": {
-                "provider": "openai",
-                "mode": [
-                    "completion"
-                ],
-                "args": [
-                    {
-                        "name": "model_name",
-                        "value": "text-davinci-003",
-                        "type": "str"
-                    }
-                ],
-                "env": [
-                    {
-                        "name": "OPENAI_API_KEY",
-                        "value": "{api_key}"
-                    }
-                ]
-            },
-            "llama_index": {
-                "provider": "openai",
-                "mode": [],
-                "args": [
-                    {
-                        "name": "model",
-                        "value": "text-davinci-003",
+                        "value": "gpt-3.5-turbo-instruct",
                         "type": "str"
                     }
                 ],
