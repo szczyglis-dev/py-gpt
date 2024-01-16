@@ -117,12 +117,14 @@ class Patch:
                 if "text-davinci-003" in data:
                     data["text-davinci-003"].id = "gpt-3.5-turbo-instruct"
                     data["text-davinci-003"].name = "gpt-3.5-turbo-instruct"
+                    if "llama_index" in data["text-davinci-003"].mode:
+                        data["text-davinci-003"].mode.remove("llama_index")
                     if len(data["text-davinci-003"].langchain["args"]) > 0:
                         if data["text-davinci-003"].langchain["args"][0]["name"] == "model_name":
                             data["text-davinci-003"].langchain["args"][0]["value"] = "gpt-3.5-turbo-instruct"
-                    if len(data["text-davinci-003"].llama_index["args"]) > 0:
-                        if data["text-davinci-003"].llama_index["args"][0]["name"] == "model":
-                            data["text-davinci-003"].llama_index["args"][0]["value"] = "gpt-3.5-turbo-instruct"
+                    data["text-davinci-003"].llama_index["args"] = []
+                    data["text-davinci-003"].llama_index["env"] = []
+                    data["text-davinci-003"].llama_index["provider"] = "openai"
                     # replace "text-davinci-003" with "gpt-3.5-turbo-instruct"
                     if "gpt-3.5-turbo-instruct" not in data:
                         data["gpt-3.5-turbo-instruct"] = data["text-davinci-003"]
