@@ -9,7 +9,6 @@
 # Updated Date: 2024.01.15 12:00:00                  #
 # ================================================== #
 
-
 from pygpt_net.utils import trans
 
 
