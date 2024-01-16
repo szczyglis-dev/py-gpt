@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.13 06:00:00                  #
+# Updated Date: 2024.01.16 06:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -96,7 +96,7 @@ class Confirm:
         elif type == 'idx.index.files.all':
             self.window.controller.idx.indexer.index_all_files(id, True)
         elif type == 'idx.index.db':
-            self.window.controller.idx.indexer.index_ctx_meta_confirm(id) # id = ctx_id
+            self.window.controller.idx.indexer.index_ctx_meta_confirm(id)  # id = ctx_id
         elif type == 'idx.index.db.all':
             self.window.controller.idx.indexer.index_ctx_from_ts_confirm(id)
         elif type == 'idx.clear':
