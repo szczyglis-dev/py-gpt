@@ -21,7 +21,7 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 **Great Bug Reports** tend to have:
 
 - A quick summary and/or background
-- Environment details (OS, Python version, installed packaged versions from `pip list`)
+- Environment details (OS, Python version, installed packages versions from `pip list`)
 - Version of application (e.g. 0.1.0)
 - Steps to reproduce
   - Be specific!
@@ -43,7 +43,7 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 ## Use a Consistent Coding Style
 
 * You can use any editor you like, but make sure your code conforms to our coding conventions.
-* We use PEP8 for Python code.
+* We use [PEP8](https://peps.python.org/pep-0008/) for Python code.
 
 ## Testing
 
