@@ -177,26 +177,11 @@ class Launcher:
     def init(self):
         """Initialize app"""
         Platforms.prepare()  # setup platform specific options
-
         self.app = QApplication(sys.argv)
         self.window = MainWindow()
-        icon = QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico'))
-        self.app.setWindowIcon(icon)
+        self.app.setWindowIcon(self.window.ui.get_app_icon())
         self.app.aboutToQuit.connect(self.app.quit)
-        tray = QSystemTrayIcon(icon, self.app)
-        tray.setToolTip("PyGPT v{}".format(self.window.meta['version']))
-        menu = QMenu()
-        tray_menu = {}
-        tray_menu['new'] = menu.addAction(trans("menu.file.new"))
-        tray_menu['new'].triggered.connect(self.window.controller.ctx.new)
-        tray_menu['update'] = menu.addAction(trans("menu.info.updates"))
-        tray_menu['update'].triggered.connect(self.window.controller.launcher.check_updates)
-        tray_menu['github'] = menu.addAction(trans("menu.info.github"))
-        tray_menu['github'].triggered.connect(self.window.controller.dialogs.info.goto_github)
-        tray_menu['exit'] = menu.addAction(trans("menu.file.exit"))
-        tray_menu['exit'].triggered.connect(self.app.quit)
-        tray.setContextMenu(menu)
-        tray.show()
+        self.window.ui.tray.setup(self.app)
 
     def add_plugin(self, plugin=None):
         """

@@ -12,7 +12,7 @@
 import os
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtGui import QFontDatabase, QIcon
 from PySide6.QtWidgets import QSplitter, QMessageBox
 
 from pygpt_net.ui.dialogs import Dialogs
@@ -20,6 +20,7 @@ from pygpt_net.ui.layout.chat import ChatMain
 from pygpt_net.ui.layout.ctx import CtxMain
 from pygpt_net.ui.layout.toolbox import ToolboxMain
 from pygpt_net.ui.menu import Menu
+from pygpt_net.ui.tray import Tray
 
 
 class UI:
@@ -60,6 +61,7 @@ class UI:
         self.dialogs = Dialogs(window)
         self.menus = Menu(window)
         self.toolbox = ToolboxMain(window)
+        self.tray = Tray(window)
 
     def init(self):
         """Setup UI"""
@@ -156,3 +158,7 @@ class UI:
         :return: Hook callback
         """
         return self.hooks[name]
+
+    def get_app_icon(self) -> QIcon:
+        """Get app icon"""
+        return QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico'))
