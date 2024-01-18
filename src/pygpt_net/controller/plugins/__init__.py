@@ -68,8 +68,8 @@ class Plugins:
                 tooltip = default_tooltip
             if plugin.use_locale:
                 domain = 'plugin.{}'.format(id)
-                name = trans('plugin.name', False, domain)
-                tooltip = trans('plugin.description', False, domain)
+                name = trans('plugin.name', domain=domain)
+                tooltip = trans('plugin.description', domain=domain)
             self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
             self.window.ui.menu['plugins'][id].triggered.connect(
                 lambda checked=None, id=id: self.toggle(id))
