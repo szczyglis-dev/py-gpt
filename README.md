@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.108** | build: **2024.01.16** | Python: **3.10+**
+Release: **2.0.109** | build: **2024.01.18** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1541,6 +1541,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+## 2.0.109 (2024-01-18)
+
+- Fixed bug: float inputs value update behaviour - issue #8
+- Added: plugin description tooltips - issue #7
+- Added: focus window on "New context..." in tray - issue #13
+- Added: Ask with screenshot option to tray menu - issue #11
+- Added: Open Notepad option to tray menu - issue #14
 
 ## 2.0.108 (2024-01-16)
 
