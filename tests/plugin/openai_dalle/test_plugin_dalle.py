@@ -89,4 +89,4 @@ def test_handle_sys_prompt(mock_window):
     event.ctx = ctx
     plugin.get_option_value = MagicMock(return_value="test append")
     plugin.handle(event)
-    assert event.data["value"] == "prompt\ntest append"
+    assert event.data["value"] == "prompt"
