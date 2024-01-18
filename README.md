@@ -1544,11 +1544,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## 2.0.109 (2024-01-18)
 
-- Fixed bug: float inputs value update behaviour - issue #8
-- Added: plugin description tooltips - issue #7
-- Added: focus window on "New context..." in tray - issue #13
-- Added: Ask with screenshot option to tray menu - issue #11
-- Added: Open Notepad option to tray menu - issue #14
+- Fixed bug: float inputs value update behaviour - bug [#8](https://github.com/szczyglis-dev/py-gpt/issues/8)
+- Added: plugin description tooltips - feature [#7](https://github.com/szczyglis-dev/py-gpt/issues/7)
+- Added: focus window on "New context..." in tray - feature [#13](https://github.com/szczyglis-dev/py-gpt/issues/13)
+- Added: Ask with screenshot option to tray menu - feature [#11](https://github.com/szczyglis-dev/py-gpt/issues/11)
+- Added: Open Notepad option to tray menu - feature [#14](https://github.com/szczyglis-dev/py-gpt/issues/14)
 
 ## 2.0.108 (2024-01-16)
 
