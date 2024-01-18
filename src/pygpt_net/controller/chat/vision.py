@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 02:00:00                  #
+# Updated Date: 2024.01.18 10:00:00                  #
 # ================================================== #
 
 
@@ -73,6 +73,17 @@ class Vision:
     def unavailable(self):
         """Set vision content unavailable"""
         self.is_available = False
+
+    def switch_to_vision(self):
+        """Switch to vision mode"""
+        mode = self.window.core.config.get('mode')
+        if mode == 'vision':
+            return
+        # abort if vision is already enabled
+        if not self.window.controller.plugins.is_enabled('openai_vision') \
+                or (self.window.controller.plugins.is_enabled('openai_vision')
+                    and mode not in self.allowed_modes):
+            self.window.controller.mode.set('vision')
 
     def update(self):
         """Update vision content on mode change"""

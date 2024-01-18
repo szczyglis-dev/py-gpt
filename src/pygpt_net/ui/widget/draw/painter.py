@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 13:00:00                  #
+# Updated Date: 2024.01.18 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -77,12 +77,20 @@ class PainterWidget(QWidget):
         """Open the image"""
         path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")
         if path:
-            self.saveForUndo()
-            img = QImage(path)
-            if img.isNull():
-                QMessageBox.information(self, "Image Loader", "Cannot load file.")
-                return
-            self.scale_to_fit(img)
+            self.open_image(path)
+
+    def open_image(self, path):
+        """
+        Open the image
+
+        :param path: Path to image
+        """
+        self.saveForUndo()
+        img = QImage(path)
+        if img.isNull():
+            QMessageBox.information(self, "Image Loader", "Cannot load file.")
+            return
+        self.scale_to_fit(img)
 
     def scale_to_fit(self, image):
         """

@@ -6,15 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 08:00:00                  #
+# Updated Date: 2024.01.18 11:00:00                  #
 # ================================================== #
 
-import os
 import sys
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
-from PySide6.QtGui import QScreen, QIcon
-from PySide6.QtWidgets import (QApplication, QMainWindow, QSystemTrayIcon, QMenu)
+from PySide6.QtGui import QScreen
+from PySide6.QtWidgets import (QApplication, QMainWindow)
 from qt_material import QtStyleTools
 from logging import ERROR, WARNING, INFO, DEBUG
 
@@ -23,7 +22,7 @@ from pygpt_net.controller import Controller
 from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui import UI
-from pygpt_net.utils import get_app_meta, trans
+from pygpt_net.utils import get_app_meta
 
 from pygpt_net.plugin.audio_azure import Plugin as AudioAzurePlugin
 from pygpt_net.plugin.audio_openai_tts import Plugin as AudioOpenAITTSPlugin
@@ -53,9 +52,10 @@ Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 class MainWindow(QMainWindow, QtStyleTools):
     statusChanged = Signal(str)
 
-    def __init__(self):
+    def __init__(self, app: QApplication):
         """Main window"""
         super().__init__()
+        self.app = app
         self.timer = None
         self.post_timer = None
         self.threadpool = None
@@ -178,7 +178,7 @@ class Launcher:
         """Initialize app"""
         Platforms.prepare()  # setup platform specific options
         self.app = QApplication(sys.argv)
-        self.window = MainWindow()
+        self.window = MainWindow(self.app)
         self.app.setWindowIcon(self.window.ui.get_app_icon())
         self.app.aboutToQuit.connect(self.app.quit)
         self.window.ui.tray.setup(self.app)

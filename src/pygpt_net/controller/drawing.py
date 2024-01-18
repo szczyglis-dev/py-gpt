@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.18 10:00:00                  #
 # ================================================== #
 
 import datetime
@@ -61,6 +61,14 @@ class Drawing:
         :param height: int
         """
         self.window.ui.painter.setFixedSize(QSize(width, height))
+
+    def open(self, path):
+        """
+        Open image
+
+        :param path: str
+        """
+        self.window.ui.painter.open_image(path)
 
     def from_camera(self):
         """Get image from camera"""
@@ -138,8 +146,31 @@ class Drawing:
         color = self.window.ui.nodes['painter.select.brush.color'].currentData()
         self.window.ui.painter.set_brush_color(color)
 
+    def attach(self, name: str, path: str, type: str = 'drawing'):
+        """
+        Attach image to attachments
+
+        :param name: image name
+        :param path: image path
+        :param type: capture type
+        """
+        mode = self.window.core.config.get('mode')
+        if type == 'drawing':
+            title = trans('painter.capture.name.prefix') + ' ' + name
+        elif type == 'screenshot':
+            title = trans('screenshot.capture.name.prefix') + ' ' + name
+        else:
+            title = name
+        title = title.replace('cap-', '').replace('_', ' ')
+        self.window.core.attachments.new(mode, title, path, False)
+        self.window.core.attachments.save()
+        self.window.controller.attachment.update()
+
     def capture(self):
         """Capture current image"""
+        # switch to vision mode if needed
+        self.window.controller.chat.vision.switch_to_vision()
+
         # clear attachments before capture if needed
         if self.window.controller.attachment.is_capture_clear():
             self.window.controller.attachment.clear(True)
@@ -153,23 +184,47 @@ class Drawing:
 
             # capture
             self.window.ui.painter.image.save(path)
-            mode = self.window.core.config.get('mode')
-
-            # make attachment
-            dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
-            title = trans('painter.capture.name.prefix') + ' ' + name
-            title = title.replace('cap-', '').replace('_', ' ')
-
-            self.window.core.attachments.new(mode, title, path, False)
-            self.window.core.attachments.save()
-            self.window.controller.attachment.update()
+            self.attach(name, path)
 
             # show last capture time in status
+            dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
             self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + dt_info)
             return True
 
         except Exception as e:
             print("Image capture exception", e)
+            self.window.core.debug.log(e)
+
+    def make_screenshot(self):
+        """Make screenshot and append to attachments"""
+        # switch to vision mode if needed
+        self.window.controller.chat.vision.switch_to_vision()
+
+        # clear attachments before capture if needed
+        if self.window.controller.attachment.is_capture_clear():
+            self.window.controller.attachment.clear(True)
+
+        try:
+            # prepare filename
+            now = datetime.datetime.now()
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            name = 'cap-' + dt
+            path = os.path.join(self.window.core.config.get_user_dir('capture'), name + '.png')
+
+            # capture screenshot
+            screen = self.window.app.primaryScreen()
+            screenshot = screen.grabWindow(0)
+            screenshot.save(path, 'png')
+            self.attach(name, path, 'screenshot')
+            self.open(path)
+
+            # show last capture time in status
+            dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
+            self.window.statusChanged.emit(trans("painter.capture.manual.captured.success") + ' ' + dt_info)
+            return True
+
+        except Exception as e:
+            print("Screenshot capture exception", e)
             self.window.core.debug.log(e)
 
     def get_colors(self) -> dict:
