@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.18 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -33,6 +33,7 @@ class OptionInputInline(QLineEdit):
         self.real_time = False
         self.slider = False  # True if connected slider
         self.setMaximumWidth(60)
+        self.returnPressed.connect(self.on_return_pressed)
 
         # from option data
         if self.option is not None:
@@ -43,14 +44,17 @@ class OptionInputInline(QLineEdit):
             if "real_time" in self.option:
                 self.real_time = self.option["real_time"]
 
-    def keyPressEvent(self, event):
-        """
-        Key press event
+    def focusOutEvent(self, event):
+        """On focus out event"""
+        super(OptionInputInline, self).focusOutEvent(event)
+        self.handle_value_change()
 
-        :param event: key event
-        """
-        super(OptionInputInline, self).keyPressEvent(event)
-        # always update slider if connected
+    def on_return_pressed(self):
+        """On return key pressed event"""
+        self.handle_value_change()
+
+    def handle_value_change(self):
+        """Value changed event"""
         if self.slider:
             self.window.controller.config.slider.on_update(self.parent_id, self.id, self.option, self.text(), "input")
         if not self.real_time:
