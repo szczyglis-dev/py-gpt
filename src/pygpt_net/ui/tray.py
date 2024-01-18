@@ -37,8 +37,12 @@ class Tray:
         tray_menu['new'].triggered.connect(self.new_ctx)
         tray_menu['update'] = menu.addAction(trans("menu.info.updates"))
         tray_menu['update'].triggered.connect(self.window.controller.launcher.check_updates)
-        tray_menu['github'] = menu.addAction(trans("menu.info.github"))
-        tray_menu['github'].triggered.connect(self.window.controller.dialogs.info.goto_github)
+
+        # open notepad
+        if self.window.controller.notepad.get_num_notepads() > 0:
+            tray_menu['open_notepad'] = menu.addAction(trans("menu.tray.notepad"))
+            tray_menu['open_notepad'].triggered.connect(self.open_notepad)
+
         tray_menu['exit'] = menu.addAction(trans("menu.file.exit"))
         tray_menu['exit'].triggered.connect(app.quit)
         tray.setContextMenu(menu)
@@ -48,3 +52,7 @@ class Tray:
         """Create new context"""
         self.window.controller.ctx.new()
         self.window.activateWindow()  # focus window
+
+    def open_notepad(self):
+        """Open notepad"""
+        self.window.controller.notepad.open()

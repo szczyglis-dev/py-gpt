@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 04:00:00                  #
+# Updated Date: 2024.01.18 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.notepad import NotepadItem
@@ -217,6 +217,16 @@ class Notepad:
         item.title = name
         self.window.core.notepad.update(item)
         self.update()
+
+    def open(self):
+        """Open notepad"""
+        # if notepad disabled, do nothing
+        if self.get_num_notepads() == 0:
+            return
+        # switch to first notepad tab if current tab is not notepad
+        if self.window.controller.ui.current_tab < self.start_tab_idx:
+            self.window.ui.tabs['output'].setCurrentIndex(self.start_tab_idx)
+        self.window.activateWindow()  # focus
 
     def update(self):
         """Update notepads UI"""
