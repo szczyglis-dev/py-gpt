@@ -35,3 +35,4 @@ class Plugins:
         self.window.ui.menu['menu.plugins'] = self.window.menuBar().addMenu(trans("menu.plugins"))
         self.window.ui.menu['menu.plugins'].setStyleSheet(self.window.controller.theme.style('menu'))  # Windows fix
         self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins.settings'])
+        self.window.ui.menu['menu.plugins'].setToolTipsVisible(True)

@@ -57,16 +57,23 @@ class Plugins:
             if id in self.window.ui.menu['plugins']:
                 continue
             default_name = plugin.name
+            default_tooltip = plugin.description
             trans_key = 'plugin.' + id
+            trans_key_desc = 'plugin.' + id + '.description'
             name = trans(trans_key)
+            tooltip = trans(trans_key_desc)
             if name == trans_key:
                 name = default_name
+            if tooltip == trans_key_desc:
+                tooltip = default_tooltip
             if plugin.use_locale:
                 domain = 'plugin.{}'.format(id)
                 name = trans('plugin.name', False, domain)
+                tooltip = trans('plugin.description', False, domain)
             self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
             self.window.ui.menu['plugins'][id].triggered.connect(
                 lambda checked=None, id=id: self.toggle(id))
+            self.window.ui.menu['plugins'][id].setToolTip(tooltip)
             self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins'][id])
 
     def setup_config(self):
