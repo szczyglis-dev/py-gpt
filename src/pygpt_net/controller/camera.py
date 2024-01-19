@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
 import datetime
@@ -75,6 +75,7 @@ class Camera:
         # signals
         worker.signals.capture.connect(self.handle_capture)
         worker.signals.finished.connect(self.handle_stop)
+        worker.signals.unfinished.connect(self.handle_unfinished)
         worker.signals.stopped.connect(self.handle_stop)
         worker.signals.error.connect(self.handle_error)
 
@@ -114,6 +115,15 @@ class Camera:
         """On capture stopped signal"""
         self.thread_started = False
         self.hide_camera(False)
+
+    @Slot()
+    def handle_unfinished(self):
+        """On capture unfinished (never started) signal"""
+        if self.window.core.platforms.is_snap():
+            self.window.ui.dialogs.alert("Camera not opened!\nDid you connect the camera with:\n\n"
+                                         "sudo snap connect pygpt:camera ?")
+        self.thread_started = False
+        self.disable_capture()
 
     def update(self):
         """Update camera frame"""

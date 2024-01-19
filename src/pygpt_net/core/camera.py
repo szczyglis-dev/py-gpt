@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
 import os
@@ -36,6 +36,7 @@ class Camera:
 
 class CaptureSignals(QObject):
     finished = Signal()
+    unfinished = Signal()
     destroyed = Signal()
     started = Signal()
     stopped = Signal()
@@ -53,16 +54,20 @@ class CaptureWorker(QRunnable):
         self.initialized = False
         self.capture = None
         self.frame = None
+        self.allow_finish = False
 
     def setup_camera(self):
         """Initialize camera"""
         try:
             # get params from global config
             self.capture = cv2.VideoCapture(self.window.core.config.get('vision.capture.idx'))
+            if not self.capture.isOpened():
+                self.allow_finish = False
+                self.signals.unfinished.emit()
+                return
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.window.core.config.get('vision.capture.width'))
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.window.core.config.get('vision.capture.height'))
         except Exception as e:
-            # TODO: handle snap info
             self.signals.error.emit(e)
             print("Camera thread setup exception", e)
             self.signals.finished.emit(e)
@@ -72,6 +77,7 @@ class CaptureWorker(QRunnable):
         """Frame capture loop"""
         target_fps = 30
         fps_interval = 1.0 / target_fps
+        self.allow_finish = True
         try:
             if not self.initialized:
                 self.setup_camera()
@@ -100,7 +106,10 @@ class CaptureWorker(QRunnable):
         # release camera
         self.release()
         if self.signals is not None:
-            self.signals.finished.emit()
+            if self.allow_finish:
+                self.signals.finished.emit()
+            else:
+                self.signals.unfinished.emit()
 
     def release(self):
         """Release camera"""
