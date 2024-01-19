@@ -354,6 +354,8 @@ class UI:
                 if mode == 'vision' or mode in self.window.controller.chat.vision.allowed_modes:
                     self.window.controller.camera.setup()
                     self.window.controller.camera.show_camera()
+                    if mode != 'vision':
+                        self.window.controller.chat.vision.show_inline()
                 else:
                     self.window.controller.camera.hide_camera()
                     self.window.controller.chat.vision.hide_inline()
