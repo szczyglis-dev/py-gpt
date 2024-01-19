@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 import copy
 import configparser
 import io
 import os
+
+from pygpt_net.plugin.base import BasePlugin
+from pygpt_net.utils import trans
 
 
 class Plugins:
@@ -23,7 +26,14 @@ class Plugins:
         :param window: Window instance
         """
         self.window = window
-        self.allowed_types = ['audio.input', 'audio.output', 'text.input', 'text.output', 'vision', 'schedule']
+        self.allowed_types = [
+            'audio.input',
+            'audio.output',
+            'text.input',
+            'text.output',
+            'vision',
+            'schedule'
+        ]
         self.plugins = {}
 
     def is_registered(self, id: str) -> bool:
@@ -51,7 +61,7 @@ class Plugins:
         """
         return list(self.plugins.keys())
 
-    def get(self, id: str) -> object:
+    def get(self, id: str) -> BasePlugin or None:
         """
         Get plugin by id
 
@@ -179,6 +189,42 @@ class Plugins:
         # restore persisted values
         for key in options:
             self.plugins[id].options[key]['value'] = values[key]
+
+    def get_name(self, id: str) -> str:
+        """
+        Get plugin name (translated)
+
+        :param id: plugin id
+        :return: plugin name
+        """
+        plugin = self.get(id)
+        default = plugin.name
+        trans_key = 'plugin.' + id
+        name = trans(trans_key)
+        if name == trans_key:
+            name = default
+        if plugin.use_locale:
+            domain = 'plugin.{}'.format(id)
+            name = trans('plugin.name', domain=domain)
+        return name
+
+    def get_desc(self, id: str) -> str:
+        """
+        Get description (translated)
+
+        :param id: plugin id
+        :return: plugin description
+        """
+        plugin = self.get(id)
+        default = plugin.description
+        trans_key = 'plugin.' + id + '.description'
+        tooltip = trans(trans_key)
+        if tooltip == trans_key:
+            tooltip = default
+        if plugin.use_locale:
+            domain = 'plugin.{}'.format(id)
+            tooltip = trans('plugin.description', domain=domain)
+        return tooltip
 
     def dump_locale(self, plugin, path: str):
         """

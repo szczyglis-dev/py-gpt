@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -36,6 +36,7 @@ class Plugins:
         """
         self.window = window
         self.dialog_id = "plugin_settings"
+        self.max_list_width = 250
 
     def setup(self, idx=None):
         """
@@ -173,7 +174,7 @@ class Plugins:
         self.update_list(id, data)
 
         # set max width to list
-        self.window.ui.nodes[id].setMaximumWidth(250)
+        self.window.ui.nodes[id].setMaximumWidth(self.max_list_width)
 
         main_layout = QHBoxLayout()
         main_layout.addWidget(self.window.ui.nodes[id])
@@ -375,10 +376,8 @@ class Plugins:
         i = 0
         for n in data:
             self.window.ui.models[id].insertRow(i)
-            name = data[n].name
-            # translate if localization is enabled
-            if data[n].use_locale:
-                domain = 'plugin.' + data[n].id
-                name = trans('plugin.name', False, domain)
+            name = self.window.core.plugins.get_name(data[n].id)
+            tooltip = self.window.core.plugins.get_desc(data[n].id)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
+            self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), tooltip, Qt.ToolTipRole)
             i += 1
