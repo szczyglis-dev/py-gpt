@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.19 04:00:00                  #
 # ================================================== #
 
 import datetime
-import os
 
 from packaging.version import Version
 
@@ -363,15 +362,6 @@ class Ctx:
 
         # remove all ctx data in provider
         self.provider.truncate()
-
-        # delete all txt history files from history dir
-        path = self.window.core.config.get_user_dir('history')
-        for file in os.listdir(path):
-            if file.endswith('.txt'):
-                try:
-                    os.remove(os.path.join(path, file))
-                except Exception as e:
-                    self.window.core.debug.log(e)
 
     def clear(self):
         """Clear ctx items"""

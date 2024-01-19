@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -90,7 +90,6 @@ class Ctx:
         Select ctx
 
         :param id: context id
-        :param focus: focus chat
         """
         prev_id = self.window.core.ctx.current
         self.window.core.ctx.current = id
@@ -104,7 +103,6 @@ class Ctx:
         Select ctx by index
 
         :param idx: context index
-        :param focus: focus chat
         """
         # lock if generating response is in progress
         if self.context_change_locked():
@@ -271,7 +269,9 @@ class Ctx:
             return
 
         id = self.window.core.ctx.get_id_by_idx(idx)
-        self.window.core.ctx.remove(id)
+        items = self.window.core.ctx.all()
+        self.window.core.history.remove_items(items)  # remove txt history items
+        self.window.core.ctx.remove(id)  # remove ctx from db
 
         # reset current if current ctx deleted
         if self.window.core.ctx.current == id:
@@ -289,13 +289,15 @@ class Ctx:
             self.window.ui.dialogs.confirm('ctx_delete_all', '', trans('ctx.delete.all.confirm'))
             return
 
-        # truncate ctx
+        # truncate ctx and history
         self.window.core.ctx.truncate()
+        self.window.core.history.truncate()
         self.update()
+        self.new()
 
     def rename(self, idx: int):
         """
-        Ctx name rename (shows dialog)
+        Ctx name rename (show dialog)
 
         :param idx: context idx
         """
@@ -309,7 +311,7 @@ class Ctx:
 
     def set_important(self, idx: int):
         """
-        Ctx name rename (shows dialog)
+        Set as important
 
         :param idx: context idx
         """
@@ -413,6 +415,5 @@ class Ctx:
         Check if ctx change is locked
 
         :return: True if locked
-        :rtype: bool
         """
         return self.window.controller.chat.input.generating

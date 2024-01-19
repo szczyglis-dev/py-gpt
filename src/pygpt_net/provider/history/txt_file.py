@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
 import datetime
@@ -41,17 +41,20 @@ class TxtFileProvider(BaseProvider):
         :param mode: mode (input | output)
         """
         text = ""
+        ts = 0
         if mode == "input":
             text = ctx.input
+            ts = ctx.input_timestamp
         elif mode == "output":
             text = ctx.output
+            ts = ctx.output_timestamp
 
         # check if text is empty
         if text is None or text.strip() == "":
             return
 
         path = self.window.core.config.get_user_dir('history')
-        name = datetime.date.today().strftime("%Y_%m_%d") + ".txt"
+        name = datetime.datetime.fromtimestamp(ts).strftime("%Y_%m_%d") + ".txt"
 
         # check directory
         if not os.path.exists(path):
@@ -68,7 +71,7 @@ class TxtFileProvider(BaseProvider):
                 with open(f, 'a', encoding="utf-8") as file:
                     prefix = ""
                     if self.window.core.config.get('store_history_time'):
-                        prefix = datetime.datetime.now().strftime("%H:%M:%S") + ": "
+                        prefix = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S") + ": "
                     file.write(prefix + text + "\n")
             except Exception as e:
                 self.window.core.debug.log(e)

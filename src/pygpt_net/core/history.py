@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
+
+import datetime
+import os
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.provider.history.txt_file import TxtFileProvider
@@ -37,3 +40,56 @@ class History:
         :param mode: mode (input | output)
         """
         self.provider.append(ctx, mode)
+
+    def truncate(self):
+        """Truncate history"""
+        # delete all txt history files from history dir
+        self.provider.truncate()
+
+    def remove_items(self, items: list):
+        """
+        Remove items from history (txt files)
+
+        :param items: list of ctx items to remove
+        """
+        path = self.window.core.config.get_user_dir('history')
+        if not os.path.exists(path):
+            return
+        for item in items:
+            self.remove_entry(item.input, item.input_timestamp)
+            self.remove_entry(item.output, item.output_timestamp)
+
+    def remove_entry(self, text: str, ts: int):
+        """
+        Remove ctx item text from history
+
+        :param text: text to remove from txt file
+        :param ts: timestamp from ctx
+        """
+        if text is None or text.strip() == "":
+            return
+
+        # remove entry from txt file in history dir
+        dir = self.window.core.config.get_user_dir('history')
+        filename = datetime.datetime.fromtimestamp(ts).strftime("%Y_%m_%d") + ".txt"
+        prefix = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S") + ": "
+        path = os.path.join(dir, filename)
+        if not os.path.exists(path):
+            return
+        try:
+            data = prefix + text
+            with open(path, "r", encoding="utf-8") as f:
+                txt = f.read()
+                content = txt.replace(data.strip() + "\n", "")
+                if content == txt:  # if nothing was removed (timestamp mismatch or missing)
+                    # try without prefix
+                    content = content.replace(text.strip() + "\n", "")
+            if content.strip() == "":
+                os.remove(path)  # remove file if empty
+            else:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(content.strip() + "\n")
+        except Exception as e:
+            print(e)
+
+
