@@ -50,15 +50,15 @@ def test_handle_cmd_execute(mock_window):
     mock_window.core.image.generate.assert_called_once_with(ctx, "test query", 'dall-e-3', 1, inline=True)
 
 
-def test_handle_cmd_only(mock_window):
-    """Test handle event: cmd.only"""
+def test_handle_cmd_inline(mock_window):
+    """Test handle event: cmd.inline"""
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
     mock_window.core.image.generate = MagicMock()
     ctx = CtxItem()
     event = Event()
-    event.name = "cmd.only"
+    event.name = "cmd.inline"
     event.data = {
         "commands": [
             {
