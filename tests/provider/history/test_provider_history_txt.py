@@ -31,6 +31,8 @@ def test_append(mock_window):
     ctx = CtxItem()
     ctx.input = "test"
     ctx.output = "test"
+    ctx.input_timestamp = 0
+    ctx.output_timestamp = 0
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value = True
         with patch('builtins.open', mock_open()) as mocked_file:
