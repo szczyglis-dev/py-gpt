@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.110 (2024-01-19)
+
+- Fixed bug: history file clear on ctx remove - Issue [#9](https://github.com/szczyglis-dev/py-gpt/issues/9)
+- Vision inline allowed in modes: Langchain and Chat with files (llama-index)
+- Event names moved to Event class
+
 # 2.0.109 (2024-01-18)
 
 - Fixed bug: float inputs value update behaviour - Issue [#8](https://github.com/szczyglis-dev/py-gpt/issues/8)
