@@ -102,12 +102,14 @@ class FileExplorer(QWidget):
     def idx_context_menu(self, parent, pos):
         """
         Index all btn context menu
+
+        :param parent: parent widget
         :param pos: mouse  position
         """
         menu = QMenu(self)
-        idxs = self.window.core.config.get('llama.idx.list')
-        if len(idxs) > 0:
-            for idx in idxs:
+        idx_list = self.window.core.config.get('llama.idx.list')
+        if len(idx_list) > 0:
+            for idx in idx_list:
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
@@ -119,12 +121,13 @@ class FileExplorer(QWidget):
         """
         Clear btn context menu
 
+        :param parent: parent widget
         :param pos: mouse position
         """
         menu = QMenu(self)
-        idxs = self.window.core.config.get('llama.idx.list')
-        if len(idxs) > 0:
-            for idx in idxs:
+        idx_list = self.window.core.config.get('llama.idx.list')
+        if len(idx_list) > 0:
+            for idx in idx_list:
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
@@ -133,9 +136,7 @@ class FileExplorer(QWidget):
         menu.exec_(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
-        """
-        Adjust column widths
-        """
+        """Adjust column widths"""
         total_width = self.treeView.width()
         first_column_width = int(total_width * self.column_proportion)
         self.treeView.setColumnWidth(0, first_column_width)
@@ -145,6 +146,7 @@ class FileExplorer(QWidget):
     def resizeEvent(self, event: QResizeEvent):
         """
         Resize event
+
         :param event: Event object
         """
         super().resizeEvent(event)
@@ -170,9 +172,6 @@ class FileExplorer(QWidget):
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
 
-            menu = QMenu(self)
-            idx_menu = QMenu(trans('action.idx'), self)
-
             actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
             actions['rename'].triggered.connect(
                 lambda: self.action_rename(path))
@@ -181,21 +180,21 @@ class FileExplorer(QWidget):
             actions['delete'].triggered.connect(
                 lambda: self.action_delete(path))
 
+            menu = QMenu(self)
+            idx_menu = QMenu(trans('action.idx'), self)
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
             menu.addAction(actions['rename'])
             menu.addAction(actions['delete'])
 
             # indexes list
-            idxs = self.window.core.config.get('llama.idx.list')
-            if len(idxs) > 0:
-                for idx in idxs:
+            idx_list = self.window.core.config.get('llama.idx.list')
+            if len(idx_list) > 0:
+                for idx in idx_list:
                     id = idx['id']
                     name = idx['name'] + " (" + idx['id'] + ")"
                     action = idx_menu.addAction("IDX: " + name)
-                    action.triggered.connect(lambda checked=False, id=id, path=path:
-                                             self.action_idx(path, id))
-
+                    action.triggered.connect(lambda checked=False, id=id, path=path: self.action_idx(path, id))
                 menu.addMenu(idx_menu)
 
             menu.exec(QCursor.pos())
@@ -208,16 +207,16 @@ class FileExplorer(QWidget):
         """
         self.window.controller.files.open(path)
 
-    def action_idx(self, path, id):
+    def action_idx(self, path: str, idx: str):
         """
         Index file or dir handler
 
         :param path: path to open
-        :param id: index id
+        :param idx: index ID to use (name)
         """
-        self.window.controller.idx.indexer.index_file(path, id)
+        self.window.controller.idx.indexer.index_file(path, idx)
 
-    def action_open_dir(self, path):
+    def action_open_dir(self, path: str):
         """
         Open in directory action handler
 
@@ -225,19 +224,19 @@ class FileExplorer(QWidget):
         """
         self.window.controller.files.open_dir(path, True)
 
-    def action_rename(self, path):
+    def action_rename(self, path: str):
         """
         Rename action handler
 
-        :param path: path to open
+        :param path: path to rename
         """
         self.window.controller.files.rename(path)
 
-    def action_delete(self, path):
+    def action_delete(self, path: str):
         """
         Delete action handler
 
-        :param path: path to open
+        :param path: path to delete
         """
         self.window.controller.files.delete(path)
 
@@ -248,7 +247,7 @@ class IndexedFileSystemModel(QFileSystemModel):
         self.window = window
         self.index_dict = index_dict
 
-    def columnCount(self, parent=QModelIndex()):
+    def columnCount(self, parent=QModelIndex()) -> int:
         """
         Return column count
 
@@ -257,7 +256,7 @@ class IndexedFileSystemModel(QFileSystemModel):
         """
         return super().columnCount(parent) + 1
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole) -> any:
         """
         Data handler
 
@@ -265,6 +264,7 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param role: role
         :return: data
         """
+        # index status
         if index.column() == self.columnCount() - 1:
             if role == Qt.DisplayRole:
                 file_path = self.filePath(index.siblingAtColumn(0))
@@ -276,6 +276,19 @@ class IndexedFileSystemModel(QFileSystemModel):
                 else:
                     content = '-'  # if file not indexed
                 return content
+        # modified date
+        elif index.column() == self.columnCount() - 2:
+            if role == Qt.DisplayRole:
+                dt = self.lastModified(index)
+                data = dt.toString("yyyy-MM-dd HH:mm:ss")
+                file_path = self.filePath(index.siblingAtColumn(0))
+                status = self.get_index_status(file_path)  # get index status
+                if status['indexed']:
+                    # if modified date is newer, mark file with *
+                    if 'last_index_at' in status and status['last_index_at'] < dt.toSecsSinceEpoch():
+                        data += '*'
+                return data
+
         return super().data(index, role)
 
     def get_index_status(self, file_path) -> dict:
@@ -300,11 +313,17 @@ class IndexedFileSystemModel(QFileSystemModel):
         # sort indexed_in by timestamp DESC
         indexed_in = sorted(indexed_in, key=lambda x: indexed_timestamps[x], reverse=True)
         if len(indexed_in) > 0:
-            return {'indexed': True, 'indexed_in': indexed_in, 'last_index_at': last_index_at}
+            return {
+                'indexed': True,
+                'indexed_in': indexed_in,
+                'last_index_at': last_index_at,
+            }
         else:
-            return {'indexed': False}
+            return {
+                'indexed': False,
+            }
 
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
+    def headerData(self, section, orientation, role=Qt.DisplayRole) -> str:
         """
         Prepare Header data (append Indexed column)
 
@@ -314,15 +333,15 @@ class IndexedFileSystemModel(QFileSystemModel):
         :return: Header data
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            if section == 0:
+            if section == 0:  # name
                 return trans('files.explorer.header.name')
-            elif section == 1:
+            elif section == 1:  # size
                 return trans('files.explorer.header.size')
-            elif section == 2:
+            elif section == 2:  # type
                 return trans('files.explorer.header.type')
-            elif section == 3:
+            elif section == 3:  # modified
                 return trans('files.explorer.header.modified')
-            elif section == 4:
+            elif section == 4:  # indexed
                 return trans('files.explorer.header.indexed')
         return super().headerData(section, orientation, role)
 
