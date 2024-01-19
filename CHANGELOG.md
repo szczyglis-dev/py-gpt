@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.0.111 (2024-01-19)
+
+- Fixed: opening files and directories in Snap and Windows versions
+- Fixed: camera capture handling between mode switch
+- Added: info about snap connect camera in Snap version (if not connected)
+- Added: missing app/tray icon in compiled versions
+
 # 2.0.110 (2024-01-19)
 
 - Fixed bug: history file clear on ctx remove - Issue [#9](https://github.com/szczyglis-dev/py-gpt/issues/9)

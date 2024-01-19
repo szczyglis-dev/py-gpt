@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.110** | build: **2024.01.19** | Python: **3.10+**
+Release: **2.0.111** | build: **2024.01.19** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1541,6 +1541,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.111 (2024-01-19)
+
+- Fixed: opening files and directories in Snap and Windows versions
+- Fixed: camera capture handling between mode switch
+- Added: info about snap connect camera in Snap version (if not connected)
+- Added: missing app/tray icon in compiled versions
 
 # 2.0.110 (2024-01-19)
 
