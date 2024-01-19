@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.09 02:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -84,13 +84,31 @@ class Plugin(BasePlugin):
         """
         self.schedule_tasks()
 
+    def count_active(self):
+        """
+        Count active tasks
+
+        :return: number of active tasks
+        """
+        count = 0
+        for item in self.get_option_value("crontab"):
+            if item["enabled"]:
+                count += 1
+        return count
+
     def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
 
         :param event: event object
         """
-        pass
+        name = event.name
+        data = event.data
+        if name == Event.PLUGIN_SETTINGS_CHANGED:
+            self.window.ui.tray.update_schedule_tasks(self.count_active())
+        elif name == Event.PLUGIN_OPTION_GET:
+            if "name" in data and data["name"] == "scheduled_tasks_count":
+                data["value"] = self.count_active()  # return number of active tasks
 
     def job(self, item):
         """

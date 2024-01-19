@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -53,23 +53,10 @@ class Plugins:
     def setup_menu(self):
         """Set up plugins menu"""
         for id in self.window.core.plugins.get_ids():
-            plugin = self.window.core.plugins.get(id)
             if id in self.window.ui.menu['plugins']:
                 continue
-            default_name = plugin.name
-            default_tooltip = plugin.description
-            trans_key = 'plugin.' + id
-            trans_key_desc = 'plugin.' + id + '.description'
-            name = trans(trans_key)
-            tooltip = trans(trans_key_desc)
-            if name == trans_key:
-                name = default_name
-            if tooltip == trans_key_desc:
-                tooltip = default_tooltip
-            if plugin.use_locale:
-                domain = 'plugin.{}'.format(id)
-                name = trans('plugin.name', domain=domain)
-                tooltip = trans('plugin.description', domain=domain)
+            name = self.window.core.plugins.get_name(id)
+            tooltip = self.window.core.plugins.get_desc(id)
             self.window.ui.menu['plugins'][id] = QAction(name, self.window, checkable=True)
             self.window.ui.menu['plugins'][id].triggered.connect(
                 lambda checked=None, id=id: self.toggle(id))
@@ -271,8 +258,21 @@ class Plugins:
             elif type == 'schedule':
                 if self.is_type_enabled(type):
                     self.window.ui.plugin_addon['schedule'].setVisible(True)
+                    # get tasks count by throwing "get option" event
+                    num = 0
+                    data = {
+                        'name': 'scheduled_tasks_count',
+                        'value': num,
+                    }
+                    event = Event(Event.PLUGIN_OPTION_GET, data)
+                    self.window.core.dispatcher.dispatch(event)
+                    if 'value' in event.data:
+                        num = event.data['value']
+                    # update tray menu
+                    self.window.ui.tray.update_schedule_tasks(num)
                 else:
                     self.window.ui.plugin_addon['schedule'].setVisible(False)
+                    self.window.ui.tray.hide_schedule_menu()
 
     def on_update(self):
         """Called on update"""

@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
 
+from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
 
 
@@ -50,6 +51,11 @@ class Settings:
             self.init()
             self.window.ui.dialogs.open('plugin_settings', width=self.width, height=self.height)
             self.config_dialog = True
+
+    def open_plugin(self, id: str):
+        """Open plugin settings dialog"""
+        self.current_plugin = id
+        self.open()
 
     def init(self):
         """Initialize plugin settings options"""
@@ -93,6 +99,10 @@ class Settings:
         self.window.core.config.save()
         self.close()
         self.window.ui.status(trans('info.settings.saved'))
+
+        # dispatch on update event
+        event = Event(Event.PLUGIN_SETTINGS_CHANGED)
+        self.window.core.dispatcher.dispatch(event)
 
     def close(self):
         """Close plugin settings dialog"""
