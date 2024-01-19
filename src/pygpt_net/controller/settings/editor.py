@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.30 21:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -53,6 +53,7 @@ class Editor:
         self.window.ui.add_hook("update.config.ctx.records.limit", self.hook_update)
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
+        self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
         if id == 'settings':
@@ -167,10 +168,15 @@ class Editor:
             self.window.controller.ctx.update(True, False)
 
         # update layout density
-        elif key == 'layout.density' and caller == "slider":
+        elif key == "layout.density" and caller == "slider":
             self.window.core.config.set(key, value)
             self.window.controller.theme.reload()
             self.window.controller.theme.menu.update_density()
+
+        # toggle image dialog auto-open
+        elif key == "img_dialog_open":
+            self.window.core.config.set(key, value)
+            self.window.ui.nodes['dialog.image.open.toggle'].setChecked(value)
 
     def toggle_collapsed(self, id: str, value: any, section: str):
         """
