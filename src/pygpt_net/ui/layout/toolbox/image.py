@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QCheckBox
@@ -36,8 +36,8 @@ class Image:
             "type": "int",
             "slider": True,
             "label": "img_variants",
-            "min": 0,
-            "max": 2,
+            "min": 1,
+            "max": 4,
             "step": 1,
             "value": 1,
             "multiplier": 1,
