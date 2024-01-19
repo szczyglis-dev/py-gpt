@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget
@@ -35,7 +35,8 @@ class OptionCheckbox(QWidget):
 
         # init from option data
         if self.option is not None:
-            if "label" in self.option and self.option["label"] is not None and self.option["label"] != "":
+            if "label" in self.option and self.option["label"] is not None \
+                    and self.option["label"] != "":
                 self.title = trans(self.option["label"])
             if "value" in self.option:
                 self.value = self.option["value"]
@@ -45,7 +46,13 @@ class OptionCheckbox(QWidget):
         self.box = QCheckBox(self.title, self.window)
         self.box.setChecked(self.value)
         self.box.stateChanged.connect(
-            lambda: self.window.controller.config.checkbox.on_update(self.parent_id, self.id, self.option, self.box.isChecked()))
+            lambda: self.window.controller.config.checkbox.on_update(
+                self.parent_id,
+                self.id,
+                self.option,
+                self.box.isChecked()
+            )
+        )
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
