@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
 import base64
@@ -39,15 +39,13 @@ class Vision:
         :return: response or stream chunks
         """
         client = self.window.core.gpt.get_client()
-        model = self.window.core.gpt.get_model('vision')
-        if model != 'gpt-4-vision-preview':
-            model = 'gpt-4-vision-preview'
+        model_id = self.window.core.gpt.get_model('vision')
 
         # build chat messages
         messages = self.build(prompt, system_prompt=system_prompt, attachments=attachments)
         response = client.chat.completions.create(
             messages=messages,
-            model=model,
+            model=model_id,
             max_tokens=int(max_tokens),
             stream=stream_mode,
         )
@@ -65,9 +63,8 @@ class Vision:
         messages = []
 
         # tokens config
-        model = self.window.core.config.get('model')
-        mode = self.window.core.config.get('mode')
-        model_id = self.window.core.models.get_id(model)
+        model_id = self.window.core.gpt.get_model('vision')
+        mode = 'vision'
 
         used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
@@ -144,33 +141,30 @@ class Vision:
 
         return content
 
-    def extract_urls(self, text):
+    def extract_urls(self, text: str) -> list:
         """
         Extract urls from text
 
         :param text: text
         :return: list of urls
-        :rtype: list
         """
         return re.findall(r'(https?://\S+)', text)
 
-    def is_image(self, path):
+    def is_image(self, path: str) -> bool:
         """
         Check if url is image
 
         :param path: url
         :return: True if image
-        :rtype: bool
         """
         return path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif', '.webp'))
 
-    def encode_image(self, image_path):
+    def encode_image(self, image_path: str) -> str:
         """
         Encode image to base64
 
         :param image_path: path to image
         :return: base64 encoded image
-        :rtype: str
         """
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
@@ -179,14 +173,26 @@ class Vision:
         """Reset input tokens counter"""
         self.input_tokens = 0
 
-    def get_attachments(self):
-        """Get attachments"""
+    def get_attachments(self) -> dict:
+        """
+        Get attachments
+
+        :return: attachments dict
+        """
         return self.attachments
 
-    def get_urls(self):
-        """Get urls"""
+    def get_urls(self) -> list:
+        """
+        Get urls
+
+        :return: urls list
+        """
         return self.urls
 
-    def get_used_tokens(self):
-        """Get input tokens counter"""
+    def get_used_tokens(self) -> int:
+        """
+        Get input tokens counter
+
+        :return: input tokens
+        """
         return self.input_tokens

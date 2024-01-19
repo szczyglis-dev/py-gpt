@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -65,7 +65,7 @@ class Text:
         ctx = CtxItem()
         ctx.internal = internal
         ctx.current = True  # mark as current context item
-        ctx.mode = mode
+        ctx.mode = mode  # store current selected mode (not inline changed)
         ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
@@ -162,10 +162,20 @@ class Text:
             # make API call
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
+                current_mode = self.window.core.config.get('mode')
+
+                # event: before mode select (inline mode can be select here)
+                event = Event(Event.MODE_BEFORE, {
+                    'value': mode,
+                    'prompt': text,
+                })
+                event.ctx = ctx
+                self.window.core.dispatcher.dispatch(event)
+                mode = event.data['value']
 
                 # Langchain mode
                 if mode == "langchain":
-                    self.log("Calling LangChain...")  # log
+                    self.log("Calling Langchain...")  # log
                     self.window.core.chain.system_prompt = sys_prompt
                     self.window.core.chain.user_name = ctx.input_name
                     self.window.core.chain.ai_name = ctx.output_name
@@ -178,7 +188,7 @@ class Text:
                     result = self.window.core.idx.chat.call(
                         ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
 
-                # OpenAI API mode
+                # OpenAI API mode(s)
                 else:
                     self.log("Calling OpenAI API...")  # log
                     self.window.core.gpt.system_prompt = sys_prompt
@@ -186,8 +196,8 @@ class Text:
                     self.window.core.gpt.ai_name = ctx.output_name
                     self.window.core.gpt.assistant_id = self.window.core.config.get('assistant')
                     self.window.core.gpt.thread_id = ctx.thread
-                    self.window.core.gpt.attachments = self.window.core.attachments.get_all(mode)
-                    result = self.window.core.gpt.call(text, ctx, stream_mode)
+                    self.window.core.gpt.attachments = self.window.core.attachments.get_all(current_mode)
+                    result = self.window.core.gpt.call(text, mode, ctx, stream_mode)
 
                 # update context in DB
                 ctx.current = False  # reset current state

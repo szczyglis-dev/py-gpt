@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 10:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
 
@@ -20,7 +20,7 @@ class Vision:
         self.window = window
         self.is_enabled = False
         self.is_available = False
-        self.allowed_modes = ['chat', 'langchain', 'completion']
+        self.allowed_modes = ['chat', 'completion', 'langchain', 'llama_index']
 
     def setup(self):
         """Set up UI"""

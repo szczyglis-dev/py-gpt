@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
 import json
@@ -74,17 +74,17 @@ class Gpt:
             model_id = event.data['model']
         return model_id
 
-    def call(self, prompt: str, ctx: CtxItem = None, stream_mode: bool = False) -> bool:
+    def call(self, prompt: str, mode: str, ctx: CtxItem = None, stream_mode: bool = False) -> bool:
         """
         Call OpenAI API
 
         :param prompt: text input (user prompt)
+        :param mode: mode
         :param ctx: context item (CtxItem)
         :param stream_mode: stream mode, default: False
         :return: result
         """
         # prepare max tokens
-        mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
         model_id = self.window.core.models.get_id(model)
         model_tokens = self.window.core.models.get_tokens(model_id)
@@ -100,15 +100,6 @@ class Gpt:
 
         response = None
         used_tokens = 0
-
-        # event: before mode select
-        event = Event(Event.MODE_BEFORE, {
-            'value': mode,
-            'prompt': prompt,
-        })
-        event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event)
-        mode = event.data['value']
 
         # get response
         if mode == "completion":

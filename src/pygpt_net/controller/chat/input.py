@@ -143,7 +143,7 @@ class Input:
         if self.window.core.config.get('mode') == 'img':
             ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
         else:
-            ctx = self.window.controller.chat.text.send(text, internal=internal)  # text mode: OpenAI or LangChain
+            ctx = self.window.controller.chat.text.send(text, internal=internal)  # text mode: OpenAI, Langchain, Llama
 
         # clear attachments after send if enabled
         if self.window.core.config.get('attachments_send_clear'):
