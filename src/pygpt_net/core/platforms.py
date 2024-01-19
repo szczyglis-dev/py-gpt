@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 import platform
@@ -70,7 +70,6 @@ class Platforms:
         Return OS name
 
         :return: OS name
-        :rtype: str
         """
         return platform.system()
 
@@ -79,7 +78,6 @@ class Platforms:
         Return platform architecture
 
         :return: platform architecture
-        :rtype: str
         """
         return platform.machine()
 
@@ -88,7 +86,6 @@ class Platforms:
         Return True if OS is Linux
 
         :return: True if OS is Linux
-        :rtype: bool
         """
         return self.get_os() == 'Linux'
 
@@ -97,7 +94,6 @@ class Platforms:
         Return True if OS is MacOS
 
         :return: True if OS is MacOS
-        :rtype: bool
         """
         return self.get_os() == 'Darwin'
 
@@ -106,7 +102,6 @@ class Platforms:
         Return True if OS is Windows
 
         :return: True if OS is Windows
-        :rtype: bool
         """
         return self.get_os() == 'Windows'
 
@@ -115,8 +110,20 @@ class Platforms:
         Return True if app is running as snap
 
         :return: True if app is running as snap
-        :rtype: bool
         """
         return "SNAP" in os.environ \
                and "SNAP_NAME" in os.environ \
                and os.environ["SNAP_NAME"] == self.snap_name
+
+    def get_as_string(self) -> str:
+        """
+        Return platform as string
+
+        :return: platform as string
+        """
+        extra = ''
+        if self.is_snap():
+            extra = ' (snap)'
+        elif self.window.core.config.is_compiled():
+            extra = ' (compiled)'
+        return self.get_os() + ', ' + self.get_architecture() + '  ' + extra

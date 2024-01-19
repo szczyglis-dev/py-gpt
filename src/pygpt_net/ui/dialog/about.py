@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 11:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 import os
@@ -27,12 +27,24 @@ class About:
         """
         self.window = window
 
+    def get_contributors(self) -> list:
+        """
+        Get contributors list
+
+        :return: contributors list
+        """
+        return [
+            "kaneda2004",
+            "moritz-t-w",
+        ]
+
     def prepare_content(self) -> str:
         """
         Get info text
         :return: info text
         """
-        data = "{}: {}\n" \
+        platform = self.window.core.platforms.get_as_string()
+        data = "{}: {}, {}\n" \
                "{}: {}\n" \
                "{}: {}\n" \
                "{}: {}\n" \
@@ -40,6 +52,7 @@ class About:
                "(c) 2024 {}\n" \
                "{}\n".format(trans("dialog.about.version"),
                              self.window.meta['version'],
+                             platform,
                              trans("dialog.about.build"),
                              self.window.meta['build'],
 
@@ -77,23 +90,30 @@ class About:
 
         string = self.prepare_content()
         self.window.ui.nodes['dialog.about.content'] = QLabel(string)
+        self.window.ui.nodes['dialog.about.content'].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.nodes['dialog.about.thanks'] = QLabel(trans('about.thanks') + ":")
 
         title = QLabel("PyGPT")
         title.setContentsMargins(0, 0, 0, 0)
         title.setStyleSheet(
-            "font-size: 16px; font-weight: bold; margin-bottom: 10px; margin-left: 0; margin-top: 10px; padding: 0;")
+            "font-size: 16px; "
+            "font-weight: bold; "
+            "margin-bottom: 10px; "
+            "margin-left: 0; "
+            "margin-top: 10px; "
+            "padding: 0;"
+        )
 
-        thx_textarea = QPlainTextEdit()
-        thx_textarea.setReadOnly(True)
-        thx_textarea.setPlainText("kaneda2004, moritz-t-w")
+        contributors = QPlainTextEdit()
+        contributors.setReadOnly(True)
+        contributors.setPlainText(", ".join(self.get_contributors()))
 
         layout = QVBoxLayout()
         layout.addWidget(logo_label)
         layout.addWidget(title)
         layout.addWidget(self.window.ui.nodes['dialog.about.content'])
         layout.addWidget(self.window.ui.nodes['dialog.about.thanks'])
-        layout.addWidget(thx_textarea)
+        layout.addWidget(contributors)
         layout.addLayout(buttons_layout)
 
         self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
