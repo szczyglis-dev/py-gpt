@@ -22,6 +22,7 @@ a = Analysis(
         ('src/pygpt_net/data/css/*', 'data/css'),
         ('src/pygpt_net/data/fonts/Lato/*', 'data/fonts/Lato'),
         ('src/pygpt_net/data/logo.png', 'data'),
+        ('src/pygpt_net/data/icon.ico', 'data'),
         ('src/pygpt_net/CHANGELOG.txt', '.'),
         ('README.md', '.'),
         ('src/pygpt_net/__init__.py', '.'),
