@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
 class Checkbox:
@@ -29,7 +29,8 @@ class Checkbox:
         value = option["value"]
         if value is None:
             value = False
-        self.window.ui.config[parent_id][key].box.setChecked(value)
+        if key in self.window.ui.config[parent_id]:
+            self.window.ui.config[parent_id][key].box.setChecked(value)
 
     def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
         """
@@ -60,4 +61,6 @@ class Checkbox:
         :param option: Option data dict
         :return: Option value
         """
+        if key not in self.window.ui.config[parent_id]:
+            return False
         return self.window.ui.config[parent_id][key].box.isChecked()
