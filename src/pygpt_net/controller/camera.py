@@ -248,6 +248,7 @@ class Camera:
         self.is_capture = False
         self.window.core.config.set('vision.capture.enabled', False)
         self.window.controller.config.checkbox.apply('config', 'vision.capture.enabled', {'value': False})
+        self.window.ui.nodes['vision.capture.enable'].setChecked(False)
         self.window.ui.nodes['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
