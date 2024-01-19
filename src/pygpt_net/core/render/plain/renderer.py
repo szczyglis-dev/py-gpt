@@ -316,8 +316,7 @@ class Renderer:
         :param link: URL link
         :return: HTML
         """
-        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.url'),
-                                                                              link=link)
+        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.url'), link=link)
 
     def get_file_html(self, link: str) -> str:
         """
@@ -329,8 +328,7 @@ class Renderer:
         if not link.startswith('http://') \
                 and not link.startswith('https://'):
             link = self.window.controller.files.replace_user_path(link)
-        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.file'),
-                                                                                    link=link)
+        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.file'), link=link)
 
     def append(self, text: str, end: str = "\n"):
         """
