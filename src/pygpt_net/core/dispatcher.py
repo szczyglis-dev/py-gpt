@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
 
 import json
@@ -39,6 +39,8 @@ class Event:
     MODE_SELECT = "mode.select"
     MODEL_BEFORE = "model.before"
     MODEL_SELECT = "model.select"
+    PLUGIN_SETTINGS_CHANGED = "plugin.settings.changed"
+    PLUGIN_OPTION_GET = "plugin.option.get"
     POST_PROMPT = "post.prompt"
     PRE_PROMPT = "pre.prompt"
     SYSTEM_PROMPT = "system.prompt"
