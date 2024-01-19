@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.111** | build: **2024.01.19** | Python: **3.10+**
+Release: **2.0.112** | build: **2024.01.19** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1566,6 +1566,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.112 (2024-01-19)
+
+- Fixed image variants slider in image mode
+- Added config option for disable opening image dialog after generate
+- Added Scheduled tasks entry in taskbar dropdown
+- Added * (asterisk) indicator after date modified if newer than last indexed time
+- Date of modified in file explorer changed to format YYYY-MM-DD HH:MM:SS
 
 # 2.0.111 (2024-01-19)
 

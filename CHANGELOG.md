@@ -1,5 +1,13 @@
 # CHANGELOG
 
+# 2.0.112 (2024-01-19)
+
+- Fixed image variants slider in image mode
+- Added config option for disable opening image dialog after generate
+- Added Scheduled tasks entry in taskbar dropdown
+- Added * (asterisk) indicator after date modified if newer than last indexed time
+- Date of modified in file explorer changed to format YYYY-MM-DD HH:MM:SS
+
 # 2.0.111 (2024-01-19)
 
 - Fixed: opening files and directories in Snap and Windows versions
