@@ -225,7 +225,7 @@ class Attachment:
         file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
         data = self.window.core.attachments.get_by_id(mode, file_id)
         if data.path is not None and data.path != '' and os.path.exists(data.path):
-            self.window.controller.files.open_in_file_manager(data.path)
+            self.window.controller.files.open_dir(data.path, True)
 
     def open(self, mode: str, idx: int):
         """

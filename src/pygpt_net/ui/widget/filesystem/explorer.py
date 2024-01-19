@@ -219,11 +219,11 @@ class FileExplorer(QWidget):
 
     def action_open_dir(self, path):
         """
-        Open dir action handler
+        Open in directory action handler
 
         :param path: path to open
         """
-        self.window.controller.files.open_dir(path)
+        self.window.controller.files.open_dir(path, True)
 
     def action_rename(self, path):
         """

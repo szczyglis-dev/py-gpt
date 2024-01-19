@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtWidgets import QTextBrowser, QMenu
 from PySide6.QtGui import QDesktopServices
 
@@ -40,7 +40,10 @@ class ChatOutput(QTextBrowser):
 
         :param url: url
         """
-        QDesktopServices.openUrl(url)
+        if not url.scheme().startswith('http'):
+            self.window.controller.files.open(url.toLocalFile())
+        else:
+            QDesktopServices.openUrl(url)
 
     def contextMenuEvent(self, event):
         """

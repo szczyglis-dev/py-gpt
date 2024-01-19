@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 02:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
 import re
@@ -311,8 +311,15 @@ class Renderer:
         :param link: image link
         :return: HTML
         """
-        return """<a href="{link}"><img src="{link}" width="400" class="image"></a>
-        <p><b>{prefix}:</b> <a href="{link}">{link}</a></p>""".format(prefix=trans('chat.prefix.img'), link=link)
+        url_prefix = ''
+        if not link.startswith('file://'):
+            if self.window.core.platforms.is_windows():
+                url_prefix = 'file:///'
+            else:
+                url_prefix = 'file://'
+        return """<a href="{url_prefix}{link}"><img src="{link}" width="400" class="image"></a>
+        <p><b>{prefix}:</b> <a href="{url_prefix}{link}">{link}</a></p>""".\
+            format(prefix=trans('chat.prefix.img'), link=link, url_prefix=url_prefix)
 
     def get_url_html(self, link: str) -> str:
         """
@@ -321,8 +328,8 @@ class Renderer:
         :param link: URL link
         :return: HTML
         """
-        return """<br/><b>{prefix}:</b> <a href="{link}">{link}</a><br/>""".format(prefix=trans('chat.prefix.url'),
-                                                                              link=link)
+        return """<br/><b>{prefix}:</b> <a href="{link}">{link}</a><br/>""".\
+            format(prefix=trans('chat.prefix.url'), link=link)
 
     def get_file_html(self, link: str) -> str:
         """
@@ -331,8 +338,14 @@ class Renderer:
         :param link: file link
         :return: HTML
         """
-        return """<div><b>{prefix}:</b> <a href="{link}">{link}</a></div>""".format(prefix=trans('chat.prefix.file'),
-                                                                                    link=link)
+        url_prefix = ''
+        if not link.startswith('file://'):
+            if self.window.core.platforms.is_windows():
+                url_prefix = 'file:///'
+            else:
+                url_prefix = 'file://'
+        return """<div><b>{prefix}:</b> <a href="{url_prefix}{link}">{link}</a></div>""".\
+            format(prefix=trans('chat.prefix.file'), link=link, url_prefix=url_prefix)
 
     def append(self, text: str, end: str = "\n"):
         """

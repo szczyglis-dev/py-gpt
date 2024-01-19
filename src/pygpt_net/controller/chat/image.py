@@ -196,7 +196,8 @@ class Image:
 
         :param path: path to image
         """
-        webbrowser.open(path)
+        if os.path.exists(path):
+            self.window.controller.files.open(path)
 
     def open_dir(self, path: str):
         """
@@ -205,7 +206,7 @@ class Image:
         :param path: path to image
         """
         if os.path.exists(path):
-            self.window.controller.files.open_in_file_manager(path)
+            self.window.controller.files.open_dir(path, True)
 
     def save(self, path: str):
         """

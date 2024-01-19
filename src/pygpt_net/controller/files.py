@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
 import os
 
 from pathlib import PurePath
 
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QFileDialog
 from showinfm import show_in_file_manager
 from shutil import copy2
+import subprocess
 
 from pygpt_net.utils import trans
 
@@ -98,11 +100,20 @@ class Files:
 
     def open(self, path: str):
         """
-        Open file
+        Open file or directory
 
         :param path: path to file or directory
         """
-        QDesktopServices.openUrl(path)
+        if os.path.isdir(path):
+            self.open_dir(path)
+        else:
+            if not self.window.core.platforms.is_snap():
+                parts = PurePath(path).parts
+                path_os = os.path.join(*parts)  # fix for windows \\ path separators
+                url = QUrl.fromLocalFile(path_os)
+                QDesktopServices.openUrl(url)
+            else:
+                subprocess.run(['xdg-open', path])
 
     def open_in_file_manager(self, path: str, select: bool = False):
         """
@@ -113,14 +124,14 @@ class Files:
         """
         parts = PurePath(path).parts
         path_os = os.path.join(*parts)  # fix for windows \\ path separators
+        if select:
+            # get directory path:
+            parts = PurePath(os.path.dirname(path)).parts
+            path_os = os.path.join(*parts)  # fix for windows \\ path separators
         if os.path.exists(path_os):
             if not self.window.core.platforms.is_snap():
-                show_in_file_manager(path_os, select)
+                url = QUrl("file:///" + path_os, QUrl.TolerantMode)
+                QDesktopServices.openUrl(url)
+                # show_in_file_manager(path_os, select)
             else:
-                # show alert info only if running in snap
-                info = trans('alert.snap.file_manager') + "\n\n{}".format(path_os)
-                if not os.path.isdir(path_os):
-                    path_os = os.path.dirname(path_os)
-                    info = trans('alert.snap.file_manager') + "\n\n{}".format(path_os)
-                    self.window.ui.dialogs.alert(info)
-                self.window.ui.dialogs.alert(info)
+                subprocess.run(['xdg-open', path_os])
