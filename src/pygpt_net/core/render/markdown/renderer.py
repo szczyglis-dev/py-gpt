@@ -312,7 +312,9 @@ class Renderer:
         :return: HTML
         """
         url_prefix = ''
-        if not link.startswith('file://'):
+        if not link.startswith('file://') \
+                and not link.startswith('http://') \
+                and not link.startswith('https://'):
             if self.window.core.platforms.is_windows():
                 url_prefix = 'file:///'
             else:
