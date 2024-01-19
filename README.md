@@ -1570,6 +1570,7 @@ may consume additional tokens that are not displayed in the main window.
 # 2.0.112 (2024-01-19)
 
 - Fixed image variants slider in image mode
+- Fixed vision checkbox visibility
 - Added config option for disable opening image dialog after generate
 - Added Scheduled tasks entry in taskbar dropdown
 - Added * (asterisk) indicator after date modified if newer than last indexed time
