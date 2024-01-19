@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 10:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -105,8 +105,8 @@ class Plugins:
             self.enabled[id] = True
             self.window.core.plugins.enable(id)
 
-            # dispatch event
-            event = Event('enable', {
+            # dispatch plugin enable event
+            event = Event(Event.ENABLE, {
                 'value': id,
             })
             self.window.core.dispatcher.dispatch(event)
@@ -128,8 +128,8 @@ class Plugins:
             self.enabled[id] = False
             self.window.core.plugins.disable(id)
 
-            # dispatch event
-            event = Event('disable', {
+            # dispatch plugin disable event
+            event = Event(Event.DISABLE, {
                 'value': id,
             })
             self.window.core.dispatcher.dispatch(event)
@@ -218,7 +218,7 @@ class Plugins:
         """Destroy plugins workers"""
 
         # send force stop event
-        event = Event('force.stop', {})
+        event = Event(Event.FORCE_STOP, {})
         self.window.core.dispatcher.dispatch(event)
 
         for id in self.window.core.plugins.get_ids():
@@ -317,7 +317,7 @@ class Plugins:
         Apply commands
 
         :param ctx: CtxItem
-        :param cmds: commands
+        :param cmds: commands list
         """
         commands = []
         for cmd in cmds:
@@ -327,19 +327,19 @@ class Plugins:
         if len(commands) == 0:
             return
 
-        # dispatch 'cmd.execute' event
-        event = Event('cmd.execute', {
-            'commands': commands
+        # dispatch command execute event
+        event = Event(Event.CMD_EXECUTE, {
+            'commands': commands,
         })
         event.ctx = ctx
         self.window.controller.command.dispatch(event)
 
     def apply_cmds_only(self, ctx: CtxItem, cmds: list):
         """
-        Apply commands
+        Apply inline commands
 
         :param ctx: CtxItem
-        :param cmds: commands
+        :param cmds: commands list
         """
         commands = []
         for cmd in cmds:
@@ -349,9 +349,9 @@ class Plugins:
         if len(commands) == 0:
             return
 
-        # dispatch 'cmd.only' event
-        event = Event('cmd.only', {
-            'commands': commands
+        # dispatch inline command event
+        event = Event(Event.CMD_INLINE, {
+            'commands': commands,
         })
         event.ctx = ctx
         self.window.controller.command.dispatch(event)

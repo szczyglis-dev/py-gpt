@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -83,18 +83,18 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         # ignore events in llama_index mode
-        if name == 'system.prompt':
+        if name == Event.SYSTEM_PROMPT:
             if self.mode == "llama_index":  # ignore
                 return
             data['value'] = self.on_system_prompt(data['value'])
-        elif name == "input.before":  # get only mode
+        elif name == Event.INPUT_BEFORE:  # get only mode
             if "mode" in data:
                 self.mode = data['mode']
-        elif name == 'post.prompt':
+        elif name == Event.POST_PROMPT:
             if self.mode == "llama_index":  # ignore
                 return
             data['value'] = self.on_post_prompt(data['value'], ctx)
-        elif name == 'cmd.only' or name == 'cmd.execute':
+        elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
             if self.mode == "llama_index":  # ignore
                 return
             self.cmd(ctx, data['commands'])
@@ -110,7 +110,7 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def on_system_prompt(self, prompt: str):
+    def on_system_prompt(self, prompt: str) -> str:
         """
         Event: On prepare system prompt
 
@@ -120,7 +120,7 @@ class Plugin(BasePlugin):
         prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
-    def on_post_prompt(self, prompt: str, ctx: CtxItem):
+    def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
         """
         Event: On post system prompt
 
@@ -138,7 +138,7 @@ class Plugin(BasePlugin):
         prompt += "\nADDITIONAL KNOWLEDGE: " + response
         return prompt
 
-    def query(self, question: str):
+    def query(self, question: str) -> str:
         """
         Query Llama-index
 

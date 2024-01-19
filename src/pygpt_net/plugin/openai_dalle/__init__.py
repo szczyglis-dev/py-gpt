@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 23:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -77,14 +77,14 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == 'system.prompt':
+        if name == Event.SYSTEM_PROMPT:
             mode = ""
             if "mode" in data:
                 mode = data["mode"]
             if mode not in self.allowed_modes:
                 return
             data['value'] = self.on_system_prompt(data['value'])
-        elif name == 'cmd.only' or name == 'cmd.execute':
+        elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
             self.cmd(ctx, data['commands'])
 
     def log(self, msg: str):
@@ -98,7 +98,7 @@ class Plugin(BasePlugin):
         self.window.ui.status(full_msg)
         print(full_msg)
 
-    def on_system_prompt(self, prompt: str):
+    def on_system_prompt(self, prompt: str) -> str:
         """
         Event: On prepare system prompt
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -43,8 +43,8 @@ class Input:
             self.window.controller.chat.render.clear_input()
             return
 
-        # event: user.send
-        event = Event('user.send', {
+        # event: user input send (manually)
+        event = Event(Event.USER_SEND, {
             'value': text,
         })
         self.window.core.dispatcher.dispatch(event)
@@ -94,8 +94,8 @@ class Input:
 
         self.log("Input text: {}".format(text))  # log
 
-        # event: input.before
-        event = Event('input.before', {
+        # event: before input
+        event = Event(Event.INPUT_BEFORE, {
             'value': text,
             'mode': mode,
         })
@@ -152,8 +152,8 @@ class Input:
 
         self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
 
-        # event: ctx.end
-        event = Event('ctx.end')
+        # event: context end
+        event = Event(Event.CTX_END)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 

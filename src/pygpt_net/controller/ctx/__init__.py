@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -113,7 +113,7 @@ class Ctx:
         id = self.window.core.ctx.get_id_by_idx(idx)
         self.select(id)
 
-        event = Event('ctx.select', {
+        event = Event(Event.CTX_SELECT, {
             'value': id,
         })
         self.window.core.dispatcher.dispatch(event)

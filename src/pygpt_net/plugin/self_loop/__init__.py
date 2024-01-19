@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 06:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -148,25 +148,25 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == 'ctx.before':
+        if name == Event.CTX_BEFORE:
             self.on_ctx_before(ctx)
-        elif name == 'ctx.after':
+        elif name == Event.CTX_AFTER:
             self.on_ctx_after(ctx)
-        elif name == 'ctx.end':
+        elif name == Event.CTX_END:
             self.on_ctx_end(ctx)
-        elif name == 'user.send':
+        elif name == Event.USER_SEND:
             self.on_user_send(data['value'])
-        elif name == 'force.stop':
+        elif name == Event.FORCE_STOP:
             self.on_stop()
-        elif name == 'system.prompt':
+        elif name == Event.SYSTEM_PROMPT:
             data['value'] = self.on_system_prompt(data['value'])
-        elif name == 'input.before':
+        elif name == Event.INPUT_BEFORE:
             data['value'] = self.on_input_before(data['value'])
-        elif name == 'cmd.only' or name == 'cmd.execute':
+        elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
             if self.get_option_value("auto_stop"):
                 self.cmd(ctx, data['commands'])
 
-    def on_system_prompt(self, prompt: str):
+    def on_system_prompt(self, prompt: str) -> str:
         """
         Event: On prepare system prompt
 
@@ -188,7 +188,7 @@ class Plugin(BasePlugin):
         prompt += "\n" + append_prompt + stop_cmd
         return prompt
 
-    def on_input_before(self, prompt: str):
+    def on_input_before(self, prompt: str) -> str:
         """
         Event: On user input before
 

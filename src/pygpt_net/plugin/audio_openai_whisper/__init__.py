@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 06:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 import os
@@ -198,19 +198,19 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == 'input.before':
+        if name == Event.INPUT_BEFORE:
             self.on_input_before(data['value'])
-        elif name == 'ctx.begin':
+        elif name == Event.CTX_BEGIN:
             self.on_ctx_begin(ctx)
-        elif name == 'ctx.end':
+        elif name == Event.CTX_END:
             self.on_ctx_end(ctx)
-        elif name == 'enable':
+        elif name == Event.ENABLE:
             if data['value'] == self.id:
                 self.on_enable()
-        elif name == 'disable':
+        elif name == Event.DISABLE:
             if data['value'] == self.id:
                 self.on_disable()
-        elif name == 'audio.input.toggle':
+        elif name == Event.AUDIO_INPUT_TOGGLE:
             self.toggle_speech(data['value'])
         elif name == 'audio.input.stop':
             self.on_stop()

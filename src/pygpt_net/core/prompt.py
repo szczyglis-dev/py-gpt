@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -22,8 +22,8 @@ class Prompt:
         self.window = window
 
     def build_final_system_prompt(self, prompt: str) -> str:
-        # tmp dispatch event: system.prompt
-        event = Event('system.prompt', {
+        # tmp dispatch event: system prompt
+        event = Event(Event.SYSTEM_PROMPT, {
             'mode': self.window.core.config.get('mode'),
             'value': prompt,
             'silent': True,
@@ -40,8 +40,8 @@ class Prompt:
                 'prompt': prompt,
                 'syntax': [],
             }
-            # tmp dispatch event: cmd.syntax
-            event = Event('cmd.syntax', data)
+            # tmp dispatch event: command syntax apply
+            event = Event(Event.CMD_SYNTAX, data)
             self.window.core.dispatcher.dispatch(event)
             prompt = self.window.core.command.append_syntax(event.data)
 

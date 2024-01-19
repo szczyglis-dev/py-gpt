@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 23:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -158,9 +158,9 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == 'cmd.syntax':
+        if name == Event.CMD_SYNTAX:
             self.cmd_syntax(data)
-        elif name == 'cmd.execute':
+        elif name == Event.CMD_EXECUTE:
             self.cmd(ctx, data['commands'])
 
     def is_cmd_allowed(self, cmd: str) -> bool:

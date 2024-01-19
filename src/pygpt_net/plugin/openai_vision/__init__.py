@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -18,11 +18,12 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_vision"
-        self.name = "GPT-4 Vision (inline, for use in any chat)"
+        self.name = "GPT-4 Vision (inline)"
         self.type = ['vision']
         self.description = "Integrates GPT-4 Vision abilities with any chat mode"
         self.order = 100
         self.use_locale = True
+        self.allowed_urls_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
         self.init_options()
 
     def init_options(self):
@@ -40,7 +41,8 @@ class Plugin(BasePlugin):
                         "Prompt",
                         "Prompt used for vision mode. It will append or replace current system prompt when using "
                         "vision model",
-                        tooltip="Prompt", advanced=False)
+                        tooltip="Prompt",
+                        advanced=False)
 
         self.add_option("replace_prompt", "bool", False,
                         "Replace prompt",
@@ -83,24 +85,24 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == 'mode.before':
+        if name == Event.MODE_BEFORE:
             if self.is_allowed(data['value']):
-                data['value'] = self.on_mode_before(ctx, data['value'], data['prompt'])  # handle mode change
-        elif name == 'model.before':
+                data['value'] = self.on_mode_before(ctx, mode=data['value'])  # mode change
+        elif name == Event.MODEL_BEFORE:
             if "mode" in data and data["mode"] == "vision":
                 data['model'] = self.get_option_value("model")
-        elif name == 'pre.prompt':
+        elif name == Event.PRE_PROMPT:
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_pre_prompt(data['value'])
-        elif name == 'system.prompt':
+        elif name == Event.SYSTEM_PROMPT:
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_system_prompt(data['value'])
-        elif name == 'ui.attachments':
+        elif name == Event.UI_ATTACHMENTS:
             data['value'] = True  # allow render attachments UI elements
-        elif name == 'ui.vision':
+        elif name == Event.UI_VISION:
             if self.is_allowed(data['mode']):
                 data['value'] = True  # allow render vision UI elements
-        elif name == 'ctx.select' or name == 'mode.select' or name == 'model.select':
+        elif name in [Event.CTX_SELECT, Event.MODE_SELECT, Event.MODEL_SELECT]:
             self.on_toggle(False)  # always reset vision flag / disable vision mode
 
     def log(self, msg: str):
@@ -118,12 +120,12 @@ class Plugin(BasePlugin):
         """
         Event: On toggle vision mode
 
-        :param value: vision mode value
+        :param value: vision mode state
         """
         if not value:
             self.window.controller.chat.vision.is_enabled = False
 
-    def on_system_prompt(self, prompt: str):
+    def on_system_prompt(self, prompt: str) -> str:
         """
         Event: On prepare system prompt
 
@@ -131,7 +133,8 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         # append vision prompt only if vision is provided or enabled
-        if not self.is_vision_provided() and not self.window.controller.chat.vision.enabled():
+        if not self.is_vision_provided() \
+                and not self.window.controller.chat.vision.enabled():
             return prompt
 
         # append vision prompt
@@ -139,7 +142,7 @@ class Plugin(BasePlugin):
             prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
-    def on_pre_prompt(self, prompt: str):
+    def on_pre_prompt(self, prompt: str) -> str:
         """
         Event: On pre-prepare system prompt
 
@@ -147,7 +150,8 @@ class Plugin(BasePlugin):
         :return: updated prompt
         """
         # append vision prompt only if vision is provided or enabled
-        if not self.is_vision_provided() and not self.window.controller.chat.vision.enabled():
+        if not self.is_vision_provided() \
+                and not self.window.controller.chat.vision.enabled():
             return prompt
 
         # replace vision prompt
@@ -158,7 +162,7 @@ class Plugin(BasePlugin):
 
     def is_vision_provided(self) -> bool:
         """
-        Check if vision is provided (images, attachments)
+        Check if content for vision is provided (images, attachments)
 
         :return: True if vision is provided in this ctx
         """
@@ -171,10 +175,9 @@ class Plugin(BasePlugin):
         built_urls = self.window.core.gpt.vision.urls
 
         # check for images in URLs
-        img_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
         img_urls = []
         for url in built_urls:
-            for ext in img_ext:
+            for ext in self.allowed_urls_ext:
                 if url.lower().endswith(ext):
                     img_urls.append(url)
                     break
@@ -184,13 +187,12 @@ class Plugin(BasePlugin):
 
         return result
 
-    def on_mode_before(self, ctx: CtxItem, mode: str, prompt: str):
+    def on_mode_before(self, ctx: CtxItem, mode: str) -> str:
         """
         Event: On before mode execution
 
         :param ctx: current ctx
         :param mode: current mode
-        :param prompt: current prompt
         :return: updated mode
         """
         # abort if already in vision mode

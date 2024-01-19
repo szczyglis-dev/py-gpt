@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 10:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -130,9 +130,13 @@ class Common:
 
     def stop(self):
         """Stop input"""
-        event = Event('force.stop', {"value": True})
+        event = Event(Event.FORCE_STOP, {
+            "value": True,
+        })
         self.window.core.dispatcher.dispatch(event)  # stop event
-        event = Event('audio.input.toggle', {"value": False})
+        event = Event(Event.AUDIO_INPUT_TOGGLE, {
+            "value": False,
+        })
         self.window.controller.assistant.threads.stop = True
         self.window.core.dispatcher.dispatch(event)  # stop audio input
         self.window.controller.chat.input.stop = True

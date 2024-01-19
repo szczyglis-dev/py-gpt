@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -27,18 +27,27 @@ class Audio:
         self.update()
 
     def toggle_input(self, state: bool, btn: bool = True):
-        """Toggle audio/voice"""
-        self.window.core.dispatcher.dispatch(Event('audio.input.toggle', {"value": state}))
+        """
+        Toggle audio input
+
+        :param state: True to enable, False to disable
+        :param btn: True if called from button
+        """
+        self.window.core.dispatcher.dispatch(
+            Event(Event.AUDIO_INPUT_TOGGLE, {
+                "value": state,
+            })
+        )
 
     def toggle_output(self):
-        """Toggle audio/voice"""
+        """Toggle audio output"""
         if self.window.controller.plugins.is_enabled('audio_azure'):
             self.disable_output()
         else:
             self.enable_output()
 
     def enable_output(self):
-        """Enable audio/voice"""
+        """Enable audio output"""
         self.window.controller.plugins.enable('audio_azure')
         if self.window.controller.plugins.is_enabled('audio_azure') \
                 and (self.window.core.plugins.plugins['audio_azure'].options['azure_api_key'] is None
@@ -49,25 +58,35 @@ class Audio:
         self.update()
 
     def disable_output(self):
-        """Disable audio/voice"""
+        """Disable audio output"""
         self.window.controller.plugins.disable('audio_azure')
         self.window.core.config.save()
         self.update()
 
     def disable_input(self, update: bool = True):
-        """Disable audio/voice"""
+        """
+        Disable audio input
+
+        :param update: True to update menu and listeners
+        """
         self.window.controller.plugins.disable('audio_openai_whisper')
         self.window.core.config.save()
         if update:
             self.update()
 
     def stop_input(self):
-        """Stop audio/voice"""
-        self.window.core.dispatcher.dispatch(Event('audio.input.stop', {"value": True}), True)
+        """Stop audio input"""
+        self.window.core.dispatcher.dispatch(
+            Event(Event.AUDIO_INPUT_STOP, {
+                "value": True,
+            }), all=True)
 
     def stop_output(self):
-        """Stop audio/voice"""
-        self.window.core.dispatcher.dispatch(Event('audio.output.stop', {"value": True}), True)
+        """Stop audio output"""
+        self.window.core.dispatcher.dispatch(
+            Event(Event.AUDIO_OUTPUT_STOP, {
+                "value": True,
+            }), all=True)
 
     def update(self):
         """Update UI and listeners"""
@@ -86,7 +105,7 @@ class Audio:
         return False
 
     def update_listeners(self):
-        """Update listeners"""
+        """Update audio listeners"""
         is_output = False
         if self.window.controller.plugins.is_enabled('audio_azure'):
             is_output = True
@@ -102,7 +121,7 @@ class Audio:
                 self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(False)
 
     def update_menu(self):
-        """Update menu"""
+        """Update audio menu"""
         if self.window.controller.plugins.is_enabled('audio_azure'):
             self.window.ui.menu['audio.output.azure'].setChecked(True)
         else:
@@ -120,17 +139,17 @@ class Audio:
 
     def read_text(self, text: str):
         """
-        Process selected text
+        Read text using audio output plugins
 
-        :param text: selected text
+        :param text: text to read
         """
         ctx = CtxItem()
         ctx.output = text
         all = False
         if self.window.controller.audio.is_output_enabled():
-            event = Event('ctx.after')
+            event = Event(Event.CTX_AFTER)
         else:
-            all = True
-            event = Event('audio.read_text')  # to all plugins (even if disabled)
+            all = True  # to all plugins (even if disabled)
+            event = Event(Event.AUDIO_READ_TEXT)
         event.ctx = ctx
-        self.window.core.dispatcher.dispatch(event, all)
+        self.window.core.dispatcher.dispatch(event, all=all)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 23:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +15,38 @@ from pygpt_net.item.ctx import CtxItem
 
 
 class Event:
+
+    # Events list
+    AI_NAME = "ai.name"
+    AUDIO_INPUT_STOP = "audio.input.stop"
+    AUDIO_INPUT_TOGGLE = "audio.input.toggle"
+    AUDIO_OUTPUT_STOP = "audio.output.stop"
+    AUDIO_OUTPUT_TOGGLE = "audio.output.toggle"
+    AUDIO_READ_TEXT = "audio.read_text"
+    CMD_EXECUTE = "cmd.execute"
+    CMD_INLINE = "cmd.inline"
+    CMD_SYNTAX = "cmd.syntax"
+    CTX_AFTER = "ctx.after"
+    CTX_BEFORE = "ctx.before"
+    CTX_BEGIN = "ctx.begin"
+    CTX_END = "ctx.end"
+    CTX_SELECT = "ctx.select"
+    DISABLE = "disable"
+    ENABLE = "enable"
+    FORCE_STOP = "force.stop"
+    INPUT_BEFORE = "input.before"
+    MODE_BEFORE = "mode.before"
+    MODE_SELECT = "mode.select"
+    MODEL_BEFORE = "model.before"
+    MODEL_SELECT = "model.select"
+    POST_PROMPT = "post.prompt"
+    PRE_PROMPT = "pre.prompt"
+    SYSTEM_PROMPT = "system.prompt"
+    UI_ATTACHMENTS = "ui.attachments"
+    UI_VISION = "ui.vision"
+    USER_NAME = "user.name"
+    USER_SEND = "user.send"
+
     def __init__(self, name: str = None, data: dict = None):
         """
         Event object class
@@ -24,9 +56,9 @@ class Event:
         """
         self.name = name
         self.data = data
-        self.ctx = None
-        self.stop = False
-        self.internal = False  # internal event, not from user, handled synchronously, ctxitem has internal flag
+        self.ctx = None  # CtxItem
+        self.stop = False  # True to stop propagation
+        self.internal = False  # internal event, not from user, handled synchronously, ctx item has internal flag
 
 
 class Dispatcher:
@@ -83,4 +115,6 @@ class Dispatcher:
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
-                self.window.controller.chat.input.send(json.dumps(ctx.results), force=True, internal=ctx.internal)
+                self.window.controller.chat.input.send(json.dumps(ctx.results),
+                                                       force=True,
+                                                       internal=ctx.internal)

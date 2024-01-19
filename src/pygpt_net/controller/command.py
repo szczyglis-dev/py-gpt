@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 22:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 import json
@@ -48,7 +48,7 @@ class Command:
         """
         for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id):
-                if event.stop or (event.name == "cmd.execute" and self.is_stop()):
+                if event.stop or (event.name == Event.CMD_EXECUTE and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break
@@ -85,7 +85,7 @@ class Command:
         """
         for id in window.core.plugins.get_ids():
             if window.controller.plugins.is_enabled(id):
-                if event.stop or (event.name == "cmd.execute" and self.is_stop()):
+                if event.stop or (event.name == Event.CMD_EXECUTE and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break

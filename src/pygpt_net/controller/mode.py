@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -34,7 +34,7 @@ class Mode:
         mode = self.window.core.modes.get_by_idx(idx)
         self.set(mode)
 
-        event = Event('mode.select', {
+        event = Event(Event.MODE_SELECT, {
             'value': mode,
         })
         self.window.core.dispatcher.dispatch(event)

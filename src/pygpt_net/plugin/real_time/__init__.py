@@ -69,20 +69,19 @@ class Plugin(BasePlugin):
         name = event.name
         data = event.data
 
-        if name == 'system.prompt':
+        if name == Event.SYSTEM_PROMPT:
             silent = False
             if 'silent' in data and data['silent']:
                 silent = True
             data['value'] = self.on_system_prompt(data['value'], silent)
 
-    def on_system_prompt(self, prompt: str, silent: bool = False):
+    def on_system_prompt(self, prompt: str, silent: bool = False) -> str:
         """
         Event: On prepare system prompt
 
         :param prompt: prompt
         :param silent: silent mode
         :return: updated prompt
-        :rtype: str
         """
         if not silent:
             self.debug("Plugin: real_time:on_system_prompt [before]: " + str(prompt))  # log

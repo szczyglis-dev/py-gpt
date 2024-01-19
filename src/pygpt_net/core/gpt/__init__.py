@@ -6,20 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 04:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 import json
 
 from openai import OpenAI
 
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.dispatcher import Event
+
 from .assistants import Assistants
 from .chat import Chat
 from .completion import Completion
 from .summarizer import Summarizer
 from .vision import Vision
-from pygpt_net.item.ctx import CtxItem
-from ..dispatcher import Event
 
 
 class Gpt:
@@ -65,7 +66,7 @@ class Gpt:
         model = str(self.window.core.config.get('model'))
         model_id = self.window.core.models.get_id(model)
         if allow_change:
-            event = Event('model.before', {
+            event = Event(Event.MODEL_BEFORE, {
                 'mode': mode,
                 'model': model_id,  # ID is provided to event, NOT the key in items! TODO: pass as object
             })
@@ -100,8 +101,8 @@ class Gpt:
         response = None
         used_tokens = 0
 
-        # event: mode.before
-        event = Event('mode.before', {
+        # event: before mode select
+        event = Event(Event.MODE_BEFORE, {
             'value': mode,
             'prompt': prompt,
         })

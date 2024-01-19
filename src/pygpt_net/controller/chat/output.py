@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 09:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -38,8 +38,8 @@ class Output:
         if stream_mode and mode not in self.not_stream_modes:
             self.append_stream(ctx, mode)
 
-        # event: ctx.after
-        event = Event('ctx.after')
+        # event: context after
+        event = Event(Event.CTX_AFTER)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 

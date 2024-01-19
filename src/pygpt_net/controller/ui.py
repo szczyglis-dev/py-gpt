@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 06:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -98,9 +98,9 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
-            # event: ui.vision
+            # event: UI: vision
             value = False
-            event = Event('ui.vision', {
+            event = Event(Event.UI_VISION, {
                 'mode': mode,
                 'value': value,
             })
@@ -113,9 +113,9 @@ class UI:
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
             self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
-            # event: ui.attachments
+            # event: UI: attachments
             value = False
-            event = Event('ui.attachments', {
+            event = Event(Event.UI_ATTACHMENTS, {
                 'mode': mode,
                 'value': value,
             })
@@ -168,9 +168,9 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
-            # event: ui.vision
+            # event: UI: vision
             value = False
-            event = Event('ui.vision', {
+            event = Event(Event.UI_VISION, {
                 'mode': mode,
                 'value': value,
             })
@@ -183,9 +183,9 @@ class UI:
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
             self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
-            # event: ui.attachments
+            # event: UI: attachments
             value = False
-            event = Event('ui.attachments', {
+            event = Event(Event.UI_ATTACHMENTS, {
                 'mode': mode,
                 'value': value,
             })
@@ -234,9 +234,9 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
-            # event: ui.vision
+            # event: UI: vision
             value = False
-            event = Event('ui.vision', {
+            event = Event(Event.UI_VISION, {
                 'mode': mode,
                 'value': value,
             })
@@ -249,9 +249,9 @@ class UI:
             self.window.ui.nodes['vision.capture.options'].setVisible(value)
             self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
 
-            # event: ui.attachments
+            # event: UI: attachments
             value = False
-            event = Event('ui.attachments', {
+            event = Event(Event.UI_ATTACHMENTS, {
                 'mode': mode,
                 'value': value,
             })

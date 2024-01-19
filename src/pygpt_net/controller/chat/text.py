@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 02:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -39,15 +39,15 @@ class Text:
         self.log("User name: {}".format(self.window.core.config.get('user_name')))  # log
         self.log("AI name: {}".format(self.window.core.config.get('ai_name')))  # log
 
-        # event: user.name
-        event = Event('user.name', {
+        # event: username prepare
+        event = Event(Event.USER_NAME, {
             'value': self.window.core.config.get('user_name'),
         })
         self.window.core.dispatcher.dispatch(event)
         user_name = event.data['value']
 
         # event: ai.name
-        event = Event('ai.name', {
+        event = Event(Event.AI_NAME, {
             'value': self.window.core.config.get('ai_name'),
         })
         self.window.core.dispatcher.dispatch(event)
@@ -87,8 +87,8 @@ class Text:
         # log
         self.log("Context: input: {}".format(self.window.core.ctx.dump(ctx)))
 
-        # event: ctx.before
-        event = Event('ctx.before')
+        # event: context before
+        event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 
@@ -96,25 +96,25 @@ class Text:
         self.log("Context: input [after plugin: ctx.before]: {}".format(self.window.core.ctx.dump(ctx)))
         self.log("System: {}".format(self.window.core.gpt.system_prompt))
 
-        # event: pre.prompt (replace system prompt)
+        # event: prepare prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
-        event = Event('pre.prompt', {
+        event = Event(Event.PRE_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
         })
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
-        # event: system.prompt (append to system prompt)
-        event = Event('system.prompt', {
+        # event: system prompt (append to system prompt)
+        event = Event(Event.SYSTEM_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
         })
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
-        # event: post.prompt (post-handle system prompt)
-        event = Event('post.prompt', {
+        # event: post prompt (post-handle system prompt)
+        event = Event(Event.POST_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
         })
@@ -122,7 +122,7 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
-        # event: cmd.syntax (if commands enabled then append commands prompt)
+        # event: command syntax apply (if commands enabled then append commands prompt)
         if self.window.core.config.get('cmd'):
             sys_prompt += " " + self.window.core.command.get_prompt()
             data = {
@@ -130,7 +130,7 @@ class Text:
                 'prompt': sys_prompt,
                 'syntax': [],
             }
-            event = Event('cmd.syntax', data)
+            event = Event(Event.CMD_SYNTAX, data)
             self.window.core.dispatcher.dispatch(event)
             sys_prompt = self.window.core.command.append_syntax(event.data)
 
@@ -140,7 +140,7 @@ class Text:
         self.log("AI name: {}".format(ctx.output_name))
         self.log("Appending input to chat window...")
 
-        # async or sync mode
+        # stream mode
         stream_mode = self.window.core.config.get('stream')
 
         # render: begin
@@ -163,7 +163,7 @@ class Text:
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
 
-                # langchain mode
+                # Langchain mode
                 if mode == "langchain":
                     self.log("Calling LangChain...")  # log
                     self.window.core.chain.system_prompt = sys_prompt
@@ -171,14 +171,14 @@ class Text:
                     self.window.core.chain.ai_name = ctx.output_name
                     result = self.window.core.chain.call(text, ctx, stream_mode)
 
-                # llama index mode
+                # Llama index mode
                 elif mode == "llama_index":
+                    self.log("Calling Llama-index...")  # log
                     idx = self.window.controller.idx.current_idx
-                    # passing real model ID here, not model item key, TODO: pass object instead of ID
                     result = self.window.core.idx.chat.call(
                         ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
 
-                # gpt chat mode
+                # OpenAI API mode
                 else:
                     self.log("Calling OpenAI API...")  # log
                     self.window.core.gpt.system_prompt = sys_prompt
@@ -235,7 +235,7 @@ class Text:
 
         # handle ctx name (generate title from summary if not initialized)
         if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.ctx.prepare_name(ctx)
+            self.window.controller.ctx.prepare_name(ctx)  # async
 
         return ctx
 

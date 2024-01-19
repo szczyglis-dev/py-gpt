@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 23:00:00                  #
+# Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
 
 import json
@@ -56,8 +56,8 @@ class Image:
         ctx = CtxItem()
         ctx.set_input(text, self.window.core.config.get('user_name'))
 
-        # event: ctx.before
-        event = Event('ctx.before')
+        # event: context before
+        event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 
@@ -106,8 +106,8 @@ class Image:
         ctx.images = paths  # save images paths
         ctx.set_output(string.strip())
 
-        # event: ctx.after
-        event = Event('ctx.after')
+        # event: after context
+        event = Event(Event.CTX_AFTER)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 
