@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 05:00:00                  #
+# Updated Date: 2024.01.18 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -209,13 +209,9 @@ class UI:
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
 
-            value = False
-            if force_vision_allowed:
-                value = True
-
             # vision capture
-            self.window.ui.nodes['vision.capture.options'].setVisible(value)
-            self.window.ui.nodes['attachments.capture_clear'].setVisible(value)
+            self.window.ui.nodes['vision.capture.options'].setVisible(True)
+            self.window.ui.nodes['attachments.capture_clear'].setVisible(True)
 
             # files tabs
             self.window.ui.tabs['input'].setTabVisible(1, True)  # files
@@ -347,23 +343,28 @@ class UI:
         self.window.ui.nodes['chat.footer'].setVisible(False)
 
     def update_vision(self):
-        # vision camera
+        """Update vision options"""
         mode = self.window.core.config.data['mode']
         if self.window.controller.drawing.is_drawing():
             self.window.controller.camera.setup()
             self.window.controller.camera.show_camera()
         else:
+            # plugin: vision
             if self.window.controller.plugins.is_type_enabled('vision'):
-                self.window.controller.camera.setup()
-                self.window.controller.camera.show_camera()
-
-                # if attachments then show enabled checkbox
-                if mode != 'vision' and mode in self.window.controller.chat.vision.allowed_modes:
-                    self.window.controller.chat.vision.show_inline()  # show enabled checkbox
+                if mode == 'vision' or mode in self.window.controller.chat.vision.allowed_modes:
+                    self.window.controller.camera.setup()
+                    self.window.controller.camera.show_camera()
+                else:
+                    self.window.controller.camera.hide_camera()
+                    self.window.controller.chat.vision.hide_inline()
+            # no-plugin
             else:
-                self.window.controller.camera.hide_camera()
-                if mode != 'vision' or mode not in self.window.controller.chat.vision.allowed_modes:
-                    self.window.controller.chat.vision.hide_inline()  # hide enabled checkbox
+                if mode != 'vision':
+                    self.window.controller.camera.hide_camera()
+                    self.window.controller.chat.vision.hide_inline()
+                else:
+                    self.window.controller.camera.setup()
+                    self.window.controller.camera.show_camera()
 
     def store_state(self):
         """Store UI state"""
@@ -406,7 +407,8 @@ class UI:
         :type idx: int
         """
         self.current_tab = idx
-        self.window.controller.ui.update_active()
+        self.update_active()
+        self.update_vision()
 
         if idx == self.tab_idx['calendar']:
             self.window.controller.notepad.opened_once = True
