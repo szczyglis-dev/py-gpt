@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
+
 import os
 
 from packaging.version import parse as parse_version, Version
@@ -590,6 +591,13 @@ class Patch:
                             "loader": "ImageReader"
                         }
                     ]
+                updated = True
+
+            # < 2.0.112
+            if old < parse_version("2.0.112"):
+                print("Migrating config from < 2.0.112...")
+                if 'img_dialog_open' not in data:
+                    data['img_dialog_open'] = True
                 updated = True
 
         # update file

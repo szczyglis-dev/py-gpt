@@ -50,6 +50,7 @@
   "img_resolution": "1792x1024",
   "img_quality": "standard",
   "img_variants": 1,
+  "img_dialog_open": true,
   "lang": "en",
   "layout.density": -1,
   "layout.dpi.scaling": true,

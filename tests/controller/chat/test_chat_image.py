@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
 import os
@@ -53,6 +53,7 @@ def test_handle_response(mock_window):
     mock_window.core.config.data['mode'] = 'img'
     mock_window.core.config.data['model'] = 'dall-e-3'
     mock_window.core.config.data['user_name'] = 'User'
+    mock_window.core.config.data['img_dialog_open'] = True
 
     ctx = CtxItem()
     prompt = 'prompt'

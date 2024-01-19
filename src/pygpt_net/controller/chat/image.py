@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.19 19:00:00                  #
 # ================================================== #
 
-import json
 import os
 import shutil
-import webbrowser
 
 from PySide6 import QtGui, QtCore
 from PySide6.QtWidgets import QFileDialog, QApplication
@@ -97,7 +95,9 @@ class Image:
         for path in paths:
             string += "{}) `{}`".format(i, path) + "\n"
             i += 1
-        self.open_images(paths)  # TODO: MAYBE DON'T OPEN IMAGES IN DIALOG, JUST APPEND TO CHAT ?
+
+        if self.window.core.config.get('img_dialog_open'):
+            self.open_images(paths)
 
         if not self.window.core.config.get('img_raw'):
             string += "\nPrompt: "
@@ -168,9 +168,7 @@ class Image:
         """
         num_images = len(paths)
         resize_to = 512
-        if num_images == 1:
-            resize_to = 512
-        elif num_images > 1:
+        if num_images > 1:
             resize_to = 256
 
         i = 0
@@ -215,7 +213,9 @@ class Image:
         :param path: path to image
         """
         # get basename from path
-        save_path = QFileDialog.getSaveFileName(self.window, trans('img.save.title'), os.path.basename(path),
+        save_path = QFileDialog.getSaveFileName(self.window,
+                                                trans('img.save.title'),
+                                                os.path.basename(path),
                                                 "PNG (*.png)")
         if save_path:
             # copy file

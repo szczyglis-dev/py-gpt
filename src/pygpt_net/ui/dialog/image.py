@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.19 18:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox
 
 from pygpt_net.ui.widget.dialog.image import ImageDialog
 from pygpt_net.ui.widget.image.display import ImageLabel
@@ -43,10 +43,30 @@ class Image:
         row_two.addWidget(self.window.ui.nodes['dialog.image.pixmap'][2])
         row_two.addWidget(self.window.ui.nodes['dialog.image.pixmap'][3])
 
+        state = False
+        if self.window.core.config.has('img_dialog_open'):
+            state = bool(self.window.core.config.get('img_dialog_open'))
+        self.window.ui.nodes['dialog.image.open.toggle'] = QCheckBox(trans('settings.img_dialog_open'), self.window)
+        self.window.ui.nodes['dialog.image.open.toggle'].setChecked(state)
+        self.window.ui.nodes['dialog.image.open.toggle'].clicked.connect(
+            lambda: self.toggle_dialog_auto_open())
+
         layout = QVBoxLayout()
         layout.addLayout(row_one)
         layout.addLayout(row_two)
+        layout.addWidget(self.window.ui.nodes['dialog.image.open.toggle'])
 
         self.window.ui.dialog[id] = ImageDialog(self.window, id)
         self.window.ui.dialog[id].setLayout(layout)
         self.window.ui.dialog[id].setWindowTitle(trans("dialog.image.title"))
+
+    def toggle_dialog_auto_open(self):
+        """Toggle dialog auto open"""
+        if self.window.ui.nodes['dialog.image.open.toggle'].isChecked():
+            value = True
+        else:
+            value = False
+        self.window.core.config.set('img_dialog_open', value)
+
+        # update checkbox in config dialog
+        self.window.controller.config.checkbox.apply('config', 'img_dialog_open', {'value': value})
