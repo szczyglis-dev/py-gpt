@@ -25,6 +25,7 @@ MIT License
 
 Special thanks
 ======================
-GitHub community for their support and help:
+GitHub community:
 
-**kaneda2004** - for pull request with ORGANIZATION Key support
+**kaneda2004**
+**moritz-t-w**
