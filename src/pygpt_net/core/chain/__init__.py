@@ -9,7 +9,6 @@
 # Updated Date: 2024.01.14 04:00:00                  #
 # ================================================== #
 
-
 from .chat import Chat
 from .completion import Completion
 from pygpt_net.item.ctx import CtxItem

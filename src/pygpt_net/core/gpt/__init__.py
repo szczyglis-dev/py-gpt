@@ -9,8 +9,6 @@
 # Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
-import json
-
 from openai import OpenAI
 
 from pygpt_net.item.ctx import CtxItem

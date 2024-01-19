@@ -9,7 +9,6 @@
 # Updated Date: 2024.01.19 05:00:00                  #
 # ================================================== #
 
-
 class Vision:
     def __init__(self, window=None):
         """
