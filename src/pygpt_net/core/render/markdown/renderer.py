@@ -311,6 +311,9 @@ class Renderer:
         :param link: image link
         :return: HTML
         """
+        if not link.startswith('http://') \
+                and not link.startswith('https://'):
+            link = self.window.controller.files.replace_user_path(link)
         url_prefix = ''
         if not link.startswith('file://') \
                 and not link.startswith('http://') \
@@ -340,6 +343,9 @@ class Renderer:
         :param link: file link
         :return: HTML
         """
+        if not link.startswith('http://') \
+                and not link.startswith('https://'):
+            link = self.window.controller.files.replace_user_path(link)
         url_prefix = ''
         if not link.startswith('file://'):
             if self.window.core.platforms.is_windows():

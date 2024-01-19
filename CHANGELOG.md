@@ -4,7 +4,8 @@
 
 - Fixed image variants slider in image mode
 - Fixed vision checkbox visibility
-- Added config option for disable opening image dialog after generate
+- Fixed user directory path when handling different directories/symlinks
+- Added config option for disable opening image dialog after image generate
 - Added Scheduled tasks entry in taskbar dropdown
 - Added * (asterisk) indicator after date modified if newer than last indexed time
 - Date of modified in file explorer changed to format YYYY-MM-DD HH:MM:SS

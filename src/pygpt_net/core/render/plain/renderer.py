@@ -304,6 +304,9 @@ class Renderer:
         :param link: image link
         :return: HTML
         """
+        if not link.startswith('http://') \
+                and not link.startswith('https://'):
+            link = self.window.controller.files.replace_user_path(link)
         return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.img'), link=link)
 
     def get_url_html(self, link: str) -> str:
@@ -323,6 +326,9 @@ class Renderer:
         :param link: file link
         :return: HTML
         """
+        if not link.startswith('http://') \
+                and not link.startswith('https://'):
+            link = self.window.controller.files.replace_user_path(link)
         return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.file'),
                                                                                     link=link)
 

@@ -137,3 +137,18 @@ class Files:
                 # show_in_file_manager(path_os, select)
             else:
                 subprocess.run(['xdg-open', path_os])
+
+    def replace_user_path(self, path):
+        """Fix user workdir path"""
+        base_dir = self.window.core.config.path
+        if base_dir.endswith('.config/pygpt-net'):
+            base_dir = base_dir.rsplit('/.config/pygpt-net', 1)[0]
+        elif base_dir.endswith('.config\\pygpt-net'):
+            base_dir = base_dir.rsplit('\\.config\\pygpt-net', 1)[0]
+        if self.window.core.platforms.is_windows():
+            dir_index = path.find('\\.config\\pygpt-net\\') + 1
+        else:
+            dir_index = path.find('/.config/pygpt-net/') + 1
+        dir_struct = path[dir_index:]
+        new_path = os.path.join(base_dir, dir_struct)
+        return new_path
