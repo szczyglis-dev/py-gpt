@@ -110,7 +110,7 @@ def test_open_config_dir(mock_window):
     mock_window.controller.files.open_dir = MagicMock()
     mock_window.core.config.path = 'test'
     settings.open_config_dir()
-    mock_window.controller.files.open_dir.assert_called_once_with('test', True)
+    mock_window.controller.files.open_dir.assert_called_once_with('test')
 
 
 def test_welcome_settings(mock_window):

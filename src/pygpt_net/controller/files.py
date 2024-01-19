@@ -125,12 +125,14 @@ class Files:
         parts = PurePath(path).parts
         path_os = os.path.join(*parts)  # fix for windows \\ path separators
         if select:
-            # get directory path:
             parts = PurePath(os.path.dirname(path)).parts
             path_os = os.path.join(*parts)  # fix for windows \\ path separators
         if os.path.exists(path_os):
             if not self.window.core.platforms.is_snap():
-                url = QUrl("file:///" + path_os, QUrl.TolerantMode)
+                if self.window.core.platforms.is_windows():
+                    url = QUrl("file:///" + path_os, QUrl.TolerantMode)
+                else:
+                    url = QUrl.fromLocalFile(path_os)
                 QDesktopServices.openUrl(url)
                 # show_in_file_manager(path_os, select)
             else:

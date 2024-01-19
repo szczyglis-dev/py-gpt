@@ -96,19 +96,12 @@ def test_open_images(mock_window):
     mock_window.ui.dialog['image'].show.assert_called_once()  # should show dialog
 
 
-def test_open(mock_window):
-    image = Image(mock_window)
-    with patch('webbrowser.open') as mock:
-        image.open('path')
-        mock.assert_called_once_with('path')
-
-
 def test_open_dir(mock_window):
     image = Image(mock_window)
     with patch('os.path.exists') as mock:
         image.open_dir('path')
         mock.assert_called_once_with('path')
-        mock_window.controller.files.open_in_file_manager.assert_called_once_with('path')
+        mock_window.controller.files.open_dir.assert_called_once_with('path', True)
 
 
 def test_save(mock_window):

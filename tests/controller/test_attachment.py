@@ -200,7 +200,7 @@ def test_open_dir(mock_window):
         mock_window.controller.files.open_in_file_manager = MagicMock()
         mock_window.core.attachments.get_by_id = MagicMock(return_value=att)
         attachment.open_dir('assistant', 1)
-        mock_window.controller.files.open_in_file_manager.assert_called_once()
+        mock_window.controller.files.open_dir.assert_called_once()
 
 
 def test_open(mock_window):

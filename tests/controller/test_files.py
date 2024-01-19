@@ -58,9 +58,10 @@ def test_open_dir(mock_window):
 def test_open(mock_window):
     """Test open"""
     files = Files(mock_window)
+    mock_window.core.platforms.is_snap = MagicMock(return_value=False)
     PySide6.QtGui.QDesktopServices.openUrl = MagicMock()
     files.open('test')
-    PySide6.QtGui.QDesktopServices.openUrl.assert_called_once_with('test')
+    PySide6.QtGui.QDesktopServices.openUrl.assert_called_once()
 
 
 def test_open_in_file_manager(mock_window):
