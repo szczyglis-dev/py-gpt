@@ -635,7 +635,10 @@ To do this, create a method named ``handle(self, event, *args, **kwargs)`` and h
 
    # my_plugin.py
 
-   def handle(self, event, *args, **kwargs):
+   from pygpt_net.core.dispatcher import Event
+   
+
+   def handle(self, event: Event, *args, **kwargs):
        """
        Handle dispatched events
 
@@ -645,58 +648,80 @@ To do this, create a method named ``handle(self, event, *args, **kwargs)`` and h
        data = event.data
        ctx = event.ctx
 
-       if name == 'input.before':
+       if name == Event.INPUT_BEFORE:
            self.some_method(data['value'])
-       elif name == 'ctx.begin':
+       elif name == Event.CTX_BEGIN:
            self.some_other_method(ctx)
        else:
            # ...
 
 **List of Events**
 
-Syntax: **event name** - triggered on, ``event data`` `(data type)`:
+Event names are defined in ``Event`` class in ``pygpt_net.core.dispatcher.Event``.
 
-- **ai.name** - when preparing an AI name, ``data['value']`` `(string, name of the AI assistant)`
+Syntax: **event name** - triggered on, ``event data`` *(data type)*:
 
-- **audio.input.toggle** - when speech input is enabled or disabled, ``data['value']`` `(bool, True/False)`
+- **AI_NAME** - when preparing an AI name, ``data['value']`` *(string, name of the AI assistant)*
 
-- **cmd.execute** - when a command is executed, ``data['commands']`` `(list, commands and arguments)`
+- **AUDIO_INPUT_STOP** - force stop audio input
 
-- **cmd.only** - when an inline command is executed, ``data['commands']`` `(list, commands and arguments)`
+- **AUDIO_INPUT_TOGGLE** - when speech input is enabled or disabled, ``data['value']`` *(bool, True/False)*
 
-- **cmd.syntax** - when appending syntax for commands, ``data['prompt'], data['syntax']`` `(string, list, prompt and list with commands usage syntax)`
+- **AUDIO_OUTPUT_STOP** - force stop audio output
 
-- **ctx.after** - after the context item is sent, ``ctx``
+- **AUDIO_OUTPUT_TOGGLE** - when speech output is enabled or disabled, ``data['value']`` *(bool, True/False)*
 
-- **ctx.before** - before the context item is sent, ``ctx``
+- **AUDIO_READ_TEXT** - on text read with speech synthesis, ``data['value']`` *(str)*
 
-- **ctx.begin** - when context item create, ``ctx``
+- **CMD_EXECUTE** - when a command is executed, ``data['commands']`` *(list, commands and arguments)*
 
-- **ctx.end** - when context handling is finished, ``ctx``
+- **CMD_INLINE** - when an inline command is executed, ``data['commands']`` *(list, commands and arguments)*
 
-- **ctx.select** - when context is selected on list, ``data['value']`` `(int, ctx meta ID)`
+- **CMD_SYNTAX** - when appending syntax for commands, ``data['prompt'], data['syntax']`` *(string, list, prompt and list with commands usage syntax)*
 
-- **disable** - when the plugin is disabled, ``data['value']`` `(string, plugin ID)`
+- **CTX_AFTER** - after the context item is sent, ``ctx``
 
-- **enable** - when the plugin is enabled, ``data['value']`` `(string, plugin ID)`
+- **CTX_BEFORE** - before the context item is sent, ``ctx``
 
-- **input.before** - upon receiving input from the textarea, ``data['value']`` `(string, text to be sent)`
+- **CTX_BEGIN** - when context item create, ``ctx``
 
-- **mode.before** - before the mode is selected ``data['value'], data['prompt']`` `(string, string, mode ID)`
+- **CTX_END** - when context item handling is finished, ``ctx``
 
-- **model.before** - before the model is selected ``data['value']`` `(string, model ID)`
+- **CTX_SELECT** - when context is selected on list, ``data['value']`` *(int, ctx meta ID)*
 
-- **pre.prompt** - before preparing a system prompt, ``data['value']`` `(string, system prompt)`
+- **DISABLE** - when the plugin is disabled, ``data['value']`` *(string, plugin ID)*
 
-- **system.prompt** - when preparing a system prompt, ``data['value']`` `(string, system prompt)`
+- **ENABLE** - when the plugin is enabled, ``data['value']`` *(string, plugin ID)*
 
-- **ui.attachments** - when the attachment upload elements are rendered, ``data['value']`` `(bool, show True/False)`
+- **FORCE_STOP** - on force stop plugins
 
-- **ui.vision** - when the vision elements are rendered, ``data['value']`` `(bool, show True/False)`
+- **INPUT_BEFORE** - upon receiving input from the textarea, ``data['value']`` *(string, text to be sent)*
 
-- **user.name** - when preparing a user's name, ``data['value']`` `(string, name of the user)`
+- **MODE_BEFORE** - before the mode is selected ``data['value'], data['prompt']`` *(string, string, mode ID)*
 
-- **user.send** - just before the input text is sent, ``data['value']`` `(string, input text)`
+- **MODE_SELECT** - on mode select ``data['value']`` *(string, mode ID)*
+
+- **MODEL_BEFORE** - before the model is selected ``data['value']`` *(string, model ID)*
+
+- **MODEL_SELECT** - on model select ``data['value']`` *(string, model ID)*
+
+- **PLUGIN_SETTINGS_CHANGED** - on plugin settings update
+
+- **PLUGIN_OPTION_GET** - on request for plugin option value ``data['name'], data['value']`` *(string, any, name of requested option, value)*
+
+- **POST_PROMPT** - after preparing a system prompt, ``data['value']`` *(string, system prompt)*
+
+- **PRE_PROMPT** - before preparing a system prompt, ``data['value']`` *(string, system prompt)*
+
+- **SYSTEM_PROMPT** - when preparing a system prompt, ``data['value']`` *(string, system prompt)*
+
+- **UI_ATTACHMENTS** - when the attachment upload elements are rendered, ``data['value']`` *(bool, show True/False)*
+
+- **UI_VISION** - when the vision elements are rendered, ``data['value']`` *(bool, show True/False)*
+
+- **USER_NAME** - when preparing a user's name, ``data['value']`` *(string, name of the user)*
+
+- **USER_SEND** - just before the input text is sent, ``data['value']`` *(string, input text)*
 
 
 You can stop the propagation of a received event at any time by setting ``stop`` to ``True``:
