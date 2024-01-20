@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -36,38 +36,58 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         # cmd enable/disable
-        self.add_option("python_cmd_tpl", "text", 'python3 {filename}',
-                        "Python command template",
-                        "Python command template to execute, use {filename} for filename placeholder")
-        self.add_option("cmd_code_execute", "bool", True,
-                        "Enable: Python Code Generate and Execute",
-                        "Allows Python code execution (generate and execute from file)")
-        self.add_option("cmd_code_execute_file", "bool", True,
-                        "Enable: Python Code Execute (File)",
-                        "Allows Python code execution from existing file")
-        self.add_option("cmd_sys_exec", "bool", True,
-                        "Enable: System Command Execute",
-                        "Allows system commands execution")
-        self.add_option("sandbox_docker", "bool", False,
-                        "Sandbox (docker container)",
-                        "Executes commands in sandbox (docker container). Docker must be installed and running.")
-        self.add_option("sandbox_docker_image", "text", 'python:3.8-alpine',
-                        "Docker image",
-                        "Docker image to use for sandbox")
+        self.add_option("python_cmd_tpl",
+                        type="text",
+                        value="python3 {filename}",
+                        label="Python command template",
+                        description="Python command template to execute, use {filename} for filename placeholder")
+        self.add_option("cmd_code_execute",
+                        type="bool",
+                        value=True,
+                        label="Enable: Python Code Generate and Execute",
+                        description="Allows Python code execution (generate and execute from file)")
+        self.add_option("cmd_code_execute_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Python Code Execute (File)",
+                        description="Allows Python code execution from existing file")
+        self.add_option("cmd_sys_exec",
+                        type="bool",
+                        value=True,
+                        label="Enable: System Command Execute",
+                        description="Allows system commands execution")
+        self.add_option("sandbox_docker",
+                        type="bool",
+                        value=False,
+                        label="Sandbox (docker container)",
+                        description="Executes commands in sandbox (docker container). "
+                                    "Docker must be installed and running.")
+        self.add_option("sandbox_docker_image",
+                        type="text",
+                        value='python:3.8-alpine',
+                        label="Docker image",
+                        description="Docker image to use for sandbox")
 
         # cmd syntax (prompt/instruction)
-        self.add_option("syntax_code_execute", "textarea", '"code_execute": create and execute Python code, params: '
-                                                           '"filename", "code"',
-                        "Syntax: code_execute",
-                        "Syntax for Python code execution (generate and execute from file)", advanced=True)
-        self.add_option("syntax_code_execute_file", "textarea", '"code_execute_file": execute Python code from '
-                                                                'existing file, params: "filename"',
-                        "Syntax: code_execute_file",
-                        "Syntax for Python code execution from existing file", advanced=True)
-        self.add_option("syntax_sys_exec", "textarea", '"sys_exec": execute ANY system command, script or application '
-                                                       'in user\'s environment, params: "command"',
-                        "Syntax: sys_exec",
-                        "Syntax for system commands execution", advanced=True)
+        self.add_option("syntax_code_execute",
+                        type="textarea",
+                        value='"code_execute": create and execute Python code, params: "filename", "code"',
+                        label="Syntax: code_execute",
+                        description="Syntax for Python code execution (generate and execute from file)",
+                        advanced=True)
+        self.add_option("syntax_code_execute_file",
+                        type="textarea",
+                        value='"code_execute_file": execute Python code from existing file, params: "filename"',
+                        label="Syntax: code_execute_file",
+                        description="Syntax for Python code execution from existing file",
+                        advanced=True)
+        self.add_option("syntax_sys_exec",
+                        type="textarea",
+                        value='"sys_exec": execute ANY system command, script or application in user\'s '
+                              'environment, params: "command"',
+                        label="Syntax: sys_exec",
+                        description="Syntax for system commands execution",
+                        advanced=True)
 
     def setup(self) -> dict:
         """

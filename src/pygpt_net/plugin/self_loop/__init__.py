@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -20,7 +20,8 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "self_loop"
         self.name = "Autonomous Mode: AI to AI conversation"
-        self.description = "Enables autonomous conversation (AI to AI), manages loop, and connects output back to input."
+        self.description = "Enables autonomous conversation (AI to AI), manages loop, " \
+                           "and connects output back to input."
         self.iteration = 0
         self.prev_output = None
         self.order = 9998
@@ -36,17 +37,6 @@ class Plugin(BasePlugin):
         """
         Initialize options
         """
-        self.add_option("iterations", "int", 3,
-                        "Iterations",
-                        "How many iterations to run? 0 = infinite.\nWARNING: setting this to 0 can cause a lot of "
-                        "requests and heavy tokens usage!",
-                        min=0, max=100, multiplier=1, step=1, slider=True)
-        self.add_option("reverse_roles", "bool", True,
-                        "Reverse roles between iterations",
-                        "If enabled, roles will be reversed between iterations.")
-        self.add_option("auto_stop", "bool", True,
-                        "Auto-stop after goal is reached",
-                        "If enabled, plugin will stop after goal is reached.")
         prompt = "AUTONOMOUS MODE:\n1. You will now enter self-dialogue mode, where you will be conversing with " \
                  "yourself, not with a human.\n2. When you enter self-dialogue mode, remember that you are engaging " \
                  "in a conversation with yourself. Any user input will be considered a reply featuring your " \
@@ -58,7 +48,8 @@ class Plugin(BasePlugin):
                  "after every response to capitalize on your strengths and address areas needing improvement.\n7. To " \
                  "advance towards the goal, utilize all the strategic thinking and resources at your disposal.\n" \
                  "8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping " \
-                 "stone towards the ultimate objective.\n9. Treat the entire dialogue as a monologue aimed at devising" \
+                 "stone towards the ultimate objective.\n" \
+                 "9. Treat the entire dialogue as a monologue aimed at devising" \
                  " the best possible solution to the problem.\n10. Conclude the self-dialogue upon realizing the " \
                  "goal or reaching a pivotal conclusion that meets the initial criteria.\n11. You are allowed to use " \
                  "any commands and tools without asking for it.\n12. While using commands, always use the correct " \
@@ -110,17 +101,47 @@ class Plugin(BasePlugin):
                           "objective is achieved.\n21. Conduct the entire discussion in my native language.\n" \
                           "22. Upon reaching the final goal, provide a comprehensive summary including " \
                           "all solutions found, along with a complete, expanded response."
-        self.add_option("prompt", "textarea", prompt,
-                        "Prompt",
-                        "Prompt used to instruct how to handle autonomous mode",
-                        tooltip="Prompt", advanced=True)
-        self.add_option("extended_prompt", "textarea", extended_prompt,
-                        "Extended Prompt",
-                        "Prompt used to instruct how to handle autonomous mode (extended step-by-step reasoning)",
-                        tooltip="Extended Prompt", advanced=True)
-        self.add_option("use_extended", "bool", False,
-                        "Use extended prompt",
-                        "If enabled, plugin will use extended prompt.")
+        self.add_option("iterations",
+                        type="int",
+                        value=3,
+                        label="Iterations",
+                        description="How many iterations to run? 0 = infinite.\nWARNING: setting this to 0 can "
+                                    "cause a lot of requests and heavy tokens usage!",
+                        min=0,
+                        max=100,
+                        multiplier=1,
+                        step=1,
+                        slider=True)
+        self.add_option("reverse_roles",
+                        type="bool",
+                        value=True,
+                        label="Reverse roles between iterations",
+                        description="If enabled, roles will be reversed between iterations.")
+        self.add_option("auto_stop",
+                        type="bool",
+                        value=True,
+                        label="Auto-stop after goal is reached",
+                        description="If enabled, plugin will stop after goal is reached.")
+        self.add_option("prompt",
+                        type="textarea",
+                        value=prompt,
+                        label="Prompt",
+                        description="Prompt used to instruct how to handle autonomous mode",
+                        tooltip="Prompt",
+                        advanced=True)
+        self.add_option("extended_prompt",
+                        type="textarea",
+                        value=extended_prompt,
+                        label="Extended Prompt",
+                        description="Prompt used to instruct how to handle autonomous mode "
+                                    "(extended step-by-step reasoning)",
+                        tooltip="Extended Prompt",
+                        advanced=True)
+        self.add_option("use_extended",
+                        type="bool",
+                        value=False,
+                        label="Use extended prompt",
+                        description="If enabled, plugin will use extended prompt.")
 
     def setup(self) -> dict:
         """

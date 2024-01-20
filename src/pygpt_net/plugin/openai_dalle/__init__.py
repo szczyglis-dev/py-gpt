@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -45,11 +45,13 @@ class Plugin(BasePlugin):
                  'language in which I am speaking to you. The image will be generated on my machine  immediately ' \
                  'after the command is issued, allowing us to discuss the photo once it has been created.  Please ' \
                  'engage with me about the photo itself, not only by giving the generate command. '
-        self.add_option("prompt", "textarea", prompt,
-                        "Prompt",
-                        "Prompt used for generating a query for DALL-E in background - please DO NOT EDIT if you do "
-                        "not know what you are doing.",
-                        tooltip="Prompt", advanced=True)
+        self.add_option("prompt",
+                        type="textarea",
+                        value=prompt,
+                        label="Prompt",
+                        description="Prompt used for generating a query for DALL-E in background.",
+                        tooltip="Prompt",
+                        advanced=True)
 
     def setup(self) -> dict:
         """

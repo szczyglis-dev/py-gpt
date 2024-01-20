@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -38,10 +38,10 @@ class Plugin(BasePlugin):
             "preset": {
                 "type": "combo",
                 "use": "presets",
-                "keys": []
+                "keys": [],
             },
         }
-        value = [
+        items = [
             {
                 "enabled": False,
                 "crontab": "30 9 * * *",
@@ -53,11 +53,21 @@ class Plugin(BasePlugin):
                "the cron-based job format. If you are unfamiliar with Cron, consider visiting the Cron Guru " \
                "page for assistance."
         tooltip = "Check out the tutorials about Cron or visit the Crontab Guru for help on how to use Cron syntax."
-        self.add_option("crontab", "dict", value,
-                        "Your tasks", desc, tooltip, keys=keys, urls={"Crontab Guru": "https://crontab.guru"})
-        self.add_option("new_ctx", "bool", True,
-                        "Create a new context on job run",
-                        "If enabled, then a new context will be created on every run of the job")
+        self.add_option("crontab",
+                        type="dict",
+                        value=items,
+                        label="Your tasks",
+                        description=desc,
+                        tooltip=tooltip,
+                        keys=keys,
+                        urls={
+                            "Crontab Guru": "https://crontab.guru",
+                        })
+        self.add_option("new_ctx",
+                        type="bool",
+                        value=True,
+                        label="Create a new context on job run",
+                        description="If enabled, then a new context will be created on every run of the job")
 
     def setup(self) -> dict:
         """

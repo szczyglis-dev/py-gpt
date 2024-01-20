@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 06:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -29,20 +29,28 @@ class Plugin(BasePlugin):
         """
         Initialize options
         """
-        self.add_option("hour", "bool", True,
-                        "Append time",
-                        "If enabled, current time will be appended to system prompt.",
+        self.add_option("hour",
+                        type="bool",
+                        value=True,
+                        label="Append time",
+                        description="If enabled, current time will be appended to system prompt.",
                         tooltip="Hour will be appended to system prompt.")
-        self.add_option("date", "bool", True,
-                        "Append date",
-                        "If enabled, current date will be appended to system prompt.",
+        self.add_option("date",
+                        type="bool",
+                        value=True,
+                        label="Append date",
+                        description="If enabled, current date will be appended to system prompt.",
                         tooltip="Date will be appended to system prompt.")
 
-        desc = "Template to append to system prompt.\nPlaceholder {time} will be replaced with current date and time " \
-               "in real-time. "
+        desc = "Template to append to system prompt.\n" \
+               "Placeholder {time} will be replaced with current date and time in real-time. "
         tooltip = "Text to append to system prompt."
-        self.add_option("tpl", "textarea", " Current time is {time}.",
-                        "Template", desc, tooltip=tooltip)
+        self.add_option("tpl",
+                        type="textarea",
+                        value=" Current time is {time}.",
+                        label="Template",
+                        description=desc,
+                        tooltip=tooltip)
 
     def setup(self) -> dict:
         """

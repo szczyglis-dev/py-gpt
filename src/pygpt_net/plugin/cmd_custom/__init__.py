@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -34,7 +34,7 @@ class Plugin(BasePlugin):
             "params": "textarea",
             "cmd": "textarea",
         }
-        value = [
+        items = [
             {
                 "name": "example_cmd",
                 "instruction": "execute tutorial test command by replacing 'hello' and 'world' params with some funny "
@@ -46,8 +46,13 @@ class Plugin(BasePlugin):
         desc = "Add your custom commands here, use {placeholders} to receive params, you can also use predefined " \
                "placeholders: {_time}, {_date}, {_datetime}, {_file}, {_home) "
         tooltip = "See the documentation for more details about examples, usage and list of predefined placeholders"
-        self.add_option("cmds", "dict", value,
-                        "Your custom commands", desc, tooltip, keys=keys)
+        self.add_option("cmds",
+                        type="dict",
+                        value=items,
+                        label="Your custom commands",
+                        description=desc,
+                        tooltip=tooltip,
+                        keys=keys)
 
     def setup(self) -> dict:
         """

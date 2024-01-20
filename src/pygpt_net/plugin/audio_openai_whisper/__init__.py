@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 import os
@@ -43,95 +43,166 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""
-        self.add_option("model", "text", "whisper-1",
-                        "Model",
-                        "Specify model, default: whisper-1")
-        self.add_option("timeout", "int", 2,
-                        "Timeout",
-                        "Speech recognition timeout. Default: 2", min=0, max=30, slider=True,
+        self.add_option("model",
+                        type="text",
+                        value="whisper-1",
+                        label="Model",
+                        description="Specify model, default: whisper-1")
+        self.add_option("timeout",
+                        type="int",
+                        value=2,
+                        label="Timeout",
+                        description="Speech recognition timeout. Default: 2",
+                        min=0,
+                        max=30,
+                        slider=True,
                         tooltip="Timeout, default: 2")
-        self.add_option("phrase_length", "int", 4,
-                        "Phrase max length",
-                        "Speech recognition phrase length. Default: 4", min=0, max=30, slider=True,
+        self.add_option("phrase_length",
+                        type="int",
+                        value=4,
+                        label="Phrase max length",
+                        description="Speech recognition phrase length. Default: 4",
+                        min=0,
+                        max=30,
+                        slider=True,
                         tooltip="Phrase max length, default: 4")
-        self.add_option("min_energy", "float", 1.3,
-                        "Min. energy",
-                        "Minimum threshold multiplier above the noise level to begin recording; 1 = disabled. "
-                        "Default: 1.3",
-                        min=1, max=50, slider=True,
-                        tooltip="Min. energy, default: 1.3, 1 = disabled, adjust for your microphone", multiplier=10)
-        self.add_option("adjust_noise", "bool", True,
-                        "Adjust ambient noise",
-                        "Adjust for ambient noise. Default: True")
-        self.add_option("continuous_listen", "bool", False,
-                        "Continuous listening",
-                        "EXPERIMENTAL: continuous listening - do not stop listening after a single input.\n"
-                        "Warning: This feature may lead to unexpected results and requires fine-tuning with the rest "
-                        "of the options!")
-        self.add_option("auto_send", "bool", True,
-                        "Auto send",
-                        "Automatically send input when voice is detected. Default: True")
-        self.add_option("wait_response", "bool", True,
-                        "Wait for response",
-                        "Wait for a response before listening for the next input. Default: True")
-        self.add_option("magic_word", "bool", False,
-                        "Magic word",
-                        "Activate listening only after the magic word is provided, like 'Hey GPT' or 'OK GPT'. "
-                        "Default: False")
-        self.add_option("magic_word_reset", "bool", True,
-                        "Reset Magic word",
-                        "Reset the magic word status after it is received "
-                        "(the magic word will need to be provided again). Default: True")
-        self.add_option("magic_words", "text", "OK, Okay, Hey GPT, OK GPT",
-                        "Magic words",
-                        "Specify magic words for 'Magic word' option: if received this word then start listening, "
-                        "put words separated by coma, "
-                        "Magic word option must be enabled, examples: \"Hey GPT, OK GPT\"")
-        self.add_option("magic_word_timeout", "int", 1,
-                        "Magic word timeout",
-                        "Magic word recognition timeout. Default: 1", min=0, max=30, slider=True,
+        self.add_option("min_energy",
+                        type="float",
+                        value=1.3,
+                        label="Min. energy",
+                        description="Minimum threshold multiplier above the noise level to begin recording;"
+                                    " 1 = disabled. Default: 1.3",
+                        min=1,
+                        max=50,
+                        slider=True,
+                        tooltip="Min. energy, default: 1.3, 1 = disabled, adjust for your microphone",
+                        multiplier=10)
+        self.add_option("adjust_noise",
+                        type="bool",
+                        value=True,
+                        label="Adjust ambient noise",
+                        description="Adjust for ambient noise. Default: True")
+        self.add_option("continuous_listen",
+                        type="bool",
+                        value=False,
+                        label="Continuous listening",
+                        description="EXPERIMENTAL: continuous listening - do not stop listening after a single input.\n"
+                                    "Warning: This feature may lead to unexpected results and requires fine-tuning "
+                                    "with the rest of the options!")
+        self.add_option("auto_send",
+                        type="bool",
+                        value=True,
+                        label="Auto send",
+                        description="Automatically send input when voice is detected. Default: True")
+        self.add_option("wait_response",
+                        type="bool",
+                        value=True,
+                        label="Wait for response",
+                        description="Wait for a response before listening for the next input. Default: True")
+        self.add_option("magic_word",
+                        type="bool",
+                        value=False,
+                        label="Magic word",
+                        description="Activate listening only after the magic word is provided, "
+                                    "like 'Hey GPT' or 'OK GPT'. Default: False")
+        self.add_option("magic_word_reset",
+                        type="bool",
+                        value=True,
+                        label="Reset Magic word",
+                        description="Reset the magic word status after it is received "
+                                    "(the magic word will need to be provided again). Default: True")
+        self.add_option("magic_words",
+                        type="text",
+                        value="OK, Okay, Hey GPT, OK GPT",
+                        label="Magic words",
+                        description="Specify magic words for 'Magic word' option: if received this word then "
+                                    "start listening, put words separated by comma. Magic word option must be enabled, "
+                                    "examples: \"Hey GPT, OK GPT\"")
+        self.add_option("magic_word_timeout",
+                        type="int",
+                        value=1,
+                        label="Magic word timeout",
+                        description="Magic word recognition timeout. Default: 1",
+                        min=0,
+                        max=30,
+                        slider=True,
                         tooltip="Timeout, default: 1")
-        self.add_option("magic_word_phrase_length", "int", 2,
-                        "Magic word phrase max length",
-                        "Magic word phrase length. Default: 2", min=0, max=30, slider=True,
+        self.add_option("magic_word_phrase_length",
+                        type="int",
+                        value=2,
+                        label="Magic word phrase max length",
+                        description="Magic word phrase length. Default: 2",
+                        min=0,
+                        max=30,
+                        slider=True,
                         tooltip="Phrase length, default: 2")
-        self.add_option("prefix_words", "text", "",
-                        "Prefix words",
-                        "Specify prefix words: if defined, only phrases starting with these words will be transmitted, "
-                        "and the remainder will be ignored. Separate the words with a comma., eg. 'OK, Okay, GPT'. "
-                        "Leave empty to disable")
-        self.add_option("stop_words", "text", "stop, exit, quit, end, finish, close, terminate, kill, halt, abort",
-                        "Stop words",
-                        "Specify stop words: if any of these words are received, then stop listening. "
-                        "Separate the words with a comma, or leave it empty to disable the feature, "
-                        "default: stop, exit, quit, end, finish, close, terminate, kill, "
-                        "halt, abort")
+        self.add_option("prefix_words",
+                        type="text",
+                        value="",
+                        label="Prefix words",
+                        description="Specify prefix words: if defined, only phrases starting with these words "
+                                    "will be transmitted, and the remainder will be ignored. Separate the words with "
+                                    "a comma., eg. 'OK, Okay, GPT'. Leave empty to disable")
+        self.add_option("stop_words",
+                        type="text",
+                        value="stop, exit, quit, end, finish, close, terminate, kill, halt, abort",
+                        label="Stop words",
+                        description="Specify stop words: if any of these words are received, then stop listening. "
+                                    "Separate the words with a comma, or leave it empty to disable the feature, "
+                                    "default: stop, exit, quit, end, finish, close, terminate, kill, halt, abort")
 
         # advanced options
-        self.add_option("recognition_energy_threshold", "int", 300,
-                        "energy_threshold",
-                        "Represents the energy level threshold for sounds. Default: 300", min=0, max=10000,
-                        slider=True, advanced=True)
-        self.add_option("recognition_dynamic_energy_threshold", "bool", True,
-                        "dynamic_energy_threshold",
-                        "Represents whether the energy level threshold "
-                        "for sounds should be automatically adjusted based on the currently "
-                        "ambient noise level while listening. Default: True", advanced=True)
-        self.add_option("recognition_dynamic_energy_adjustment_damping", "float", 0.15,
-                        "dynamic_energy_adjustment_damping",
-                        "Represents approximately the fraction of the current energy threshold that "
-                        "is retained after one second of dynamic threshold adjustment. Default: 0.15", min=0, max=100,
-                        slider=True, multiplier=100, advanced=True)
-        self.add_option("recognition_pause_threshold", "float", 0.8,
-                        "pause_threshold",
-                        "Represents the minimum length of silence (in seconds) that will "
-                        "register as the end of a phrase. \nDefault: 0.8",
-                        min=0, max=100, slider=True, multiplier=10, advanced=True)
-        self.add_option("recognition_adjust_for_ambient_noise_duration", "float", 1,
-                        "adjust_for_ambient_noise: duration",
-                        "The duration parameter is the maximum number of seconds that it will "
-                        "dynamically adjust the threshold for before returning. Default: 1", min=0, max=100,
-                        slider=True, multiplier=10, advanced=True)
+        self.add_option("recognition_energy_threshold",
+                        type="int",
+                        value=300,
+                        label="energy_threshold",
+                        description="Represents the energy level threshold for sounds. Default: 300",
+                        min=0,
+                        max=10000,
+                        slider=True,
+                        advanced=True)
+        self.add_option("recognition_dynamic_energy_threshold",
+                        type="bool",
+                        value=True,
+                        label="dynamic_energy_threshold",
+                        description="Represents whether the energy level threshold for sounds should be automatically "
+                                    "adjusted based on the currently ambient noise level while listening. "
+                                    "Default: True",
+                        advanced=True)
+        self.add_option("recognition_dynamic_energy_adjustment_damping",
+                        type="float",
+                        value=0.15,
+                        label="dynamic_energy_adjustment_damping",
+                        description="Represents approximately the fraction of the current energy threshold that is "
+                                    "retained after one second of dynamic threshold adjustment. Default: 0.15",
+                        min=0,
+                        max=100,
+                        slider=True,
+                        multiplier=100,
+                        advanced=True)
+        self.add_option("recognition_pause_threshold",
+                        type="float",
+                        value=0.8,
+                        label="pause_threshold",
+                        description="Represents the minimum length of silence (in seconds) that will "
+                                    "register as the end of a phrase. \n"
+                                    "Default: 0.8",
+                        min=0,
+                        max=100,
+                        slider=True,
+                        multiplier=10,
+                        advanced=True)
+        self.add_option("recognition_adjust_for_ambient_noise_duration",
+                        type="float",
+                        value=1,
+                        label="adjust_for_ambient_noise: duration",
+                        description="The duration parameter is the maximum number of seconds that it will dynamically "
+                                    "adjust the threshold for before returning. Default: 1",
+                        min=0,
+                        max=100,
+                        slider=True,
+                        multiplier=10,
+                        advanced=True)
 
     def setup(self) -> dict:
         """

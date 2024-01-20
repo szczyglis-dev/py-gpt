@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -29,32 +29,44 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """Initialize options"""  # TODO: context, not knowledge, fix the prompt, extend the prompt
+        """Initialize options"""   # TODO: make better prompt, redefine context
         prompt = 'ADDITIONAL KNOWLEDGE: I will provide you with additional data about my question. ' \
                  'When it is provided, then use this data as your additional knowledge and use it in your response. ' \
-                 'Additional knowledge will be prefixed with an "Additional data:" prefix. ' \
-                 'You can also provide a command to query my knowledge database anytime you need any additional data ' \
-                 '- to do this, return to me the prepared prompt in JSON format, all in one line, using the following' \
-                 ' syntax: ~###~{"cmd": "get_knowledge", "params": {"question": "simple and concrete question here"}}~###~. ' \
-                 'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other' \
-                 ' syntax. When making query use language that I spoke to you.'
-        self.add_option("prompt", "textarea", prompt,
-                        "Prompt",
-                        "Prompt used for instruct how to use additional data provided from Llama-index",
-                        tooltip="Prompt", advanced=True)
-        self.add_option("idx", "text", "base",
-                        "Indexes to use",
-                        "ID's of indexes to use, default: base, "
-                        "separate by comma if you want to use more than one index at once",
+                 'Additional knowledge will be prefixed with an "Additional data:" prefix. You can also provide a ' \
+                 'command to query my knowledge database anytime you need any additional data - to do this, return ' \
+                 'to me the prepared prompt in JSON format, all in one line, using the following syntax: ' \
+                 '~###~{"cmd": "get_knowledge", "params": {"question": "simple and concrete question here"}}~###~. ' \
+                 'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other ' \
+                 'syntax. When making query use language that I spoke to you.'
+
+        self.add_option("prompt",
+                        type="textarea",
+                        value=prompt,
+                        label="Prompt",
+                        description="Prompt used for instruct how to use additional data provided from Llama-index",
+                        tooltip="Prompt",
+                        advanced=True)
+        self.add_option("idx",
+                        type="text",
+                        value="base",
+                        label="Indexes to use",
+                        description="ID's of indexes to use, default: base, separate by comma if you want to use "
+                                    "more than one index at once",
                         tooltip="Index name")
-        self.add_option("ask_llama_first", "bool", False,
-                        "Ask Llama-index first",
-                        "When enabled, then Llama-index will be asked first, and response will be used as additional "
-                        "knowledge in prompt. When disabled, then Llama-index will be asked only when needed.")
-        self.add_option("model_query", "combo", "gpt-3.5-turbo",
-                        "Model",
-                        "Model used for querying Llama-index, default: gpt-3.5-turbo",
-                        tooltip="Query model", use="models")
+        self.add_option("ask_llama_first",
+                        type="bool",
+                        value=False,
+                        label="Ask Llama-index first",
+                        description="When enabled, then Llama-index will be asked first, and response will be used "
+                                    "as additional knowledge in prompt. When disabled, then Llama-index will be "
+                                    "asked only when needed.")
+        self.add_option("model_query",
+                        type="combo",
+                        value="gpt-3.5-turbo",
+                        label="Model",
+                        description="Model used for querying Llama-index, default: gpt-3.5-turbo",
+                        tooltip="Query model",
+                        use="models")
 
     def setup(self) -> dict:
         """

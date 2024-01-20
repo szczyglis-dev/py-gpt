@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 import os
@@ -37,12 +37,16 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""
-        self.add_option("model", "text", "tts-1",
-                        "Model",
-                        "Specify model, available models: tts-1, tts-1-hd")
-        self.add_option("voice", "text", "alloy",
-                        "Voice",
-                        "Specify voice, available voices: alloy, echo, fable, onyx, nova, shimmer")
+        self.add_option("model",
+                        type="text",
+                        value="tts-1",
+                        label="Model",
+                        description="Specify model, available models: tts-1, tts-1-hd")
+        self.add_option("voice",
+                        type="text",
+                        value="alloy",
+                        label="Voice",
+                        description="Specify voice, available voices: alloy, echo, fable, onyx, nova, shimmer")
 
     def setup(self) -> dict:
         """

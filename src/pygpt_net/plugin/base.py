@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -32,76 +32,43 @@ class BasePlugin:
         self.is_async = False
         self.order = 0
 
-    def setup(self):
+    def setup(self) -> dict:
         """
         Return available config options
 
         :return: config options
-        :rtype: dict
         """
         return self.options
 
-    def add_option(self,
-                   name: str,  # option name (ID, key)
-                   type: str,  # option type (text, textarea, bool, int, float, dict)
-                   value: any = None,  # option value
-                   label: str = "",  # option label
-                   description: str = "",  # option description
-                   tooltip: str = None,  # option tooltip
-                   min: int = None,  # option min value
-                   max: int = None,  # option max value
-                   multiplier: int = 1,  # option float value multiplier (for sliders)
-                   step: int = 1,  # option step value (for sliders)
-                   slider: bool = False,  # option slider (True/False)
-                   keys: dict or list = None,  # option keys dict (dict type) or key-value pairs list (combo type)
-                   advanced: bool = False,  # option is advanced (True/False)
-                   secret: bool = False,  # option is secret (True/False)
-                   persist: bool = False,  # option is persistent on reset to defaults (True/False)
-                   urls: dict = None,  # option URLs (API keys, docs, etc.)
-                   use: str = None):  # placeholders to use in combo type items
+    def add_option(self, name: str, type: str, **kwargs):
         """
         Add plugin configuration option
 
         :param name: Option name (ID, key)
-        :param type: Option type (text, textarea, bool, int, float, dict)
-        :param value: Option value
-        :param label: Option label
-        :param description: Option description
-        :param tooltip: Option tooltip
-        :param min: Option min value
-        :param max: Option max value
-        :param multiplier: Option float value multiplier
-        :param step: Option step value (for slider)
-        :param slider: Option slider (True/False)
-        :param keys: Option keys (for dict type)
-        :param advanced: Option advanced (True/False)
-        :param secret: Option secret (True/False)
-        :param persist: Option persist (True/False)
-        :param urls: Option URLs
-        :param use: Placeholders to use in combo type
+        :param type: Option type (text, textarea, bool, int, float, dict, combo)
+        :param kwargs: Additional keyword arguments for option properties
         """
-        if tooltip is None:
-            tooltip = description
-
-        option = {
-            "id": name,  # append ID based on name
-            "type": type,
-            "value": value,
-            "label": label,
-            "description": description,
-            "tooltip": tooltip,
-            "min": min,
-            "max": max,
-            "multiplier": multiplier,
-            "step": step,
-            "slider": slider,
-            "keys": keys,
-            "advanced": advanced,
-            "secret": secret,
-            "persist": persist,
-            "urls": urls,
-            "use": use,
+        defaults = {
+            "value": None,
+            "label": "",
+            "description": "",
+            "tooltip": None,
+            "min": None,
+            "max": None,
+            "multiplier": 1,
+            "step": 1,
+            "slider": False,
+            "keys": None,
+            "advanced": False,
+            "secret": False,
+            "persist": False,
+            "urls": None,
+            "use": None,
         }
+        option = {**defaults, **kwargs}
+        option['tooltip'] = option['tooltip'] or option['description']
+        option["id"] = name
+        option["type"] = type
         self.options[name] = option
 
     def has_option(self, name: str) -> bool:
@@ -120,7 +87,6 @@ class BasePlugin:
 
         :param name: option name
         :return: option
-        :rtype: dict
         """
         if self.has_option(name):
             return self.options[name]
@@ -131,7 +97,6 @@ class BasePlugin:
 
         :param name: option name
         :return: option value
-        :rtype: any
         """
         if self.has_option(name):
             return self.options[name]["value"]
@@ -178,7 +143,6 @@ class BasePlugin:
 
         :param text: text to translate
         :return: translated text
-        :rtype: str
         """
         if text is None:
             return ""
@@ -285,35 +249,63 @@ class BaseWorker(QRunnable):
         self.cmds = None
         self.ctx = None
 
-    def debug(self, msg):
+    def debug(self, msg: str):
+        """
+        Emit debug signal
+
+        :param msg: debug message
+        """
         if self.signals is not None and hasattr(self.signals, "debug"):
             self.signals.debug.emit(msg)
 
     def destroyed(self):
+        """Emit destroyed signal"""
         if self.signals is not None and hasattr(self.signals, "destroyed"):
             self.signals.destroyed.emit()
 
-    def error(self, err):
+    def error(self, err: any):
+        """
+        Emit error signal
+
+        :param err: error message
+        """
         if self.signals is not None and hasattr(self.signals, "error"):
             self.signals.error.emit(err)
 
-    def log(self, msg):
+    def log(self, msg: str):
+        """
+        Emit log signal
+
+        :param msg: log message
+        """
         if self.signals is not None and hasattr(self.signals, "log"):
             self.signals.log.emit(msg)
 
-    def response(self, response):
+    def response(self, response: dict):
+        """
+        Emit finished signal
+
+        :param response: response
+        """
         if self.signals is not None and hasattr(self.signals, "finished"):
             self.signals.finished.emit(response, self.ctx)
 
     def started(self):
+        """Emit started signal"""
         if self.signals is not None and hasattr(self.signals, "started"):
             self.signals.started.emit()
 
-    def status(self, msg):
+    def status(self, msg: str):
+        """
+        Emit status signal
+
+        :param msg: status message
+        """
         if self.signals is not None and hasattr(self.signals, "status"):
             self.signals.status.emit(msg)
 
     def stopped(self):
+        """Emit stopped signal"""
         if self.signals is not None and hasattr(self.signals, "stopped"):
             self.signals.stopped.emit()
             

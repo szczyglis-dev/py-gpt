@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -47,90 +47,184 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         # cmd enable/disable
-        self.add_option("cmd_read_file", "bool", True,
-                        "Enable: Read file", "Allows `read_file` command execution")
-        self.add_option("cmd_save_file", "bool", True,
-                        "Enable: Save file", "Allows `save_file` command execution")
-        self.add_option("cmd_append_file", "bool", True,
-                        "Enable: Append to file", "Allows `append_file` command execution")
-        self.add_option("cmd_delete_file", "bool", True,
-                        "Enable: Delete file", "Allows `delete_file` command execution")
-        self.add_option("cmd_list_dir", "bool", True,
-                        "Enable: List files in directory (ls)", "Allows `list_dir` command execution")
-        self.add_option("cmd_mkdir", "bool", True,
-                        "Enable: Directory creation (mkdir)", "Allows `mkdir` command execution")
-        self.add_option("cmd_download_file", "bool", True,
-                        "Enable: Downloading files", "Allows `download_file` command execution")
-        self.add_option("cmd_rmdir", "bool", True,
-                        "Enable: Removing directories", "Allows `rmdir` command execution")
-        self.add_option("cmd_copy_file", "bool", True,
-                        "Enable: Copying files", "Allows `copy` command execution")
-        self.add_option("cmd_copy_dir", "bool", True,
-                        "Enable: Copying directories (recursive)", "Allows `copy_dir` command execution")
-        self.add_option("cmd_move", "bool", True,
-                        "Enable: Move files and directories (rename)", "Allows `move` command execution")
-        self.add_option("cmd_is_dir", "bool", True,
-                        "Enable: Check if path is directory", "Allows `is_dir` command execution")
-        self.add_option("cmd_is_file", "bool", True,
-                        "Enable: Check if path is file", "Allows `is_file` command execution")
-        self.add_option("cmd_file_exists", "bool", True,
-                        "Enable: Check if file or directory exists", "Allows `file_exists` command execution")
-        self.add_option("cmd_file_size", "bool", True,
-                        "Enable: Get file size", "Allows `file_size` command execution")
-        self.add_option("cmd_file_info", "bool", True,
-                        "Enable: Get file info", "Allows `file_info` command execution")
+        self.add_option("cmd_read_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Read file",
+                        description="Allows `read_file` command execution")
+        self.add_option("cmd_save_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Save file",
+                        description="Allows `save_file` command execution")
+        self.add_option("cmd_append_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Append to file",
+                        description="Allows `append_file` command execution")
+        self.add_option("cmd_delete_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Delete file",
+                        description="Allows `delete_file` command execution")
+        self.add_option("cmd_list_dir",
+                        type="bool",
+                        value=True,
+                        label="Enable: List files in directory (ls)",
+                        description="Allows `list_dir` command execution")
+        self.add_option("cmd_mkdir",
+                        type="bool",
+                        value=True,
+                        label="Enable: Directory creation (mkdir)",
+                        description="Allows `mkdir` command execution")
+        self.add_option("cmd_download_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Downloading files",
+                        description="Allows `download_file` command execution")
+        self.add_option("cmd_rmdir",
+                        type="bool",
+                        value=True,
+                        label="Enable: Removing directories",
+                        description="Allows `rmdir` command execution")
+        self.add_option("cmd_copy_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Copying files",
+                        description="Allows `copy` command execution")
+        self.add_option("cmd_copy_dir",
+                        type="bool",
+                        value=True,
+                        label="Enable: Copying directories (recursive)",
+                        description="Allows `copy_dir` command execution")
+        self.add_option("cmd_move",
+                        type="bool",
+                        value=True,
+                        label="Enable: Move files and directories (rename)",
+                        description="Allows `move` command execution")
+        self.add_option("cmd_is_dir",
+                        type="bool",
+                        value=True,
+                        label="Enable: Check if path is directory",
+                        description="Allows `is_dir` command execution")
+        self.add_option("cmd_is_file",
+                        type="bool",
+                        value=True,
+                        label="Enable: Check if path is file",
+                        description="Allows `is_file` command execution")
+        self.add_option("cmd_file_exists",
+                        type="bool",
+                        value=True,
+                        label="Enable: Check if file or directory exists",
+                        description="Allows `file_exists` command execution")
+        self.add_option("cmd_file_size",
+                        type="bool",
+                        value=True,
+                        label="Enable: Get file size",
+                        description="Allows `file_size` command execution")
+        self.add_option("cmd_file_info",
+                        type="bool",
+                        value=True,
+                        label="Enable: Get file info",
+                        description="Allows `file_info` command execution")
 
         # cmd syntax (prompt/instruction)
-        self.add_option("syntax_read_file", "textarea", '"read_file": read data from file, params: "filename"',
-                        "Syntax: read_file",
-                        "Syntax for reading files", advanced=True)
-        self.add_option("syntax_save_file", "textarea", '"save_file": save data to file, params: "filename", "data"',
-                        "Syntax: save_file",
-                        "Syntax for saving files", advanced=True)
-        self.add_option("syntax_append_file", "textarea",
-                        '"append_file": append data to file, params: "filename", "data"',
-                        "Syntax: append_file",
-                        "Syntax for appending to files", advanced=True)
-        self.add_option("syntax_delete_file", "textarea", '"delete_file": delete file, params: "filename"',
-                        "Syntax: delete_file",
-                        "Syntax for deleting files", advanced=True)
-        self.add_option("syntax_list_dir", "textarea", '"list_dir": list files and dirs in directory, params: "path"',
-                        "Syntax: list_dir",
-                        "Syntax for listing files", advanced=True)
-        self.add_option("syntax_mkdir", "textarea", '"mkdir": create directory, params: "path"',
-                        "Syntax: mkdir",
-                        "Syntax for directory creation", advanced=True)
-        self.add_option("syntax_download_file", "textarea", '"download_file": download file, params: "src", "dst"',
-                        "Syntax: download_file",
-                        "Syntax for downloading files", advanced=True)
-        self.add_option("syntax_rmdir", "textarea", '"rmdir": remove directory, params: "path"',
-                        "Syntax: rmdir",
-                        "Syntax for removing directories", advanced=True)
-        self.add_option("syntax_copy_file", "textarea", '"copy_file": copy file, params: "src", "dst"',
-                        "Syntax: copy_file",
-                        "Syntax for copying files", advanced=True)
-        self.add_option("syntax_copy_dir", "textarea", '"copy_dir": recursive copy directory, params: "src", "dst"',
-                        "Syntax: copy_dir",
-                        "Syntax for recursive copying directories", advanced=True)
-        self.add_option("syntax_move", "textarea", '"move": move file or directory, params: "src", "dst"',
-                        "Syntax: move",
-                        "Syntax for moving files and directories", advanced=True)
-        self.add_option("syntax_is_dir", "textarea", '"is_dir": check if path is directory, params: "path"',
-                        "Syntax: is_dir",
-                        "Syntax for checking if path is directory", advanced=True)
-        self.add_option("syntax_is_file", "textarea", '"is_file": check if path is file, params: "path"',
-                        "Syntax: is_file",
-                        "Syntax for checking if path is file", advanced=True)
-        self.add_option("syntax_file_exists", "textarea", '"file_exists": check if file or directory exists, params: '
-                                                          '"path"',
-                        "Syntax: file_exists",
-                        "Syntax for checking if file or directory exists", advanced=True)
-        self.add_option("syntax_file_size", "textarea", '"file_size": get file size, params: "path"',
-                        "Syntax: file_size",
-                        "Syntax for getting file size", advanced=True)
-        self.add_option("syntax_file_info", "textarea", '"file_info": get file info, params: "path"',
-                        "Syntax: file_info",
-                        "Syntax for getting file info", advanced=True)
+        self.add_option("syntax_read_file",
+                        type="textarea",
+                        value='"read_file": read data from file, params: "filename"',
+                        label="Syntax: read_file",
+                        description="Syntax for reading files",
+                        advanced=True)
+        self.add_option("syntax_save_file",
+                        type="textarea",
+                        value='"save_file": save data to file, params: "filename", "data"',
+                        label="Syntax: save_file",
+                        description="Syntax for saving files",
+                        advanced=True)
+        self.add_option("syntax_append_file",
+                        type="textarea",
+                        value='"append_file": append data to file, params: "filename", "data"',
+                        label="Syntax: append_file",
+                        description="Syntax for appending to files",
+                        advanced=True)
+        self.add_option("syntax_delete_file",
+                        type="textarea",
+                        value='"delete_file": delete file, params: "filename"',
+                        label="Syntax: delete_file",
+                        description="Syntax for deleting files",
+                        advanced=True)
+        self.add_option("syntax_list_dir",
+                        type="textarea",
+                        value='"list_dir": list files and dirs in directory, params: "path"',
+                        label="Syntax: list_dir",
+                        description="Syntax for listing files",
+                        advanced=True)
+        self.add_option("syntax_mkdir",
+                        type="textarea",
+                        value='"mkdir": create directory, params: "path"',
+                        label="Syntax: mkdir",
+                        description="Syntax for directory creation",
+                        advanced=True)
+        self.add_option("syntax_download_file",
+                        type="textarea",
+                        value='"download_file": download file, params: "src", "dst"',
+                        label="Syntax: download_file",
+                        description="Syntax for downloading files",
+                        advanced=True)
+        self.add_option("syntax_rmdir",
+                        type="textarea",
+                        value='"rmdir": remove directory, params: "path"',
+                        label="Syntax: rmdir",
+                        description="Syntax for removing directories",
+                        advanced=True)
+        self.add_option("syntax_copy_file",
+                        type="textarea",
+                        value='"copy_file": copy file, params: "src", "dst"',
+                        label="Syntax: copy_file",
+                        description="Syntax for copying files",
+                        advanced=True)
+        self.add_option("syntax_copy_dir",
+                        type="textarea",
+                        value='"copy_dir": recursive copy directory, params: "src", "dst"',
+                        label="Syntax: copy_dir",
+                        description="Syntax for recursive copying directories",
+                        advanced=True)
+        self.add_option("syntax_move",
+                        type="textarea",
+                        value='"move": move file or directory, params: "src", "dst"',
+                        label="Syntax: move",
+                        description="Syntax for moving files and directories",
+                        advanced=True)
+        self.add_option("syntax_is_dir",
+                        type="textarea",
+                        value='"is_dir": check if path is directory, params: "path"',
+                        label="Syntax: is_dir",
+                        description="Syntax for checking if path is directory",
+                        advanced=True)
+        self.add_option("syntax_is_file",
+                        type="textarea",
+                        value='"is_file": check if path is file, params: "path"',
+                        label="Syntax: is_file",
+                        description="Syntax for checking if path is file",
+                        advanced=True)
+        self.add_option("syntax_file_exists",
+                        type="textarea",
+                        value='"file_exists": check if file or directory exists, params: "path"',
+                        label="Syntax: file_exists",
+                        description="Syntax for checking if file or directory exists",
+                        advanced=True)
+        self.add_option("syntax_file_size",
+                        type="textarea",
+                        value='"file_size": get file size, params: "path"',
+                        label="Syntax: file_size",
+                        description="Syntax for getting file size",
+                        advanced=True)
+        self.add_option("syntax_file_info",
+                        type="textarea",
+                        value='"file_info": get file info, params: "path"',
+                        label="Syntax: file_info",
+                        description="Syntax for getting file info",
+                        advanced=True)
 
     def setup(self) -> dict:
         """

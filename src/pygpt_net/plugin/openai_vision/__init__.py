@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -27,28 +27,35 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        self.add_option("model", "text", 'gpt-4-vision-preview',
-                        "Model",
-                        "Model used to temporarily providing vision abilities, default: gpt-4-vision-preview",
-                        tooltip="Model")
-
         prompt = "IMAGE ANALYSIS: You are an expert in analyzing photos. Each time I send you a photo, you will " \
                  "analyze it as accurately as you can, answer all my questions, and offer any help on the subject " \
                  "related to the photo.  Remember to always describe in great detail all the aspects related to the " \
                  "photo, try to place them in the context of the conversation, and make a full analysis of what you " \
                  "see. "
-        self.add_option("prompt", "textarea", prompt,
-                        "Prompt",
-                        "Prompt used for vision mode. It will append or replace current system prompt when using "
-                        "vision model",
+        self.add_option("model",
+                        type="text",
+                        value="gpt-4-vision-preview",
+                        label="Model",
+                        description="Model used to temporarily providing vision abilities, "
+                                    "default: gpt-4-vision-preview",
+                        tooltip="Model")
+        self.add_option("prompt",
+                        type="textarea",
+                        value=prompt,
+                        label="Prompt",
+                        description="Prompt used for vision mode. It will append or replace current system prompt "
+                                    "when using vision model",
                         tooltip="Prompt",
                         advanced=False)
 
-        self.add_option("replace_prompt", "bool", False,
-                        "Replace prompt",
-                        "Replace whole system prompt with vision prompt against appending it to the current prompt",
-                        tooltip="Replace whole system prompt with vision prompt against appending it to the current "
-                                "prompt")
+        self.add_option("replace_prompt",
+                        type="bool",
+                        value=False,
+                        label="Replace prompt",
+                        description="Replace whole system prompt with vision prompt against appending "
+                                    "it to the current prompt",
+                        tooltip="Replace whole system prompt with vision prompt against appending it to the "
+                                "current prompt")
 
     def setup(self) -> dict:
         """
