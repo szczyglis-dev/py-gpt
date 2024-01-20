@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 05:00:00                  #
+# Updated Date: 2024.01.20 09:00:00                  #
 # ================================================== #
 
 import base64
@@ -53,7 +53,7 @@ class Vision:
 
     def build(self, input_prompt: str, system_prompt: str = None, attachments: dict = None) -> list:
         """
-        Build chat messages dict
+        Build chat messages list
 
         :param input_prompt: prompt
         :param system_prompt: system prompt (optional)
