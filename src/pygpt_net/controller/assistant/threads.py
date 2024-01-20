@@ -6,10 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.20 09:00:00                  #
 # ================================================== #
 
-import json
 import time
 
 from PySide6.QtCore import QObject, Signal, Slot, QRunnable
@@ -29,12 +28,11 @@ class Threads:
         self.started = False
         self.stop = False
 
-    def create_thread(self):
+    def create_thread(self) -> str:
         """
         Create assistant thread
 
         :return: thread id
-        :rtype: str
         """
         thread_id = self.window.core.gpt.assistants.thread_create()
         self.window.core.config.set('assistant_thread', thread_id)
@@ -53,7 +51,8 @@ class Threads:
                 ctx.set_output(msg.content[0].text.value)
                 paths = self.window.controller.assistant.files.handle_received(ctx, msg)
                 if paths:
-                    ctx.files = list(paths)  # append files paths list to ctx
+                    # append local downloaded files paths list to ctx
+                    ctx.files = self.window.core.filesystem.make_local_list(list(paths))
 
                 # update ctx
                 self.window.core.ctx.update_item(ctx)

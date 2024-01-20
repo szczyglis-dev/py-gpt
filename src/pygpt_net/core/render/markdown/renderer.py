@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 12:00:00                  #
+# Updated Date: 2024.01.20 08:00:00                  #
 # ================================================== #
 
 import re
@@ -34,6 +34,7 @@ class Renderer:
         self.urls_appended = []
         self.buffer = ""
         self.is_cmd = False
+        self.img_width = 400
 
     def begin(self, stream: bool = False):
         """Render begin"""
@@ -99,9 +100,11 @@ class Renderer:
         """
         if item.input is None or item.input == "":
             return
-        if self.is_timestamp_enabled() and item.input_timestamp is not None:
+        if self.is_timestamp_enabled() \
+                and item.input_timestamp is not None:
             name = ""
-            if item.input_name is not None and item.input_name != "":
+            if item.input_name is not None \
+                    and item.input_name != "":
                 name = item.input_name + " "
             text = '{} > {}'.format(name, item.input)
         else:
@@ -109,11 +112,15 @@ class Renderer:
 
         # check if it is a command response
         is_cmd = False
-        if item.input.strip().startswith("[") and item.input.strip().endswith("]"):
+        if item.input.strip().startswith("[") \
+                and item.input.strip().endswith("]"):
             is_cmd = True
 
         # hidden internal call
-        if item.internal and not is_cmd and not item.first and not item.input.strip().startswith("user: "):
+        if item.internal \
+                and not is_cmd \
+                and not item.first \
+                and not item.input.strip().startswith("user: "):
             self.append_raw('>>>', "msg-user", item)
             return
         else:
@@ -131,9 +138,11 @@ class Renderer:
         """
         if item.output is None or item.output == "":
             return
-        if self.is_timestamp_enabled() and item.output_timestamp is not None:
+        if self.is_timestamp_enabled() \
+                and item.output_timestamp is not None:
             name = ""
-            if item.output_name is not None and item.output_name != "":
+            if item.output_name is not None \
+                    and item.output_name != "":
                 name = item.output_name + " "
             text = '{} {}'.format(name, item.output)
         else:
@@ -204,9 +213,11 @@ class Renderer:
             self.buffer = ""  # reset buffer
             self.is_cmd = False  # reset command flag
 
-            if self.is_timestamp_enabled() and item.output_timestamp is not None:
+            if self.is_timestamp_enabled() \
+                    and item.output_timestamp is not None:
                 name = ""
-                if item.output_name is not None and item.output_name != "":
+                if item.output_name is not None \
+                        and item.output_name != "":
                     name = item.output_name + " "
                 ts = datetime.fromtimestamp(item.output_timestamp)
                 hour = ts.strftime("%H:%M:%S")
@@ -278,7 +289,8 @@ class Renderer:
             text = self.append_timestamp(text, item)
             text = self.parser.parse(text)
         else:
-            text = "<div><p>" + self.append_timestamp(self.format_user_text(text), item) + "</p></div>"
+            content = self.append_timestamp(self.format_user_text(text), item)
+            text = "<div><p>" + content + "</p></div>"
 
         text = self.post_format_text(text)
         text = '<div class="{}">'.format(type) + text.strip() + "</div>"
@@ -304,56 +316,44 @@ class Renderer:
         self.append_output(item)
         self.append_extra(item)
 
-    def get_image_html(self, link: str) -> str:
+    def get_image_html(self, url: str) -> str:
         """
         Get image HTML
 
-        :param link: image link
-        :return: HTML
+        :param url: URL to image
+        :return: HTML code
         """
-        if not link.startswith('http://') \
-                and not link.startswith('https://'):
-            link = self.window.controller.files.replace_user_path(link)
-        url_prefix = ''
-        if not link.startswith('file://') \
-                and not link.startswith('http://') \
-                and not link.startswith('https://'):
-            if self.window.core.platforms.is_windows():
-                url_prefix = 'file:///'
-            else:
-                url_prefix = 'file://'
-        return """<a href="{url_prefix}{link}"><img src="{link}" width="400" class="image"></a>
-        <p><b>{prefix}:</b> <a href="{url_prefix}{link}">{link}</a></p>""".\
-            format(prefix=trans('chat.prefix.img'), link=link, url_prefix=url_prefix)
+        url, path = self.window.core.filesystem.extract_local_url(url)
+        return """<a href="{url}"><img src="{path}" width="{img_width}" class="image"></a>
+        <p><b>{prefix}:</b> <a href="{url}">{path}</a></p>""".\
+            format(prefix=trans('chat.prefix.img'),
+                   url=url,
+                   path=path,
+                   img_width=self.img_width)
 
-    def get_url_html(self, link: str) -> str:
+    def get_url_html(self, url: str) -> str:
         """
         Get URL HTML
 
-        :param link: URL link
-        :return: HTML
+        :param url: external URL
+        :return: HTML code
         """
-        return """<br/><b>{prefix}:</b> <a href="{link}">{link}</a><br/>""".\
-            format(prefix=trans('chat.prefix.url'), link=link)
+        return """<br/><b>{prefix}:</b> <a href="{url}">{url}</a><br/>""".\
+            format(prefix=trans('chat.prefix.url'),
+                   url=url)
 
-    def get_file_html(self, link: str) -> str:
+    def get_file_html(self, url: str) -> str:
         """
         Get file HTML
 
-        :param link: file link
-        :return: HTML
+        :param url: URL to file
+        :return: HTML code
         """
-        if not link.startswith('http://') \
-                and not link.startswith('https://'):
-            link = self.window.controller.files.replace_user_path(link)
-        url_prefix = ''
-        if not link.startswith('file://'):
-            if self.window.core.platforms.is_windows():
-                url_prefix = 'file:///'
-            else:
-                url_prefix = 'file://'
-        return """<div><b>{prefix}:</b> <a href="{url_prefix}{link}">{link}</a></div>""".\
-            format(prefix=trans('chat.prefix.file'), link=link, url_prefix=url_prefix)
+        url, path = self.window.core.filesystem.extract_local_url(url)
+        return """<div><b>{prefix}:</b> <a href="{url}">{path}</a></div>""".\
+            format(prefix=trans('chat.prefix.file'),
+                   url=url,
+                   path=path)
 
     def append(self, text: str, end: str = "\n"):
         """
@@ -380,7 +380,9 @@ class Renderer:
         :param item: Context item
         :return: Text with timestamp (if enabled)
         """
-        if item is not None and self.is_timestamp_enabled() and item.input_timestamp is not None:
+        if item is not None \
+                and self.is_timestamp_enabled() \
+                and item.input_timestamp is not None:
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
             text = '<span class="ts">{}:</span> {}'.format(hour, text)
@@ -389,7 +391,9 @@ class Renderer:
     def replace_code_tags(self, text: str) -> str:
         """
         Replace cmd code tags
+
         :param text:
+        :return: replaced text
         """
         pattern = r"~###~(.*?)~###~"
         replacement = r'<p class="cmd">\1</p>'

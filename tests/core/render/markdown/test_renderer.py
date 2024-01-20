@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 from tests.mocks import mock_window
 from pygpt_net.core.render.markdown.renderer import Renderer as Render
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.filesystem import Filesystem
 
 
 def test_reset(mock_window):
@@ -188,6 +189,7 @@ def test_append_extra(mock_window):
     """Test append extra"""
     render = Render(mock_window)
     render.get_output_node = MagicMock()
+    mock_window.core.filesystem = Filesystem(mock_window)
     render.images_appended = []
     item = CtxItem()
     item.images = ["test1"]

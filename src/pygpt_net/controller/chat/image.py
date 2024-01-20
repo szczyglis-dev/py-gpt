@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.20 08:00:00                  #
 # ================================================== #
 
 import os
@@ -42,7 +42,7 @@ class Image:
         elif num > 4:
             num = 4
 
-        # force one image if dall-e-3 model is used
+        # force 1 image if dall-e-3 model is used
         model = self.window.core.config.get('model')
         model_id = self.window.core.models.get_id(model)
         if model_id == 'dall-e-3':
@@ -103,7 +103,8 @@ class Image:
             string += "\nPrompt: "
             string += prompt
 
-        ctx.images = paths  # save images paths
+        local_urls = self.window.core.filesystem.make_local_list(paths)
+        ctx.images = local_urls  # save images paths
         ctx.set_output(string.strip())
 
         # event: after context
@@ -114,7 +115,6 @@ class Image:
         # store last mode (in text mode this is handled in send_text)
         mode = self.window.core.config.get('mode')
         self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
-
         self.window.controller.chat.render.append_output(ctx)
         self.window.core.ctx.store()  # save current ctx to DB
         self.window.ui.status(trans('status.img.generated'))
@@ -140,7 +140,8 @@ class Image:
             string += "{}) `{}`".format(i, path) + "\n"
             i += 1
 
-        ctx.images = paths  # save images paths in ctx item here
+        local_urls = self.window.core.filesystem.make_local_list(paths)
+        ctx.images = local_urls  # save images paths in ctx item here
         self.window.core.ctx.update_item(ctx)  # update in DB
         self.window.ui.status(trans('status.img.generated'))  # update status
 
@@ -184,7 +185,7 @@ class Image:
         for j in range(i, 4):
             self.window.ui.nodes['dialog.image.pixmap'][j].setVisible(False)
 
-        # resize
+        # resize dialog
         self.window.ui.dialog['image'].resize(520, 520)
         self.window.ui.dialog['image'].show()
 
@@ -212,13 +213,11 @@ class Image:
 
         :param path: path to image
         """
-        # get basename from path
         save_path = QFileDialog.getSaveFileName(self.window,
                                                 trans('img.save.title'),
                                                 os.path.basename(path),
                                                 "PNG (*.png)")
         if save_path:
-            # copy file
             try:
                 shutil.copyfile(path, save_path[0])
                 self.window.ui.status(trans('status.img.saved'))
@@ -235,8 +234,6 @@ class Image:
         if not force:
             self.window.ui.dialogs.confirm('img_delete', path, trans('confirm.img.delete'))
             return
-
-        # delete file
         try:
             os.remove(path)
             for i in range(0, 4):

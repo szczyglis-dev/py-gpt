@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 12:00:00                  #
+# Updated Date: 2024.01.20 08:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextBrowser, QMenu
 from PySide6.QtGui import QDesktopServices
 
@@ -40,9 +40,11 @@ class ChatOutput(QTextBrowser):
 
         :param url: url
         """
+        # local file
         if not url.scheme().startswith('http'):
             self.window.controller.files.open(url.toLocalFile())
         else:
+            # external link
             QDesktopServices.openUrl(url)
 
     def contextMenuEvent(self, event):
@@ -84,14 +86,13 @@ class ChatOutput(QTextBrowser):
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):
-        """
-        Read selected text (audio)
-        """
+        """Read selected text (audio)"""
         self.window.controller.audio.read_text(self.textCursor().selectedText())
 
     def wheelEvent(self, event):
         """
         Wheel event: set font size
+
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:

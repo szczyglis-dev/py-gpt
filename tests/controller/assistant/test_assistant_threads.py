@@ -13,6 +13,7 @@ import os
 import webbrowser
 from unittest.mock import MagicMock
 
+from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
@@ -39,6 +40,8 @@ def test_handle_messages(mock_window):
     msg.content = [MagicMock()]
     msg.content[0].text.value = "test"
     msg.content[0].text.type = "text"
+
+    mock_window.core.filesystem = Filesystem(mock_window)
 
     threads = Threads(mock_window)
     mock_window.core.gpt.assistants.msg_list = MagicMock(return_value=[msg])

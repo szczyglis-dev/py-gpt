@@ -11,6 +11,7 @@
 
 from unittest.mock import MagicMock, patch
 
+from pygpt_net.core.filesystem import Filesystem
 from tests.mocks import mock_window_conf
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.core.attachments import Attachments
@@ -493,39 +494,45 @@ def test_load(mock_window_conf):
     """
     Test load
     """
-    asst1 = AttachmentItem()
-    asst1.name = 'Assistant 1'
+    att1 = AttachmentItem()
+    att1.name = 'Attachment 1'
 
-    asst2 = AttachmentItem()
-    asst2.name = 'Assistant 2'
+    att2 = AttachmentItem()
+    att2.name = 'Attachment 2'
     fake_data = {
-            'id1': asst1,
-            'id2': asst2,
+        'chat': {
+            'id1': att1,
+            'id2': att2,
+        }
     }
+    mock_window_conf.core.filesystem = Filesystem(mock_window_conf)
     attachments = Attachments(window=mock_window_conf)
     attachments.provider = {}
     attachments.provider = MagicMock()
     attachments.provider.load.return_value = fake_data
     attachments.load()
 
-    attachments.provider.load.assert_called_once_with()
-    assert attachments.items['id1'].name == 'Assistant 1'
-    assert attachments.items['id2'].name == 'Assistant 2'
+    attachments.provider.load.assert_called_once()
+    assert attachments.items['chat']['id1'].name == 'Attachment 1'
+    assert attachments.items['chat']['id2'].name == 'Attachment 2'
 
 
-def test_save():
+def test_save(mock_window_conf):
     """
     Test save
     """
     a1 = AttachmentItem()
     a2 = AttachmentItem()
     items = {
-        'assistant1': a1,
-        'assistant2': a2,
+        'chat': {
+            'attachment1': a1,
+            'attachment2': a2,
+        }
     }
-    attachments = Attachments()
+    mock_window_conf.core.filesystem = Filesystem(mock_window_conf)
+    attachments = Attachments(mock_window_conf)
     attachments.items = items
     attachments.provider = MagicMock()
     attachments.provider.patch = MagicMock()
     attachments.save()
-    attachments.provider.save.assert_called_once_with(items)
+    attachments.provider.save.assert_called_once()

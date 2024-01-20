@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 12:00:00                  #
+# Updated Date: 2024.01.20 08:00:00                  #
 # ================================================== #
 
 import os
-
-from pathlib import PurePath
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
@@ -51,9 +49,7 @@ class Files:
         os.remove(path)
 
     def upload_local(self):
-        """
-        Upload local file(s)
-        """
+        """Upload local file(s)"""
         files, _ = QFileDialog.getOpenFileNames(self.window, "Select files to upload", "")
         if files:
             target_directory = self.window.core.config.get_user_dir('data')
@@ -108,9 +104,8 @@ class Files:
             self.open_dir(path)
         else:
             if not self.window.core.platforms.is_snap():
-                parts = PurePath(path).parts
-                path_os = os.path.join(*parts)  # fix for windows \\ path separators
-                url = QUrl.fromLocalFile(path_os)
+                path = self.window.core.filesystem.get_path(path)
+                url = QUrl.fromLocalFile(path)
                 QDesktopServices.openUrl(url)
             else:
                 subprocess.run(['xdg-open', path])
@@ -122,33 +117,14 @@ class Files:
         :param path: path to file or directory
         :param select: select file in file manager
         """
-        parts = PurePath(path).parts
-        path_os = os.path.join(*parts)  # fix for windows \\ path separators
-        if select:
-            parts = PurePath(os.path.dirname(path)).parts
-            path_os = os.path.join(*parts)  # fix for windows \\ path separators
-        if os.path.exists(path_os):
-            if not self.window.core.platforms.is_snap():
-                if self.window.core.platforms.is_windows():
-                    url = QUrl("file:///" + path_os, QUrl.TolerantMode)
-                else:
-                    url = QUrl.fromLocalFile(path_os)
-                QDesktopServices.openUrl(url)
-                # show_in_file_manager(path_os, select)
-            else:
-                subprocess.run(['xdg-open', path_os])
+        path = self.window.core.filesystem.get_path(path)
+        if select:  # path to file: open containing directory
+            path = self.window.core.filesystem.get_path(os.path.dirname(path))
 
-    def replace_user_path(self, path):
-        """Fix user workdir path"""
-        base_dir = self.window.core.config.path
-        if base_dir.endswith('.config/pygpt-net'):
-            base_dir = base_dir.rsplit('/.config/pygpt-net', 1)[0]
-        elif base_dir.endswith('.config\\pygpt-net'):
-            base_dir = base_dir.rsplit('\\.config\\pygpt-net', 1)[0]
-        if self.window.core.platforms.is_windows():
-            dir_index = path.find('\\.config\\pygpt-net\\') + 1
-        else:
-            dir_index = path.find('/.config/pygpt-net/') + 1
-        dir_struct = path[dir_index:]
-        new_path = os.path.join(base_dir, dir_struct)
-        return new_path
+        if os.path.exists(path):
+            if not self.window.core.platforms.is_snap():
+                url = self.window.core.filesystem.get_url(path)
+                QDesktopServices.openUrl(url)
+                # show_in_file_manager(path, select)
+            else:
+                subprocess.run(['xdg-open', path])

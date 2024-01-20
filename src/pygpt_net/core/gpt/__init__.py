@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 05:00:00                  #
+# Updated Date: 2024.01.20 09:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -112,12 +112,14 @@ class Gpt:
             response = self.vision.send(prompt, max_tokens, stream_mode, system_prompt=self.system_prompt,
                                         attachments=self.attachments)
             used_tokens = self.vision.get_used_tokens()
-            images = self.vision.get_attachments()
-            urls = self.vision.get_urls()
+            images = self.vision.get_attachments()  # dict -> key: id, value: path
+            urls = self.vision.get_urls()  # list
 
             # store sent images in ctx
             if len(images) > 0:
-                ctx.images = list(images.values())
+                img_list = list(images.values())
+                local_urls = self.window.core.filesystem.make_local_list(img_list)
+                ctx.images = local_urls
             if len(urls) > 0:
                 ctx.images = urls
                 ctx.urls = urls
@@ -158,8 +160,13 @@ class Gpt:
 
         return True
 
-    def quick_call(self, prompt: str, sys_prompt: str, append_context: bool = False,
-                   max_tokens: int = 500, model: str = "gpt-3.5-turbo-1106", temp: float = 0.0) -> str:
+    def quick_call(self,
+                   prompt: str,
+                   sys_prompt: str,
+                   append_context: bool = False,
+                   max_tokens: int = 500,
+                   model: str = "gpt-3.5-turbo-1106",
+                   temp: float = 0.0) -> str:
         """
         Quick call OpenAI API with custom prompt
 

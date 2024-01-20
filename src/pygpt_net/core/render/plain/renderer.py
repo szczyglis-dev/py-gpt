@@ -6,13 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 11:00:00                  #
+# Updated Date: 2024.01.20 08:00:00                  #
 # ================================================== #
 
-import re
 from datetime import datetime
 from PySide6.QtGui import QTextCursor, QTextBlockFormat
-import html
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.ui.widget.textarea.input import ChatInput
@@ -297,38 +295,40 @@ class Renderer:
         self.append_output(item)
         self.append_extra(item)
 
-    def get_image_html(self, link: str) -> str:
+    def get_image_html(self, url: str) -> str:
         """
         Get image HTML
 
-        :param link: image link
-        :return: HTML
+        :param url: URL to image
+        :return: HTML code
         """
-        if not link.startswith('http://') \
-                and not link.startswith('https://'):
-            link = self.window.controller.files.replace_user_path(link)
-        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.img'), link=link)
+        url, path = self.window.core.filesystem.extract_local_url(url)
+        return """\n{prefix}: {path}\n""".\
+            format(prefix=trans('chat.prefix.img'),
+                   path=path)
 
-    def get_url_html(self, link: str) -> str:
+    def get_url_html(self, url: str) -> str:
         """
         Get URL HTML
 
-        :param link: URL link
+        :param url: external URL
         :return: HTML
         """
-        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.url'), link=link)
+        return """\n{prefix}: {url}\n""".\
+            format(prefix=trans('chat.prefix.url'),
+                   url=url)
 
-    def get_file_html(self, link: str) -> str:
+    def get_file_html(self, url: str) -> str:
         """
         Get file HTML
 
-        :param link: file link
+        :param url: URL to file
         :return: HTML
         """
-        if not link.startswith('http://') \
-                and not link.startswith('https://'):
-            link = self.window.controller.files.replace_user_path(link)
-        return """\n{prefix}: {link}\n""".format(prefix=trans('chat.prefix.file'), link=link)
+        url, path = self.window.core.filesystem.extract_local_url(url)
+        return """\n{prefix}: {path}\n""".\
+            format(prefix=trans('chat.prefix.file'),
+                   path=path)
 
     def append(self, text: str, end: str = "\n"):
         """
@@ -355,7 +355,9 @@ class Renderer:
         :param item: Context item
         :return: Text with timestamp (if enabled)
         """
-        if item is not None and self.is_timestamp_enabled() and item.input_timestamp is not None:
+        if item is not None \
+                and self.is_timestamp_enabled() \
+                and item.input_timestamp is not None:
             ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
             text = '{}: {}'.format(hour, text)

@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.20 09:00:00                  #
 # ================================================== #
+import copy
+
+from packaging.version import Version
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.provider.attachment.json_file import JsonFileProvider
@@ -29,7 +32,7 @@ class Attachments:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: str):
+    def patch(self, app_version: Version):
         """Patch provider data"""
         self.provider.patch(app_version)
 
@@ -316,7 +319,20 @@ class Attachments:
     def load(self):
         """Load attachments"""
         self.items = self.provider.load()
+        # replace workdir placeholder with current workdir
+        for mode in self.items:
+            for id in self.items[mode]:
+                attachment = self.items[mode][id]
+                if attachment.path is not None:
+                    attachment.path = self.window.core.filesystem.to_workdir(attachment.path)
 
     def save(self):
         """Save attachments"""
-        self.provider.save(self.items)
+        # replace current workdir with placeholder
+        data = copy.deepcopy(self.items)  # copy to avoid changing original data
+        for mode in data:
+            for id in data[mode]:
+                attachment = data[mode][id]
+                if attachment.path is not None:
+                    attachment.path = self.window.core.filesystem.make_local(attachment.path)
+        self.provider.save(data)
