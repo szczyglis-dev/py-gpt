@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 03:00:00                  #
+# Updated Date: 2024.01.20 09:00:00                  #
 # ================================================== #
 
 import os
@@ -150,29 +150,19 @@ class Common:
         """
         Return Windows checkbox button + radio button fix
 
-        :return: stylesheet fix
+        :return: stylesheet with fix
         """
-        # TODO: move to external css file
-        return """
-        QCheckBox::indicator:checked {{
-          background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-        }}
-        QCheckBox::indicator:unchecked {{ 
-          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-        }}                                
-        QRadioButton::indicator:checked {{
-          background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-        }} 
-        QCheckBox::indicator:unchecked {{ 
-          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-        }}
-        QRadioButton::indicator:unchecked {{
-          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-        }}                                
-        QMenu::indicator:checked {{ 
-          background-color: {QTMATERIAL_PRIMARYCOLOR}; 
-        }} 
-        QMenu::indicator:unchecked {{ 
-          background-color: {QTMATERIAL_SECONDARYCOLOR}; 
-        }}
-        """
+        filename = 'fix_windows.css'
+        paths = []
+        paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', filename))
+        paths.append(os.path.join(self.window.core.config.get_user_path(), 'css', filename))
+        content = ''
+        for path in paths:
+            if os.path.exists(path):
+                with open(path) as file:
+                    content += file.read()
+        try:
+            return content.format(**os.environ)
+        except KeyError as e:
+            pass  # ignore missing env variables
+        return ""

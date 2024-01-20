@@ -32,6 +32,7 @@ class Filesystem:
             'markdown.css',
             'markdown.dark.css',
             'markdown.light.css',
+            'fix_windows.css',
         ]
 
     def install(self):
