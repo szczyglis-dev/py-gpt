@@ -21,7 +21,8 @@ class BasePlugin:
         self.window = kwargs.get('window', None)
         self.id = ""
         self.name = ""
-        self.type = []  # audio.input, audio.output, text.input, text.output, image.input, image.output
+        self.type = []  # Types:
+        # audio.input, audio.output, image.input, image.output, schedule, text.input, text.output, vision
         self.description = ""
         self.urls = {}
         self.options = {}
