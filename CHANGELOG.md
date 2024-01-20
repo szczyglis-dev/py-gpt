@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.113 (2024-01-20)
+
+- Added %workdir% placeholder to attachments and images files paths storage for more flexibility in moving data between environments
+- Refactored base plugin options handling
+
 # 2.0.112 (2024-01-19)
 
 - Fixed image variants slider in image mode

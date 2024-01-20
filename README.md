@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.112** | build: **2024.01.19** | Python: **3.10+**
+Release: **2.0.113** | build: **2024.01.20** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1567,6 +1567,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.113 (2024-01-20)
+
+- Added %workdir% placeholder to attachments and images files paths storage for more flexibility in moving data between environments
+- Refactored base plugin options handling
+
 # 2.0.112 (2024-01-19)
 
 - Fixed image variants slider in image mode
@@ -1597,117 +1602,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added: focus window on "New context..." in tray - feature [#13](https://github.com/szczyglis-dev/py-gpt/issues/13)
 - Added: Ask with screenshot option to tray menu - feature [#11](https://github.com/szczyglis-dev/py-gpt/issues/11)
 - Added: Open Notepad option to tray menu - feature [#14](https://github.com/szczyglis-dev/py-gpt/issues/14)
-
-## 2.0.108 (2024-01-16)
-
-- Added confirmation dialogs on indexing
-- Added missing translations
-- Updated dependencies: openai, cryptography, certifi, urllib, jinja
-
-## 2.0.107 (2024-01-16)
-
-- Fixed model change in vision plugin
-- Fixed completion API error
-- Removed deprecated davinci and replaced with 3.5-turbo-instruct model
-
-## 2.0.106 (2024-01-15)
-
-- Added "undo" action in drawing window
-- Refactored locale handling
-- Improved locale and theme overriding
-
-## 2.0.105 (2024-01-15)
-
-- Extended `Theme` menu with new options
-- `Index (llama-index)` mode changed name to `Chat with files` mode
-- Refactored theme controller
-- Fixed model config providing to llama-index mode
-
-## 2.0.104 (2024-01-14)
-
-- Langchain support refactored and fixed
-- Added editor for models
-- Added options for customize arguments and environment vars passed to langchain and llama providers
-- Added context length limit in modes: langchain and llama-index
-- Models configuration integrated between GPT/Langchain/Llama-index
-
-## 2.0.103 (2024-01-13)
-
-- Llama-index mode, now integrated with context from the database, streaming, plugins, and more, can be utilized as any other mode and is no longer limited to just querying indexes.
-
-## 2.0.102 (2024-01-13)
-
-- Added presets for llama-index mode
-- Added custom system prompt in llama-index mode
-- Added option to use online data loaders in settings
-- Added hiding of chat footer in non-chat tabs
-- Added missing libraryfor epub data loader
-
-## 2.0.101 (2024-01-13)
-
-- User interface improvements
-- Added help tips
-
-## 2.0.100 (2024-01-13)
-
-- Llama-index integrated with database - you can now indexing all conversations and use them as additional context
-- Added support for multiple indexes at once
-- Added configuration for llama-indexes
-- Data-dir in home directory changed name from 'output' to 'data'
-
-## 2.0.99 (2024-01-12)
-
-- Added configuration sections in settings dialog
-- Added translations to file explorer
-- Langchain migrated to langchain community
-- Config patchers moved to separated classes
-- Fixed some UI issues
-
-## 2.0.98 (2024-01-12)
-
-- UI fixes
-
-## 2.0.97 (2024-01-11)
-
-- DALL-E config fix
-
-## 2.0.96 (2024-01-11)
-
-- Added integration with `Llama-index` (experimental): you can now index/embed files from the data directory and use them as additional data in context.
-- Added an inline plugin for `Llama-index` (allows providing additional context from `Llama-index` in any chat mode).
-- Built-in file loaders: `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`
-- Added a new mode: `Index (llama-index)`, it is a mode for querying the index directly.
-- Improved `DALL-E 3` configuration, 16:9 images set as default, added config option for standard and HD mode.
-- Improved drawing mode.
-
-## 2.0.95 (2024-01-10)
-
-- Added capture from camera feature in image drawing mode
-
-## 2.0.94 (2024-01-10)
-
-- Improved drawing: added canvas, image load/save, store and restore drawing on start and more
-- Improved dict option editor: added type fields
-
-## 2.0.93 (2024-01-10)
-
-- Added painter (simple image drawing) - it allows to quick draw images and provide them into vision model
-- Small UI fixes
-
-## 2.0.92 (2024-01-10)
-
-- Fixed bug with system prompt append from main window
-- Added editor for list options (via RMB -> Edit...)
-- User/AI names and temperature removed from main window
-- UI fixes
-
-## 2.0.91 (2024-01-09)
-
-- Added new plugin: Crontab / Task scheduler: the plugin provides cron-based job scheduling - you can now schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
-- Added combo-box to configuration option types
-- Fixed incorrect contexts count in date calculation when timezone is different from UTC
-- Fixed incorrect paragraph formatting after command DIV in the last line of response
-- Other small fixes and improvements
 
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
