@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.01.20 12:00:00                  #
 # ================================================== #
 
+import copy
 import datetime
 import os.path
 from packaging.version import Version
@@ -283,10 +284,22 @@ class Idx:
         Load indexes
         """
         self.items = self.provider.load()
+        # replace workdir placeholder with current workdir
+        for idx in self.items:
+            for id in self.items[idx].items:
+                file = self.items[idx].items[id]
+                if 'path' in file and file['path'] is not None:
+                    self.items[idx].items[id]['path'] = self.window.core.filesystem.to_workdir(file['path'])
 
     def save(self):
         """Save indexes"""
-        self.provider.save(self.items)
+        data = copy.deepcopy(self.items)  # copy to avoid changing original data
+        for idx in data:
+            for id in data[idx].items:
+                file = data[idx].items[id]
+                if 'path' in file and file['path'] is not None:
+                    data[idx].items[id]['path'] = self.window.core.filesystem.make_local(file['path'])
+        self.provider.save(data)
 
     def get_version(self) -> str:
         """
