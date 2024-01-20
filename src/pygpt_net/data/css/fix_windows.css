@@ -1,0 +1,21 @@
+QCheckBox::indicator:checked {{
+  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+}}
+QCheckBox::indicator:unchecked {{ 
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}                                
+QRadioButton::indicator:checked {{
+  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+}} 
+QCheckBox::indicator:unchecked {{ 
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}
+QRadioButton::indicator:unchecked {{
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}                                
+QMenu::indicator:checked {{ 
+  background-color: {QTMATERIAL_PRIMARYCOLOR}; 
+}} 
+QMenu::indicator:unchecked {{ 
+  background-color: {QTMATERIAL_SECONDARYCOLOR}; 
+}}
