@@ -45,9 +45,9 @@ class BasePlugin:
         """
         Add plugin configuration option
 
-        :param name: Option name (ID, key)
-        :param type: Option type (text, textarea, bool, int, float, dict, combo)
-        :param kwargs: Additional keyword arguments for option properties
+        :param name: option name (ID, key)
+        :param type: option type (text, textarea, bool, int, float, dict, combo)
+        :param kwargs: additional keyword arguments for option properties
         """
         defaults = {
             "value": None,
