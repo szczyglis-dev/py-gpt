@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 04:00:00                  #
+# Updated Date: 2024.01.21 04:00:00                  #
 # ================================================== #
 
 import json
@@ -19,6 +19,7 @@ class IndexItem:
         """
         self.id = None
         self.name = None
+        self.store = None
         self.items = {}
 
     def serialize(self) -> dict:
@@ -30,6 +31,7 @@ class IndexItem:
         return {
             'id': self.id,
             'name': self.name,
+            'store': self.store,
             'items': self.items,
         }
 
@@ -43,6 +45,8 @@ class IndexItem:
             self.id = data['id']
         if 'name' in data:
             self.name = data['name']
+        if 'store' in data:
+            self.store = data['store']
         if 'items' in data:
             self.items = data['items']
 
