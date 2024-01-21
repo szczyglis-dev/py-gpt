@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 10:00:00                  #
+# Updated Date: 2024.01.21 10:00:00                  #
 # ================================================== #
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -29,16 +29,22 @@ class Chat:
         self.storage = storage
         self.context = Context(window)
 
-    def call(self, ctx: CtxItem, idx: str, model: ModelItem, sys_prompt: str = None, stream: bool = False) -> any:
+    def call(
+            self,
+            ctx: CtxItem,
+            idx: str,
+            model: ModelItem,
+            sys_prompt: str = None,
+            stream: bool = False) -> bool:
         """
         Call chat or query mode
 
-        :param ctx: Context item
-        :param idx: Index name
-        :param model: Model item
-        :param sys_prompt: System prompt
-        :param stream: Stream mode
-        :return: Response or bool
+        :param ctx: context item
+        :param idx: index name
+        :param model: model item
+        :param sys_prompt: system prompt
+        :param stream: stream mode
+        :return: True if success
         """
         # check if model provided
         if model is None:
@@ -49,21 +55,50 @@ class Chat:
             return self.chat(ctx, idx, model, sys_prompt, stream)
         else:
             # if not, use query mode
-            return self.query(ctx.input, idx, model, sys_prompt)
+            return self.query(ctx, idx, model, sys_prompt, stream)
 
-    def query(self, query, idx: str, model: ModelItem, sys_prompt: str = None) -> str:
+    def raw_query(
+            self,
+            ctx: CtxItem,
+            idx: str,
+            model: ModelItem,
+            sys_prompt: str = None,
+            stream: bool = False) -> bool:
         """
-        Query using index
+        Raw query mode
 
-        :param query: Query string
-        :param idx: Index name
-        :param model: Model item
-        :param sys_prompt: System prompt
-        :return: Response
+        :param ctx: context item
+        :param idx: index name
+        :param model: model item
+        :param sys_prompt: system prompt
+        :param stream: stream mode
+        :return: True if success
         """
+        return self.query(ctx, idx, model, sys_prompt, stream)
+
+    def query(
+            self,
+            ctx: CtxItem,
+            idx: str,
+            model: ModelItem,
+            sys_prompt: str = None,
+            stream: bool = False) -> bool:
+        """
+        Query index
+
+        :param ctx: CtxItem
+        :param idx: index name
+        :param model: model item
+        :param sys_prompt: system prompt
+        :param stream: stream response
+        :return: True if success
+        """
+        query = ctx.input
+
         # log query
         is_log = False
-        if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
+        if self.window.core.config.has("llama.log") \
+                and self.window.core.config.get("llama.log"):
             is_log = True
 
         if model is None:
@@ -76,7 +111,11 @@ class Chat:
         # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
-        index = self.storage.get(idx, model=model)  # get index
+
+        context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get(idx, service_context=context)  # get index
+        input_tokens = self.window.core.tokens.from_llama_messages(
+            query, [], model.id)
 
         # query index
         tpl = self.get_custom_prompt(sys_prompt)
@@ -84,28 +123,49 @@ class Chat:
             if is_log:
                 print("[LLAMA-INDEX] Query index with custom prompt: {}...".format(sys_prompt))
             response = index.as_query_engine(
-                text_qa_template=tpl
+                streaming=stream,
+                text_qa_template=tpl,
             ).query(query)  # query with custom sys prompt
         else:
-            response = index.as_query_engine().query(query)  # query with default prompt
-        return str(response)
+            response = index.as_query_engine(
+                streaming=stream,
+            ).query(query)  # query with default prompt
 
-    def chat(self, ctx: CtxItem, idx: str, model: ModelItem, sys_prompt: str = None, stream: bool = False) -> bool:
+        if stream:
+            ctx.stream = response.response_gen
+            ctx.input_tokens = input_tokens
+            ctx.set_output("", "")
+            return True
+
+        ctx.input_tokens = input_tokens
+        ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+            response, [], model.id)  # calc from response
+        ctx.set_output(str(response), "")
+        return True
+
+    def chat(
+            self,
+            ctx: CtxItem,
+            idx: str,
+            model: ModelItem,
+            sys_prompt: str = None,
+            stream: bool = False) -> bool:
         """
         Chat using index
 
-        :param ctx: Context item
-        :param idx: Index name
-        :param model: Model item
-        :param sys_prompt: System prompt
-        :param stream: Stream response
+        :param ctx: context item
+        :param idx: index name
+        :param model: model item
+        :param sys_prompt: system prompt
+        :param stream: stream response
         :return: True if success
         """
         query = ctx.input
 
         # log query
         is_log = False
-        if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
+        if self.window.core.config.has("llama.log") \
+                and self.window.core.config.get("llama.log"):
             is_log = True
 
         if model is None:
@@ -118,12 +178,15 @@ class Chat:
         # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
-        index = self.storage.get(idx, model=model)  # get index
+
+        context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get(idx, service_context=context)  # get index
 
         # append context from DB
         history = self.context.get_messages(ctx.input, sys_prompt)
         memory = ChatMemoryBuffer.from_defaults(chat_history=history)
-        input_tokens = self.window.core.tokens.from_llama_messages(query, history, model.id)
+        input_tokens = self.window.core.tokens.from_llama_messages(
+            query, history, model.id)
         chat_engine = index.as_chat_engine(
             chat_mode="context",
             memory=memory,
@@ -139,7 +202,8 @@ class Chat:
             response = chat_engine.chat(query)
 
         ctx.input_tokens = input_tokens
-        ctx.output_tokens = self.window.core.tokens.from_llama_messages(response, [], model.id)  # calc from response
+        ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+            response, [], model.id)  # calc from response
         ctx.set_output(str(response), "")
 
         return True
@@ -148,7 +212,7 @@ class Chat:
         """
         Get custom prompt template if sys prompt is not empty
 
-        :param prompt: System prompt
+        :param prompt: system prompt
         :return: ChatPromptTemplate or None if prompt is empty
         """
         if prompt is None or prompt.strip() == "":

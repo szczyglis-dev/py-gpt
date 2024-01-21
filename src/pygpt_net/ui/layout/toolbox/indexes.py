@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.01.21 10:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox
 
 from pygpt_net.ui.widget.element.help import HelpLabel
 from pygpt_net.ui.widget.lists.index import IndexList
@@ -34,7 +34,7 @@ class Indexes:
 
         :return: QWidget
         """
-        layout = self.setup_assistants()
+        layout = self.setup_idx()
 
         self.window.ui.nodes['indexes.widget'] = QWidget()
         self.window.ui.nodes['indexes.widget'].setLayout(layout)
@@ -42,7 +42,7 @@ class Indexes:
 
         return self.window.ui.nodes['indexes.widget']
 
-    def setup_assistants(self) -> QVBoxLayout:
+    def setup_idx(self) -> QVBoxLayout:
         """
         Setup list of indexes
 
@@ -84,6 +84,39 @@ class Indexes:
         self.window.ui.nodes[self.id].setModel(self.window.ui.models[self.id])
 
         return layout
+
+    def setup_options(self) -> QWidget:
+        """
+        Setup idx options
+
+        :return: QWidget
+        :rtype: QWidget
+        """
+        # idx query only
+        self.window.ui.config['global']['llama.idx.raw'] = QCheckBox(trans("idx.query.raw"))
+        self.window.ui.config['global']['llama.idx.raw'].stateChanged.connect(
+            lambda: self.window.controller.idx.common.toggle_raw(
+                self.window.ui.config['global']['llama.idx.raw'].isChecked()
+            )
+        )
+
+        # label
+        label = QLabel(trans("toolbox.llama_index.label"))
+
+        # add options
+        cols = QHBoxLayout()
+        cols.addWidget(self.window.ui.config['global']['llama.idx.raw'])
+
+        # rows
+        rows = QVBoxLayout()
+        rows.addWidget(label)
+        rows.addLayout(cols)
+
+        self.window.ui.nodes['idx.options'] = QWidget()
+        self.window.ui.nodes['idx.options'].setLayout(rows)
+        self.window.ui.nodes['idx.options'].setContentsMargins(0, 0, 0, 0)
+
+        return self.window.ui.nodes['idx.options']
 
     def create_model(self, parent) -> QStandardItemModel:
         """

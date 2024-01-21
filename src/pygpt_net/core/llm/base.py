@@ -9,10 +9,10 @@
 # Updated Date: 2024.01.15 04:00:00                  #
 # ================================================== #
 
-import json
 import os
 
 from pygpt_net.item.model import ModelItem
+from pygpt_net.utils import parse_args
 
 
 class BaseLLM:
@@ -49,24 +49,7 @@ class BaseLLM:
         """
         args = {}
         if 'args' in options:
-            for item in options['args']:
-                key = item['name']
-                value = item['value']
-                type = item['type']
-                if type == 'int':
-                    args[key] = int(value)
-                elif type == 'float':
-                    args[key] = float(value)
-                elif type == 'bool':
-                    args[key] = bool(value)
-                elif type == 'dict':
-                    args[key] = json.loads(value)
-                elif type == 'list':
-                    args[key] = value.split(',')
-                elif type == 'None':
-                    args[key] = None
-                else:
-                    args[key] = str(value)
+            args = parse_args(options['args'])
         return args
 
     def completion(self, window, model: ModelItem, stream: bool = False) -> any:

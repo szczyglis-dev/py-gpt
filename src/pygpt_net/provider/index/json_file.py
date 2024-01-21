@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.12 04:00:00                  #
 # ================================================== #
-
+import copy
 import json
 import os
 import uuid
@@ -62,12 +62,31 @@ class JsonFileProvider(BaseProvider):
                     data = json.load(file)
                     if data == "" or data is None or 'items' not in data:
                         return {}
+
+                    is_patch = False
+                    # patch for old versions < 2.0.114
+                    if len(data['items']) > 0 and "store" not in data['items']:
+                        old_data = copy.deepcopy(data['items'])
+                        data['items'] = {}
+                        data['items']['store'] = {}
+                        data['items']['store']['SimpleVectorStore'] = old_data
+                        is_patch = True
+
                     # deserialize
-                    for id in data['items']:
-                        item = data['items'][id]
-                        index = IndexItem()
-                        self.deserialize(item, index)
-                        items[id] = index
+                    for store_id in data['items']['store']:
+                        items[store_id] = {}
+                        for idx_id in data['items']['store'][store_id]:
+                            item = data['items']['store'][store_id][idx_id]
+                            index = IndexItem()
+                            self.deserialize(item, index)
+                            if index.store is None or index.store == "":
+                                index.store = store_id
+                            items[store_id][idx_id] = index
+
+                    # patch for old versions < 2.0.114
+                    if is_patch:
+                        self.save(items)
+
         except Exception as e:
             self.window.core.debug.log(e)
             items = {}
@@ -85,12 +104,16 @@ class JsonFileProvider(BaseProvider):
             ary = {}
 
             # serialize
-            for id in items:
-                index = items[id]
-                ary[id] = self.serialize(index)
+            for store in items:
+                ary[store] = {}
+                for file_id in items[store]:
+                    index = items[store][file_id]
+                    ary[store][file_id] = self.serialize(index)
 
             data['__meta__'] = self.window.core.config.append_meta()
-            data['items'] = ary
+            data['items'] = {
+                'store': ary,
+            }
             dump = json.dumps(data, indent=4)
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(dump)
@@ -125,11 +148,11 @@ class JsonFileProvider(BaseProvider):
         """
         path = os.path.join(self.window.core.config.path, self.config_file)
         if not os.path.exists(path):
-            items = {}
+            items = {'SimpleVectorStore': {}}
             item = IndexItem()
             item.id = "base"
             item.name = "base"
-            items[item.id] = item
+            items['SimpleVectorStore'][item.id] = item
             self.save(items)
         return True
 
@@ -152,6 +175,7 @@ class JsonFileProvider(BaseProvider):
         return {
             'id': index.id,
             'name': index.name,
+            'store': index.store,
             'items': index.items
         }
 
@@ -167,6 +191,8 @@ class JsonFileProvider(BaseProvider):
             index.id = data['id']
         if 'name' in data:
             index.name = data['name']
+        if 'store' in data:
+            index.store = data['store']
         if 'items' in data:
             index.items = data['items']
 

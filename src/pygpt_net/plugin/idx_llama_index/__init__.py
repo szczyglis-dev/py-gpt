@@ -21,7 +21,10 @@ class Plugin(BasePlugin):
         self.name = "Llama-index (inline)"
         self.description = "Integrates Llama-index storage in any chat"
         self.allowed_cmds = [
-            "get_knowledge"
+            "get_knowledge",
+        ]
+        self.ignored_modes = [
+            "llama_index",
         ]
         self.order = 100
         self.use_locale = True
@@ -96,18 +99,18 @@ class Plugin(BasePlugin):
 
         # ignore events in llama_index mode
         if name == Event.SYSTEM_PROMPT:
-            if self.mode == "llama_index":  # ignore
+            if self.mode in self.ignored_modes:  # ignore
                 return
             data['value'] = self.on_system_prompt(data['value'])
         elif name == Event.INPUT_BEFORE:  # get only mode
             if "mode" in data:
                 self.mode = data['mode']
         elif name == Event.POST_PROMPT:
-            if self.mode == "llama_index":  # ignore
+            if self.mode in self.ignored_modes:  # ignore
                 return
             data['value'] = self.on_post_prompt(data['value'], ctx)
         elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
-            if self.mode == "llama_index":  # ignore
+            if self.mode in self.ignored_modes:  # ignore
                 return
             self.cmd(ctx, data['commands'])
 
@@ -165,11 +168,16 @@ class Plugin(BasePlugin):
         if len(indexes) > 1:
             responses = []
             for index in indexes:
-                answer = self.window.core.idx.chat.query(question, idx=index.strip(), model=model)
-                responses.append(answer)
+                ctx = CtxItem()
+                ctx.input = question
+                self.window.core.idx.chat.query(ctx, idx=index.strip(), model=model, stream=False)
+                responses.append(ctx.output)
             return "\n".join(responses)
         else:
-            return self.window.core.idx.chat.query(question, idx=idx, model=model)
+            ctx = CtxItem()
+            ctx.input = question
+            self.window.core.idx.chat.query(ctx, idx=idx, model=model, stream=False)
+            return ctx.output
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
