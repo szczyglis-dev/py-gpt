@@ -1722,6 +1722,7 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.0.114 (2024-01-21)
 
+- Fixed broken CSS on Windows
 - Added support for Vector Store databases: `Chroma`, `Elasticsearch`, `Pinecone` and `Redis` (beta)
 - Added config options for selecting and configuring Vector Store providers
 - Added ability to extend PyGPT with custom Vector Store providers
