@@ -600,6 +600,17 @@ class Patch:
                     data['img_dialog_open'] = True
                 updated = True
 
+            # < 2.0.114
+            if old < parse_version("2.0.114"):
+                print("Migrating config from < 2.0.114...")
+                if 'llama.idx.storage' not in data:
+                    data['llama.idx.storage'] = "SimpleVectorStore"
+                if 'llama.idx.storage.args' not in data:
+                    data['llama.idx.storage.args'] = []
+                if 'llama.idx.raw' not in data:
+                    data['llama.idx.raw'] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

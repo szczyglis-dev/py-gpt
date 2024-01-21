@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.21 09:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,7 +17,7 @@ from pygpt_net.utils import trans
 class Editor:
     def __init__(self, window=None):
         """
-        Settings controller
+        Settings editor controller
 
         :param window: Window instance
         """
@@ -54,6 +54,7 @@ class Editor:
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
+        # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
         if id == 'settings':
@@ -117,12 +118,21 @@ class Editor:
         if self.before_config['layout.density'] != self.window.core.config.get('layout.density'):
             self.window.controller.theme.reload()
 
+        # update file explorer if vector store provider changed
+        self.window.controller.idx.indexer.update_explorer()
+
         self.before_config = copy.deepcopy(self.window.core.config.all())
         self.window.controller.settings.close_window(id)
 
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
         Hook: on settings update
+
+        :param key: config key
+        :param value: config value
+        :param caller: caller name
+        :param args: args
+        :param kwargs: kwargs
         """
         if self.window.core.config.get(key) == value:
             return
@@ -198,7 +208,8 @@ class Editor:
         :param force: force load
         """
         if not force:
-            self.window.ui.dialogs.confirm('settings.defaults.user', -1, trans('settings.defaults.user.confirm'))
+            self.window.ui.dialogs.confirm('settings.defaults.user', -1,
+                                           trans('settings.defaults.user.confirm'))
             return
 
         # load default user config
@@ -215,7 +226,8 @@ class Editor:
         :param force: force load
         """
         if not force:
-            self.window.ui.dialogs.confirm('settings.defaults.app', -1, trans('settings.defaults.app.confirm'))
+            self.window.ui.dialogs.confirm('settings.defaults.app', -1,
+                                           trans('settings.defaults.app.confirm'))
             return
 
         # load default user config
@@ -229,7 +241,7 @@ class Editor:
         """
         Return settings sections dict
 
-        :return: dict Sections dict
+        :return: dict sections dict
         """
         return self.sections
 
@@ -238,14 +250,15 @@ class Editor:
         Return settings options dict
 
         :param section: section ID
-        :return: dict Options dict
+        :return: dict options dict
         """
         if section is None:
             return self.options
         else:
             options = {}
             for key in self.options:
-                if 'section' in self.options[key] and self.options[key]['section'] == section:
+                if 'section' in self.options[key] \
+                        and self.options[key]['section'] == section:
                     options[key] = self.options[key]
             return options
 
@@ -254,7 +267,7 @@ class Editor:
         Return settings option
 
         :param key: option key
-        :return: dict Option dict
+        :return: dict option dict
         """
         if key not in self.options:
             return {}
