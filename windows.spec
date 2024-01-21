@@ -1,6 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 import sys
 
+from PyInstaller.utils.hooks import collect_data_files
+
 block_cipher = None
 
 
@@ -11,7 +13,7 @@ a = Analysis(
         'src\\pygpt_net\\'
     ],
     binaries=[],
-    datas=[
+    datas=collect_data_files('opentelemetry.sdk', 'pinecode') + [  # chromadb, pinecode hack
         ('src\\pygpt_net\\data\\config\\presets\\*', 'data\\config\\presets'),
         ('src\\pygpt_net\\data\\config\\config.json', 'data\\config'),
         ('src\\pygpt_net\\data\\config\\models.json', 'data\\config'),
@@ -28,8 +30,15 @@ a = Analysis(
         ('src\\pygpt_net\\__init__.py', '.'),
         ('venv\\Lib\\site-packages\\llama_index\\VERSION', 'llama_index\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.22.0.dist-info\\*', 'opentelemetry_sdk-1.22.0.dist-info'), # chromadb hack
+        ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
     ],
     hiddenimports=[
+    'pinecode',
+    'opentelemetry',
+    'opentelemetry.sdk',
+    'onnxruntime',
+    'tokenizers',
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
     'wikipedia', 
