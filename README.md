@@ -1330,7 +1330,7 @@ Allow to use command: camera capture (`Execute commands` option enabled is requi
 If enabled, model will be able to capture images from camera itself.
 
 
-- `Allow command: make screenshot` *screenshot*
+- `Allow command: make screenshot` *cmd_screenshot*
 
 Allow to use command: make screenshot (`Execute commands` option enabled is required).
 If enabled, model will be able to making screenshots itself.
@@ -1427,69 +1427,69 @@ def handle(self, event: Event, *args, **kwargs):
 
 Event names are defined in `Event` class in `pygpt_net.core.dispatcher.Event`.
 
-Syntax: **event name** - triggered on, `event data` *(data type)*:
+Syntax: `event name` - triggered on, `event data` *(data type)*:
 
-- **AI_NAME** - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
+- `AI_NAME` - when preparing an AI name, `data['value']` *(string, name of the AI assistant)*
 
-- **AUDIO_INPUT_STOP** - force stop audio input
+- `AUDIO_INPUT_STOP` - force stop audio input
 
-- **AUDIO_INPUT_TOGGLE** - when speech input is enabled or disabled, `data['value']` *(bool, True/False)*
+- `AUDIO_INPUT_TOGGLE` - when speech input is enabled or disabled, `data['value']` *(bool, True/False)*
 
-- **AUDIO_OUTPUT_STOP** - force stop audio output
+- `AUDIO_OUTPUT_STOP` - force stop audio output
 
-- **AUDIO_OUTPUT_TOGGLE** - when speech output is enabled or disabled, `data['value']` *(bool, True/False)*
+- `AUDIO_OUTPUT_TOGGLE` - when speech output is enabled or disabled, `data['value']` *(bool, True/False)*
 
-- **AUDIO_READ_TEXT** - on text read with speech synthesis, `data['value']` *(str)*
+- `AUDIO_READ_TEXT` - on text read with speech synthesis, `data['value']` *(str)*
 
-- **CMD_EXECUTE** - when a command is executed, `data['commands']` *(list, commands and arguments)*
+- `CMD_EXECUTE` - when a command is executed, `data['commands']` *(list, commands and arguments)*
 
-- **CMD_INLINE** - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
+- `CMD_INLINE` - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
 
-- **CMD_SYNTAX** - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
+- `CMD_SYNTAX` - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
 
-- **CTX_AFTER** - after the context item is sent, `ctx`
+- `CTX_AFTER` - after the context item is sent, `ctx`
 
-- **CTX_BEFORE** - before the context item is sent, `ctx`
+- `CTX_BEFORE` - before the context item is sent, `ctx`
 
-- **CTX_BEGIN** - when context item create, `ctx`
+- `CTX_BEGIN` - when context item create, `ctx`
 
-- **CTX_END** - when context item handling is finished, `ctx`
+- `CTX_END` - when context item handling is finished, `ctx`
 
-- **CTX_SELECT** - when context is selected on list, `data['value']` *(int, ctx meta ID)*
+- `CTX_SELECT` - when context is selected on list, `data['value']` *(int, ctx meta ID)*
 
-- **DISABLE** - when the plugin is disabled, `data['value']` *(string, plugin ID)*
+- `DISABLE` - when the plugin is disabled, `data['value']` *(string, plugin ID)*
 
-- **ENABLE** - when the plugin is enabled, `data['value']` *(string, plugin ID)*
+- `ENABLE` - when the plugin is enabled, `data['value']` *(string, plugin ID)*
 
-- **FORCE_STOP** - on force stop plugins
+- `FORCE_STOP` - on force stop plugins
 
-- **INPUT_BEFORE** - upon receiving input from the textarea, `data['value']` *(string, text to be sent)*
+- `INPUT_BEFORE` - upon receiving input from the textarea, `data['value']` *(string, text to be sent)*
 
-- **MODE_BEFORE** - before the mode is selected `data['value'], data['prompt']` *(string, string, mode ID)*
+- `MODE_BEFORE` - before the mode is selected `data['value'], data['prompt']` *(string, string, mode ID)*
 
-- **MODE_SELECT** - on mode select `data['value']` *(string, mode ID)*
+- `MODE_SELECT` - on mode select `data['value']` *(string, mode ID)*
 
-- **MODEL_BEFORE** - before the model is selected `data['value']` *(string, model ID)*
+- `MODEL_BEFORE` - before the model is selected `data['value']` *(string, model ID)*
 
-- **MODEL_SELECT** - on model select `data['value']` *(string, model ID)*
+- `MODEL_SELECT` - on model select `data['value']` *(string, model ID)*
 
-- **PLUGIN_SETTINGS_CHANGED** - on plugin settings update
+- `PLUGIN_SETTINGS_CHANGED` - on plugin settings update
 
-- **PLUGIN_OPTION_GET** - on request for plugin option value `data['name'], data['value']` *(string, any, name of requested option, value)*
+- `PLUGIN_OPTION_GET` - on request for plugin option value `data['name'], data['value']` *(string, any, name of requested option, value)*
 
-- **POST_PROMPT** - after preparing a system prompt, `data['value']` *(string, system prompt)*
+- `POST_PROMPT` - after preparing a system prompt, `data['value']` *(string, system prompt)*
 
-- **PRE_PROMPT** - before preparing a system prompt, `data['value']` *(string, system prompt)*
+- `PRE_PROMPT` - before preparing a system prompt, `data['value']` *(string, system prompt)*
 
-- **SYSTEM_PROMPT** - when preparing a system prompt, `data['value']` *(string, system prompt)*
+- `SYSTEM_PROMPT` - when preparing a system prompt, `data['value']` *(string, system prompt)*
 
-- **UI_ATTACHMENTS** - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
+- `UI_ATTACHMENTS` - when the attachment upload elements are rendered, `data['value']` *(bool, show True/False)*
 
-- **UI_VISION** - when the vision elements are rendered, `data['value']` *(bool, show True/False)*
+- `UI_VISION` - when the vision elements are rendered, `data['value']` *(bool, show True/False)*
 
-- **USER_NAME** - when preparing a user's name, `data['value']` *(string, name of the user)*
+- `USER_NAME` - when preparing a user's name, `data['value']` *(string, name of the user)*
 
-- **USER_SEND** - just before the input text is sent, `data['value']` *(string, input text)*
+- `USER_SEND` - just before the input text is sent, `data['value']` *(string, input text)*
 
 
 You can stop the propagation of a received event at any time by setting `stop` to `True`:
