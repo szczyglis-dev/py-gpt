@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 04:00:00                  #
+# Updated Date: 2024.01.21 10:00:00                  #
 # ================================================== #
 
 import os
@@ -15,8 +15,9 @@ from PySide6.QtCore import QSize
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QSizePolicy
 
-from pygpt_net.ui.layout.toolbox.image import Image
-from pygpt_net.ui.layout.toolbox.vision import Vision
+from .image import Image
+from .indexes import Indexes
+from .vision import Vision
 from pygpt_net.ui.widget.textarea.name import NameInput
 from pygpt_net.ui.widget.option.slider import OptionSlider
 from pygpt_net.utils import trans
@@ -31,6 +32,7 @@ class Footer:
         """
         self.window = window
         self.image = Image(window)
+        self.indexes = Indexes(window)
         self.vision = Vision(window)
 
     def setup(self) -> QWidget:
@@ -57,6 +59,7 @@ class Footer:
         # rows.addWidget(self.window.ui.config['global']['current_temperature'])
         rows.addWidget(self.image.setup())
         rows.addWidget(self.vision.setup())
+        rows.addWidget(self.indexes.setup_options())
         rows.setContentsMargins(0, 0, 0, 0)
 
         # logo

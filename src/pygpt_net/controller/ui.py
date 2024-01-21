@@ -97,6 +97,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
+            self.window.ui.nodes['idx.options'].setVisible(False)
 
             # event: UI: vision
             value = False
@@ -141,6 +142,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(True)
+            self.window.ui.nodes['idx.options'].setVisible(False)
 
             value = False
             if force_vision_allowed:
@@ -167,6 +169,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
+            self.window.ui.nodes['idx.options'].setVisible(False)
 
             # event: UI: vision
             value = False
@@ -208,6 +211,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
+            self.window.ui.nodes['idx.options'].setVisible(False)
 
             # vision capture
             self.window.ui.nodes['vision.capture.options'].setVisible(True)
@@ -229,6 +233,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
+            self.window.ui.nodes['idx.options'].setVisible(False)
 
             # event: UI: vision
             value = False
@@ -270,6 +275,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(False)
             self.window.ui.nodes['assistants.widget'].setVisible(True)
             self.window.ui.nodes['dalle.options'].setVisible(False)
+            self.window.ui.nodes['idx.options'].setVisible(False)
 
             value = False
             if force_vision_allowed:
@@ -296,6 +302,7 @@ class UI:
             self.window.ui.nodes['indexes.widget'].setVisible(True)
             self.window.ui.nodes['assistants.widget'].setVisible(False)
             self.window.ui.nodes['dalle.options'].setVisible(False)
+            self.window.ui.nodes['idx.options'].setVisible(True)
 
             # event: UI: vision
             value = False

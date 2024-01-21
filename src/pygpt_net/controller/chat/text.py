@@ -185,8 +185,16 @@ class Text:
                 elif mode == "llama_index":
                     self.log("Calling Llama-index...")  # log
                     idx = self.window.controller.idx.current_idx
-                    result = self.window.core.idx.chat.call(
-                        ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
+
+                    # query index
+                    if self.window.core.config.get('llama.idx.raw'):
+                        result = self.window.core.idx.chat.raw_query(
+                            ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
+
+                    # chat or query index (if chat is not enabled)
+                    else:
+                        result = self.window.core.idx.chat.call(
+                            ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
 
                 # OpenAI API mode(s)
                 else:

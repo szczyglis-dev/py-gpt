@@ -49,7 +49,8 @@ class Image:
         # img raw
         self.window.ui.config['global']['img_raw'] = QCheckBox(trans("img.raw"))
         self.window.ui.config['global']['img_raw'].stateChanged.connect(
-            lambda: self.window.controller.chat.common.img_toggle_raw(self.window.ui.config['global']['img_raw'].isChecked()))
+            lambda:
+            self.window.controller.chat.common.img_toggle_raw(self.window.ui.config['global']['img_raw'].isChecked()))
 
         # label
         label = QLabel(trans("toolbox.img_variants.label"))
