@@ -565,6 +565,40 @@
         "step": null,
         "advanced": false
     },
+    "llama.idx.storage": {
+        "section": "llama-index",
+        "type": "combo",
+        "use": "vector_storage",
+        "slider": false,
+        "label": "settings.llama.idx.storage",
+        "urls": {
+            "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
+        },
+        "value": "SimpleVectorStore",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "llama.idx.storage.args": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "name": "text",
+            "value": "text",
+            "type": {
+                "type": "combo",
+                "use": "var_types"
+            }
+        },
+        "label": "settings.llama.idx.storage.args",
+        "urls": {
+            "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
+        },
+        "value": [],
+        "advanced": true
+    },
     "llama.log": {
         "section": "llama-index",
         "type": "bool",
