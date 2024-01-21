@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.21 08:00:00                  #
 # ================================================== #
 
 import copy
@@ -18,6 +18,7 @@ from pygpt_net.item.index import IndexItem
 from pygpt_net.provider.index.json_file import JsonFileProvider
 
 from .indexing import Indexing
+from .llm import Llm
 from .storage import Storage
 from .chat import Chat
 
@@ -31,17 +32,26 @@ class Idx:
         """
         self.window = window
         self.indexing = Indexing(window)
+        self.llm = Llm(window)
         self.storage = Storage(window)
         self.chat = Chat(window, self.storage)
         self.provider = JsonFileProvider(window)
         self.items = {}
         self.initialized = False
 
+    def get_current_store(self):
+        """
+        Get current store name
+
+        :return: store
+        """
+        return self.window.core.config.get('llama.idx.storage')
+
     def store_index(self, idx: str = "base"):
         """
         Store index
 
-        :param idx: Index name
+        :param idx: index name
         """
         self.storage.store(idx)
 
@@ -49,7 +59,7 @@ class Idx:
         """
         Truncate index
 
-        :param idx: Index name
+        :param idx: index name
         :return: True if success
         """
         return self.storage.remove(idx)
@@ -58,11 +68,12 @@ class Idx:
         """
         Index file or directory of files
 
-        :param idx: Index name
-        :param path: Path to file or directory
+        :param idx: index name
+        :param path: path to file or directory
         :return: dict with indexed files, errors
         """
-        index = self.storage.get(idx)  # get or create index
+        context = self.llm.get_service_context()
+        index = self.storage.get(idx, service_context=context)  # get or create index
         files, errors = self.indexing.index_files(index, path)  # index files
         if len(files) > 0:
             self.storage.store(id=idx, index=index)  # store index
@@ -72,11 +83,12 @@ class Idx:
         """
         Index records from db by meta id
 
-        :param idx: Index name
-        :param id: Meta id
-        :return: dict with indexed files, errors
+        :param idx: index name
+        :param id: CtxMeta id
+        :return: num of indexed files, errors
         """
-        index = self.storage.get(idx)  # get or create index
+        context = self.llm.get_service_context()
+        index = self.storage.get(idx, service_context=context)  # get or create index
         num, errors = self.indexing.index_db_by_meta_id(index, id)  # index db records
         if num > 0:
             self.storage.store(id=idx, index=index)  # store index
@@ -86,55 +98,60 @@ class Idx:
         """
         Index records from db by meta id
 
-        :param idx: Index name
-        :param from_ts: From timestamp
-        :return: dict with indexed files, errors
+        :param idx: index name
+        :param from_ts: timestamp from
+        :return: num of indexed files, errors
         """
-        index = self.storage.get(idx)  # get or create index
+        context = self.llm.get_service_context()
+        index = self.storage.get(idx, service_context=context)  # get or create index
         num, errors = self.indexing.index_db_from_updated_ts(index, from_ts)  # index db records
         if num > 0:
             self.storage.store(id=idx, index=index)  # store index
         return num, errors
 
     def sync_items(self):
-        """
-        Sync from config
-        """
+        """Sync from config"""
         items = self.window.core.config.get('llama.idx.list')
+        store_id = self.get_current_store()
         if items is not None:
+            if store_id not in self.items:
+                self.items[store_id] = {}
             for item in items:
                 idx = item['id']
-                if idx not in self.items:
-                    self.items[idx] = IndexItem()
-                    self.items[idx].id = idx
-                    self.items[idx].name = idx
+                if idx not in self.items[store_id]:
+                    self.items[store_id][idx] = IndexItem()
+                    self.items[store_id][idx].id = idx
+                    self.items[store_id][idx].name = idx
+                    self.items[store_id][idx].store = store_id
                 else:
-                    self.items[idx].id = idx
-                    self.items[idx].name = idx
+                    self.items[store_id][idx].id = idx
+                    self.items[store_id][idx].name = idx
             self.save()
 
     def get_idx_data(self, idx: str = None) -> dict:
         """
         Get indexed files data
-        :param idx: Index name
-        :return: Indexed files data
+
+        :param idx: index name
+        :return: indexed files data
         """
         indexes = {}
+        store_id = self.get_current_store()
         if idx is not None:
-            if idx in self.items:
-                indexes[idx] = self.items[idx].items
+            if store_id in self.items and idx in self.items[store_id]:
+                indexes[idx] = self.items[store_id][idx].items
         else:
             # all indexes
-            for idx in self.items:
-                indexes[idx] = self.items[idx].items
-
+            if store_id in self.items:
+                for idx in self.items[store_id]:
+                    indexes[idx] = self.items[store_id][idx].items
         return indexes
 
     def get_by_idx(self, idx: int) -> str:
         """
         Return idx by list index
 
-        :param idx: idx
+        :param idx: idx on list
         :return: idx name
         """
         items = self.window.core.config.get('llama.idx.list')
@@ -172,7 +189,7 @@ class Idx:
         """
         Patch provider data
 
-        :param app_version: App version
+        :param app_version: app version
         """
         self.provider.patch(app_version)
 
@@ -184,27 +201,31 @@ class Idx:
 
     def get(self, idx: str) -> IndexItem:
         """
-        Return index data
+        Return index data from current storage
 
-        :param idx: index id
+        :param idx: index name
         :return: IndexItem object
         """
-        if idx in self.items:
-            return self.items[idx]
+        store_id = self.get_current_store()
+        if store_id in self.items and idx in self.items[store_id]:
+            return self.items[store_id][idx]
 
     def get_all(self) -> dict:
         """
-        Return all indexes
+        Return all indexes in storage
 
         :return: all indexes
         """
-        return self.items
+        store_id = self.get_current_store()
+        if store_id in self.items:
+            return self.items[store_id]
+        return {}
 
     def get_idx_config(self, idx: str) -> dict:
         """
         Return index config
 
-        :param idx: index id
+        :param idx: index name
         :return: index config
         """
         indexes = self.window.core.config.get('llama.idx.list')
@@ -217,21 +238,25 @@ class Idx:
         """
         Check if index exists
 
-        :param idx: index id
+        :param idx: index name
         :return: True if index exists
         """
-        return idx in self.items
+        store_id = self.get_current_store()
+        if store_id in self.items:
+            return idx in self.items[store_id]
+        return False
 
     def is_indexed(self, idx: str, file: str) -> bool:
         """
         Check if file is indexed
 
-        :param idx: index id
+        :param idx: index name
         :param file: file path
         :return: True if file is indexed
         """
-        if idx in self.items:
-            return file in self.items[idx].items
+        store_id = self.get_current_store()
+        if store_id in self.items and idx in self.items[store_id]:
+            return file in self.items[store_id][idx].items
         return False
 
     def to_file_id(self, path: str) -> str:
@@ -251,18 +276,21 @@ class Idx:
         """
         Append indexed files to index
 
-        :param idx: index id
+        :param idx: index name
         :param files: dict of indexed files
         """
-        if idx not in self.items:
-            self.items[idx] = IndexItem()
-            self.items[idx].id = idx
-            self.items[idx].name = idx  # use index id as name
+        store_id = self.get_current_store()
+        if store_id not in self.items:
+            self.items[store_id] = {}
+        if idx not in self.items[store_id]:
+            self.items[store_id][idx] = IndexItem()
+            self.items[store_id][idx].id = idx
+            self.items[store_id][idx].name = idx  # use index id as name
 
         for path in files:
             file = files[path]
             file_id = self.to_file_id(path)
-            self.items[idx].items[file_id] = {
+            self.items[store_id][idx].items[file_id] = {
                 "path": path,
                 "indexed_ts": datetime.datetime.now().timestamp(),
                 "id": file,
@@ -273,10 +301,11 @@ class Idx:
         """
         Clear index items
 
-        :param idx: index id
+        :param idx: index name
         """
-        if idx in self.items:
-            self.items[idx].items = {}
+        store_id = self.get_current_store()
+        if store_id in self.items and idx in self.items[store_id]:
+            self.items[store_id][idx].items = {}
             self.save()
 
     def load(self):
@@ -285,20 +314,25 @@ class Idx:
         """
         self.items = self.provider.load()
         # replace workdir placeholder with current workdir
-        for idx in self.items:
-            for id in self.items[idx].items:
-                file = self.items[idx].items[id]
-                if 'path' in file and file['path'] is not None:
-                    self.items[idx].items[id]['path'] = self.window.core.filesystem.to_workdir(file['path'])
+        for store_id in self.items:
+            for idx in self.items[store_id]:
+                for id in self.items[store_id][idx].items:
+                    file = self.items[store_id][idx].items[id]
+                    if 'path' in file and file['path'] is not None:
+                        self.items[store_id][idx].items[id]['path'] = \
+                            self.window.core.filesystem.to_workdir(file['path'])
 
     def save(self):
         """Save indexes"""
-        data = copy.deepcopy(self.items)  # copy to avoid changing original data
-        for idx in data:
-            for id in data[idx].items:
-                file = data[idx].items[id]
-                if 'path' in file and file['path'] is not None:
-                    data[idx].items[id]['path'] = self.window.core.filesystem.make_local(file['path'])
+        data = copy.deepcopy(self.items)  # copy
+        # replace workdir with placeholder
+        for store_id in data:
+            for idx in data[store_id]:
+                for file_id in data[store_id][idx].items:
+                    file = data[store_id][idx].items[file_id]
+                    if 'path' in file and file['path'] is not None:
+                        data[store_id][idx].items[file_id]['path'] = \
+                            self.window.core.filesystem.make_local(file['path'])
         self.provider.save(data)
 
     def get_version(self) -> str:

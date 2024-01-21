@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 11:00:00                  #
+# Updated Date: 2024.01.21 10:00:00                  #
 # ================================================== #
 
 import sys
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
 from PySide6.QtGui import QScreen
-from PySide6.QtWidgets import (QApplication, QMainWindow)
+from PySide6.QtWidgets import QApplication, QMainWindow
 from qt_material import QtStyleTools
 from logging import ERROR, WARNING, INFO, DEBUG
 
@@ -24,6 +24,7 @@ from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui import UI
 from pygpt_net.utils import get_app_meta
 
+# plugins
 from pygpt_net.plugin.audio_azure import Plugin as AudioAzurePlugin
 from pygpt_net.plugin.audio_openai_tts import Plugin as AudioOpenAITTSPlugin
 from pygpt_net.plugin.audio_openai_whisper import Plugin as AudioOpenAIWhisperPlugin
@@ -38,6 +39,7 @@ from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
 from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 
+# LLMs
 from pygpt_net.llm.Anthropic import AnthropicLLM
 from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
 from pygpt_net.llm.HuggingFace import HuggingFaceLLM
@@ -45,6 +47,12 @@ from pygpt_net.llm.Llama2 import Llama2LLM
 from pygpt_net.llm.Ollama import OllamaLLM
 from pygpt_net.llm.OpenAI import OpenAILLM
 
+# vector stores
+from pygpt_net.core.idx.storage.chroma import ChromaProvider as ChromaVectorStore
+from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider as ElasticsearchVectorStore
+from pygpt_net.core.idx.storage.pinecode import PinecodeProvider as PinecodeVectorStore
+from pygpt_net.core.idx.storage.redis import RedisProvider as RedisVectorStore
+from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStore
 
 Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
@@ -102,6 +110,14 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param llm: LLM wrapper instance
         """
         self.core.llm.register(llm.id, llm)
+
+    def add_vector_store(self, store):
+        """
+        Add vector store provider to app
+
+        :param store: Vector store provider instance
+        """
+        self.core.idx.storage.register(store.id, store)
 
     def setup(self):
         """Setup app"""
@@ -199,6 +215,14 @@ class Launcher:
         """
         self.window.add_llm(llm)
 
+    def add_vector_store(self, store=None):
+        """
+        Register vector index store provider
+
+        :param store: Vector index store provider instance
+        """
+        self.window.add_vector_store(store)
+
     def run(self):
         """Run app"""
         margin = 50
@@ -212,12 +236,15 @@ class Launcher:
         sys.exit(self.app.exec())
 
 
-def run(plugins: list = None, llms: list = None):
+def run(plugins: list = None,
+        llms: list = None,
+        vector_stores: list = None):
     """
     PyGPT launcher.
 
     :param plugins: List containing custom plugin instances.
-    :param llms: List containing custom LLMs (Large Language Models) wrapper instances.
+    :param llms: List containing custom LLMs wrapper instances.
+    :param vector_stores: List containing custom vector index store provider instances.
 
     Extending PyGPT with custom plugins and LLMs wrappers:
 
@@ -232,6 +259,10 @@ def run(plugins: list = None, llms: list = None):
 
     - Pass a list with the LLMs wrappers instances as the second argument.
 
+    To register custom vector store providers:
+
+    - Pass a list with the vector store provider instances as the third argument.
+
     Example:
     --------
     ::
@@ -239,6 +270,7 @@ def run(plugins: list = None, llms: list = None):
         from pygpt_net.app import run
         from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
         from my_llms import MyCustomLLM
+        from my_vector_stores import MyCustomVectorStore
 
         plugins = [
             MyCustomPlugin(),
@@ -247,8 +279,15 @@ def run(plugins: list = None, llms: list = None):
         llms = [
             MyCustomLLM(),
         ]
+        vector_stores = [
+            MyCustomVectorStore(),
+        ]
 
-        run(plugins=plugins, llms=llms)
+        run(
+            plugins=plugins,
+            llms=llms,
+            vector_stores=vector_stores
+        )
 
     """
 
@@ -276,7 +315,7 @@ def run(plugins: list = None, llms: list = None):
         for plugin in plugins:
             launcher.add_plugin(plugin)
 
-    # register base langchain LLMs
+    # register base langchain and llama-index LLMs
     launcher.add_llm(OpenAILLM())
     launcher.add_llm(AzureOpenAILLM())
     launcher.add_llm(AnthropicLLM())
@@ -284,10 +323,22 @@ def run(plugins: list = None, llms: list = None):
     launcher.add_llm(Llama2LLM())
     launcher.add_llm(OllamaLLM())
 
-    # register custom langchain LLMs
+    # register custom langchain and llama-index LLMs
     if llms is not None:
         for llm in llms:
             launcher.add_llm(llm)
+
+    # register base vector store providers (llama-index)
+    launcher.add_vector_store(ChromaVectorStore())
+    launcher.add_vector_store(ElasticsearchVectorStore())
+    launcher.add_vector_store(PinecodeVectorStore())
+    launcher.add_vector_store(RedisVectorStore())
+    launcher.add_vector_store(SimpleVectorStore())
+
+    # register custom vector store providers (llama-index)
+    if vector_stores is not None:
+        for store in vector_stores:
+            launcher.add_vector_store(store)
 
     # run app
     launcher.run()

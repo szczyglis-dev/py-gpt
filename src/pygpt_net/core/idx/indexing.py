@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.01.20 18:00:00                  #
 # ================================================== #
 
 import os.path
@@ -16,13 +16,13 @@ from llama_index import (
     SimpleDirectoryReader, download_loader,
 )
 from llama_index.readers.schema.base import Document
-from pygpt_net.core.idx.loaders.pdf.base import PDFReader
-from pygpt_net.core.idx.loaders.docx.base import DocxReader
-from pygpt_net.core.idx.loaders.markdown.base import MarkdownReader
-from pygpt_net.core.idx.loaders.json.base import JSONReader
-from pygpt_net.core.idx.loaders.simple_csv.base import SimpleCSVReader
-from pygpt_net.core.idx.loaders.epub.base import EpubReader
-from pygpt_net.core.idx.loaders.pandas_excel.base import PandasExcelReader
+from .loaders.pdf.base import PDFReader
+from .loaders.docx.base import DocxReader
+from .loaders.markdown.base import MarkdownReader
+from .loaders.json.base import JSONReader
+from .loaders.simple_csv.base import SimpleCSVReader
+from .loaders.epub.base import EpubReader
+from .loaders.pandas_excel.base import PandasExcelReader
 
 
 class Indexing:
@@ -46,7 +46,8 @@ class Indexing:
     def get_online_loader(self, ext):
         """
         Get online loader by extension
-        :param ext: Extension of file
+
+        :param ext: file extension
         """
         loaders = self.window.core.config.get("llama.hub.loaders")
         if loaders is None or not isinstance(loaders, list):
@@ -55,18 +56,18 @@ class Indexing:
         for loader in loaders:
             check = loader["ext"].lower()
             if "," in check:
-                exts = check.replace(" ", "").split(",")
+                extensions = check.replace(" ", "").split(",")
             else:
-                exts = [check.strip()]
-            if ext in exts:
+                extensions = [check.strip()]
+            if ext in extensions:
                 return loader["loader"]
 
-    def get_documents(self, path):
+    def get_documents(self, path) -> list[Document]:
         """
         Get documents from path
 
-        :param path: Path to data
-        :return: List of documents
+        :param path: path to data
+        :return: list of documents
         """
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
@@ -77,14 +78,15 @@ class Indexing:
             documents = reader.load_data()
         else:
             ext = os.path.splitext(path)[1][1:]  # get extension
-            online_loader = self.get_online_loader(ext)  # get online loader
+            online_loader = self.get_online_loader(ext)  # get online loader if available
             if online_loader is not None:
                 loader = download_loader(online_loader)
                 reader = loader()
                 documents = reader.load_data(file=Path(path))
             else:  # try offline loaders
                 if ext in self.loaders:
-                    # download_loader at default cause problems in compiled version, so we use offline versions also
+                    # download_loader cause problems in compiled version
+                    # use offline versions instead
                     reader = self.loaders[ext]
                     documents = reader.load_data(file=Path(path))
                 else:
@@ -96,8 +98,8 @@ class Indexing:
         """
         Index all files in directory
 
-        :param index: Index instance
-        :param path: Path to file or directory
+        :param index: index instance
+        :param path: path to file or directory
         :return: dict with indexed files, errors
         """
         indexed = {}
@@ -124,7 +126,13 @@ class Indexing:
 
         return indexed, errors
 
-    def get_db_data_from_ts(self, updated_ts: int = 0):
+    def get_db_data_from_ts(self, updated_ts: int = 0) -> list:
+        """
+        Get data from database from timestamp
+
+        :param updated_ts: timestamp
+        :return: list of documents
+        """
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -146,7 +154,13 @@ class Indexing:
                 documents.append(Document(text=doc_str))
         return documents
 
-    def get_db_data_by_id(self, id: int = 0):
+    def get_db_data_by_id(self, id: int = 0) -> list:
+        """
+        Get data from database by meta id
+
+        :param id: meta id
+        :return: list of documents
+        """
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -162,7 +176,14 @@ class Indexing:
                 documents.append(Document(text=doc_str))
         return documents
 
-    def index_db_by_meta_id(self, index, id: int = 0):
+    def index_db_by_meta_id(self, index, id: int = 0) -> tuple:
+        """
+        Index data from database by meta id
+
+        :param index: index instance
+        :param id: meta id
+        :return: number of indexed documents, errors
+        """
         errors = []
         n = 0
         try:
@@ -176,7 +197,14 @@ class Indexing:
             self.window.core.debug.log(e)
         return n, errors
 
-    def index_db_from_updated_ts(self, index, updated_ts: int = 0):
+    def index_db_from_updated_ts(self, index, updated_ts: int = 0) -> tuple:
+        """
+        Index data from database from timestamp
+
+        :param index: index instance
+        :param updated_ts: timestamp
+        :return: number of indexed documents, errors
+        """
         errors = []
         n = 0
         try:

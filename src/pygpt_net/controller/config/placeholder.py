@@ -36,7 +36,7 @@ class Placeholder:
             if "use" in option:
                 option["keys"] = self.apply_by_id(option["use"])
 
-    def apply_by_id(self, id: str):
+    def apply_by_id(self, id: str) -> list:
         """
         Apply placeholders by id
 
@@ -50,6 +50,8 @@ class Placeholder:
             return self.get_langchain_providers()
         elif id == "llama_index_providers":
             return self.get_llama_index_providers()
+        elif id == "vector_storage":
+            return self.get_vector_storage()
         elif id == "var_types":
             return self.get_var_types()
         else:
@@ -75,6 +77,19 @@ class Placeholder:
         :return: placeholders list
         """
         ids = self.window.core.llm.get_ids("llama_index")
+        data = []
+        data.append({'_': '---'})
+        for id in ids:
+            data.append({id: id})
+        return data
+
+    def get_vector_storage(self) -> list:
+        """
+        Get vector storage placeholders list
+
+        :return: placeholders list
+        """
+        ids = self.window.core.idx.storage.get_ids()
         data = []
         data.append({'_': '---'})
         for id in ids:

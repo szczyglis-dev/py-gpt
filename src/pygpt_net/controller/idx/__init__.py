@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.01.21 10:00:00                  #
 # ================================================== #
 
 import datetime
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+from .common import Common
 from .indexer import Indexer
 from .settings import Settings
 
@@ -26,6 +27,7 @@ class Idx:
         """
         self.window = window
         self.settings = Settings(window)
+        self.common = Common(window)
         self.indexer = Indexer(window)
         self.current_idx = "base"
 
@@ -35,6 +37,7 @@ class Idx:
         """
         self.window.core.idx.load()
         self.indexer.update_explorer()
+        self.common.setup()
         self.update()
 
     def select(self, idx: int):
