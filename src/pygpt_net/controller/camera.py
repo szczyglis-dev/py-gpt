@@ -141,9 +141,13 @@ class Camera:
                                       Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.window.ui.nodes['video.preview'].video.setPixmap(scaled_pixmap)
 
-    def manual_capture(self):
-        """Capture frame via click on video output"""
-        if not self.is_auto():
+    def manual_capture(self, force: bool = False):
+        """
+        Capture frame via click on video output
+
+        :param force: force capture even if auto is enabled
+        """
+        if not self.is_auto() or force:
             if not self.capture_frame(True):
                 self.window.statusChanged.emit(trans("vision.capture.manual.captured.error"))
         else:

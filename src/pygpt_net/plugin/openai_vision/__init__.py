@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.21 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -24,6 +24,7 @@ class Plugin(BasePlugin):
         self.order = 100
         self.use_locale = True
         self.allowed_urls_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
+        self.allowed_cmds = ["camera_capture", "make_screenshot"]
         self.init_options()
 
     def init_options(self):
@@ -39,6 +40,18 @@ class Plugin(BasePlugin):
                         description="Model used to temporarily providing vision abilities, "
                                     "default: gpt-4-vision-preview",
                         tooltip="Model")
+        self.add_option("cmd_capture",
+                        type="bool",
+                        value=False,
+                        label="Allow command: camera capture",
+                        description="Allow to use command: camera capture",
+                        tooltip="If enabled, model will be able to capture images from camera")
+        self.add_option("cmd_screenshot",
+                        type="bool",
+                        value=False,
+                        label="Allow command: make screenshot",
+                        description="Allow to use command: make screenshot",
+                        tooltip="If enabled, model will be able to making screenshots")
         self.add_option("prompt",
                         type="textarea",
                         value=prompt,
@@ -47,7 +60,6 @@ class Plugin(BasePlugin):
                                     "when using vision model",
                         tooltip="Prompt",
                         advanced=False)
-
         self.add_option("replace_prompt",
                         type="bool",
                         value=False,
@@ -111,6 +123,56 @@ class Plugin(BasePlugin):
                 data['value'] = True  # allow render vision UI elements
         elif name in [Event.CTX_SELECT, Event.MODE_SELECT, Event.MODEL_SELECT]:
             self.on_toggle(False)  # always reset vision flag / disable vision mode
+        elif name == Event.CMD_SYNTAX:
+            self.cmd_syntax(data)
+        elif name == Event.CMD_EXECUTE:
+            self.cmd(ctx, data['commands'])
+
+    def cmd_syntax(self, data: dict):
+        """
+        Event: On cmd syntax prepare
+
+        :param data: event data dict
+        """
+        if not self.get_option_value("cmd_capture") and not self.get_option_value("cmd_screenshot"):
+            return
+
+        # append syntax
+        if self.get_option_value("cmd_capture"):
+            data['syntax'].append('"camera_capture": use it to capture image from user camera')
+        if self.get_option_value("cmd_screenshot"):
+            data['syntax'].append('"make_screenshot": use it to make screenshot from user screen')
+
+    def cmd(self, ctx: CtxItem, cmds: list):
+        """
+        Event: On cmd
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        """
+        is_cmd = False
+        my_commands = []
+        for item in cmds:
+            if item["cmd"] in self.allowed_cmds:
+                my_commands.append(item)
+                is_cmd = True
+
+        if not is_cmd:
+            return
+
+        for item in my_commands:
+            if item["cmd"] == "camera_capture" and self.get_option_value("cmd_capture"):
+                request = {"cmd": item["cmd"]}
+                self.window.controller.camera.manual_capture(force=True)
+                response = {"request": request, "result": "OK"}
+                ctx.results.append(response)
+                ctx.reply = True
+            elif item["cmd"] == "make_screenshot" and self.get_option_value("cmd_screenshot"):
+                request = {"cmd": item["cmd"]}
+                self.window.controller.drawing.make_screenshot()
+                response = {"request": request, "result": "OK"}
+                ctx.results.append(response)
+                ctx.reply = True
 
     def log(self, msg: str):
         """
