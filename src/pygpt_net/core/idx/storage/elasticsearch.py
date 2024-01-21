@@ -62,6 +62,7 @@ class ElasticsearchProvider(BaseStore):
         """
         path = self.get_path(id=id)
         if not os.path.exists(path):
+            os.makedirs(path)
             self.store(id=id)
 
     def get_es_client(self, id: str) -> ElasticsearchStore:

@@ -42,7 +42,7 @@ class RedisProvider(BaseStore):
         :param id: index name
         :return: database path
         """
-        return os.path.join(self.window.core.config.get_user_dir('idx'), 'redis' + id)
+        return os.path.join(self.window.core.config.get_user_dir('idx'), 'redis_' + id)
 
     def exists(self, id: str = None) -> bool:
         """
@@ -62,6 +62,7 @@ class RedisProvider(BaseStore):
         """
         path = self.get_path(id=id)
         if not os.path.exists(path):
+            os.makedirs(path)
             self.store(id=id)
 
     def get_store(self, id: str) -> RedisVectorStore:

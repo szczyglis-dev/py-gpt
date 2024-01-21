@@ -400,7 +400,7 @@ For other providers you can provide these arguments:
 
 Arguments for ElasticsearchStore(`**kwargs`):
 
-- index_name (default: index name, already set, not required)
+- index_name (default: current index ID, already set, not required)
 - all keyword arguments provided on list
 
 
@@ -408,6 +408,7 @@ Arguments for ElasticsearchStore(`**kwargs`):
 
 Arguments for Pinecone(`**kwargs`):
 
+- index_name (default: current index ID, already set, not required)
 - api_key
 
 Index name is already set and not required.
@@ -416,7 +417,7 @@ Index name is already set and not required.
 
 Arguments for RedisVectorStore(`**kwargs`):
 
-- index_name (default: index name, already set, not required)
+- index_name (default: current index ID, already set, not required)
 - all keyword arguments provided on list
 
 

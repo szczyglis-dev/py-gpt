@@ -44,7 +44,7 @@ class PinecodeProvider(BaseStore):
         :param id: index name
         :return: database path
         """
-        return os.path.join(self.window.core.config.get_user_dir('idx'), 'pinecode' + id)
+        return os.path.join(self.window.core.config.get_user_dir('idx'), 'pinecode_' + id)
 
     def exists(self, id: str = None) -> bool:
         """
@@ -99,6 +99,7 @@ class PinecodeProvider(BaseStore):
         path = self.get_path(id=id)
         if not os.path.exists(path):
             # self.create_index(id=id)  # TODO: implement create option from UI
+            os.makedirs(path)
             self.store(id=id)
 
     def get_client(self) -> Pinecone:
@@ -123,7 +124,11 @@ class PinecodeProvider(BaseStore):
         :return: PineconeVectorStore client
         """
         pc = self.get_client()
-        pinecone_index = pc.Index(id)  # use base index name
+        name = id
+        kwargs = parse_args(self.window.core.config.get('llama.idx.storage.args', []))
+        if "index_name" in kwargs:
+            name = kwargs["index_name"]
+        pinecone_index = pc.Index(name)  # use base index name or custom name
         return PineconeVectorStore(pinecone_index=pinecone_index)
 
     def get(self, id: str, service_context=None) -> VectorStoreIndex:
