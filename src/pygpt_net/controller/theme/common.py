@@ -161,8 +161,4 @@ class Common:
             if os.path.exists(path):
                 with open(path) as file:
                     content += file.read()
-        try:
-            return content.format(**os.environ)
-        except KeyError as e:
-            pass  # ignore missing env variables
-        return ""
+        return content
