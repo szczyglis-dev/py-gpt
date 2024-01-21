@@ -27,6 +27,7 @@ setup(
     install_requires=[
         'azure-cognitiveservices-speech>=1.27.0',
         'beautifulsoup4>=4.12.2',
+        'chromadb>=0.4.22',
         'croniter>=2.0.1',
         'docker>=7.0.0',
         'docx2txt>=0.8',
@@ -43,6 +44,7 @@ setup(
         'packaging>=23.2',
         'pandas>=2.1.4',
         'pillow>=10.2.0',
+        'pinecone-client>=3.0.1',
         'PyAudio>=0.2.14',
         'pygame>=2.5.2',
         'pyinstaller>=5.9.0',
