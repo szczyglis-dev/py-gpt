@@ -124,15 +124,75 @@ Available LLMs providers supported by **PyGPT**:
 You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.
 
 
-Chat with files (llama-index)
+Chat with files (Llama-index)
 -----------------------------
 
-This mode enables chat interaction with your documents and entire context history through conversation. It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the ``data`` directory and initiate indexing by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with files (Llama-index, inline)`` plugin.
+This mode enables chat interaction with your documents and entire context history through conversation. 
+It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents. 
+To begin, you must first index the files you wish to include. 
+Simply copy or upload them into the ``data`` directory and initiate indexing by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. 
+Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with files (Llama-index, inline)`` plugin.
 
-Built-in file loaders: ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``. 
-You can extend it in ``Settings / Llama-index`` by providing list of online loaders (from ``LlamaHub``).
+Built-in file loaders (offline): ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``. 
+You can extend this list in ``Settings / Llama-index`` by providing list of online loaders (from ``LlamaHub``).
 All loaders included for offline use are also from ``LlamaHub``, but they are attached locally with all necessary library dependencies included.
 
-**From version ``2.0.100`` Llama-index is integrated also with database - you can use data from database (your history contexts) as additional context in discussion. Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in Settings / Llama-index section.**
+**From version ``2.0.100`` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / Llama-index`` section.**
 
-**WARNING:** remember that when indexing content, API calls to the embedding model (``text-embedding-ada-002``) are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
+**WARNING:** remember that when indexing content, API calls to the embedding model (``text-embedding-ada-002``) are used. Each indexing consumes additional tokens. 
+Always control the number of tokens used on the OpenAI page.
+
+**Tip:** when using ``Chat with files`` you are using additional context from db data and files indexed from ``data`` directory, not the files sending via ``Attachments`` tab. 
+Attachments tab in ``Chat with files`` mode can be used to provide images to ``Vision (inline)`` plugin only.
+
+**Available vector stores** (provided by ``Llama-index``):
+
+* ChromaVectorStore
+* ElasticsearchStore
+* PinecodeVectorStore
+* RedisVectorStore
+* SimpleVectorStore
+
+You can configure selected vector store by providing config options like ``api_key``, etc. in ``Settings -> Llama-index`` window. 
+Arguments provided here (on list: ``Vector Store (**kwargs)`` will be passed to selected vector store provider. 
+You can check keyword arguments needed by selected provider on Llama-index API reference page: 
+
+https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
+
+
+Witch keywords arguments are passed to providers?
+
+For ``ChromaVectorStore`` and ``SimpleVectorStore`` all arguments are set by PyGPT and passed internally (you do not need to configure anything). For other providers you can provide these arguments:
+
+**ElasticsearchStore**
+
+Arguments for ElasticsearchStore(``**kwargs``):
+
+* index_name (default: index name, already set, not required)
+* all keyword arguments provided on list
+
+
+**PinecodeVectorStore**
+
+Arguments for Pinecone(``**kwargs``):
+
+* api_key
+
+Index name is already set and not required.
+
+**RedisVectorStore**
+
+Arguments for RedisVectorStore(``**kwargs``):
+
+* index_name (default: index name, already set, not required)
+* all keyword arguments provided on list
+
+
+You can extend list of available providers by creating custom provider and registering it on app launch.
+
+**Multiple vector databases support is already in beta.**
+Will work better in next releases.
+
+By default, you are using chat-based mode when using ``Chat with files``.
+If you want to only query index (without chat) you can enable ``Query index only (without chat)`` option.

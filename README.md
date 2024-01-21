@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.113** | build: **2024.01.20** | Python: **3.10+**
+Release: **2.0.114** | build: **2024.01.21** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -352,19 +352,84 @@ Available LLMs providers supported by **PyGPT**:
 
 ![v2_mode_langchain](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d0a30457-468e-42ec-b470-77888bce3b81)
 
-You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
+You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. 
+To integrate a new model, you can create your own wrapper and register it with the application. 
+Detailed instructions for this process are provided in the section titled `Managing models / Adding models via Langchain`.
 
-##  Chat with files (llama-index)
+##  Chat with files (Llama-index)
 
-This mode enables chat interaction with your documents and entire context history through conversation. It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. To begin, you must first index the files you wish to include. Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
+This mode enables chat interaction with your documents and entire context history through conversation. 
+It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. 
+To begin, you must first index the files you wish to include. 
+Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. 
+Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
 
 Built-in file loaders (offline): `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`. 
 You can extend this list in `Settings / Llama-index` by providing list of online loaders (from `LlamaHub`).
 All loaders included for offline use are also from `LlamaHub`, but they are attached locally with all necessary library dependencies included.
 
-**From version `2.0.100` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in Settings / Llama-index section.**
+**From version `2.0.100` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.**
 
-**WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
+**WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. 
+Always control the number of tokens used on the OpenAI page.
+
+**Tip:** when using `Chat with files` you are using additional context from db data and files indexed from `data` directory, not the files sending via `Attachments` tab. 
+Attachments tab in `Chat with files` mode can be used to provide images to `Vision (inline)` plugin only.
+
+**Available vector stores** (provided by `Llama-index`):
+
+```
+- ChromaVectorStore
+- ElasticsearchStore
+- PinecodeVectorStore
+- RedisVectorStore
+- SimpleVectorStore
+```
+
+You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Llama-index` window. 
+Arguments provided here (on list: `Vector Store (**kwargs)` will be passed to selected vector store provider. 
+You can check keyword arguments needed by selected provider on Llama-index API reference page: 
+
+https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
+
+
+Witch keywords arguments are passed to providers?
+
+For `ChromaVectorStore` and `SimpleVectorStore` all arguments are set by PyGPT and passed internally (you do not need to configure anything).
+For other providers you can provide these arguments:
+
+**ElasticsearchStore**
+
+Arguments for ElasticsearchStore(`**kwargs`):
+
+- index_name (default: index name, already set, not required)
+- all keyword arguments provided on list
+
+
+**PinecodeVectorStore**
+
+Arguments for Pinecone(`**kwargs`):
+
+- api_key
+
+Index name is already set and not required.
+
+**RedisVectorStore**
+
+Arguments for RedisVectorStore(`**kwargs`):
+
+- index_name (default: index name, already set, not required)
+- all keyword arguments provided on list
+
+
+You can extend list of available providers by creating custom provider and registering it on app launch.
+
+**Multiple vector databases support is already in beta.**
+Will work better in next releases.
+
+By default, you are using chat-based mode when using `Chat with files`.
+If you want to only query index (without chat) you can enable `Query index only (without chat)` option.
 
 # Files and attachments
 
@@ -612,10 +677,59 @@ llms = [
     MyCustomLLM(),
 ]
 
-run(plugins, llms)  # <-- LLMs as the second argument
+run(plugins=plugins, llms=llms)
 ```
 
 To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+
+
+## Adding custom Vector Store providers
+
+**From version 2.0.114 you can also register your own Vector Store provider**:
+
+```python
+# app.y
+
+# vector stores
+from pygpt_net.core.idx.storage.chroma import ChromaProvider as ChromaVectorStore
+from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider as ElasticsearchVectorStore
+from pygpt_net.core.idx.storage.pinecode import PinecodeProvider as PinecodeVectorStore
+from pygpt_net.core.idx.storage.redis import RedisProvider as RedisVectorStore
+from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStore
+
+def run(plugins: list = None,
+        llms: list = None,
+        vector_stores: list = None):
+```
+
+To register your custom vector store provider just register it by passing provier instance to `vector_stores` list:
+
+```python
+
+# my_launcher.py
+
+from pygpt_net.app import run
+from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+from my_llms import MyCustomLLM
+from my_vector_stores import MyCustomVectorStore
+
+plugins = [
+    MyCustomPlugin(),
+    MyOtherCustomPlugin(),
+]
+llms = [
+    MyCustomLLM(),
+]
+vector_stores = [
+    MyCustomVectorStore(),
+]
+
+run(
+    plugins=plugins,
+    llms=llms,
+    vector_stores=vector_stores
+)
+```
 
 # Plugins
 
@@ -1181,7 +1295,30 @@ Plugin integrates vision capabilities with any chat mode, not just Vision mode. 
 
 - `Model` *model*
 
-The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
+The model used to temporarily provide vision capabilities; default is `gpt-4-vision-preview`.
+
+
+- `Prompt` *prompt*
+
+Prompt used for vision mode. It will append or replace current system prompt when using vision model.
+
+
+- `Replace prompt` *replace_prompt*
+
+replace_prompt.description = Replace whole system prompt with vision prompt against appending it to the current prompt.
+
+
+- `Allow command: camera capture` *cmd_capture*
+
+Allow to use command: camera capture (`Execute commands` option enabled is required).
+If enabled, model will be able to capture images from camera itself.
+
+
+- `Allow command: make screenshot` *screenshot*
+
+Allow to use command: make screenshot (`Execute commands` option enabled is required).
+If enabled, model will be able to making screenshots itself.
+
 
 ## Chat with files (Llama-index, inline)
 
@@ -1566,6 +1703,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.114 (2024-01-21)
+
+- Added support for Vector Store databases: `Chroma`, `Elasticsearch`, `Pinecone` and `Redis` (beta)
+- Added config options for selecting and configuring Vector Store providers
+- Added ability to extend PyGPT with custom Vector Store providers
+- Added commands to the `Vision (inline)` plugin: get camera capture and make screenshot. Options must be enabled in the plugin settings. When enabled, they allow the model to capture images from the camera and make screenshots itself.
+- Added `Query index only (without chat)` option to `Chat with files` mode.
 
 # 2.0.113 (2024-01-20)
 

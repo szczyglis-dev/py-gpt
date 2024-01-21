@@ -563,7 +563,30 @@ Plugin integrates vision capabilities with any chat mode, not just Vision mode. 
 
 - ``Model`` *model*
 
-The model used to temporarily provide vision capabilities; default is "gpt-4-vision-preview".
+The model used to temporarily provide vision capabilities; default is `gpt-4-vision-preview`.
+
+
+- ``Prompt`` *prompt*
+
+Prompt used for vision mode. It will append or replace current system prompt when using vision model.
+
+
+- ``Replace prompt`` *replace_prompt*
+
+replace_prompt.description = Replace whole system prompt with vision prompt against appending it to the current prompt.
+
+
+- ``Allow command: camera capture`` *cmd_capture*
+
+Allow to use command: camera capture (``Execute commands`` option enabled is required).
+If enabled, model will be able to capture images from camera itself.
+
+
+- ``Allow command: make screenshot`` *screenshot*
+
+Allow to use command: make screenshot (``Execute commands`` option enabled is required).
+If enabled, model will be able to making screenshots itself.
+
 
 Chat with files (Llama-index, inline)
 -------------------------------------

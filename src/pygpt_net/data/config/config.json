@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.113",
-    "app.version": "2.0.113",
-    "updated_at": "2024-01-20T00:00:00"
+    "version": "2.0.114",
+    "app.version": "2.0.114",
+    "updated_at": "2024-01-21T00:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -44,13 +44,13 @@
   "font_size.ctx": 12,
   "font_size.toolbox": 12,
   "frequency_penalty": 0.0,
+  "img_dialog_open": true,
   "img_prompt": "Whenever I provide a basic idea or concept for an image, such as 'a picture of mountains', I want you to ALWAYS translate it into English and expand and elaborate on this idea. Use your knowledge and creativity to add details that would make the image more vivid and interesting. This could include specifying the time of day, weather conditions, surrounding environment, and any additional elements that could enhance the scene. Your goal is to create a detailed and descriptive prompt that provides DALL-E with enough information to generate a rich and visually appealing image. Remember to maintain the original intent of my request while enriching the description with your imaginative details.\n",
   "img_prompt_model": "gpt-4-1106-preview",
   "img_raw": true,
   "img_resolution": "1792x1024",
   "img_quality": "standard",
   "img_variants": 1,
-  "img_dialog_open": true,
   "lang": "en",
   "layout.density": -1,
   "layout.dpi.scaling": true,
@@ -71,7 +71,10 @@
           "name": "Base"
       }
   ],
+  "llama.idx.raw": false,
   "llama.idx.status": {},
+  "llama.idx.storage": "SimpleVectorStore",
+  "llama.idx.storage.args": [],
   "llama.log": false,
   "lock_modes": true,
   "max_context_history_items": 100,

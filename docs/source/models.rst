@@ -132,7 +132,56 @@ To register custom LLM wrappers:
         MyCustomLLM(),
     ]
 
-    run(plugins, llms)  # <-- LLMs as the second argument
+    run(plugins=plugins, llms=llms)
 
 
 To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the ``llm`` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
+
+
+Adding custom Vector Store providers
+------------------------------------
+
+**From version 2.0.114 you can also register your own Vector Store provider**:
+
+.. code-block:: python
+
+    # app.y
+
+    # vector stores
+    from pygpt_net.core.idx.storage.chroma import ChromaProvider as ChromaVectorStore
+    from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider as ElasticsearchVectorStore
+    from pygpt_net.core.idx.storage.pinecode import PinecodeProvider as PinecodeVectorStore
+    from pygpt_net.core.idx.storage.redis import RedisProvider as RedisVectorStore
+    from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStore
+
+    def run(plugins: list = None,
+            llms: list = None,
+            vector_stores: list = None):
+
+To register your custom vector store provider just register it by passing provier instance to ``vector_stores`` list:
+
+.. code-block:: python
+
+    # my_launcher.py
+
+    from pygpt_net.app import run
+    from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+    from my_llms import MyCustomLLM
+    from my_vector_stores import MyCustomVectorStore
+
+    plugins = [
+        MyCustomPlugin(),
+        MyOtherCustomPlugin(),
+    ]
+    llms = [
+        MyCustomLLM(),
+    ]
+    vector_stores = [
+        MyCustomVectorStore(),
+    ]
+
+    run(
+        plugins=plugins,
+        llms=llms,
+        vector_stores=vector_stores
+    )
