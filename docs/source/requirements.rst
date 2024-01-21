@@ -151,8 +151,6 @@ To use camera in Vision mode in Snap version you must connect the camera with:
 
     sudo snap connect pygpt:camera
 
-
-
 Other requirements
 ------------------
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 

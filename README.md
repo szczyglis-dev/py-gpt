@@ -106,9 +106,6 @@ sudo snap refresh pygpt
 
 ```commandline
 sudo snap connect pygpt:camera
-```
-
-**File explorer:** `Open file` and `Open in folder` options may not work in Snap version.
 
 ## PyPi (pip)
 
@@ -394,7 +391,7 @@ You can check keyword arguments needed by selected provider on Llama-index API r
 https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
 
 
-Witch keywords arguments are passed to providers?
+Which keyword arguments are passed to providers?
 
 For `ChromaVectorStore` and `SimpleVectorStore` all arguments are set by PyGPT and passed internally (you do not need to configure anything).
 For other providers you can provide these arguments:
@@ -559,45 +556,56 @@ To add a new model using the Langchain wrapper in **PyGPT**, insert the model's 
 Example of models configuration - `models.json`:
 
 ```
-"gpt-4-1106-preview": {
-    "id": "gpt-4-1106-preview",
-    "name": "gpt-4-turbo-1106",
+"gpt-3.5-turbo": {
+    "id": "gpt-3.5-turbo",
+    "name": "gpt-3.5-turbo",
     "mode": [
         "chat",
         "assistant",
-        "langchain"
+        "langchain",
+        "llama_index"
     ],
     "langchain": {
-            "provider": "openai",
-            "mode": [
-                "chat"
-            ],
-            "args": {
-                "model_name": "gpt-4-1106-preview"
-            }
-        },
-        "ctx"
-    "ctx": 128000,
-    "tokens": 4096
-},
-"google/flan-t5-xxl": {
-    "id": "google/flan-t5-xxl",
-    "name": "Google - flan-t5-xxl",
-    "mode": [
-        "langchain"
-    ],
-    "langchain": {
-        "provider": "huggingface",
+        "provider": "openai",
         "mode": [
             "chat"
         ],
-        "args": {
-            "repo_id": "google/flan-t5-xxl"
-        },
-        "api_key": "XXXXXXXXXXXXXXXXXXXXXX"
+        "args": [
+            {
+                "name": "model_name",
+                "value": "gpt-3.5-turbo",
+                "type": "str"
+            }
+        ],
+        "env": [
+            {
+                "name": "OPENAI_API_KEY",
+                "value": "{api_key}"
+            }
+        ]
+    },
+    "llama_index": {
+        "provider": "openai",
+        "mode": [
+            "chat"
+        ],
+        "args": [
+            {
+                "name": "model",
+                "value": "gpt-3.5-turbo",
+                "type": "str"
+            }
+        ],
+        "env": [
+            {
+                "name": "OPENAI_API_KEY",
+                "value": "{api_key}"
+            }
+        ]
     },
     "ctx": 4096,
-    "tokens": 4096
+    "tokens": 4096,
+    "default": false
 },
 ```
 
@@ -628,7 +636,11 @@ from pygpt_net.llm.HuggingFace import HuggingFaceLLM
 from pygpt_net.llm.Llama2 import Llama2LLM
 from pygpt_net.llm.Ollama import OllamaLLM
 
-def run(plugins=None, llms=None):
+def run(
+	plugins=None, 
+	llms=None, 
+	vector_stores=vector_stores
+):
     """Runs the app."""
     # Initialize the app
     launcher = Launcher()
@@ -677,7 +689,11 @@ llms = [
     MyCustomLLM(),
 ]
 
-run(plugins=plugins, llms=llms)
+run(
+	plugins=plugins, 
+	llms=llms, 
+	vector_stores=vector_stores
+)
 ```
 
 To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
@@ -699,7 +715,8 @@ from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStor
 
 def run(plugins: list = None,
         llms: list = None,
-        vector_stores: list = None):
+        vector_stores: list = None
+    ):
 ```
 
 To register your custom vector store provider just register it by passing provier instance to `vector_stores` list:
@@ -1711,6 +1728,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added ability to extend PyGPT with custom Vector Store providers
 - Added commands to the `Vision (inline)` plugin: get camera capture and make screenshot. Options must be enabled in the plugin settings. When enabled, they allow the model to capture images from the camera and make screenshots itself.
 - Added `Query index only (without chat)` option to `Chat with files` mode.
+- Added stream mode support to query index mode in `Chat with files`.
 
 # 2.0.113 (2024-01-20)
 

@@ -7,6 +7,7 @@
 - Added ability to extend PyGPT with custom Vector Store providers
 - Added commands to the `Vision (inline)` plugin: get camera capture and make screenshot. Options must be enabled in the plugin settings. When enabled, they allow the model to capture images from the camera and make screenshots itself.
 - Added `Query index only (without chat)` option to `Chat with files` mode.
+- Added stream mode support to query index mode in `Chat with files`.
 
 # 2.0.113 (2024-01-20)
 

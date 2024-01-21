@@ -160,8 +160,7 @@ You can check keyword arguments needed by selected provider on Llama-index API r
 
 https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
 
-
-Witch keywords arguments are passed to providers?
+Which keyword arguments are passed to providers?
 
 For ``ChromaVectorStore`` and ``SimpleVectorStore`` all arguments are set by PyGPT and passed internally (you do not need to configure anything). For other providers you can provide these arguments:
 

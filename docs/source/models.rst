@@ -14,45 +14,56 @@ Example of models configuration - ``models.json``:
 
 .. code-block:: json
 
-    "gpt-4-1106-preview": {
-        "id": "gpt-4-1106-preview",
-        "name": "gpt-4-turbo-1106",
+    "gpt-3.5-turbo": {
+        "id": "gpt-3.5-turbo",
+        "name": "gpt-3.5-turbo",
         "mode": [
             "chat",
             "assistant",
-            "langchain"
+            "langchain",
+            "llama_index"
         ],
         "langchain": {
-                "provider": "openai",
-                "mode": [
-                    "chat"
-                ],
-                "args": {
-                    "model_name": "gpt-4-1106-preview"
-                }
-            },
-            "ctx"
-        "ctx": 128000,
-        "tokens": 4096
-    },
-    "google/flan-t5-xxl": {
-        "id": "google/flan-t5-xxl",
-        "name": "Google - flan-t5-xxl",
-        "mode": [
-            "langchain"
-        ],
-        "langchain": {
-            "provider": "huggingface",
+            "provider": "openai",
             "mode": [
                 "chat"
             ],
-            "args": {
-                "repo_id": "google/flan-t5-xxl"
-            },
-            "api_key": "XXXXXXXXXXXXXXXXXXXXXX"
+            "args": [
+                {
+                    "name": "model_name",
+                    "value": "gpt-3.5-turbo",
+                    "type": "str"
+                }
+            ],
+            "env": [
+                {
+                    "name": "OPENAI_API_KEY",
+                    "value": "{api_key}"
+                }
+            ]
+        },
+        "llama_index": {
+            "provider": "openai",
+            "mode": [
+                "chat"
+            ],
+            "args": [
+                {
+                    "name": "model",
+                    "value": "gpt-3.5-turbo",
+                    "type": "str"
+                }
+            ],
+            "env": [
+                {
+                    "name": "OPENAI_API_KEY",
+                    "value": "{api_key}"
+                }
+            ]
         },
         "ctx": 4096,
-        "tokens": 4096
+        "tokens": 4096,
+        "default": false
     },
 
 
@@ -84,7 +95,11 @@ These wrappers are loaded into the application during startup using ``launcher.a
     from pygpt_net.llm.Llama2 import Llama2LLM
     from pygpt_net.llm.Ollama import OllamaLLM
 
-    def run(plugins=None, llms=None):
+    def run(
+        plugins=None, 
+        llms=None, 
+        vector_stores=vector_stores
+    ):
         """Runs the app."""
         # Initialize the app
         launcher = Launcher()
@@ -131,8 +146,13 @@ To register custom LLM wrappers:
     llms = [
         MyCustomLLM(),
     ]
+    vector_stores = []
 
-    run(plugins=plugins, llms=llms)
+    run(
+        plugins=plugins, 
+        llms=llms, 
+        vector_stores=vector_stores
+    )
 
 
 To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the ``llm`` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
@@ -156,7 +176,8 @@ Adding custom Vector Store providers
 
     def run(plugins: list = None,
             llms: list = None,
-            vector_stores: list = None):
+            vector_stores: list = None
+        ):
 
 To register your custom vector store provider just register it by passing provier instance to ``vector_stores`` list:
 
