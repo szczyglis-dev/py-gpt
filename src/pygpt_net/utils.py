@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.21 09:00:00                  #
 # ================================================== #
 
+import json
 import os
 import re
 from pygpt_net.core.locale import Locale
@@ -87,3 +88,32 @@ def get_app_meta() -> dict:
         'author': get_init_value("__author__"),
         'email': get_init_value("__email__")
     }
+
+
+def parse_args(data: dict) -> dict:
+    """
+    Parse args
+
+    :param data: dict
+    :return: dict
+    """
+    args = {}
+    for item in data:
+        key = item['name']
+        value = item['value']
+        type = item['type']
+        if type == 'int':
+            args[key] = int(value)
+        elif type == 'float':
+            args[key] = float(value)
+        elif type == 'bool':
+            args[key] = bool(value)
+        elif type == 'dict':
+            args[key] = json.loads(value)
+        elif type == 'list':
+            args[key] = value.split(',')
+        elif type == 'None':
+            args[key] = None
+        else:
+            args[key] = str(value)
+    return args
