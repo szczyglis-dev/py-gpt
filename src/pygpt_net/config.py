@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.21 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -173,16 +173,17 @@ class Config:
         """
         return self.provider.get_sections()
 
-    def get(self, key: str) -> any:
+    def get(self, key: str, default: any = None) -> any:
         """
         Return config value by key
 
         :param key: key
+        :param default: default value
         :return: value
         """
         if key in self.data:
             return self.data[key]
-        return None
+        return default
 
     def set(self, key: str, value: any):
         """
