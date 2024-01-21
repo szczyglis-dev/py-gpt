@@ -385,7 +385,7 @@ Attachments tab in `Chat with files` mode can be used to provide images to `Visi
 ```
 
 You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Llama-index` window. 
-Arguments provided here (on list: `Vector Store (**kwargs)` will be passed to selected vector store provider. 
+Arguments provided here (on list: `Vector Store (**kwargs)` in `Advanced settings` will be passed to selected vector store provider. 
 You can check keyword arguments needed by selected provider on Llama-index API reference page: 
 
 https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
@@ -401,7 +401,7 @@ For other providers you can provide these arguments:
 Arguments for ElasticsearchStore(`**kwargs`):
 
 - index_name (default: current index ID, already set, not required)
-- all keyword arguments provided on list
+- any other keyword arguments provided on list
 
 
 **PinecodeVectorStore**
@@ -411,14 +411,12 @@ Arguments for Pinecone(`**kwargs`):
 - index_name (default: current index ID, already set, not required)
 - api_key
 
-Index name is already set and not required.
-
 **RedisVectorStore**
 
 Arguments for RedisVectorStore(`**kwargs`):
 
 - index_name (default: current index ID, already set, not required)
-- all keyword arguments provided on list
+- any other keyword arguments provided on list
 
 
 You can extend list of available providers by creating custom provider and registering it on app launch.
