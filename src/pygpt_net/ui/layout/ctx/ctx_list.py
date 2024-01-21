@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.21 05:00:00                  #
 # ================================================== #
 
-from PySide6 import QtCore, QtGui
-from PySide6.QtCore import Qt
+from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget
 from datetime import datetime, timedelta
@@ -83,7 +82,11 @@ class CtxList:
             self.window.ui.models[id].insertRow(i)
             dt = self.convert_date(data[n].updated)
             date_time_str = datetime.fromtimestamp(data[n].updated).strftime("%Y-%m-%d %H:%M")
-            name = data[n].name + ' (' + dt + ')'
+            title = data[n].name
+            # truncate to max 40 chars
+            if len(title) > 80:
+                title = title[:80] + '...'
+            name = title.replace("\n", "") + ' (' + dt + ')'
             index = self.window.ui.models[id].index(i, 0)
             mode_str = ''
             if data[n].last_mode is not None:
@@ -120,7 +123,7 @@ class CtxList:
             return f"{weeks_ago} " + trans('dt.weeks')
         elif days_ago < 30:
             return f"{days_ago} " + trans('dt.days_ago')
-        elif days_ago >= 30 and days_ago < 32:
+        elif 30 <= days_ago < 32:
             return trans('dt.month')
         else:
             return date.strftime("%Y-%m-%d")
