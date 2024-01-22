@@ -1,3 +1,9 @@
+2.0.115 (2024-01-22)
+
+- Added token recalculation after the attachments list is changed and upon copy/pasting into the input field.
+- Added descriptions to the settings.
+- Improved the "Copy selected text to..." option.
+
 2.0.114 (2024-01-21)
 
 - Fixed broken CSS on Windows

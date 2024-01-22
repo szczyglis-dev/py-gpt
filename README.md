@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.114** | build: **2024.01.21** | Python: **3.10+**
+Release: **2.0.115** | build: **2024.01.22** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1719,6 +1719,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.115 (2024-01-22)
+
+- Added token recalculation after the attachments list is changed and upon copy/pasting into the input field.
+- Added descriptions to the settings.
+- Improved the "Copy selected text to..." option.
 
 # 2.0.114 (2024-01-21)
 
