@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 08:00:00                  #
+# Updated Date: 2024.01.22 10:00:00                  #
 # ================================================== #
 
 import re
@@ -228,36 +228,6 @@ class Renderer:
 
         self.buffer += raw_chunk
         self.append(self.format_chunk(text_chunk), "")
-
-    def append_text(self, text: str):
-        """
-        Append custom text to input
-
-        :param text: Text to append
-        """
-        prev_text = self.get_input_node().toPlainText()
-        if prev_text != "":
-            prev_text += "\n\n"
-        new_text = prev_text + text.strip()
-        self.get_input_node().setText(new_text)
-        cur = self.get_input_node().textCursor()  # Move cursor to end of text
-        cur.movePosition(QTextCursor.End)
-
-    def append_to_input(self, text: str):
-        """
-        Append text to input
-
-        :param text: text to append
-        """
-        cur = self.get_input_node().textCursor()  # Move cursor to end of text
-        cur.movePosition(QTextCursor.End)
-        s = str(text) + "\n"
-        while s:
-            head, sep, s = s.partition("\n")  # Split line at LF
-            cur.insertText(head)  # Insert text at cursor
-            if sep:  # New line if LF
-                cur.insertBlock()
-        self.get_input_node().setTextCursor(cur)  # Update visible cursor
 
     def append_block(self):
         """Append block to output"""

@@ -187,8 +187,8 @@ class Notepad:
         dt = ""  # TODO: add to config append date/time
         # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ":\n--------------------------\n"
         prev_text = self.window.ui.notepad[idx].toPlainText()
-        if prev_text != "":
-            prev_text += "\n\n"
+        if prev_text.strip() != "":
+            prev_text += "\n"
         new_text = prev_text + dt + text.strip()
         self.window.ui.notepad[idx].setText(new_text)
         self.save(idx)

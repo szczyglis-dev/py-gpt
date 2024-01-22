@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 11:00:00                  #
+# Updated Date: 2024.01.22 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -122,19 +122,3 @@ class Render:
         :param begin: if it is the beginning of the stream
         """
         self.get_renderer().append_chunk(item, text_chunk, begin)
-
-    def append_text(self, text: str):
-        """
-        Append custom text to input
-
-        :param text: Text to append
-        """
-        self.get_renderer().append_text(text)
-
-    def append_to_input(self, text: str):  # TODO move to input
-        """
-        Append text to input
-
-        :param text: text to append
-        """
-        self.get_renderer().append_to_input(text)

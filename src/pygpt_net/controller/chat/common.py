@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.19 02:00:00                  #
 # ================================================== #
+from PySide6.QtGui import QTextCursor
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
@@ -71,6 +72,31 @@ class Common:
 
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
+
+    def append_to_input(self, text: str):
+        """
+        Append text to input
+
+        :param text: text to append
+        """
+        prev_text = self.window.ui.nodes['input'].toPlainText()
+        cur = self.window.ui.nodes['input'].textCursor()
+        cur.movePosition(QTextCursor.End)
+        text = str(text).strip()
+        if prev_text.strip() != "":
+            text = "\n" + text
+        s = text
+        while s:
+            head, sep, s = s.partition("\n")  # Split line at LF
+            cur.insertText(head)  # Insert text at cursor
+            if sep:  # New line if LF
+                cur.insertBlock()
+        cur.movePosition(QTextCursor.End)  # Move cursor to end of text
+        self.window.ui.nodes['input'].setTextCursor(cur)  # Update visible cursor
+        self.window.ui.nodes['input'].setFocus()  # Set focus to input
+
+        # update tokens counter
+        self.window.controller.ui.update_tokens()
 
     def toggle_stream(self, value: bool):
         """
