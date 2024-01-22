@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 09:00:00                  #
+# Updated Date: 2024.01.22 09:00:00                  #
 # ================================================== #
 
 import json
@@ -75,7 +75,8 @@ def get_init_value(key: str = "__version__") -> str:
 def get_app_meta() -> dict:
     """
     Return app meta data
-    :return: app meta data=
+
+    :return: app meta data
     """
     return {
         'github': get_init_value("__github__"),
@@ -90,12 +91,12 @@ def get_app_meta() -> dict:
     }
 
 
-def parse_args(data: dict) -> dict:
+def parse_args(data: list) -> dict:
     """
-    Parse args
+    Parse keyword arguments from list of items
 
-    :param data: dict
-    :return: dict
+    :param data: list of arguments items
+    :return: dict of parsed keyword arguments
     """
     args = {}
     for item in data:
@@ -107,11 +108,16 @@ def parse_args(data: dict) -> dict:
         elif type == 'float':
             args[key] = float(value)
         elif type == 'bool':
-            args[key] = bool(value)
+            if str(value).lower() == 'true':
+                args[key] = True
+            elif str(value).lower() == 'false':
+                args[key] = False
+            else:
+                args[key] = bool(int(value))
         elif type == 'dict':
             args[key] = json.loads(value)
         elif type == 'list':
-            args[key] = value.split(',')
+            args[key] = [x.strip() for x in value.split(',')]
         elif type == 'None':
             args[key] = None
         else:
