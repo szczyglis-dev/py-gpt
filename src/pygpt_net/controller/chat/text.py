@@ -70,7 +70,7 @@ class Text:
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
-        # upload attachments if provided and assistant mode
+        # upload attachments if provided
         attachments = self.window.controller.chat.files.upload(mode)
         if len(attachments) > 0:
             ctx.attachments = attachments
