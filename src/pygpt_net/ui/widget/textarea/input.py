@@ -30,6 +30,7 @@ class ChatInput(QTextEdit):
         self.value = self.window.core.config.data['font_size.input']
         self.max_font_size = 42
         self.min_font_size = 8
+        self.textChanged.connect(self.window.controller.ui.update_tokens)
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
@@ -72,7 +73,6 @@ class ChatInput(QTextEdit):
         :param event: key event
         """
         super(ChatInput, self).keyPressEvent(event)
-        self.window.controller.ui.update_tokens()
         if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
             mode = self.window.core.config.get('send_mode')
             if mode > 0:  # Enter or Shift + Enter
