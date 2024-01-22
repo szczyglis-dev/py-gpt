@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.01.22 10:00:00                  #
 # ================================================== #
 
 import os
@@ -59,6 +59,9 @@ class Attachment:
         else:
             if mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'):
                 self.window.controller.chat.vision.available()
+
+        # update tokens counter (vision plugin, etc.)
+        self.window.controller.ui.update_tokens()
 
     def update_tab(self, mode: str):
         """
