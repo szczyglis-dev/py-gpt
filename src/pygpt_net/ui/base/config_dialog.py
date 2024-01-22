@@ -79,17 +79,27 @@ class BaseConfigDialog:
         :return: Option layout
         """
         label = option['label']
+        desc = None
+        if "description" in option:
+            desc = option['description']
         extra = {}
         if 'extra' in option:
             extra = option['extra']
         label_key = label + '.label'
 
+        # label
         self.window.ui.nodes[label_key] = QLabel(trans(label))
         self.window.ui.nodes[label_key].setMinimumWidth(120)
         self.window.ui.nodes[label_key].setWordWrap(True)
         if 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
         self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+
+        # description
+        desc_key = None
+        if desc is not None:
+            desc_key = label + '.desc'
+            self.window.ui.nodes[desc_key] = self.add_description(desc)
 
         # set resizable if textarea
         if option['type'] == 'textarea':
@@ -99,6 +109,15 @@ class BaseConfigDialog:
         layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(widget)
         layout.setStretch(0, 1)
+
+        # add description if exists
+        if desc is not None:
+            rows = QVBoxLayout()
+            rows.addLayout(layout)
+            rows.addWidget(self.window.ui.nodes[desc_key])
+            rows.setContentsMargins(0, 0, 0, 0)
+            return rows
+
         return layout
 
     def add_row_option(self, widget: QWidget, option: dict) -> QHBoxLayout:
@@ -111,19 +130,34 @@ class BaseConfigDialog:
         """
         label = option['label']
         label_key = label + '.label'
+        desc = None
+        if "description" in option:
+            desc = option['description']
         extra = {}
         if 'extra' in option:
             extra = option['extra']
 
+        # label
         self.window.ui.nodes[label_key] = QLabel(trans(label))
         self.window.ui.nodes[label_key].setMinimumHeight(30)
         self.window.ui.nodes[label_key].setWordWrap(True)
+
+        # extra
         if extra is not None and 'bold' in extra and extra['bold']:
             self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
+
+        # description
+        desc_key = None
+        if desc is not None:
+            desc_key = label + '.desc'
+            self.window.ui.nodes[desc_key] = self.add_description(desc)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes[label_key])
         layout.addWidget(widget)
+
+        if desc is not None:
+            layout.addWidget(self.window.ui.nodes[desc_key])
 
         # append URLs
         if 'urls' in extra \
@@ -142,11 +176,21 @@ class BaseConfigDialog:
         :param option: Option
         :return: QHBoxLayout
         """
+        label = option['label']
+        desc = None
+        if "description" in option:
+            desc = option['description']
         extra = {}
         if 'extra' in option:
             extra = option['extra']
         layout = QHBoxLayout()
         layout.addWidget(widget)
+
+        # description
+        desc_key = None
+        if desc is not None:
+            desc_key = label + '.desc'
+            self.window.ui.nodes[desc_key] = self.add_description(desc)
 
         # append URLs
         if 'urls' in extra \
@@ -155,7 +199,29 @@ class BaseConfigDialog:
             urls_widget = self.add_urls(extra['urls'])
             layout.addWidget(urls_widget)
 
+        # add description if exists
+        if desc is not None:
+            rows = QVBoxLayout()
+            rows.addLayout(layout)
+            rows.addWidget(self.window.ui.nodes[desc_key])
+            rows.setContentsMargins(0, 0, 0, 0)
+            return rows
+
         return layout
+
+    def add_description(self, text: str) -> QLabel:
+        """
+        Add description
+
+        :param text: text (to translate)
+        :return: QLabel
+        """
+        desc = trans(text)
+        label = QLabel(desc)
+        label.setWordWrap(True)
+        label.setMaximumHeight(40)
+        label.setStyleSheet("font-size: 10px;")
+        return label
 
     def add_urls(self, urls, align=Qt.AlignLeft) -> QWidget:
         """
