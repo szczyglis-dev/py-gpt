@@ -34,7 +34,7 @@ def test_use(mock_window):
     mock_window.controller.chat.render.append_to_input = MagicMock()
     mock_window.ui.nodes['preset.prompt'].toPlainText = MagicMock(return_value="preset_prompt")
     presets.use()
-    mock_window.controller.chat.render.append_to_input.assert_called_once_with("preset_prompt")
+    mock_window.controller.chat.common.append_to_input.assert_called_once_with("preset_prompt")
 
 
 def test_set(mock_window):

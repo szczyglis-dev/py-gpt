@@ -130,19 +130,3 @@ def test_append_chunk(mock_window):
     ctx = CtxItem()
     render.append_chunk(ctx, "test")
     render.markdown_renderer.append_chunk.assert_called_once()
-
-
-def test_append_text(mock_window):
-    """Test append text"""
-    render = Render(mock_window)
-    render.markdown_renderer = MagicMock()
-    render.append_text("test")
-    render.markdown_renderer.append_text.assert_called_once()
-
-
-def test_append_to_input(mock_window):
-    """Test append to input"""
-    render = Render(mock_window)
-    render.markdown_renderer = MagicMock()
-    render.append_to_input("test")
-    render.markdown_renderer.append_to_input.assert_called_once()

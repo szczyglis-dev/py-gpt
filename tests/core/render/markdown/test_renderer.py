@@ -224,29 +224,6 @@ def test_append(mock_window):
     render.get_output_node().textCursor.assert_called_once()
 
 
-def test_append_text(mock_window):
-    """Test append text"""
-    render = Render(mock_window)
-    render.get_input_node = MagicMock()
-    cursor = MagicMock()
-    cursor.movePosition = MagicMock()
-    render.get_input_node().textCursor = MagicMock(return_value=cursor)
-    render.append_text("test")
-    render.get_input_node().textCursor.assert_called_once()
-
-
-def test_append_to_input(mock_window):
-    """Test append to input"""
-    render = Render(mock_window)
-    render.get_input_node = MagicMock()
-    cursor = MagicMock()
-    cursor.movePosition = MagicMock()
-    render.get_input_node().textCursor = MagicMock(return_value=cursor)
-    render.append_to_input("test")
-    cursor.insertText.assert_called_once_with("test")
-    render.get_input_node().textCursor.assert_called_once()
-
-
 def test_is_timestamp_enabled(mock_window):
     """Test is timestamp enabled"""
     render = Render(mock_window)
