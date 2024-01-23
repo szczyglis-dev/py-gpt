@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.115** | build: **2024.01.22** | Python: **3.10+**
+Release: **2.0.116** | build: **2024.01.24** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1731,6 +1731,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.116 (2024-01-24)
+
+- Fixed font color in light themes
+- Fixed layout display on Windows systems
+- Theme, Language and Debug menus moved to Config menu - feature [#10](https://github.com/szczyglis-dev/py-gpt/issues/10)
+- Added Developer section in Settings
+- Refactored code and updated tests
 
 # 2.0.115 (2024-01-22)
 
