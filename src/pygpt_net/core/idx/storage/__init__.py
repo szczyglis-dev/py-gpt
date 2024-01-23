@@ -6,9 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 18:00:00                  #
+# Updated Date: 2024.01.22 18:00:00                  #
 # ================================================== #
 
+from llama_index import (
+    VectorStoreIndex,
+)
 from .base import BaseStore
 
 
@@ -25,9 +28,9 @@ class Storage:
 
     def get_storage(self) -> BaseStore or None:
         """
-        Get current storage
+        Get current vector store provider
 
-        :return: storage provider instance
+        :return: vector store provider instance
         """
         current = self.window.core.config.get("llama.idx.storage")
         if current is None \
@@ -38,19 +41,19 @@ class Storage:
 
     def register(self, name: str, storage=None):
         """
-        Register storage provider
+        Register vector store provider
 
-        :param name: storage name (ID)
-        :param storage: storage instance
+        :param name: vector store provider name (ID)
+        :param storage: vector store provider instance
         """
         storage.attach(window=self.window)
         self.storages[name] = storage
 
     def get_ids(self) -> list:
         """
-        Return all storages
+        Return all vector store providers IDs
 
-        :return: list of storages (IDs)
+        :return: list of vector store providers (IDs)
         """
         return list(self.storages.keys())
 
@@ -77,9 +80,9 @@ class Storage:
             raise Exception('Storage engine not found!')
         storage.create(id=id)
 
-    def get(self, id: str, service_context=None) -> any:
+    def get(self, id: str, service_context=None) -> VectorStoreIndex:
         """
-        Get index
+        Get index instance
 
         :param id: index name
         :param service_context: service context
@@ -90,7 +93,7 @@ class Storage:
             raise Exception('Storage engine not found!')
         return storage.get(id=id, service_context=service_context)
 
-    def store(self, id: str, index=None):
+    def store(self, id: str, index: VectorStoreIndex = None):
         """
         Store index
 

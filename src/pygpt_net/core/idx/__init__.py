@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 08:00:00                  #
+# Updated Date: 2024.01.22 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -39,11 +39,11 @@ class Idx:
         self.items = {}
         self.initialized = False
 
-    def get_current_store(self):
+    def get_current_store(self) -> str:
         """
-        Get current store name
+        Get current vector store name/ID
 
-        :return: store
+        :return: vector store name
         """
         return self.window.core.config.get('llama.idx.storage')
 
@@ -64,13 +64,13 @@ class Idx:
         """
         return self.storage.remove(idx)
 
-    def index_files(self, idx: str = "base", path: str = None) -> tuple:
+    def index_files(self, idx: str = "base", path: str = None) -> (dict, list):
         """
         Index file or directory of files
 
         :param idx: index name
         :param path: path to file or directory
-        :return: dict with indexed files, errors
+        :return: dict with indexed files (path -> id), list with errors
         """
         context = self.llm.get_service_context()
         index = self.storage.get(idx, service_context=context)  # get or create index
@@ -79,13 +79,13 @@ class Idx:
             self.storage.store(id=idx, index=index)  # store index
         return files, errors
 
-    def index_db_by_meta_id(self, idx: str = "base", id: int = 0) -> tuple:
+    def index_db_by_meta_id(self, idx: str = "base", id: int = 0) -> (int, list):
         """
         Index records from db by meta id
 
         :param idx: index name
         :param id: CtxMeta id
-        :return: num of indexed files, errors
+        :return: num of indexed files, list with errors
         """
         context = self.llm.get_service_context()
         index = self.storage.get(idx, service_context=context)  # get or create index
@@ -94,13 +94,13 @@ class Idx:
             self.storage.store(id=idx, index=index)  # store index
         return num, errors
 
-    def index_db_from_updated_ts(self, idx: str = "base", from_ts: int = 0) -> tuple:
+    def index_db_from_updated_ts(self, idx: str = "base", from_ts: int = 0) -> (int, list):
         """
         Index records from db by meta id
 
         :param idx: index name
         :param from_ts: timestamp from
-        :return: num of indexed files, errors
+        :return: num of indexed files, list with errors
         """
         context = self.llm.get_service_context()
         index = self.storage.get(idx, service_context=context)  # get or create index
@@ -161,7 +161,7 @@ class Idx:
 
     def get_idx_by_name(self, name: str) -> int:
         """
-        Return idx by name
+        Return idx on list by name
 
         :param name: idx name
         :return: idx on list
@@ -212,7 +212,7 @@ class Idx:
 
     def get_all(self) -> dict:
         """
-        Return all indexes in storage
+        Return all indexes in current store
 
         :return: all indexes
         """
@@ -309,9 +309,7 @@ class Idx:
             self.save()
 
     def load(self):
-        """
-        Load indexes
-        """
+        """Load indexes"""
         self.items = self.provider.load()
         # replace workdir placeholder with current workdir
         for store_id in self.items:
@@ -324,7 +322,17 @@ class Idx:
 
     def save(self):
         """Save indexes"""
-        data = copy.deepcopy(self.items)  # copy
+        data = self.make_save_data(self.items)
+        self.provider.save(data)
+
+    def make_save_data(self, items: dict) -> dict:
+        """
+        Make data for save
+
+        :param items: indexes data
+        :return: data for save
+        """
+        data = copy.deepcopy(items)
         # replace workdir with placeholder
         for store_id in data:
             for idx in data[store_id]:
@@ -333,7 +341,7 @@ class Idx:
                     if 'path' in file and file['path'] is not None:
                         data[store_id][idx].items[file_id]['path'] = \
                             self.window.core.filesystem.make_local(file['path'])
-        self.provider.save(data)
+        return data
 
     def get_version(self) -> str:
         """
