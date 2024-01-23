@@ -10,6 +10,7 @@
 # ================================================== #
 
 from unittest.mock import MagicMock
+import platform
 
 from tests.mocks import mock_window
 from pygpt_net.core.render.markdown.renderer import Renderer as Render
@@ -181,11 +182,18 @@ def test_get_image_html(mock_window):
     url = "%workdir%/test.png"
     render = Render(mock_window)
     html = render.get_image_html(url)
-    assert html == \
-           '<a href="file:///' + work_dir + '/test.png"><img src="' + work_dir + '/test.png" width="400" ' \
-                                                                                 'class="image"></a>\n        ' \
-                                                                                 '<p><b>Image:</b> <a href="file:///'\
-           + work_dir + '/test.png">' + work_dir + '/test.png</a></p>'
+    if platform.system() == 'Windows':
+        assert html == \
+               '<a href="file:///' + work_dir + '\\test.png"><img src="' + work_dir + '\\test.png" width="400" ' \
+                                                                                     'class="image"></a>\n        ' \
+                                                                                     '<p><b>Image:</b> <a href="file:///' \
+               + work_dir + '\\test.png">' + work_dir + '\\test.png</a></p>'
+    else:
+        assert html == \
+               '<a href="file:///' + work_dir + '/test.png"><img src="' + work_dir + '/test.png" width="400" ' \
+                                                                                     'class="image"></a>\n        ' \
+                                                                                     '<p><b>Image:</b> <a href="file:///'\
+               + work_dir + '/test.png">' + work_dir + '/test.png</a></p>'
 
 
 def test_get_url_html(mock_window):
@@ -206,8 +214,12 @@ def test_get_file_html(mock_window):
     url = "%workdir%/test.txt"
     render = Render(mock_window)
     html = render.get_file_html(url)
-    assert html == \
-           '<div><b>File:</b> <a href="file:///' + work_dir + '/test.txt">' + work_dir + '/test.txt</a></div>'
+    if platform.system() == 'Windows':
+        assert html == \
+               '<div><b>File:</b> <a href="file:///' + work_dir + '\\test.txt">' + work_dir + '\\test.txt</a></div>'
+    else:
+        assert html == \
+               '<div><b>File:</b> <a href="file:///' + work_dir + '/test.txt">' + work_dir + '/test.txt</a></div>'
 
 
 def test_append(mock_window):

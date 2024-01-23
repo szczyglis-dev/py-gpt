@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import platform
 from unittest.mock import MagicMock, patch, Mock
 from llama_index.readers.schema.base import Document
 
@@ -86,11 +87,19 @@ def test_index_files_in_directory(mock_window):
         mock_listdir.return_value = fake_files
         mock_isfile.side_effect = lambda x: x in (os.path.join(fake_path, f) for f in fake_files)
         indexed, errors = idx.index_files(index, fake_path)
-    assert indexed == {
-        '/fake/directory/file1.txt': 'test_id',
-        '/fake/directory/file2.txt': 'test_id',
-        '/fake/directory/file3.txt': 'test_id'
-    }
+
+    if platform.system() == 'Windows':
+        assert indexed == {
+            '/fake/directory\\file1.txt': 'test_id',
+            '/fake/directory\\file2.txt': 'test_id',
+            '/fake/directory\\file3.txt': 'test_id'
+        }
+    else:
+        assert indexed == {
+            '/fake/directory/file1.txt': 'test_id',
+            '/fake/directory/file2.txt': 'test_id',
+            '/fake/directory/file3.txt': 'test_id'
+        }
     assert errors == []
 
 

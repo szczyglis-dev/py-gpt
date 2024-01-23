@@ -9,7 +9,8 @@
 # Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+import platform
 
 from tests.mocks import mock_window
 from pygpt_net.core.render.plain.renderer import Renderer as Render
@@ -182,8 +183,12 @@ def test_get_image_html(mock_window):
     url = "%workdir%/test.png"
     render = Render(mock_window)
     html = render.get_image_html(url)
-    assert html == \
-           '\nImage: ' + work_dir + '/test.png\n'
+    if platform.system() == 'Windows':
+        assert html == \
+               '\nImage: ' + work_dir + '\\test.png\n'
+    else:
+        assert html == \
+               '\nImage: ' + work_dir + '/test.png\n'
 
 
 def test_get_url_html(mock_window):
@@ -198,14 +203,17 @@ def test_get_url_html(mock_window):
 
 def test_get_file_html(mock_window):
     """Test get file html"""
-    mock_window.core.config.set("lang", "en")
     mock_window.core.filesystem = Filesystem(mock_window)
     work_dir = mock_window.core.config.get_user_path()
     url = "%workdir%/test.txt"
     render = Render(mock_window)
     html = render.get_file_html(url)
-    assert html == \
-           '\nFile: ' + work_dir + '/test.txt\n'
+    if platform.system() == 'Windows':
+        assert html == \
+               '\nFile: ' + work_dir + '\\test.txt\n'
+    else:
+        assert html == \
+               '\nFile: ' + work_dir + '/test.txt\n'
 
 
 def test_append(mock_window):
