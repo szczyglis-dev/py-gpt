@@ -13,6 +13,7 @@ import platform
 import os
 
 from PySide6 import QtCore, QtWidgets
+from PySide6.QtSvg import QSvgRenderer
 
 from pygpt_net.config import Config
 
@@ -126,3 +127,16 @@ class Platforms:
         elif self.window.core.config.is_compiled():
             extra = ' (standalone)'
         return self.get_os() + ', ' + self.get_architecture() + extra
+
+    def is_svg_supported(self) -> bool:
+        """Check if SVG is supported"""
+        try:
+            data = """
+            <svg height="100" width="100">
+              <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+            </svg>
+            """
+            renderer = QSvgRenderer(data.encode('utf-8'))
+            return renderer.isValid()
+        except Exception as e:
+            return False

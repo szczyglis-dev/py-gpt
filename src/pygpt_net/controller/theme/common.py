@@ -152,6 +152,10 @@ class Common:
 
         :return: stylesheet with fix
         """
+        # abort if SVG is supported (no need to fix missing DLLs)
+        if self.window.core.platforms.is_svg_supported():
+            return ''
+
         filename = 'fix_windows.css'
         paths = []
         paths.append(os.path.join(self.window.core.config.get_app_path(), 'data', 'css', filename))
