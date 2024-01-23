@@ -9,10 +9,6 @@
 # Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
-from pygpt_net.utils import trans
-from .mode import Mode
-
-
 class Vision:
     def __init__(self, window=None):
         """
