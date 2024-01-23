@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 class Chat:
@@ -19,8 +19,15 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, prompt: str, max_tokens: int, stream_mode: bool = False, system_prompt: str = None,
-             ai_name: str = None, user_name: str = None):
+    def send(
+            self,
+            prompt: str,
+            max_tokens: int,
+            stream_mode: bool = False,
+            system_prompt: str = None,
+            ai_name: str = None,
+            user_name: str = None
+    ):
         """
         Call OpenAI API for chat
 
@@ -58,7 +65,13 @@ class Chat:
         )
         return response
 
-    def build(self, input_prompt: str, system_prompt: str = None, ai_name: str = None, user_name: str = None) -> list:
+    def build(
+            self,
+            input_prompt: str,
+            system_prompt: str = None,
+            ai_name: str = None,
+            user_name: str = None
+    ) -> list:
         """
         Build chat messages list
 
@@ -121,5 +134,9 @@ class Chat:
         self.input_tokens = 0
 
     def get_used_tokens(self) -> int:
-        """Get input tokens counter"""
+        """
+        Get input tokens counter
+
+        :return: input tokens
+        """
         return self.input_tokens

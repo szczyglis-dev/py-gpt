@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 09:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 import base64
@@ -26,8 +26,14 @@ class Vision:
         self.urls = []
         self.input_tokens = 0
 
-    def send(self, prompt: str, max_tokens: int, stream_mode: bool = False, system_prompt: str = None,
-             attachments: dict = None):
+    def send(
+            self,
+            prompt: str,
+            max_tokens: int,
+            stream_mode: bool = False,
+            system_prompt: str = None,
+            attachments: dict = None
+    ):
         """
         Call OpenAI API for chat with vision
 
@@ -42,7 +48,11 @@ class Vision:
         model_id = self.window.core.gpt.get_model('vision')
 
         # build chat messages
-        messages = self.build(prompt, system_prompt=system_prompt, attachments=attachments)
+        messages = self.build(
+            prompt,
+            system_prompt=system_prompt,
+            attachments=attachments
+        )
         response = client.chat.completions.create(
             messages=messages,
             model=model_id,
@@ -51,7 +61,12 @@ class Vision:
         )
         return response
 
-    def build(self, input_prompt: str, system_prompt: str = None, attachments: dict = None) -> list:
+    def build(
+            self,
+            input_prompt: str,
+            system_prompt: str = None,
+            attachments: dict = None
+    ) -> list:
         """
         Build chat messages list
 
@@ -66,7 +81,10 @@ class Vision:
         model_id = self.window.core.gpt.get_model('vision')
         mode = 'vision'
 
-        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
+        used_tokens = self.window.core.tokens.from_user(
+            input_prompt,
+            system_prompt
+        )  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
         model_ctx = self.window.core.models.get_num_ctx(model_id)
 
@@ -86,7 +104,12 @@ class Vision:
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(model_id, mode, used_tokens, max_tokens)
+            items = self.window.core.ctx.get_prompt_items(
+                model_id,
+                mode,
+                used_tokens,
+                max_tokens
+            )
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -103,11 +126,18 @@ class Vision:
         messages.append({"role": "user", "content": content})
 
         # input tokens: update
-        self.input_tokens += self.window.core.tokens.from_messages(messages, model_id)
+        self.input_tokens += self.window.core.tokens.from_messages(
+            messages,
+            model_id
+        )
 
         return messages
 
-    def build_content(self, input_prompt: str, attachments: dict = None) -> list:
+    def build_content(
+            self,
+            input_prompt: str,
+            attachments: dict = None
+    ) -> list:
         """
         Build vision contents
 

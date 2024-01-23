@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 class Completion:
@@ -19,8 +19,15 @@ class Completion:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, prompt: str, max_tokens: int, stream_mode: bool = False, system_prompt: str = None,
-             ai_name: str = None, user_name: str = None):
+    def send(
+            self,
+            prompt: str,
+            max_tokens: int,
+            stream_mode: bool = False,
+            system_prompt: str = None,
+            ai_name: str = None,
+            user_name: str = None
+    ):
         """
         Call OpenAI API for completion
 
@@ -33,7 +40,12 @@ class Completion:
         :return: response or stream chunks
         """
         # build prompt message
-        message = self.build(prompt, system_prompt=system_prompt, ai_name=ai_name, user_name=user_name)
+        message = self.build(
+            prompt,
+            system_prompt=system_prompt,
+            ai_name=ai_name,
+            user_name=user_name
+        )
 
         # prepare stop word if user_name is set
         stop = ""
@@ -60,7 +72,13 @@ class Completion:
         )
         return response
 
-    def build(self, input_prompt: str, system_prompt: str = None, ai_name: str = None, user_name: str = None) -> str:
+    def build(
+            self,
+            input_prompt: str,
+            system_prompt: str = None,
+            ai_name: str = None,
+            user_name: str = None
+    ) -> str:
         """
         Build completion string
 
@@ -92,7 +110,12 @@ class Completion:
             message += system_prompt
 
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(model_id, mode, used_tokens, max_tokens)
+            items = self.window.core.ctx.get_prompt_items(
+                model_id,
+                mode,
+                used_tokens,
+                max_tokens
+            )
             for item in items:
                 if item.input_name is not None \
                         and item.output_name is not None \
@@ -119,7 +142,10 @@ class Completion:
             message += "\n" + str(input_prompt)
 
         # input tokens: update
-        self.input_tokens += self.window.core.tokens.from_text(message, model_id)
+        self.input_tokens += self.window.core.tokens.from_text(
+            message,
+            model_id
+        )
 
         return message
 
@@ -128,5 +154,9 @@ class Completion:
         self.input_tokens = 0
 
     def get_used_tokens(self) -> int:
-        """Get input tokens counter"""
+        """
+        Get input tokens counter
+
+        :return: input tokens
+        """
         return self.input_tokens

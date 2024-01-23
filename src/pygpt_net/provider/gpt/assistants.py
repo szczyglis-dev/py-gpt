@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 import json
@@ -96,7 +96,11 @@ class Assistants:
         client = self.window.core.gpt.get_client()
         return client.files.retrieve(file_id)
 
-    def file_download(self, file_id: str, path: str):
+    def file_download(
+            self,
+            file_id: str,
+            path: str
+    ):
         """
         Download file
 
@@ -108,7 +112,12 @@ class Assistants:
         with open(path, 'wb', ) as f:
             f.write(content.encode())
 
-    def run_create(self, thread_id: str, assistant_id: str, instructions=None):
+    def run_create(
+            self,
+            thread_id: str,
+            assistant_id: str,
+            instructions=None
+    ):
         """
         Create assistant run
 
@@ -134,7 +143,11 @@ class Assistants:
         if run is not None:
             return run
 
-    def run_status(self, thread_id: str, run_id: str) -> str:
+    def run_status(
+            self,
+            thread_id: str,
+            run_id: str
+    ) -> str:
         """
         Get assistant run status
 
@@ -150,7 +163,12 @@ class Assistants:
         if run is not None:
             return run.status
 
-    def file_upload(self, id: str, path: str, purpose: str = "assistants") -> str or None:
+    def file_upload(
+            self,
+            id: str,
+            path: str,
+            purpose: str = "assistants"
+    ) -> str or None:
         """
         Upload file to assistant
 
@@ -180,7 +198,11 @@ class Assistants:
             if assistant_file is not None:
                 return assistant_file.id
 
-    def file_delete(self, assistant_id: str, file_id: str) -> str:
+    def file_delete(
+            self,
+            assistant_id: str,
+            file_id: str
+    ) -> str:
         """
         Delete file from assistant
 
@@ -280,7 +302,12 @@ class Assistants:
             limit=limit,
         )
 
-    def import_api(self, items: dict, order: str = "asc", limit: int = 100) -> dict:
+    def import_api(
+            self,
+            items: dict,
+            order: str = "asc",
+            limit: int = 100
+    ) -> dict:
         """
         Import assistants from API
 
@@ -322,7 +349,11 @@ class Assistants:
                             params = json.dumps(tool.function.parameters)
                         except:
                             pass
-                        items[id].add_function(tool.function.name, params, tool.function.description)
+                        items[id].add_function(
+                            tool.function.name,
+                            params,
+                            tool.function.description
+                        )
                     else:
                         items[id].tools[tool.type] = True
         return items

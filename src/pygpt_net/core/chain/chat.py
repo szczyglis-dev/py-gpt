@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -22,8 +22,14 @@ class Chat:
         self.window = window
         self.input_tokens = 0
 
-    def send(self, input_prompt: str, stream_mode: bool = False, system_prompt: str = None, ai_name: str = None,
-             user_name: str = None):
+    def send(
+            self,
+            input_prompt: str,
+            stream_mode: bool = False,
+            system_prompt: str = None,
+            ai_name: str = None,
+            user_name: str = None
+    ):
         """
         Chat with LLM
 
@@ -54,13 +60,24 @@ class Chat:
         if llm is None:
             raise Exception("Invalid LLM")
 
-        messages = self.build(input_prompt, system_prompt=system_prompt, ai_name=ai_name, user_name=user_name)
+        messages = self.build(
+            input_prompt,
+            system_prompt=system_prompt,
+            ai_name=ai_name,
+            user_name=user_name
+        )
         if stream_mode:
             return llm.stream(messages)
         else:
             return llm.invoke(messages)
 
-    def build(self, input_prompt: str, system_prompt: str = None, ai_name: str = None, user_name: str = None) -> list:
+    def build(
+            self,
+            input_prompt: str,
+            system_prompt: str = None,
+            ai_name: str = None,
+            user_name: str = None
+    ) -> list:
         """
         Build chat messages list
 
@@ -77,7 +94,10 @@ class Chat:
         model_id = self.window.core.models.get_id(model)
         mode = self.window.core.config.get('mode')
 
-        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)  # threshold and extra included
+        used_tokens = self.window.core.tokens.from_user(
+            input_prompt,
+            system_prompt
+        )  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
         model_ctx = self.window.core.models.get_num_ctx(model_id)
 
@@ -94,7 +114,12 @@ class Chat:
 
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
-            items = self.window.core.ctx.get_prompt_items(model_id, mode, used_tokens, max_tokens)
+            items = self.window.core.ctx.get_prompt_items(
+                model_id,
+                mode,
+                used_tokens,
+                max_tokens
+            )
             for item in items:
                 # input
                 if item.input is not None and item.input != "":
@@ -107,7 +132,10 @@ class Chat:
         messages.append(HumanMessage(content=str(input_prompt)))
 
         # input tokens: update
-        self.input_tokens += self.window.core.tokens.from_langchain_messages(messages, model_id)
+        self.input_tokens += self.window.core.tokens.from_langchain_messages(
+            messages,
+            model_id
+        )
 
         return messages
 
@@ -116,7 +144,11 @@ class Chat:
         self.input_tokens = 0
 
     def get_used_tokens(self) -> int:
-        """Get input tokens counter"""
+        """
+        Get input tokens counter
+
+        :return: input tokens counter
+        """
         return self.input_tokens
 
 
