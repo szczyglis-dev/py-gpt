@@ -209,6 +209,17 @@ To use camera in Vision mode in Snap version you must connect the camera with:
 sudo snap connect pygpt:camera
 ```
 
+**Windows and VC++ Redistributable**
+
+On Windows, the proper functioning requires the installation of the `VC++ Redistributable`, which can be found on the Microsoft website:
+
+https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
+
+The libraries from this environment are used by `PySide6` - one of the base packages used by PyGPT. 
+The absence of the installed libraries may cause display errors or completely prevent the application from running.
+
+It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-packages\PySide6` to the `PATH` variable.
+
 ## Other requirements
 
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
@@ -707,11 +718,11 @@ To integrate your own model or provider into **PyGPT**, you can reference the sa
 # app.y
 
 # vector stores
-from pygpt_net.core.idx.storage.chroma import ChromaProvider as ChromaVectorStore
-from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider as ElasticsearchVectorStore
-from pygpt_net.core.idx.storage.pinecode import PinecodeProvider as PinecodeVectorStore
-from pygpt_net.core.idx.storage.redis import RedisProvider as RedisVectorStore
-from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStore
+from pygpt_net.provider.vector_stores.chroma import ChromaProvider
+from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
+from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
+from pygpt_net.provider.vector_stores.redis import RedisProvider
+from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
 def run(plugins: list = None,
         llms: list = None,

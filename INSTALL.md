@@ -132,6 +132,17 @@ To use camera in Vision mode in Snap version you must connect the camera with:
 sudo snap connect pygpt:camera
 ```
 
+**Windows and VC++ Redistributable**
+
+On Windows, the proper functioning requires the installation of the `VC++ Redistributable`, which can be found on the Microsoft website:
+
+https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
+
+The libraries from this environment are used by `PySide6` - one of the base packages used by PyGPT. 
+The absence of the installed libraries may cause display errors or completely prevent the application from running.
+
+It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-packages\PySide6` to the `PATH` variable.
+
 ## Other requirements
 
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 

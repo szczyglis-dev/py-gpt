@@ -88,12 +88,12 @@ These wrappers are loaded into the application during startup using ``launcher.a
 
     # app.py
 
-    from pygpt_net.llm.OpenAI import OpenAILLM
-    from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
-    from pygpt_net.llm.Anthropic import AnthropicLLM
-    from pygpt_net.llm.HuggingFace import HuggingFaceLLM
-    from pygpt_net.llm.Llama2 import Llama2LLM
-    from pygpt_net.llm.Ollama import OllamaLLM
+    from pygpt_net.llm.openai import OpenAILLM
+    from pygpt_net.llm.azure_openai import AzureOpenAILLM
+    from pygpt_net.llm.anthropic import AnthropicLLM
+    from pygpt_net.llm.hugging_face import HuggingFaceLLM
+    from pygpt_net.llm.llama import Llama2LLM
+    from pygpt_net.llm.ollama import OllamaLLM
 
     def run(
         plugins=None, 
@@ -168,11 +168,11 @@ Adding custom Vector Store providers
     # app.y
 
     # vector stores
-    from pygpt_net.core.idx.storage.chroma import ChromaProvider as ChromaVectorStore
-    from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider as ElasticsearchVectorStore
-    from pygpt_net.core.idx.storage.pinecode import PinecodeProvider as PinecodeVectorStore
-    from pygpt_net.core.idx.storage.redis import RedisProvider as RedisVectorStore
-    from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStore
+    from pygpt_net.provider.vector_stores.chroma import ChromaProvider
+    from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
+    from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
+    from pygpt_net.provider.vector_stores.redis import RedisProvider
+    from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
     def run(plugins: list = None,
             llms: list = None,
