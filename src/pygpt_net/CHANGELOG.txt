@@ -4,6 +4,7 @@
 - Fixed layout display on Windows systems
 - Theme, Language and Debug menus moved to Config menu - issue #10
 - Added Developer section in Settings
+- Fixed list options editing
 - Refactored code and updated tests
 
 2.0.115 (2024-01-22)

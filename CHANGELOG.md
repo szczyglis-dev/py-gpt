@@ -6,6 +6,7 @@
 - Fixed layout display on Windows systems
 - Theme, Language and Debug menus moved to Config menu - feature [#10](https://github.com/szczyglis-dev/py-gpt/issues/10)
 - Added Developer section in Settings
+- Fixed list options editing
 - Refactored code and updated tests
 
 # 2.0.115 (2024-01-22)
