@@ -35,7 +35,7 @@ class Locale:
         self.data = {}
         self.config.init(False)  # load config
         if self.config.has('lang'):
-            self.lang = self.config.get('lang')
+            self.lang = self.config.get_lang()
         self.load(self.lang, domain)
 
     def reload(self, domain: str = None):
@@ -46,7 +46,7 @@ class Locale:
         """
         self.config.load(False)
         if self.config.has('lang'):
-            self.lang = self.config.get('lang')
+            self.lang = self.config.get_lang()
         self.load(self.lang, domain)
 
     def from_file(self, path: str) -> dict:

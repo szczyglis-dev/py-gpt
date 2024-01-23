@@ -24,6 +24,7 @@ def mock_window():
     window.core.config.init = MagicMock()  # mock init method to prevent init
     window.core.config.load = MagicMock()  # mock load method to prevent loading
     window.core.config.save = MagicMock()  # mock save method to prevent saving
+    window.core.config.get_lang = MagicMock(return_value='en')
     window.controller = MagicMock()
     window.ui = MagicMock()
     window.threadpool = MagicMock()
@@ -37,4 +38,5 @@ def mock_window_conf():
     window.core.models = MagicMock()
     window.core.config = MagicMock(spec=Config)  # mock config object
     window.core.config.path = 'test_path'
+    window.core.config.get_lang = MagicMock(return_value='en')
     return window

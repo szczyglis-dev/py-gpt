@@ -185,6 +185,17 @@ class Config:
             return self.data[key]
         return default
 
+    def get_lang(self) -> str:
+        """
+        Return language code
+
+        :return: language code
+        """
+        test_lang = os.environ.get('TEST_LANGUAGE')  # if pytest
+        if test_lang:
+            return test_lang
+        return self.get('lang', 'en')
+
     def set(self, key: str, value: any):
         """
         Set config value
