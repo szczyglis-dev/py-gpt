@@ -6,14 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 18:00:00                  #
+# Updated Date: 2024.01.22 18:00:00                  #
 # ================================================== #
+
+from llama_index import (
+    VectorStoreIndex,
+    ServiceContext,
+)
 
 
 class BaseStore:
     def __init__(self, *args, **kwargs):
         """
-        BaseStore vector storage provider
+        Base vector store provider
 
         :param args: args
         :param kwargs: kwargs
@@ -46,9 +51,9 @@ class BaseStore:
         """
         pass
 
-    def get(self, id: str, service_context=None) -> any:
+    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
         """
-        Get index
+        Get index instance
 
         :param id: index name
         :param service_context: Service context
@@ -56,9 +61,9 @@ class BaseStore:
         """
         pass
 
-    def store(self, id: str, index=None):
+    def store(self, id: str, index: VectorStoreIndex = None):
         """
-        Store index
+        Store/persist index
 
         :param id: index name
         :param index: index instance

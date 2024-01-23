@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 18:00:00                  #
+# Updated Date: 2024.01.22 18:00:00                  #
 # ================================================== #
 
 import os.path
 from llama_index import (
     VectorStoreIndex,
     StorageContext,
+    ServiceContext,
     load_index_from_storage,
 )
 
@@ -23,7 +24,7 @@ class SimpleProvider(BaseStore):
     def __init__(self, *args, **kwargs):
         super(SimpleProvider, self).__init__(*args, **kwargs)
         """
-        JsonFile vector storage provider
+        Simple vector store provider
 
         :param args: args
         :param kwargs: kwargs
@@ -53,7 +54,7 @@ class SimpleProvider(BaseStore):
             index = VectorStoreIndex([])  # create empty index
             self.store(id=id, index=index)
 
-    def get(self, id: str, service_context=None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
         """
         Get index
 
@@ -68,7 +69,7 @@ class SimpleProvider(BaseStore):
         self.indexes[id] = load_index_from_storage(storage_context, service_context=service_context)
         return self.indexes[id]
 
-    def store(self, id: str, index=None):
+    def store(self, id: str, index: VectorStoreIndex = None):
         """
         Store index
 

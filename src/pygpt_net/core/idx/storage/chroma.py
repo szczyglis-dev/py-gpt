@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 05:00:00                  #
+# Updated Date: 2024.01.22 18:00:00                  #
 # ================================================== #
 
 import os.path
@@ -15,6 +15,7 @@ import chromadb
 from llama_index import (
     VectorStoreIndex,
     StorageContext,
+    ServiceContext,
 )
 from llama_index.vector_stores import ChromaVectorStore
 
@@ -25,7 +26,7 @@ class ChromaProvider(BaseStore):
     def __init__(self, *args, **kwargs):
         super(ChromaProvider, self).__init__(*args, **kwargs)
         """
-        ChromaDB vector store provider
+        Chroma vector store provider
 
         :param args: args
         :param kwargs: kwargs
@@ -34,7 +35,7 @@ class ChromaProvider(BaseStore):
         self.id = "ChromaVectorStore"
         self.indexes = {}
 
-    def get_path(self, id: str):
+    def get_path(self, id: str) -> str:
         """
         Get database path
 
@@ -74,7 +75,7 @@ class ChromaProvider(BaseStore):
             index = VectorStoreIndex([])  # create empty index
             self.store(id=id, index=index)
 
-    def get(self, id: str, service_context=None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
         """
         Get index
 
@@ -94,7 +95,7 @@ class ChromaProvider(BaseStore):
         )
         return self.indexes[id]
 
-    def store(self, id: str, index=None):
+    def store(self, id: str, index: VectorStoreIndex = None):
         """
         Store index
 

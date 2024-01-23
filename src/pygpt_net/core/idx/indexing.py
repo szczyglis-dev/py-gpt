@@ -6,14 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 18:00:00                  #
+# Updated Date: 2024.01.22 19:00:00                  #
 # ================================================== #
 
 import os.path
 from pathlib import Path
 from sqlalchemy import text
 from llama_index import (
-    SimpleDirectoryReader, download_loader,
+    SimpleDirectoryReader,
+    download_loader,
+    VectorStoreIndex,
 )
 from llama_index.readers.schema.base import Document
 from .loaders.pdf.base import PDFReader
@@ -43,7 +45,7 @@ class Indexing:
             "xlsx": PandasExcelReader(),
         }
 
-    def get_online_loader(self, ext):
+    def get_online_loader(self, ext: str):
         """
         Get online loader by extension
 
@@ -62,7 +64,7 @@ class Indexing:
             if ext in extensions:
                 return loader["loader"]
 
-    def get_documents(self, path) -> list[Document]:
+    def get_documents(self, path: str) -> list[Document]:
         """
         Get documents from path
 
@@ -94,7 +96,7 @@ class Indexing:
                     documents = reader.load_data()
         return documents
 
-    def index_files(self, index, path: str = None) -> tuple:
+    def index_files(self, index: VectorStoreIndex, path: str = None) -> tuple:
         """
         Index all files in directory
 
@@ -176,7 +178,7 @@ class Indexing:
                 documents.append(Document(text=doc_str))
         return documents
 
-    def index_db_by_meta_id(self, index, id: int = 0) -> tuple:
+    def index_db_by_meta_id(self, index: VectorStoreIndex, id: int = 0) -> (int, list):
         """
         Index data from database by meta id
 
@@ -197,7 +199,7 @@ class Indexing:
             self.window.core.debug.log(e)
         return n, errors
 
-    def index_db_from_updated_ts(self, index, updated_ts: int = 0) -> tuple:
+    def index_db_from_updated_ts(self, index: VectorStoreIndex, updated_ts: int = 0) -> (int, list):
         """
         Index data from database from timestamp
 

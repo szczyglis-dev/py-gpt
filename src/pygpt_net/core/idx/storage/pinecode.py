@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 05:00:00                  #
+# Updated Date: 2024.01.22 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -17,6 +17,7 @@ from pinecone import Pinecone, ServerlessSpec
 from llama_index import (
     VectorStoreIndex,
     StorageContext,
+    ServiceContext,
 )
 from llama_index.vector_stores import PineconeVectorStore
 
@@ -28,7 +29,7 @@ class PinecodeProvider(BaseStore):
     def __init__(self, *args, **kwargs):
         super(PinecodeProvider, self).__init__(*args, **kwargs)
         """
-        PineconeVectorStore vector store provider
+        Pinecone vector store provider
 
         :param args: args
         :param kwargs: kwargs
@@ -131,7 +132,7 @@ class PinecodeProvider(BaseStore):
         pinecone_index = pc.Index(name)  # use base index name or custom name
         return PineconeVectorStore(pinecone_index=pinecone_index)
 
-    def get(self, id: str, service_context=None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
         """
         Get index
 
@@ -149,7 +150,7 @@ class PinecodeProvider(BaseStore):
         )
         return self.indexes[id]
 
-    def store(self, id: str, index=None):
+    def store(self, id: str, index: VectorStoreIndex = None):
         """
         Store index
 

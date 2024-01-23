@@ -136,14 +136,11 @@ class Filesystem:
         :param path: local path or url
         :return: url, path
         """
-        if not path.startswith('http://') \
-                and not path.startswith('https://'):
+        if not self.is_schema(path):
             path = self.to_workdir(path)
 
         prefix = ''
-        if not path.startswith('file://') \
-                and not path.startswith('http://') \
-                and not path.startswith('https://'):
+        if not self.is_schema(path):
             if self.window.core.platforms.is_windows():
                 prefix = 'file:///'
             else:
@@ -151,4 +148,13 @@ class Filesystem:
 
         url = prefix + path
         return url, path
+
+    def is_schema(self, path: str) -> bool:
+        """
+        Check if path has schema prefix (http, https, file)
+
+        :param path: path to check
+        :return: True if path is schema
+        """
+        return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
 

@@ -60,7 +60,7 @@ class Llm:
             llm = OpenAI(temperature=0.0, model="gpt-3.5-turbo")
         return llm
 
-    def get_service_context(self, model: ModelItem = None):
+    def get_service_context(self, model: ModelItem = None) -> ServiceContext:
         """
         Get service context
 
