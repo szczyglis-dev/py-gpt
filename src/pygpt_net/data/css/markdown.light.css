@@ -1,4 +1,4 @@
-* {{ 
+p {{ 
   color: #000;
 }}
 a {{
@@ -11,6 +11,7 @@ a {{
     max-width: 100%;
 }}
 .msg-bot {{
+    color: #000;
     white-space: pre-wrap;
     width: 100%;
     max-width: 100%;
