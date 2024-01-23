@@ -24,7 +24,6 @@ from pygpt_net.core.dispatcher import Dispatcher
 from pygpt_net.core.idx import Idx
 from pygpt_net.core.installer import Installer
 from pygpt_net.core.filesystem import Filesystem
-from pygpt_net.core.gpt import Gpt
 from pygpt_net.core.history import History
 from pygpt_net.core.image import Image
 from pygpt_net.core.llm import LLM
@@ -38,6 +37,7 @@ from pygpt_net.core.prompt import Prompt
 from pygpt_net.core.settings import Settings
 from pygpt_net.core.tokens import Tokens
 from pygpt_net.core.updater import Updater
+from pygpt_net.provider.gpt import Gpt
 
 
 class Container:
@@ -49,7 +49,7 @@ class Container:
         """
         self.window = window
 
-        # core services
+        # core
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
         self.audio = Audio(window)

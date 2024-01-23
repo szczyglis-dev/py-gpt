@@ -11,7 +11,7 @@
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
-from pygpt_net.provider.assistant.json_file import JsonFileProvider
+from pygpt_net.provider.core.assistant.json_file import JsonFileProvider
 
 
 class Assistants:

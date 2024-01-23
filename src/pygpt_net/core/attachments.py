@@ -13,7 +13,7 @@ import copy
 from packaging.version import Version
 
 from pygpt_net.item.attachment import AttachmentItem
-from pygpt_net.provider.attachment.json_file import JsonFileProvider
+from pygpt_net.provider.core.attachment.json_file import JsonFileProvider
 
 
 class Attachments:

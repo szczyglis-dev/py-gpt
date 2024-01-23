@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 19:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -15,11 +15,11 @@ import os.path
 from packaging.version import Version
 
 from pygpt_net.item.index import IndexItem
-from pygpt_net.provider.index.json_file import JsonFileProvider
+from pygpt_net.provider.core.index.json_file import JsonFileProvider
+from pygpt_net.provider.vector_stores import Storage
 
 from .indexing import Indexing
 from .llm import Llm
-from .storage import Storage
 from .chat import Chat
 
 

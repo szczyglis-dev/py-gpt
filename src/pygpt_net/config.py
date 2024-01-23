@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 from packaging.version import Version
 
-from pygpt_net.provider.config.json_file import JsonFileProvider
+from pygpt_net.provider.core.config.json_file import JsonFileProvider
 
 
 class Config:

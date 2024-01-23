@@ -18,13 +18,14 @@ from llama_index import (
     VectorStoreIndex,
 )
 from llama_index.readers.schema.base import Document
-from .loaders.pdf.base import PDFReader
-from .loaders.docx.base import DocxReader
-from .loaders.markdown.base import MarkdownReader
-from .loaders.json.base import JSONReader
-from .loaders.simple_csv.base import SimpleCSVReader
-from .loaders.epub.base import EpubReader
-from .loaders.pandas_excel.base import PandasExcelReader
+
+from pygpt_net.provider.loaders.pdf.base import PDFReader
+from pygpt_net.provider.loaders.docx.base import DocxReader
+from pygpt_net.provider.loaders.markdown.base import MarkdownReader
+from pygpt_net.provider.loaders.json.base import JSONReader
+from pygpt_net.provider.loaders.simple_csv.base import SimpleCSVReader
+from pygpt_net.provider.loaders.epub.base import EpubReader
+from pygpt_net.provider.loaders.pandas_excel.base import PandasExcelReader
 
 
 class Indexing:

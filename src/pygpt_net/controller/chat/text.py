@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 15:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -93,7 +93,8 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
 
         # log
-        self.log("Context: input [after plugin: ctx.before]: {}".format(self.window.core.ctx.dump(ctx)))
+        self.log("Context: input [after plugin: ctx.before]: {}".
+                 format(self.window.core.ctx.dump(ctx)))
         self.log("System: {}".format(self.window.core.gpt.system_prompt))
 
         # event: prepare prompt (replace system prompt)
@@ -149,7 +150,8 @@ class Text:
         # append text from input to chat window
         self.window.controller.chat.render.append_input(ctx)
 
-        # add ctx to DB here and only update it after response, MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)!
+        # add ctx to DB here and only update it after response,
+        # MUST BE REMOVED NEXT AS FIRST MSG (LAST ON LIST)
         self.window.core.ctx.add(ctx)
 
         # update ctx list, but not reload all to prevent focus out on lists
@@ -179,7 +181,11 @@ class Text:
                     self.window.core.chain.system_prompt = sys_prompt
                     self.window.core.chain.user_name = ctx.input_name
                     self.window.core.chain.ai_name = ctx.output_name
-                    result = self.window.core.chain.call(text, ctx, stream_mode)
+                    result = self.window.core.chain.call(
+                        text,
+                        ctx,
+                        stream_mode
+                    )
 
                 # Llama index mode
                 elif mode == "llama_index":
@@ -189,12 +195,22 @@ class Text:
                     # query index
                     if self.window.core.config.get('llama.idx.raw'):
                         result = self.window.core.idx.chat.raw_query(
-                            ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
+                            ctx,
+                            idx=idx,
+                            model=model_data,
+                            sys_prompt=sys_prompt,
+                            stream=stream_mode
+                        )
 
                     # chat or query index (if chat is not enabled)
                     else:
                         result = self.window.core.idx.chat.call(
-                            ctx, idx=idx, model=model_data, sys_prompt=sys_prompt, stream=stream_mode)
+                            ctx,
+                            idx=idx,
+                            model=model_data,
+                            sys_prompt=sys_prompt,
+                            stream=stream_mode
+                        )
 
                 # OpenAI API mode(s)
                 else:
@@ -205,7 +221,12 @@ class Text:
                     self.window.core.gpt.assistant_id = self.window.core.config.get('assistant')
                     self.window.core.gpt.thread_id = ctx.thread
                     self.window.core.gpt.attachments = self.window.core.attachments.get_all(current_mode)
-                    result = self.window.core.gpt.call(text, mode, ctx, stream_mode)
+                    result = self.window.core.gpt.call(
+                        text,
+                        mode,
+                        ctx,
+                        stream_mode
+                    )
 
                 # update context in DB
                 ctx.current = False  # reset current state
@@ -230,7 +251,8 @@ class Text:
                 self.window.ui.status(trans('status.error'))
                 print("Error when calling API: " + str(e))
 
-            # handle response (if no assistant mode, assistant response is handled in assistant thread)
+            # handle response (if no assistant mode)
+            # assistant response is handled in assistant thread
             if mode != "assistant":
                 self.window.controller.chat.output.handle(ctx, mode, stream_mode)
 

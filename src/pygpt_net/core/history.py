@@ -13,7 +13,7 @@ import datetime
 import os
 
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.provider.history.txt_file import TxtFileProvider
+from pygpt_net.provider.core.history.txt_file import TxtFileProvider
 
 
 class History:

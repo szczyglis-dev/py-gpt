@@ -13,7 +13,7 @@ import copy
 
 from packaging.version import Version
 from pygpt_net.item.preset import PresetItem
-from pygpt_net.provider.preset.json_file import JsonFileProvider
+from pygpt_net.provider.core.preset.json_file import JsonFileProvider
 
 
 class Presets:

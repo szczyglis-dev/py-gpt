@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 04:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,7 +14,7 @@ import datetime
 from packaging.version import Version
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
-from pygpt_net.provider.ctx.db_sqlite import DbSqliteProvider
+from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
 
 
@@ -80,9 +80,11 @@ class Ctx:
             self.preset = ctx.preset
 
             # restore model if exists in current mode
-            if ctx.last_model is not None and self.window.core.models.has_model(self.mode, ctx.last_model):
+            if ctx.last_model is not None \
+                    and self.window.core.models.has_model(self.mode, ctx.last_model):
                 self.model = ctx.last_model
-            elif ctx.model is not None and self.window.core.models.has_model(self.mode, ctx.model):
+            elif ctx.model is not None \
+                    and self.window.core.models.has_model(self.mode, ctx.model):
                 self.model = ctx.model
 
             self.items = self.load(id)
@@ -406,7 +408,13 @@ class Ctx:
             self.meta[self.current].status = self.status
             self.save(self.current)
 
-    def count_prompt_items(self, model: str, mode: str, used_tokens: int = 100, max_tokens: int = 1000) -> (int, int):
+    def count_prompt_items(
+            self,
+            model: str,
+            mode: str,
+            used_tokens: int = 100,
+            max_tokens: int = 1000
+    ) -> (int, int):
         """
         Count ctx items to add to prompt
 
@@ -431,8 +439,14 @@ class Ctx:
 
         return i, context_tokens
 
-    def get_prompt_items(self, model: str, mode: str = "chat", used_tokens: int = 100, max_tokens: int = 1000,
-                         ignore_first: bool = True) -> list:
+    def get_prompt_items(
+            self,
+            model: str,
+            mode: str = "chat",
+            used_tokens: int = 100,
+            max_tokens: int = 1000,
+            ignore_first: bool = True
+    ) -> list:
         """
         Return ctx items to add to prompt
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import os
@@ -43,7 +43,11 @@ class Database:
         """
         Prepare database
         """
-        self.engine = create_engine('sqlite:///{}'.format(self.db_path), echo=self.echo, future=True)
+        self.engine = create_engine(
+            'sqlite:///{}'.format(self.db_path),
+            echo=self.echo,
+            future=True
+        )
         if not self.is_installed():
             self.install()
         self.initialized = True
@@ -200,5 +204,3 @@ class Database:
             """).bindparams(key=key, value=value, created_ts=ts, updated_ts=ts)
 
         conn.execute(stmt)
-
-

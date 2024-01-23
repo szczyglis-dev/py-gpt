@@ -40,19 +40,19 @@ from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 
 # LLMs
-from pygpt_net.llm.anthropic import AnthropicLLM
-from pygpt_net.llm.azure_openai import AzureOpenAILLM
-from pygpt_net.llm.hugging_face import HuggingFaceLLM
-from pygpt_net.llm.llama import Llama2LLM
-from pygpt_net.llm.ollama import OllamaLLM
-from pygpt_net.llm.openai import OpenAILLM
+from pygpt_net.provider.llm.anthropic import AnthropicLLM
+from pygpt_net.provider.llm.azure_openai import AzureOpenAILLM
+from pygpt_net.provider.llm.hugging_face import HuggingFaceLLM
+from pygpt_net.provider.llm.llama import Llama2LLM
+from pygpt_net.provider.llm.ollama import OllamaLLM
+from pygpt_net.provider.llm.openai import OpenAILLM
 
 # vector stores
-from pygpt_net.core.idx.storage.chroma import ChromaProvider
-from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider
-from pygpt_net.core.idx.storage.pinecode import PinecodeProvider
-from pygpt_net.core.idx.storage.redis import RedisProvider
-from pygpt_net.core.idx.storage.simple import SimpleProvider
+from pygpt_net.provider.vector_stores.chroma import ChromaProvider
+from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
+from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
+from pygpt_net.provider.vector_stores.redis import RedisProvider
+from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
 Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
@@ -236,9 +236,11 @@ class Launcher:
         sys.exit(self.app.exec())
 
 
-def run(plugins: list = None,
+def run(
+        plugins: list = None,
         llms: list = None,
-        vector_stores: list = None):
+        vector_stores: list = None
+):
     """
     PyGPT launcher.
 

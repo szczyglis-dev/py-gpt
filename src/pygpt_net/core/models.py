@@ -11,7 +11,7 @@
 from packaging.version import Version
 
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.model.json_file import JsonFileProvider
+from pygpt_net.provider.core.model.json_file import JsonFileProvider
 
 
 class Models:

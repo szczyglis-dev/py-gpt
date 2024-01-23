@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock
 
 from tests.mocks import mock_window_conf
-from pygpt_net.core.gpt import Gpt
+from pygpt_net.provider.gpt import Gpt
 
 
 def mock_get(key):

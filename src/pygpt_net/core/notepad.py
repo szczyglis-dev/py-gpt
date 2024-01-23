@@ -14,7 +14,7 @@ import datetime
 from packaging.version import Version
 
 from pygpt_net.item.notepad import NotepadItem
-from pygpt_net.provider.notepad.db_sqlite import DbSqliteProvider
+from pygpt_net.provider.core.notepad.db_sqlite import DbSqliteProvider
 
 
 class Notepad:

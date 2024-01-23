@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -51,7 +51,12 @@ class Input:
         text = event.data['value']
         self.send(text)
 
-    def send(self, text: str = None, force: bool = False, internal: bool = False):
+    def send(
+            self,
+            text: str = None,
+            force: bool = False,
+            internal: bool = False
+    ):
         """
         Send input wrapper
 
@@ -61,7 +66,12 @@ class Input:
         """
         self.execute(text, force=force, internal=internal)
 
-    def execute(self, text: str = None, force: bool = False, internal: bool = False):
+    def execute(
+            self,
+            text: str = None,
+            force: bool = False,
+            internal: bool = False
+    ):
         """
         Execute send input text to API
 
@@ -78,7 +88,8 @@ class Input:
         mode = self.window.core.config.get('mode')
         if mode == 'assistant':
             # check if assistant is selected
-            if self.window.core.config.get('assistant') is None or self.window.core.config.get('assistant') == "":
+            if self.window.core.config.get('assistant') is None \
+                    or self.window.core.config.get('assistant') == "":
                 self.window.ui.dialogs.alert(trans('error.assistant_not_selected'))
                 self.generating = False  # unlock
                 return
@@ -143,7 +154,10 @@ class Input:
         if self.window.core.config.get('mode') == 'img':
             ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
         else:
-            ctx = self.window.controller.chat.text.send(text, internal=internal)  # text mode: OpenAI, Langchain, Llama
+            ctx = self.window.controller.chat.text.send(
+                text,
+                internal=internal
+            )  # text mode: OpenAI, Langchain, Llama
 
         # clear attachments after send if enabled
         if self.window.core.config.get('attachments_send_clear'):

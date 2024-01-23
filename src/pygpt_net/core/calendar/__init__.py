@@ -14,7 +14,7 @@ import datetime
 from packaging.version import Version
 
 from pygpt_net.item.calendar_note import CalendarNoteItem
-from pygpt_net.provider.calendar.db_sqlite import DbSqliteProvider
+from pygpt_net.provider.core.calendar.db_sqlite import DbSqliteProvider
 
 
 class Calendar:
