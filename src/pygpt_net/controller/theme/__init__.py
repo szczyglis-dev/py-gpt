@@ -112,8 +112,7 @@ class Theme:
         """
         inverse = False
         if theme.startswith('light'):
-            pass
-            # inverse = True
+            inverse = True
         extra = {
             'density_scale': self.window.core.config.get('layout.density'),
             'pyside6': True,
