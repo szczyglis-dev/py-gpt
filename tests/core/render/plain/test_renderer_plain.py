@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock
 
 from tests.mocks import mock_window
-from pygpt_net.core.render.markdown.renderer import Renderer as Render
+from pygpt_net.core.render.plain.renderer import Renderer as Render
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.filesystem import Filesystem
 
@@ -73,7 +73,7 @@ def test_append_input(mock_window):
     item = CtxItem()
     item.input = "test"
     render.append_input(item)
-    render.append_raw.assert_called_once_with("> test", "msg-user", item)
+    render.append_raw.assert_called_once_with("> test")
 
 
 def test_append_output(mock_window):
@@ -83,13 +83,14 @@ def test_append_output(mock_window):
     item = CtxItem()
     item.output = "test"
     render.append_output(item)
-    render.append_raw.assert_called_once_with("test", "msg-bot", item)
+    render.append_raw.assert_called_once_with("test")
 
 
 def test_append_extra(mock_window):
     """Test append extra"""
     render = Render(mock_window)
     render.get_output_node = MagicMock()
+    render.append_raw = MagicMock()
     mock_window.core.filesystem = Filesystem(mock_window)
     render.images_appended = []
     item = CtxItem()
@@ -97,7 +98,7 @@ def test_append_extra(mock_window):
     item.files = ["test2"]
     item.urls = ["test3"]
     render.append_extra(item)
-    render.get_output_node().append.assert_called()
+    render.append_raw.assert_called()
 
     assert render.images_appended == ["test1"]
     assert render.urls_appended == ["test3"]
@@ -142,8 +143,8 @@ def test_append_raw(mock_window):
     """Test append raw"""
     render = Render(mock_window)
     render.get_output_node = MagicMock()
-    render.append_raw("test", "msg-bot")
-    render.get_output_node().append.assert_called_once()
+    render.append_raw("test")
+    render.get_output_node().setText.assert_called_once()
 
 
 def test_append_chunk_start(mock_window):
@@ -182,10 +183,7 @@ def test_get_image_html(mock_window):
     render = Render(mock_window)
     html = render.get_image_html(url)
     assert html == \
-           '<a href="file:///' + work_dir + '/test.png"><img src="' + work_dir + '/test.png" width="400" ' \
-                                                                                 'class="image"></a>\n        ' \
-                                                                                 '<p><b>Image:</b> <a href="file:///'\
-           + work_dir + '/test.png">' + work_dir + '/test.png</a></p>'
+           '\nImage: ' + work_dir + '/test.png\n'
 
 
 def test_get_url_html(mock_window):
@@ -195,7 +193,7 @@ def test_get_url_html(mock_window):
     url = "https://google.com"
     render = Render(mock_window)
     html = render.get_file_html(url)
-    assert html == '<div><b>File:</b> <a href="https://google.com">https://google.com</a></div>'
+    assert html == '\nFile: https://google.com\n'
 
 
 def test_get_file_html(mock_window):
@@ -207,7 +205,7 @@ def test_get_file_html(mock_window):
     render = Render(mock_window)
     html = render.get_file_html(url)
     assert html == \
-           '<div><b>File:</b> <a href="file:///' + work_dir + '/test.txt">' + work_dir + '/test.txt</a></div>'
+           '\nFile: ' + work_dir + '/test.txt\n'
 
 
 def test_append(mock_window):
@@ -228,22 +226,14 @@ def test_append_timestamp(mock_window):
     text = "test ~###~test~###~ test"
     ctx = CtxItem()
     ctx.input_timestamp = 1234567890
-    assert render.append_timestamp(text, ctx).startswith("<span class=\"ts\">") is True
-
-
-def test_replace_code_tags(mock_window):
-    """Test replace code cmd tags"""
-    render = Render(mock_window)
-    text = "test ~###~test~###~ test"
-    expected = "test <p class=\"cmd\">test</p> test"
-    assert render.replace_code_tags(text) == expected
+    assert render.append_timestamp(text, ctx).startswith("00:31:30: test") is True
 
 
 def test_pre_format_text(mock_window):
     """Test pre format text"""
     render = Render(mock_window)
     text = "test ~###~test~###~ test"
-    expected = "test <p class=\"cmd\">test</p> test"
+    expected = "test ~###~test~###~ test"
     assert render.pre_format_text(text) == expected
 
 

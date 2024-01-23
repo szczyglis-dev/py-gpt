@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 11:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -89,6 +89,7 @@ def test_chat(mock_window):
     ctx = CtxItem()
     ctx.input = "test"
     model = ModelItem()
+    chat.get_memory_buffer = MagicMock(return_value=None)
     chat.chat(ctx, index, model, "test", False)
     assert ctx.input_tokens == 222
     assert ctx.output == "response"
