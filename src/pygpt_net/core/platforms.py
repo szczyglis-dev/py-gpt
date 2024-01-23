@@ -26,7 +26,6 @@ class Platforms:
         :param window: Window instance
         """
         self.window = window
-        self.snap_name = 'pygpt'  # TODO: move to config
 
     @staticmethod
     def prepare():
@@ -113,7 +112,7 @@ class Platforms:
         """
         return "SNAP" in os.environ \
                and "SNAP_NAME" in os.environ \
-               and os.environ["SNAP_NAME"] == self.snap_name
+               and os.environ["SNAP_NAME"] == Config.SNAP_NAME
 
     def get_as_string(self) -> str:
         """

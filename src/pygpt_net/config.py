@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -21,6 +21,7 @@ from pygpt_net.provider.config.json_file import JsonFileProvider
 
 class Config:
     CONFIG_DIR = 'pygpt-net'
+    SNAP_NAME = 'pygpt'
     TYPE_STR = 0
     TYPE_INT = 1
     TYPE_FLOAT = 2
@@ -102,12 +103,11 @@ class Config:
         else:
             return os.path.abspath(os.path.dirname(__file__))
 
-    def get_user_path(self):
+    def get_user_path(self) -> str:
         """
-        Return user home path
+        Return user home path (workdir)
 
         :return: user home path
-        :rtype: str
         """
         return self.path
 
@@ -189,8 +189,8 @@ class Config:
         """
         Set config value
 
-        :param key:
-        :param value:
+        :param key: key
+        :param value: value
         """
         self.data[key] = value
 
