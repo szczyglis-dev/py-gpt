@@ -6,13 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 03:00:00                  #
+# Updated Date: 2024.01.23 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
+
+from .lang import Lang
+from .theme import Theme
 
 
 class Config:
@@ -23,6 +26,8 @@ class Config:
         :param window: Window instance
         """
         self.window = window
+        self.lang = Lang(window)
+        self.theme = Theme(window)
 
     def setup(self):
         """Setup config menu"""
@@ -85,9 +90,15 @@ class Config:
         self.window.ui.menu['config.save'].triggered.connect(
             lambda: self.window.controller.settings.save_all())
 
+        self.lang.setup()
+        self.theme.setup()
+
         self.window.ui.menu['menu.config'] = self.window.menuBar().addMenu(trans("menu.config"))
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.settings'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.models'])
+
+        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.theme'])
+        self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['menu.lang'])
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.css'])
         self.window.ui.menu['menu.config'].addMenu(self.window.ui.menu['config.edit.json'])
         self.window.ui.menu['menu.config'].addAction(self.window.ui.menu['config.open_dir'])

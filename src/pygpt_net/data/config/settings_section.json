@@ -19,5 +19,8 @@
     },
     "llama-index": {
         "label": "settings.section.llama_index"
+    },
+    "developer": {
+        "label": "settings.section.developer"
     }
 }

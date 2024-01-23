@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.23 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -28,7 +28,7 @@ class Theme:
         """Setup theme menu"""
         self.window.ui.menu['theme'] = {}
         self.window.ui.menu['theme.layout.density'] = {}
-        self.window.ui.menu['menu.theme'] = self.window.menuBar().addMenu(trans("menu.theme"))
+        self.window.ui.menu['menu.theme'] = QMenu(trans("menu.theme"), self.window)
 
         # color themes
         self.window.ui.menu['theme.dark'] = QMenu(trans("menu.theme.dark"), self.window)

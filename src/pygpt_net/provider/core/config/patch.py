@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.23 23:00:00                  #
 # ================================================== #
 
 import os
@@ -609,6 +609,12 @@ class Patch:
                     data['llama.idx.storage.args'] = []
                 if 'llama.idx.raw' not in data:
                     data['llama.idx.raw'] = False
+                updated = True
+
+            # < 2.0.116
+            if old < parse_version("2.0.116"):
+                print("Migrating config from < 2.0.116...")
+                data['debug'] = False
                 updated = True
 
         # update file

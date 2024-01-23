@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 09:00:00                  #
+# Updated Date: 2024.01.23 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -54,6 +54,7 @@ class Editor:
         self.window.ui.add_hook("update.config.layout.density", self.hook_update)
         self.window.ui.add_hook("update.config.layout.tooltips", self.hook_update)
         self.window.ui.add_hook("update.config.img_dialog_open", self.hook_update)
+        self.window.ui.add_hook("update.config.debug", self.hook_update)
         # self.window.ui.add_hook("llama.idx.storage", self.hook_update)  # vector store update
         # self.window.ui.add_hook("update.config.llama.idx.list", self.hook_update)
 
@@ -187,6 +188,11 @@ class Editor:
         elif key == "img_dialog_open":
             self.window.core.config.set(key, value)
             self.window.ui.nodes['dialog.image.open.toggle'].setChecked(value)
+
+        # debug: menu
+        elif key == "debug":
+            self.window.core.config.set(key, value)
+            self.window.ui.menu['menu.debug'].menuAction().setVisible(value)
 
     def toggle_collapsed(self, id: str, value: any, section: str):
         """
