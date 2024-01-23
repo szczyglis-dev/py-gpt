@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.23 21:00:00                  #
 # ================================================== #
 
 import sys
@@ -40,19 +40,19 @@ from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 
 # LLMs
-from pygpt_net.llm.Anthropic import AnthropicLLM
-from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
-from pygpt_net.llm.HuggingFace import HuggingFaceLLM
-from pygpt_net.llm.Llama2 import Llama2LLM
-from pygpt_net.llm.Ollama import OllamaLLM
-from pygpt_net.llm.OpenAI import OpenAILLM
+from pygpt_net.llm.anthropic import AnthropicLLM
+from pygpt_net.llm.azure_openai import AzureOpenAILLM
+from pygpt_net.llm.hugging_face import HuggingFaceLLM
+from pygpt_net.llm.llama import Llama2LLM
+from pygpt_net.llm.ollama import OllamaLLM
+from pygpt_net.llm.openai import OpenAILLM
 
 # vector stores
-from pygpt_net.core.idx.storage.chroma import ChromaProvider as ChromaVectorStore
-from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider as ElasticsearchVectorStore
-from pygpt_net.core.idx.storage.pinecode import PinecodeProvider as PinecodeVectorStore
-from pygpt_net.core.idx.storage.redis import RedisProvider as RedisVectorStore
-from pygpt_net.core.idx.storage.simple import SimpleProvider as SimpleVectorStore
+from pygpt_net.core.idx.storage.chroma import ChromaProvider
+from pygpt_net.core.idx.storage.elasticsearch import ElasticsearchProvider
+from pygpt_net.core.idx.storage.pinecode import PinecodeProvider
+from pygpt_net.core.idx.storage.redis import RedisProvider
+from pygpt_net.core.idx.storage.simple import SimpleProvider
 
 Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
@@ -329,11 +329,11 @@ def run(plugins: list = None,
             launcher.add_llm(llm)
 
     # register base vector store providers (llama-index)
-    launcher.add_vector_store(ChromaVectorStore())
-    launcher.add_vector_store(ElasticsearchVectorStore())
-    launcher.add_vector_store(PinecodeVectorStore())
-    launcher.add_vector_store(RedisVectorStore())
-    launcher.add_vector_store(SimpleVectorStore())
+    launcher.add_vector_store(ChromaProvider())
+    launcher.add_vector_store(ElasticsearchProvider())
+    launcher.add_vector_store(PinecodeProvider())
+    launcher.add_vector_store(RedisProvider())
+    launcher.add_vector_store(SimpleProvider())
 
     # register custom vector store providers (llama-index)
     if vector_stores is not None:

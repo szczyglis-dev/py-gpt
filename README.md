@@ -628,17 +628,18 @@ These wrappers are loaded into the application during startup using `launcher.ad
 ```python
 # app.py
 
-from pygpt_net.llm.OpenAI import OpenAILLM
-from pygpt_net.llm.AzureOpenAI import AzureOpenAILLM
-from pygpt_net.llm.Anthropic import AnthropicLLM
-from pygpt_net.llm.HuggingFace import HuggingFaceLLM
-from pygpt_net.llm.Llama2 import Llama2LLM
-from pygpt_net.llm.Ollama import OllamaLLM
+from pygpt_net.llm.openai import OpenAILLM
+from pygpt_net.llm.azure_openai import AzureOpenAILLM
+from pygpt_net.llm.anthropic import AnthropicLLM
+from pygpt_net.llm.hugging_face import HuggingFaceLLM
+from pygpt_net.llm.llama import Llama2LLM
+from pygpt_net.llm.ollama import OllamaLLM
+
 
 def run(
-	plugins=None, 
-	llms=None, 
-	vector_stores=vector_stores
+        plugins=None,
+        llms=None,
+        vector_stores=vector_stores
 ):
     """Runs the app."""
     # Initialize the app

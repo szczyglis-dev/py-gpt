@@ -12,7 +12,7 @@
 from unittest.mock import MagicMock, patch, mock_open, Mock
 
 from tests.mocks import mock_window
-from pygpt_net.llm.HuggingFace import HuggingFaceLLM as Wrapper
+from pygpt_net.llm.hugging_face import HuggingFaceLLM as Wrapper
 
 
 def test_completion(mock_window):
