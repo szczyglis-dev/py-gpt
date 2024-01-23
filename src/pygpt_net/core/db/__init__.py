@@ -20,9 +20,7 @@ from pygpt_net.migrations import Migrations
 
 class Database:
     def __init__(self, window=None):
-        """
-        Database provider core
-        """
+        """Database provider core"""
         self.window = window
         self.db_path = None
         self.db_name = 'db.sqlite'
@@ -32,17 +30,13 @@ class Database:
         self.migrations = Migrations()
 
     def init(self):
-        """
-        Initialize database
-        """
+        """Initialize database"""
         if not self.initialized:
             self.db_path = os.path.join(self.window.core.config.path, self.db_name)
             self.prepare()
 
     def prepare(self):
-        """
-        Prepare database
-        """
+        """Prepare database"""
         self.engine = create_engine(
             'sqlite:///{}'.format(self.db_path),
             echo=self.echo,
@@ -53,9 +47,7 @@ class Database:
         self.initialized = True
 
     def install(self):
-        """
-        Install database schema
-        """
+        """Install database schema"""
         with self.engine.begin() as conn:
             conn.execute(text("""
             CREATE TABLE IF NOT EXISTS config (
@@ -128,9 +120,7 @@ class Database:
         return has_migrations
 
     def make_backup(self):
-        """
-        Make backup of database before migration
-        """
+        """Make backup of database before migration"""
         try:
             backup_path = os.path.join(self.window.core.config.path, 'db.sqlite.backup')
             if os.path.exists(backup_path):
@@ -140,9 +130,7 @@ class Database:
             print("[DB] Error while making backup of database: {}".format(e))
 
     def migrate(self):
-        """
-        Apply all DB migrations
-        """
+        """Apply all DB migrations"""
         db_version = self.get_version()
         migrations = Migrations().get_versions()
         sorted_migrations = sorted(migrations, key=lambda m: m.__class__.__name__)
