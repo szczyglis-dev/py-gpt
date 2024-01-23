@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.11 09:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.assistant import Assistant
@@ -20,7 +20,6 @@ from pygpt_net.controller.config import Config
 from pygpt_net.controller.ctx import Ctx
 from pygpt_net.controller.debug import Debug
 from pygpt_net.controller.dialogs import Dialogs
-from pygpt_net.controller.drawing import Drawing
 from pygpt_net.controller.files import Files
 from pygpt_net.controller.idx import Idx
 from pygpt_net.controller.lang import Lang
@@ -29,6 +28,7 @@ from pygpt_net.controller.layout import Layout
 from pygpt_net.controller.mode import Mode
 from pygpt_net.controller.model import Model
 from pygpt_net.controller.notepad import Notepad
+from pygpt_net.controller.painter import Painter
 from pygpt_net.controller.plugins import Plugins
 from pygpt_net.controller.presets import Presets
 from pygpt_net.controller.settings import Settings
@@ -55,7 +55,6 @@ class Controller:
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
-        self.drawing = Drawing(window)
         self.files = Files(window)
         self.idx = Idx(window)
         self.lang = Lang(window)
@@ -64,6 +63,7 @@ class Controller:
         self.mode = Mode(window)
         self.model = Model(window)
         self.notepad = Notepad(window)
+        self.painter = Painter(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.settings = Settings(window)
@@ -98,7 +98,7 @@ class Controller:
         self.model.editor.setup()
         self.launcher.post_setup()
         self.calendar.setup()  # after everything is loaded
-        self.drawing.setup()  # load previous image if exists
+        self.painter.setup()  # load previous image if exists
 
     def on_update(self):
         """On app main loop update"""

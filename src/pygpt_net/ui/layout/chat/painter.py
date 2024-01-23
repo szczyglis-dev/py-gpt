@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.13 10:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea
@@ -46,52 +46,57 @@ class Painter:
 
         top = QHBoxLayout()
 
-        self.window.ui.nodes['painter.btn.brush'] = QRadioButton(trans('painter.mode.paint'))
-        self.window.ui.nodes['painter.btn.brush'].setChecked(True)
-        self.window.ui.nodes['painter.btn.brush'].toggled.connect(self.window.controller.drawing.set_brush_mode)
-        top.addWidget(self.window.ui.nodes['painter.btn.brush'])
+        key = 'painter.btn.brush'
+        self.window.ui.nodes[key] = QRadioButton(trans('painter.mode.paint'))
+        self.window.ui.nodes[key].setChecked(True)
+        self.window.ui.nodes[key].toggled.connect(self.window.controller.painter.common.set_brush_mode)
+        top.addWidget(self.window.ui.nodes[key])
 
-        self.window.ui.nodes['painter.btn.erase'] = QRadioButton(trans('painter.mode.erase'))
-        self.window.ui.nodes['painter.btn.erase'].toggled.connect(self.window.controller.drawing.set_erase_mode)
-        top.addWidget(self.window.ui.nodes['painter.btn.erase'])
+        key = 'painter.btn.erase'
+        self.window.ui.nodes[key] = QRadioButton(trans('painter.mode.erase'))
+        self.window.ui.nodes[key].toggled.connect(self.window.controller.painter.common.set_erase_mode)
+        top.addWidget(self.window.ui.nodes[key])
 
-        sizes = self.window.controller.drawing.get_sizes()
-        self.window.ui.nodes['painter.select.brush.size'] = QComboBox()
-        self.window.ui.nodes['painter.select.brush.size'].addItems(sizes)
-        self.window.ui.nodes['painter.select.brush.size'].currentTextChanged.connect(
-            self.window.controller.drawing.change_brush_size)
-        self.window.ui.nodes['painter.select.brush.size'].setMinimumContentsLength(10)
-        self.window.ui.nodes['painter.select.brush.size'].setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
-            self.window.ui.nodes['painter.select.brush.size'].findText('3'))
-        top.addWidget(self.window.ui.nodes['painter.select.brush.size'])
+        key = 'painter.select.brush.size'
+        sizes = self.window.controller.painter.common.get_sizes()
+        self.window.ui.nodes[key] = QComboBox()
+        self.window.ui.nodes[key].addItems(sizes)
+        self.window.ui.nodes[key].currentTextChanged.connect(
+            self.window.controller.painter.common.change_brush_size)
+        self.window.ui.nodes[key].setMinimumContentsLength(10)
+        self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.window.ui.nodes[key].setCurrentIndex(
+            self.window.ui.nodes[key].findText('3'))
+        top.addWidget(self.window.ui.nodes[key])
 
-        self.window.ui.nodes['painter.select.brush.color'] = QComboBox()
-        colors = self.window.controller.drawing.get_colors()
+        key = 'painter.select.brush.color'
+        self.window.ui.nodes[key] = QComboBox()
+        colors = self.window.controller.painter.common.get_colors()
         for color_name, color_value in colors.items():
-            self.window.ui.nodes['painter.select.brush.color'].addItem(color_name, color_value)
-        self.window.ui.nodes['painter.select.brush.color'].currentTextChanged.connect(
-            self.window.controller.drawing.change_brush_color)
-        self.window.ui.nodes['painter.select.brush.color'].setMinimumContentsLength(10)
-        self.window.ui.nodes['painter.select.brush.color'].setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        top.addWidget(self.window.ui.nodes['painter.select.brush.color'])
+            self.window.ui.nodes[key].addItem(color_name, color_value)
+        self.window.ui.nodes[key].currentTextChanged.connect(
+            self.window.controller.painter.common.change_brush_color)
+        self.window.ui.nodes[key].setMinimumContentsLength(10)
+        self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        top.addWidget(self.window.ui.nodes[key])
 
-        canvas_sizes = self.window.controller.drawing.get_canvas_sizes()
-        self.window.ui.nodes['painter.select.canvas.size'] = QComboBox()
-        self.window.ui.nodes['painter.select.canvas.size'].addItems(canvas_sizes)
-        self.window.ui.nodes['painter.select.canvas.size'].setMinimumContentsLength(20)
-        self.window.ui.nodes['painter.select.canvas.size'].setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.window.ui.nodes['painter.select.canvas.size'].currentTextChanged.connect(
-            self.window.controller.drawing.change_canvas_size)
-        top.addWidget(self.window.ui.nodes['painter.select.canvas.size'])
+        key = 'painter.select.canvas.size'
+        canvas_sizes = self.window.controller.painter.common.get_canvas_sizes()
+        self.window.ui.nodes[key] = QComboBox()
+        self.window.ui.nodes[key].addItems(canvas_sizes)
+        self.window.ui.nodes[key].setMinimumContentsLength(20)
+        self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.window.ui.nodes[key].currentTextChanged.connect(
+            self.window.controller.painter.common.change_canvas_size)
+        top.addWidget(self.window.ui.nodes[key])
 
         top.addStretch(1)
         self.window.ui.nodes['painter.btn.capture'] = QPushButton(trans('painter.btn.capture'))
-        self.window.ui.nodes['painter.btn.capture'].clicked.connect(self.window.controller.drawing.capture)
+        self.window.ui.nodes['painter.btn.capture'].clicked.connect(self.window.controller.painter.capture.use)
         top.addWidget(self.window.ui.nodes['painter.btn.capture'])
 
         self.window.ui.nodes['painter.btn.camera.capture'] = QPushButton(trans('painter.btn.camera.capture'))
-        self.window.ui.nodes['painter.btn.camera.capture'].clicked.connect(self.window.controller.drawing.from_camera)
+        self.window.ui.nodes['painter.btn.camera.capture'].clicked.connect(self.window.controller.painter.capture.camera)
         top.addWidget(self.window.ui.nodes['painter.btn.camera.capture'])
 
         self.window.ui.nodes['painter.btn.clear'] = QPushButton(trans('painter.btn.clear'))
@@ -105,7 +110,6 @@ class Painter:
         self.window.ui.nodes['tip.output.tab.draw'] = HelpLabel(trans('tip.output.tab.draw'), self.window)
 
         layout = QVBoxLayout()
-
         layout.addLayout(top)
         layout.addWidget( self.window.ui.painter_scroll)
         layout.addWidget(self.window.ui.nodes['tip.output.tab.draw'])

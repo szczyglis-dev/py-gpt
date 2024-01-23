@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 18:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import platform
@@ -26,7 +26,7 @@ class Platforms:
         :param window: Window instance
         """
         self.window = window
-        self.snap_name = 'pygpt'
+        self.snap_name = 'pygpt'  # TODO: move to config
 
     @staticmethod
     def prepare():
@@ -125,5 +125,5 @@ class Platforms:
         if self.is_snap():
             extra = ' (snap)'
         elif self.window.core.config.is_compiled():
-            extra = ' (compiled)'
-        return self.get_os() + ', ' + self.get_architecture() + '  ' + extra
+            extra = ' (standalone)'
+        return self.get_os() + ', ' + self.get_architecture() + extra

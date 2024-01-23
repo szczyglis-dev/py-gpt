@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import sys
@@ -170,7 +170,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("Saving calendar...")
         self.controller.calendar.save_all()
         print("Saving drawing...")
-        self.controller.drawing.save_all()
+        self.controller.painter.save_all()
         print("Saving layout state...")
         self.controller.layout.save()
         print("Stopping timers...")

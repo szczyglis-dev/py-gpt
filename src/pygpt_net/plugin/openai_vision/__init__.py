@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 12:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -169,7 +169,7 @@ class Plugin(BasePlugin):
                 ctx.reply = True
             elif item["cmd"] == "make_screenshot" and self.get_option_value("cmd_screenshot"):
                 request = {"cmd": item["cmd"]}
-                self.window.controller.drawing.make_screenshot()
+                self.window.controller.painter.capture.screenshot()
                 response = {"request": request, "result": "OK"}
                 ctx.results.append(response)
                 ctx.reply = True

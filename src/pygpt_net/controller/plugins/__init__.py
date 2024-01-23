@@ -79,8 +79,8 @@ class Plugins:
                 self.window.ui.menu['plugins'][id].setChecked(True)
 
         self.handle_types()
-        self.window.controller.ui.update_active()  # refresh active elements
-        self.window.controller.ui.update_vision()  # vision camera
+        self.window.controller.ui.mode.update()  # refresh active elements
+        self.window.controller.ui.vision.update()  # vision camera
 
     def enable(self, id: str):
         """
@@ -155,8 +155,8 @@ class Plugins:
 
         self.handle_types()
         self.window.controller.ui.update_tokens()  # refresh tokens
-        self.window.controller.ui.update_active()  # refresh active elements
-        self.window.controller.ui.update_vision()  # vision camera
+        self.window.controller.ui.mode.update()  # refresh active elements
+        self.window.controller.ui.vision.update()  # vision camera
         self.window.controller.attachment.update()  # attachments update
 
     def set_by_tab(self, idx: int):

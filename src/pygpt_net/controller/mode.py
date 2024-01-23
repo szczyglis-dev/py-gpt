@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -62,7 +62,7 @@ class Mode:
         self.window.ui.status(trans('status.started'))
 
         # vision camera
-        self.window.controller.ui.update_vision()
+        self.window.controller.ui.vision.update()
 
         # if assistant mode then update ctx label
         if mode == "assistant":

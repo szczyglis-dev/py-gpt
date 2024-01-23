@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -184,7 +184,7 @@ class Chat:
 
         # append context from DB
         history = self.context.get_messages(ctx.input, sys_prompt)
-        memory = ChatMemoryBuffer.from_defaults(chat_history=history)
+        memory = self.get_memory_buffer(history)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query, history, model.id)
         chat_engine = index.as_chat_engine(
@@ -207,6 +207,14 @@ class Chat:
         ctx.set_output(str(response), "")
 
         return True
+
+    def get_memory_buffer(self, history: list) -> ChatMemoryBuffer:
+        """
+        Get memory buffer
+
+        :param history: Memory with chat history
+        """
+        return ChatMemoryBuffer.from_defaults(chat_history=history)
 
     def get_custom_prompt(self, prompt: str = None) -> ChatPromptTemplate or None:
         """

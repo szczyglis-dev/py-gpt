@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 03:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -15,7 +15,7 @@ from PySide6.QtGui import QAction
 class Menu:
     def __init__(self, window=None):
         """
-        Theme menus controller
+        Theme menu controller
 
         :param window: Window instance
         """

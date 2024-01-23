@@ -68,7 +68,7 @@ class Lang:
         self.window.controller.notepad.reload_tab_names()
 
         # calendar
-        self.window.controller.calendar.update_current_note_label()
+        self.window.controller.calendar.note.update_current()
 
         # settings
         self.settings.apply()

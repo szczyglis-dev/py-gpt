@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 12:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -184,7 +184,7 @@ class Camera:
             # capture frame
             compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.core.config.get('vision.capture.quality'))]
             frame = self.get_current_frame()
-            self.window.controller.drawing.from_camera()  # capture to draw
+            self.window.controller.painter.capture.camera()  # capture to draw
 
             cv2.imwrite(path, frame, compression_params)
             mode = self.window.core.config.get('mode')
@@ -232,7 +232,7 @@ class Camera:
         """Enable capture"""
         if self.window.core.config.get('mode') != 'vision' \
                 and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.drawing.is_drawing():
+                and not self.window.controller.painter.is_active():
             return
 
         self.is_capture = True
@@ -246,7 +246,7 @@ class Camera:
         """Disable capture"""
         if self.window.core.config.get('mode') != 'vision' \
                 and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.drawing.is_drawing():
+                and not self.window.controller.painter.is_active():
             return
 
         self.is_capture = False
@@ -274,7 +274,7 @@ class Camera:
         """Enable capture"""
         if self.window.core.config.data['mode'] != 'vision' \
                 and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.drawing.is_drawing():
+                and not self.window.controller.painter.is_active():
             return
 
         self.auto = True
@@ -290,7 +290,7 @@ class Camera:
         """Disable capture"""
         if self.window.core.config.get('mode') != 'vision' \
                 and not self.window.controller.plugins.is_type_enabled('vision')\
-                and not self.window.controller.drawing.is_drawing():
+                and not self.window.controller.painter.is_active():
             return
 
         self.auto = False

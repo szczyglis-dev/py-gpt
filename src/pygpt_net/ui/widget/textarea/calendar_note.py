@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 10:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -27,7 +27,7 @@ class CalendarNote(QTextEdit):
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('chat_output'))
         self.value = int(self.window.core.config.get('font_size.calendar.note') or 12)
-        self.textChanged.connect(self.window.controller.calendar.update_note)
+        self.textChanged.connect(self.window.controller.calendar.note.update)
         self.max_font_size = 42
         self.min_font_size = 8
 

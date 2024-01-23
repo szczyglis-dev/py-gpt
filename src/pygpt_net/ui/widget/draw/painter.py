@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 10:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -37,6 +37,7 @@ class PainterWidget(QWidget):
     def contextMenuEvent(self, event):
         """
         Context menu event
+
         :param event: Event
         """
         actions = {}
@@ -64,20 +65,30 @@ class PainterWidget(QWidget):
         menu.addAction(actions['clear'])
         menu.exec_(event.globalPos())
 
-    def set_image(self, image):
-        """
-        Set image
-        :param image: Image
-        """
-        self.scale_to_fit(image)
-        self.originalImage = self.image
-        self.update()
-
     def action_open(self):
         """Open the image"""
         path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")
         if path:
             self.open_image(path)
+
+    def action_capture(self):
+        """Capture the image"""
+        self.saveForUndo()
+        self.window.controller.painter.capture.use()
+
+    def action_save(self):
+        """Save image to file"""
+        name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
+        path, _ = QFileDialog.getSaveFileName(self, "Save Image", name,
+                                              "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
+        if path:
+            self.image.save(path)
+
+    def action_clear(self):
+        """Clear the image"""
+        self.saveForUndo()
+        self.clear_image()
+        self.originalImage = self.image
 
     def open_image(self, path):
         """
@@ -91,6 +102,16 @@ class PainterWidget(QWidget):
             QMessageBox.information(self, "Image Loader", "Cannot load file.")
             return
         self.scale_to_fit(img)
+
+    def set_image(self, image):
+        """
+        Set image
+
+        :param image: Image
+        """
+        self.scale_to_fit(image)
+        self.originalImage = self.image
+        self.update()
 
     def scale_to_fit(self, image):
         """
@@ -112,36 +133,6 @@ class PainterWidget(QWidget):
         self.update()
         self.originalImage = self.image
 
-    def action_capture(self):
-        """Capture the image"""
-        self.saveForUndo()
-        self.window.controller.drawing.capture()
-
-    def action_save(self):
-        """Save image to file"""
-        name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
-        path, _ = QFileDialog.getSaveFileName(self, "Save Image", name,
-                                              "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
-        if path:
-            self.image.save(path)
-
-    def action_clear(self):
-        """Clear the image"""
-        self.saveForUndo()
-        self.clear_image()
-        self.originalImage = self.image
-
-    def mousePressEvent(self, event):
-        """
-        Mouse press event
-
-        :param event: Event
-        """
-        if event.button() == Qt.LeftButton:
-            self.drawing = True
-            self.lastPoint = event.pos()
-            self.saveForUndo()
-
     def saveForUndo(self):
         """Save current state for undo"""
         if len(self.undoStack) >= self.undoLimit:
@@ -162,11 +153,6 @@ class PainterWidget(QWidget):
         """
         self.brushColor = color
 
-    def clear_image(self):
-        """Clear the image"""
-        self.image.fill(Qt.white)
-        self.update()
-
     def set_brush_size(self, size):
         """
         Set the brush size
@@ -175,9 +161,26 @@ class PainterWidget(QWidget):
         """
         self.brushSize = size
 
+    def clear_image(self):
+        """Clear the image"""
+        self.image.fill(Qt.white)
+        self.update()
+
+    def mousePressEvent(self, event):
+        """
+        Mouse press event
+
+        :param event: Event
+        """
+        if event.button() == Qt.LeftButton:
+            self.drawing = True
+            self.lastPoint = event.pos()
+            self.saveForUndo()
+
     def mouseMoveEvent(self, event):
         """
         Mouse move event
+
         :param event: Event
         """
         if (event.buttons() & Qt.LeftButton) and self.drawing:
@@ -218,6 +221,7 @@ class PainterWidget(QWidget):
     def resizeEvent(self, event):
         """
         Update coords on resize
+        
         :param event: Event
         """
         if self.image.size() != self.size():

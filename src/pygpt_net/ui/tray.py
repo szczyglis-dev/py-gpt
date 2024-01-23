@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -81,7 +81,7 @@ class Tray:
 
     def make_screenshot(self):
         """Make screenshot"""
-        self.window.controller.drawing.make_screenshot()
+        self.window.controller.painter.capture.screenshot()
         self.window.activateWindow()
         self.window.controller.chat.common.focus_input()
 

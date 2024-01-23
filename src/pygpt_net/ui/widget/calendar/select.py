@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 06:00:00                  #
+# Updated Date: 2024.01.23 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
@@ -167,5 +167,5 @@ class CalendarSelect(QCalendarWidget):
         self.open_context_menu(event.pos())
 
     def set_label_for_day(self, date: QDate, status_id: int):
-        self.window.controller.calendar.update_status_label(status_id, date.year(), date.month(), date.day())
+        self.window.controller.calendar.note.update_status(status_id, date.year(), date.month(), date.day())
 
