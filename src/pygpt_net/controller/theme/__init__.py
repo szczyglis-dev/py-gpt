@@ -131,9 +131,8 @@ class Theme:
                     with open(path) as file:
                         content += file.read()
 
-            # Windows checkbox button + radio button fix:
-            # without this fix, checkboxes and radio buttons are not visible in Windows Python version
-            # (compiled version works fine)
+            # Windows checkbox button + radio button fix (if no SVG support)
+            # when missing DLLs in PySide6, VC++ redistributable required
             if self.window.core.platforms.is_windows() and not self.window.core.config.is_compiled():
                 content += self.common.get_windows_fix()
             try:
