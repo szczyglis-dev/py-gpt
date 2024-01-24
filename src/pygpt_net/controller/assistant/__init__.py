@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -54,6 +54,7 @@ class Assistant:
         self.window.ui.toolbox.assistants.update(items)
 
     def prepare(self):
+        """Prepare assistants"""
         # create or get current thread, it is required before conversation start
         if self.window.core.config.get('assistant_thread') is None:
             try:
@@ -107,6 +108,7 @@ class Assistant:
                     self.window.controller.model.update_list()
                     self.window.controller.model.select_current()
                     self.window.ui.nodes['preset.prompt'].setPlainText(assistant.instructions)
+                    self.window.controller.presets.from_global()
                     self.refresh()
 
         self.window.controller.ctx.update_ctx()  # update current ctx info
@@ -127,6 +129,8 @@ class Assistant:
             idx = list(items.keys()).index(assistant_id)
             current = self.window.ui.models['assistants'].index(idx, 0)
             self.window.ui.nodes['assistants'].setCurrentIndex(current)
+            self.window.core.config.set('prompt', items[assistant_id].instructions)
+            self.window.ui.nodes['preset.prompt'].setPlainText(items[assistant_id].instructions)
 
     def select_default(self):
         """Set default assistant"""
