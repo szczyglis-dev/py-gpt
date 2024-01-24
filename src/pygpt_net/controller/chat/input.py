@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -64,7 +64,11 @@ class Input:
         :param force: force send
         :param internal: internal call
         """
-        self.execute(text, force=force, internal=internal)
+        self.execute(
+            text,
+            force=force,
+            internal=internal
+        )
 
     def execute(
             self,
@@ -98,6 +102,9 @@ class Input:
             if self.window.controller.camera.is_enabled():
                 if self.window.controller.camera.is_auto():
                     self.window.controller.camera.capture_frame(False)
+
+        # check if attachment exists, make this here to prevent clearing list on async reply!
+        has_attachments = self.window.controller.attachment.has(mode)
 
         # unlock Assistant run thread if locked
         self.window.controller.assistant.threads.stop = False
@@ -159,10 +166,11 @@ class Input:
                 internal=internal
             )  # text mode: OpenAI, Langchain, Llama
 
-        # clear attachments after send if enabled
-        if self.window.core.config.get('attachments_send_clear'):
-            self.window.controller.attachment.clear(True)
-            self.window.controller.attachment.update()
+        # clear attachments after send, only if attachments has been provided before send
+        if has_attachments:
+            if self.window.core.config.get('attachments_send_clear'):
+                self.window.controller.attachment.clear(True)
+                self.window.controller.attachment.update()
 
         self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
 
