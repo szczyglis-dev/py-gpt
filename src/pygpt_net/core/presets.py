@@ -125,7 +125,7 @@ class Presets:
             return True
         return False
 
-    def get_first_mode(self, id: str) -> str:
+    def get_first_mode(self, id: str) -> str or None:
         """
         Return first mode for preset
 
