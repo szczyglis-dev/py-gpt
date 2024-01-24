@@ -105,7 +105,7 @@ def test_select_current(mock_window):
     mock_window.ui.models = {'assistants': MagicMock()}
     mock_window.ui.nodes = {'assistants': MagicMock()}
     mock_window.ui.models['assistants'].index = MagicMock(return_value='current')
-
+    mock_window.ui.nodes['preset.prompt'] = MagicMock()
     assistant.select_current()
     mock_window.core.config.get.assert_called_once_with('assistant')
     mock_window.core.assistants.get_all.assert_called_once()
