@@ -1843,6 +1843,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.117 (2024-01-24)
+
+- Added a new feature to the `Command: Files I/O` plugin - `Get and upload file as attachment`. It lets automatically read files from `data` folder and send them as attachments - just ask to send a file as an attachment and the model will send it to itself (like sending an image for analysis). Option is disabled by default in the plugin`s settings.
+- Added a new plugin: `Command: Serial port / USB`. This plugin lets you read and send any commands to USB ports (so you can control robots now ;) ).
+- Made it possible to use URLs for images when not using the vision feature.
+- Fixed saving and reloading prompts in Assistant mode.
+- Removed display of empty external images from the output.
+
 # 2.0.116 (2024-01-24)
 
 - Fixed font color in light themes
