@@ -40,6 +40,7 @@ class Plugin(BasePlugin):
             "file_exists",
             "file_size",
             "file_info",
+            "get_file",
         ]
         self.use_locale = True
         self.init_options()
@@ -47,6 +48,11 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         # cmd enable/disable
+        self.add_option("cmd_get_file",
+                        type="bool",
+                        value=False,
+                        label="Enable: Get and upload file as attachment",
+                        description="Allows `get_file` command execution")
         self.add_option("cmd_read_file",
                         type="bool",
                         value=True,
@@ -129,6 +135,12 @@ class Plugin(BasePlugin):
                         description="Allows `file_info` command execution")
 
         # cmd syntax (prompt/instruction)
+        self.add_option("syntax_get_file",
+                        type="textarea",
+                        value='"get_file": get file as attachment and upload to itself, params: "path"',
+                        label="Syntax: get_file",
+                        description="Syntax for getting files as attachment",
+                        advanced=True)
         self.add_option("syntax_read_file",
                         type="textarea",
                         value='"read_file": read data from file, params: "filename"',
