@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 10:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -46,12 +46,13 @@ class Worker(BaseWorker):
                         try:
                             msg = "Saving file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['filename'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['filename']
+                            )
                             data = item["params"]['data']
                             with open(path, 'w', encoding="utf-8") as file:
                                 file.write(data)
-                                file.close()
                                 response = {"request": request, "result": "OK"}
                                 self.log("File saved: {}".format(path))
                         except Exception as e:
@@ -65,12 +66,13 @@ class Worker(BaseWorker):
                         try:
                             msg = "Appending file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['filename'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['filename']
+                            )
                             data = item["params"]['data']
                             with open(path, 'a', encoding="utf-8") as file:
                                 file.write(data)
-                                file.close()
                                 response = {"request": request, "result": "OK"}
                                 self.log("File appended: {}".format(path))
                         except Exception as e:
@@ -84,13 +86,14 @@ class Worker(BaseWorker):
                         try:
                             msg = "Reading file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['filename'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['filename']
+                            )
                             if os.path.exists(path):
                                 with open(path, 'r', encoding="utf-8") as file:
                                     data = file.read()
                                     response = {"request": request, "result": data}
-                                    file.close()
                                     self.log("File read: {}".format(path))
                             else:
                                 response = {"request": request, "result": "File not found"}
@@ -106,8 +109,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Deleting file: {}".format(item["params"]['filename'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['filename'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['filename']
+                            )
                             if os.path.exists(path):
                                 os.remove(path)
                                 response = {"request": request, "result": "OK"}
@@ -126,8 +131,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Listing directory: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.exists(path):
                                 files = os.listdir(path)
                                 response = {"request": request, "result": files}
@@ -147,8 +154,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Creating directory: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if not os.path.exists(path):
                                 os.makedirs(path)
                                 response = {"request": request, "result": "OK"}
@@ -167,8 +176,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Deleting directory: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.exists(path):
                                 shutil.rmtree(path)
                                 response = {"request": request, "result": "OK"}
@@ -185,8 +196,10 @@ class Worker(BaseWorker):
                     # download
                     elif item["cmd"] == "download_file" and self.plugin.is_cmd_allowed("download_file"):
                         try:
-                            dst = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                               item["params"]['dst'])
+                            dst = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['dst']
+                            )
                             msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
                             self.log(msg)
 
@@ -201,12 +214,18 @@ class Worker(BaseWorker):
                                 context = ssl.create_default_context()
                                 context.check_hostname = False
                                 context.verify_mode = ssl.CERT_NONE
-                                with urlopen(req, context=context, timeout=4) as response, open(dst, 'wb') as out_file:
+                                with urlopen(
+                                        req,
+                                        context=context,
+                                        timeout=4) as response, \
+                                        open(dst, 'wb') as out_file:
                                     shutil.copyfileobj(response, out_file)
                             else:
                                 # Handle local file paths
-                                src = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                                   item["params"]['src'])
+                                src = os.path.join(
+                                    self.plugin.window.core.config.get_user_dir('data'),
+                                    item["params"]['src']
+                                )
 
                                 # Copy local file
                                 with open(src, 'rb') as in_file, open(dst, 'wb') as out_file:
@@ -226,10 +245,14 @@ class Worker(BaseWorker):
                         try:
                             msg = "Copying file: {} into {}".format(item["params"]['src'], item["params"]['dst'])
                             self.log(msg)
-                            dst = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                               item["params"]['dst'])
-                            src = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                               item["params"]['src'])
+                            dst = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['dst']
+                            )
+                            src = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['src']
+                            )
                             shutil.copyfile(src, dst)
                             response = {"request": request, "result": "OK"}
                             self.log("File copied: {} into {}".format(src, dst))
@@ -245,10 +268,14 @@ class Worker(BaseWorker):
                             msg = "Copying directory: {} into {}".format(item["params"]['src'],
                                                                          item["params"]['dst'])
                             self.log(msg)
-                            dst = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                               item["params"]['dst'])
-                            src = os.path.join(self.plugin.window.core.config.get_user_dir('data'),
-                                               item["params"]['src'])
+                            dst = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['dst']
+                            )
+                            src = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['src']
+                            )
                             shutil.copytree(src, dst)
                             response = {"request": request, "result": "OK"}
                             self.log("Directory copied: {} into {}".format(src, dst))
@@ -263,8 +290,14 @@ class Worker(BaseWorker):
                         try:
                             msg = "Moving: {} into {}".format(item["params"]['src'], item["params"]['dst'])
                             self.log(msg)
-                            dst = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['dst'])
-                            src = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['src'])
+                            dst = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['dst']
+                            )
+                            src = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['src']
+                            )
                             shutil.move(src, dst)
                             response = {"request": request, "result": "OK"}
                             self.log("Moved: {} into {}".format(src, dst))
@@ -279,7 +312,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Checking if directory exists: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.isdir(path):
                                 response = {"request": request, "result": "OK"}
                                 self.log("Directory exists: {}".format(path))
@@ -297,7 +333,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Checking if file exists: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.isfile(path):
                                 response = {"request": request, "result": "OK"}
                                 self.log("File exists: {}".format(path))
@@ -315,7 +354,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Checking if path exists: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.exists(path):
                                 response = {"request": request, "result": "OK"}
                                 self.log("Path exists: {}".format(path))
@@ -333,7 +375,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Checking file size: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.exists(path):
                                 response = {"request": request, "result": os.path.getsize(path)}
                                 self.log("File size: {}".format(os.path.getsize(path)))
@@ -351,7 +396,10 @@ class Worker(BaseWorker):
                         try:
                             msg = "Checking file info: {}".format(item["params"]['path'])
                             self.log(msg)
-                            path = os.path.join(self.plugin.window.core.config.get_user_dir('data'), item["params"]['path'])
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
                             if os.path.exists(path):
                                 data = {
                                     "size": os.path.getsize(path),
@@ -367,6 +415,34 @@ class Worker(BaseWorker):
                                 }
                                 response = {"request": request, "result": data}
                                 self.log("File info: {}".format(data))
+                            else:
+                                response = {"request": request, "result": "File not found"}
+                                self.log("File not found: {}".format(path))
+                        except Exception as e:
+                            response = {"request": request, "result": "Error: {}".format(e)}
+                            self.error(e)
+                            self.log("Error: {}".format(e))
+                        self.response(response)
+
+                    # get file as attachment
+                    elif item["cmd"] == "get_file" and self.plugin.is_cmd_allowed("get_file"):
+                        try:
+                            msg = "Adding attachment: {}".format(item["params"]['path'])
+                            self.log(msg)
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path']
+                            )
+
+                            if os.path.exists(path):
+                                # make attachment
+                                mode = self.plugin.window.core.config.get('mode')
+                                title = os.path.basename(path)
+                                self.plugin.window.core.attachments.new(mode, title, path, False)
+                                self.plugin.window.core.attachments.save()
+                                self.plugin.window.controller.attachment.update()
+                                response = {"request": request, "result": "Sending attachment: {}".format(title)}
+                                self.log("Added attachment: {}".format(path))
                             else:
                                 response = {"request": request, "result": "File not found"}
                                 self.log("File not found: {}".format(path))
