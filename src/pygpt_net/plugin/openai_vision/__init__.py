@@ -245,7 +245,7 @@ class Plugin(BasePlugin):
         self.window.core.gpt.vision.build_content(str(self.prompt), attachments)  # tmp build content
 
         built_attachments = self.window.core.gpt.vision.attachments
-        built_urls = self.window.core.gpt.vision.get_urls()
+        built_urls = self.window.core.gpt.vision.urls
 
         # check for images in URLs
         img_urls = []
