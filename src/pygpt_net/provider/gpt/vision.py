@@ -135,23 +135,23 @@ class Vision:
 
     def build_content(
             self,
-            input_prompt: str,
+            prompt: str,
             attachments: dict = None
     ) -> list:
         """
         Build vision contents
 
-        :param input_prompt: prompt (user input)
+        :param prompt: prompt (user input)
         :param attachments: attachments (dict, optional)
         :return: List of contents
         """
-        content = [{"type": "text", "text": str(input_prompt)}]
+        content = [{"type": "text", "text": str(prompt)}]
 
         self.attachments = {}
         self.urls = []
 
         # extract URLs from prompt
-        urls = self.extract_urls(input_prompt)
+        urls = self.extract_urls(prompt)
         if len(urls) > 0:
             for url in urls:
                 content.append({"type": "image_url", "image_url": {"url": url}})
