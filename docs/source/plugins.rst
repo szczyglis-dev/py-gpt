@@ -251,6 +251,8 @@ Command: Serial port / USB
 
 Provides commands for reading and sending data to USB ports.
 
+**Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
+
 ``USB port`` *serial_port*
 
 USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3 *Default:* ``/dev/ttyUSB0``
