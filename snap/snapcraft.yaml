@@ -56,3 +56,4 @@ apps:
     - opengl
     - unity7
     - camera
+    - serial-port
