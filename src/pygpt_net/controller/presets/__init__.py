@@ -255,6 +255,11 @@ class Presets:
 
         self.window.ui.status(trans('status.preset.cleared'))
 
+        # reload assistant default instructions
+        mode = self.window.core.config.get('mode')
+        if mode == "assistant":
+            self.window.core.assistants.load()
+
     def delete(self, idx: int = None, force: bool = False):
         """
         Delete preset
