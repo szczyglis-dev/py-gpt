@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -124,6 +124,7 @@ class Editor:
             self.window.core.config.set('prompt', value)
             if mode == 'assistant':
                 self.window.controller.assistant.from_global()
+                self.window.controller.presets.from_global()
             else:
                 self.window.controller.presets.from_global()
 
