@@ -269,9 +269,9 @@ Timeout in seconds *Default:* ``1``
 
 Sleep in seconds after connection *Default:* ``2``
 
-``Enable: Send text commands to USB port`` *cmd_serial_send_text*
+``Enable: Send text commands to USB port`` *cmd_serial_send*
 
-Allows ``serial_send_text`` command execution" *Default:* ``True``
+Allows ``serial_send`` command execution" *Default:* ``True``
 
 ``Enable: Send raw bytes to USB port`` *cmd_serial_send_bytes*
 
@@ -281,9 +281,9 @@ Allows ``serial_send_bytes`` command execution *Default:* ``True``
 
 Allows ``serial_read`` command execution *Default:* ``True``
 
-``Syntax: serial_send_text`` *syntax_serial_send_text*
+``Syntax: serial_send`` *syntax_serial_send*
 
-Syntax for sending text command to USB port *Default:* ``"serial_send_text": send text command to USB port, params: "command"``
+Syntax for sending text command to USB port *Default:* ``"serial_send": send text command to USB port, params: "command"``
 
 ``Syntax: serial_send_bytes`` *syntax_serial_send_bytes*
 
