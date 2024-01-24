@@ -23,6 +23,7 @@ class Plugin(BasePlugin):
         self.description = "Integrates GPT-4 Vision abilities with any chat mode"
         self.order = 100
         self.use_locale = True
+        self.prompt = ""
         self.allowed_urls_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
         self.allowed_cmds = ["camera_capture", "make_screenshot"]
         self.init_options()
@@ -112,7 +113,10 @@ class Plugin(BasePlugin):
                 data['model'] = self.get_option_value("model")
         elif name == Event.PRE_PROMPT:
             if self.is_allowed(data['mode']):
+
                 data['value'] = self.on_pre_prompt(data['value'])
+        elif name == Event.INPUT_BEFORE:
+            self.prompt = str(data['value'])
         elif name == Event.SYSTEM_PROMPT:
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_system_prompt(data['value'])
@@ -238,10 +242,10 @@ class Plugin(BasePlugin):
         result = False
         mode = self.window.core.config.get('mode')
         attachments = self.window.core.attachments.get_all(mode)
-        self.window.core.gpt.vision.build_content("", attachments)  # tmp build content
+        self.window.core.gpt.vision.build_content(str(self.prompt), attachments)  # tmp build content
 
         built_attachments = self.window.core.gpt.vision.attachments
-        built_urls = self.window.core.gpt.vision.urls
+        built_urls = self.window.core.gpt.vision.get_urls()
 
         # check for images in URLs
         img_urls = []
