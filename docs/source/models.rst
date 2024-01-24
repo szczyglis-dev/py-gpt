@@ -88,12 +88,12 @@ These wrappers are loaded into the application during startup using ``launcher.a
 
     # app.py
 
-    from pygpt_net.llm.openai import OpenAILLM
-    from pygpt_net.llm.azure_openai import AzureOpenAILLM
-    from pygpt_net.llm.anthropic import AnthropicLLM
-    from pygpt_net.llm.hugging_face import HuggingFaceLLM
-    from pygpt_net.llm.llama import Llama2LLM
-    from pygpt_net.llm.ollama import OllamaLLM
+    from pygpt_net.provider.llm.openai import OpenAILLM
+    from pygpt_net.provider.llm.azure_openai import AzureOpenAILLM
+    from pygpt_net.provider.llm.anthropic import AnthropicLLM
+    from pygpt_net.provider.llm.hugging_face import HuggingFaceLLM
+    from pygpt_net.provider.llm.llama import Llama2LLM
+    from pygpt_net.provider.llm.ollama import OllamaLLM
 
     def run(
         plugins=None, 
