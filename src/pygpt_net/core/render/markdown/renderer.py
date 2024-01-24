@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 10:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 import re
@@ -160,6 +160,9 @@ class Renderer:
         # images
         if len(item.images) > 0:
             for image in item.images:
+                # don't append if it is a external url
+                if image.startswith("http"):
+                    continue
                 if image in appended or image in self.images_appended:
                     continue
                 try:
