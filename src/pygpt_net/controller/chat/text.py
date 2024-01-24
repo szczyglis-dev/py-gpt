@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -25,7 +25,11 @@ class Text:
         """
         self.window = window
 
-    def send(self, text: str, internal: bool = False) -> CtxItem:
+    def send(
+            self,
+            text: str,
+            internal: bool = False
+    ) -> CtxItem:
         """
         Send text message
 
@@ -70,7 +74,7 @@ class Text:
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
 
-        # upload attachments if provided
+        # upload assistant attachments (only assistant mode here)
         attachments = self.window.controller.chat.files.upload(mode)
         if len(attachments) > 0:
             ctx.attachments = attachments
