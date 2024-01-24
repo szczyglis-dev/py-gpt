@@ -42,6 +42,7 @@ dependencies = [
     'pygame>=2.5.2',
     'pyinstaller>=5.9.0',
     'pypdf>=3.17.4',
+    'pyserial>=3.5',
     'PySide6>=6.4.2',
     'PySide6-Addons>=6.4.2',
     'PySide6-Essentials>=6.4.2',

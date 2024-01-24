@@ -123,6 +123,7 @@ pyinstaller-hooks-contrib==2023.12
 pypdf==3.17.4
 PyPika==0.48.9
 pyproject_hooks==1.0.0
+pyserial==3.5
 PySide6==6.4.2
 PySide6-Addons==6.4.2
 PySide6-Essentials==6.4.2
