@@ -9,6 +9,7 @@ The following plugins are currently available, and GPT can use them instantly:
 * ``Command: Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
 * ``Command: Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 * ``Command: Custom Commands`` - allows you to create and execute custom commands on your system.
+* ``Command: Serial port / USB`` - plugin povides commands for reading and sending data to USB ports.
 * ``Audio Output (Microsoft Azure)`` - provides voice synthesis using the Microsoft Azure Text To Speech API.
 * ``Audio Output (OpenAI TTS)`` - provides voice synthesis using the `OpenAI Text To Speech API`.
 * ``Audio Input (OpenAI Whisper)`` - offers speech recognition through the `OpenAI Whisper API`.
@@ -26,6 +27,7 @@ The plugin allows for file management within the local filesystem. It enables th
 
 Plugin capabilities include:
 
+- Sending files as attachments
 * Reading files
 * Appending to files
 * Writing files
@@ -39,6 +41,10 @@ Plugin capabilities include:
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
 **Options:**
+
+- ``Enable: Get and upload file as attachment`` *cmd_get_file*
+
+Allows `cmd_get_file` command. *Default:* `False`
 
 - ``Enable: Read file`` *cmd_read_file*
 
@@ -238,6 +244,52 @@ These data must be configured in the appropriate fields in the ``Plugins / Setti
 
 .. image:: images/v2_plugin_google.png
    :width: 600
+
+
+Command: Serial port / USB
+---------------------------
+
+Provides commands for reading and sending data to USB ports.
+
+``USB port`` *serial_port*
+
+USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3 *Default:* ``/dev/ttyUSB0``
+
+``Connection speed (baudrate, bps)`` *serial_bps*
+
+Port connection speed, in bps *Default:* ``9600``
+
+``Timeout`` *timeout*
+
+Timeout in seconds *Default:* ``1``
+
+``Sleep`` *sleep*
+
+Sleep in seconds after connection *Default:* ``2``
+
+``Enable: Send text commands to USB port`` *cmd_serial_send_text*
+
+Allows ``serial_send_text`` command execution" *Default:* ``True``
+
+``Enable: Send raw bytes to USB port`` *cmd_serial_send_bytes*
+
+Allows ``serial_send_bytes`` command execution *Default:* ``True``
+
+``Enable: Read data from USB port`` *cmd_serial_read*
+
+Allows ``serial_read`` command execution *Default:* ``True``
+
+``Syntax: serial_send_text`` *syntax_serial_send_text*
+
+Syntax for sending text command to USB port *Default:* ``"serial_send_text": send text command to USB port, params: "command"``
+
+``Syntax: serial_send_bytes`` *syntax_serial_send_bytes*
+
+Syntax for sending raw bytes to USB port *Default:* ``"serial_send_bytes": send raw bytes to USB port, params: "bytes"``
+
+``Syntax: serial_read`` *syntax_serial_read*
+
+Syntax for reading data from USB port *Default:* ``"serial_read": read data from serial port in seconds duration, params: "duration"``
 
 
 Audio Output (Microsoft Azure)
@@ -501,7 +553,7 @@ If enabled, this option reverses the roles (AI <> user) with each iteration. For
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
-rontab / Task scheduler
+Crontab / Task scheduler
 -----------------------
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
@@ -512,6 +564,11 @@ Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be
 Add your cron-style tasks here. 
 They will be executed automatically at the times you specify in the cron-based job format. 
 If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
+
+Number of active tasks is always displayed in tray-icon dropdown menu:
+
+.. image:: images/v2_crontab_tray.png
+   :width: 400
 
 - ``Create a new context on job run`` *new_ctx*
 

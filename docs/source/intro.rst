@@ -31,7 +31,7 @@ Features
 * Image analysis via ``GPT-4 Vision``.
 * Crontab / Task scheduler included
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).
-* Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx` or use previous conversations as additional context provided to model.
+* Integrated ``Llama-index`` support: chat with ``txt``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx`` or use previous conversations as additional context provided to model.
 * Integrated calendar, day notes and search in contexts by selected date
 * Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 * Custom commands creation and execution
@@ -40,6 +40,7 @@ Features
 * Allows you to easily manage prompts with handy editable presets.
 * Provides an intuitive operation and interface.
 * Includes a notebook.
+* Includes simple painter / drawing tool
 * Includes optional Autonomous Mode
 * Supports multiple languages.
 * Enables the use of all the powerful features of ``GPT-4``, ``GPT-4V``, and ``GPT-3.5``.

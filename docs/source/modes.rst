@@ -18,7 +18,7 @@ Plugin allows you to send photos or image from camera to analysis in any Chat mo
 
 
 .. image:: images/v3_vision_plugins.png
-   :width: 600
+   :width: 400
 
 With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
 
@@ -43,8 +43,6 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 
 .. image:: images/v2_mode_completion.png
    :width: 800
-
-In this mode, models from the ``davinci`` family within ``GPT-3`` are available. 
 
 **Info:** From version ``2.0.107`` the davinci models are deprecated and has been replaced with ``gpt-3.5-turbo-instruct`` model.
 
@@ -176,8 +174,8 @@ Arguments for ElasticsearchStore(``**kwargs``):
 
 Arguments for Pinecone(``**kwargs``):
 
-* index_name (default: current index ID, already set, not required)
 * api_key
+* index_name (default: current index ID, already set, not required)
 
 **RedisVectorStore**
 
