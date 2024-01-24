@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 import json
@@ -49,7 +49,11 @@ class Event:
     USER_NAME = "user.name"
     USER_SEND = "user.send"
 
-    def __init__(self, name: str = None, data: dict = None):
+    def __init__(
+            self,
+            name: str = None,
+            data: dict = None
+    ):
         """
         Event object class
 
@@ -60,7 +64,9 @@ class Event:
         self.data = data
         self.ctx = None  # CtxItem
         self.stop = False  # True to stop propagation
-        self.internal = False  # internal event, not from user, handled synchronously, ctx item has internal flag
+        self.internal = False
+        # internal event, not called from user
+        # internal event is handled synchronously, ctx item has internal flag
 
 
 class Dispatcher:
@@ -72,7 +78,12 @@ class Dispatcher:
         """
         self.window = window
 
-    def dispatch(self, event: Event, all: bool = False, is_async: bool = False) -> (list, Event):
+    def dispatch(
+            self,
+            event: Event,
+            all: bool = False,
+            is_async: bool = False
+    ) -> (list, Event):
         """
         Dispatch event to plugins
 
@@ -91,7 +102,12 @@ class Dispatcher:
 
         return affected, event
 
-    def apply(self, id: str, event: Event, is_async: bool = False):
+    def apply(
+            self,
+            id: str,
+            event: Event,
+            is_async: bool = False
+    ):
         """
         Handle event in plugin with provided id
 
@@ -117,6 +133,8 @@ class Dispatcher:
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
-                self.window.controller.chat.input.send(json.dumps(ctx.results),
-                                                       force=True,
-                                                       internal=ctx.internal)
+                self.window.controller.chat.input.send(
+                    json.dumps(ctx.results),
+                    force=True,
+                    internal=ctx.internal
+                )
