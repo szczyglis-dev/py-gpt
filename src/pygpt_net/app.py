@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 21:00:00                  #
+# Updated Date: 2024.01.24 18:00:00                  #
 # ================================================== #
 
 import sys
@@ -38,6 +38,7 @@ from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
 from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
+from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
 
 # LLMs
 from pygpt_net.provider.llm.anthropic import AnthropicLLM
@@ -307,6 +308,7 @@ def run(
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())
+    launcher.add_plugin(CmdSerialPlugin())
     launcher.add_plugin(OpenAIDallePlugin())
     launcher.add_plugin(OpenAIVisionPlugin())
     launcher.add_plugin(IdxLlamaIndexPlugin())
