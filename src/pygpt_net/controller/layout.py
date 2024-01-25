@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
 
 
@@ -38,6 +38,10 @@ class Layout:
         # restore plugin settings state
         self.window.controller.plugins.set_by_tab(self.window.ui.tabs['plugin.settings'].currentIndex())
         self.window.controller.ui.update_tokens()  # update tokens
+
+        # minimize window after startup
+        if self.window.core.config.has('layout.minimized') and self.window.core.config.get('layout.minimized'):
+            self.window.showMinimized()
 
     def save(self):
         """Save layout state"""
@@ -173,8 +177,10 @@ class Layout:
                 geometry_data = data['geometry']
                 self.window.move(geometry_data['x'], geometry_data['y'])
                 self.window.resize(geometry_data['width'], geometry_data['height'])
-            if 'maximized' in data and data['maximized']:
-                self.window.showMaximized()
+            if not self.window.core.config.has('layout.minimized') \
+                    or not self.window.core.config.get('layout.minimized'):
+                if 'maximized' in data and data['maximized']:
+                    self.window.showMaximized()
         except Exception as e:
             print("Error while restoring window state: " + str(e))
             self.window.core.debug.log(e)

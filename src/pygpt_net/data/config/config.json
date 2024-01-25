@@ -57,6 +57,7 @@
   "layout.dpi.scaling": true,
   "layout.dpi.factor": 1.0,
   "layout.groups": {},
+  "layout.minimized": false,
   "layout.splitters": {},
   "layout.tabs": {},
   "layout.tooltips": true,
