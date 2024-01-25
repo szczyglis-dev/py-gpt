@@ -559,7 +559,6 @@ class Patch:
                         {
                             "id": "base",
                             "name": "Base",
-                            "model_embed": "gpt-3.5-turbo"
                         }
                     ]
                 if "llama.idx.status" not in data:
@@ -615,6 +614,13 @@ class Patch:
             if old < parse_version("2.0.116"):
                 print("Migrating config from < 2.0.116...")
                 data['debug'] = False
+                updated = True
+
+            # < 2.0.118
+            if old < parse_version("2.0.118"):
+                print("Migrating config from < 2.0.118...")
+                if 'layout.tray' not in data:
+                    data['layout.tray'] = True
                 updated = True
 
         # update file
