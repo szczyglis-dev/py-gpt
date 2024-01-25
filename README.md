@@ -1639,9 +1639,15 @@ Config -> Settings...
 
 - `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
 
+- `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
+
 - `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
-- `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
+- `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
+
+- `Start minimized`: Enables minimized on start. Default: False.
+
+- `Check for updates on start`: Enables checking for updates on start. Default: True.
 
 **Layout**
 
@@ -1660,8 +1666,6 @@ Config -> Settings...
 - `DPI factor`: DPI factor. Restart of the application is required for this option to take effect. Default: 1.0. 
 
 - `Display tips (help descriptions)`: Display help tips, Default: True.
-
-- `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
 - `Use theme colors in chat window`: Use color theme in chat window, Default: True.
 
