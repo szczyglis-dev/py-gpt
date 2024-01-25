@@ -37,7 +37,7 @@ setup(
         'langchain-experimental>=0.0.49',
         'langchain-openai>=0.0.2.post1',
         'llama-hub>=0.0.69',
-        'llama-index>=0.9.29',
+        'llama-index>=0.9.38',
         'Markdown>=3.5.1',
         'openai>=1.7.2',
         'opencv-python>=4.8.1.78',
