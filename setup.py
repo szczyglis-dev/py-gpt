@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.118'
+VERSION = '2.0.119'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, DALL-E 3, Langchain and Llama-index with chatbot, assistant, text completion, ' \
               'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
 LONG_DESCRIPTION = 'Package contains a GPT-4, GPT-4V, GPT-3, Whisper, DALL-E 3 Desktop AI Assistant with chatbot, ' \

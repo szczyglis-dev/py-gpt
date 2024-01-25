@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.118** | build: **2024.01.25** | Python: **3.10+**
+Release: **2.0.119** | build: **2024.01.25** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1849,6 +1849,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.119 (2024-01-25)
+
+- Fixed list selection loose after async command execution
+- Added "Start minimized" option in settings
+- Updated docs
 
 # 2.0.118 (2024-01-25)
 
