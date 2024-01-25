@@ -1,8 +1,8 @@
 # Installation
 
-## Compiled versions (Windows, Linux)
+## Compiled versions (Linux, Windows 10 and 11)
 
-You can download compiled versions for `Windows 10`, `Windows 11` and `Linux`. 
+You can download compiled versions for `Linux` and `Windows` (10/11). 
 
 Download the `.msi` or `tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application.
 
