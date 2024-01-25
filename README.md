@@ -732,7 +732,7 @@ To integrate your own model or provider into **PyGPT**, you can reference the sa
 **From version 2.0.114 you can also register your own Vector Store provider**:
 
 ```python
-# app.y
+# app.py
 
 # vector stores
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider
@@ -742,6 +742,21 @@ from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
 def run(**kwargs):
+    # ...
+    # register base vector store providers (llama-index)
+    launcher.add_vector_store(ChromaProvider())
+    launcher.add_vector_store(ElasticsearchProvider())
+    launcher.add_vector_store(PinecodeProvider())
+    launcher.add_vector_store(RedisProvider())
+    launcher.add_vector_store(SimpleProvider())
+
+    # register custom vector store providers (llama-index)
+    vector_stores = kwargs.get('vector_stores', None)
+    if isinstance(vector_stores, list):
+        for store in vector_stores:
+            launcher.add_vector_store(store)
+
+    # ...
 ```
 
 To register your custom vector store provider just register it by passing provider instance in `vector_stores` keyword argument:
