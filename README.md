@@ -2,13 +2,13 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.117** | build: **2024.01.24** | Python: **3.10+**
+Release: **2.0.118** | build: **2024.01.25** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
 Snap Store: https://snapcraft.io/pygpt | PyPi: https://pypi.org/project/pygpt-net
 
-Compiled version for Linux (tar.gz) and Windows 10/11 (msi) 64-bit: https://pygpt.net/#download
+Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://pygpt.net/#download
 
 ## Overview
 
@@ -22,11 +22,11 @@ For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft
 
 Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
 
-**Video** (mp4, version 2.0.116, build 2024-01-24):
+**Video** (mp4, version `2.0.116`, build `2024-01-24`):
 
 https://github.com/szczyglis-dev/py-gpt/assets/61396542/510fb86d-1a35-41a4-902c-4c39bfe97ec0
 
-**Screenshot** (version 2.0.116 build 2024-01-24):
+**Screenshot** (version `2.0.116` build `2024-01-24`):
 
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/assets/61396542/a45f33e1-b6c4-448a-964e-907939aea37c)
 
@@ -34,7 +34,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 ## Features
 
-- Desktop AI Assistant for `Windows`, `Mac` and `Linux`, written in Python.
+- Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
 - 6 modes of operation: Assistant, Chat, Vision, Completion, Image generation, Langchain.
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and `GPT-3`, including any model accessible through `Langchain`.
@@ -69,8 +69,8 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - It's open source; source code is available on `GitHub`.
 - Utilizes the user's own API key.
 
-The application is free, open-source, and runs on PCs with `Windows 10`, `Windows 11`, `Mac` and `Linux`. 
-The full Python source code is available on `GitHub`.
+The application is free, open-source, and runs on PCs with `Linux`, `Windows 10`, `Windows 11` and `Mac`. 
+Full Python source code is available on `GitHub`.
 
 **PyGPT uses the user's API key  -  to use the application, 
 you must have a registered OpenAI account and your own API key.**
@@ -80,9 +80,9 @@ such as those on HuggingFace. Additional API keys may be required.
 
 # Installation
 
-## Compiled versions (Windows, Linux)
+## Compiled versions (Linux, Windows 10 and 11)
 
-You can download compiled versions for `Windows 10`, `Windows 11` and `Linux`. 
+You can download compiled versions for `Linux` and `Windows` (10/11). 
 
 Download the `.msi` or `tar.gz` for the appropriate OS from the download page at https://pygpt.net and then extract files from the archive and run the application. 64-bit only.
 
@@ -652,7 +652,7 @@ There is bult-in support for those LLMs providers:
 
 ## Adding custom LLM providers
 
-Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers are placed in the `llm` directory.
+Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llm` namespace.
 
 These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
 
@@ -667,11 +667,7 @@ from pygpt_net.provider.llm.llama import Llama2LLM
 from pygpt_net.provider.llm.ollama import OllamaLLM
 
 
-def run(
-        plugins=None,
-        llms=None,
-        vector_stores=vector_stores
-):
+def run(**kwargs):
     """Runs the app."""
     # Initialize the app
     launcher = Launcher()
@@ -700,7 +696,7 @@ Extending PyGPT with custom plugins and LLM wrappers is straightforward:
 
 To register custom LLM wrappers:
 
-- Provide a list of LLM wrapper instances as the second argument when initializing the custom app launcher.
+- Provide a list of LLM wrapper instances as `llms` keyword argument.
 
 **Example:**
 
@@ -719,15 +715,16 @@ plugins = [
 llms = [
     MyCustomLLM(),
 ]
+vector_stores = []
 
 run(
-	plugins=plugins, 
-	llms=llms, 
-	vector_stores=vector_stores
+    plugins=plugins, 
+    llms=llms, 
+    vector_stores=vector_stores
 )
 ```
 
-To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `llm` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `pygpt_net.provider.llm` namespace. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
 
 ## Adding custom Vector Store providers
@@ -744,13 +741,10 @@ from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
 from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
-def run(plugins: list = None,
-        llms: list = None,
-        vector_stores: list = None
-    ):
+def run(**kwargs):
 ```
 
-To register your custom vector store provider just register it by passing provier instance to `vector_stores` list:
+To register your custom vector store provider just register it by passing provider instance in `vector_stores` keyword argument:
 
 ```python
 
@@ -798,7 +792,7 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `Command: Custom Commands` - allows you to create and execute custom commands on your system.
 
-- `Command: Serial port / USB` - plugin povides commands for reading and sending data to USB ports.
+- `Command: Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
 
 - `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
 
@@ -951,7 +945,7 @@ Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
-![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/98a07a89-3252-4443-86b2-7d9dc90727e6)
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/a554a543-13d4-45d2-ba01-156093139773)
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -1003,7 +997,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 **Example tutorial command**
 
-**PyGPT** provides simple tutorial command to show how it work, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
+**PyGPT** provides simple tutorial command to show how it works, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
 
 ```> please execute tutorial test command```
 
@@ -1032,8 +1026,7 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/1c9cdd35-a115-4640-b228-c77ea40dab90)
-
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8688ce74-ce07-4f62-b391-aa68997e560d)
 
 ## Command: Serial port / USB
 
@@ -1041,9 +1034,13 @@ Provides commands for reading and sending data to USB ports.
 
 **Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
 
+You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
+
+![v2_serial](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d1c71842-8902-469f-a9d9-a62be0ead73b)   
+
 - `USB port` *serial_port*
 
-USB port name, e.g. /dev/ttyUSB0, /dev/ttyACM0, COM3 *Default:* `/dev/ttyUSB0`
+USB port name, e.g. `/dev/ttyUSB0`, `/dev/ttyACM0`, `COM3` *Default:* `/dev/ttyUSB0`
 
 - `Connection speed (baudrate, bps)` *serial_bps*
 
@@ -1096,7 +1093,7 @@ Region in the settings.
 
 This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
 
-![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f6d7e2c0-4d8f-4f4e-9339-e8d6e902d067)
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d4ecf699-2d57-4389-b914-51e62c374194)
 
 **Options:**
 
@@ -1344,8 +1341,7 @@ response to generate an input for "Joker." *Default:* `True`
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
-![v2_crontab](https://github.com/szczyglis-dev/py-gpt/assets/61396542/6ef1186f-76e0-4f78-a424-2d4e5a07d8f2)
-
+![v2_crontab](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b8fa3226-f637-473d-bd16-8ec3ab772710)
 - `Your tasks` *crontab*
 
 Add your cron-style tasks here. 
@@ -1386,13 +1382,13 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 
 ## DALL-E 3: Image Generation (inline)
 
-Integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
+Integrates `DALL-E 3` image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like `GPT-4`. The plugin does not require the "Execute commands" option to be enabled.
 
 **Options**
 
 - `Prompt` *prompt*
 
-Prompt used for generating a query for DALL-E in background.
+Prompt used for generating a query for `DALL-E` in background.
 
 ## GPT-4 Vision (inline)
 
@@ -1417,29 +1413,29 @@ replace_prompt.description = Replace whole system prompt with vision prompt agai
 
 - `Allow command: camera capture` *cmd_capture*
 
-Allow to use command: camera capture (`Execute commands` option enabled is required).
+Allows use command: camera capture (`Execute commands` option enabled is required).
 If enabled, model will be able to capture images from camera itself.
 
 
 - `Allow command: make screenshot` *cmd_screenshot*
 
-Allow to use command: make screenshot (`Execute commands` option enabled is required).
+Allows use command: make screenshot (`Execute commands` option enabled is required).
 If enabled, model will be able to making screenshots itself.
 
 
 ## Chat with files (Llama-index, inline)
 
-Plugin integrates Llama-index storage in any chat and provides additional knowledge into context.
+Plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context.
 
 - `Ask Llama-index first` *ask_llama_first*
 
 
-When enabled, then Llama-index will be asked first, and response will be used as additional knowledge in prompt. When disabled, then Llama-index will be asked only when needed.
+When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed.
 
 - `Model` *model_query*
 
 
-Model used for querying Llama-index, default: gpt-3.5-turbo
+Model used for querying `Llama-index`, default: `gpt-3.5-turbo`
 
 - `Indexes IDs` *idx*
 
@@ -1450,19 +1446,23 @@ Indexes to use, default: base, if you want to use multiple indexes at once then 
 
 You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
 
-Extending PyGPT with custom plugins and LLMs wrappers:
+Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
 
-- You can pass custom plugin instances and LLMs wrappers to the launcher.
+- You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
 
-- This is useful if you want to extend PyGPT with your own plugins and LLMs.
+- This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
 
 To register custom plugins:
 
-- Pass a list with the plugin instances as the first argument.
+- Pass a list with the plugin instances as `plugins` keyword argument.
 
 To register custom LLMs wrappers:
 
-- Pass a list with the LLMs wrappers instances as the second argument.
+- Pass a list with the LLMs wrappers instances as `llms` keyword argument.
+
+To register custom vector store providers:
+
+- Pass a list with the vector store provider instances as `vector_stores` keyword argument.
 
 **Example:**
 
@@ -1473,6 +1473,7 @@ To register custom LLMs wrappers:
 from pygpt_net.app import run
 from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
 from my_llms import MyCustomLLM
+from my_vector_stores import MyCustomVectorStore
 
 plugins = [
     MyCustomPlugin(),
@@ -1481,8 +1482,15 @@ plugins = [
 llms = [
     MyCustomLLM(),
 ]
+vector_stores = [
+    MyCustomVectorStore(),
+]
 
-run(plugins, llms)  # <-- plugins as the first argument
+run(
+    plugins=plugins,
+    llms=llms,
+    vector_stores=vector_stores
+)
 ```
 
 ## Handling events
@@ -1649,6 +1657,8 @@ Config -> Settings...
 
 - `Display tips (help descriptions)`: display help tips, Default: True
 
+- `Show tray icon`: tray icon provides additional features like "Ask with screenshot" or "Open notepad", restart required, Default: True
+
 - `Use theme colors in chat window`: use color theme in chat window, Default: True
 
 - `Disable markdown formatting in output`: enable plain-text display in output window, Default: False
@@ -1748,9 +1758,9 @@ These configuration files are located in the user's work directory within the fo
 {HOME_DIR}/.config/pygpt-net/
 ```
 
-# Notebook
+# Notepad
 
-The application has a built-in notebook, divided into several tabs. This can be useful for storing informations in a convenient way, without the need to open an external text editor. The content of the notebook is automatically saved whenever the content changes.
+The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
 
 ![v2_notepad](https://github.com/szczyglis-dev/py-gpt/assets/61396542/be566d78-249f-4a0b-b472-fc579a19563b)
 
@@ -1844,6 +1854,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.118 (2024-01-25)
+
+- Added "Show tray icon" option in "Settings"
+- Added launcher arguments
+- Updated docs
+- Small fixes
 
 # 2.0.117 (2024-01-24)
 

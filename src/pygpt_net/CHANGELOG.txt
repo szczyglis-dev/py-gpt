@@ -1,3 +1,10 @@
+2.0.118 (2024-01-25)
+
+- Added "Show tray icon" option in "Settings"
+- Added launcher arguments
+- Updated docs
+- Small fixes
+
 2.0.117 (2024-01-24)
 
 - Added a new feature to the "Command: Files I/O" plugin - "Get and upload file as attachment". It lets automatically read files from "data" folder and send them as attachments - just ask to send a file as an attachment and the model will send it to itself (like sending an image for analysis). Option is disabled by default in the plugin"s settings.
