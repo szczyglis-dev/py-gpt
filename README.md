@@ -36,7 +36,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 6 modes of operation: Assistant, Chat, Vision, Completion, Image generation, Langchain.
+- 7 modes of operation: Assistant, Chat, Vision, Completion, Image generation, Langchain and Chat with files.
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and `GPT-3`, including any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode
