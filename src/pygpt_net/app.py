@@ -54,21 +54,23 @@ def run(**kwargs):
     - You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
     - This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
 
-    To register custom plugins:
+    To register custom plugins create custom launcher, e.g. "my_launcher.py" and:
 
-    - Pass a list with the plugin instances as 'plugins=' keyword argument.
+    - Pass a list with the plugin instances as 'plugins' keyword argument.
 
     To register custom LLMs wrappers:
 
-    - Pass a list with the LLMs wrappers instances as 'llms=' keyword argument.
+    - Pass a list with the LLMs wrappers instances as 'llms' keyword argument.
 
     To register custom vector store providers:
 
-    - Pass a list with the vector store provider instances as 'vector_stores=' keyword argument.
+    - Pass a list with the vector store provider instances as 'vector_stores' keyword argument.
 
     Example:
     --------
     ::
+
+        # my_launcher.py
 
         from pygpt_net.app import run
         from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
