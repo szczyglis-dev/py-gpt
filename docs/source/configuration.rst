@@ -39,7 +39,7 @@ The following basic options can be modified directly within the application:
 
 * ``Font Size (toolbox)`` Adjusts the font size in toolbox on right.
 
-* ``Layout density`` Adjusts layout elements density. "Apply changes" required to take effect. Default: 0. 
+* ``Layout density`` Adjusts layout elements density. Default: -1. 
 
 * ``DPI scaling`` Enable/disable DPI scaling. Restart of the application is required for this option to take effect. Default: True. 
 
