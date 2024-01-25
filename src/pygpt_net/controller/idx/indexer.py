@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.01.25 11:00:00                  #
 # ================================================== #
 
 import datetime
@@ -48,7 +48,7 @@ class Indexer:
         self.window.core.config.set('llama.idx.status', idx_data)
         self.window.core.config.save()
 
-    def index_ctx_meta_confirm(self, ctx_idx):
+    def index_ctx_meta_confirm(self, ctx_idx: int):
         """
         Index context meta (confirm)
 
@@ -57,9 +57,18 @@ class Indexer:
         # get stored index name
         if self.tmp_idx is None:
             return
-        self.index_ctx_meta(ctx_idx, self.tmp_idx, True)
+        self.index_ctx_meta(
+            ctx_idx,
+            self.tmp_idx,
+            True
+        )
 
-    def index_ctx_meta(self, ctx_idx, idx, force: bool = False):
+    def index_ctx_meta(
+            self,
+            ctx_idx: int,
+            idx: str,
+            force: bool = False
+    ):
         """
         Index context meta (threaded)
 
@@ -69,8 +78,12 @@ class Indexer:
         """
         if not force:
             self.tmp_idx = idx  # store tmp index name (for confirmation)
-            self.window.ui.dialogs.confirm('idx.index.db',
-                                           ctx_idx, trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn'))
+            content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
+            self.window.ui.dialogs.confirm(
+                'idx.index.db',
+                ctx_idx,
+                content
+            )
             return
 
         meta_id = self.window.core.ctx.get_id_by_idx(ctx_idx)
@@ -85,7 +98,12 @@ class Indexer:
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
-    def index_ctx_current(self, idx, force: bool = False, silent: bool = False):
+    def index_ctx_current(
+            self,
+            idx: str,
+            force: bool = False,
+            silent: bool = False
+    ):
         """
         Index current context (threaded)
 
@@ -100,7 +118,7 @@ class Indexer:
             self.window.update_status(trans('idx.status.indexing'))
         self.index_ctx_from_ts(idx, from_ts, force=force, silent=silent)
 
-    def index_ctx_from_ts_confirm(self, ts):
+    def index_ctx_from_ts_confirm(self, ts: int):
         """
         Index context from timestamp (force execute)
 
@@ -113,7 +131,13 @@ class Indexer:
         self.index_ctx_from_ts(self.tmp_idx, ts, True)
         self.tmp_idx = None
 
-    def index_ctx_from_ts(self, idx, ts, force: bool = False, silent: bool = False):
+    def index_ctx_from_ts(
+            self,
+            idx: str,
+            ts: int,
+            force: bool = False,
+            silent: bool = False
+    ):
         """
         Index context from timestamp (threaded)
 
@@ -124,8 +148,12 @@ class Indexer:
         """
         self.tmp_idx = idx  # store tmp index name (for confirmation)
         if not force:
-            self.window.ui.dialogs.confirm('idx.index.db.all',
-                                           ts, trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn'))
+            content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
+            self.window.ui.dialogs.confirm(
+                'idx.index.db.all',
+                ts,
+                content
+            )
             return
         worker = IndexWorker()
         worker.window = self.window
@@ -137,7 +165,11 @@ class Indexer:
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
-    def index_path(self, path: str, idx: str = "base"):
+    def index_path(
+            self,
+            path: str,
+            idx: str = "base"
+    ):
         """
         Index all files in path (threaded)
 
@@ -154,7 +186,11 @@ class Indexer:
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
 
-    def index_all_files(self, idx: str, force: bool = False):
+    def index_all_files(
+            self,
+            idx: str,
+            force: bool = False
+    ):
         """
         Index all files in data directory (threaded)
 
@@ -162,15 +198,19 @@ class Indexer:
         :param force: force index
         """
         self.tmp_idx = idx  # store tmp index name (for confirmation)
-
         path = self.window.core.config.get_user_dir('data')
         if not force:
-            self.window.ui.dialogs.confirm('idx.index.files.all', idx, trans('idx.confirm.files.content').
-                                           replace('{dir}', path) + "\n" + trans('idx.token.warn'))
+            content = trans('idx.confirm.files.content').replace('{dir}', path) \
+                      + "\n" + trans('idx.token.warn')
+            self.window.ui.dialogs.confirm(
+                'idx.index.files.all',
+                idx,
+                content
+            )
             return
         self.index_path(path, idx)
 
-    def index_file_confirm(self, path):
+    def index_file_confirm(self, path: str):
         """
         Index file (force execute)
 
@@ -182,7 +222,12 @@ class Indexer:
         self.window.update_status(trans('idx.status.indexing'))
         self.index_path(path, self.tmp_idx)
 
-    def index_file(self, path: str, idx: str = "base", force: bool = False):
+    def index_file(
+            self,
+            path: str,
+            idx: str = "base",
+            force: bool = False
+    ):
         """
         Index file or directory (threaded)
 
@@ -192,8 +237,13 @@ class Indexer:
         """
         self.tmp_idx = idx  # store tmp index name (for confirmation)
         if not force:
-            self.window.ui.dialogs.confirm('idx.index.file', path, trans('idx.confirm.file.content').
-                                           replace('{dir}', path) + "\n" + trans('idx.token.warn'))
+            content = trans('idx.confirm.file.content').replace('{dir}', path) \
+                      + "\n" + trans('idx.token.warn')
+            self.window.ui.dialogs.confirm(
+                'idx.index.file',
+                path,
+                content
+            )
             return
         self.index_path(path, idx)
 
@@ -215,8 +265,12 @@ class Indexer:
         """
         path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
         if not force:
-            self.window.ui.dialogs.confirm('idx.clear', idx, trans('idx.confirm.clear.content').
-                                           replace('{dir}', path))
+            content = trans('idx.confirm.clear.content').replace('{dir}', path)
+            self.window.ui.dialogs.confirm(
+                'idx.clear',
+                idx,
+                content
+            )
             return
 
         # remove current index
@@ -242,18 +296,24 @@ class Indexer:
             self.window.update_status(e)
 
     @Slot(object)
-    def handle_error(self, e: any):
+    def handle_error(self, err: any):
         """
         Handle thread error signal
 
-        :param e: error message
+        :param err: error message
         """
-        self.window.ui.dialogs.alert(str(e))
-        self.window.update_status(str(e))
-        print(e)
+        self.window.ui.dialogs.alert(str(err))
+        self.window.update_status(str(err))
+        print(err)
 
     @Slot(str, object, object)
-    def handle_finished_db_current(self, idx: str, num: int, errors: list, silent: bool = False):
+    def handle_finished_db_current(
+            self,
+            idx: str,
+            num: int,
+            errors: list,
+            silent: bool = False
+    ):
         """
         Handle indexing finished signal
 
@@ -267,7 +327,10 @@ class Indexer:
 
             # store last DB update timestamp
             self.window.core.config.set('llama.idx.db.index', idx)
-            self.window.core.config.set('llama.idx.db.last', int(datetime.datetime.now().timestamp()))
+            self.window.core.config.set(
+                'llama.idx.db.last',
+                int(datetime.datetime.now().timestamp())
+            )
             self.window.core.config.save()
             self.update_idx_status(idx)
             self.window.controller.idx.after_index(idx)  # post-actions (update UI, etc.)
@@ -281,7 +344,13 @@ class Indexer:
             self.window.ui.dialogs.alert("\n".join(errors))
 
     @Slot(str, object, object, bool)
-    def handle_finished_db_meta(self, idx: str, num: int, errors: list, silent: bool = False):
+    def handle_finished_db_meta(
+            self,
+            idx: str,
+            num: int,
+            errors: list,
+            silent: bool = False
+    ):
         """
         Handle indexing finished signal
 
@@ -304,7 +373,13 @@ class Indexer:
             self.window.ui.dialogs.alert("\n".join(errors))
 
     @Slot(str, object, object, bool)
-    def handle_finished_file(self, idx: str, files: dict, errors: list, silent: bool = False):
+    def handle_finished_file(
+            self,
+            idx: str,
+            files: dict,
+            errors: list,
+            silent: bool = False
+    ):
         """
         Handle indexing finished signal
 
@@ -353,19 +428,41 @@ class IndexWorker(QRunnable):
             is_log = False
             if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
                 is_log = True
+
             # log indexing
             if is_log:
                 print("[LLAMA-INDEX] Indexing data...")
-                print("[LLAMA-INDEX] Idx: {}, type: {}, content: {}".format(self.idx, self.type, self.content))
+                print("[LLAMA-INDEX] Idx: {}, type: {}, content: {}".format(
+                    self.idx,
+                    self.type,
+                    self.content
+                ))
+
             # execute indexing
             if self.type == "file":
-                result, errors = self.window.core.idx.index_files(self.idx, self.content)
+                result, errors = self.window.core.idx.index_files(
+                    self.idx,
+                    self.content
+                )
             elif self.type == "db_meta":
-                result, errors = self.window.core.idx.index_db_by_meta_id(self.idx, self.content)
+                result, errors = self.window.core.idx.index_db_by_meta_id(
+                    self.idx,
+                    self.content
+                )
             elif self.type == "db_current":
-                result, errors = self.window.core.idx.index_db_from_updated_ts(self.idx, self.content)
+                result, errors = self.window.core.idx.index_db_from_updated_ts(
+                    self.idx,
+                    self.content
+                )
+
             if is_log:
                 print("[LLAMA-INDEX] Finished indexing.")
-            self.signals.finished.emit(self.idx, result, errors, self.silent)
+
+            self.signals.finished.emit(
+                self.idx,
+                result,
+                errors,
+                self.silent
+            )
         except Exception as e:
             self.signals.error.emit(e)
