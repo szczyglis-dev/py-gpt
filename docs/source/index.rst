@@ -6,7 +6,7 @@
 PyGPT - pygpt.net
 ====================
 
-| **Last update:** 2024-01-25 12:00
+| **Last update:** 2024-01-25 17:00
 | **Project website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
@@ -33,6 +33,7 @@ Contents
    images
    models
    plugins
+   plugins_list
    tokens
    configuration
    notebook

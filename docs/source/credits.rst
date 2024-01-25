@@ -4,7 +4,7 @@ Credits
 **Official website:**
 https://pygpt.net
 
-**Github:**
+**GitHub:**
 https://github.com/szczyglis-dev/py-gpt
 
 **Snap Store:**
@@ -27,6 +27,5 @@ Special thanks
 ===============
 GitHub community:
 
-**kaneda2004**
-
-**moritz-t-w**
+* **kaneda2004**
+* **moritz-t-w**

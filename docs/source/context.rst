@@ -32,5 +32,5 @@ You can clear the entire memory (all contexts) by selecting the menu option:
 
 Context storage
 -----------------
-On the application side, the context is stored in the user's directory as ``JSON`` files. 
+On the application side, the context is stored in the ``SQLite`` database located in the working directory (``db.sqlite``).
 In addition, all history is also saved to ``.txt`` files for easy reading.

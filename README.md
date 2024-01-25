@@ -402,7 +402,6 @@ You can check keyword arguments needed by selected provider on Llama-index API r
 
 https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
 
-
 Which keyword arguments are passed to providers?
 
 For `ChromaVectorStore` and `SimpleVectorStore` all arguments are set by PyGPT and passed internally (you do not need to configure anything).
@@ -414,7 +413,6 @@ Arguments for ElasticsearchStore(`**kwargs`):
 
 - index_name (default: current index ID, already set, not required)
 - any other keyword arguments provided on list
-
 
 **PinecodeVectorStore**
 
@@ -430,7 +428,6 @@ Arguments for RedisVectorStore(`**kwargs`):
 - index_name (default: current index ID, already set, not required)
 - any other keyword arguments provided on list
 
-
 You can extend list of available providers by creating custom provider and registering it on app launch.
 
 **Multiple vector databases support is already in beta.**
@@ -441,7 +438,7 @@ If you want to only query index (without chat) you can enable `Query index only 
 
 # Files and attachments
 
-## Input (upload)
+## Input attachments (upload)
 
 **PyGPT** makes it simple for users to upload files to the server and send them to the model for tasks like analysis, similar to attaching files in `ChatGPT`. There's a separate `Files` tab next to the text input area specifically for managing file uploads. Users can opt to have files automatically deleted after each upload or keep them on the list for repeated use.
 
@@ -471,14 +468,13 @@ Using the `Draw` tool, you can create quick sketches and submit them to the mode
 
 ![v2_draw](https://github.com/szczyglis-dev/py-gpt/assets/61396542/78a59006-ed28-44cc-ab3d-fcca5da22044)
 
-To quick capture the screenshot click on the option `Ask with screeshot` in tray-menu dropdown:
+To quick capture the screenshot click on the option `Ask with screenshot` in tray-icon dropdown:
 
 ![v2_screenshot](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b9b09fe4-817b-43ac-bdb7-8439a78ceb79)
 
-
 # Calendar
 
-Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting Set label color. By clicking on a particular day of the week, conversations from that day will be displayed.
+Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting `Set label color`. By clicking on a particular day of the week, conversations from that day will be displayed.
 
 ![v2_calendar](https://github.com/szczyglis-dev/py-gpt/assets/61396542/eb3599e5-0b5d-465d-8604-c66b35751c12)
 
@@ -510,7 +506,7 @@ File -> Clear history...
 
 ## Context storage
 
-On the application side, the context is stored in the user's directory as `JSON` files. 
+On the application side, the context is stored in the `SQLite` database located in the working directory (`db.sqlite`).
 In addition, all history is also saved to `.txt` files for easy reading.
 
 Once a conversation begins, a title for the chat is generated and displayed on the list to the left. This process is similar to `ChatGPT`, where the subject of the conversation is summarized, and a title for the thread is created based on that summary. You can change the name of the thread at any time.
@@ -534,7 +530,7 @@ The application includes several sample presets that help you become acquainted 
 
 ## DALL-E 3
 
-**PyGPT** enables quick and straightforward image creation with `DALL-E 3`. 
+**PyGPT** enables quick and easy image creation with `DALL-E 3`. 
 The older model version, `DALL-E 2`, is also accessible. Generating images is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, 
 and displaying the image onscreen. You can send raw prompt to `DALL-E` in `Image generation` mode or ask the model for the best prompt.
 
@@ -690,7 +686,7 @@ def run(**kwargs):
 
 To add support for providers not included by default, you can create your own wrapper that returns a custom model to the application and then pass this custom wrapper to the launcher.
 
-Extending PyGPT with custom plugins and LLM wrappers is straightforward:
+Extending **PyGPT** with custom plugins and LLM wrappers is straightforward:
 
 - Pass instances of custom plugins and LLM wrappers directly to the launcher.
 
@@ -790,14 +786,19 @@ run(
 
 # Plugins
 
-The application can be enhanced with plugins to add new features.
+**PyGPT** can be enhanced with plugins to add new features.
 
-The following plugins are currently available, and GPT can use them instantly:
+The following plugins are currently available, and model can use them instantly:
 
-- `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
+- `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
 
-- `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
-as well as list and create directories.
+- `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
+
+- `Audio Output (OpenAI TTS)` - provides voice synthesis using the OpenAI Text To Speech API.
+
+- `Autonomous Mode` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
+
+- `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database). `Experimental`.
 
 - `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
 the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
@@ -807,359 +808,21 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `Command: Custom Commands` - allows you to create and execute custom commands on your system.
 
+- `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
+as well as list and create directories.
+
+- `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
+
 - `Command: Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
-
-- `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
-
-- `Audio Output (OpenAI TTS)` - provides voice synthesis using the OpenAI Text To Speech API.
-
-- `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
-
-- `Autonomous Mode: AI to AI conversation` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
-
-- `Real Time` - automatically adds the current date and time to prompts, informing the model of the real-time moment.
-
-- `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the "Execute commands" option to be enabled.
-
-- `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
-
-- `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database). `Experimental`.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
+- `DALL-E 3: Image Generation (inline)` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the `Execute commands` option to be enabled.
 
-## Command: Files I/O
+- `GPT-4 Vision (inline)` - integrates Vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+- `Real Time` - automatically adds the current date and time to prompt, informing the model of the real-time moment.
 
-Plugin capabilities include:
-
-- Sending files as attachments
-- Reading files
-- Appending to files
-- Writing files
-- Deleting files and directories
-- Listing files and directories
-- Creating directories
-- Downloading files
-- Copying files and directories
-- Moving (renaming) files and directories
-- Reading file info
-
-If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
-
-**Options:**
-
-- `Enable: Get and upload file as attachment` *cmd_get_file*
-
-Allows `cmd_get_file` command. *Default:* `False`
-
-- `Enable: Read file` *cmd_read_file*
-
-Allows `read_file` command. *Default:* `True`
-
-- `Enable: Append to file` *cmd_append_file*
-
-Allows `append_file` command. *Default:* `True`
-
-- `Enable: Save file` *cmd_save_file*
-
-Allows `save_file` command. *Default:* `True`
-
-- `Enable: Delete file` *cmd_delete_file*
-
-Allows `delete_file` command. *Default:* `True`
-
-- `Enable: List files (ls)` *cmd_list_files*
-
-Allows `list_dir` command. *Default:* `True`
-
-- `Enable: List files in dirs in directory (ls)` *cmd_list_dir*
-
-Allows `mkdir` command. *Default:* `True`
-
-- `Enable: Downloading files` *cmd_download_file*
-
-Allows `download_file` command. *Default:* `True`
-
-- `Enable: Removing directories` *cmd_rmdir*
-
-Allows `rmdir` command. *Default:* `True`
-
-- `Enable: Copying files` *cmd_copy_file*
-
-Allows `copy_file` command. *Default:* `True`
-
-- `Enable: Copying directories (recursive)` *cmd_copy_dir*
-
-Allows `copy_dir` command. *Default:* `True`
-
-- `Enable: Move files and directories (rename)` *cmd_move*
-
-Allows `move` command. *Default:* `True`
-
-- `Enable: Check if path is directory` *cmd_is_dir*
-
-Allows `is_dir` command. *Default:* `True`
-
-- `Enable: Check if path is file` *cmd_is_file*
-
-Allows `is_file` command. *Default:* `True`
-
-- `Enable: Check if file or directory exists` *cmd_file_exists*
-
-Allows `file_exists` command. *Default:* `True`
-
-- `Enable: Get file size` *cmd_file_size*
-
-Allows `file_size` command. *Default:* `True`
-
-- `Enable: Get file info` *cmd_file_info*
-
-Allows `file_info` command. *Default:* `True`
-
-
-## Command: Code Interpreter
-
-### Executing Code
-
-The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `data` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
-
-### Executing system commands
-
-Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
-
-**Options:**
-
-- `Python command template` *python_cmd_tpl*
-
-Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
-
-- `Enable: Python Code Generate and Execute` *cmd_code_execute*
-
-Allows Python code execution (generate and execute from file). *Default:* `True`
-
-- `Enable: Python Code Execute (File)` *cmd_code_execute_file*
-
-Allows Python code execution from existing file. *Default:* `True`
- 
-- `Enable: System Command Execute` *cmd_sys_exec*
-
-Allows system commands execution. *Default:* `True`
-
-- `Sandbox (docker container)` *sandbox_docker*
-
-Executes commands in sandbox (docker container). Docker must be installed and running. *Default:* `False`
-
-- `Docker image` *sandbox_docker_image*
-
-Docker image to use for sandbox *Default:* `python:3.8-alpine`
-
-
-## Command: Custom Commands
-
-With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
-
-![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/a554a543-13d4-45d2-ba01-156093139773)
-
-To add a new custom command, click the **ADD** button and then:
-
-1. Provide a name for your command: this is a unique identifier for GPT.
-2. Provide an `instruction` explaining what this command does; GPT will know when to use the command based on this instruction.
-3. Define `params`, separated by commas - GPT will send data to your commands using these params. These params will be placed into placeholders you have defined in the `cmd` field. For example:
-
-If you want instruct GPT to execute your Python script named `smart_home_lights.py` with an argument, such as `1` to turn the light ON, and `0` to turn it OFF, define it as follows:
-
-- **name**: lights_cmd
-- **instruction**: turn lights on/off; use 1 as 'arg' to turn ON, or 0 as 'arg' to turn OFF
-- **params**: arg
-- **cmd**: `python /path/to/smart_home_lights.py {arg}`
-
-The setup defined above will work as follows:
-
-When you ask GPT to turn your lights ON, GPT will locate this command and prepare the command `python /path/to/smart_home_lights.py {arg}` with `{arg}` replaced with `1`. On your system, it will execute the command:
-
-```python /path/to/smart_home_lights.py 1```
-
-And that's all. GPT will take care of the rest when you ask to turn ON the lights.
-
-You can define as many placeholders and parameters as you desire.
-
-Here are some predefined system placeholders for use:
-
-- `{_time}` - current time in `H:M:S` format
-- `{_date}` - current date in `Y-m-d` format
-- `{_datetime}` - current date and time in `Y-m-d H:M:S` format
-- `{_file}` - path to the file from which the command is invoked
-- `{_home}` - path to **PyGPT**'s home/working directory
-
-You can connect predefined placeholders with your own params.
-
-*Example:*
-
-- **name**: song_cmd
-- **instruction**: store the generated song on hard disk
-- **params**: song_text, title
-- **cmd**: `echo "{song_text}" > {_home}/{title}.txt`
-
-
-With the setup above, every time you ask GPT to generate a song for you and save it to the disk, it will:
-
-1. Generate a song.
-2. Locate your command.
-3. Execute the command by sending the song's title and text.
-4. The command will save the song text into a file named with the song's title in the PyGPT working directory.
-
-**Example tutorial command**
-
-**PyGPT** provides simple tutorial command to show how it works, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
-
-```> please execute tutorial test command```
-
-![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8a45d69e-14dd-4f37-acea-95057f983ff0)
-
-## Command: Google Web Search
-
-**PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
-
-To activate this feature, turn on the `Command: Google Web Search` plugin found in the `Plugins` menu.
-
-Web searches are automated through the `Google Custom Search Engine` API. 
-To use this feature, you need an API key, which you can obtain by registering an account at:
-
-https://developers.google.com/custom-search/v1/overview
-
-After registering an account, create a new project and select it from the list of available projects:
-
-https://programmablesearchengine.google.com/controlpanel/all
-
-After selecting your project, you need to enable the `Whole Internet Search` option in its settings. 
-Then, copy the following two items into **PyGPT**:
-
-- `Api Key`
-- `CX ID`
-
-These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
-
-![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8688ce74-ce07-4f62-b391-aa68997e560d)
-
-## Command: Serial port / USB
-
-Provides commands for reading and sending data to USB ports.
-
-**Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
-
-You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
-
-![v2_serial](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d1c71842-8902-469f-a9d9-a62be0ead73b)   
-
-- `USB port` *serial_port*
-
-USB port name, e.g. `/dev/ttyUSB0`, `/dev/ttyACM0`, `COM3` *Default:* `/dev/ttyUSB0`
-
-- `Connection speed (baudrate, bps)` *serial_bps*
-
-Port connection speed, in bps *Default:* `9600`
-
-- `Timeout` *timeout*
-
-Timeout in seconds *Default:* `1`
-
-- `Sleep` *sleep*
-
-Sleep in seconds after connection *Default:* `2`
-
-- `Enable: Send text commands to USB port` *cmd_serial_send*
-
-Allows `serial_send` command execution" *Default:* `True`
-
-- `Enable: Send raw bytes to USB port` *cmd_serial_send_bytes*
-
-Allows `serial_send_bytes` command execution *Default:* `True`
-
-- `Enable: Read data from USB port` *cmd_serial_read*
-
-Allows `serial_read` command execution *Default:* `True`
-
-- `Syntax: serial_send` *syntax_serial_send*
-
-Syntax for sending text command to USB port *Default:* `"serial_send": send text command to USB port, params: "command"`
-
-- `Syntax: serial_send_bytes` *syntax_serial_send_bytes*
-
-Syntax for sending raw bytes to USB port *Default:* `"serial_send_bytes": send raw bytes to USB port, params: "bytes"`
-
-- `Syntax: serial_read` *syntax_serial_read*
-
-Syntax for reading data from USB port *Default:* `"serial_read": read data from serial port in seconds duration, params: "duration"`
-
-## Audio Output (Microsoft Azure)
-
-**PyGPT** implements voice synthesis using the `Microsoft Azure Text-To-Speech` API.
-This feature requires to have an `Microsoft Azure` API Key. 
-You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
-
-
-To enable voice synthesis, activate the `Audio Output (Microsoft Azure)` plugin in the `Plugins` menu or 
-turn on the `Voice` option in the `Audio / Voice` menu (both options in the menu achieve the same outcome).
-
-Before using speech synthesis, you must configure the audio plugin with your Azure API key and the correct 
-Region in the settings.
-
-This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
-
-![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d4ecf699-2d57-4389-b914-51e62c374194)
-
-**Options:**
-
-- `Azure API Key` *azure_api_key*
-
-Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
-
-- `Azure Region` *azure_region*
-
-You must also provide the appropriate region for Azure here. *Default:* `eastus`
-
-- `Voice (EN)` *voice_en*
-
-Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
-
-- `Voice (non-English)` *voice_pl*
-
-Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
-
-If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
-
-Both `OpenAI TTS` and `OpenAI Whisper` use the same single API key provided for the OpenAI API, with no additional keys required.
-
-## Audio Output (OpenAI TTS)
-
-The plugin enables voice synthesis using the TTS model developed by OpenAI. Using this plugin does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. Through the available options, you can select the voice that you want the model to use.
-
-- `Model` *model*
-
-Choose the model. Available options:
-
-```
-  - tts-1
-  - tts-1-hd
-```
-*Default:* `tts-1`
-
-- `Voice` *voice*
-
-Choose the voice. Available voices to choose from:
-
-```
-  - alloy
-  - echo
-  - fable
-  - onyx
-  - nova
-  - shimmer
-```
-
-*Default:* `alloy`
 
 ## Audio Input (OpenAI Whisper)
 
@@ -1189,7 +852,7 @@ Enables adjustment to ambient noise levels. *Default:* `True`
 
 - `Continuous listen` *continuous_listen*
 
-EXPERIMENTAL: continuous listening - do not stop listening after a single input. 
+Experimental: continuous listening - do not stop listening after a single input. 
 Warning: This feature may lead to unexpected results and requires fine-tuning with 
 the rest of the options! If disabled, listening must be started manually 
 by enabling the `Speak` option. *Default:* `False`
@@ -1259,8 +922,75 @@ for before returning. *Default:* `1`
 
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
+## Audio Output (Microsoft Azure)
 
-## Autonomous Mode: AI to AI conversation
+**PyGPT** implements voice synthesis using the `Microsoft Azure Text-To-Speech` API.
+This feature requires to have an `Microsoft Azure` API Key. 
+You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+
+
+To enable voice synthesis, activate the `Audio Output (Microsoft Azure)` plugin in the `Plugins` menu or 
+turn on the `Voice` option in the `Audio / Voice` menu (both options in the menu achieve the same outcome).
+
+Before using speech synthesis, you must configure the audio plugin with your Azure API key and the correct 
+Region in the settings.
+
+This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
+
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d4ecf699-2d57-4389-b914-51e62c374194)
+
+**Options:**
+
+- `Azure API Key` *azure_api_key*
+
+Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+
+- `Azure Region` *azure_region*
+
+You must also provide the appropriate region for Azure here. *Default:* `eastus`
+
+- `Voice (EN)` *voice_en*
+
+Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
+
+- `Voice (non-English)` *voice_pl*
+
+Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
+
+If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
+
+Both `OpenAI TTS` and `OpenAI Whisper` use the same single API key provided for the OpenAI API, with no additional keys required.
+
+## Audio Output (OpenAI TTS)
+
+The plugin enables voice synthesis using the TTS model developed by OpenAI. Using this plugin does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. Through the available options, you can select the voice that you want the model to use.
+
+- `Model` *model*
+
+Choose the model. Available options:
+
+```
+  - tts-1
+  - tts-1-hd
+```
+*Default:* `tts-1`
+
+- `Voice` *voice*
+
+Choose the voice. Available voices to choose from:
+
+```
+  - alloy
+  - echo
+  - fable
+  - onyx
+  - nova
+  - shimmer
+```
+
+*Default:* `alloy`
+
+## Autonomous Mode (AI to AI conversation)
 
 **WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
@@ -1352,48 +1082,305 @@ If enabled, this option reverses the roles (AI <> user) with each iteration. For
 if in the previous iteration the response was generated for "Batman," the next iteration will use that 
 response to generate an input for "Joker." *Default:* `True`
 
+## Chat with files (Llama-index, inline)
+
+Plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context.
+
+- `Ask Llama-index first` *ask_llama_first*
+
+When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed.
+
+- `Model` *model_query*
+
+Model used for querying `Llama-index`, default: `gpt-3.5-turbo`
+
+- `Indexes IDs` *idx*
+
+Indexes to use, default: base, if you want to use multiple indexes at once then separate them by comma.
+
+## Command: Code Interpreter
+
+### Executing Code
+
+The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Command: Files I/O` plugin, it facilitates running code from files saved in the `data` directory. You can also prepare your own code files and enable the model to use them or add your own plugin for this purpose. You can execute commands and code on the host machine or in Docker container.
+
+### Executing system commands
+
+Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
+
+**Options:**
+
+- `Python command template` *python_cmd_tpl*
+
+Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
+
+- `Enable: Python Code Generate and Execute` *cmd_code_execute*
+
+Allows Python code execution (generate and execute from file). *Default:* `True`
+
+- `Enable: Python Code Execute (File)` *cmd_code_execute_file*
+
+Allows Python code execution from existing file. *Default:* `True`
+ 
+- `Enable: System Command Execute` *cmd_sys_exec*
+
+Allows system commands execution. *Default:* `True`
+
+- `Sandbox (docker container)` *sandbox_docker*
+
+Execute commands in sandbox (docker container). Docker must be installed and running. *Default:* `False`
+
+- `Docker image` *sandbox_docker_image*
+
+Docker image to use for sandbox *Default:* `python:3.8-alpine`
+
+## Command: Custom Commands
+
+With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/a554a543-13d4-45d2-ba01-156093139773)
+
+To add a new custom command, click the **ADD** button and then:
+
+1. Provide a name for your command: this is a unique identifier for GPT.
+2. Provide an `instruction` explaining what this command does; GPT will know when to use the command based on this instruction.
+3. Define `params`, separated by commas - GPT will send data to your commands using these params. These params will be placed into placeholders you have defined in the `cmd` field. For example:
+
+If you want instruct GPT to execute your Python script named `smart_home_lights.py` with an argument, such as `1` to turn the light ON, and `0` to turn it OFF, define it as follows:
+
+- **name**: lights_cmd
+- **instruction**: turn lights on/off; use 1 as 'arg' to turn ON, or 0 as 'arg' to turn OFF
+- **params**: arg
+- **cmd**: `python /path/to/smart_home_lights.py {arg}`
+
+The setup defined above will work as follows:
+
+When you ask GPT to turn your lights ON, GPT will locate this command and prepare the command `python /path/to/smart_home_lights.py {arg}` with `{arg}` replaced with `1`. On your system, it will execute the command:
+
+```python /path/to/smart_home_lights.py 1```
+
+And that's all. GPT will take care of the rest when you ask to turn ON the lights.
+
+You can define as many placeholders and parameters as you desire.
+
+Here are some predefined system placeholders for use:
+
+- `{_time}` - current time in `H:M:S` format
+- `{_date}` - current date in `Y-m-d` format
+- `{_datetime}` - current date and time in `Y-m-d H:M:S` format
+- `{_file}` - path to the file from which the command is invoked
+- `{_home}` - path to **PyGPT**'s home/working directory
+
+You can connect predefined placeholders with your own params.
+
+*Example:*
+
+- **name**: song_cmd
+- **instruction**: store the generated song on hard disk
+- **params**: song_text, title
+- **cmd**: `echo "{song_text}" > {_home}/{title}.txt`
+
+
+With the setup above, every time you ask GPT to generate a song for you and save it to the disk, it will:
+
+1. Generate a song.
+2. Locate your command.
+3. Execute the command by sending the song's title and text.
+4. The command will save the song text into a file named with the song's title in the PyGPT working directory.
+
+**Example tutorial command**
+
+**PyGPT** provides simple tutorial command to show how it works, to run it just ask GPT for execute `tutorial test command` and it will show you how it works:
+
+```> please execute tutorial test command```
+
+![v2_custom_cmd_example](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8a45d69e-14dd-4f37-acea-95057f983ff0)
+
+## Command: Files I/O
+
+The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+
+Plugin capabilities include:
+
+- Sending files as attachments
+- Reading files
+- Appending to files
+- Writing files
+- Deleting files and directories
+- Listing files and directories
+- Creating directories
+- Downloading files
+- Copying files and directories
+- Moving (renaming) files and directories
+- Reading file info
+
+If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
+
+**Options:**
+
+- `Enable: Get and upload file as attachment` *cmd_get_file*
+
+Allows `cmd_get_file` command. *Default:* `False`
+
+- `Enable: Read file` *cmd_read_file*
+
+Allows `read_file` command. *Default:* `True`
+
+- `Enable: Append to file` *cmd_append_file*
+
+Allows `append_file` command. *Default:* `True`
+
+- `Enable: Save file` *cmd_save_file*
+
+Allows `save_file` command. *Default:* `True`
+
+- `Enable: Delete file` *cmd_delete_file*
+
+Allows `delete_file` command. *Default:* `True`
+
+- `Enable: List files (ls)` *cmd_list_files*
+
+Allows `list_dir` command. *Default:* `True`
+
+- `Enable: List files in dirs in directory (ls)` *cmd_list_dir*
+
+Allows `mkdir` command. *Default:* `True`
+
+- `Enable: Downloading files` *cmd_download_file*
+
+Allows `download_file` command. *Default:* `True`
+
+- `Enable: Removing directories` *cmd_rmdir*
+
+Allows `rmdir` command. *Default:* `True`
+
+- `Enable: Copying files` *cmd_copy_file*
+
+Allows `copy_file` command. *Default:* `True`
+
+- `Enable: Copying directories (recursive)` *cmd_copy_dir*
+
+Allows `copy_dir` command. *Default:* `True`
+
+- `Enable: Move files and directories (rename)` *cmd_move*
+
+Allows `move` command. *Default:* `True`
+
+- `Enable: Check if path is directory` *cmd_is_dir*
+
+Allows `is_dir` command. *Default:* `True`
+
+- `Enable: Check if path is file` *cmd_is_file*
+
+Allows `is_file` command. *Default:* `True`
+
+- `Enable: Check if file or directory exists` *cmd_file_exists*
+
+Allows `file_exists` command. *Default:* `True`
+
+- `Enable: Get file size` *cmd_file_size*
+
+Allows `file_size` command. *Default:* `True`
+
+- `Enable: Get file info` *cmd_file_info*
+
+Allows `file_info` command. *Default:* `True`
+
+## Command: Google Web Search
+
+**PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
+
+To activate this feature, turn on the `Command: Google Web Search` plugin found in the `Plugins` menu.
+
+Web searches are automated through the `Google Custom Search Engine` API. 
+To use this feature, you need an API key, which you can obtain by registering an account at:
+
+https://developers.google.com/custom-search/v1/overview
+
+After registering an account, create a new project and select it from the list of available projects:
+
+https://programmablesearchengine.google.com/controlpanel/all
+
+After selecting your project, you need to enable the `Whole Internet Search` option in its settings. 
+Then, copy the following two items into **PyGPT**:
+
+- `Api Key`
+- `CX ID`
+
+These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
+
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8688ce74-ce07-4f62-b391-aa68997e560d)
+
+## Command: Serial port / USB
+
+Provides commands for reading and sending data to USB ports.
+
+**Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
+
+You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
+
+![v2_serial](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d1c71842-8902-469f-a9d9-a62be0ead73b)   
+
+- `USB port` *serial_port*
+
+USB port name, e.g. `/dev/ttyUSB0`, `/dev/ttyACM0`, `COM3` *Default:* `/dev/ttyUSB0`
+
+- `Connection speed (baudrate, bps)` *serial_bps*
+
+Port connection speed, in bps *Default:* `9600`
+
+- `Timeout` *timeout*
+
+Timeout in seconds *Default:* `1`
+
+- `Sleep` *sleep*
+
+Sleep in seconds after connection *Default:* `2`
+
+- `Enable: Send text commands to USB port` *cmd_serial_send*
+
+Allows `serial_send` command execution" *Default:* `True`
+
+- `Enable: Send raw bytes to USB port` *cmd_serial_send_bytes*
+
+Allows `serial_send_bytes` command execution *Default:* `True`
+
+- `Enable: Read data from USB port` *cmd_serial_read*
+
+Allows `serial_read` command execution *Default:* `True`
+
+- `Syntax: serial_send` *syntax_serial_send*
+
+Syntax for sending text command to USB port *Default:* `"serial_send": send text command to USB port, params: "command"`
+
+- `Syntax: serial_send_bytes` *syntax_serial_send_bytes*
+
+Syntax for sending raw bytes to USB port *Default:* `"serial_send_bytes": send raw bytes to USB port, params: "bytes"`
+
+- `Syntax: serial_read` *syntax_serial_read*
+
+Syntax for reading data from USB port *Default:* `"serial_read": read data from serial port in seconds duration, params: "duration"`
+
 ## Crontab / Task scheduler
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
 ![v2_crontab](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b8fa3226-f637-473d-bd16-8ec3ab772710)
+
 - `Your tasks` *crontab*
 
 Add your cron-style tasks here. 
 They will be executed automatically at the times you specify in the cron-based job format. 
 If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
 
-Number of active tasks is always displayed in tray-icon dropdown menu:
+Number of active tasks is always displayed in tray icon dropdown menu:
 
 ![v2_crontab_tray](https://github.com/szczyglis-dev/py-gpt/assets/61396542/04dcde26-367b-4f14-b0e2-36e7de639401)
-
 
 - `Create a new context on job run` *new_ctx*
 
 If enabled, then a new context will be created on every run of the job. *Default:* `True`
 
-
-## Real Time
-
-This plugin automatically adds the current date and time to each system prompt you send. 
-You have the option to include just the date, just the time, or both.
-
-When enabled, it quietly enhances each system prompt with current time information before sending it to GPT.
-
-**Options**
-
-- `Append time` *hour*
-
-If enabled, it appends the current time to the system prompt. *Default:* `True`
-
-- `Append date` *date*
-
-If enabled, it appends the current date to the system prompt.  *Default:* `True`
-
-- `Template` *tpl*
-
-Template to append to the system prompt. The placeholder `{time}` will be replaced with the 
-current date and time in real-time. *Default:* `Current time is {time}.`
 
 ## DALL-E 3: Image Generation (inline)
 
@@ -1437,25 +1424,27 @@ If enabled, model will be able to capture images from camera itself.
 Allows use command: make screenshot (`Execute commands` option enabled is required).
 If enabled, model will be able to making screenshots itself.
 
+## Real Time
 
-## Chat with files (Llama-index, inline)
+This plugin automatically adds the current date and time to each system prompt you send. 
+You have the option to include just the date, just the time, or both.
 
-Plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context.
+When enabled, it quietly enhances each system prompt with current time information before sending it to GPT.
 
-- `Ask Llama-index first` *ask_llama_first*
+**Options**
 
+- `Append time` *hour*
 
-When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed.
+If enabled, it appends the current time to the system prompt. *Default:* `True`
 
-- `Model` *model_query*
+- `Append date` *date*
 
+If enabled, it appends the current date to the system prompt.  *Default:* `True`
 
-Model used for querying `Llama-index`, default: `gpt-3.5-turbo`
+- `Template` *tpl*
 
-- `Indexes IDs` *idx*
-
-
-Indexes to use, default: base, if you want to use multiple indexes at once then separate them by comma.
+Template to append to the system prompt. The placeholder `{time}` will be replaced with the 
+current date and time in real-time. *Default:* `Current time is {time}.`
 
 # Creating Your Own Plugins
 
@@ -1652,13 +1641,13 @@ Config -> Settings...
 
 - `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
-- `Number of notepads`: Number of notepad windows (restart is required after every change)
+- `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
 **Layout**
 
-- `Font Size (chat window)`: Adjusts the font size in the chat window for better readability.
+- `Font Size (chat window)`: Adjusts the font size in the chat window.
 
-- `Font Size (input)`: Adjusts the font size in the input window for better readability.
+- `Font Size (input)`: Adjusts the font size in the input window.
 
 - `Font Size (ctx list)`: Adjusts the font size in contexts list.
 
@@ -1666,102 +1655,93 @@ Config -> Settings...
 
 - `Layout density`: Adjusts layout elements density. "Apply changes" required to take effect. Default: 0. 
 
-- `DPI scaling`: Enable/disable DPI scaling. Restart of app required. Default: true. 
+- `DPI scaling`: Enable/disable DPI scaling. Restart of the application is required for this option to take effect. Default: True. 
 
-- `DPI factor`: DPI factor. Restart of app required. Default: 1.0. 
+- `DPI factor`: DPI factor. Restart of the application is required for this option to take effect. Default: 1.0. 
 
-- `Display tips (help descriptions)`: display help tips, Default: True
+- `Display tips (help descriptions)`: Display help tips, Default: True.
 
-- `Show tray icon`: tray icon provides additional features like "Ask with screenshot" or "Open notepad", restart required, Default: True
+- `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
-- `Use theme colors in chat window`: use color theme in chat window, Default: True
+- `Use theme colors in chat window`: Use color theme in chat window, Default: True.
 
-- `Disable markdown formatting in output`: enable plain-text display in output window, Default: False
+- `Disable markdown formatting in output`: Enables plain-text display in output window, Default: False.
 
 **Context**
 
-- `Context Threshold`: Sets the number of tokens reserved for the model to respond to the next prompt. 
-This helps accommodate responses without exceeding the model's limit, such as 4096 tokens.
+- `Context Threshold`: Sets the number of tokens reserved for the model to respond to the next prompt.
 
-- `Limit of last contexts on list to show  (0 = unlimited)`: Limit of last contexts on list, default: 0 (unlimited)
+- `Limit of last contexts on list to show  (0 = unlimited)`: Limit of the last contexts on list, default: 0 (unlimited)
 
-- `Use Context`: Toggles the use of conversation context (memory of previous inputs). 
-When turned off, the context won't be saved or factored into conversation responses.
+- `Use Context`: Toggles the use of conversation context (memory of previous inputs).
 
-- `Store History`: Dictates whether the conversation history and context are saved. 
-When turned off, history won't be written to the disk upon closing the application.
+- `Store History`: Toggles conversation history store in .txt files. These files are stored in the *history* directory within the user's work directory.
 
-- `Store Time in History`: Chooses whether timestamps are added to the .txt files. 
-These files are stored in the *history* directory within the user's work directory.
+- `Store Time in History`: Chooses whether timestamps are added to the .txt files.
 
-- `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*)
+- `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 
-- `Prompt (sys): auto summary`: System prompt for context auto-summary
+- `Prompt (sys): auto summary`: System prompt for context auto-summary.
 
-- `Prompt (user): auto summary`: User prompt for context auto-summary
+- `Prompt (user): auto summary`: User prompt for context auto-summary.
 
 **Models**
 
 - `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
 
-- `Max Total Tokens`: Defines the maximum token count that the application can send to the model, 
-including the conversation context. To prevent reaching the model capacity, this setting helps 
-manage the size of the context included in messages.
+- `Max Total Tokens`: Defines the maximum token count that the application can send to the model, including the conversation context.
 
-- `Temperature`: Sets the randomness of the conversation. A lower value makes the model's 
-responses more deterministic, while a higher value increases creativity and abstraction.
+- `Temperature`: Sets the randomness of the conversation. A lower value makes the model's responses more deterministic, while a higher value increases creativity and abstraction.
 
-- `Top-p`: A parameter that influences the model's response diversity, similar to temperature. 
-For more information, please check the OpenAI documentation.
+- `Top-p`: A parameter that influences the model's response diversity, similar to temperature. For more information, please check the OpenAI documentation.
 
 - `Frequency Penalty`: Decreases the likelihood of repetition in the model's responses.
 
-- `Presence Penalty`: Discourages the model from mentioning topics that have already been 
-brought up in the conversation.
+- `Presence Penalty`: Discourages the model from mentioning topics that have already been brought up in the conversation.
 
-- `Prompt (append): command execute instruction`: Prompt for appending command execution instructions
+- `Prompt (append): command execute instruction`: Prompt for appending command execution instructions.
 
 **Images**
 
-- `DALL-E Image size`: Generated image size (DALL-E 2 only)
+- `DALL-E Image size`: The resolution of the generated images (DALL-E). Default: 1792x1024.
 
-- `DALL-E Image quality`: Generated image quality (DALL-E 2 only)
+- `DALL-E Image quality`: The image quality of the generated images (DALL-E). Default: standard.
 
-- `Open image dialog after generate`: Open image dialog after generate in Image mode
+- `Open image dialog after generate`: Enable the image dialog to open after an image is generated in Image mode.
 
-- `DALL-E: Prompt (sys): prompt generation`: Prompt for generating prompts for DALL-E (if disabled RAW mode)
+- `DALL-E: Prompt (sys): prompt generation`: Prompt for generating prompts for DALL-E (if RAW mode is disabled).
 
-- `DALL-E: prompt generation model`: Model used for generating prompts for DALL-E (if disabled RAW mode)
+- `DALL-E: prompt generation model`: Model used for generating prompts for DALL-E (if RAW mode is disabled).
 
 **Vision**
 
-- `Vision: Camera`: Enables camera in Vision mode
+- `Vision: Camera`: Enables camera in Vision mode.
 
-- `Vision: Auto capture`: Enables auto-capture on message send in Vision mode
+- `Vision: Auto capture`: Enables auto-capture on message send in Vision mode.
 
-- `Vision: Camera capture width (px)`: Video capture resolution (width)
+- `Vision: Camera capture width (px)`: Video capture resolution (width).
 
-- `Vision: Camera capture height (px)`: Video capture resolution (height)
+- `Vision: Camera capture height (px)`: Video capture resolution (height).
 
-- `Vision: Camera IDX (number)`: Video capture camera index (number of camera)
+- `Vision: Camera IDX (number)`: Video capture camera index (number of camera).
 
-- `Vision: Image capture quality`: Video capture image JPEG quality (%)
+- `Vision: Image capture quality`: Video capture image JPEG quality (%).
 
 **Indexes (Llama-index)**
 
-- `Indexes`: list of created indexes
+- `Indexes`: List of created indexes.
 
-- `Auto-index DB in real time`: enable conversation context auto-indexing
+- `Auto-index DB in real time`: Enables conversation context auto-indexing.
 
-- `Vector Store`: vector store in use (vector database provided by Llama-index)
+- `Vector Store`: Vector store in use (vector database provided by Llama-index).
 
-- `Vector Store (**kwargs)`: arguments for vector store (api_key, index_name, etc.)
+- `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
 
-- `Log (console)`: enable logging to console
+- `Log (console)`: Enables logging to console.
 
-- `Additional online data loaders`: list of online data loaders from Llama Hub to use
+- `Additional online data loaders`: List of online data loaders from Llama Hub to use.
 
-- `DB (ALL), DB (UPDATE), FILES (ALL)`: buttons for indexing data, you can batch index data here
+- `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here
 
 
 ## JSON files

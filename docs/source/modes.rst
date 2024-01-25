@@ -2,7 +2,8 @@ Chat, completion, assistants and vision
 =======================================
 
 Chat (+ inline Vision and Image generation)
-----
+-------------------------------------------
+
 This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
 
 The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
@@ -11,7 +12,6 @@ Above where you type your messages, the interface shows you the number of tokens
 
 .. image:: images/v2_mode_chat.png
    :width: 800
-
 
 **Vision:** If you want to send photos or image from camera to analysis you must enable plugin "GPT-4 Vision Inline" in the Plugins menu.
 Plugin allows you to send photos or image from camera to analysis in any Chat mode:
@@ -23,14 +23,14 @@ Plugin allows you to send photos or image from camera to analysis in any Chat mo
 With this plugin, you can capture an image with your camera or attach an image and send it for analysis to discuss the photograph:
 
 .. image:: images/v3_vision_chat.png
-:width: 800
+   :width: 800
 
 
 **Image generation:** If you want to generate images (using DALL-E) directly in chat you must enable plugin "DALL-E 3 Inline" in the Plugins menu.
 Plugin allows you to generate images in Chat mode:
 
 .. image:: images/v3_img_chat.png
-:width: 800
+   :width: 800
 
 
 Text Completion

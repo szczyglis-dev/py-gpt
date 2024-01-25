@@ -6,16 +6,16 @@ Using the ``Draw`` tool, you can create quick sketches and submit them to the mo
 .. image:: images/v2_draw.png
    :width: 800
 
-To quick capture the screenshot click on the option ``Ask with screeshot`` in tray-menu dropdown:
+To quick capture the screenshot click on the option ``Ask with screenshot`` in tray-icon dropdown:
 
 .. image:: images/v2_screenshot.png
-   :width: 400
+   :width: 300
 
 
 Calendar
 =========
 
-Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting Set label color. By clicking on a particular day of the week, conversations from that day will be displayed.
+Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting ``Set label color`` option. By clicking on a particular day of the week, conversations from that day will be displayed.
 
 .. image:: images/v2_calendar.png
    :width: 800
