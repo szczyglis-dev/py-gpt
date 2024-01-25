@@ -80,7 +80,7 @@ There is bult-in support for those LLMs providers:
 Adding custom LLM providers
 ---------------------------
 
-Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers  are placed in the ``llm`` directory.
+Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers  are placed in the ``pygpt_net.provider.llm`` namespace.
 
 These wrappers are loaded into the application during startup using ``launcher.add_llm()`` method:
 
@@ -95,11 +95,7 @@ These wrappers are loaded into the application during startup using ``launcher.a
     from pygpt_net.provider.llm.llama import Llama2LLM
     from pygpt_net.provider.llm.ollama import OllamaLLM
 
-    def run(
-        plugins=None, 
-        llms=None, 
-        vector_stores=vector_stores
-    ):
+    def run(**kwargs):
         """Runs the app."""
         # Initialize the app
         launcher = Launcher()
@@ -127,7 +123,7 @@ Extending PyGPT with custom plugins and LLM wrappers is straightforward:
 
 To register custom LLM wrappers:
 
-- Provide a list of LLM wrapper instances as the second argument when initializing the custom app launcher.
+- Provide a list of LLM wrapper instances as the ``llms`` keyword argument when initializing the custom app launcher.
 
 **Example:**
 
@@ -155,7 +151,7 @@ To register custom LLM wrappers:
     )
 
 
-To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the ``llm`` directory of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
+To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the ``pygpt_net.provider.llm`` namespace of the application. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
 
 
 Adding custom Vector Store providers
@@ -174,12 +170,9 @@ Adding custom Vector Store providers
     from pygpt_net.provider.vector_stores.redis import RedisProvider
     from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
-    def run(plugins: list = None,
-            llms: list = None,
-            vector_stores: list = None
-        ):
+    def run(**kwargs):
 
-To register your custom vector store provider just register it by passing provier instance to ``vector_stores`` list:
+To register your custom vector store provider just register it by passing provider instance in ``vector_stores`` keyword argument:
 
 .. code-block:: python
 

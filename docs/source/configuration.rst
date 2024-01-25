@@ -41,6 +41,8 @@ The following basic options can be modified directly within the application:
 
 * ``Display tips (help descriptions)``: display help tips, Default: True
 
+* ``Show tray icon``: tray icon provides additional features like "Ask with screenshot" or "Open notepad", restart required, Default: True
+
 * ``Use theme colors in chat window``: use color theme in chat window, Default: True
 
 * ``Disable markdown formatting in output``: enable plain-text display in output window, Default: False

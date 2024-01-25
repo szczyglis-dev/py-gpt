@@ -1,5 +1,5 @@
 Credits
-======================
+========
 
 **Official website:**
 https://pygpt.net
@@ -24,8 +24,9 @@ MIT License
 
 
 Special thanks
-======================
+===============
 GitHub community:
 
 **kaneda2004**
+
 **moritz-t-w**

@@ -1,21 +1,21 @@
 Requirements and installation
 ==============================
 
-Compiled binary version
------------------
+Compiled binary versions
+------------------------
 **PyGPT** requires a PC with Windows 10, 11 or Linux. Just download the installer or
 archive with the appropriate version from the download page and then extract it
 or install it and run the application.
 
 Windows 10, 11 (64-bit)
-```````
+```````````````````````
 The application is available for 64-bit Windows 10, 11 in the form of an MSI installer.
 The installer will automatically install all required dependencies and create
 a shortcut on the desktop. Just download the installer from the download page and
 run it
 
 Linux (64-bit)
-`````
+``````````````
 The application is available for 64-bit Linux in the form of an archive with
 all required dependencies. Just download the archive from the download page and
 extract it. Then run the application by running the ``pygpt`` binary file in the

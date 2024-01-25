@@ -9,7 +9,7 @@ The following plugins are currently available, and GPT can use them instantly:
 * ``Command: Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
 * ``Command: Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 * ``Command: Custom Commands`` - allows you to create and execute custom commands on your system.
-* ``Command: Serial port / USB`` - plugin povides commands for reading and sending data to USB ports.
+* ``Command: Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
 * ``Audio Output (Microsoft Azure)`` - provides voice synthesis using the Microsoft Azure Text To Speech API.
 * ``Audio Output (OpenAI TTS)`` - provides voice synthesis using the `OpenAI Text To Speech API`.
 * ``Audio Input (OpenAI Whisper)`` - offers speech recognition through the `OpenAI Whisper API`.
@@ -23,7 +23,7 @@ The following plugins are currently available, and GPT can use them instantly:
 Command: Files I/O
 -----------------
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the ``data`` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
 
 Plugin capabilities include:
 
@@ -252,6 +252,11 @@ Command: Serial port / USB
 Provides commands for reading and sending data to USB ports.
 
 **Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
+
+You can send commands to, for example, an Arduino or any other controllers using the serial port for communication.
+
+.. image:: images/v2_serial.png
+   :width: 600
 
 ``USB port`` *serial_port*
 
@@ -637,35 +642,35 @@ replace_prompt.description = Replace whole system prompt with vision prompt agai
 
 - ``Allow command: camera capture`` *cmd_capture*
 
-Allow to use command: camera capture (``Execute commands`` option enabled is required).
+Allows use command: camera capture (``Execute commands`` option enabled is required).
 If enabled, model will be able to capture images from camera itself.
 
 
 - ``Allow command: make screenshot`` *cmd_screenshot*
 
-Allow to use command: make screenshot (``Execute commands`` option enabled is required).
+Allows use command: make screenshot (``Execute commands`` option enabled is required).
 If enabled, model will be able to making screenshots itself.
 
 
 Chat with files (Llama-index, inline)
 -------------------------------------
 
-Plugin integrates Llama-index storage in any chat and provides additional knowledge into context.
+Plugin integrates ``Llama-index`` storage in any chat and provides additional knowledge into context.
 
 - ``Ask Llama-index first`` *ask_llama_first*
 
 
-When enabled, then Llama-index will be asked first, and response will be used as additional knowledge in prompt. When disabled, then Llama-index will be asked only when needed.
+When enabled, then ``Llama-index`` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then ``Llama-index`` will be asked only when needed.
 
 - ``Model`` *model_query*
 
 
-Model used for querying Llama-index, default: gpt-3.5-turbo
+Model used for querying ``Llama-index``, default: ``gpt-3.5-turbo``
 
 - ``Index name`` *idx*
 
 
-Index to use, default: base, support for multiple indexes coming soon
+Index to use, default: ``base``.
 
 
 Creating Your Own Plugins
@@ -673,19 +678,23 @@ Creating Your Own Plugins
 
 You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins.
 
-Extending PyGPT with custom plugins and LLMs wrappers:
+Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
 
-- You can pass custom plugin instances and LLMs wrappers to the launcher.
+- You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
 
-- This is useful if you want to extend PyGPT with your own plugins and LLMs.
+- This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
 
 To register custom plugins:
 
-- Pass a list with the plugin instances as the first argument.
+- Pass a list with the plugin instances as ``plugins`` keyword argument.
 
 To register custom LLMs wrappers:
 
-- Pass a list with the LLMs wrappers instances as the second argument.
+- Pass a list with the LLMs wrappers instances as ``llms`` keyword argument.
+
+To register custom vector store providers:
+
+- Pass a list with the vector store provider instances as ``vector_stores`` keyword argument.
 
 **Example:**
 
@@ -697,6 +706,7 @@ To register custom LLMs wrappers:
    from pygpt_net.app import run
    from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
    from my_llms import MyCustomLLM
+   from my_vector_stores import MyCustomVectorStore
 
    plugins = [
        MyCustomPlugin(),
@@ -705,8 +715,15 @@ To register custom LLMs wrappers:
    llms = [
        MyCustomLLM(),
    ]
+   vector_stores = [
+       MyCustomVectorStore(),
+   ]
 
-   run(plugins, llms)  # <-- plugins as the first argument
+   run(
+       plugins=plugins,
+       llms=llms,
+       vector_stores=vector_stores
+   )
 
 ## Handling events
 

@@ -19,7 +19,7 @@ Multiple operation modes are included, such as chatbot, text completion, assista
 
 Features
 ---------
-* Desktop AI Assistant for ``Windows`` and ``Linux``, written in Python.
+* Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
 * 6 modes of operation: Assistant, Chat, Vision, Completion, Image generation, Langchain.
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and ``GPT-3``, including any model accessible through ``Langchain``.
@@ -55,8 +55,8 @@ Features
 * Utilizes the user's own API key.
 
 
-The application is free, open-source, and runs on PCs with ``Windows 10``, ``Windows 11``, and ``Linux``. 
-The full Python source code is available on ``GitHub``.
+The application is free, open-source, and runs on PCs with ``Linux``, ``Windows 10``, ``Windows 11`` and ``Mac``. 
+Full Python source code is available on ``GitHub``.
 
 
 **PyGPT uses the user's API key  -  to use the application, 
