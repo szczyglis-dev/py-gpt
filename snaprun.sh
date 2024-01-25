@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 $SNAP/src/pygpt_net/app.py
+python3 $SNAP/src/pygpt_net/app.py "$@"

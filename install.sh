@@ -2,4 +2,4 @@
 
 python -m venv ./venv
 pip install -r requirements.txt
-python3 run.py
+python3 run.py "$@"
