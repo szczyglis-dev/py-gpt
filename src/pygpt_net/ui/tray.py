@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.25 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -23,6 +23,7 @@ class Tray:
         :param window: Window instance
         """
         self.window = window
+        self.is_tray = False
 
     def setup(self, app=None):
         """
@@ -30,6 +31,11 @@ class Tray:
 
         :param app: QApplication instance
         """
+        if not self.window.core.config.get('layout.tray'):
+            return
+
+        self.is_tray = True
+
         tray = QSystemTrayIcon(self.window.ui.get_app_icon(), app)
         tray.setToolTip("PyGPT v{}".format(self.window.meta['version']))
 
@@ -79,6 +85,11 @@ class Tray:
         """Open notepad"""
         self.window.controller.notepad.open()
 
+    def open_scheduled_tasks(self):
+        """Open scheduled tasks"""
+        self.window.controller.plugins.settings.open_plugin('crontab')
+        self.window.activateWindow()
+
     def make_screenshot(self):
         """Make screenshot"""
         self.window.controller.painter.capture.screenshot()
@@ -92,30 +103,39 @@ class Tray:
 
     def show_notepad_menu(self):
         """Show notepad menu"""
+        if not self.is_tray:
+            return
         self.window.ui.tray_menu['open_notepad'].setVisible(True)
 
     def hide_notepad_menu(self):
         """Hide notepad menu"""
+        if not self.is_tray:
+            return
         self.window.ui.tray_menu['open_notepad'].setVisible(False)
 
     def show_schedule_menu(self):
         """Show schedule menu"""
+        if not self.is_tray:
+            return
         self.window.ui.tray_menu['scheduled'].setVisible(True)
 
     def hide_schedule_menu(self):
         """Hide schedule menu"""
+        if not self.is_tray:
+            return
         self.window.ui.tray_menu['scheduled'].setVisible(False)
 
     def update_schedule_tasks(self, tasks: int = 0):
-        """Update scheduled jobs number"""
+        """
+        Update scheduled jobs number
+
+        :param tasks: Number of scheduled tasks
+        """
+        if not self.is_tray:
+            return
         if tasks > 0:
             info = trans("menu.tray.scheduled") + ": {}".format(tasks)
             self.window.ui.tray_menu['scheduled'].setText(info)
             self.show_schedule_menu()
         else:
             self.hide_schedule_menu()
-
-    def open_scheduled_tasks(self):
-        """Open scheduled tasks"""
-        self.window.controller.plugins.settings.open_plugin('crontab')
-        self.window.activateWindow()

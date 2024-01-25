@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.117",
-    "app.version": "2.0.117",
-    "updated_at": "2024-01-24T00:00:00"
+    "version": "2.0.118",
+    "app.version": "2.0.118",
+    "updated_at": "2024-01-25T00:00:00"
   },
   "ai_name": "",
   "api_key": "",
@@ -23,11 +23,11 @@
   "current_model": {
     "assistant": "gpt-3.5-turbo",
     "chat": "gpt-3.5-turbo",
-    "completion": "text-davinci-003",
+    "completion": "gpt-3.5-turbo-instruct",
     "img": "dall-e-3",
     "langchain": "gpt-3.5-turbo",
-    "vision": "gpt-4-vision-preview",
-    "llama_index": "gpt-3.5-turbo"
+    "llama_index": "gpt-3.5-turbo",
+    "vision": "gpt-4-vision-preview"
   },
   "current_preset": {
     "assistant": "",
@@ -35,6 +35,7 @@
     "completion": "",
     "img": "",
     "langchain": "",
+    "llama_index": "",
     "vision": ""
   },
   "debug": false,
@@ -59,7 +60,18 @@
   "layout.splitters": {},
   "layout.tabs": {},
   "layout.tooltips": true,
+  "layout.tray": true,
   "layout.window": {},
+  "llama.hub.loaders": [
+      {
+          "ext": "pptx",
+          "loader": "PptxReader"
+      },
+      {
+          "ext": "png,jpg,jpeg",
+          "loader": "ImageReader"
+      }
+  ],
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
   "llama.idx.current": "base",
@@ -105,11 +117,14 @@
     "cmd_code_interpreter": true,
     "cmd_custom": true,
     "cmd_files": true,
+    "cmd_serial": false,
     "cmd_web_google": true,
-    "real_time": true,
-    "self_loop": false,
+    "crontab": false,
+    "idx_llama_index": false,
     "openai_dalle": true,
-    "openai_vision": true
+    "openai_vision": true,
+    "real_time": true,
+    "self_loop": false    
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",
