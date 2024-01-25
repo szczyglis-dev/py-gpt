@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.25 11:00:00                  #
 # ================================================== #
 
 import copy
@@ -64,7 +64,11 @@ class Idx:
         """
         return self.storage.remove(idx)
 
-    def index_files(self, idx: str = "base", path: str = None) -> (dict, list):
+    def index_files(
+            self,
+            idx: str = "base",
+            path: str = None
+    ) -> (dict, list):
         """
         Index file or directory of files
 
@@ -79,7 +83,11 @@ class Idx:
             self.storage.store(id=idx, index=index)  # store index
         return files, errors
 
-    def index_db_by_meta_id(self, idx: str = "base", id: int = 0) -> (int, list):
+    def index_db_by_meta_id(
+            self,
+            idx: str = "base",
+            id: int = 0
+    ) -> (int, list):
         """
         Index records from db by meta id
 
@@ -94,7 +102,11 @@ class Idx:
             self.storage.store(id=idx, index=index)  # store index
         return num, errors
 
-    def index_db_from_updated_ts(self, idx: str = "base", from_ts: int = 0) -> (int, list):
+    def index_db_from_updated_ts(
+            self,
+            idx: str = "base",
+            from_ts: int = 0
+    ) -> (int, list):
         """
         Index records from db by meta id
 
