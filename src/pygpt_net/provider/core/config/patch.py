@@ -623,6 +623,13 @@ class Patch:
                     data['layout.tray'] = True
                 updated = True
 
+            # < 2.0.119
+            if old < parse_version("2.0.119"):
+                print("Migrating config from < 2.0.119...")
+                if 'layout.minimized' not in data:
+                    data['layout.minimized'] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:
