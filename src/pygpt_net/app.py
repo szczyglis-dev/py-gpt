@@ -9,9 +9,6 @@
 # Updated Date: 2024.01.25 11:00:00                  #
 # ================================================== #
 
-from logging import ERROR, WARNING, INFO, DEBUG
-
-from pygpt_net.core.debug import Debug
 from pygpt_net.launcher import Launcher
 
 # plugins
@@ -45,37 +42,29 @@ from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
 from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
-Debug.init(ERROR)  # <-- set logging level [ERROR|WARNING|INFO|DEBUG]
 
-
-def run(
-        plugins: list = None,
-        llms: list = None,
-        vector_stores: list = None
-):
+def run(**kwargs):
     """
     PyGPT launcher.
 
-    :param plugins: List containing custom plugin instances.
-    :param llms: List containing custom LLMs wrapper instances.
-    :param vector_stores: List containing custom vector index store provider instances.
+    :param kwargs: keyword arguments for launcher
 
-    Extending PyGPT with custom plugins and LLMs wrappers:
+    Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
 
-    - You can pass custom plugin instances and LLMs wrappers to the launcher.
-    - This is useful if you want to extend PyGPT with your own plugins and LLMs.
+    - You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
+    - This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
 
     To register custom plugins:
 
-    - Pass a list with the plugin instances as the first argument.
+    - Pass a list with the plugin instances as 'plugins=' keyword argument.
 
     To register custom LLMs wrappers:
 
-    - Pass a list with the LLMs wrappers instances as the second argument.
+    - Pass a list with the LLMs wrappers instances as 'llms=' keyword argument.
 
     To register custom vector store providers:
 
-    - Pass a list with the vector store provider instances as the third argument.
+    - Pass a list with the vector store provider instances as 'vector_stores=' keyword argument.
 
     Example:
     --------
@@ -104,7 +93,6 @@ def run(
         )
 
     """
-
     # initialize app launcher
     launcher = Launcher()
     launcher.init()
@@ -126,7 +114,8 @@ def run(
     launcher.add_plugin(CrontabPlugin())
 
     # register custom plugins
-    if plugins is not None:
+    plugins = kwargs.get('plugins', None)
+    if isinstance(plugins, list):
         for plugin in plugins:
             launcher.add_plugin(plugin)
 
@@ -139,7 +128,8 @@ def run(
     launcher.add_llm(OllamaLLM())
 
     # register custom langchain and llama-index LLMs
-    if llms is not None:
+    llms = kwargs.get('llms', None)
+    if isinstance(llms, list):
         for llm in llms:
             launcher.add_llm(llm)
 
@@ -151,7 +141,8 @@ def run(
     launcher.add_vector_store(SimpleProvider())
 
     # register custom vector store providers (llama-index)
-    if vector_stores is not None:
+    vector_stores = kwargs.get('vector_stores', None)
+    if isinstance(vector_stores, list):
         for store in vector_stores:
             launcher.add_vector_store(store)
 
