@@ -22,10 +22,16 @@ from pygpt_net.utils import get_app_meta
 class MainWindow(QMainWindow, QtStyleTools):
     statusChanged = Signal(str)
 
-    def __init__(self, app: QApplication):
-        """Main window"""
+    def __init__(self, app: QApplication, args: dict = None):
+        """
+        Main window
+
+        :param app: QApplication instance
+        :param args: launcher arguments
+        """
         super().__init__()
         self.app = app
+        self.args = args
         self.timer = None
         self.post_timer = None
         self.threadpool = None
