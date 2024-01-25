@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
 
 import json
@@ -64,41 +64,41 @@ class Command:
         # cmd += '\n"read_file": read data from file, params: "filename"'
         return cmd
 
-    def append_syntax(self, event_data: dict) -> str:
+    def append_syntax(self, data: dict) -> str:
         """
-        Append syntax to prompt
+        Append command syntax to prompt
 
-        :param event_data: event data
-        :return: prompt with syntax
+        :param data: event data
+        :return: prompt with appended syntax
         """
-        cmd = event_data['prompt']
-        for item in event_data['syntax']:
+        prompt = data['prompt']
+        for item in data['syntax']:
             if isinstance(item, str):
-                cmd += '\n' + item
+                prompt += '\n' + item
             elif isinstance(item, dict):
-                cmd += '\n"' + item['cmd'] + '": ' + item['instruction']
+                prompt += '\n"' + item['cmd'] + '": ' + item['instruction']
                 if 'params' in item:
                     if len(item['params']) > 0:
-                        cmd += ', params: "{}"'.format('", "'.join(item['params']))
+                        prompt += ', params: "{}"'.format('", "'.join(item['params']))
                 if 'example' in item:
                     if item['example'] is not None:
-                        cmd += ', example: "{}"'.format(item['example'])
-        return cmd
+                        prompt += ', example: "{}"'.format(item['example'])
+        return prompt
 
-    def extract_cmds(self, response: str) -> list:
+    def extract_cmds(self, text: str) -> list:
         """
-        Extract commands from response
+        Extract commands from text
 
-        :param response: response
-        :return: commands list
+        :param text: text to extract commands from
+        :return: list of commands (dict)
         """
         cmds = []
         try:
-            chunks = response.split('~###~')
+            chunks = text.split('~###~')
             for chunk in chunks:
-                cmd_dict = self.extract_cmd(chunk)
-                if cmd_dict is not None:
-                    cmds.append(cmd_dict)
+                cmd = self.extract_cmd(chunk)  # extract JSON string to dict
+                if cmd is not None:
+                    cmds.append(cmd)  # cmd = dict
         except Exception as e:
             # do nothing
             pass
@@ -106,10 +106,10 @@ class Command:
 
     def extract_cmd(self, chunk: str) -> dict or None:
         """
-        Extract command from response
+        Extract command from text chunk (JSON string)
 
-        :param chunk: chunk
-        :return: command JSON dict
+        :param chunk: text chunk (JSON command string)
+        :return: command dict
         """
         cmd = None
         chunk = chunk.strip()
