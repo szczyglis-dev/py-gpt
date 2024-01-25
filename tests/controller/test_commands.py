@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 16:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
-# 
+
 import os
 from unittest.mock import MagicMock, call, patch
 
@@ -21,17 +21,6 @@ from pygpt_net.controller import Command
 
 
 def test_dispatch(mock_window):
-    """Test dispatch"""
-    command = Command(mock_window)
-    command.dispatch_sync = MagicMock()
-    command.dispatch_async = MagicMock()
-
-    event = Event('test')
-    command.dispatch(event)
-    command.dispatch_sync.assert_called_once_with(event)
-
-
-def test_dispatch_sync(mock_window):
     """Test dispatch sync"""
     command = Command(mock_window)
     mock_window.core.dispatcher.apply = MagicMock()
@@ -40,17 +29,9 @@ def test_dispatch_sync(mock_window):
     command.handle_finished = MagicMock()
 
     event = Event('test')
-    command.dispatch_sync(event)
+    command.dispatch(event)
     mock_window.core.dispatcher.apply.assert_called()
     command.handle_finished.assert_called_once_with(event)
-
-
-def test_dispatch_async(mock_window):
-    """Test dispatch async"""
-    command = Command(mock_window)
-    event = Event('test')
-    command.dispatch_async(event)
-    mock_window.threadpool.start.assert_called_once()
 
 
 def test_worker(mock_window):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -54,7 +54,7 @@ def test_handle_cmd(mock_window):
     output = Output(mock_window)
     mock_window.core.config.data['cmd'] = True  # enable all cmd execution
     mock_window.controller.plugins.apply_cmds = MagicMock()
-    mock_window.controller.plugins.apply_cmds_only = MagicMock()
+    mock_window.controller.plugins.apply_cmds_inline = MagicMock()
     mock_window.ui.status = MagicMock()
     cmds = [
         {'cmd': 'cmd1', 'params': {'param1': 'value1'}},
@@ -66,7 +66,7 @@ def test_handle_cmd(mock_window):
     output.handle_cmd(ctx)
 
     mock_window.controller.plugins.apply_cmds.assert_called_once()
-    mock_window.controller.plugins.apply_cmds_only.assert_not_called()
+    mock_window.controller.plugins.apply_cmds_inline.assert_not_called()
     mock_window.ui.status.assert_called_once()
 
 
@@ -75,7 +75,7 @@ def test_handle_cmd_only(mock_window):
     output = Output(mock_window)
     mock_window.core.config.data['cmd'] = False  # disable cmd execution, allow only 'inline' commands
     mock_window.controller.plugins.apply_cmds = MagicMock()
-    mock_window.controller.plugins.apply_cmds_only = MagicMock()
+    mock_window.controller.plugins.apply_cmds_inline = MagicMock()
     mock_window.ui.status = MagicMock()
     cmds = [
         {'cmd': 'cmd1', 'params': {'param1': 'value1'}},
@@ -86,7 +86,7 @@ def test_handle_cmd_only(mock_window):
     ctx = CtxItem()
     output.handle_cmd(ctx)
 
-    mock_window.controller.plugins.apply_cmds_only.assert_called_once()
+    mock_window.controller.plugins.apply_cmds_inline.assert_called_once()
     mock_window.controller.plugins.apply_cmds.assert_not_called()
 
 
@@ -95,7 +95,7 @@ def test_handle_cmd_no_cmds(mock_window):
     output = Output(mock_window)
     mock_window.core.config.data['cmd'] = True  # enable all cmd execution
     mock_window.controller.plugins.apply_cmds = MagicMock()
-    mock_window.controller.plugins.apply_cmds_only = MagicMock()
+    mock_window.controller.plugins.apply_cmds_inline = MagicMock()
     mock_window.ui.status = MagicMock()
 
     cmds = []
@@ -105,5 +105,5 @@ def test_handle_cmd_no_cmds(mock_window):
     output.handle_cmd(ctx)
 
     mock_window.controller.plugins.apply_cmds.assert_not_called()
-    mock_window.controller.plugins.apply_cmds_only.assert_not_called()
+    mock_window.controller.plugins.apply_cmds_inline.assert_not_called()
     mock_window.ui.status.assert_not_called()

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 19:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
+
 import json
 import os
 from unittest.mock import MagicMock, patch
@@ -49,4 +50,9 @@ def test_reply(mock_window):
     dispatcher.window.controller.chat.input.send = MagicMock()
     dispatcher.reply(ctx)
     dispatcher.window.core.ctx.update_item.assert_called_once_with(ctx)
-    dispatcher.window.controller.chat.input.send.assert_called_once_with(json.dumps(ctx.results), force=True, internal=False)
+    dispatcher.window.controller.chat.input.send.assert_called_once_with(
+        json.dumps(ctx.results),
+        force=True,
+        reply=True,
+        internal=False
+    )
