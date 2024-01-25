@@ -55,32 +55,37 @@ class Input:
             self,
             text: str = None,
             force: bool = False,
+            reply: bool = False,
             internal: bool = False
     ):
         """
         Send input wrapper
 
         :param text: input text
-        :param force: force send
+        :param force: force send (ignore input lock)
+        :param reply: reply mode (from plugins)
         :param internal: internal call
         """
         self.execute(
             text,
             force=force,
-            internal=internal
+            reply=reply,
+            internal=internal,
         )
 
     def execute(
             self,
             text: str = None,
             force: bool = False,
+            reply: bool = False,
             internal: bool = False
     ):
         """
         Execute send input text to API
 
         :param text: input text
-        :param force: force send
+        :param force: force send (ignore input lock)
+        :param reply: reply mode (from plugins)
         :param internal: internal call
         """
         # check if input is not locked
@@ -163,7 +168,8 @@ class Input:
         else:
             ctx = self.window.controller.chat.text.send(
                 text,
-                internal=internal
+                reply=reply,
+                internal=internal,
             )  # text mode: OpenAI, Langchain, Llama
 
         # clear attachments after send, only if attachments has been provided before send

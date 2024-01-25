@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -28,12 +28,14 @@ class Text:
     def send(
             self,
             text: str,
+            reply: bool = False,
             internal: bool = False
     ) -> CtxItem:
         """
         Send text message
 
         :param text: text to send
+        :param reply: reply from plugins
         :param internal: internal call
         :return: context item
         """
@@ -188,7 +190,7 @@ class Text:
                     result = self.window.core.chain.call(
                         text,
                         ctx,
-                        stream_mode
+                        stream_mode,
                     )
 
                 # Llama index mode
@@ -196,24 +198,24 @@ class Text:
                     self.log("Calling Llama-index...")  # log
                     idx = self.window.controller.idx.current_idx
 
-                    # query index
+                    # query index (raw mode)
                     if self.window.core.config.get('llama.idx.raw'):
                         result = self.window.core.idx.chat.raw_query(
                             ctx,
                             idx=idx,
                             model=model_data,
                             sys_prompt=sys_prompt,
-                            stream=stream_mode
+                            stream=stream_mode,
                         )
 
-                    # chat or query index (if chat is not enabled)
+                    # chat or query index (if chat is not enabled in selected model)
                     else:
                         result = self.window.core.idx.chat.call(
                             ctx,
                             idx=idx,
                             model=model_data,
                             sys_prompt=sys_prompt,
-                            stream=stream_mode
+                            stream=stream_mode,
                         )
 
                 # OpenAI API mode(s)
@@ -229,7 +231,7 @@ class Text:
                         text,
                         mode,
                         ctx,
-                        stream_mode
+                        stream_mode,
                     )
 
                 # update context in DB
@@ -278,8 +280,9 @@ class Text:
         self.window.controller.chat.common.unlock_input()  # unlock
 
         # handle ctx name (generate title from summary if not initialized)
-        if self.window.core.config.get('ctx.auto_summary'):
-            self.window.controller.ctx.prepare_name(ctx)  # async
+        if not reply and not internal:  # don't call if reply or internal mode
+            if self.window.core.config.get('ctx.auto_summary'):
+                self.window.controller.ctx.prepare_name(ctx)  # async
 
         return ctx
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 04:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, Slot
@@ -75,7 +75,12 @@ class Summarizer:
         :param title: CtxMeta title
         """
         refresh = True
-        if ctx.internal:
+        # prevent UI list selection loose after later update
+        if ctx.internal or len(ctx.cmds) > 0:
             refresh = False
-        self.window.controller.ctx.update_name(id, title, refresh=refresh)
+        self.window.controller.ctx.update_name(
+            id,
+            title,
+            refresh=refresh,
+        )
 
