@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 05:00:00                  #
+# Updated Date: 2024.01.25 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -57,7 +57,8 @@ class Ctx:
                 # check if current selected ctx is still valid
                 if self.window.core.ctx.current is not None:
                     if not self.window.core.ctx.has(self.window.core.ctx.current):
-                        self.search_string_clear()  # clear search and reload ctx list to prevent creating new ctx
+                        self.search_string_clear()
+                        # ^ clear search and reload ctx list to prevent creating new ctx
 
     def update(self, reload: bool = True, all: bool = True):
         """
@@ -87,7 +88,7 @@ class Ctx:
 
     def select(self, id: int):
         """
-        Select ctx
+        Select ctx by id
 
         :param id: context id
         """
@@ -172,7 +173,10 @@ class Ctx:
 
         :param reload: reload ctx list items
         """
-        self.window.ui.contexts.ctx_list.update('ctx.list', self.window.core.ctx.get_meta(reload))
+        self.window.ui.contexts.ctx_list.update(
+            'ctx.list',
+            self.window.core.ctx.get_meta(reload),
+        )
 
     def refresh(self):
         """Refresh context"""
@@ -181,7 +185,10 @@ class Ctx:
     def refresh_output(self):
         """Refresh output"""
         # append ctx to output
-        self.window.controller.chat.render.append_context(self.window.core.ctx.items, clear=True)
+        self.window.controller.chat.render.append_context(
+            self.window.core.ctx.items,
+            clear=True,
+        )
 
     def load(self, id: int):
         """
@@ -265,7 +272,11 @@ class Ctx:
         :param force: force delete
         """
         if not force:
-            self.window.ui.dialogs.confirm('ctx_delete', idx, trans('ctx.delete.confirm'))
+            self.window.ui.dialogs.confirm(
+                'ctx_delete',
+                idx,
+                trans('ctx.delete.confirm'),
+            )
             return
 
         id = self.window.core.ctx.get_id_by_idx(idx)
@@ -286,7 +297,11 @@ class Ctx:
         :param force: force delete
         """
         if not force:
-            self.window.ui.dialogs.confirm('ctx_delete_all', '', trans('ctx.delete.all.confirm'))
+            self.window.ui.dialogs.confirm(
+                'ctx_delete_all',
+                '',
+                trans('ctx.delete.all.confirm'),
+            )
             return
 
         # truncate ctx and history
@@ -336,13 +351,19 @@ class Ctx:
             self.window.core.ctx.save(id)
             self.update()
 
-    def update_name(self, id: int, name: str, close: bool = True, refresh: bool = True):
+    def update_name(
+            self,
+            id: int,
+            name: str,
+            close: bool = True,
+            refresh: bool = True
+    ):
         """
         Update ctx name
 
         :param id: context id
         :param name: context name
-        :param close: close dialog
+        :param close: close rename dialog
         :param refresh: refresh ctx list
         """
         if id not in self.window.core.ctx.get_meta():
@@ -360,7 +381,7 @@ class Ctx:
 
     def handle_allowed(self, mode: str) -> bool:
         """
-        Check if ctx is allowed for this mode, if not then switch to new context
+        Check if append to current ctx is allowed for this mode, if not then switch to new context
 
         :param mode: mode name
         :return: True if allowed
@@ -379,7 +400,7 @@ class Ctx:
 
     def search_string_change(self, text: str):
         """
-        Search string change
+        Search string changed handler
 
         :param text: search string
         """
@@ -403,12 +424,16 @@ class Ctx:
 
     def prepare_name(self, ctx: CtxItem):
         """
-        Handle context name (summarize input and output)
+        Handle context name (summarize first input and output)
 
         :param ctx: CtxItem
         """
+        # if ctx is not initialized yet then summarize
         if not self.window.core.ctx.is_initialized():
-            self.summarizer.summarize(self.window.core.ctx.current, ctx)
+            self.summarizer.summarize(
+                self.window.core.ctx.current,
+                ctx,
+            )
 
     def context_change_locked(self) -> bool:
         """
