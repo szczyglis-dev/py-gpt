@@ -109,6 +109,6 @@ class ChatOutput(QTextBrowser):
             option['value'] = self.value
             self.window.controller.config.apply('config', 'font_size', option)
             self.window.controller.ui.update_font_size()
-            event.stop()
+            event.accept()
         else:
             super(ChatOutput, self).wheelEvent(event)
