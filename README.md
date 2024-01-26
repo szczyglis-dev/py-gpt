@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.119** | build: **2024.01.25** | Python: **3.10+**
+Release: **2.0.120** | build: **2024.01.26** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -36,7 +36,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 - Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
 - Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 7 modes of operation: Assistant, Chat, Vision, Completion, Image generation, Langchain and Chat with files.
+- 7 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain and Chat with files.
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode
@@ -54,7 +54,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Context history with the capability to revert to previous contexts (long-term memory).
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
-- Includes a notebook.
+- Includes a notepad.
 - Includes simple painter / drawing tool
 - Includes optional Autonomous Mode
 - Supports multiple languages.
@@ -1719,10 +1719,6 @@ Config -> Settings...
 
 **Vision**
 
-- `Vision: Camera`: Enables camera in Vision mode.
-
-- `Vision: Auto capture`: Enables auto-capture on message send in Vision mode.
-
 - `Vision: Camera capture width (px)`: Video capture resolution (width).
 
 - `Vision: Camera capture height (px)`: Video capture resolution (height).
@@ -1730,6 +1726,10 @@ Config -> Settings...
 - `Vision: Camera IDX (number)`: Video capture camera index (number of camera).
 
 - `Vision: Image capture quality`: Video capture image JPEG quality (%).
+
+- `Vision: Camera`: Enables camera in Vision mode.
+
+- `Vision: Auto capture`: Enables auto-capture on message send in Vision mode.
 
 **Indexes (Llama-index)**
 
@@ -1853,6 +1853,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.120 (2024-01-26)
+
+- Fixed font-size restore when switching between plain text and markdown renderer
+- Added RMB context menu option "Clear files" to input Attachments tab.
 
 # 2.0.119 (2024-01-25)
 

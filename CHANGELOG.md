@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.120 (2024-01-26)
+
+- Fixed font-size restore when switching between plain text and markdown renderer
+- Added RMB context menu option "Clear files" to input Attachments tab.
+
 # 2.0.119 (2024-01-25)
 
 - Fixed list selection loose after async command execution

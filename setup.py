@@ -1,11 +1,13 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.119'
-DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, DALL-E 3, Langchain and Llama-index with chatbot, assistant, text completion, ' \
-              'vision and image generation, real-time internet access, commands and code execution, files upload and download and more'
-LONG_DESCRIPTION = 'Package contains a GPT-4, GPT-4V, GPT-3, Whisper, DALL-E 3 Desktop AI Assistant with chatbot, ' \
-                   'text completion, vision and image generation, internet access, llama-index and more - using OpenAI API and your own API ' \
-                   'Key. Includes context memory and history, editable presets, customizable UI and more. '
+VERSION = '2.0.120'
+DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, ' \
+              'Whisper and more with chatbot, assistant, text completion, vision and image generation, ' \
+              'internet access, chat with files, commands and code execution, file upload and download and more'
+LONG_DESCRIPTION = 'Package contains a GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs and Llama-index powered ' \
+                   'Desktop AI Assistant with chatbot, text completion, vision and image generation, internet ' \
+                   'access, chat with files and more - using OpenAI API and your own API Key. Includes context ' \
+                   'memory and history, editable presets, customizable UI and more.'
 
 setup(
     name='pygpt-net',
@@ -19,11 +21,20 @@ setup(
     maintainer_email='info@pygpt.net',
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    package_data={'': ['CHANGELOG.txt', 'data/*', 'data/css/*', 'data/fonts/*', 'data/fonts/Lato/*', 'data/locale/*', 'data/config/*', 'data/config/presets/*']},
+    package_data={'': [
+        'CHANGELOG.txt',
+        'data/*',
+        'data/css/*',
+        'data/fonts/*',
+        'data/fonts/Lato/*',
+        'data/locale/*',
+        'data/config/*',
+        'data/config/presets/*'
+    ]},
     url='https://github.com/szczyglis-dev/py-gpt',
-    keywords='py_gpt, py-gpt, pygpt, PyGPT, desktop, app, gpt, gpt-4, gpt-4v, gpt-3, gpt-4, gpt-3, tts, whisper, vision, chatgpt, dall-e, '
-             'chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, langchain, '
-             'llama-index, presets, ui, qt, pyside',
+    keywords='py_gpt, py-gpt, pygpt, PyGPT, desktop, app, gpt, gpt-4, gpt-4v, gpt-4, gpt-3.5, tts, whisper, vision, '
+             'chatgpt, dall-e, chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, '
+             'langchain, llama-index, presets, ui, qt, pyside',
     install_requires=[
         'azure-cognitiveservices-speech>=1.27.0',
         'beautifulsoup4>=4.12.2',

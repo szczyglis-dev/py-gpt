@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pygpt-net"
-version = "2.0.119"
-description = "Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3, Whisper, TTS and DALL-E 3 with chatbot, assistant, text completion, vision and image generation, real-time internet access, llama-index, commands and code execution, files upload and download and more"
+version = "2.0.120"
+description = "Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, Whisper and more with chatbot, assistant, text completion, vision and image generation, internet access, chat with files, commands and code execution, file upload and download and more"
 readme = "README.md"
 authors = [{ name = "Marcin Szczygliński", email = "info@pygpt.net" }]
 license = { file = "LICENSE" }
@@ -14,9 +14,8 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt4-v", "gpt3", "gpt-4", "gpt-4V", "gpt-3", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
-    "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index",
-    "presets", "ui", "qt", "pyside"]
+keywords = ["py_gpt", "py-gpt", "pygpt", "desktop", "app", "gpt", "gpt4", "gpt4-v", "gpt3.5", "gpt-4", "gpt-4V", "gpt-3.5", "tts", "whisper", "vision", "chatgpt", "dall-e", "chat",
+    "chatbot", "assistant", "text completion", "image generation", "ai", "api", "openai", "api key", "langchain", "llama-index", "presets", "ui", "qt", "pyside"]
 dependencies = [
     'azure-cognitiveservices-speech>=1.27.0',
     'beautifulsoup4>=4.12.2',
