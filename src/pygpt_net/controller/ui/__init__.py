@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.26 10:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -54,7 +54,7 @@ class UI:
 
     def update_font_size(self):
         """Update font size"""
-        self.window.controller.theme.nodes.apply_all(False)
+        self.window.controller.theme.nodes.apply_all()
 
     def update_toolbox(self):
         """Update toolbox"""
@@ -68,10 +68,15 @@ class UI:
         """Update tokens counter in real-time"""
         prompt = str(self.window.ui.nodes['input'].toPlainText().strip())
         input_tokens, system_tokens, extra_tokens, ctx_tokens, ctx_len, ctx_len_all, \
-        sum_tokens, max_current, threshold = self.window.core.tokens.get_current(prompt)
+            sum_tokens, max_current, threshold = self.window.core.tokens.get_current(prompt)
 
         # ctx tokens
-        ctx_string = "{} / {} - {} {}".format(ctx_len, ctx_len_all, ctx_tokens, trans('ctx.tokens'))
+        ctx_string = "{} / {} - {} {}".format(
+            ctx_len,
+            ctx_len_all,
+            ctx_tokens,
+            trans('ctx.tokens')
+        )
         self.window.ui.nodes['prompt.context'].setText(ctx_string)
 
         # input tokens
@@ -81,8 +86,14 @@ class UI:
         parsed_max_current = str(int(max_current))
         parsed_max_current = parsed_max_current.replace("000000", "M").replace("000", "k")
 
-        input_string = "{} + {} + {} + {} = {} / {}".format(input_tokens, system_tokens, ctx_tokens, extra_tokens,
-                                                      parsed_sum, parsed_max_current)
+        input_string = "{} + {} + {} + {} = {} / {}".format(
+            input_tokens,
+            system_tokens,
+            ctx_tokens,
+            extra_tokens,
+            parsed_sum,
+            parsed_max_current
+        )
         self.window.ui.nodes['input.counter'].setText(input_string)
 
     def store_state(self):

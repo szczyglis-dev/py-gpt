@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.26 10:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -109,6 +109,6 @@ class ChatOutput(QTextBrowser):
             option['value'] = self.value
             self.window.controller.config.apply('config', 'font_size', option)
             self.window.controller.ui.update_font_size()
-            event.accept()
+            event.stop()
         else:
             super(ChatOutput, self).wheelEvent(event)

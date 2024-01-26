@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.26 10:00:00                  #
 # ================================================== #
+
 from PySide6.QtGui import QTextCursor
 
 from pygpt_net.core.dispatcher import Event
@@ -171,7 +172,12 @@ class Common:
         self.window.controller.chat.input.generating = False
         self.window.ui.status(trans('status.stopped'))
 
-    def check_api_key(self):
+    def check_api_key(self) -> bool:
+        """
+        Check if API KEY is set
+
+        :return: True if API KEY is set, False otherwise
+        """
         result = True
         if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
             self.window.controller.launcher.show_api_monit()
@@ -197,14 +203,21 @@ class Common:
         """
         self.window.core.config.set('render.plain', value)
         self.window.core.config.save()
+
+        # update checkbox in settings dialog
+        self.window.controller.config.checkbox.apply(
+            'config',
+            'render.plain',
+            {'value': value},
+        )
         if not value:
             self.window.controller.ctx.refresh()
-            self.window.controller.theme.markdown.update(force=True)
+            self.window.controller.theme.markdown.update(force=True)  # without state store
         else:
             self.window.controller.theme.markdown.clear()
 
-        # update checkbox in config dialog
-        self.window.controller.config.checkbox.apply('config', 'render.plain', {'value': value})
+        # restore previous font size
+        self.window.controller.ui.update_font_size()
 
     def img_enable_raw(self):
         """Enable help for images"""

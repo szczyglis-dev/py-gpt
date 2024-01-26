@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 03:00:00                  #
+# Updated Date: 2024.01.26 10:00:00                  #
 # ================================================== #
 
 
@@ -40,12 +40,8 @@ class Nodes:
         elif type == 'text_faded':
             self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('text_faded'))
 
-    def apply_all(self, all: bool = True):
-        """
-        Apply stylesheets to nodes
-
-        :param all: apply also to highlighter
-        """
+    def apply_all(self):
+        """Apply stylesheets to nodes"""
         nodes = {
             'chat_input': [
                 'input',
