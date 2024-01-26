@@ -28,7 +28,7 @@ Minimum threshold multiplier above the noise level to begin recording. *Default:
 
 Enables adjustment to ambient noise levels. *Default:* `True`
 
-``Continuous listen`` *continuous_listen*
+- ``Continuous listen`` *continuous_listen*
 
 Experimental: continuous listening - do not stop listening after a single input. Warning: This feature may lead to unexpected results and requires fine-tuning with the rest of the options! If disabled, listening must be started manually by enabling the ``Speak`` option. *Default:* `False`
 
