@@ -590,6 +590,9 @@ Crontab / Task scheduler
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
+.. image:: images/v2_crontab.png
+   :width: 800
+
 **Options**
 
 - ``Your tasks`` *crontab*
