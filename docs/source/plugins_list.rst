@@ -523,6 +523,25 @@ You can send commands to, for example, an Arduino or any other controllers using
 .. image:: images/v2_serial.png
    :width: 600
 
+Above is an example of co-operation with the following code uploaded to ``Arduino Uno`` and connected via USB:
+
+.. code-block:: cpp
+
+   // example.ino
+
+   void setup() {
+     Serial.begin(9600);
+   }
+
+   void loop() {
+     if (Serial.available() > 0) {
+       String input = Serial.readStringUntil('\n');
+       if (input.length() > 0) {
+         Serial.println("OK, response for: " + input);
+       }
+     }
+   }
+
 **Options**
 
 ``USB port`` *serial_port*
