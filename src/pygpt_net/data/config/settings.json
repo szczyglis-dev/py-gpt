@@ -487,30 +487,6 @@
         "step": null,
         "advanced": true
     },
-    "vision.capture.enabled": {
-        "section": "vision",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.vision.capture.enabled",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    }, 
-    "vision.capture.auto": {
-        "section": "vision",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.vision.capture.auto",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "vision.capture.width": {
         "section": "vision",
         "type": "int",
@@ -557,6 +533,30 @@
         "max": 100,
         "multiplier": 1,
         "step": 1,
+        "advanced": false
+    },
+    "vision.capture.enabled": {
+        "section": "vision",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.vision.capture.enabled",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    }, 
+    "vision.capture.auto": {
+        "section": "vision",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.vision.capture.auto",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
         "advanced": false
     },
     "llama.idx.list": {
