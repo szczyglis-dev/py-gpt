@@ -163,6 +163,8 @@ class Editor:
             else:
                 self.window.controller.theme.markdown.clear()
                 self.window.ui.nodes['output.raw'].setChecked(True)
+            # restore previous font size
+            self.window.controller.ui.update_font_size()
 
         # call vision checkboxes events
         elif key == "vision.capture.enabled":
