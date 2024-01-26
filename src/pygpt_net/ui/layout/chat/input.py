@@ -6,17 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.26 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, \
-    QTabWidget, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget
 
 from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
 from pygpt_net.ui.layout.status import Status
 from pygpt_net.ui.widget.audio.input import AudioInput
+from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
 
@@ -49,7 +49,7 @@ class Input:
         files_uploaded = self.setup_attachments_uploaded()
 
         # tabs
-        self.window.ui.tabs['input'] = QTabWidget()
+        self.window.ui.tabs['input'] = InputTabs(self.window)
         self.window.ui.tabs['input'].setMinimumHeight(self.min_height_input_tab)
         self.window.ui.tabs['input'].addTab(input, trans('input.tab'))
         self.window.ui.tabs['input'].addTab(files, trans('attachments.tab'))
