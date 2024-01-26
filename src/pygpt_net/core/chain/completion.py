@@ -6,49 +6,52 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 21:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 class Completion:
     def __init__(self, window=None):
         """
-        Langchain Wrapper
+        Completion wrapper
 
         :param window: Window instance
         """
         self.window = window
         self.input_tokens = 0
 
-    def send(
-            self,
-            input_prompt: str,
-            stream_mode: bool = False,
-            system_prompt: str = None,
-            ai_name: str = None,
-            user_name: str = None
-    ):
+    def send(self, **kwargs):
         """
         Chat with LLM
 
-        :param input_prompt: prompt
-        :param stream_mode: stream mode
-        :param system_prompt: system prompt (optional)
-        :param ai_name: AI name (optional)
-        :param user_name: username (optional)
+        :param kwargs: keyword arguments
         :return: LLM response
         """
+        # get kwargs
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", "")
+        stream = kwargs.get("stream", False)
+        user_name = kwargs.get("user_name", None)
+        ai_name = kwargs.get("ai_name", None)
+        model = kwargs.get("model", None)
+
         llm = None
-        model = self.window.core.models.get(self.window.core.config.get('model'))
         if 'provider' in model.langchain:
             provider = model.langchain['provider']
             if provider in self.window.core.llm.llms:
                 try:
                     # init
                     self.window.core.llm.llms[provider].init(
-                        self.window, model, "langchain", "completion")
+                        self.window,
+                        model,
+                        "langchain",
+                        "completion",
+                    )
                     # get LLM provider instance
                     llm = self.window.core.llm.llms[provider].completion(
-                        self.window, model, stream_mode)
+                        self.window,
+                        model,
+                        stream,
+                    )
                 except Exception as e:
                     self.window.core.debug.log(e)
                     raise e
@@ -56,46 +59,42 @@ class Completion:
             raise Exception("Invalid LLM")
 
         message = self.build(
-            input_prompt,
+            prompt=prompt,
             system_prompt=system_prompt,
             ai_name=ai_name,
-            user_name=user_name
+            user_name=user_name,
+            model=model,
         )
-        if stream_mode:
+        if stream:
             return llm.stream(message)
         else:
             return llm.invoke(message)
 
-    def build(
-            self,
-            input_prompt: str,
-            system_prompt: str = None,
-            ai_name: str = None,
-            user_name: str = None
-    ) -> str:
+    def build(self, **kwargs) -> str:
         """
         Build completion string
 
-        :param input_prompt: prompt (current)
-        :param system_prompt: system prompt (optional)
-        :param ai_name: AI name (optional)
-        :param user_name: username (optional)
+        :param kwargs: keyword arguments
         :return: message string (parsed with context)
         """
+        # get kwargs
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", "")
+        user_name = kwargs.get("user_name", None)
+        ai_name = kwargs.get("ai_name", None)
+        model = kwargs.get("model", None)
         message = ""
 
         # tokens config
-        model = self.window.core.config.get('model')
-        model_id = self.window.core.models.get_id(model)
-        mode = self.window.core.config.get('mode')
-
-        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)
+        used_tokens = self.window.core.tokens.from_user(
+            prompt,
+            system_prompt,
+        )
         max_tokens = self.window.core.config.get('max_total_tokens')
-        model_ctx = self.window.core.models.get_num_ctx(model_id)
 
         # fit to max model ctx tokens
-        if max_tokens > model_ctx:
-            max_tokens = model_ctx
+        if max_tokens > model.ctx:
+            max_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -105,10 +104,10 @@ class Completion:
 
         if self.window.core.config.get('use_context'):
             items = self.window.core.ctx.get_prompt_items(
-                model_id,
-                mode,
+                model.id,
+                "langchain",
                 used_tokens,
-                max_tokens
+                max_tokens,
             )
             for item in items:
                 if item.input_name is not None \
@@ -130,17 +129,16 @@ class Completion:
                 and ai_name is not None \
                 and user_name != "" \
                 and ai_name != "":
-            message += "\n" + user_name + ": " + str(input_prompt)
+            message += "\n" + user_name + ": " + str(prompt)
             message += "\n" + ai_name + ":"
         else:
-            message += "\n" + str(input_prompt)
+            message += "\n" + str(prompt)
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_text(
             message,
-            model_id
+            model.id,
         )
-
         return message
 
     def reset_tokens(self):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -29,7 +29,7 @@ class Text:
             self,
             text: str,
             reply: bool = False,
-            internal: bool = False
+            internal: bool = False,
     ) -> CtxItem:
         """
         Send text message
@@ -101,10 +101,10 @@ class Text:
         # log
         self.log("Context: input [after plugin: ctx.before]: {}".
                  format(self.window.core.ctx.dump(ctx)))
-        self.log("System: {}".format(self.window.core.gpt.system_prompt))
 
         # event: prepare prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
+        sys_prompt_raw = sys_prompt  # store raw prompt
         event = Event(Event.PRE_PROMPT, {
             'mode': mode,
             'value': sys_prompt,
@@ -170,69 +170,21 @@ class Text:
             # make API call
             try:
                 self.window.controller.chat.common.lock_input()  # lock input
-                current_mode = self.window.core.config.get('mode')
 
-                # event: before mode select (inline mode can be select here)
-                event = Event(Event.MODE_BEFORE, {
-                    'value': mode,
-                    'prompt': text,
-                })
-                event.ctx = ctx
-                self.window.core.dispatcher.dispatch(event)
-                mode = event.data['value']
-
-                # Langchain mode
-                if mode == "langchain":
-                    self.log("Calling Langchain...")  # log
-                    self.window.core.chain.system_prompt = sys_prompt
-                    self.window.core.chain.user_name = ctx.input_name
-                    self.window.core.chain.ai_name = ctx.output_name
-                    result = self.window.core.chain.call(
-                        text,
-                        ctx,
-                        stream_mode,
-                    )
-
-                # Llama index mode
-                elif mode == "llama_index":
-                    self.log("Calling Llama-index...")  # log
-                    idx = self.window.controller.idx.current_idx
-
-                    # query index (raw mode)
-                    if self.window.core.config.get('llama.idx.raw'):
-                        result = self.window.core.idx.chat.raw_query(
-                            ctx,
-                            idx=idx,
-                            model=model_data,
-                            sys_prompt=sys_prompt,
-                            stream=stream_mode,
-                        )
-
-                    # chat or query index (if chat is not enabled in selected model)
-                    else:
-                        result = self.window.core.idx.chat.call(
-                            ctx,
-                            idx=idx,
-                            model=model_data,
-                            sys_prompt=sys_prompt,
-                            stream=stream_mode,
-                        )
-
-                # OpenAI API mode(s)
-                else:
-                    self.log("Calling OpenAI API...")  # log
-                    self.window.core.gpt.system_prompt = sys_prompt
-                    self.window.core.gpt.user_name = ctx.input_name
-                    self.window.core.gpt.ai_name = ctx.output_name
-                    self.window.core.gpt.assistant_id = self.window.core.config.get('assistant')
-                    self.window.core.gpt.thread_id = ctx.thread
-                    self.window.core.gpt.attachments = self.window.core.attachments.get_all(current_mode)
-                    result = self.window.core.gpt.call(
-                        text,
-                        mode,
-                        ctx,
-                        stream_mode,
-                    )
+                # make call
+                result = self.window.core.bridge.call(
+                    mode=mode,
+                    model=model_data,
+                    ctx=ctx,
+                    prompt=text,
+                    system_prompt=sys_prompt,
+                    system_prompt_raw=sys_prompt_raw,
+                    stream=stream_mode,
+                    attachments=self.window.core.attachments.get_all(mode),
+                    assistant_id=self.window.core.config.get('assistant'),
+                    idx=self.window.controller.idx.current_idx,
+                    idx_raw=self.window.core.config.get('llama.idx.raw'),
+                )
 
                 # update context in DB
                 ctx.current = False  # reset current state

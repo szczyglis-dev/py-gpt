@@ -56,7 +56,7 @@ class Input:
             text: str = None,
             force: bool = False,
             reply: bool = False,
-            internal: bool = False
+            internal: bool = False,
     ):
         """
         Send input wrapper
@@ -78,7 +78,7 @@ class Input:
             text: str = None,
             force: bool = False,
             reply: bool = False,
-            internal: bool = False
+            internal: bool = False,
     ):
         """
         Execute send input text to API
@@ -164,7 +164,7 @@ class Input:
 
         # send input to API, return ctx
         if self.window.core.config.get('mode') == 'img':
-            ctx = self.window.controller.chat.image.send(text)  # image mode: DALL-E
+            ctx = self.window.controller.chat.image.send(text)  # image mode
         else:
             ctx = self.window.controller.chat.text.send(
                 text,

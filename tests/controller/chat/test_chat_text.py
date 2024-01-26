@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -48,7 +48,7 @@ def test_send(mock_window):
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
-        mock_window.core.gpt.call.assert_called_once()  # should call gpt
+        mock_window.core.bridge.call.assert_called_once()  # should call gpt
         mock_window.core.ctx.update_item.assert_called()  # should update ctx item
         mock_window.controller.chat.output.handle.assert_called_once()  # should handle output
         mock_window.controller.chat.output.handle_cmd.assert_called_once()  # should handle cmds
@@ -88,7 +88,7 @@ def test_send_stream(mock_window):
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
-        mock_window.core.gpt.call.assert_called_once()  # should call gpt
+        mock_window.core.bridge.call.assert_called_once()  # should call bridge
         mock_window.core.ctx.update_item.assert_called()  # should update ctx item
         mock_window.controller.chat.output.handle.assert_called_once()  # should handle output
         mock_window.controller.chat.output.handle_cmd.assert_called_once()  # should handle cmds
@@ -130,7 +130,7 @@ def test_send_assistant(mock_window):
         mock_window.core.ctx.add.assert_called_once()  # should add ctx to DB
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
-        mock_window.core.gpt.call.assert_called_once()  # should call gpt
+        mock_window.core.bridge.call.assert_called_once()  # should call gpt
 
         mock_window.core.ctx.update_item.assert_called()  # should update ctx item
 

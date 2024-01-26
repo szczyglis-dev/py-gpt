@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 02:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import json
@@ -88,7 +88,7 @@ class WebSearch:
         try:
             req = Request(
                 url=url,
-                headers={'User-Agent': 'Mozilla/5.0'}
+                headers={'User-Agent': 'Mozilla/5.0'},
             )
 
             # get data from URL
@@ -155,9 +155,15 @@ class WebSearch:
             sys_prompt = summarize_prompt
         else:
             if query is None or query == "":
-                sys_prompt = str(self.plugin.get_option_value('prompt_summarize_url').format(query=query))
+                sys_prompt = str(self.plugin.get_option_value(
+                    'prompt_summarize_url'
+                ).format(query=query))
 
-        model = self.plugin.get_option_value("summary_model")
+        # get model
+        model = self.plugin.window.core.models.from_defaults()
+        tmp_model = self.plugin.get_option_value("summary_model")
+        if self.plugin.window.core.models.has(tmp_model):
+            model = self.plugin.window.core.models.get(tmp_model)
 
         # summarize per chunk
         for chunk in chunks:
@@ -165,7 +171,12 @@ class WebSearch:
             self.debug("Plugin: cmd_web_google:get_summarized_text (chunk, max_tokens): {}, {}".
                        format(chunk, max_tokens))  # log
             try:
-                response = self.plugin.window.core.gpt.quick_call(chunk, sys_prompt, False, max_tokens, model)
+                response = self.plugin.window.core.bridge.quick_call(
+                    prompt=chunk,
+                    system_prompt=sys_prompt,
+                    max_tokens=max_tokens,
+                    model=model,
+                )
                 if response is not None and response != "":
                     summary += response
             except Exception as e:

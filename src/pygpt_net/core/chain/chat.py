@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 21:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
@@ -15,95 +15,90 @@ from langchain.schema import SystemMessage, HumanMessage, AIMessage
 class Chat:
     def __init__(self, window=None):
         """
-        Langchain Wrapper
+        Chat wrapper
 
         :param window: Window instance
         """
         self.window = window
         self.input_tokens = 0
 
-    def send(
-            self,
-            input_prompt: str,
-            stream_mode: bool = False,
-            system_prompt: str = None,
-            ai_name: str = None,
-            user_name: str = None
-    ):
+    def send(self, **kwargs):
         """
         Chat with LLM
 
-        :param input_prompt: prompt
-        :param stream_mode: stream mode
-        :param system_prompt: system prompt (optional)
-        :param ai_name: AI name (optional)
-        :param user_name: username (optional)
+        :param kwargs: keyword arguments
         :return: LLM response
         """
+        # get kwargs
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", "")
+        stream = kwargs.get("stream", False)
+        user_name = kwargs.get("user_name", None)
+        ai_name = kwargs.get("ai_name", None)
+        model = kwargs.get("model", None)
+
         llm = None
-        model = self.window.core.models.get(self.window.core.config.get('model'))
         if 'provider' in model.langchain:
             provider = model.langchain['provider']
             if provider in self.window.core.llm.llms:
                 try:
                     # init
                     self.window.core.llm.llms[provider].init(
-                        self.window, model, "langchain", "chat")
+                        self.window,
+                        model,
+                        "langchain",
+                        "chat",
+                    )
                     # get LLM provider instance
                     llm = self.window.core.llm.llms[provider].chat(
-                        self.window, model, stream_mode)
+                        self.window,
+                        model,
+                        stream,
+                    )
                 except Exception as e:
                     self.window.core.debug.log(e)
                     raise e
-
                     # if no LLM here then raise exception
         if llm is None:
             raise Exception("Invalid LLM")
 
         messages = self.build(
-            input_prompt,
+            prompt=prompt,
             system_prompt=system_prompt,
             ai_name=ai_name,
-            user_name=user_name
+            user_name=user_name,
+            model=model,
         )
-        if stream_mode:
+        if stream:
             return llm.stream(messages)
         else:
             return llm.invoke(messages)
 
-    def build(
-            self,
-            input_prompt: str,
-            system_prompt: str = None,
-            ai_name: str = None,
-            user_name: str = None
-    ) -> list:
+    def build(self, **kwargs) -> list:
         """
         Build chat messages list
 
-        :param input_prompt: prompt
-        :param system_prompt: system prompt (optional)
-        :param ai_name: AI name (optional)
-        :param user_name: username (optional)
+        :param kwargs: keyword arguments
         :return: list of messages
         """
+        # get kwargs
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", "")
+        user_name = kwargs.get("user_name", None)  # unused
+        ai_name = kwargs.get("ai_name", None)  # unused
+        model = kwargs.get("model", None)
         messages = []
 
-        # tokens config
-        model = self.window.core.config.get('model')
-        model_id = self.window.core.models.get_id(model)
-        mode = self.window.core.config.get('mode')
-
+        # tokens
         used_tokens = self.window.core.tokens.from_user(
-            input_prompt,
-            system_prompt
+            prompt,
+            system_prompt,
         )  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
-        model_ctx = self.window.core.models.get_num_ctx(model_id)
 
         # fit to max model tokens
-        if max_tokens > model_ctx:
-            max_tokens = model_ctx
+        if max_tokens > model.ctx:
+            max_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -115,10 +110,10 @@ class Chat:
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
             items = self.window.core.ctx.get_prompt_items(
-                model_id,
-                mode,
+                model.id,
+                "langchain",
                 used_tokens,
-                max_tokens
+                max_tokens,
             )
             for item in items:
                 # input
@@ -129,14 +124,13 @@ class Chat:
                     messages.append(AIMessage(content=item.output))
 
         # append current prompt
-        messages.append(HumanMessage(content=str(input_prompt)))
+        messages.append(HumanMessage(content=str(prompt)))
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_langchain_messages(
             messages,
-            model_id
+            model.id,
         )
-
         return messages
 
     def reset_tokens(self):

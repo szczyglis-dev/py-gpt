@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
+from pygpt_net.item.model import ModelItem
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -22,7 +23,7 @@ class Plugin(BasePlugin):
         self.description = "Integrates DALL-E 3 image generation with any chat"
         self.allowed_modes = ["chat", "langchain", "vision", "llama_index", "assistant"]
         self.allowed_cmds = [
-            "image"
+            "image",
         ]
         self.order = 100
         self.use_locale = True
@@ -131,11 +132,20 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] == "image":
                     query = item["params"]["query"]
-
                     # WHAT'S HAPPENING HERE:
                     # if internal call (ctx.internal = True) then it will re-send OK response
                     # if not internal call then it will append image to chat only
-                    self.window.core.image.generate(ctx, query, 'dall-e-3', 1, inline=True)  # force inline mode
+                    model = ModelItem()
+                    model.id = "dall-e-3"
+                    self.window.core.bridge.call(
+                        mode="image",
+                        prompt=query,
+                        ctx=ctx,
+                        model=model,  # model instance
+                        num=1,
+                        inline=True,  # force inline mode
+                    )
+                    # self.window.core.image.generate(ctx, query, 'dall-e-3', 1, inline=True)  # force inline mode
             except Exception as e:
                 self.log("Error: " + str(e))
                 return

@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 21:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
+
+from pygpt_net.item.ctx import CtxItem
+
 
 class Completion:
     def __init__(self, window=None):
@@ -19,32 +22,31 @@ class Completion:
         self.window = window
         self.input_tokens = 0
 
-    def send(
-            self,
-            prompt: str,
-            max_tokens: int,
-            stream_mode: bool = False,
-            system_prompt: str = None,
-            ai_name: str = None,
-            user_name: str = None
-    ):
+    def send(self, **kwargs):
         """
         Call OpenAI API for completion
 
-        :param prompt: prompt (user message)
-        :param max_tokens: max output tokens
-        :param stream_mode: stream mode
-        :param system_prompt: system prompt (optional)
-        :param ai_name: AI name
-        :param user_name: username
+        :param kwargs: keyword arguments
         :return: response or stream chunks
         """
+        # get kwargs
+        ctx = kwargs.get("ctx", CtxItem())
+        prompt = kwargs.get("prompt", "")
+        stream = kwargs.get("stream", False)
+        max_tokens = kwargs.get("max_tokens", 200)
+        system_prompt = kwargs.get("system_prompt", "")
+        user_name = ctx.input_name  # from ctx
+        ai_name = ctx.output_name  # from ctx
+        model = kwargs.get("model", None)
+        model_id = model.id
+
         # build prompt message
         message = self.build(
-            prompt,
+            prompt=prompt,
             system_prompt=system_prompt,
             ai_name=ai_name,
-            user_name=user_name
+            user_name=user_name,
+            model=model,
         )
 
         # prepare stop word if user_name is set
@@ -53,55 +55,47 @@ class Completion:
             stop = [user_name + ':']
 
         client = self.window.core.gpt.get_client()
-        model = self.window.core.gpt.get_model('completion',  allow_change=False)
-
         # fix for deprecated OpenAI davinci models
-        if model.startswith('text-davinci'):
-            model = 'gpt-3.5-turbo-instruct'
+        if model_id.startswith('text-davinci'):
+            model_id = 'gpt-3.5-turbo-instruct'
 
         response = client.completions.create(
             prompt=message,
-            model=model,
+            model=model_id,
             max_tokens=int(max_tokens),
             temperature=self.window.core.config.get('temperature'),
             top_p=self.window.core.config.get('top_p'),
             frequency_penalty=self.window.core.config.get('frequency_penalty'),
             presence_penalty=self.window.core.config.get('presence_penalty'),
             stop=stop,
-            stream=stream_mode,
+            stream=stream,
         )
         return response
 
-    def build(
-            self,
-            input_prompt: str,
-            system_prompt: str = None,
-            ai_name: str = None,
-            user_name: str = None
-    ) -> str:
+    def build(self, **kwargs) -> str:
         """
         Build completion string
 
-        :param input_prompt: prompt (user input)
-        :param system_prompt: system prompt (optional)
-        :param ai_name: AI name
-        :param user_name: username
+        :param kwargs: keyword arguments
         :return: message string (parsed with context)
         """
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", None)
+        user_name = kwargs.get("user_name", None)
+        ai_name = kwargs.get("ai_name", None)
+        model = kwargs.get("model", None)
         message = ""
 
         # tokens config
-        model = self.window.core.config.get('model')
-        model_id = self.window.core.models.get_id(model)
-        mode = self.window.core.config.get('mode')
-
-        used_tokens = self.window.core.tokens.from_user(input_prompt, system_prompt)
+        used_tokens = self.window.core.tokens.from_user(
+            prompt,
+            system_prompt,
+        )
         max_tokens = self.window.core.config.get('max_total_tokens')
-        model_ctx = self.window.core.models.get_num_ctx(model_id)
 
         # fit to max model ctx tokens
-        if max_tokens > model_ctx:
-            max_tokens = model_ctx
+        if max_tokens > model.ctx:
+            max_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -111,10 +105,10 @@ class Completion:
 
         if self.window.core.config.get('use_context'):
             items = self.window.core.ctx.get_prompt_items(
-                model_id,
-                mode,
+                model.id,
+                "completion",
                 used_tokens,
-                max_tokens
+                max_tokens,
             )
             for item in items:
                 if item.input_name is not None \
@@ -136,17 +130,16 @@ class Completion:
                 and ai_name is not None \
                 and user_name != "" \
                 and ai_name != "":
-            message += "\n" + user_name + ": " + str(input_prompt)
+            message += "\n" + user_name + ": " + str(prompt)
             message += "\n" + ai_name + ":"
         else:
-            message += "\n" + str(input_prompt)
+            message += "\n" + str(prompt)
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_text(
             message,
-            model_id
+            model.id,
         )
-
         return message
 
     def reset_tokens(self):

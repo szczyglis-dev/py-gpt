@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 08:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import os
@@ -44,8 +44,8 @@ class Image:
 
         # force 1 image if dall-e-3 model is used
         model = self.window.core.config.get('model')
-        model_id = self.window.core.models.get_id(model)
-        if model_id == 'dall-e-3':
+        model_data = self.window.core.models.get(model)
+        if model_data.id == 'dall-e-3':
             num = 1
 
         self.window.ui.status(trans('status.sending'))
@@ -70,11 +70,15 @@ class Image:
         if self.window.core.config.get('ctx.auto_summary'):
             self.window.controller.ctx.prepare_name(ctx)
 
-        # call DALL-E API and generate images
+        # generate image
         try:
-            # run async worker
-            self.window.core.image.generate(ctx, text, model_id, num)
-
+            self.window.core.bridge.call(
+                mode="image",
+                prompt=text,
+                ctx=ctx,
+                model=model_data,  # model instance
+                num=num,
+            )
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.ui.dialogs.alert(str(e))
@@ -84,7 +88,7 @@ class Image:
 
     def handle_response(self, ctx: CtxItem, paths: list, prompt: str):
         """
-        Handle response from DALL-E API
+        Handle response
 
         :param ctx: ctx item
         :param paths: list with paths to downloaded images
@@ -128,7 +132,7 @@ class Image:
 
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
-        Handle inline response from DALL-E
+        Handle inline response
 
         :param ctx: ctx item
         :param paths: list with paths to downloaded images

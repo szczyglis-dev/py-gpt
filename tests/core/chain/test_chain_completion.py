@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -35,7 +35,12 @@ def test_build(mock_window_conf):
     completion.window.core.config.get.return_value = True
     completion.window.core.ctx.get_prompt_items.return_value = items
 
-    message = completion.build('test_prompt', 'test_system_prompt')
+    model = ModelItem()
+    message = completion.build(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        model=model,
+    )
     assert message == 'test_system_prompt\nuser message\nAI message\ntest_prompt'
 
 
@@ -61,7 +66,15 @@ def test_build_with_names(mock_window_conf):
     mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
     completion.window.core.ctx.get_prompt_items.return_value = items
 
-    message = completion.build('test_prompt', 'test_system_prompt', ai_name='AI', user_name='User')
+    model = ModelItem()
+
+    message = completion.build(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ai_name='AI',
+        user_name='User',
+        model=model,
+    )
     assert message == 'test_system_prompt\nUser: user message\nAI: AI message\nUser: test_prompt\nAI:'
 
 
@@ -82,11 +95,25 @@ def test_send(mock_window_conf):
 
     completion.window.core.llm.llms = {'test': MagicMock()}
     completion.window.core.llm.llms['test'].completion = MagicMock(return_value=mock_chat_instance)
-    response = completion.send('test_prompt')
+    response = completion.send(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ai_name='AI',
+        user_name='User',
+        model=model,
+    )
     assert response == 'test_response'
-    completion.build.assert_called_once_with('test_prompt', system_prompt=None, ai_name=None, user_name=None)
+    completion.build.assert_called_once_with(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ai_name='AI',
+        user_name='User',
+        model=model,
+    )
     completion.window.core.llm.llms['test'].completion.assert_called_once_with(
-        mock_window_conf, model, False
+        mock_window_conf,
+        model,
+        False
     )
     mock_chat_instance.invoke.assert_called_once_with('test_messages')
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import os
@@ -31,7 +31,7 @@ def test_handle_cmd_execute(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
-    mock_window.core.image.generate = MagicMock()
+    mock_window.core.bridge.generate = MagicMock()
     ctx = CtxItem()
     event = Event()
     event.name = "cmd.execute"
@@ -47,7 +47,7 @@ def test_handle_cmd_execute(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    mock_window.core.image.generate.assert_called_once_with(ctx, "test query", 'dall-e-3', 1, inline=True)
+    mock_window.core.bridge.call.assert_called_once()
 
 
 def test_handle_cmd_inline(mock_window):
@@ -55,7 +55,7 @@ def test_handle_cmd_inline(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
-    mock_window.core.image.generate = MagicMock()
+    mock_window.core.bridge.call = MagicMock()
     ctx = CtxItem()
     event = Event()
     event.name = "cmd.inline"
@@ -71,7 +71,7 @@ def test_handle_cmd_inline(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    mock_window.core.image.generate.assert_called_once_with(ctx, "test query", 'dall-e-3', 1, inline=True)
+    mock_window.core.bridge.call.assert_called_once()
 
 
 def test_handle_sys_prompt(mock_window):

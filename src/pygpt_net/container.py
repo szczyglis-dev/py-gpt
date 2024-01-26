@@ -13,6 +13,7 @@ from pygpt_net.config import Config
 from pygpt_net.core.assistants import Assistants
 from pygpt_net.core.attachments import Attachments
 from pygpt_net.core.audio import Audio
+from pygpt_net.core.bridge import Bridge
 from pygpt_net.core.calendar import Calendar
 from pygpt_net.core.camera import Camera
 from pygpt_net.core.chain import Chain
@@ -53,6 +54,7 @@ class Container:
         self.assistants = Assistants(window)
         self.attachments = Attachments(window)
         self.audio = Audio(window)
+        self.bridge = Bridge(window)
         self.calendar = Calendar(window)
         self.camera = Camera(window)
         self.chain = Chain(window)

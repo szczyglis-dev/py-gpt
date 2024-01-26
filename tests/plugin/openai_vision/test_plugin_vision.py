@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
 from pygpt_net.plugin.openai_vision import Plugin
 
@@ -79,6 +80,10 @@ def test_handle_model_before(mock_window):
     plugin.setup()
     mock_window.controller.chat.vision.enabled = MagicMock(return_value=True)
     mock_window.controller.chat.vision.allowed_modes = ["chat"]
+    model = ModelItem()
+    model.id = "gpt-4-vision-preview"
+    mock_window.core.models.has = MagicMock(return_value=True)
+    mock_window.core.models.get = MagicMock(return_value=model)
     ctx = CtxItem()
     event = Event()
     event.name = "model.before"
@@ -88,7 +93,7 @@ def test_handle_model_before(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert event.data["model"] == "gpt-4-vision-preview"
+    assert event.data["model"] == model
 
 
 def test_handle_ui_vision(mock_window):

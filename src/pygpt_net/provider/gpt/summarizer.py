@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 04:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -29,8 +29,8 @@ class Summarizer:
         :return: response text (generated summary)
         """
         # default values
-        model_id = 'gpt-3.5-turbo-1106'
-        sys_prompt = "You are an expert in conversation summarization"
+        model = self.window.core.models.from_defaults()
+        system_prompt = "You are an expert in conversation summarization"
         text = "Summarize topic of this conversation in one sentence. Use best keywords to describe it. " \
                "Summary must be in the same language as the conversation and it will be used for conversation title " \
                "so it must be EXTREMELY SHORT and concise - use maximum 5 words: \n\n"
@@ -46,10 +46,16 @@ class Summarizer:
                 replace("{input}", str(ctx.input)).replace("{output}", str(ctx.output))
         if self.window.core.config.get('ctx.auto_summary.model') is not None \
                 and self.window.core.config.get('ctx.auto_summary.model') != "":
-            model = self.window.core.config.get('ctx.auto_summary.model')
-            model_id = self.window.core.models.get_id(model)
+            tmp_model = self.window.core.config.get('ctx.auto_summary.model')
+            if self.window.core.models.has(tmp_model):
+                model = self.window.core.models.get(tmp_model)
 
         # quick call OpenAI API
-        response = self.window.core.gpt.quick_call(text, sys_prompt, False, 500, model_id)
+        response = self.window.core.bridge.quick_call(
+            prompt=text,
+            system_prompt=system_prompt,
+            max_tokens=500,
+            model=model,
+        )
         if response is not None:
             return response

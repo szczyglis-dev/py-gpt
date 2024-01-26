@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -170,13 +170,23 @@ class Plugin(BasePlugin):
             for index in indexes:
                 ctx = CtxItem()
                 ctx.input = question
-                self.window.core.idx.chat.query(ctx, idx=index.strip(), model=model, stream=False)
+                self.window.core.idx.chat.query(
+                    ctx=ctx,
+                    idx=index.strip(),
+                    model=model,
+                    stream=False,
+                )
                 responses.append(ctx.output)
             return "\n".join(responses)
         else:
             ctx = CtxItem()
             ctx.input = question
-            self.window.core.idx.chat.query(ctx, idx=idx, model=model, stream=False)
+            self.window.core.idx.chat.query(
+                ctx=ctx,
+                idx=idx,
+                model=model,
+                stream=False,
+            )
             return ctx.output
 
     def cmd(self, ctx: CtxItem, cmds: list):

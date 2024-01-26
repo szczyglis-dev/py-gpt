@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
 
+from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
 from pygpt_net.provider.gpt.chat import Chat
 from pygpt_net.item.ctx import CtxItem
@@ -48,7 +49,12 @@ def test_send(mock_window_conf):
     client.chat.completions.create.return_value = mock_response
     chat.window.core.gpt.get_client = MagicMock(return_value=client)
 
-    response = chat.send('test_prompt', 10)
+    model = ModelItem()
+    response = chat.send(
+        prompt='test_prompt',
+        max_tokens=10,
+        model=model,
+    )
     assert response.choices[0].message.content == 'test_response'
 
 
@@ -71,7 +77,12 @@ def test_build(mock_window_conf):
     chat.window.core.ctx.get_prompt_items.return_value = items
     chat.window.core.ctx.get_model_ctx.return_value = 2048
 
-    messages = chat.build('test_prompt', 'test_system_prompt')
+    model = ModelItem()
+    messages = chat.build(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        model=model,
+    )
     assert len(messages) == 4
     assert messages[0]['content'] == 'test_system_prompt'
     assert messages[1]['content'] == 'user message'

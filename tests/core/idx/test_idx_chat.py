@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -28,8 +28,20 @@ def test_call(mock_window):
     idx = "test"
     sys_prompt = "test"
     stream = True
-    chat.call(ctx, idx, model, sys_prompt, stream)
-    chat.chat.assert_called_once_with(ctx, idx, model, sys_prompt, stream)
+    chat.call(
+        ctx=ctx,
+        idx=idx,
+        model=model,
+        system_prompt=sys_prompt,
+        stream=stream,
+    )
+    chat.chat.assert_called_once_with(
+        ctx=ctx,
+        idx=idx,
+        model=model,
+        system_prompt=sys_prompt,
+        stream=stream,
+    )
 
 
 def test_raw_query(mock_window):
@@ -41,8 +53,20 @@ def test_raw_query(mock_window):
     idx = "test"
     sys_prompt = "test"
     stream = True
-    chat.raw_query(ctx, idx, model, sys_prompt, stream)
-    chat.query.assert_called_once_with(ctx, idx, model, sys_prompt, stream)
+    chat.raw_query(
+        ctx=ctx,
+        idx=idx,
+        model=model,
+        system_prompt=sys_prompt,
+        stream=stream,
+    )
+    chat.query.assert_called_once_with(
+        ctx=ctx,
+        idx=idx,
+        model=model,
+        system_prompt=sys_prompt,
+        stream=stream,
+    )
 
 
 def test_query(mock_window):
@@ -63,7 +87,13 @@ def test_query(mock_window):
     ctx = CtxItem()
     ctx.input = "test"
     model = ModelItem()
-    chat.query(ctx, index, model, "test", False)
+    chat.query(
+        ctx=ctx,
+        idx=index,
+        model=model,
+        system_prompt_raw="test",
+        stream=False,
+    )
     chat.get_custom_prompt.assert_called_once_with("test")
     assert ctx.input_tokens == 222
     assert ctx.output == "response"
@@ -90,7 +120,13 @@ def test_chat(mock_window):
     ctx.input = "test"
     model = ModelItem()
     chat.get_memory_buffer = MagicMock(return_value=None)
-    chat.chat(ctx, index, model, "test", False)
+    chat.chat(
+        ctx=ctx,
+        idx=index,
+        model=model,
+        system_prompt="test",
+        stream=False,
+    )
     assert ctx.input_tokens == 222
     assert ctx.output == "response"
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 21:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import base64
@@ -26,71 +26,62 @@ class Vision:
         self.urls = []
         self.input_tokens = 0
 
-    def send(
-            self,
-            prompt: str,
-            max_tokens: int,
-            stream_mode: bool = False,
-            system_prompt: str = None,
-            attachments: dict = None
-    ):
+    def send(self, **kwargs):
         """
         Call OpenAI API for chat with vision
 
-        :param prompt: prompt (user message)
-        :param max_tokens: max output tokens
-        :param stream_mode: stream mode
-        :param system_prompt: system prompt (optional)
-        :param attachments: attachments dict
+        :param kwargs: keyword arguments
         :return: response or stream chunks
         """
+        # get kwargs
+        prompt = kwargs.get("prompt", "")
+        stream = kwargs.get("stream", False)
+        max_tokens = kwargs.get("max_tokens", 200)
+        system_prompt = kwargs.get("system_prompt", "")
+        attachments = kwargs.get("attachments", {})
+        model = kwargs.get("model", None)
+        model_id = model.id
         client = self.window.core.gpt.get_client()
-        model_id = self.window.core.gpt.get_model('vision')
 
         # build chat messages
         messages = self.build(
-            prompt,
+            prompt=prompt,
             system_prompt=system_prompt,
-            attachments=attachments
+            attachments=attachments,
+            model=model,
         )
         response = client.chat.completions.create(
             messages=messages,
             model=model_id,
             max_tokens=int(max_tokens),
-            stream=stream_mode,
+            stream=stream,
         )
         return response
 
-    def build(
-            self,
-            input_prompt: str,
-            system_prompt: str = None,
-            attachments: dict = None
-    ) -> list:
+    def build(self, **kwargs) -> list:
         """
         Build chat messages list
 
-        :param input_prompt: prompt
-        :param system_prompt: system prompt (optional)
-        :param attachments: attachments dict
+        :param kwargs: keyword arguments
         :return: messages list
         """
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", None)
+        attachments = kwargs.get("attachments", {})
+        model = kwargs.get("model", None)
         messages = []
 
         # tokens config
-        model_id = self.window.core.gpt.get_model('vision')
         mode = 'vision'
-
         used_tokens = self.window.core.tokens.from_user(
-            input_prompt,
-            system_prompt
+            prompt,
+            system_prompt,
         )  # threshold and extra included
         max_tokens = self.window.core.config.get('max_total_tokens')
-        model_ctx = self.window.core.models.get_num_ctx(model_id)
 
         # fit to max model tokens
-        if max_tokens > model_ctx:
-            max_tokens = model_ctx
+        if max_tokens > model.ctx:
+            max_tokens = model.ctx
 
         # input tokens: reset
         self.reset_tokens()
@@ -105,10 +96,10 @@ class Vision:
         # append messages from context (memory)
         if self.window.core.config.get('use_context'):
             items = self.window.core.ctx.get_prompt_items(
-                model_id,
+                model.id,
                 mode,
                 used_tokens,
-                max_tokens
+                max_tokens,
             )
             for item in items:
                 # input
@@ -122,22 +113,17 @@ class Vision:
                     messages.append({"role": "assistant", "content": content})
 
         # append current prompt
-        content = self.build_content(input_prompt, attachments)
+        content = self.build_content(prompt, attachments)
         messages.append({"role": "user", "content": content})
 
         # input tokens: update
         self.input_tokens += self.window.core.tokens.from_messages(
             messages,
-            model_id
+            model.id,
         )
-
         return messages
 
-    def build_content(
-            self,
-            prompt: str,
-            attachments: dict = None
-    ) -> list:
+    def build_content(self, prompt: str, attachments: dict = None) -> list:
         """
         Build vision contents
 
@@ -145,16 +131,28 @@ class Vision:
         :param attachments: attachments (dict, optional)
         :return: List of contents
         """
-        content = [{"type": "text", "text": str(prompt)}]
+        content = [
+            {
+                "type": "text",
+                "text": str(prompt)
+            }
+        ]
 
-        self.attachments = {}
+        self.attachments = {}  # reset attachments, only current prompt
         self.urls = []
 
         # extract URLs from prompt
         urls = self.extract_urls(prompt)
         if len(urls) > 0:
             for url in urls:
-                content.append({"type": "image_url", "image_url": {"url": url}})
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": url,
+                        }
+                    }
+                )
                 self.urls.append(url)
 
         # local images (attachments)
@@ -166,7 +164,13 @@ class Vision:
                     if self.is_image(attachment.path):
                         base64_image = self.encode_image(attachment.path)
                         content.append(
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}})
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}",
+                                }
+                            }
+                        )
                         self.attachments[id] = attachment.path
 
         return content

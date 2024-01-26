@@ -630,6 +630,14 @@ class Patch:
                     data['layout.minimized'] = False
                 updated = True
 
+            # < 2.0.121
+            if old < parse_version("2.0.121"):
+                print("Migrating config from < 2.0.121...")
+                if 'openai_vision' not in data['plugins']:
+                    data['plugins']['openai_vision'] = {}
+                data['plugins']['openai_vision']['model'] = "gpt-4-vision-preview"
+                updated = True
+
         # update file
         migrated = False
         if updated:

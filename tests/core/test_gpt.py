@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -42,5 +42,8 @@ def test_quick_call(mock_window_conf):
     gpt.get_client = MagicMock(return_value=client)
     gpt.build_chat_messages = MagicMock(return_value='test_messages')
     gpt.window.core.config.get.side_effect = mock_get
-    response = gpt.quick_call('test_prompt', 'test_system_prompt')
+    response = gpt.quick_call(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt'
+    )
     assert response == 'test_response'

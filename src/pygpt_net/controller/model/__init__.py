@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.model import ModelItem
 from .editor import Editor
 
 
@@ -93,6 +94,24 @@ class Model:
             else:
                 # or set default model
                 self.window.core.config.set('model', self.window.core.models.get_default(mode))
+
+    def switch_inline(self, mode: str, model: ModelItem = None) -> ModelItem:
+        """
+        Switch inline model instance (force change model if needed)
+
+        :param mode: mode (vision, chat, etc.)
+        :param model: model instance
+        :return: model instance
+        """
+        event = Event(Event.MODEL_BEFORE, {
+            'mode': mode,
+            'model': model,  # model instance
+        })
+        self.window.core.dispatcher.dispatch(event)
+        tmp_model = event.data['model']
+        if tmp_model is not None:
+            model = tmp_model
+        return model
 
     def update_list(self):
         """Update models list"""

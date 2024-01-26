@@ -10,6 +10,7 @@
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
@@ -127,6 +128,23 @@ class Mode:
                 preset = self.window.core.presets.items[preset_id]
                 preset.temperature = temperature
                 self.window.core.presets.save(preset_id)
+
+    def switch_inline(self, mode: str, ctx: CtxItem, prompt: str) -> str:
+        """
+        Switch inline mode
+
+        :param mode: current mode
+        :param ctx: ctx item
+        :param prompt: prompt text
+        :return: changed mode
+        """
+        event = Event(Event.MODE_BEFORE, {
+            'value': mode,
+            'prompt': prompt,
+        })
+        event.ctx = ctx
+        self.window.core.dispatcher.dispatch(event)
+        return event.data['value']
 
     def update_mode(self):
         """Update mode"""

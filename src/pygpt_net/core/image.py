@@ -6,21 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 23:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
-import datetime
 import os
-import requests
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import Slot
 
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
 class Image:
-    DIRNAME = "img"
-
     def __init__(self, window=None):
         """
         Image generation core
@@ -30,8 +26,8 @@ class Image:
         self.window = window
 
     def install(self):
-        """Install provider data"""
-        img_dir = os.path.join(self.window.core.config.path, self.DIRNAME)
+        """Install provider data, img dir, etc."""
+        img_dir = os.path.join(self.window.core.config.get_user_dir("img"))
         if not os.path.exists(img_dir):
             os.mkdir(img_dir)
 
@@ -42,7 +38,7 @@ class Image:
         :param allow_custom: allow custom prompt
         :return: system command for generate image prompt
         """
-        cmd = '''
+        default = '''
         Whenever I provide a basic idea or concept for an image, such as 'a picture of mountains', 
         I want you to ALWAYS translate it into English and expand and elaborate on this idea. Use your knowledge and 
         creativity to add details that would make the image more vivid and interesting. This could include specifying 
@@ -56,8 +52,8 @@ class Image:
             if self.window.core.config.has('img_prompt'):
                 prompt = self.window.core.config.get('img_prompt')
                 if prompt is not None and prompt != '':
-                    cmd = prompt
-        return cmd
+                    default = prompt
+        return default
 
     @Slot(str, object)
     def handle_finished(self, ctx: CtxItem, paths: list, prompt: str):
@@ -79,194 +75,31 @@ class Image:
         :param paths: images paths list
         :param prompt: prompt used for generate images
         """
-        self.window.controller.chat.image.handle_response_inline(ctx, paths, prompt)
+        self.window.controller.chat.image.handle_response_inline(
+            ctx,
+            paths,
+            prompt,
+        )
 
     @Slot()
     def handle_status(self, msg: str):
-        """Handle thread status"""
+        """
+        Handle thread status message
+
+        :param msg: status message
+        """
         self.window.ui.status(msg)
         print(msg)
 
     @Slot()
-    def handle_error(self, e):
-        """Handle thread error"""
-        self.window.ui.status(e)
-        self.window.core.debug.log(e)
-
-    def generate(self, ctx: CtxItem, prompt: str, model: str = "dall-e-3", num: int = 1, inline: bool = False):
+    def handle_error(self, msg: any):
         """
-        Call DALL-E API
+        Handle thread error message
 
-        :param ctx: CtxItem
-        :param prompt: prompt
-        :param model: model name
-        :param num: number of variants
-        :param inline: inline mode
-        :return: images paths list
+        :param msg: error message
         """
-
-        # worker
-        worker = ImageWorker()
-        worker.window = self.window
-        worker.client = self.window.core.gpt.get_client()
-        worker.ctx = ctx
-        worker.raw = self.window.core.config.get('img_raw')
-        worker.model = model
-        worker.model_prompt = self.window.core.config.get('img_prompt_model')
-        worker.dirname = self.DIRNAME
-        worker.input_prompt = prompt
-        worker.system_prompt = self.get_prompt()
-        worker.num = num
-        worker.inline = inline
-
-        # config
-        if self.window.core.config.has('img_quality'):
-            worker.quality = self.window.core.config.get('img_quality')
-        if self.window.core.config.has('img_resolution'):
-            worker.resolution = self.window.core.config.get('img_resolution')
-
-        # signals
-        worker.signals.finished.connect(self.handle_finished)
-        worker.signals.finished_inline.connect(self.handle_finished_inline)
-        worker.signals.status.connect(self.handle_status)
-        worker.signals.error.connect(self.handle_error)
-
-        # INTERNAL MODE (sync)
-        # if internal (autonomous) call then use synchronous call
-        if ctx.internal:
-            worker.run()
-            return
-
-        # start
-        self.window.threadpool.start(worker)
-
-
-class ImageSignals(QObject):
-    finished = Signal(object, object, object)
-    finished_inline = Signal(object, object, object)
-    status = Signal(object)
-    error = Signal(object)
-
-
-class ImageWorker(QRunnable):
-    def __init__(self, *args, **kwargs):
-        super(ImageWorker, self).__init__()
-        self.signals = ImageSignals()
-        self.args = args
-        self.kwargs = kwargs
-        self.window = None
-        self.client = None
-        self.ctx = None
-        self.raw = False
-        self.model = "dall-e-3"
-        self.quality = "standard"
-        self.resolution = "1792x1024"
-        self.dirname = None
-        self.model_prompt = None
-        self.input_prompt = None
-        self.system_prompt = None
-        self.inline = False
-        self.num = 1
-        self.allowed_max_num = {
-            "dall-e-2": 4,
-            "dall-e-3": 1,
-        }
-        self.allowed_resolutions = {
-            "dall-e-2": [
-                "1024x1024",
-                "512x512",
-                "256x256",
-            ],
-            "dall-e-3": [
-                "1792x1024",
-                "1024x1792",
-                "1024x1024",
-            ],
-        }
-
-    @Slot()
-    def run(self):
-        if not self.raw and not self.inline:  # disable on inline and raw
-            max_tokens = 200
-            temperature = 1.0
-            try:
-                # call GPT for generate best image generate prompt
-                self.signals.status.emit(trans('img.status.prompt.wait'))
-                response = self.window.core.gpt.quick_call(self.input_prompt, self.system_prompt, False, max_tokens,
-                                                           self.model_prompt, temperature)
-                if response is not None and response != "":
-                    self.input_prompt = response
-            except Exception as e:
-                self.signals.error.emit(e)
-                self.signals.status.emit(trans('img.status.prompt.error') + ": " + str(e))
-
-        self.signals.status.emit(trans('img.status.generating') + ": {}...".format(self.input_prompt))
-        paths = []
-        try:
-            # check if number of images is supported
-            if self.model in self.allowed_max_num:
-                if self.num > self.allowed_max_num[self.model]:
-                    self.num = self.allowed_max_num[self.model]
-
-            # check if resolution is supported
-            resolution = self.resolution
-            if self.model in self.allowed_resolutions:
-                if resolution not in self.allowed_resolutions[self.model]:
-                    resolution = self.allowed_resolutions[self.model][0]
-
-            # send to API
-            response = None
-            if self.model == "dall-e-2":
-                response = self.client.images.generate(
-                    model=self.model,
-                    prompt=self.input_prompt,
-                    n=self.num,
-                    size=resolution,
-                )
-            elif self.model == "dall-e-3":
-                response = self.client.images.generate(
-                    model=self.model,
-                    prompt=self.input_prompt,
-                    n=self.num,
-                    quality=self.quality,
-                    size=resolution,
-                )
-
-            # check response
-            if response is None:
-                self.signals.status.emit("API Error: empty response")
-                return
-
-            # download images
-            for i in range(self.num):
-                if i >= len(response.data):
-                    break
-                url = response.data[i].url
-                res = requests.get(url)
-
-                # generate filename
-                name = datetime.date.today().strftime(
-                    "%Y-%m-%d") + "_" + datetime.datetime.now().strftime("%H-%M-%S") + "-" \
-                       + self.make_safe_filename(self.input_prompt) + "-" + str(i + 1) + ".png"
-                path = os.path.join(self.window.core.config.path, self.dirname, name)
-
-                msg = trans('img.status.downloading') + " (" + str(i + 1) + " / " + str(self.num) + ") -> " + path
-                self.signals.status.emit(msg)
-
-                # save image
-                if self.save_image(path, res.content):
-                    paths.append(path)
-
-            # send finished signal
-            if self.inline:
-                self.signals.finished_inline.emit(self.ctx, paths, self.input_prompt)
-            else:
-                self.signals.finished.emit(self.ctx, paths, self.input_prompt)
-
-        except Exception as e:
-            self.signals.error.emit(e)
-            print(trans('img.status.error') + ": " + str(e))
-            return
+        self.window.ui.status(msg)
+        self.window.core.debug.log(msg)
 
     def save_image(self, path: str, image: any) -> bool:
         """
@@ -281,7 +114,6 @@ class ImageWorker(QRunnable):
                 file.write(image)
             return True
         except Exception as e:
-            self.signals.error.emit(e)
             print(trans('img.status.save.error') + ": " + str(e))
             return False
 
@@ -291,13 +123,10 @@ class ImageWorker(QRunnable):
 
         :param name: filename to make safe
         :return: safe filename
-        :rtype: str
         """
-
         def safe_char(c):
             if c.isalnum():
                 return c
             else:
                 return "_"
-
         return "".join(safe_char(c) for c in name).rstrip("_")[:30]

@@ -149,6 +149,19 @@ class Models:
         """
         return self.items
 
+    def from_defaults(self) -> ModelItem:
+        """
+        Create default model
+
+        :return: new model
+        """
+        model = ModelItem()
+        model.id = "gpt-3.5-turbo-1106"
+        model.name = "gpt-3.5-turbo-1106"
+        model.tokens = 4096
+        model.ctx = 4096
+        return model
+
     def delete(self, model: str):
         """
         Delete model

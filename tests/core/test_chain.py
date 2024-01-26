@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -23,6 +23,8 @@ def test_call(mock_window_conf):
     """
     ctx = CtxItem()
     ctx.input = 'test_input'
+    ctx.input_name = 'User'
+    ctx.output_name = 'AI'
 
     model = ModelItem()
     model.name = 'test'
@@ -39,5 +41,17 @@ def test_call(mock_window_conf):
     chain.chat.send.content.return_value = 'test_chat_response'
     chain.completion.send.return_value = 'test_completion_response'
 
-    chain.call('test_text', ctx)
-    chain.chat.send.assert_called_once_with('test_text', False, system_prompt=None, ai_name=None, user_name=None)
+    chain.call(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ctx=ctx,
+        model=model,
+    )
+    chain.chat.send.assert_called_once_with(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ai_name='AI',
+        user_name='User',
+        stream=False,
+        model=model,
+    )

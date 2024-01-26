@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -25,7 +25,10 @@ class Plugin(BasePlugin):
         self.use_locale = True
         self.prompt = ""
         self.allowed_urls_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
-        self.allowed_cmds = ["camera_capture", "make_screenshot"]
+        self.allowed_cmds = [
+            "camera_capture",
+            "make_screenshot",
+        ]
         self.init_options()
 
     def init_options(self):
@@ -35,7 +38,8 @@ class Plugin(BasePlugin):
                  "photo, try to place them in the context of the conversation, and make a full analysis of what you " \
                  "see. "
         self.add_option("model",
-                        type="text",
+                        type="combo",
+                        use="models",
                         value="gpt-4-vision-preview",
                         label="Model",
                         description="Model used to temporarily providing vision abilities, "
@@ -60,7 +64,7 @@ class Plugin(BasePlugin):
                         description="Prompt used for vision mode. It will append or replace current system prompt "
                                     "when using vision model",
                         tooltip="Prompt",
-                        advanced=False)
+                        advanced=True)
         self.add_option("replace_prompt",
                         type="bool",
                         value=False,
@@ -68,7 +72,8 @@ class Plugin(BasePlugin):
                         description="Replace whole system prompt with vision prompt against appending "
                                     "it to the current prompt",
                         tooltip="Replace whole system prompt with vision prompt against appending it to the "
-                                "current prompt")
+                                "current prompt",
+                        advanced=True)
 
     def setup(self) -> dict:
         """
@@ -110,10 +115,11 @@ class Plugin(BasePlugin):
                 data['value'] = self.on_mode_before(ctx, mode=data['value'])  # mode change
         elif name == Event.MODEL_BEFORE:
             if "mode" in data and data["mode"] == "vision":
-                data['model'] = self.get_option_value("model")
+                key = self.get_option_value("model")
+                if self.window.core.models.has(key):
+                    data['model'] = self.window.core.models.get(key)
         elif name == Event.PRE_PROMPT:
             if self.is_allowed(data['mode']):
-
                 data['value'] = self.on_pre_prompt(data['value'])
         elif name == Event.INPUT_BEFORE:
             self.prompt = str(data['value'])

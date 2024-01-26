@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 04:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
+from pygpt_net.item.ctx import CtxItem
 from .chat import Chat
 from .completion import Completion
-from pygpt_net.item.ctx import CtxItem
 
 
 class Chain:
@@ -24,51 +24,63 @@ class Chain:
         self.window = window
         self.chat = Chat(window)
         self.completion = Completion(window)
-        self.ai_name = None
-        self.user_name = None
-        self.system_prompt = None
-        self.attachments = {}
 
-    def call(self, prompt: str, ctx: CtxItem, stream_mode: bool = False) -> bool:
+    def call(self, **kwargs) -> bool:
         """
-        Call LLM with Langchain
+        Call LLM using Langchain
 
-        :param prompt: input text
-        :param ctx: context (CtxItem)
-        :param stream_mode: stream mode
+        :param kwargs: keyword arguments
         :return: result
         """
-        model = self.window.core.models.get(self.window.core.config.get('model'))
+        prompt = kwargs.get("prompt", "")
+        system_prompt = kwargs.get("system_prompt", "")
+        stream = kwargs.get("stream", False)
+        model = kwargs.get("model", None)
+        ctx = kwargs.get("ctx", CtxItem())
+        user_name = ctx.input_name  # from ctx
+        ai_name = ctx.output_name  # from ctx
         response = None
         used_tokens = 0
-        mode = 'chat'
+        sub_mode = 'chat'
 
-        # get available modes
+        # get available sub-modes
         if 'mode' in model.langchain:
             if 'chat' in model.langchain['mode']:
-                mode = 'chat'
+                sub_mode = 'chat'
             elif 'completion' in model.langchain['mode']:
-                mode = 'completion'
+                sub_mode = 'completion'
 
         try:
-            if mode == 'chat':
-                response = self.chat.send(prompt, stream_mode, system_prompt=self.system_prompt,
-                                          ai_name=self.ai_name,  user_name=self.user_name)
+            if sub_mode == 'chat':
+                response = self.chat.send(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    ai_name=ai_name,
+                    user_name=user_name,
+                    stream=stream,
+                    model=model,
+                )
                 used_tokens = self.chat.get_used_tokens()
-            elif mode == 'completion':
-                response = self.completion.send(prompt, stream_mode, system_prompt=self.system_prompt,
-                                                ai_name=self.ai_name,  user_name=self.user_name)
+            elif sub_mode == 'completion':
+                response = self.completion.send(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    ai_name=ai_name,
+                    user_name=user_name,
+                    stream=stream,
+                    model=model,
+                )
                 used_tokens = self.completion.get_used_tokens()
 
         except Exception as e:
             self.window.core.debug.log(e)
             raise e  # re-raise to window
 
-        # if async mode (stream)
-        if stream_mode:
+        # if stream mode, store stream
+        if stream:
             ctx.stream = response
             ctx.input_tokens = used_tokens  # get from input tokens calculation
-            ctx.set_output("", self.ai_name)
+            ctx.set_output("", ai_name)
             return True
 
         if response is None:
@@ -76,12 +88,12 @@ class Chain:
 
         # get output
         output = None
-        if mode == 'chat':
+        if sub_mode == 'chat':
             output = response.content
-        elif mode == 'completion':
+        elif sub_mode == 'completion':
             output = response
 
-        # store context (memory)
-        ctx.set_output(output, self.ai_name)
+        # store context
+        ctx.set_output(output, ai_name)
 
         return True

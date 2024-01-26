@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -37,7 +37,12 @@ def test_build(mock_window_conf):
     mock_window_conf.core.models.get_num_ctx = MagicMock(return_value=100)
     chat.window.core.ctx.get_prompt_items.return_value = items
 
-    messages = chat.build('test_prompt', 'test_system_prompt')
+    model = ModelItem()
+    messages = chat.build(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        model=model,
+    )
     assert len(messages) == 4
     assert isinstance(messages[0], SystemMessage)
     assert isinstance(messages[1], HumanMessage)
@@ -65,9 +70,21 @@ def test_send(mock_window_conf):
 
     chat.window.core.llm.llms = {'test': MagicMock()}
     chat.window.core.llm.llms['test'].chat = MagicMock(return_value=mock_chat_instance)
-    response = chat.send('test_prompt')
+    response = chat.send(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ai_name='AI',
+        user_name='User',
+        model=model,
+    )
     assert response == 'test_response'
-    chat.build.assert_called_once_with('test_prompt', system_prompt=None, ai_name=None, user_name=None)
+    chat.build.assert_called_once_with(
+        prompt='test_prompt',
+        system_prompt='test_system_prompt',
+        ai_name='AI',
+        user_name='User',
+        model=model,
+    )
     chat.window.core.llm.llms['test'].chat.assert_called_once_with(
         mock_window_conf, model, False
     )

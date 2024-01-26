@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 19:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import os
@@ -68,13 +68,3 @@ def test_handle_error(mock_window):
     image.handle_error('test')
     image.window.ui.status.assert_called_once()
     image.window.core.debug.log.assert_called_once()
-
-
-def test_generate(mock_window):
-    """Test generate"""
-    image = Image(mock_window)
-    ctx = CtxItem()
-    image.window.core.gpt.get_client = MagicMock()
-    image.generate(ctx, 'test', 'test', 1, False)
-    image.window.threadpool.start.assert_called_once()
-    image.window.core.gpt.get_client.assert_called_once()

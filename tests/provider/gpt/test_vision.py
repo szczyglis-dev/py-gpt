@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 import base64
@@ -14,6 +14,7 @@ import os
 
 from unittest.mock import MagicMock, mock_open, patch
 
+from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window_conf
 from pygpt_net.provider.gpt.vision import Vision
 
@@ -49,8 +50,13 @@ def test_send(mock_window_conf):
     client.chat.completions.create.return_value = mock_response
     vision.window.core.gpt.get_client = MagicMock(return_value=client)
 
+    model = ModelItem()
     vision.window.core.ctx.add_item = MagicMock()
-    response = vision.send('test_prompt', 10)
+    response = vision.send(
+        prompt='test_prompt',
+        max_tokens=10,
+        model=model,
+    )
     assert response.choices[0].message.content == 'test_response'
 
 

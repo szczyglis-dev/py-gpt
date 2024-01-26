@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -34,7 +34,7 @@ def test_summary_ctx(mock_window_conf):
     Test prepare ctx name
     """
     summarizer = Summarizer(mock_window_conf)
-    summarizer.window.core.gpt.quick_call = MagicMock(return_value='test_response')
+    summarizer.window.core.bridge.quick_call = MagicMock(return_value='test_response')
     summarizer.window.core.config.get.side_effect = mock_get
     summarizer.window.core.models.get_num_ctx = MagicMock(return_value=2048)
     summarizer.window.core.ctx.get_prompt_items = MagicMock(return_value=[])

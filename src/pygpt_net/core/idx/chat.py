@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.26 18:00:00                  #
 # ================================================== #
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -14,7 +14,6 @@ from llama_index.prompts import ChatPromptTemplate
 from llama_index.memory import ChatMemoryBuffer
 
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.item.model import ModelItem
 from .context import Context
 
 
@@ -29,70 +28,48 @@ class Chat:
         self.storage = storage
         self.context = Context(window)
 
-    def call(
-            self,
-            ctx: CtxItem,
-            idx: str,
-            model: ModelItem,
-            sys_prompt: str = None,
-            stream: bool = False) -> bool:
+    def call(self, **kwargs) -> bool:
         """
         Call chat or query mode
 
-        :param ctx: context item
-        :param idx: index name
-        :param model: model item
-        :param sys_prompt: system prompt
-        :param stream: stream mode
+        :param kwargs: keyword arguments
         :return: True if success
         """
-        # check if model provided
-        if model is None:
+        model = kwargs.get("model", None)
+        idx_raw = kwargs.get("idx_raw", False)  # raw mode
+        if model is None:  # check if model is provided
             raise Exception("Model config not provided")
 
-        # check if chat mode is available
-        if "chat" in model.llama_index['mode']:
-            return self.chat(ctx, idx, model, sys_prompt, stream)
-        else:
-            # if not, use query mode
-            return self.query(ctx, idx, model, sys_prompt, stream)
+        if idx_raw:  # query index (raw mode)
+            return self.raw_query(**kwargs)
 
-    def raw_query(
-            self,
-            ctx: CtxItem,
-            idx: str,
-            model: ModelItem,
-            sys_prompt: str = None,
-            stream: bool = False) -> bool:
+        # if not raw, check if chat mode is available
+        if "chat" in model.llama_index['mode']:
+            return self.chat(**kwargs)
+        else:
+            return self.query(**kwargs)  # if not, use query mode
+
+    def raw_query(self, **kwargs) -> bool:
         """
         Raw query mode
 
-        :param ctx: context item
-        :param idx: index name
-        :param model: model item
-        :param sys_prompt: system prompt
-        :param stream: stream mode
+        :param kwargs: keyword arguments
         :return: True if success
         """
-        return self.query(ctx, idx, model, sys_prompt, stream)
+        return self.query(**kwargs)
 
-    def query(
-            self,
-            ctx: CtxItem,
-            idx: str,
-            model: ModelItem,
-            sys_prompt: str = None,
-            stream: bool = False) -> bool:
+    def query(self, **kwargs) -> bool:
         """
         Query index
 
-        :param ctx: CtxItem
-        :param idx: index name
-        :param model: model item
-        :param sys_prompt: system prompt
-        :param stream: stream response
+        :param kwargs: keyword arguments
         :return: True if success
         """
+        ctx = kwargs.get("ctx", CtxItem())
+        idx = kwargs.get("idx", "base")
+        model = kwargs.get("model", None)
+        system_prompt = kwargs.get("system_prompt_raw", None)  # raw system prompt, without plugin ads
+        stream = kwargs.get("stream", False)
         query = ctx.input
 
         # log query
@@ -106,8 +83,11 @@ class Chat:
 
         if is_log:
             print("[LLAMA-INDEX] Query index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model.id))
-
+            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
+                idx,
+                query,
+                model.id,
+            ))
         # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
@@ -115,13 +95,15 @@ class Chat:
         context = self.window.core.idx.llm.get_service_context(model=model)
         index = self.storage.get(idx, service_context=context)  # get index
         input_tokens = self.window.core.tokens.from_llama_messages(
-            query, [], model.id)
-
+            query,
+            [],
+            model.id,
+        )
         # query index
-        tpl = self.get_custom_prompt(sys_prompt)
+        tpl = self.get_custom_prompt(system_prompt)
         if tpl is not None:
             if is_log:
-                print("[LLAMA-INDEX] Query index with custom prompt: {}...".format(sys_prompt))
+                print("[LLAMA-INDEX] Query index with custom prompt: {}...".format(system_prompt))
             response = index.as_query_engine(
                 streaming=stream,
                 text_qa_template=tpl,
@@ -139,27 +121,25 @@ class Chat:
 
         ctx.input_tokens = input_tokens
         ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-            response, [], model.id)  # calc from response
+            response,
+            [],
+            model.id,
+        )  # calc from response
         ctx.set_output(str(response), "")
         return True
 
-    def chat(
-            self,
-            ctx: CtxItem,
-            idx: str,
-            model: ModelItem,
-            sys_prompt: str = None,
-            stream: bool = False) -> bool:
+    def chat(self, **kwargs) -> bool:
         """
         Chat using index
 
-        :param ctx: context item
-        :param idx: index name
-        :param model: model item
-        :param sys_prompt: system prompt
-        :param stream: stream response
+        :param kwargs: keyword arguments
         :return: True if success
         """
+        ctx = kwargs.get("ctx", CtxItem())
+        idx = kwargs.get("idx", "base")
+        model = kwargs.get("model", None)
+        system_prompt = kwargs.get("system_prompt", None)
+        stream = kwargs.get("stream", False)
         query = ctx.input
 
         # log query
@@ -173,8 +153,11 @@ class Chat:
 
         if is_log:
             print("[LLAMA-INDEX] Chat with index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(idx, query, model.id))
-
+            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
+                idx,
+                query,
+                model.id,
+            ))
         # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
@@ -183,14 +166,17 @@ class Chat:
         index = self.storage.get(idx, service_context=context)  # get index
 
         # append context from DB
-        history = self.context.get_messages(ctx.input, sys_prompt)
+        history = self.context.get_messages(ctx.input, system_prompt)
         memory = self.get_memory_buffer(history)
         input_tokens = self.window.core.tokens.from_llama_messages(
-            query, history, model.id)
+            query,
+            history,
+            model.id,
+        )
         chat_engine = index.as_chat_engine(
             chat_mode="context",
             memory=memory,
-            system_prompt=sys_prompt,
+            system_prompt=system_prompt,
         )
         if stream:
             response = chat_engine.stream_chat(query)
@@ -203,7 +189,10 @@ class Chat:
 
         ctx.input_tokens = input_tokens
         ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-            response, [], model.id)  # calc from response
+            response,
+            [],
+            model.id,
+        )  # calc from response
         ctx.set_output(str(response), "")
 
         return True
