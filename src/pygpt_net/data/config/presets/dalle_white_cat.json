@@ -1,8 +1,8 @@
 {
-  "name": "white Siamese cat",
+  "name": "a fluffy cat",
   "ai_name": "",
   "user_name": "",
-  "prompt": "A photograph of a white Siamese cat.",
+  "prompt": "a fluffy cat sitting comfortably on a sunny windowsill, with warm sunlight highlighting its fur, looking curiously outside",
   "temperature": 1.0,
   "chat": false,
   "completion": false,
