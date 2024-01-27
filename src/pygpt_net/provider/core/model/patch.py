@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.01.27 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -31,7 +31,9 @@ class Patch:
         old = parse_version(current)
 
         # check if models file is older than current app version
+        is_old = False
         if old < version:
+            is_old = True
 
             # < 0.9.1
             if old < parse_version("0.9.1"):
@@ -131,10 +133,23 @@ class Patch:
                         del data["text-davinci-003"]
                 updated = True
 
+            # < 2.0.122  <--- update names to models IDs
+            if old < parse_version("2.0.122"):
+                print("Migrating models from < 2.0.122...")
+                if "gpt-4-1106-preview" in data:
+                    data["gpt-4-1106-preview"].name = "gpt-4-1106-preview"
+                if "gpt-4-vision-preview" in data:
+                    data["gpt-4-vision-preview"].name = "gpt-4-vision-preview"
+                    updated = True
+
         # update file
         if updated:
             data = dict(sorted(data.items()))
             self.window.core.models.items = data
             self.window.core.models.save()
+
+        # patch missing models
+        if is_old:
+            updated = self.window.core.models.patch_missing()
 
         return updated

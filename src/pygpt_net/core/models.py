@@ -6,8 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.27 16:00:00                  #
 # ================================================== #
+
+import copy
+
 from packaging.version import Version
 
 from pygpt_net.item.model import ModelItem
@@ -15,7 +18,6 @@ from pygpt_net.provider.core.model.json_file import JsonFileProvider
 
 
 class Models:
-
     def __init__(self, window=None):
         """
         Models core
@@ -30,20 +32,58 @@ class Models:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: Version):
-        """Patch provider data"""
-        self.provider.patch(app_version)
+    def patch(self, app_version: Version) -> bool:
+        """
+        Patch provider data
 
-    def get(self, model: str) -> ModelItem:
+        :param app_version: app version
+        :return: True if data was patched
+        """
+        return self.provider.patch(app_version)
+
+    def patch_missing(self) -> bool:
+        """
+        Patch missing models
+
+        :return: True if models were patched
+        """
+        base_items = self.get_base()
+        updated = False
+        added_keys = []
+
+        # check for missing keys
+        for key in base_items:
+            if key not in self.items:
+                self.items[key] = copy.deepcopy(base_items[key])
+                updated = True
+
+        # check for missing models ids
+        for key in base_items:
+            model_id = base_items[key].id
+            old_exists = False
+            for old_key in self.items:
+                if self.items[old_key].id == model_id:
+                    old_exists = True
+                    break
+            if not old_exists and key not in added_keys:
+                self.items[key] = copy.deepcopy(base_items[key])
+                added_keys.append(key)
+                updated = True
+
+        if updated:
+            self.save()
+
+        return updated
+
+    def get(self, key: str) -> ModelItem:
         """
         Return model config
 
-        :param model: model name
+        :param key: model name
         :return: model config object
-        :rtype: ModelItem
         """
-        if model in self.items:
-            return self.items[model]
+        if key in self.items:
+            return self.items[key]
 
     def get_ids(self) -> list:
         """
@@ -231,9 +271,13 @@ class Models:
         if model in items:
             self.items[model] = items[model]
 
+    def get_base(self) -> dict:
+        """Get base models"""
+        return self.provider.load_base()
+
     def load_base(self):
         """Load models base"""
-        self.items = self.provider.load_base()
+        self.items = self.get_base()
         self.sort_items()
 
     def load(self):
