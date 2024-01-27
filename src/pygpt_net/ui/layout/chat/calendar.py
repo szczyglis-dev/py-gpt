@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
 

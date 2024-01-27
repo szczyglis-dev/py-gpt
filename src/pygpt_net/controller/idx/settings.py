@@ -6,16 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 import datetime
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu, QSizePolicy
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu
 
 from pygpt_net.ui.widget.element.button import ContextMenuButton
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.utils import trans
 
 
@@ -47,8 +46,7 @@ class Settings:
             ContextMenuButton(trans('settings.llama.extra.btn.idx_files_all'))  # index files (data)
         self.window.ui.nodes['idx.btn.db.index_files'].action = self.idx_data_context_menu
 
-        self.window.ui.nodes['idx.api.warning'] = QLabel(trans('settings.llama.extra.api.warning'))
-        self.window.ui.nodes['idx.api.warning'].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes['idx.api.warning'] = TitleLabel(trans('settings.llama.extra.api.warning'))
         self.window.ui.nodes['idx.api.warning'].setWordWrap(True)
 
         self.window.ui.nodes['idx.db.last_updated'] = QLabel("")
@@ -62,9 +60,7 @@ class Settings:
         self.update_text_loaders()
         self.window.ui.nodes['idx.db.settings.loaders'].setWordWrap(True)
         # add to layout
-        self.window.ui.nodes['idx.db.settings.legend.head'] = QLabel(trans('settings.llama.extra.btn.idx_head'))
-        self.window.ui.nodes['idx.db.settings.legend.head']\
-            .setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes['idx.db.settings.legend.head'] = TitleLabel(trans('settings.llama.extra.btn.idx_head'))
         self.window.ui.nodes['idx.db.settings.legend'] = HelpLabel(trans('settings.llama.extra.legend'), self.window)
         self.window.ui.nodes['idx.db.settings.legend'].setWordWrap(True)
         content.addWidget(self.window.ui.nodes['idx.db.settings.legend.head'])

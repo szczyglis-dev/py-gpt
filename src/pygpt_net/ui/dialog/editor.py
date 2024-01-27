@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPlainTextEdit, QPushButton, QHBoxLayout, QLabel, QVBoxLayout
 
 from pygpt_net.ui.widget.dialog.editor_file import EditorFileDialog
+from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.utils import trans
 
 
@@ -42,8 +43,7 @@ class Editor:
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.default'])
         bottom_layout.addWidget(self.window.ui.nodes['editor.btn.save'])
 
-        self.window.ui.paths[id] = QLabel("")
-        self.window.ui.paths[id].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.paths[id] = TitleLabel("")
 
         self.window.ui.nodes['dialog.editor.label'] = QLabel(trans('dialog.editor.label'))
 

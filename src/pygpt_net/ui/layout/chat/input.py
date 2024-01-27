@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 11:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -16,6 +16,7 @@ from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
 from pygpt_net.ui.layout.status import Status
 from pygpt_net.ui.widget.audio.input import AudioInput
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
@@ -122,8 +123,7 @@ class Input:
         :return: QHBoxLayout
         """
         # header (input label + input counter)
-        self.window.ui.nodes['input.label'] = QLabel(trans("input.label"))
-        self.window.ui.nodes['input.label'].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        self.window.ui.nodes['input.label'] = HelpLabel(trans("input.label"))
         self.window.ui.nodes['input.counter'] = QLabel("")
         self.window.ui.nodes['input.counter'].setToolTip(trans('tip.tokens.input'))
 

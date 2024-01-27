@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 import os
@@ -78,14 +78,7 @@ def test_style(mock_window):
     mock_window.core.config.data['font_size.input'] = 12
     mock_window.core.config.data['font_size.ctx'] = 12
     mock_window.core.config.data['font_size.toolbox'] = 12
-    assert theme.style('chat_output') == 'font-size: 12px;'
-    assert theme.style('chat_input') == 'font-size: 12px;'
-    assert theme.style('ctx.list') == 'font-size: 12px;'
-    assert theme.style('toolbox') == 'font-size: 12px;'
-    assert theme.style('text_bold') == 'font-weight: bold;'
-    assert theme.style('text_small') == ''
-    assert theme.style('text_faded') == 'color: #999;'
-    mock_window.core.config.data['theme'] = 'light'
-    assert theme.style('text_faded') == 'color: #414141;'
-    mock_window.core.config.data['theme'] = 'dark'
-    assert theme.style('text_faded') == 'color: #999;'
+    assert theme.style('font.chat.output') == 'font-size: 12px;'
+    assert theme.style('font.chat.input') == 'font-size: 12px;'
+    assert theme.style('font.ctx.list') == 'font-size: 12px;'
+    assert theme.style('font.toolbox') == 'font-size: 12px;'

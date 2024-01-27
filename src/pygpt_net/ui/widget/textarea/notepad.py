@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTextEdit, QMenu, QWidget, QVBoxLayout
 
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
 
@@ -52,7 +52,7 @@ class NotepadOutput(QTextEdit):
         super(NotepadOutput, self).__init__(window)
         self.window = window
         self.setAcceptRichText(False)
-        self.setStyleSheet(self.window.controller.theme.style('chat_output'))
+        self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.textChanged.connect(
             lambda: self.window.controller.notepad.save(self.id))
         self.value = self.window.core.config.data['font_size']

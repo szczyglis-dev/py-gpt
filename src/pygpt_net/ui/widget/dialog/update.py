@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
 
+from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.utils import trans
 
 
@@ -66,10 +67,9 @@ class UpdateDialog(QDialog):
 
         self.layout = QVBoxLayout()
         self.message = QLabel("")
-        self.info = QLabel(trans("update.info"))
+        self.info = TitleLabel(trans("update.info"))
         self.info.setWordWrap(True)
         self.info.setAlignment(Qt.AlignCenter)
-        self.info.setStyleSheet(self.window.controller.theme.style('text_bold'))
         self.info.setStyleSheet("font-weight: bold; font-size: 12px; margin: 20px 0px 20px 0px;")
         self.info.setMaximumHeight(60)
         self.layout.addWidget(logo_label)

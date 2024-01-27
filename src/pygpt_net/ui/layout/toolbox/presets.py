@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QSplitter, QWidget
 
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.preset import PresetList
 from pygpt_net.ui.layout.toolbox.footer import Footer
 from pygpt_net.utils import trans
@@ -57,8 +57,7 @@ class Presets:
         self.window.ui.nodes['preset.presets.new'].clicked.connect(
             lambda: self.window.controller.presets.editor.edit())
 
-        self.window.ui.nodes['preset.presets.label'] = QLabel(trans("toolbox.presets.label"))
-        self.window.ui.nodes['preset.presets.label'].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes['preset.presets.label'] = TitleLabel(trans("toolbox.presets.label"))
 
         header = QHBoxLayout()
         header.addWidget(self.window.ui.nodes['preset.presets.label'])

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWidget, QFrame
 
+from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.element.url import UrlLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.combo import OptionCombo
@@ -88,12 +89,13 @@ class BaseConfigDialog:
         label_key = label + '.label'
 
         # label
-        self.window.ui.nodes[label_key] = QLabel(trans(label))
+        if 'bold' in extra and extra['bold']:
+            self.window.ui.nodes[label_key] = TitleLabel(trans(label))
+        else:
+            self.window.ui.nodes[label_key] = QLabel(trans(label))
+        self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.window.ui.nodes[label_key].setMinimumWidth(120)
         self.window.ui.nodes[label_key].setWordWrap(True)
-        if 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
-        self.window.ui.nodes[label_key].setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
 
         # description
         desc_key = None
@@ -138,13 +140,12 @@ class BaseConfigDialog:
             extra = option['extra']
 
         # label
-        self.window.ui.nodes[label_key] = QLabel(trans(label))
+        if extra is not None and 'bold' in extra and extra['bold']:
+            self.window.ui.nodes[label_key] = TitleLabel(trans(label))
+        else:
+            self.window.ui.nodes[label_key] = QLabel(trans(label))
         self.window.ui.nodes[label_key].setMinimumHeight(30)
         self.window.ui.nodes[label_key].setWordWrap(True)
-
-        # extra
-        if extra is not None and 'bold' in extra and extra['bold']:
-            self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
 
         # description
         desc_key = None

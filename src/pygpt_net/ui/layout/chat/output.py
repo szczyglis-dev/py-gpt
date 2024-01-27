@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 import os
@@ -18,6 +18,7 @@ from pygpt_net.ui.layout.chat.input import Input
 from pygpt_net.ui.layout.chat.calendar import Calendar
 from pygpt_net.ui.layout.chat.painter import Painter
 from pygpt_net.ui.widget.audio.output import AudioOutput
+from pygpt_net.ui.widget.element.labels import ChatStatusLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
@@ -100,19 +101,13 @@ class Output:
         :return: QHBoxLayout
         :rtype: QHBoxLayout
         """
-        self.window.ui.nodes['chat.label'] = QLabel("")
-        self.window.ui.nodes['chat.label'].setAlignment(Qt.AlignRight)
-        self.window.ui.nodes['chat.label'].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        self.window.ui.nodes['chat.label'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.label'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.window.ui.nodes['chat.model'] = QLabel("")
-        self.window.ui.nodes['chat.model'].setAlignment(Qt.AlignRight)
-        self.window.ui.nodes['chat.model'].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        self.window.ui.nodes['chat.model'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.model'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.window.ui.nodes['chat.plugins'] = QLabel("")
-        self.window.ui.nodes['chat.plugins'].setAlignment(Qt.AlignRight)
-        self.window.ui.nodes['chat.plugins'].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        self.window.ui.nodes['chat.plugins'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.plugins'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # add timestamp checkbox
@@ -136,17 +131,13 @@ class Output:
         self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
 
         # tokens info
-        self.window.ui.nodes['prompt.context'] = QLabel("")
-        self.window.ui.nodes['prompt.context'].setAlignment(Qt.AlignRight)
-        self.window.ui.nodes['prompt.context'].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        self.window.ui.nodes['prompt.context'] = ChatStatusLabel("")
         self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
         self.window.ui.nodes['prompt.context'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
-        self.window.ui.plugin_addon['schedule'] = QLabel("")
-        self.window.ui.plugin_addon['schedule'].setAlignment(Qt.AlignRight)
-        self.window.ui.plugin_addon['schedule'].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        self.window.ui.plugin_addon['schedule'] = ChatStatusLabel("")
 
         opts_layout = QHBoxLayout()
         # opts_layout.setSpacing(2)  #

@@ -58,3 +58,12 @@ QListView::item {{
   padding: 4px;
   min-height: 20px;
 }}
+.label-title {{
+  font-weight: bold;
+}}
+.label-help {{
+  color: #414141;
+}}
+.label-chat-status {{
+  color: #414141;
+}}

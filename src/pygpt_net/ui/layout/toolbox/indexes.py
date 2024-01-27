@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox
 
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.lists.index import IndexList
 from pygpt_net.utils import trans
 
@@ -54,8 +54,7 @@ class Indexes:
             lambda: self.window.controller.settings.open_section('llama-index'))
 
         # label
-        self.window.ui.nodes['indexes.label'] = QLabel(trans("toolbox.indexes.label"))
-        self.window.ui.nodes['indexes.label'].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes['indexes.label'] = TitleLabel(trans("toolbox.indexes.label"))
 
         # header
         header = QHBoxLayout()

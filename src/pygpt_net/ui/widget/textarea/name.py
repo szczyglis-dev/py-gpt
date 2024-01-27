@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QLineEdit
@@ -23,7 +23,6 @@ class NameInput(QLineEdit):
         super(NameInput, self).__init__(window)
         self.window = window
         self.id = id
-        self.setStyleSheet(self.window.controller.theme.style('line_edit'))
 
     def keyPressEvent(self, event):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 10:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -26,7 +26,7 @@ class ChatOutput(QTextBrowser):
         super(ChatOutput, self).__init__(window)
         self.window = window
         self.setReadOnly(True)
-        self.setStyleSheet(self.window.controller.theme.style('chat_output'))
+        self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
         self.value = self.window.core.config.data['font_size']
         self.max_font_size = 42
         self.min_font_size = 8

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
 
+from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.lists.model import ModelList
 from pygpt_net.utils import trans
 
@@ -46,8 +47,7 @@ class Model:
         """
         label_key = self.id + '.label'
 
-        self.window.ui.nodes[label_key] = QLabel(trans("toolbox.model.label"))
-        self.window.ui.nodes[label_key].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes[label_key] = TitleLabel(trans("toolbox.model.label"))
         self.window.ui.nodes[self.id] = ModelList(self.window, self.id)
         self.window.ui.nodes[self.id].selection_locked = self.window.controller.model.change_locked
 

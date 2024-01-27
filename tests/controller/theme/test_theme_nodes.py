@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -21,7 +21,7 @@ def test_apply(mock_window):
     mock_window.ui.nodes = {'test': MagicMock()}
     mock_window.ui.nodes['test'].setStyleSheet = MagicMock()
     mock_window.controller.theme.style = MagicMock(return_value='test')
-    theme.nodes.apply('test', 'toolbox')
+    theme.nodes.apply('test', 'font.toolbox')
     mock_window.ui.nodes['test'].setStyleSheet.assert_called_with('test')
     mock_window.controller.theme.style.assert_called_with('toolbox')
 

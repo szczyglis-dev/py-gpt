@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
 from pygpt_net.ui.layout.ctx.ctx_list import CtxList
 from pygpt_net.ui.layout.ctx.video import Video
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
 

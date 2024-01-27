@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 09:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 import os
@@ -54,18 +54,18 @@ class Common:
     def toggle_tooltips(self):
         """Toggle visibility of static tooltips"""
         nodes = [
-            'tip.output.tab.files',
-            'tip.output.tab.draw',
-            'tip.output.tab.calendar',
-            'tip.output.tab.notepad',
             'tip.input.attachments',
             'tip.input.attachments.uploaded',
+            'tip.output.tab.calendar',
+            'tip.output.tab.draw',
+            'tip.output.tab.files',
+            'tip.output.tab.notepad',
+            'tip.toolbox.assistants',
+            'tip.toolbox.ctx',
+            'tip.toolbox.indexes',
+            'tip.toolbox.mode',
             'tip.toolbox.presets',
             'tip.toolbox.prompt',
-            'tip.toolbox.assistants',
-            'tip.toolbox.indexes',
-            'tip.toolbox.ctx',
-            'tip.toolbox.mode',
         ]
         state = self.window.core.config.get('layout.tooltips')
         if state:
@@ -96,27 +96,15 @@ class Common:
         :param element: type of element
         :return: CSS style for element
         """
-        theme = self.window.core.config.get('theme')
-        # get theme element style
-        if element == "chat_output":
+        # get font size
+        if element == "font.chat.output":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size'))
-        elif element == "chat_input":
+        elif element == "font.chat.input":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size.input'))
-        elif element == "ctx.list":
+        elif element == "font.ctx.list":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size.ctx'))
-        elif element == "toolbox":
+        elif element == "font.toolbox":
             return 'font-size: {}px;'.format(self.window.core.config.get('font_size.toolbox'))
-        elif element == "text_bold":
-            return "font-weight: bold;"
-        elif element == "text_small":
-            return ""
-            # return "font-size: 8px;"  <-- too small on big screens
-        elif element == "text_faded":
-            if theme.startswith('light'):
-                return "color: #414141;"
-            else:
-                return "color: #999;"
-            # return "font-size: 8px; color: #999;"  <-- too small on big screens
 
     def get_themes_list(self) -> list:
         """
@@ -143,7 +131,7 @@ class Common:
             'light_purple',
             'light_red',
             'light_teal',
-            'light_yellow'
+            'light_yellow',
         ]
 
     def get_windows_fix(self) -> str:

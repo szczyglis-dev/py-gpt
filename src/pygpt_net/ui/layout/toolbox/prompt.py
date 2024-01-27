@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 05:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QWidget, QCheckBox, QSizePolicy
 
-from pygpt_net.ui.widget.element.help import HelpLabel
+from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
 from pygpt_net.ui.widget.option.textarea import OptionTextarea
 from pygpt_net.utils import trans
 
@@ -38,8 +38,7 @@ class Prompt:
             lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].isChecked()))
 
         # label
-        self.window.ui.nodes['toolbox.prompt.label'] = QLabel(trans("toolbox.prompt"))
-        self.window.ui.nodes['toolbox.prompt.label'].setStyleSheet(self.window.controller.theme.style('text_bold'))
+        self.window.ui.nodes['toolbox.prompt.label'] = TitleLabel(trans("toolbox.prompt"))
 
         # clear
         self.window.ui.nodes['preset.clear'] = QPushButton(trans('preset.clear'))

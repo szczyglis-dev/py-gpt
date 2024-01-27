@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 10:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 
@@ -29,30 +29,28 @@ class Nodes:
         if key not in self.window.ui.nodes:
             return
 
-        if type == 'toolbox':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('toolbox'))
-        elif type == 'chat_output':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('chat_output'))
-        elif type == 'chat_input':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('chat_input'))
-        elif type == 'ctx.list':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('ctx.list'))
-        elif type == 'text_faded':
-            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('text_faded'))
+        if type == 'font.toolbox':
+            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.toolbox'))
+        elif type == 'font.chat.output':
+            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.chat.output'))
+        elif type == 'font.chat.input':
+            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.chat.input'))
+        elif type == 'font.ctx.list':
+            self.window.ui.nodes[key].setStyleSheet(self.window.controller.theme.style('font.ctx.list'))
 
     def apply_all(self):
         """Apply stylesheets to nodes"""
         nodes = {
-            'chat_input': [
+            'font.chat.input': [
                 'input',
             ],
-            'chat_output': [
+            'font.chat.output': [
                 'output',
             ],
-            'ctx.list': [
+            'font.ctx.list': [
                 'ctx.list',
             ],
-            'toolbox': [
+            'font.toolbox': [
                 'assistants',
                 'assistants.new',
                 'assistants.import',
@@ -82,24 +80,6 @@ class Nodes:
                 'vision.capture.label',
                 'vision.capture.options',
             ],
-            'text_faded': [
-                'input.label',
-                'prompt.context',
-                'chat.label',
-                'chat.model',
-                'tip.output.tab.files',
-                'tip.output.tab.draw',
-                'tip.output.tab.calendar',
-                'tip.output.tab.notepad',
-                'tip.input.attachments',
-                'tip.input.attachments.uploaded',
-                'tip.toolbox.presets',
-                'tip.toolbox.prompt',
-                'tip.toolbox.assistants',
-                'tip.toolbox.indexes',
-                'tip.toolbox.ctx',
-                'tip.toolbox.mode',
-            ],
         }
 
         # apply to nodes
@@ -112,4 +92,4 @@ class Nodes:
         if num_notepads > 0:
             for id in range(1, num_notepads + 1):
                 if id in self.window.ui.notepad:
-                    self.window.ui.notepad[id].textarea.setStyleSheet(self.window.controller.theme.style('chat_output'))
+                    self.window.ui.notepad[id].textarea.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
