@@ -61,10 +61,10 @@ class Editor:
                 "type": "bool",
                 "label": "preset.langchain",
             },
-            "assistant": {
-                "type": "bool",
-                "label": "preset.assistant",
-            },
+            # "assistant": {
+            # "type": "bool",
+            # "label": "preset.assistant",
+            # },
             "llama_index": {
                 "type": "bool",
                 "label": "preset.llama_index",
@@ -180,8 +180,8 @@ class Editor:
                 data.vision = True
             elif mode == 'langchain':
                 data.langchain = True
-            elif mode == 'assistant':
-                data.assistant = True
+            # elif mode == 'assistant':
+                # data.assistant = True
             elif mode == 'llama_index':
                 data.llama_index = True
 

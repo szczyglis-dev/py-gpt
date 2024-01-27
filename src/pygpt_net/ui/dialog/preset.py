@@ -74,7 +74,7 @@ class Preset(BaseConfigDialog):
 
         rows = QVBoxLayout()
 
-        ignore_keys = ["chat", "completion", "img", "vision", "assistant", "langchain", "prompt"]
+        ignore_keys = ["chat", "completion", "img", "vision", "llama_index", "langchain", "prompt"]
 
         rows1 = QHBoxLayout()
         rows1.addLayout(options["chat"])
@@ -83,8 +83,9 @@ class Preset(BaseConfigDialog):
 
         rows2 = QHBoxLayout()
         rows2.addLayout(options["vision"])
-        rows2.addLayout(options["assistant"])
+        # rows2.addLayout(options["assistant"])
         rows2.addLayout(options["langchain"])
+        rows2.addLayout(options["llama_index"])
 
         rows_bottom = QWidget()
         rows_bottom.setLayout(options["prompt"])
