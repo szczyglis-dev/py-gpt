@@ -40,8 +40,7 @@ class Indexing:
         """
         extensions = loader.extensions  # available extensions
         for ext in extensions:
-            if ext not in self.loaders:
-                self.loaders[ext] = loader.get()  # get reader instance
+            self.loaders[ext] = loader.get()  # get reader instance
 
     def get_online_loader(self, ext: str):
         """
@@ -150,7 +149,7 @@ class Indexing:
         ON
             ctx_item.meta_id = ctx_meta.id
         WHERE
-            ctx_meta.updated_ts >= {updated_ts}
+            ctx_meta.updated_ts > {updated_ts}
         """
         with db.connect() as connection:
             result = connection.execute(text(query))
