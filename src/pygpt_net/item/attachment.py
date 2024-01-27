@@ -65,6 +65,7 @@ class AttachmentItem:
             return json.dumps(self.serialize())
         except Exception as e:
             pass
+        return ""
 
     def __str__(self):
         """To string"""

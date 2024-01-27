@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 11:00:00                  #
+# Updated Date: 2024.01.27 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
@@ -20,7 +20,9 @@ from pygpt_net.utils import get_app_meta
 
 
 class MainWindow(QMainWindow, QtStyleTools):
+
     statusChanged = Signal(str)
+    logger_message = Signal(object)
 
     def __init__(self, app: QApplication, args: dict = None):
         """
@@ -102,6 +104,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.post_timer = QTimer()
         self.post_timer.timeout.connect(self.post_update)
         self.post_timer.start(self.post_timer_interval)
+        self.logger_message.connect(self.controller.debug.handle_log)
         self.ui.post_setup()
 
     def update(self):

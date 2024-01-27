@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 04:00:00                  #
+# Updated Date: 2024.01.27 17:00:00                  #
 # ================================================== #
 
 import json
@@ -57,4 +57,12 @@ class IndexItem:
         :return: serialized item
         :rtype: str
         """
-        return json.dumps(self.serialize())
+        try:
+            return json.dumps(self.serialize())
+        except Exception as e:
+            pass
+        return ""
+
+    def __str__(self):
+        """To string"""
+        return self.dump()

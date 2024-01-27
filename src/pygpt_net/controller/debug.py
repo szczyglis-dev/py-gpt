@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.27 17:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QTextCursor
 
 
@@ -54,9 +55,18 @@ class Debug:
                 if all or id not in not_realtime:
                     self.window.controller.dialogs.debug.update_worker(id)
 
-    def log(self, data, window: bool = True):
+    @Slot(object)
+    def handle_log(self, data: any):
         """
-        Log text
+        Handle log message
+
+        :param data: message to log
+        """
+        self.log(data)
+
+    def log(self, data: any, window: bool = True):
+        """
+        Log message to console or logger window
 
         :param data: text to log
         :param window: True if log to window, False if log to console
@@ -79,13 +89,17 @@ class Debug:
                 cur.insertText("\n")
         self.window.logger.setTextCursor(cur)  # Update visible cursor
 
-    def logger_enabled(self):
-        """Check if debug window is enabled"""
+    def logger_enabled(self) -> bool:
+        """
+        Check if debug window is enabled
+
+        :return: True if enabled, False otherwise
+        """
         return self.is_logger
 
     def open_logger(self):
         """Open logger dialog"""
-        self.window.ui.dialogs.open('logger')
+        self.window.ui.dialogs.open('logger', width=800, height=600)
         self.is_logger = True
         self.update()
 

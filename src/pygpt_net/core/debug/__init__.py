@@ -132,9 +132,9 @@ class Debug:
             pass
 
         try:
-            # add to logger window
+            # send to logger window
             if self.window is not None:
-                self.window.controller.debug.log(message)
+                self.window.logger_message.emit(message)
         except Exception as e:
             pass
 

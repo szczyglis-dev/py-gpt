@@ -33,8 +33,9 @@ class Command:
 
         :param event: event object
         """
-        self.window.core.debug.info("Dispatch CMD begin: " + event.name)
-        self.window.core.debug.debug(event.dump())
+        self.window.core.debug.info("Dispatch CMD event begin: " + event.name)
+        if self.window.core.debug.enabled():
+            self.window.core.debug.debug("EVENT BEFORE: " + str(event))
 
         for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id):
@@ -42,7 +43,7 @@ class Command:
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break
-                self.window.core.debug.info("Apply CMD to: " + id)
+                self.window.core.debug.info("Apply [{}] to plugin: ".format(event.name) + id)
                 self.window.core.dispatcher.apply(id, event)
 
         # WARNING: do not emit finished signal here if event is internal (otherwise it will be emitted twice)
@@ -106,10 +107,15 @@ class Command:
         :param event: event object
         """
         ctx = event.ctx
-        self.window.ui.status("")  # Clear status
-        if ctx.reply:
-            self.window.controller.chat.input.send(
-                json.dumps(ctx.results),
-                force=True,
-                internal=ctx.internal,
-            )
+        if ctx is not None:
+            self.window.core.debug.info("Reply...")
+            if self.window.core.debug.enabled():
+                self.window.core.debug.debug("CTX REPLY: " + str(ctx))
+
+            self.window.ui.status("")  # Clear status
+            if ctx.reply:
+                self.window.controller.chat.input.send(
+                    json.dumps(ctx.results),
+                    force=True,
+                    internal=ctx.internal,
+                )

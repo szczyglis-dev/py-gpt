@@ -90,6 +90,10 @@ class Event:
             return json.dumps(self.to_dict())
         except Exception as e:
             pass
+        return ""
+
+    def __str__(self):
+        return self.dump()
 
 
 class Dispatcher:
@@ -115,8 +119,9 @@ class Dispatcher:
         :return: list of affected plugins ids and event object
         """
         if event.name not in self.nolog_events:
-            self.window.core.debug.info("Dispatch begin: " + event.name)
-            self.window.core.debug.debug(event.dump())
+            self.window.core.debug.info("Dispatch event begin: " + event.name)
+            if self.window.core.debug.enabled():
+                self.window.core.debug.debug("EVENT BEFORE: " + str(event))
 
         affected = []
         for id in self.window.core.plugins.plugins:
@@ -124,13 +129,14 @@ class Dispatcher:
                 if event.stop:
                     break
                 if event.name not in self.nolog_events:
-                    self.window.core.debug.info("Apply to: " + id)
+                    self.window.core.debug.info("Apply [{}] to plugin: ".format(event.name) + id)
                 self.apply(id, event)
                 affected.append(id)
 
         if event.name not in self.nolog_events:
-            self.window.core.debug.info("Dispatch end: " + event.name)
-            self.window.core.debug.debug(event.dump())
+            self.window.core.debug.info("Dispatch event end: " + event.name)
+            if self.window.core.debug.enabled():
+                self.window.core.debug.debug("EVENT AFTER: " + str(event))
 
         return affected, event
 
@@ -159,7 +165,9 @@ class Dispatcher:
         """
         if ctx is not None:
             self.window.core.debug.info("Reply...")
-            self.window.core.debug.debug(ctx.dump())
+            if self.window.core.debug.enabled():
+                self.window.core.debug.debug("CTX REPLY: " + str(ctx))
+
             self.window.ui.status("")  # clear status
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db

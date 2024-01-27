@@ -75,7 +75,13 @@ class Dialogs:
         """Post setup dialogs (after plugins and rest of data is registered)"""
         self.dictionary.setup()
 
-    def confirm(self, type, id, msg, parent_object=None):
+    def confirm(
+            self,
+            type,
+            id,
+            msg,
+            parent_object=None
+    ):
         """
         Show confirm dialog
 
@@ -114,7 +120,15 @@ class Dialogs:
         self.window.ui.dialog[id].data_id = data_id
         self.window.ui.dialog[id].show()
 
-    def open_dictionary_editor(self, id: str, option: dict, data: dict, idx: int, width=400, height=400):
+    def open_dictionary_editor(
+            self,
+            id: str,
+            option: dict,
+            data: dict,
+            idx: int,
+            width=400,
+            height=400
+    ):
         """
         Open dictionary editor dialog
 
@@ -135,7 +149,12 @@ class Dialogs:
         self.window.ui.dialog[dialog_id].idx = idx  # store editing record idx
         self.window.ui.dialog[dialog_id].show()
 
-    def register_dictionary(self, key: str, parent: str, option: dict):
+    def register_dictionary(
+            self,
+            key: str,
+            parent: str,
+            option: dict
+    ):
         """
         Register dictionary data to dictionary editor
 
@@ -146,7 +165,12 @@ class Dialogs:
         dict_id = parent + "." + key
         self.dictionary.register(dict_id, key, parent, option)
 
-    def open(self, id, width=400, height=400):
+    def open(
+            self,
+            id,
+            width=400,
+            height=400
+    ):
         """
         Open debug/config dialog
 

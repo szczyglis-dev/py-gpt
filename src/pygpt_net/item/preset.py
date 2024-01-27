@@ -90,6 +90,7 @@ class PresetItem:
             return json.dumps(self.to_dict())
         except Exception as e:
             pass
+        return ""
 
     def __str__(self):
         """To string"""
