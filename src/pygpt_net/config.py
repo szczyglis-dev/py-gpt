@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.27 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -73,13 +73,14 @@ class Config:
         # install provider configs
         self.provider.install()
 
-    def patch(self, app_version: Version):
+    def patch(self, app_version: Version) -> bool:
         """
         Patch provider data
 
         :param app_version: app version
+        :return: True if patched
         """
-        self.provider.patch(app_version)
+        return self.provider.patch(app_version)
 
     def get_user_dir(self, dir: str) -> str:
         """

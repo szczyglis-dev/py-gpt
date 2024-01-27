@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.27 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -32,9 +32,14 @@ class Notepad:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: Version):
-        """Patch provider data"""
-        self.provider.patch(app_version)
+    def patch(self, app_version: Version) -> bool:
+        """
+        Patch provider data
+
+        :param app_version: app version
+        :return: True if data was patched
+        """
+        return self.provider.patch(app_version)
 
     def get_by_id(self, idx: int) -> NotepadItem or None:
         """

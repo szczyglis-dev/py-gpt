@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 11:00:00                  #
+# Updated Date: 2024.01.27 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -197,13 +197,14 @@ class Idx:
         """Install provider data"""
         self.provider.install()
 
-    def patch(self, app_version: Version):
+    def patch(self, app_version: Version) -> bool:
         """
         Patch provider data
 
         :param app_version: app version
+        :return: True if success
         """
-        self.provider.patch(app_version)
+        return self.provider.patch(app_version)
 
     def init(self):
         """Initialize indexes"""

@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.0.121",
-        "app.version": "2.0.121",
+        "version": "2.0.122",
+        "app.version": "2.0.122",
         "updated_at": "2024-01-27T03:53:56"
     },
     "items": {
@@ -276,6 +276,108 @@
                     {
                         "name": "model",
                         "value": "gpt-4-1106-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "gpt-4-0125-preview": {
+            "id": "gpt-4-0125-preview",
+            "name": "gpt-4-0125-preview",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-0125-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4-0125-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "ctx": 128000,
+            "tokens": 4096,
+            "default": false
+        },
+        "gpt-4-turbo-preview": {
+            "id": "gpt-4-turbo-preview",
+            "name": "gpt-4-turbo-preview",
+            "mode": [
+                "chat",
+                "assistant",
+                "langchain",
+                "llama_index"
+            ],
+            "langchain": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model_name",
+                        "value": "gpt-4-turbo-preview",
+                        "type": "str"
+                    }
+                ],
+                "env": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "value": "{api_key}"
+                    }
+                ]
+            },
+            "llama_index": {
+                "provider": "openai",
+                "mode": [
+                    "chat"
+                ],
+                "args": [
+                    {
+                        "name": "model",
+                        "value": "gpt-4-turbo-previeww",
                         "type": "str"
                     }
                 ],
