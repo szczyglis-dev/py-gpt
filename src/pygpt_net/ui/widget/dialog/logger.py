@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.27 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -48,6 +48,8 @@ class LoggerDialog(QDialog):
         """
         Cleanup on close
         """
+        if self.window is None:
+            return
         self.window.controller.debug.is_logger = False
         self.window.controller.debug.close_logger()
         self.window.controller.debug.update()
