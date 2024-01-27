@@ -638,6 +638,13 @@ class Patch:
                 data['plugins']['openai_vision']['model'] = "gpt-4-vision-preview"
                 updated = True
 
+            # < 2.0.123
+            if old < parse_version("2.0.123"):
+                print("Migrating config from < 2.0.123...")
+                if 'llama.idx.recursive' not in data:
+                    data['llama.idx.recursive'] = False
+                updated = True
+
         # update file
         migrated = False
         if updated:

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.122** | build: **2024.01.27** | Python: **3.10+**
+Release: **2.0.123** | build: **2024.01.27** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1805,11 +1805,11 @@ Config -> Settings...
 
 - `Auto-index DB in real time`: Enables conversation context auto-indexing.
 
+- `Recursive directory indexing`: Enables recursive directory indexing, default is False.
+
 - `Vector Store`: Vector store in use (vector database provided by Llama-index).
 
 - `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
-
-
 
 - `Additional online data loaders`: List of online data loaders from Llama Hub to use.
 
@@ -1953,6 +1953,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.123 (2024-01-27)
+
+- Standarized models names
+- Added `Recursive directory indexing` option in `Settings / Indexes (Llama-index)` (default: False)
 
 # 2.0.122 (2024-01-27)
 

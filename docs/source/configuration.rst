@@ -117,6 +117,8 @@ The following basic options can be modified directly within the application:
 
 * ``Auto-index DB in real time`` Enables conversation context auto-indexing.
 
+* ``Recursive directory indexing``: Enables recursive directory indexing, default is False.
+
 * ``Vector Store`` Vector store in use (vector database provided by Llama-index).
 
 * ``Vector Store (**kwargs)`` Arguments for vector store (api_key, index_name, etc.).

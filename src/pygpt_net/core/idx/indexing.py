@@ -105,6 +105,9 @@ class Indexing:
         :param path: path to file or directory
         :return: dict with indexed files, errors
         """
+        if self.window.core.config.get("llama.idx.recursive"):
+            return self.index_files_recursive(index, path)
+
         indexed = {}
         errors = []
         files = []
@@ -127,6 +130,48 @@ class Indexing:
                 print("Error while indexing file: " + file)
                 self.window.core.debug.log(e)
                 continue
+
+        return indexed, errors
+
+    def index_files_recursive(self, index: VectorStoreIndex, path: str = None) -> tuple:
+        """
+        Index all files in directory and subdirectories recursively.
+
+        :param index: index instance
+        :param path: path to file or directory
+        :return: dict with indexed files, errors
+        """
+        indexed = {}
+        errors = []
+
+        if os.path.isdir(path):
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    try:
+                        documents = self.get_documents(file_path)
+                        for d in documents:
+                            index.insert(document=d)
+                            indexed[file_path] = d.id_  # add to index
+                            self.log("Inserted document: {}".format(d.id_))
+                    except Exception as e:
+                        errors.append(str(e))
+                        print(e)
+                        print("Error while indexing file: " + file_path)
+                        self.window.core.debug.log(e)
+                        continue
+        elif os.path.isfile(path):
+            try:
+                documents = self.get_documents(path)
+                for d in documents:
+                    index.insert(document=d)
+                    indexed[path] = d.id_  # add to index
+                    self.log("Inserted document: {}".format(d.id_))
+            except Exception as e:
+                errors.append(str(e))
+                print(e)
+                print("Error while indexing file: " + path)
+                self.window.core.debug.log(e)
 
         return indexed, errors
 

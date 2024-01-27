@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.123 (2024-01-27)
+
+- Standarized models names
+- Added `Recursive directory indexing` option in `Settings / Indexes (Llama-index)` (default: False)
+
 # 2.0.122 (2024-01-27)
 
 - Added new OpenAI model released on 2024-01-25: `gpt-4-0125-preview`
