@@ -96,7 +96,7 @@ class CtxItem:
             "id": self.id,
             "meta_id": self.meta_id,
             "external_id": self.external_id,
-            "stream": self.stream,
+            # "stream": self.stream,  #  <-- do not dump stream response object
             "cmds": self.cmds,
             "results": self.results,
             "urls": self.urls,

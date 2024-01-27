@@ -59,9 +59,6 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
         ai_name = event.data['value']
 
-        self.log("User name [after plugin: user_name]: {}".format(user_name))  # log
-        self.log("AI name [after plugin: ai_name]: {}".format(ai_name))  # log
-
         # get mode
         mode = self.window.core.config.get('mode')
         model = self.window.core.config.get('model')
@@ -97,10 +94,6 @@ class Text:
         event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
-
-        # log
-        self.log("Context: input [after plugin: ctx.before]: {}".
-                 format(self.window.core.ctx.dump(ctx)))
 
         # event: prepare prompt (replace system prompt)
         sys_prompt = self.window.core.config.get('prompt')
@@ -141,10 +134,6 @@ class Text:
             self.window.core.dispatcher.dispatch(event)
             sys_prompt = self.window.core.command.append_syntax(event.data)
 
-        # log
-        self.log("System [after plugin: system.prompt]: {}".format(sys_prompt))
-        self.log("User name: {}".format(ctx.input_name))
-        self.log("AI name: {}".format(ctx.output_name))
         self.log("Appending input to chat window...")
 
         # stream mode
@@ -196,9 +185,9 @@ class Text:
                     self.window.controller.assistant.threads.handle_run(ctx)  # handle assistant run
 
                 if result:
-                    self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
+                    self.log("Context: output: {}".format(ctx.dump()))  # log
                 else:
-                    self.log("Context: output: None")
+                    self.log("Context: output: ERROR")
                     self.window.ui.dialogs.alert(trans('status.error'))
                     self.window.ui.status(trans('status.error'))
 

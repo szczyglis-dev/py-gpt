@@ -43,7 +43,8 @@ class Command:
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break
-                self.window.core.debug.info("Apply [{}] to plugin: ".format(event.name) + id)
+                if self.window.core.debug.enabled():
+                    self.window.core.debug.debug("Apply [{}] to plugin: ".format(event.name) + id)
                 self.window.core.dispatcher.apply(id, event)
 
         # WARNING: do not emit finished signal here if event is internal (otherwise it will be emitted twice)

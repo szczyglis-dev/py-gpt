@@ -125,8 +125,6 @@ class Input:
         self.window.core.dispatcher.dispatch(event)
         text = event.data['value']
 
-        self.log("Input text [after plugin: input.before]: {}".format(text))  # log
-
         # check if image captured from camera
         camera_captured = (
                 (mode == 'vision' or self.window.controller.plugins.is_type_enabled('vision'))
@@ -178,15 +176,12 @@ class Input:
                 self.window.controller.attachment.clear(True)
                 self.window.controller.attachment.update()
 
-        self.log("Context: output: {}".format(self.window.core.ctx.dump(ctx)))  # log
+        self.log("Context: END: {}".format(ctx))
 
         # event: context end
         event = Event(Event.CTX_END)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
-
-        self.log("Context: output [after plugin: ctx.end]: {}".
-                 format(self.window.core.ctx.dump(ctx)))  # log
         self.window.controller.ui.update_tokens()  # update UI
         self.generating = False  # unlock
 

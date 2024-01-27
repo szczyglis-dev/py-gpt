@@ -106,6 +106,20 @@ class Dispatcher:
         self.window = window
         self.nolog_events = ["system.prompt"]
 
+    def is_log(self, event: Event) -> bool:
+        """
+        Check if event can be logged
+
+        :param event: event object
+        :return: true if can be logged
+        """
+        if event.name in self.nolog_events:
+            return False
+        data = event.data
+        if data is not None and "silent" in data and data["silent"]:
+            return False
+        return True
+
     def dispatch(
             self,
             event: Event,
@@ -118,7 +132,7 @@ class Dispatcher:
         :param all: true if dispatch to all plugins (enabled or not)
         :return: list of affected plugins ids and event object
         """
-        if event.name not in self.nolog_events:
+        if self.is_log(event):
             self.window.core.debug.info("Dispatch event begin: " + event.name)
             if self.window.core.debug.enabled():
                 self.window.core.debug.debug("EVENT BEFORE: " + str(event))
@@ -128,12 +142,12 @@ class Dispatcher:
             if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop:
                     break
-                if event.name not in self.nolog_events:
-                    self.window.core.debug.info("Apply [{}] to plugin: ".format(event.name) + id)
+                if self.window.core.debug.enabled() and self.is_log(event):
+                    self.window.core.debug.debug("Apply [{}] to plugin: ".format(event.name) + id)
                 self.apply(id, event)
                 affected.append(id)
 
-        if event.name not in self.nolog_events:
+        if self.is_log(event):
             self.window.core.debug.info("Dispatch event end: " + event.name)
             if self.window.core.debug.enabled():
                 self.window.core.debug.debug("EVENT AFTER: " + str(event))

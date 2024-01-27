@@ -38,6 +38,7 @@ class Prompt:
             # cmd syntax tokens
             data = {
                 'prompt': prompt,
+                'silent': True,
                 'syntax': [],
             }
             # tmp dispatch event: command syntax apply

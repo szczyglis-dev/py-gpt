@@ -43,8 +43,6 @@ class Output:
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event)
 
-        # log
-        self.log("Context: output [after plugin: ctx.after]: {}".format(self.window.core.ctx.dump(ctx)))
         self.log("Appending output to chat window...")
 
         # only append output if not in async stream mode, TODO: plugin output add
