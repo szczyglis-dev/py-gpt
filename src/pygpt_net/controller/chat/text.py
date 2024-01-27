@@ -87,8 +87,7 @@ class Text:
             self.window.controller.assistant.prepare()  # create new thread if not exists
             ctx.thread = self.window.core.config.get('assistant_thread')
 
-        # log
-        self.log("Context: input: {}".format(self.window.core.ctx.dump(ctx)))
+        self.log("Context: INPUT: {}".format(ctx))
 
         # event: context before
         event = Event(Event.CTX_BEFORE)
@@ -185,9 +184,9 @@ class Text:
                     self.window.controller.assistant.threads.handle_run(ctx)  # handle assistant run
 
                 if result:
-                    self.log("Context: output: {}".format(ctx.dump()))  # log
+                    self.log("Context: OUTPUT: {}".format(ctx.dump()))  # log
                 else:
-                    self.log("Context: output: ERROR")
+                    self.log("Context: OUTPUT: ERROR")
                     self.window.ui.dialogs.alert(trans('status.error'))
                     self.window.ui.status(trans('status.error'))
 

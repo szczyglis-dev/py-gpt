@@ -92,6 +92,8 @@ class Input:
         if self.locked and not force and not internal:
             return
 
+        self.log("Begin.")
+
         self.generating = True  # set generating flag
 
         mode = self.window.core.config.get('mode')
@@ -115,7 +117,7 @@ class Input:
         self.window.controller.assistant.threads.stop = False
         self.stop = False
 
-        self.log("Input text: {}".format(text))  # log
+        self.log("Input prompt: {}".format(text))  # log
 
         # event: before input
         event = Event(Event.INPUT_BEFORE, {
@@ -187,6 +189,8 @@ class Input:
 
         if mode not in self.no_ctx_idx_modes:
             self.window.controller.idx.on_ctx_end(ctx)  # update ctx DB index
+
+        self.log("End.")
 
     def log(self, data: any):
         """
