@@ -1761,12 +1761,17 @@ Config -> Settings...
 
 - `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
 
-- `Log (console)`: Enables logging to console.
+
 
 - `Additional online data loaders`: List of online data loaders from Llama Hub to use.
 
 - `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here
 
+**Developer**
+
+- `Show debug menu`: enables debug (developer) menu
+
+- `Log llama-index usages to console`: Enables logging llama-index usages to console.
 
 ## JSON files
 
@@ -1839,9 +1844,36 @@ This allows you to overwrite language files or CSS styles in a very simple way -
 ```
 
 - `locale` - a directory for locales in `.ini` format.
-- `css` - a directory for css styles in `.css` format.
+- `css` - a directory for CSS styles in `.css` format.
 
----
+
+## Debugging and Logging
+
+In `Settings -> Developer` dialog, you can enable the `Show debug menu` option to turn on the debugging menu. The menu allows you to inspect the status of application elements. In the debugging menu, there is a `Logger` option that opens a log window. In the window, the program's operation is displayed in real-time.
+
+**Logging levels**:
+
+By default, all errors and exceptions are logged to the file:
+
+```ini
+{HOME_DIR}/.config/pygpt-net/app.log
+```
+
+To increase the logging level (`ERROR` level is default), run the application with `--debug` argument:
+
+``` ini
+python3 run.py --debug=1
+```
+
+or
+
+```ini
+python3 run.py --debug=2
+```
+
+The value `1` enables the `INFO`logging level.
+
+The value `2` enables the `DEBUG` logging level (most information).
 
 ## Updates
 

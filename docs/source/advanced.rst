@@ -54,5 +54,6 @@ This allows you to overwrite language files or CSS styles in a very simple way -
 
    {HOME_DIR}/.config/pygpt-net/
 
-   - `locale` - a directory for locales in `.ini` format.
-   - `css` - a directory for css styles
+
+* `locale` - a directory for locales in ``.ini`` format.
+* `css` - a directory for CSS styles

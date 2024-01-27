@@ -38,6 +38,7 @@ Contents
    configuration
    notebook
    advanced   
+   debug
    updates
    coming_soon
    credits
