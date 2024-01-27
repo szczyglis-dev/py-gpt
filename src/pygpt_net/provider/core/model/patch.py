@@ -133,9 +133,9 @@ class Patch:
                         del data["text-davinci-003"]
                 updated = True
 
-            # < 2.0.122  <--- update names to models IDs
-            if old < parse_version("2.0.122"):
-                print("Migrating models from < 2.0.122...")
+            # < 2.0.123  <--- update names to models IDs
+            if old < parse_version("2.0.123"):
+                print("Migrating models from < 2.0.123...")
                 if "gpt-4-1106-preview" in data:
                     data["gpt-4-1106-preview"].name = "gpt-4-1106-preview"
                 if "gpt-4-vision-preview" in data:
