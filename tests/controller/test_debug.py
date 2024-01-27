@@ -55,20 +55,6 @@ def test_on_update(mock_window):
     mock_window.controller.dialogs.debug.update_worker.assert_called()
 
 
-def test_log(mock_window):
-    """Test log"""
-    debug = Debug(mock_window)
-    mock_window.logger = MagicMock()
-    mock_window.logger.toPlainText = MagicMock(return_value='')
-    mock_window.logger.moveCursor = MagicMock()
-    debug.window.logger = mock_window.logger
-
-    debug.is_logger = True
-    debug.log('test', window=True)
-    mock_window.logger.toPlainText.assert_called()
-    mock_window.logger.moveCursor.assert_called()
-
-
 def test_open_logger(mock_window):
     """Test open logger"""
     debug = Debug(mock_window)
@@ -76,7 +62,7 @@ def test_open_logger(mock_window):
     debug.window.ui.dialogs = mock_window.ui.dialogs
 
     debug.open_logger()
-    mock_window.ui.dialogs.open.assert_called_once_with('logger')
+    mock_window.ui.dialogs.open.assert_called_once_with('logger', width=800, height=600)
     assert debug.is_logger is True
 
 

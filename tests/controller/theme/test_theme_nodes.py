@@ -23,7 +23,7 @@ def test_apply(mock_window):
     mock_window.controller.theme.style = MagicMock(return_value='test')
     theme.nodes.apply('test', 'font.toolbox')
     mock_window.ui.nodes['test'].setStyleSheet.assert_called_with('test')
-    mock_window.controller.theme.style.assert_called_with('toolbox')
+    mock_window.controller.theme.style.assert_called_with('font.toolbox')
 
 
 def test_apply_all(mock_window):
