@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.121** | build: **2024.01.27** | Python: **3.10+**
+Release: **2.0.122** | build: **2024.01.27** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1949,6 +1949,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.122 (2024-01-27)
+
+- Added new OpenAI model released 2024-01-25: `gpt-4-0125-preview`
+- Added ability to adding custom offline data loaders for Llama-index
+- Improved debugging and logging, added debug levels and a new section `Debugging and logging` in Docs
+- Inline styles moved to external CSS classes
 
 # 2.0.121 (2024-01-27)
 
