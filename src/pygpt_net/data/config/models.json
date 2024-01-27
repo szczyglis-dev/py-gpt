@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.0.122",
-        "app.version": "2.0.122",
+        "version": "2.0.123",
+        "app.version": "2.0.123",
         "updated_at": "2024-01-27T03:53:56"
     },
     "items": {
@@ -241,7 +241,7 @@
         },
         "gpt-4-1106-preview": {
             "id": "gpt-4-1106-preview",
-            "name": "gpt-4-turbo-1106",
+            "name": "gpt-4-1106-preview",
             "mode": [
                 "chat",
                 "assistant",
@@ -445,7 +445,7 @@
         },
         "gpt-4-vision-preview": {
             "id": "gpt-4-vision-preview",
-            "name": "gpt-4-vision",
+            "name": "gpt-4-vision-preview",
             "mode": [
                 "vision"
             ],
