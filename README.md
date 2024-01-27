@@ -364,7 +364,7 @@ Detailed instructions for this process are provided in the section titled `Manag
 
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. 
-To begin, you must first index the files you wish to include. 
+To begin, you must first index the files (or data from DB) you wish to include. 
 Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. 
 Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
 
@@ -377,6 +377,7 @@ After the file(s) are indexed (embedded in vector store), you can use context fr
 Built-in file loaders (offline): `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`. 
 You can extend this list in `Settings / Llama-index` by providing list of online loaders (from `LlamaHub`).
 All loaders included for offline use are also from `LlamaHub`, but they are attached locally with all necessary library dependencies included.
+You can also develop and provide your own custom offline loader and register it within the application.
 
 **From version `2.0.100` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.**
@@ -436,6 +437,49 @@ Will work better in next releases.
 
 By default, you are using chat-based mode when using `Chat with files`.
 If you want to only query index (without chat) you can enable `Query index only (without chat)` option.
+
+### Adding custom vector stores and offline data loaders
+
+You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
+To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to `vector_stores` keyword argument and loader instance in the `loaders` keyword argument:
+
+```python
+
+# my_launcher.py
+
+from pygpt_net.app import run
+from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+from my_llms import MyCustomLLM
+from my_vector_stores import MyCustomVectorStore
+from my_loaders import MyCustomLoader
+
+plugins = [
+    MyCustomPlugin(),
+    MyOtherCustomPlugin(),
+]
+llms = [
+    MyCustomLLM(),
+]
+vector_stores = [
+    MyCustomVectorStore(),
+]
+loaders = [
+    MyCustomLoader(),
+]
+
+run(
+    plugins=plugins,
+    llms=llms,
+    vector_stores=vector_stores,  # <--- list with custom vector store providers
+    loaders=loaders  # <--- list with custom data loaders
+)
+```
+The vector store provider must be an instance of `pygpt_net.provider.vector_stores.base.BaseStore`. 
+You can review the code of the built-in providers in `pygpt_net.provider.vector_stores` and use them as examples when creating a custom provider.
+
+The data loader must be an instance of `pygpt_net.provider.loaders.base.BaseLoader`. 
+You can review the code of the built-in loaders in `pygpt_net.provider.loaders` and use them as examples when creating a custom loader.
+
 
 # Files and attachments
 

@@ -134,11 +134,12 @@ Additionally, you have the option to utilize data from indexed files in any Chat
 Built-in file loaders (offline): ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``. 
 You can extend this list in ``Settings / Llama-index`` by providing list of online loaders (from ``LlamaHub``).
 All loaders included for offline use are also from ``LlamaHub``, but they are attached locally with all necessary library dependencies included.
+You can also develop and provide your own custom offline loader and register it within the application.
 
-**From version ``2.0.100`` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
-Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in ``Settings / Llama-index`` section.**
+**From version 2.0.100 Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
+Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in "Settings / Llama-index" section.**
 
-**WARNING:** remember that when indexing content, API calls to the embedding model (``text-embedding-ada-002``) are used. Each indexing consumes additional tokens. 
+**WARNING:** remember that when indexing content, API calls to the embedding model (text-embedding-ada-002) are used. Each indexing consumes additional tokens. 
 Always control the number of tokens used on the OpenAI page.
 
 **Tip:** when using ``Chat with files`` you are using additional context from db data and files indexed from ``data`` directory, not the files sending via ``Attachments`` tab. 
@@ -192,3 +193,46 @@ Will work better in next releases.
 
 By default, you are using chat-based mode when using ``Chat with files``.
 If you want to only query index (without chat) you can enable ``Query index only (without chat)`` option.
+
+
+Adding custom vector stores and offline data loaders
+````````````````````````````````````````````````````
+You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
+To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to ``vector_stores`` keyword argument and loader instance in the ``loaders`` keyword argument:
+
+.. code-block:: python
+
+   # my_launcher.py
+
+   from pygpt_net.app import run
+   from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
+   from my_llms import MyCustomLLM
+   from my_vector_stores import MyCustomVectorStore
+   from my_loaders import MyCustomLoader
+
+   plugins = [
+       MyCustomPlugin(),
+       MyOtherCustomPlugin(),
+   ]
+   llms = [
+       MyCustomLLM(),
+   ]
+   vector_stores = [
+       MyCustomVectorStore(),
+   ]
+   loaders = [
+       MyCustomLoader(),
+   ]
+
+   run(
+       plugins=plugins,
+       llms=llms,
+       vector_stores=vector_stores,  # <--- list with custom vector store providers
+       loaders=loaders  # <--- list with custom data loaders
+   )
+
+The vector store provider must be an instance of ``pygpt_net.provider.vector_stores.base.BaseStore``. 
+You can review the code of the built-in providers in ``pygpt_net.provider.vector_stores`` and use them as examples when creating a custom provider.
+
+The data loader must be an instance of ``pygpt_net.provider.loaders.base.BaseLoader``. 
+You can review the code of the built-in loaders in ``pygpt_net.provider.loaders`` and use them as examples when creating a custom loader.
