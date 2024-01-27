@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.120** | build: **2024.01.26** | Python: **3.10+**
+Release: **2.0.121** | build: **2024.01.27** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1873,6 +1873,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.121 (2024-01-27)
+
+- Fixed query error when using Raw mode in Chat in files mode with enabled plugins
+- Added bridge / abstraction layer between modes
+- Hidden assistant checkbox in preset editor
 
 # 2.0.120 (2024-01-26)
 
