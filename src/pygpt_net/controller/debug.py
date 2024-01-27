@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -22,7 +22,7 @@ class Debug:
         :param window: Window instance
         """
         self.window = window
-        self.is_logger = False
+        self.is_logger = False  # logger window opened
 
     def update(self):
         """Update debug"""
@@ -59,7 +59,7 @@ class Debug:
         Log text
 
         :param data: text to log
-        :param window: true if log to all plugins (enabled or not)
+        :param window: True if log to window, False if log to console
         """
         if not window:
             print(str(data))
@@ -68,16 +68,20 @@ class Debug:
         if not self.is_logger or data is None or data.strip() == '':
             return
 
-        # prepend log with timestamp
-        data = datetime.now().strftime('%H:%M:%S') + ': ' + str(data)
-        # append log to logger
-        txt = self.window.logger.toPlainText()
-        if txt.strip() != '':
-            txt += '\n'
-        txt += data
-        self.window.logger.setPlainText(txt)
-        # set cursor to end
-        self.window.logger.moveCursor(QTextCursor.End)
+        data = datetime.now().strftime('%H:%M:%S.%f') + ': ' + str(data)
+        cur = self.window.logger.textCursor()  # Move cursor to end of text
+        cur.movePosition(QTextCursor.End)
+        s = str(data) + "\n"
+        while s:
+            head, sep, s = s.partition("\n")  # Split line at LF
+            cur.insertText(head)  # Insert text at cursor
+            if sep:  # New line if LF
+                cur.insertText("\n")
+        self.window.logger.setTextCursor(cur)  # Update visible cursor
+
+    def logger_enabled(self):
+        """Check if debug window is enabled"""
+        return self.is_logger
 
     def open_logger(self):
         """Open logger dialog"""

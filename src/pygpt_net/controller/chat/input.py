@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -199,4 +199,4 @@ class Input:
 
         :param data: Data to log
         """
-        self.window.controller.debug.log(data, True)
+        self.window.core.debug.info(data)

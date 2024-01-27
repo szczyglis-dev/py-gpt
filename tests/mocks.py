@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import pytest
@@ -25,6 +25,7 @@ def mock_window():
     window.core.config.load = MagicMock()  # mock load method to prevent loading
     window.core.config.save = MagicMock()  # mock save method to prevent saving
     window.core.config.get_lang = MagicMock(return_value='en')
+    window.core.debug = MagicMock()
     window.controller = MagicMock()
     window.ui = MagicMock()
     window.threadpool = MagicMock()
@@ -39,4 +40,5 @@ def mock_window_conf():
     window.core.config = MagicMock(spec=Config)  # mock config object
     window.core.config.path = 'test_path'
     window.core.config.get_lang = MagicMock(return_value='en')
+    window.core.debug = MagicMock()
     return window

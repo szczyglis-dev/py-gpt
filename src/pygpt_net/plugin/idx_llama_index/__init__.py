@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -161,9 +161,11 @@ class Plugin(BasePlugin):
         :return: response
         """
         idx = self.get_option_value("idx")
-        model = None
+        model = self.window.core.models.from_defaults()
         if self.get_option_value("model_query") is not None:
-            model = self.window.core.models.get(self.get_option_value("model_query"))
+            model_query = self.get_option_value("model_query")
+            if self.window.core.models.has(model_query):
+                model = self.window.core.models.get(model_query)
         indexes = idx.split(",")
         if len(indexes) > 1:
             responses = []

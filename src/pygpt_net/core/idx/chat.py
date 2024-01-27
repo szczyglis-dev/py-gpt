@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -81,13 +81,20 @@ class Chat:
         if model is None:
             raise Exception("Model config not provided")
 
+        log_msg = "[LLAMA-INDEX] Query index..."
+        self.window.core.debug.info(log_msg, not is_log)
         if is_log:
-            print("[LLAMA-INDEX] Query index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
-                idx,
-                query,
-                model.id,
-            ))
+            print(log_msg)
+
+        log_msg = "[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
+            idx,
+            query,
+            model.id,
+        )
+        self.window.core.debug.info(log_msg, not is_log)
+        if is_log:
+            print(log_msg)
+
         # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")
@@ -102,8 +109,10 @@ class Chat:
         # query index
         tpl = self.get_custom_prompt(system_prompt)
         if tpl is not None:
+            log_msg = "[LLAMA-INDEX] Query index with custom prompt: {}...".format(system_prompt)
+            self.window.core.debug.info(log_msg, not is_log)
             if is_log:
-                print("[LLAMA-INDEX] Query index with custom prompt: {}...".format(system_prompt))
+                print(log_msg)
             response = index.as_query_engine(
                 streaming=stream,
                 text_qa_template=tpl,
@@ -151,13 +160,20 @@ class Chat:
         if model is None:
             raise Exception("Model config not provided")
 
+        log_msg = "[LLAMA-INDEX] Chat with index..."
+        self.window.core.debug.info(log_msg, not is_log)
         if is_log:
-            print("[LLAMA-INDEX] Chat with index...")
-            print("[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
-                idx,
-                query,
-                model.id,
-            ))
+            print(log_msg)
+
+        log_msg = "[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
+            idx,
+            query,
+            model.id,
+        )
+        self.window.core.debug.info(log_msg, not is_log)
+        if is_log:
+            print(log_msg)
+
         # check if index exists
         if not self.storage.exists(idx):
             raise Exception("Index not prepared")

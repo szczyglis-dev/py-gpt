@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -156,7 +156,6 @@ class BasePlugin:
         :param err: error message
         """
         self.window.core.debug.log(err)
-        self.window.controller.debug.log(str(err), True)
         self.window.ui.dialogs.alert("{}: {}".format(self.name, err))
 
     def debug(self, data: any):
@@ -165,7 +164,7 @@ class BasePlugin:
 
         :param data: data to send
         """
-        self.window.controller.debug.log(data, True)
+        self.window.core.debug.info(data)
 
     def log(self, msg: str):
         """

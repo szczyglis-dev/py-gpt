@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
+
+import json
 
 
 class PresetItem:
@@ -76,3 +78,19 @@ class PresetItem:
         if "model" in data:
             self.model = data["model"]
         return self
+
+    def dump(self):
+        """
+        Dump item to string
+
+        :return: serialized item
+        :rtype: str
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+
+    def __str__(self):
+        """To string"""
+        return self.dump()

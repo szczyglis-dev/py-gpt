@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import datetime
+import json
 import time
 
 
@@ -38,3 +39,37 @@ class CalendarNoteItem:
         :return: key string in format: YYYY-MM-DD
         """
         return datetime.datetime(self.year, self.month, self.day).strftime("%Y-%m-%d")
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'uuid': self.uuid,
+            'idx': self.idx,
+            'year': self.year,
+            'month': self.month,
+            'day': self.day,
+            'status': self.status,
+            'title': self.title,
+            'content': self.content,
+            'deleted': self.deleted,
+            'created': self.created,
+            'updated': self.updated,
+            'important': self.important,
+            'initialized': self.initialized
+        }
+
+    def dump(self):
+        """
+        Dump item to string
+
+        :return: serialized item
+        :rtype: str
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+
+    def __str__(self):
+        """To string"""
+        return self.dump()

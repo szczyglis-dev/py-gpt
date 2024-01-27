@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import json
@@ -61,4 +61,11 @@ class AttachmentItem:
         :return: serialized item
         :rtype: str
         """
-        return json.dumps(self.serialize())
+        try:
+            return json.dumps(self.serialize())
+        except Exception as e:
+            pass
+
+    def __str__(self):
+        """To string"""
+        return self.dump()

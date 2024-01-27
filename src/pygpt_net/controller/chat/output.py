@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -123,12 +123,13 @@ class Output:
                         output += response
                         output_tokens += 1
                         self.window.controller.chat.render.append_chunk(ctx, response, begin)
-                        self.window.controller.ui.update_tokens()  # update UI
                         QApplication.processEvents()  # process events to update UI after each chunk
                         begin = False
 
         except Exception as e:
             self.window.core.debug.log(e)
+
+        self.window.controller.ui.update_tokens()  # update UI tokens
 
         # chunks: stream end
         self.window.controller.chat.render.stream_end()
@@ -184,4 +185,4 @@ class Output:
 
         :param data: Data to log
         """
-        self.window.controller.debug.log(data, True)
+        self.window.core.debug.info(data)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import os
@@ -57,9 +57,9 @@ def test_is_stop(mock_window):
 def test_handle_debug(mock_window):
     """Test handle_debug"""
     command = Command(mock_window)
-    mock_window.controller.debug.log = MagicMock()
+    mock_window.core.debug.info = MagicMock()
     command.handle_debug('test')
-    mock_window.controller.debug.log.assert_called_once_with('test')
+    mock_window.core.debug.info.assert_called_once_with('test')
 
 
 def test_handle_finished(mock_window):

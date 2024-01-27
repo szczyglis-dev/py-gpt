@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import json
@@ -70,6 +70,27 @@ class Event:
         # internal event, not called from user
         # internal event is handled synchronously, ctx item has internal flag
 
+    def to_dict(self) -> dict:
+        """Dump event to dict"""
+        return {
+            'name': self.name,
+            'data': self.data,
+            'ctx': self.ctx.to_dict() if self.ctx else None,
+            'stop': self.stop,
+            'internal': self.internal,
+        }
+
+    def dump(self) -> str:
+        """
+        Dump event to json string
+
+        :return: JSON string
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+
 
 class Dispatcher:
     def __init__(self, window=None):
@@ -79,6 +100,7 @@ class Dispatcher:
         :param window: Window instance
         """
         self.window = window
+        self.nolog_events = ["system.prompt"]
 
     def dispatch(
             self,
@@ -92,13 +114,23 @@ class Dispatcher:
         :param all: true if dispatch to all plugins (enabled or not)
         :return: list of affected plugins ids and event object
         """
+        if event.name not in self.nolog_events:
+            self.window.core.debug.info("Dispatch begin: " + event.name)
+            self.window.core.debug.debug(event.dump())
+
         affected = []
         for id in self.window.core.plugins.plugins:
             if self.window.controller.plugins.is_enabled(id) or all:
                 if event.stop:
                     break
+                if event.name not in self.nolog_events:
+                    self.window.core.debug.info("Apply to: " + id)
                 self.apply(id, event)
                 affected.append(id)
+
+        if event.name not in self.nolog_events:
+            self.window.core.debug.info("Dispatch end: " + event.name)
+            self.window.core.debug.debug(event.dump())
 
         return affected, event
 
@@ -126,6 +158,8 @@ class Dispatcher:
         :param ctx: context object
         """
         if ctx is not None:
+            self.window.core.debug.info("Reply...")
+            self.window.core.debug.debug(ctx.dump())
             self.window.ui.status("")  # clear status
             if ctx.reply:
                 self.window.core.ctx.update_item(ctx)  # update context in db

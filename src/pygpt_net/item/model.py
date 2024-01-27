@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 04:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
+
+import json
 
 
 class ModelItem:
@@ -153,3 +155,18 @@ class ModelItem:
                 data['llama_index.env'] = self.llama_index['env']
 
         return data
+
+    def dump(self) -> str:
+        """
+        Dump event to json string
+
+        :return: JSON string
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+
+    def __str__(self):
+        """To string"""
+        return self.dump()

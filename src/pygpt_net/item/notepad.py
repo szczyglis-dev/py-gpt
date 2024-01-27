@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
+import json
 import time
 
 
@@ -24,3 +25,32 @@ class NotepadItem:
         self.created = ts
         self.updated = ts
         self.initialized = False
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'uuid': self.uuid,
+            'idx': self.idx,
+            'title': self.title,
+            'content': self.content,
+            'deleted': self.deleted,
+            'created': self.created,
+            'updated': self.updated,
+            'initialized': self.initialized
+        }
+
+    def dump(self):
+        """
+        Dump item to string
+
+        :return: serialized item
+        :rtype: str
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+
+    def __str__(self):
+        """To string"""
+        return self.dump()

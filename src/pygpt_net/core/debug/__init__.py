@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 06:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import os
@@ -22,7 +22,7 @@ from pygpt_net.config import Config
 class Debug:
     def __init__(self, window=None):
         """
-        Debug core
+        Debugging core
 
         :param window: Window instance
         """
@@ -39,8 +39,8 @@ class Debug:
         logging.basicConfig(
             level=level,
             format='%(asctime)s - %(levelname)s - %(message)s',
-            filename=str(Path(os.path.join(Path.home(), '.config', Config.CONFIG_DIR, 'error.log'))),
-            filemode='a'
+            filename=str(Path(os.path.join(Path.home(), '.config', Config.CONFIG_DIR, 'app.log'))),
+            filemode='a',
         )
 
         def handle_exception(exc_type, value, tb):
@@ -58,12 +58,50 @@ class Debug:
 
         sys.excepthook = handle_exception
 
-    def log(self, message=None, level=logging.ERROR):
+    def info(self, message=None, console: bool = True):
+        """
+        Handle info
+
+        :param message: message to log
+        :param console: print to console
+
+        """
+        self.log(message, logging.INFO, console=console)
+
+    def debug(self, message=None, console: bool = True):
+        """
+        Handle debug
+
+        :param message: message to log
+        :param console: print to console
+        """
+        self.log(message, logging.DEBUG, console=console)
+
+    def warning(self, message=None, console: bool = True):
+        """
+        Handle warning
+
+        :param message: message to log
+        :param console: print to console
+        """
+        self.log(message, logging.WARNING, console=console)
+
+    def error(self, message=None, console: bool = True):
+        """
+        Handle error
+
+        :param message: message to log
+        :param console: print to console
+        """
+        self.log(message, logging.ERROR, console=console)
+
+    def log(self, message=None, level=logging.ERROR, console: bool = True):
         """
         Handle logging
 
         :param message: message to log
         :param level: logging level
+        :param console: print to console
         """
         if message is None:
             return
@@ -73,49 +111,92 @@ class Debug:
         try:
             # string message
             if isinstance(message, str):
-                print("Log: {}".format(message))
                 logger.log(level, message)
-            # exception message
+                if self.has_level(level) and console:
+                    print(message)
+
+            # exception
             elif isinstance(message, Exception):
-                etype, value, tb = sys.exc_info()
-                traceback_details = traceback.extract_tb(tb)
-                if len(traceback_details) >= 4:
-                    last_calls = traceback_details[-4:]
-                else:
-                    last_calls = traceback_details
-                formatted_traceback = ''.join(traceback.format_list(last_calls))
-                data = f"Type: {etype.__name__}, Message: " \
-                       f"{value}\n" \
-                       f"Traceback:\n{formatted_traceback}"
-                logger.error(data)
-                logger.log(level, "Exception: {}".format(str(message)), exc_info=True)
-                print(data)
+                data = self.parse_exception()
+                msg = "Exception: {}".format(str(message))
+                logger.log(level, msg, exc_info=True)
+                if self.has_level(level) and console:
+                    print(data)
+
+            # other messages
             else:
-                # any other messages
-                print("Log: {}".format(message))
                 logger.log(level, message)
+                if self.has_level(level) and console:
+                    print(message)
         except Exception as e:
             pass
 
-    def begin(self, id):
+        try:
+            # add to logger window
+            if self.window is not None:
+                self.window.controller.debug.log(message)
+        except Exception as e:
+            pass
+
+    def parse_exception(self, limit: int = 4) -> str:
         """
-        Begin debug data
+        Parse exception traceback
+
+        :param limit: limit of traceback
+        :return: parsed exception
+        """
+        etype, value, tb = sys.exc_info()
+        traceback_details = traceback.extract_tb(tb)
+        if len(traceback_details) >= limit:
+            last_calls = traceback_details[-limit:]
+        else:
+            last_calls = traceback_details
+        formatted_traceback = ''.join(traceback.format_list(last_calls))
+        data = f"Type: {etype.__name__}, Message: " \
+               f"{value}\n" \
+               f"Traceback:\n{formatted_traceback}"
+        return data
+
+    def has_level(self, level: int) -> bool:
+        """
+        Check if logging level is enabled
+
+        :param level: logging level
+        :return: True if enabled
+        """
+        return level >= logging.getLogger().getEffectiveLevel()
+
+    def enabled(self) -> bool:
+        """
+        Check if debug is enabled
+
+        :return: True if enabled
+        """
+        if self.window is not None and self.window.controller.debug.logger_enabled():
+            return True
+        if self.has_level(logging.DEBUG):
+            return True
+        return False
+
+    def begin(self, id: str):
+        """
+        Begin debug data (debug window)
 
         :param id: debug id
         """
         self.window.controller.dialogs.debug.begin(id)
 
-    def end(self, id):
+    def end(self, id: str):
         """
-        End debug data
+        End debug data (debug window)
 
         :param id: debug id
         """
         self.window.controller.dialogs.debug.end(id)
 
-    def add(self, id, k, v):
+    def add(self, id: str, k: str, v: any):
         """
-        Append debug entry
+        Append debug entry (debug window)
 
         :param id: debug id
         :param k: key

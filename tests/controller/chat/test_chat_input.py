@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -265,4 +265,4 @@ def test_log(mock_window):
     """Test log"""
     input = Input(mock_window)
     input.log('msg')
-    mock_window.controller.debug.log.assert_called_once_with('msg', True)
+    mock_window.core.debug.info.assert_called_once_with('msg')

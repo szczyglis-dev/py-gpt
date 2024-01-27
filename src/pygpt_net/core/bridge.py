@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 class Bridge:
@@ -26,6 +26,12 @@ class Bridge:
         """
         allowed_model_change = ["vision"]
 
+        # debug
+        self.window.core.debug.info("Bridge call...")
+        if self.window.core.debug.enabled():
+            debug = {k: str(v) for k, v in kwargs.items()}
+            self.window.core.debug.debug(str(debug))
+
         # get kwargs
         ctx = kwargs.get("ctx", None)
         prompt = kwargs.get("prompt", None)
@@ -41,6 +47,12 @@ class Bridge:
         if mode in allowed_model_change:
             model = self.window.controller.model.switch_inline(mode, model)
             kwargs['model'] = model
+
+        # debug
+        self.window.core.debug.info("Bridge call (after inline)...")
+        if self.window.core.debug.enabled():
+            debug = {k: str(v) for k, v in kwargs.items()}
+            self.window.core.debug.debug(str(debug))
 
         # Langchain
         if mode == "langchain":
@@ -61,4 +73,10 @@ class Bridge:
         :param kwargs: keyword arguments
         :return: response content
         """
+        # debug
+        self.window.core.debug.info("Bridge quick call...")
+        if self.window.core.debug.enabled():
+            debug = {k: str(v) for k, v in kwargs.items()}
+            self.window.core.debug.debug(str(debug))
+
         return self.window.core.gpt.quick_call(**kwargs)

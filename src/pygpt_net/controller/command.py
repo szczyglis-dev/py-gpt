@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import json
@@ -33,12 +33,16 @@ class Command:
 
         :param event: event object
         """
+        self.window.core.debug.info("Dispatch CMD begin: " + event.name)
+        self.window.core.debug.debug(event.dump())
+
         for id in self.window.core.plugins.get_ids():
             if self.window.controller.plugins.is_enabled(id):
                 if event.stop or (event.name == Event.CMD_EXECUTE and self.is_stop()):
                     if self.is_stop():
                         self.stop = False  # unlock needed here
                     break
+                self.window.core.debug.info("Apply CMD to: " + id)
                 self.window.core.dispatcher.apply(id, event)
 
         # WARNING: do not emit finished signal here if event is internal (otherwise it will be emitted twice)
@@ -93,7 +97,7 @@ class Command:
 
         :param data to log
         """
-        self.window.controller.debug.log(str(data))
+        self.window.core.debug.info(data)
 
     def handle_finished(self, event: Event):
         """
@@ -107,5 +111,5 @@ class Command:
             self.window.controller.chat.input.send(
                 json.dumps(ctx.results),
                 force=True,
-                internal=ctx.internal
+                internal=ctx.internal,
             )

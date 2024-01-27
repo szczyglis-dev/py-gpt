@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 11:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import sys
@@ -42,18 +42,18 @@ class Launcher:
             "-d",
             "--debug",
             required=False,
-            help="debug mode (0=disabled, 1=debug, 2=info)",
+            help="debug mode (0=disabled, 1=info, 2=debug)",
         )
         args = vars(parser.parse_args())
 
         # set log level [ERROR|WARNING|INFO|DEBUG]
         if "debug" in args and args["debug"] == "1":
-            print("** Debug mode enabled (1=DEBUG)")
-            Debug.init(DEBUG)
+            print("** Debug mode enabled (1=INFO)")
+            Debug.init(INFO)
             self.debug = True
         elif "debug" in args and args["debug"] == "2":
-            print("** Debug mode enabled (2=INFO)")
-            Debug.init(INFO)
+            print("** Debug mode enabled (2=DEBUG)")
+            Debug.init(DEBUG)
             self.debug = True
         else:
             Debug.init(ERROR)  # default log level

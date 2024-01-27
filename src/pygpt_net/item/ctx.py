@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.07 10:00:00                  #
+# Updated Date: 2024.01.27 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -86,13 +86,13 @@ class CtxItem:
         self.output_tokens = output_tokens
         self.total_tokens = input_tokens + output_tokens
 
-    def dump(self) -> str:
+    def to_dict(self) -> dict:
         """
         Dump context item to dict
 
         :return: dict
         """
-        data = {
+        return {
             "id": self.id,
             "meta_id": self.meta_id,
             "external_id": self.external_id,
@@ -120,9 +120,23 @@ class CtxItem:
             "total_tokens": self.total_tokens,
             "extra": self.extra,
             "current": self.current,
-            "internal": self.internal
+            "internal": self.internal,
         }
-        return json.dumps(data)
+
+    def dump(self) -> str:
+        """
+        Dump context item to JSON string
+
+        :return: JSON string
+        """
+        try:
+            return json.dumps(self.to_dict())
+        except Exception as e:
+            pass
+
+    def __str__(self):
+        """To string"""
+        return self.dump()
 
 
 class CtxMeta:

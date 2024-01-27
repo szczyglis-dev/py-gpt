@@ -100,6 +100,7 @@
     },
     "font_size": {
         "section": "layout",
+        "description": "settings.font_size.tip",
         "type": "int",
         "slider": true,
         "label": "settings.font_size",
@@ -112,6 +113,7 @@
     },
     "font_size.input": {
         "section": "layout",
+        "description": "settings.font_size.tip",
         "type": "int",
         "slider": true,
         "label": "settings.font_size.input",
@@ -638,19 +640,7 @@
         },
         "value": [],
         "advanced": true
-    },
-    "llama.log": {
-        "section": "llama-index",
-        "type": "bool",
-        "slider": false,
-        "label": "Log (console)",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": true
-    },
+    },    
     "llama.hub.loaders": {
         "section": "llama-index",
         "type": "dict",
@@ -675,6 +665,7 @@
     },
     "debug": {
         "section": "developer",
+        "description": "Tip: Running application with --debug=1 or --debug=2 command line arguments will enable logging to %workdir%/app.log file. Log levels: 1 = INFO, 2 = DEBUG",
         "type": "bool",
         "slider": false,
         "label": "settings.developer.debug",
@@ -683,6 +674,18 @@
         "max": 0,
         "multiplier": 1,
         "step": 1,
+        "advanced": false
+    },
+    "llama.log": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log llama-index usages to console",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
         "advanced": false
     }
 }
