@@ -12,8 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QWidget, QFrame
 
-from pygpt_net.ui.widget.element.labels import TitleLabel
-from pygpt_net.ui.widget.element.url import UrlLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel, UrlLabel
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.combo import OptionCombo
 from pygpt_net.ui.widget.option.dictionary import OptionDict

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.27 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QCheckBox, QWidget, QVBoxLayout
@@ -36,7 +36,12 @@ class CollapsedGroup(QWidget):
         self.box.setStyleSheet("font-weight: bold;")
         self.box.setChecked(value)
         self.box.stateChanged.connect(
-            lambda: self.window.controller.settings.editor.toggle_collapsed(self.id, self.box.isChecked(), self.section))
+            lambda: self.window.controller.settings.editor.toggle_collapsed(
+                self.id,
+                self.box.isChecked(),
+                self.section,
+            )
+        )
 
         # options layout
         self.options = QVBoxLayout()

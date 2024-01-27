@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.ui.widget.dialog.settings_plugin import PluginSettingsDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
-from pygpt_net.ui.widget.element.url import UrlLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel
 from pygpt_net.ui.widget.lists.plugin import PluginList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.combo import OptionCombo

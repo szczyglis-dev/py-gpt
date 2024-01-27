@@ -35,3 +35,8 @@ QListView::item {{
 .label-chat-status {{
   color: #999;
 }}
+.label-link {{
+  color: #90d9ff;
+  font-weight: bold;
+  text-decoration: none;
+}}

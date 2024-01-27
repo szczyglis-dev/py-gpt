@@ -16,7 +16,7 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton
 
 from pygpt_net.ui.widget.dialog.info import InfoDialog
-from pygpt_net.ui.widget.element.url import UrlLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel
 from pygpt_net.utils import trans
 
 
