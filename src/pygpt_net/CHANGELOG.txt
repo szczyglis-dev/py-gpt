@@ -1,9 +1,10 @@
 2.0.122 (2024-01-27)
 
-- Added new OpenAI model released 2024-01-25: "gpt-4-0125-preview"
-- Added ability to adding custom offline data loaders for Llama-index
-- Improved debugging and logging, added debug levels and a new section "Debugging and logging" in Docs
-- Inline styles moved to external CSS classes
+- Added new OpenAI model released on 2024-01-25: "gpt-4-0125-preview"
+- Added ability to add custom offline data loaders for Llama-index
+- Improved debugging and logging, added debug levels, and introduced a new section "Debugging and Logging" in the documentation
+- Moved inline styles to external CSS classes
+- Renamed "pygpt_net.provider.llm" to "pygpt_net.provider.llms"
 
 2.0.121 (2024-01-27)
 
