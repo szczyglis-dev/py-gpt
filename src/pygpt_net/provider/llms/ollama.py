@@ -9,17 +9,17 @@
 # Updated Date: 2024.01.14 11:00:00                  #
 # ================================================== #
 
-from langchain_community.llms import Anthropic
-from langchain_community.chat_models import ChatAnthropic
+from langchain_community.chat_models import ChatOllama
 
-from pygpt_net.provider.llm.base import BaseLLM
+
+from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 
-class AnthropicLLM(BaseLLM):
+class OllamaLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
-        super(AnthropicLLM, self).__init__(*args, **kwargs)
-        self.id = "anthropic"
+        super(OllamaLLM, self).__init__(*args, **kwargs)
+        self.id = "ollama"
         self.type = ["langchain"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
@@ -31,8 +31,7 @@ class AnthropicLLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.langchain)
-        return Anthropic(**args)
+        return None
 
     def chat(self, window, model: ModelItem, stream: bool = False):
         """
@@ -44,4 +43,4 @@ class AnthropicLLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.langchain)
-        return ChatAnthropic(**args)
+        return ChatOllama(args)

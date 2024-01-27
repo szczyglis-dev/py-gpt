@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 03:00:00                  #
+# Updated Date: 2024.01.27 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch, mock_open, Mock
 
 from tests.mocks import mock_window
-from pygpt_net.provider.llm.azure_openai import AzureOpenAILLM as Wrapper
+from pygpt_net.provider.llms.openai import OpenAILLM as Wrapper
 
 
 def test_completion(mock_window):
@@ -33,4 +33,3 @@ def test_chat(mock_window):
     wrapper.chat = MagicMock(return_value=Mock())
     wrapper.chat(config, options, stream)
     wrapper.chat.assert_called_once()
-    

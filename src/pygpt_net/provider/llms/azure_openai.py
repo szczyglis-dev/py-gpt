@@ -12,7 +12,7 @@
 from langchain_community.llms import AzureOpenAI
 from langchain_openai import AzureChatOpenAI
 
-from pygpt_net.provider.llm.base import BaseLLM
+from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 

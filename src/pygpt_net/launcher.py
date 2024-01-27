@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.27 18:00:00                  #
 # ================================================== #
 
 import sys
@@ -20,7 +20,7 @@ from pygpt_net.core.debug import Debug
 from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui.main import MainWindow
 from pygpt_net.plugin.base import BasePlugin
-from pygpt_net.provider.llm.base import BaseLLM
+from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.provider.vector_stores.base import BaseStore
 
 
@@ -94,7 +94,7 @@ class Launcher:
         if not isinstance(llm, BaseLLM):
             raise TypeError(
                 "LLM provider must be instance of: "
-                "pygpt_net.provider.llm.base.BaseLLM"
+                "pygpt_net.provider.llms.base.BaseLLM"
             )
         self.window.add_llm(llm)
         if self.debug:

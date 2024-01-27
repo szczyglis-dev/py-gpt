@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 03:00:00                  #
+# Updated Date: 2024.01.27 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch, mock_open, Mock
 
 from tests.mocks import mock_window
-from pygpt_net.provider.llm.ollama import OllamaLLM as Wrapper
+from pygpt_net.provider.llms.anthropic import AnthropicLLM as Wrapper
 
 
 def test_completion(mock_window):

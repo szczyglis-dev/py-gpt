@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 11:00:00                  #
+# Updated Date: 2024.01.27 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -28,12 +28,12 @@ from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
 
 # LLMs
-from pygpt_net.provider.llm.anthropic import AnthropicLLM
-from pygpt_net.provider.llm.azure_openai import AzureOpenAILLM
-from pygpt_net.provider.llm.hugging_face import HuggingFaceLLM
-from pygpt_net.provider.llm.llama import Llama2LLM
-from pygpt_net.provider.llm.ollama import OllamaLLM
-from pygpt_net.provider.llm.openai import OpenAILLM
+from pygpt_net.provider.llms.anthropic import AnthropicLLM
+from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
+from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
+from pygpt_net.provider.llms.llama import Llama2LLM
+from pygpt_net.provider.llms.ollama import OllamaLLM
+from pygpt_net.provider.llms.openai import OpenAILLM
 
 # vector stores
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider

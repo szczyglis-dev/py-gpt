@@ -649,19 +649,19 @@ There is bult-in support for those LLMs providers:
 
 ## Adding custom LLM providers
 
-Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llm` namespace.
+Handling LLMs with Langchain is implemented through separated wrappers. This allows for the addition of support for any provider and model available via Langchain. All built-in wrappers for the models and its providers are placed in the `pygpt_net.provider.llms`.
 
 These wrappers are loaded into the application during startup using `launcher.add_llm()` method:
 
 ```python
 # app.py
 
-from pygpt_net.provider.llm.openai import OpenAILLM
-from pygpt_net.provider.llm.azure_openai import AzureOpenAILLM
-from pygpt_net.provider.llm.anthropic import AnthropicLLM
-from pygpt_net.provider.llm.hugging_face import HuggingFaceLLM
-from pygpt_net.provider.llm.llama import Llama2LLM
-from pygpt_net.provider.llm.ollama import OllamaLLM
+from pygpt_net.provider.llms.openai import OpenAILLM
+from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
+from pygpt_net.provider.llms.anthropic import AnthropicLLM
+from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
+from pygpt_net.provider.llms.llama import Llama2LLM
+from pygpt_net.provider.llms.ollama import OllamaLLM
 
 
 def run(**kwargs):
@@ -721,7 +721,7 @@ run(
 )
 ```
 
-To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `pygpt_net.provider.llm` namespace. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `pygpt_net.provider.llms`. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
 
 ## Adding custom Vector Store providers

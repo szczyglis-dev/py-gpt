@@ -9,20 +9,18 @@
 # Updated Date: 2024.01.14 11:00:00                  #
 # ================================================== #
 
-from langchain_community.llms import OpenAI
-from langchain_openai import ChatOpenAI
-from llama_index.llms import OpenAI as LlamaOpenAI
+from langchain_community.llms import Anthropic
+from langchain_community.chat_models import ChatAnthropic
 
-
-from pygpt_net.provider.llm.base import BaseLLM
+from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 
-class OpenAILLM(BaseLLM):
+class AnthropicLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
-        super(OpenAILLM, self).__init__(*args, **kwargs)
-        self.id = "openai"
-        self.type = ["langchain", "llama_index"]
+        super(AnthropicLLM, self).__init__(*args, **kwargs)
+        self.id = "anthropic"
+        self.type = ["langchain"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
         """
@@ -34,7 +32,7 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.langchain)
-        return OpenAI(**args)
+        return Anthropic(**args)
 
     def chat(self, window, model: ModelItem, stream: bool = False):
         """
@@ -46,16 +44,4 @@ class OpenAILLM(BaseLLM):
         :return: LLM provider instance
         """
         args = self.parse_args(model.langchain)
-        return ChatOpenAI(**args)
-
-    def llama(self, window, model: ModelItem, stream: bool = False):
-        """
-        Return LLM provider instance for llama
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-        """
-        args = self.parse_args(model.llama_index)
-        return LlamaOpenAI(**args)
+        return ChatAnthropic(**args)

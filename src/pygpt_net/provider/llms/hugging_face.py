@@ -9,17 +9,17 @@
 # Updated Date: 2024.01.14 11:00:00                  #
 # ================================================== #
 
-from langchain_community.llms import HuggingFaceTextGenInference
-from langchain_experimental.chat_models import Llama2Chat
+from langchain_community.llms import HuggingFaceHub
 
-from pygpt_net.provider.llm.base import BaseLLM
+
+from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
 
-class Llama2LLM(BaseLLM):
+class HuggingFaceLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
-        super(Llama2LLM, self).__init__(*args, **kwargs)
-        self.id = "llama2"
+        super(HuggingFaceLLM, self).__init__(*args, **kwargs)
+        self.id = "huggingface"
         self.type = ["langchain"]
 
     def completion(self, window, model: ModelItem, stream: bool = False):
@@ -31,7 +31,8 @@ class Llama2LLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        return None
+        args = self.parse_args(model.langchain)
+        return HuggingFaceHub(**args)
 
     def chat(self, window, model: ModelItem, stream: bool = False):
         """
@@ -42,6 +43,4 @@ class Llama2LLM(BaseLLM):
         :param stream: stream mode
         :return: LLM provider instance
         """
-        args = self.parse_args(model.langchain)
-        textgen = HuggingFaceTextGenInference(args)
-        return Llama2Chat(llm=textgen)
+        return None
