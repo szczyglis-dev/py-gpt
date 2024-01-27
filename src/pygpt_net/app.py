@@ -43,13 +43,13 @@ from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
 # data loaders providers (llama-index)
-from pygpt_net.provider.loaders.csv import Loader as CsvLoader
-from pygpt_net.provider.loaders.docx import Loader as DocxLoader
-from pygpt_net.provider.loaders.epub import Loader as EpubLoader
-from pygpt_net.provider.loaders.excel import Loader as ExcelLoader
-from pygpt_net.provider.loaders.json import Loader as JsonLoader
-from pygpt_net.provider.loaders.markdown import Loader as MarkdownLoader
-from pygpt_net.provider.loaders.pdf import Loader as PdfLoader
+from pygpt_net.provider.loaders.file_csv import Loader as CsvLoader
+from pygpt_net.provider.loaders.file_docx import Loader as DocxLoader
+from pygpt_net.provider.loaders.file_epub import Loader as EpubLoader
+from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader
+from pygpt_net.provider.loaders.file_json import Loader as JsonLoader
+from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader
+from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader
 
 
 def run(**kwargs):

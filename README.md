@@ -226,6 +226,8 @@ It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-pac
 For operation, an internet connection is needed (for API connectivity), a registered OpenAI account, 
 and an active API key that must be input into the program.
 
+**More help:** Refer to the `Debugging and Logging` section for instructions on how to log and diagnose issues in a more detailed manner.
+
 
 # Quick Start
 
