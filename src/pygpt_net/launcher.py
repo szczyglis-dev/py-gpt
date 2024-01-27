@@ -21,6 +21,7 @@ from pygpt_net.core.platforms import Platforms
 from pygpt_net.ui.main import MainWindow
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.provider.llms.base import BaseLLM
+from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.provider.vector_stores.base import BaseStore
 
 
@@ -114,6 +115,21 @@ class Launcher:
         self.window.add_vector_store(store)
         if self.debug:
             print("Loaded vector store: {} ({})".format(store.id, store.__class__.__name__))
+
+    def add_loader(self, loader: BaseLoader):
+        """
+        Register data loader
+
+        :param loader: Data loader instance
+        """
+        if not isinstance(loader, BaseLoader):
+            raise TypeError(
+                "Data loader must be instance of: "
+                "pygpt_net.provider.loaders.base.BaseLoader"
+            )
+        self.window.add_loader(loader)
+        if self.debug:
+            print("Loaded data loader: {} ({})".format(loader.id, loader.__class__.__name__))
 
     def run(self):
         """Run app"""

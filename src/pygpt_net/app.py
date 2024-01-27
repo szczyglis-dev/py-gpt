@@ -27,7 +27,7 @@ from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
 from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
 
-# LLMs
+# LLMs wrappers providers (langchain, llama-index)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
 from pygpt_net.provider.llms.azure_openai import AzureOpenAILLM
 from pygpt_net.provider.llms.hugging_face import HuggingFaceLLM
@@ -35,12 +35,21 @@ from pygpt_net.provider.llms.llama import Llama2LLM
 from pygpt_net.provider.llms.ollama import OllamaLLM
 from pygpt_net.provider.llms.openai import OpenAILLM
 
-# vector stores
+# vector stores providers (llama-index)
 from pygpt_net.provider.vector_stores.chroma import ChromaProvider
 from pygpt_net.provider.vector_stores.elasticsearch import ElasticsearchProvider
 from pygpt_net.provider.vector_stores.pinecode import PinecodeProvider
 from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
+
+# data loaders providers (llama-index)
+from pygpt_net.provider.loaders.csv import Loader as CsvLoader
+from pygpt_net.provider.loaders.docx import Loader as DocxLoader
+from pygpt_net.provider.loaders.epub import Loader as EpubLoader
+from pygpt_net.provider.loaders.excel import Loader as ExcelLoader
+from pygpt_net.provider.loaders.json import Loader as JsonLoader
+from pygpt_net.provider.loaders.markdown import Loader as MarkdownLoader
+from pygpt_net.provider.loaders.pdf import Loader as PdfLoader
 
 
 def run(**kwargs):
@@ -49,7 +58,7 @@ def run(**kwargs):
 
     :param kwargs: keyword arguments for launcher
 
-    Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
+    Extending PyGPT with custom plugins, LLMs wrappers, vector stores and data loaders
 
     - You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
     - This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
@@ -66,6 +75,10 @@ def run(**kwargs):
 
     - Pass a list with the vector store provider instances as 'vector_stores' keyword argument.
 
+    To register custom data loaders:
+
+    - Pass a list with the data loader instances as 'loaders' keyword argument.
+
     Example:
     --------
     ::
@@ -76,6 +89,7 @@ def run(**kwargs):
         from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
         from my_llms import MyCustomLLM
         from my_vector_stores import MyCustomVectorStore
+        from my_loaders import MyCustomLoader
 
         plugins = [
             MyCustomPlugin(),
@@ -87,11 +101,15 @@ def run(**kwargs):
         vector_stores = [
             MyCustomVectorStore(),
         ]
+        loaders = [
+            MyCustomLoader(),
+        ]
 
         run(
             plugins=plugins,
             llms=llms,
-            vector_stores=vector_stores
+            vector_stores=vector_stores,
+            loaders=loaders
         )
 
     """
@@ -147,6 +165,21 @@ def run(**kwargs):
     if isinstance(vector_stores, list):
         for store in vector_stores:
             launcher.add_vector_store(store)
+
+    # register base data loaders (llama-index)
+    launcher.add_loader(CsvLoader())
+    launcher.add_loader(DocxLoader())
+    launcher.add_loader(EpubLoader())
+    launcher.add_loader(ExcelLoader())
+    launcher.add_loader(JsonLoader())
+    launcher.add_loader(MarkdownLoader())
+    launcher.add_loader(PdfLoader())
+
+    # register custom data loaders (llama-index)
+    loaders = kwargs.get('loaders', None)
+    if isinstance(loaders, list):
+        for loader in loaders:
+            launcher.add_loader(loader)
 
     # run app
     launcher.run()

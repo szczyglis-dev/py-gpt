@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 19:00:00                  #
+# Updated Date: 2024.01.27 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -19,13 +19,7 @@ from llama_index import (
 )
 from llama_index.readers.schema.base import Document
 
-from pygpt_net.provider.loaders.pdf.base import PDFReader
-from pygpt_net.provider.loaders.docx.base import DocxReader
-from pygpt_net.provider.loaders.markdown.base import MarkdownReader
-from pygpt_net.provider.loaders.json.base import JSONReader
-from pygpt_net.provider.loaders.simple_csv.base import SimpleCSVReader
-from pygpt_net.provider.loaders.epub.base import EpubReader
-from pygpt_net.provider.loaders.pandas_excel.base import PandasExcelReader
+from pygpt_net.provider.loaders.base import BaseLoader
 
 
 class Indexing:
@@ -36,15 +30,18 @@ class Indexing:
         :param window: Window instance
         """
         self.window = window
-        self.loaders = {  # offline versions
-            "pdf": PDFReader(),
-            "docx": DocxReader(),
-            "md": MarkdownReader(),
-            "json": JSONReader(),
-            "csv": SimpleCSVReader(),
-            "epub": EpubReader(),
-            "xlsx": PandasExcelReader(),
-        }
+        self.loaders = {}  # offline loaders
+
+    def register_loader(self, loader: BaseLoader):
+        """
+        Register data loader
+
+        :param loader: loader instance
+        """
+        extensions = loader.extensions  # available extensions
+        for ext in extensions:
+            if ext not in self.loaders:
+                self.loaders[ext] = loader.get()  # get reader instance
 
     def get_online_loader(self, ext: str):
         """
@@ -72,27 +69,31 @@ class Indexing:
         :param path: path to data
         :return: list of documents
         """
+        self.log("Reading documents from path: {}".format(path))
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
                 input_dir=path,
                 recursive=True,
-                exclude_hidden=False
+                exclude_hidden=False,
             )
             documents = reader.load_data()
         else:
             ext = os.path.splitext(path)[1][1:]  # get extension
             online_loader = self.get_online_loader(ext)  # get online loader if available
             if online_loader is not None:
+                self.log("Using online loader for: {}".format(ext))
                 loader = download_loader(online_loader)
                 reader = loader()
                 documents = reader.load_data(file=Path(path))
             else:  # try offline loaders
                 if ext in self.loaders:
+                    self.log("Using offline loader for: {}".format(ext))
                     # download_loader cause problems in compiled version
                     # use offline versions instead
                     reader = self.loaders[ext]
                     documents = reader.load_data(file=Path(path))
                 else:
+                    self.log("Using default loader for: {}".format(ext))
                     reader = SimpleDirectoryReader(input_files=[path])
                     documents = reader.load_data()
         return documents
@@ -120,6 +121,7 @@ class Indexing:
                 for d in documents:
                     index.insert(document=d)
                     indexed[file] = d.id_  # add to index
+                    self.log("Inserted document: {}".format(d.id_))
             except Exception as e:
                 errors.append(str(e))
                 print(e)
@@ -190,9 +192,11 @@ class Indexing:
         errors = []
         n = 0
         try:
+            self.log("Indexing documents from database by meta id: {}".format(id))
             documents = self.get_db_data_by_id(id)
             for d in documents:
                 index.insert(document=d)
+                self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -211,12 +215,28 @@ class Indexing:
         errors = []
         n = 0
         try:
+            self.log("Indexing documents from database from timestamp: {}".format(updated_ts))
             documents = self.get_db_data_from_ts(updated_ts)
             for d in documents:
                 index.insert(document=d)
+                self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
             errors.append(str(e))
             print(e)
             self.window.core.debug.log(e)
         return n, errors
+
+    def log(self, msg: str):
+        """
+        Log info message
+
+        :param msg: message
+        """
+        is_log = False
+        if self.window.core.config.has("llama.log") \
+                and self.window.core.config.get("llama.log"):
+            is_log = True
+        self.window.core.debug.info(msg, not is_log)
+        if is_log:
+            print("[LLAMA-INDEX] {}".format(msg))

@@ -89,6 +89,14 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.core.idx.storage.register(store.id, store)
 
+    def add_loader(self, loader):
+        """
+        Add data loader to app
+
+        :param loader: data loader instance
+        """
+        self.core.idx.indexing.register_loader(loader)
+
     def setup(self):
         """Setup app"""
         self.controller.setup()
