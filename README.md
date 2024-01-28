@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.127** | build: **2024.01.28** | Python: **3.10+**
+Release: **2.0.128** | build: **2024.01.29** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1960,6 +1960,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.128 (2024-01-29)
+
+- Added improvements to RMB context menu handling in Files
+- Improved generation of names for duplicated files
+
 # 2.0.127 (2024-01-28)
 
 - Added ability to auto-store (in the `%workdir%/upload` directory) local copies of attachments uploaded from outside the workdir.
@@ -2001,99 +2006,6 @@ may consume additional tokens that are not displayed in the main window.
 - Improved debugging and logging, added debug levels, and introduced a new section `Debugging and Logging` in the documentation
 - Moved inline styles to external CSS classes
 - Renamed `pygpt_net.provider.llm` to `pygpt_net.provider.llms`
-
-# 2.0.121 (2024-01-27)
-
-- Fixed query error when using Query mode in Chat with files mode with enabled plugins
-- Added a bridge/abstraction layer between modes
-- Hid the assistant checkbox in the preset editor
-
-# 2.0.120 (2024-01-26)
-
-- Fixed font-size restore when switching between plain text and markdown renderer
-- Added RMB context menu option "Clear files" to input Attachments tab.
-
-# 2.0.119 (2024-01-25)
-
-- Fixed list selection loose after async command execution
-- Added "Start minimized" option in settings
-- Updated docs
-
-# 2.0.118 (2024-01-25)
-
-- Added "Show tray icon" option in "Settings"
-- Added launcher arguments
-- Updated docs
-- Small fixes
-
-# 2.0.117 (2024-01-24)
-
-- Added a new feature to the `Command: Files I/O` plugin - `Get and upload file as attachment`. It lets automatically read files from `data` folder and send them as attachments - just ask to send a file as an attachment and the model will send it to itself (like sending an image for analysis). Option is disabled by default in the plugin`s settings.
-- Added a new plugin: `Command: Serial port / USB`. This plugin lets you read and send any commands to USB ports (so you can control robots now ;) ).
-- Made it possible to use URLs for images when not using the vision feature.
-- Fixed saving and reloading prompts in Assistant mode.
-- Removed display of empty external images from the output.
-
-# 2.0.116 (2024-01-24)
-
-- Fixed font color in light themes
-- Fixed layout display on Windows systems
-- Theme, Language and Debug menus moved to Config menu - feature [#10](https://github.com/szczyglis-dev/py-gpt/issues/10)
-- Added Developer section in Settings
-- Fixed list options editing
-- Refactored code and updated tests
-
-# 2.0.115 (2024-01-22)
-
-- Added token recalculation after the attachments list is changed and upon copy/pasting into the input field.
-- Added descriptions to the settings.
-- Improved the "Copy selected text to..." option.
-
-# 2.0.114 (2024-01-21)
-
-- Fixed broken CSS on Windows
-- Added support for Vector Store databases: `Chroma`, `Elasticsearch`, `Pinecone` and `Redis` (beta)
-- Added config options for selecting and configuring Vector Store providers
-- Added ability to extend PyGPT with custom Vector Store providers
-- Added commands to the `Vision (inline)` plugin: get camera capture and make screenshot. Options must be enabled in the plugin settings. When enabled, they allow the model to capture images from the camera and make screenshots itself.
-- Added `Query index only (without chat)` option to `Chat with files` mode.
-- Added stream mode support to query index mode in `Chat with files`.
-
-# 2.0.113 (2024-01-20)
-
-- Added %workdir% placeholder to attachments and images files paths storage for more flexibility in moving data between environments
-- Refactored base plugin options handling
-
-# 2.0.112 (2024-01-19)
-
-- Fixed image variants slider in image mode
-- Fixed vision checkbox visibility
-- Fixed user directory path when handling different directories/symlinks
-- Added config option for disable opening image dialog after image generate
-- Added Scheduled tasks entry in taskbar dropdown
-- Added * (asterisk) indicator after date modified if newer than last indexed time
-- Date of modified in file explorer changed to format YYYY-MM-DD HH:MM:SS
-
-# 2.0.111 (2024-01-19)
-
-- Fixed: opening files and directories in Snap and Windows versions
-- Fixed: camera capture handling between mode switch
-- Added: info about snap connect camera in Snap version (if not connected)
-- Added: missing app/tray icon in compiled versions
-
-# 2.0.110 (2024-01-19)
-
-- Fixed bug: history file clear on ctx remove - bug [#9](https://github.com/szczyglis-dev/py-gpt/issues/9)
-- Vision inline allowed in modes: Langchain and Chat with files (llama-index)
-- Event names moved to Event class
-
-## 2.0.109 (2024-01-18)
-
-- Fixed bug: float inputs value update behaviour - bug [#8](https://github.com/szczyglis-dev/py-gpt/issues/8)
-- Added: plugin description tooltips - feature [#7](https://github.com/szczyglis-dev/py-gpt/issues/7)
-- Added: focus window on "New context..." in tray - feature [#13](https://github.com/szczyglis-dev/py-gpt/issues/13)
-- Added: Ask with screenshot option to tray menu - feature [#11](https://github.com/szczyglis-dev/py-gpt/issues/11)
-- Added: Open Notepad option to tray menu - feature [#14](https://github.com/szczyglis-dev/py-gpt/issues/14)
 
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.

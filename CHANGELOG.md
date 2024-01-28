@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.128 (2024-01-29)
+
+- Added improvements to RMB context menu handling in Files
+- Improved generation of names for duplicated files
+
 # 2.0.127 (2024-01-28)
 
 - Added ability to auto-store (in the `%workdir%/upload` directory) local copies of attachments uploaded from outside the workdir.
