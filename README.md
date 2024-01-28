@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.126** | build: **2024.01.28** | Python: **3.10+**
+Release: **2.0.127** | build: **2024.01.28** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1711,6 +1711,8 @@ Config -> Settings...
 
 - `Store attachments in the workdir upload directory`: Enable to store a local copy of uploaded attachments for future use. Default: True
 
+- `Store images, capture and upload in data directory`: Enable to store everything in single data directory. Default: False
+
 - `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
 - `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
@@ -1957,6 +1959,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.127 (2024-01-28)
+
+- Added ability to auto-store (in the `%workdir%/upload` directory) local copies of attachments uploaded from outside the workdir.
+- Added an option in the general settings dialog: `Store attachments in the workdir upload directory`, default: True
+- Added an option for storing everything in the `data` directory: `Store images, capture and uploads in data directory`, default: False
 
 # 2.0.126 (2024-01-28)
 

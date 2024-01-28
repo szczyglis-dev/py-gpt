@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.127 (2024-01-28)
+
+- Added ability to auto-store (in the `%workdir%/upload` directory) local copies of attachments uploaded from outside the workdir.
+- Added an option in the general settings dialog: `Store attachments in the workdir upload directory`, default: True
+- Added an option for storing everything in the `data` directory: `Store images, capture and uploads in data directory`, default: False
+
 # 2.0.126 (2024-01-28)
 
 - New features in file explorer (`Files` tab):
