@@ -650,6 +650,8 @@ class Patch:
                 print("Migrating config from < 2.0.127...")
                 if 'upload.store' not in data:
                     data['upload.store'] = True
+                if 'upload.data_dir' not in data:
+                    data['upload.data_dir'] = False
                 updated = True
 
         # update file

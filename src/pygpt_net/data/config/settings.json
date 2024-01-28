@@ -62,6 +62,19 @@
         "step": null,
         "advanced": false
     },
+    "upload.data_dir": {
+        "section": "general",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.upload.data_dir",
+        "description": "settings.upload.data_dir.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "lock_modes": {
         "section": "general",
         "type": "bool",

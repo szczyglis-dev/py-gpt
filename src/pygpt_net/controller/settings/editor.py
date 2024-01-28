@@ -119,6 +119,13 @@ class Editor:
         if self.before_config['layout.density'] != self.window.core.config.get('layout.density'):
             self.window.controller.theme.reload()
 
+        # update dirs if needed
+        if self.before_config['upload.data_dir'] != self.window.core.config.get('upload.data_dir'):
+            self.window.core.camera.install()
+            self.window.core.image.install()
+            self.window.core.filesystem.install()
+            self.window.controller.files.update_explorer()
+
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
 

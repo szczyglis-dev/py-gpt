@@ -41,12 +41,12 @@ class Filesystem:
         # data directory
         data_dir = self.window.core.config.get_user_dir('data')
         if not os.path.exists(data_dir):
-            os.mkdir(data_dir)
+            os.makedirs(data_dir, exist_ok=True)
 
         # upload directory
         upload_dir = self.window.core.config.get_user_dir('upload')
         if not os.path.exists(upload_dir):
-            os.mkdir(upload_dir)
+            os.makedirs(upload_dir, exist_ok=True)
 
         # install custom css styles for override default styles
         css_dir = os.path.join(self.window.core.config.path, 'css')

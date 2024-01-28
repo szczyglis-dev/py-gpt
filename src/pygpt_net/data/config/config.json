@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.0.126",
-    "app.version": "2.0.126",
+    "version": "2.0.127",
+    "app.version": "2.0.127",
     "updated_at": "2024-01-28T00:00:00"
   },
   "ai_name": "",
@@ -142,6 +142,7 @@
   "theme.markdown": true,
   "top_p": 1.0,
   "upload.store": true,
+  "upload.data_dir": false,
   "updater.check.launch": true,
   "updater.check.bg": false,
   "use_context": true,

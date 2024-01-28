@@ -29,7 +29,7 @@ class Image:
         """Install provider data, img dir, etc."""
         img_dir = os.path.join(self.window.core.config.get_user_dir("img"))
         if not os.path.exists(img_dir):
-            os.mkdir(img_dir)
+            os.makedirs(img_dir, exist_ok=True)
 
     def get_prompt(self, allow_custom: bool = True) -> str:
         """

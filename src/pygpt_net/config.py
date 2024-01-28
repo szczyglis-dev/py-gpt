@@ -92,7 +92,19 @@ class Config:
         """
         if dir not in self.dirs:
             raise Exception('Unknown dir: {}'.format(dir))
-        return os.path.join(self.get_user_path(), self.dirs[dir])
+
+        dir_data_allowed = ["img", "capture", "upload"]
+
+        if self.has("upload.data_dir") \
+                and self.get("upload.data_dir") \
+                and dir in dir_data_allowed:
+            path = os.path.join(self.get_user_path(), self.dirs["data"], self.dirs[dir])
+        else:
+            path = os.path.join(self.get_user_path(), self.dirs[dir])
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+
+        return path
 
     def get_app_path(self) -> str:
         """
