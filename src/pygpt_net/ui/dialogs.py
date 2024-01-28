@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.09 17:00:00                  #
+# Updated Date: 2024.01.27 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
 from pygpt_net.ui.dialog.assistant import Assistant
 from pygpt_net.ui.dialog.changelog import Changelog
+from pygpt_net.ui.dialog.create import Create
 from pygpt_net.ui.dialog.debug import Debug
 from pygpt_net.ui.dialog.dictionary import Dictionary
 from pygpt_net.ui.dialog.editor import Editor
@@ -39,6 +40,7 @@ class Dialogs:
         self.about = About(self.window)
         self.assistant = Assistant(self.window)
         self.changelog = Changelog(self.window)
+        self.create = Create(self.window)
         self.debug = Debug(self.window)
         self.dictionary = Dictionary(self.window)
         self.editor = Editor(self.window)
@@ -56,6 +58,7 @@ class Dialogs:
 
         self.about.setup()
         self.changelog.setup()
+        self.create.setup()
         self.preset.setup()
         self.assistant.setup()
         self.editor.setup()

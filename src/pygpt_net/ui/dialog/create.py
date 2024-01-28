@@ -9,21 +9,21 @@
 # Updated Date: 2024.01.27 19:00:00                  #
 # ================================================== #
 
-from pygpt_net.ui.widget.dialog.rename import RenameDialog
+from pygpt_net.ui.widget.dialog.create import CreateDialog
 from pygpt_net.utils import trans
 
 
-class Rename:
+class Create:
     def __init__(self, window=None):
         """
-        Rename dialog
+        Create dialog
 
         :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setup rename dialog"""
-        id = 'rename'
-        self.window.ui.dialog[id] = RenameDialog(self.window, id)
-        self.window.ui.dialog[id].setWindowTitle(trans("dialog.rename.title"))
+        """Setup create dialog"""
+        id = 'create'
+        self.window.ui.dialog[id] = CreateDialog(self.window, id)
+        self.window.ui.dialog[id].setWindowTitle(trans("dialog.create.title"))

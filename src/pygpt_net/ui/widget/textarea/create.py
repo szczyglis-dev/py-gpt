@@ -13,15 +13,15 @@ from PySide6 import QtCore
 from PySide6.QtWidgets import QLineEdit
 
 
-class RenameInput(QLineEdit):
+class CreateInput(QLineEdit):
     def __init__(self, window=None, id=None):
         """
-        Rename dialog input
+        Create dialog input
 
         :param window: main window
         :param id: info window id
         """
-        super(RenameInput, self).__init__(window)
+        super(CreateInput, self).__init__(window)
 
         self.window = window
         self.id = id
@@ -32,12 +32,12 @@ class RenameInput(QLineEdit):
 
         :param event: key event
         """
-        super(RenameInput, self).keyPressEvent(event)
+        super(CreateInput, self).keyPressEvent(event)
 
         # save on Enter
         if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            self.window.controller.dialogs.confirm.accept_rename(
-                self.window.ui.dialog['rename'].id,
-                self.window.ui.dialog['rename'].current,
+            self.window.controller.dialogs.confirm.accept_create(
+                self.window.ui.dialog['create'].id,
+                self.window.ui.dialog['create'].current,
                 self.text(),
             )

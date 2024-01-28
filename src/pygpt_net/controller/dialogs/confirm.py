@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.01.27 19:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -59,6 +59,8 @@ class Confirm:
         # files
         elif type == 'files.delete':
             self.window.controller.files.delete(id, True)
+        elif type == 'files.delete.recursive':
+            self.window.controller.files.delete_recursive(id, True)
 
         # assistants
         elif type == 'assistant_delete':
@@ -130,6 +132,25 @@ class Confirm:
         elif type == 'notepad':
             self.window.controller.notepad.update_name(id, name, True)
 
+    def accept_create(self, type: str, id: any, name: str):
+        """
+        Create new object
+
+        :param type: dialog type
+        :param id: dialog object id
+        :param name: name
+        """
+        if type == 'mkdir':
+            self.window.controller.files.make_dir(id, name)
+        if type == 'touch':
+            self.window.controller.files.touch_file(id, name, True)
+        elif type == 'duplicate':
+            self.window.controller.files.duplicate_local(id, name, True)
+
     def dismiss_rename(self):
         """Dismiss rename dialog"""
         self.window.ui.dialog['rename'].close()
+
+    def dismiss_create(self):
+        """Dismiss create dialog"""
+        self.window.ui.dialog['create'].close()

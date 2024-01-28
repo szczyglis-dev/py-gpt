@@ -12,44 +12,44 @@
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QVBoxLayout, QPushButton
 
 from pygpt_net.utils import trans
-from pygpt_net.ui.widget.textarea.rename import RenameInput
+from pygpt_net.ui.widget.textarea.create import CreateInput
 
 
-class RenameDialog(QDialog):
+class CreateDialog(QDialog):
     def __init__(self, window=None, id=None):
         """
-        Rename dialog
+        Create dialog
 
         :param window: main window
         :param id: info window id
         """
-        super(RenameDialog, self).__init__(window)
+        super(CreateDialog, self).__init__(window)
         self.window = window
         self.id = id
         self.current = None
-        self.input = RenameInput(window, id)
+        self.input = CreateInput(window, id)
         self.input.setMinimumWidth(400)
 
-        self.window.ui.nodes['dialog.rename.btn.update'] = QPushButton(trans('dialog.rename.update'))
-        self.window.ui.nodes['dialog.rename.btn.update'].clicked.connect(
-            lambda: self.window.controller.dialogs.confirm.accept_rename(
+        self.window.ui.nodes['dialog.create.btn.update'] = QPushButton(trans('dialog.create.update'))
+        self.window.ui.nodes['dialog.create.btn.update'].clicked.connect(
+            lambda: self.window.controller.dialogs.confirm.accept_create(
                 self.id,
-                self.window.ui.dialog['rename'].current,
+                self.window.ui.dialog['create'].current,
                 self.input.text()),
         )
 
-        self.window.ui.nodes['dialog.rename.btn.dismiss'] = QPushButton(trans('dialog.rename.dismiss'))
-        self.window.ui.nodes['dialog.rename.btn.dismiss'].clicked.connect(
-            lambda: self.window.controller.dialogs.confirm.dismiss_rename())
+        self.window.ui.nodes['dialog.create.btn.dismiss'] = QPushButton(trans('dialog.create.dismiss'))
+        self.window.ui.nodes['dialog.create.btn.dismiss'].clicked.connect(
+            lambda: self.window.controller.dialogs.confirm.dismiss_create())
 
         bottom = QHBoxLayout()
-        bottom.addWidget(self.window.ui.nodes['dialog.rename.btn.dismiss'])
-        bottom.addWidget(self.window.ui.nodes['dialog.rename.btn.update'])
+        bottom.addWidget(self.window.ui.nodes['dialog.create.btn.dismiss'])
+        bottom.addWidget(self.window.ui.nodes['dialog.create.btn.update'])
 
-        self.window.ui.nodes['dialog.rename.label'] = QLabel(trans("dialog.rename.title"))
+        self.window.ui.nodes['dialog.create.label'] = QLabel(trans("dialog.create.title"))
 
         layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['dialog.rename.label'])
+        layout.addWidget(self.window.ui.nodes['dialog.create.label'])
         layout.addWidget(self.input)
         layout.addLayout(bottom)
 

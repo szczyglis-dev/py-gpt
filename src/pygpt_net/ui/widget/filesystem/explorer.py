@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.27 19:00:00                  #
 # ================================================== #
 
 import datetime
+import os
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QModelIndex
@@ -161,32 +162,70 @@ class FileExplorer(QWidget):
         if indexes:
             index = indexes[0]
             path = self.model.filePath(index)
-
             actions = {}
+
+            # open file
             actions['open'] = QAction(QIcon.fromTheme("document-open"), trans('action.open'), self)
             actions['open'].triggered.connect(
                 lambda: self.action_open(path))
 
+            # open in file manager
             actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
 
+            # download
+            actions['download'] = QAction(QIcon.fromTheme("document-save"), trans('action.download'), self)
+            actions['download'].triggered.connect(
+                lambda: self.window.controller.files.download_local(path))
+
+            # rename
             actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
             actions['rename'].triggered.connect(
                 lambda: self.action_rename(path))
 
+            # duplicate
+            actions['duplicate'] = QAction(QIcon.fromTheme("edit-copy"), trans('action.duplicate'), self)
+            actions['duplicate'].triggered.connect(
+                lambda: self.window.controller.files.duplicate_local(path, ""))
+
+            if os.path.isdir(path):
+                # touch file
+                actions['touch'] = QAction(QIcon.fromTheme("edit-add"), trans('action.touch'), self)
+                actions['touch'].triggered.connect(
+                    lambda: self.window.controller.files.touch_file(path))
+
+                # make dir in dir
+                actions['mkdir'] = QAction(QIcon.fromTheme("edit-add"), trans('action.mkdir'), self)
+                actions['mkdir'].triggered.connect(
+                    lambda: self.action_make_dir(path))
+
+                # upload to dir
+                actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('files.local.upload'), self)
+                actions['upload'].triggered.connect(
+                    lambda: self.window.controller.files.upload_local(path))
+
+            # delete
             actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
             actions['delete'].triggered.connect(
                 lambda: self.action_delete(path))
 
             menu = QMenu(self)
-            idx_menu = QMenu(trans('action.idx'), self)
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
+            menu.addAction(actions['download'])
+
+            if os.path.isdir(path):
+                menu.addAction(actions['touch'])
+                menu.addAction(actions['mkdir'])
+                menu.addAction(actions['upload'])
+
             menu.addAction(actions['rename'])
+            menu.addAction(actions['duplicate'])
             menu.addAction(actions['delete'])
 
             # indexes list
+            idx_menu = QMenu(trans('action.idx'), self)
             idx_list = self.window.core.config.get('llama.idx.list')
             if len(idx_list) > 0:
                 for idx in idx_list:
@@ -196,6 +235,70 @@ class FileExplorer(QWidget):
                     action.triggered.connect(lambda checked=False, id=id, path=path: self.action_idx(path, id))
                 menu.addMenu(idx_menu)
 
+            # use
+            use_menu = QMenu(trans('action.use'), self)
+
+            # use as attachment
+            if not os.path.isdir(path):
+                actions['use_attachment'] = QAction(QIcon.fromTheme("edit-add"), trans('action.use.attachment'), self)
+                actions['use_attachment'].triggered.connect(
+                    lambda: self.window.controller.files.use_attachment(path))
+
+            # copy work path
+            actions['use_copy_work_path'] = QAction(QIcon.fromTheme("edit-copy"), trans('action.use.copy_work_path'),
+                                                    self)
+            actions['use_copy_work_path'].triggered.connect(
+                lambda: self.window.controller.files.copy_work_path(path))
+
+            # copy sys path
+            actions['use_copy_sys_path'] = QAction(QIcon.fromTheme("edit-copy"), trans('action.use.copy_sys_path'),
+                                                   self)
+            actions['use_copy_sys_path'].triggered.connect(
+                lambda: self.window.controller.files.copy_sys_path(path))
+
+            # use read cmd
+            actions['use_read_cmd'] = QAction(QIcon.fromTheme("edit-add"), trans('action.use.read_cmd'), self)
+            actions['use_read_cmd'].triggered.connect(
+                lambda: self.window.controller.files.make_read_cmd(path))
+
+            # add actions to menu
+            if not os.path.isdir(path):
+                use_menu.addAction(actions['use_attachment'])
+            use_menu.addAction(actions['use_copy_work_path'])
+            use_menu.addAction(actions['use_copy_sys_path'])
+            use_menu.addAction(actions['use_read_cmd'])
+            menu.addMenu(use_menu)
+
+            menu.exec(QCursor.pos())
+        else:
+            # no item selected
+            actions = {}
+
+            # touch file
+            actions['touch'] = QAction(QIcon.fromTheme("edit-add"), trans('action.touch'), self)
+            actions['touch'].triggered.connect(
+                lambda: self.window.controller.files.touch_file(self.directory))
+
+            # open in file manager
+            actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
+            actions['open_dir'].triggered.connect(
+                lambda: self.action_open_dir(self.directory))
+
+            # make dir in dir
+            actions['mkdir'] = QAction(QIcon.fromTheme("edit-add"), trans('action.mkdir'), self)
+            actions['mkdir'].triggered.connect(
+                lambda: self.action_make_dir(self.directory))
+
+            # upload in dir
+            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('files.local.upload'), self)
+            actions['upload'].triggered.connect(
+                lambda: self.window.controller.files.upload_local())
+
+            menu = QMenu(self)
+            menu.addAction(actions['touch'])
+            menu.addAction(actions['open_dir'])
+            menu.addAction(actions['mkdir'])
+            menu.addAction(actions['upload'])
             menu.exec(QCursor.pos())
 
     def action_open(self, path):
@@ -222,6 +325,14 @@ class FileExplorer(QWidget):
         :param path: path to open
         """
         self.window.controller.files.open_dir(path, True)
+
+    def action_make_dir(self, path: str = None):
+        """
+        Make directory action handler
+
+        :param path: parent path
+        """
+        self.window.controller.files.make_dir_dialog(path)
 
     def action_rename(self, path: str):
         """

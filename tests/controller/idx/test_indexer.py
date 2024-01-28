@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.27 19:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -17,12 +17,10 @@ from pygpt_net.controller.idx.indexer import Indexer
 
 def test_update_explorer(mock_window):
     """Test update explorer"""
-    mock_window.core.idx.load = MagicMock()
+    mock_window.controller.files.update_explorer = MagicMock()
     idx = Indexer(mock_window)
-    mock_window.core.idx.get_idx_data = MagicMock(return_value=[])
-    mock_window.ui.nodes['output_files'].model.update_idx_status = MagicMock()
     idx.update_explorer()
-    mock_window.ui.nodes['output_files'].model.update_idx_status.assert_called_once()
+    mock_window.controller.files.update_explorer.assert_called_once()
 
 
 def test_update_idx_status(mock_window):
