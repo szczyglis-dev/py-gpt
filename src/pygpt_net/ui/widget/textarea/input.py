@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.28 12:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QTextEdit, QApplication, QMenu
 
 from pygpt_net.utils import trans
@@ -58,6 +59,19 @@ class ChatInput(QTextEdit):
                 lambda: self.window.controller.calendar.note.append_text(selected_text))
 
             menu.addMenu(copy_to_menu)
+
+            # save as (selected)
+            action = QAction(QIcon.fromTheme("document-save"), trans('action.save_as'), self)
+            action.triggered.connect(
+                lambda: self.window.controller.chat.common.save_text(selected_text))
+            menu.addAction(action)
+        else:
+            # save as (all)
+            action = QAction(QIcon.fromTheme("document-save"), trans('action.save_as'), self)
+            action.triggered.connect(
+                lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
+            menu.addAction(action)
+
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):

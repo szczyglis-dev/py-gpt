@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 10:00:00                  #
+# Updated Date: 2024.01.28 12:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QTextCursor
+from PySide6.QtWidgets import QFileDialog
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.utils import trans
@@ -211,8 +212,7 @@ class Common:
             {'value': value},
         )
         if not value:
-            self.window.controller.ctx.refresh()
-            self.window.controller.theme.markdown.update(force=True)  # without state store
+            self.window.controller.theme.markdown.update(force=True)  # with state store
         else:
             self.window.controller.theme.markdown.clear()
 
@@ -239,3 +239,23 @@ class Common:
             self.img_disable_raw()
         else:
             self.img_enable_raw()
+
+    def save_text(self, text: str):
+        """
+        Save text to file
+
+        :param text: text to save
+        """
+        # first, open save dialog to select file
+        file_name = QFileDialog.getSaveFileName(
+            self.window,
+            "Save as text file",
+            self.window.core.config.get_user_dir('data'),
+            "*",
+        )[0]
+        if file_name:
+            # save file
+            with open(file_name, 'w') as f:
+                f.write(text)
+                self.window.ui.status(trans('status.saved'))
+
