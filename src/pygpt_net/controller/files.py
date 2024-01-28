@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 19:00:00                  #
+# Updated Date: 2024.01.28 19:00:00                  #
 # ================================================== #
 
 import os
@@ -39,6 +39,7 @@ class Files:
     def delete_recursive(self, path: str, force: bool = False):
         """
         Delete directory with all files
+
         :param path: path to directory
         :param force: force delete
         """
@@ -58,7 +59,13 @@ class Files:
             print("Error deleting directory: {} - {}".format(path, e))
 
     def touch_file(self, path: str, name: str = None, force: bool = False):
-        """Touch empty file"""
+        """
+        Touch empty file
+
+        :param path: path to file
+        :param name: filename
+        :param force: force touch
+        """
         if not force:
             self.window.ui.dialog['create'].id = 'touch'
             self.window.ui.dialog['create'].input.setText("")
@@ -103,16 +110,16 @@ class Files:
             try:
                 os.remove(path)
                 self.window.update_status(
-                    "[OK] Deleted file: {}".format(os.path.basename(path))
+                    "[OK] Deleted file/dir: {}".format(os.path.basename(path))
                 )
                 self.update_explorer()
             except Exception as e:
                 self.window.core.debug.log(e)
-                print("Error deleting file: {} - {}".format(path, e))
+                print("Error deleting file/dir: {} - {}".format(path, e))
 
     def duplicate_local(self, path: str, name: str, force: bool = False):
         """
-        Duplicate file
+        Duplicate file or directory
 
         :param path: path to file
         :param name: new file name
@@ -134,22 +141,22 @@ class Files:
             new_path = os.path.join(parent_dir, name)
 
             if os.path.exists(new_path):
-                self.window.update_status("[ERROR] File already exists: {}".format(os.path.basename(new_path)))
+                self.window.update_status("[ERROR] File/dir already exists: {}".format(os.path.basename(new_path)))
                 return
 
             if os.path.isdir(path):
                 shutil.copytree(path, new_path)
             else:
                 copy2(path, new_path)
-            self.window.update_status("[OK] Duplicated file: {}".format(os.path.basename(path)))
+            self.window.update_status("[OK] Duplicated file/dir: {}".format(os.path.basename(path)))
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error duplicating file: {} - {}".format(path, e))
+            print("Error duplicating file/dir: {} - {}".format(path, e))
 
     def download_local(self, path: str):
         """
-        Download (copy) file to local directory
+        Download (copy) file or directory to local filesystem
 
         :param path: path to source file
         """
@@ -167,14 +174,14 @@ class Files:
                         shutil.copytree(path, files[0])
                     else:
                         shutil.copy2(path, files[0])
-                    self.window.update_status("[OK] Downloaded file: {}".format(os.path.basename(path)))
+                    self.window.update_status("[OK] Downloaded file/dir: {}".format(os.path.basename(path)))
                 except Exception as e:
                     self.window.core.debug.log(e)
-                    print("Error downloading file: {} - {}".format(path, e))
+                    print("Error downloading file/dir: {} - {}".format(path, e))
 
     def upload_local(self, parent_path: str = None):
         """
-        Upload local file(s)
+        Upload local file(s) to directory
 
         :param parent_path: parent path
         """
@@ -217,19 +224,23 @@ class Files:
 
     def update_name(self, path: str, name: str):
         """
-        Update name
+        Update name of file or directory
 
         :param path: path
         :param name: name
         """
-        os.rename(path, os.path.join(os.path.dirname(path), name))
+        new_path = os.path.join(os.path.dirname(path), name)
+        if os.path.exists(new_path):
+            self.window.update_status("[ERROR] File/dir already exists: {}".format(os.path.basename(new_path)))
+            return
+        os.rename(path, new_path)
         self.window.update_status("[OK] Renamed: {} -> {}".format(os.path.basename(path), name))
         self.window.ui.dialog['rename'].close()
         self.update_explorer()
 
     def open_dir(self, path: str, select: bool = False):
         """
-        Open in directory
+        Open file or directory in file manager
 
         :param path: path to file or directory
         :param select: select file in file manager
@@ -277,8 +288,6 @@ class Files:
 
         :param path: path to file or directory
         """
-        print("make dir")
-        print(path)
         self.window.ui.dialog['create'].id = 'mkdir'
         self.window.ui.dialog['create'].input.setText("")
         self.window.ui.dialog['create'].current = path
@@ -290,16 +299,15 @@ class Files:
         Make directory
 
         :param path: path to directory
-        :param name: directory name
+        :param name: name of directory
         """
-        print("make dir: {} => {}".format(path, name))
         self.window.ui.dialog['create'].close()
         if name is None:
             self.window.update_status("[ERROR] Directory name is empty.")
             return
         path_dir = os.path.join(path, name)
         if os.path.exists(path_dir):
-            self.window.update_status("ERROR] Directory already exists.")
+            self.window.update_status("[ERROR] Directory or file already exists.")
             return
         os.makedirs(path_dir, exist_ok=True)
         self.window.update_status("[OK] Directory created: {}".format(name))
@@ -312,7 +320,7 @@ class Files:
 
     def use_attachment(self, path: str):
         """
-        Use as attachment
+        Use file as attachment
 
         :param path: path to file
         """
@@ -343,21 +351,22 @@ class Files:
 
     def make_read_cmd(self, path: str):
         """
-        Make read command
+        Make read command for file or directory and append to input
 
         :param path: path to file
         """
         if os.path.isdir(path):
             cmd = "Please read files from current directory: {}".format(self.strip_work_path(path))
         else:
-            cmd = "Please read file from current directory: {}".format(self.strip_work_path(path))
+            cmd = "Please read this file from current directory: {}".format(self.strip_work_path(path))
         self.window.controller.chat.common.append_to_input(cmd)
 
-    def strip_work_path(self, path: str):
+    def strip_work_path(self, path: str) -> str:
         """
         Strip work path
 
         :param path: path to file
+        :return: stripped path
         """
         work_dir = self.window.core.config.get_user_dir("data")
         path = path.replace(work_dir, "")
