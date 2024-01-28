@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.28 12:00:00                  #
 # ================================================== #
+import os
 
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import QFileDialog
@@ -246,17 +247,26 @@ class Common:
 
         :param text: text to save
         """
+        last_dir = self.window.core.config.get_user_dir('data')
+        if self.window.core.config.has("dialog.last_dir"):
+            tmp_dir = self.window.core.config.get("dialog.last_dir")
+            if os.path.isdir(tmp_dir):
+                last_dir = tmp_dir
+
         options = QFileDialog.Options()
         selected_filter = "Text Files (*.txt)"
         file_name, _ = QFileDialog.getSaveFileName(
             self.window,
             "Save as text file",
-            self.window.core.config.get_user_dir('data'),
+            last_dir,
             "All Files (*);;Text Files (*.txt);;Python Files (*.py);;Markdown Files (*.md)",
             selected_filter,
             options,
         )
         if file_name:
+            last_dir = os.path.dirname(file_name)
+            self.window.core.config.set('dialog.last_dir', last_dir)
+            self.window.core.config.save()
             with open(file_name, 'w', encoding="utf-8") as f:
                 f.write(text)
             self.window.ui.status(trans('status.saved'))
