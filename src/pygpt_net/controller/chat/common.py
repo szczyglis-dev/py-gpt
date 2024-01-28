@@ -246,16 +246,18 @@ class Common:
 
         :param text: text to save
         """
-        # first, open save dialog to select file
-        file_name = QFileDialog.getSaveFileName(
+        options = QFileDialog.Options()
+        selected_filter = "Text Files (*.txt)"
+        file_name, _ = QFileDialog.getSaveFileName(
             self.window,
             "Save as text file",
             self.window.core.config.get_user_dir('data'),
-            "*",
-        )[0]
+            "All Files (*);;Text Files (*.txt);;Python Files (*.py);;Markdown Files (*.md)",
+            selected_filter,
+            options,
+        )
         if file_name:
-            # save file
-            with open(file_name, 'w') as f:
+            with open(file_name, 'w', encoding="utf-8") as f:
                 f.write(text)
-                self.window.ui.status(trans('status.saved'))
+            self.window.ui.status(trans('status.saved'))
 
