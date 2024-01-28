@@ -190,20 +190,24 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.duplicate_local(path, ""))
 
             if os.path.isdir(path):
-                # touch file
-                actions['touch'] = QAction(QIcon.fromTheme("edit-add"), trans('action.touch'), self)
-                actions['touch'].triggered.connect(
-                    lambda: self.window.controller.files.touch_file(path))
+                parent = path
+            else:
+                parent = os.path.dirname(path)
 
-                # make dir in dir
-                actions['mkdir'] = QAction(QIcon.fromTheme("edit-add"), trans('action.mkdir'), self)
-                actions['mkdir'].triggered.connect(
-                    lambda: self.action_make_dir(path))
+            # touch file
+            actions['touch'] = QAction(QIcon.fromTheme("edit-add"), trans('action.touch'), self)
+            actions['touch'].triggered.connect(
+                lambda: self.window.controller.files.touch_file(parent))
 
-                # upload to dir
-                actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('files.local.upload'), self)
-                actions['upload'].triggered.connect(
-                    lambda: self.window.controller.files.upload_local(path))
+            # make dir in dir
+            actions['mkdir'] = QAction(QIcon.fromTheme("edit-add"), trans('action.mkdir'), self)
+            actions['mkdir'].triggered.connect(
+                lambda: self.action_make_dir(parent))
+
+            # upload to dir
+            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('files.local.upload'), self)
+            actions['upload'].triggered.connect(
+                lambda: self.window.controller.files.upload_local(parent))
 
             # delete
             actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
@@ -215,10 +219,9 @@ class FileExplorer(QWidget):
             menu.addAction(actions['open_dir'])
             menu.addAction(actions['download'])
 
-            if os.path.isdir(path):
-                menu.addAction(actions['touch'])
-                menu.addAction(actions['mkdir'])
-                menu.addAction(actions['upload'])
+            menu.addAction(actions['touch'])
+            menu.addAction(actions['mkdir'])
+            menu.addAction(actions['upload'])
 
             menu.addAction(actions['rename'])
             menu.addAction(actions['duplicate'])
