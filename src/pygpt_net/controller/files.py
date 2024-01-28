@@ -126,8 +126,12 @@ class Files:
         :param force: force duplicate
         """
         if not force:
+            if os.path.isdir(path):
+                new_name = os.path.basename(path) + "_copy"
+            else:
+                new_name = os.path.splitext(os.path.basename(path))[0] + "_copy" + os.path.splitext(path)[1]
             self.window.ui.dialog['create'].id = 'duplicate'
-            self.window.ui.dialog['create'].input.setText(os.path.basename(path) + ' - copy')
+            self.window.ui.dialog['create'].input.setText(new_name)
             self.window.ui.dialog['create'].current = path
             self.window.ui.dialog['create'].show()
             self.window.ui.dialog['create'].input.setFocus()
