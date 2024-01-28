@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.01.28 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -42,14 +42,15 @@ class Config:
         self.data_base = {}
         self.version = self.get_version()
         self.dirs = {
-            'data': 'data',
-            'img': 'img',
-            'presets': 'presets',
-            'idx': 'idx',
-            'capture': 'capture',
-            'history': 'history',
-            'css': 'css',
-            'locale': 'locale',
+            "capture": "capture",
+            "css": "css",
+            "data": "data",
+            "history": "history",
+            "idx": "idx",
+            "img": "img",
+            "locale": "locale",
+            "presets": "presets",
+            "upload": "upload",
         }
         self.provider = JsonFileProvider(window)
         self.provider.path = self.get_user_path()

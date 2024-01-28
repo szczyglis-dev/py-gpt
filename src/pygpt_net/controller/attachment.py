@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 14:00:00                  #
+# Updated Date: 2024.01.28 22:00:00                  #
 # ================================================== #
 
 import os
@@ -91,12 +91,13 @@ class Attachment:
         # TODO: implement this
         pass
 
-    def delete(self, idx: int, force: bool = False):
+    def delete(self, idx: int, force: bool = False, remove_local: bool = False):
         """
         Delete attachment
 
         :param idx: index of attachment
         :param force: force delete
+        :param remove_local: remove local file
         """
         mode = self.window.core.config.get('mode')
         if not force:
@@ -104,7 +105,7 @@ class Attachment:
             return
 
         file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
-        self.window.core.attachments.delete(mode, file_id)
+        self.window.core.attachments.delete(mode, file_id, remove_local=remove_local)
 
         # clear current if current == deleted
         if self.window.core.attachments.current == file_id:
@@ -169,11 +170,12 @@ class Attachment:
         self.window.core.attachments.add(mode, attachment)
         self.update()
 
-    def clear(self, force: bool = False):
+    def clear(self, force: bool = False, remove_local=False):
         """
         Clear attachments list
 
         :param force: force clear
+        :param remove_local: remove local copies
         """
         if not force:
             self.window.ui.dialogs.confirm('attachments.clear', -1, trans('attachments.clear.confirm'))
@@ -181,7 +183,7 @@ class Attachment:
 
         # delete all from attachments for current mode
         mode = self.window.core.config.get('mode')
-        self.window.core.attachments.delete_all(mode)
+        self.window.core.attachments.delete_all(mode, remove_local=remove_local)
 
         self.window.controller.chat.vision.unavailable()  # set no content to provide
 

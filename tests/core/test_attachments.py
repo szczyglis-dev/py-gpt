@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.02 11:00:00                  #
+# Updated Date: 2024.01.28 22:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -187,6 +187,7 @@ def test_new():
     """
     with patch('pygpt_net.core.attachments.Attachments.save') as mock_save:
         attachments = Attachments()
+        attachments.window = MagicMock()
         mode = 'test'
         file_id = 'test_id'
         name = 'test_name'
@@ -321,6 +322,7 @@ def test_delete_all():
     """
     with patch('pygpt_net.core.attachments.Attachments.clear'):
         attachments = Attachments()
+        attachments.window = MagicMock()
         attachments.clear = MagicMock()
         attachments.provider = MagicMock()
         attachments.provider.truncate = MagicMock()
@@ -334,7 +336,7 @@ def test_delete_all():
         }
         attachments.items = items
         attachments.delete_all(mode)
-        attachments.clear.assert_called_once_with(mode)
+        attachments.clear.assert_called_once_with(mode, remove_local=False)
         attachments.provider.truncate.assert_called_once_with(mode)
 
 

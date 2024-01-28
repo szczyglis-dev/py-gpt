@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 22:00:00                  #
+# Updated Date: 2024.01.28 22:00:00                  #
 # ================================================== #
 
 import os
@@ -643,6 +643,13 @@ class Patch:
                 print("Migrating config from < 2.0.123...")
                 if 'llama.idx.recursive' not in data:
                     data['llama.idx.recursive'] = False
+                updated = True
+
+            # < 2.0.127
+            if old < parse_version("2.0.127"):
+                print("Migrating config from < 2.0.127...")
+                if 'upload.store' not in data:
+                    data['upload.store'] = True
                 updated = True
 
         # update file

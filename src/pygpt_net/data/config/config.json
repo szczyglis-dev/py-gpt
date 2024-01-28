@@ -141,6 +141,7 @@
   "theme": "dark_cyan",
   "theme.markdown": true,
   "top_p": 1.0,
+  "upload.store": true,
   "updater.check.launch": true,
   "updater.check.bg": false,
   "use_context": true,

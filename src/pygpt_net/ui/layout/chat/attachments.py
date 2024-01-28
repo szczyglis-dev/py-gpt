@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.28 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QStandardItemModel, Qt
@@ -96,7 +96,7 @@ class Attachments:
         self.window.ui.nodes['attachments.btn.add'].clicked.connect(
             lambda: self.window.controller.attachment.open_add())
         self.window.ui.nodes['attachments.btn.clear'].clicked.connect(
-            lambda: self.window.controller.attachment.clear())
+            lambda: self.window.controller.attachment.clear(remove_local=True))
 
         self.window.ui.nodes['attachments.send_clear'] = QCheckBox(trans('attachments.send_clear'))
         self.window.ui.nodes['attachments.send_clear'].stateChanged.connect(

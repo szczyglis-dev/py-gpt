@@ -21,6 +21,8 @@ The following basic options can be modified directly within the application:
 
 * ``Number of notepads`` Number of notepad tabs. Restart of the application is required for this option to take effect.
 
+* ``Store attachments in the workdir upload directory``: Enable to store a local copy of uploaded attachments for future use. Default: True
+
 * ``Lock incompatible modes`` If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
 * ``Show tray icon`` Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.

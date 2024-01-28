@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.01.28 22:00:00                  #
 # ================================================== #
+
 import copy
 
 from packaging.version import Version
@@ -130,7 +131,13 @@ class Attachments:
 
         return self.items[mode]
 
-    def new(self, mode: str, name: str = None, path: str = None, auto_save: bool = True) -> AttachmentItem:
+    def new(
+            self,
+            mode: str,
+            name: str = None,
+            path: str = None,
+            auto_save: bool = True
+    ) -> AttachmentItem:
         """
         Create new attachment
 
@@ -140,6 +147,11 @@ class Attachments:
         :param auto_save: auto_save
         :return: AttachmentItem
         """
+        # make local copy of external attachment if enabled
+        if self.window.core.config.get("upload.store"):
+            if not self.window.core.filesystem.in_work_dir(path):
+                path = self.window.core.filesystem.store_upload(path)
+
         attachment = self.create()
         attachment.name = name
         attachment.path = path
@@ -205,35 +217,45 @@ class Attachments:
 
         return len(self.items[mode]) > 0
 
-    def delete(self, mode: str, id: str):
+    def delete(self, mode: str, id: str, remove_local: bool = False):
         """
         Delete attachment by file_id
 
         :param mode: mode
         :param id: file id
+        :param remove_local: remove local copy
         """
         if mode not in self.items:
             self.items[mode] = {}
 
         if id in self.items[mode]:
+            if remove_local:
+                self.window.core.filesystem.remove_upload(self.items[mode][id].path)
             del self.items[mode][id]
             self.save()
 
-    def delete_all(self, mode: str):
+    def delete_all(self, mode: str, remove_local: bool = False):
         """
         Delete all attachments
 
         :param mode: mode
+        :param remove_local: remove local copy
         """
-        self.clear(mode)
+        self.clear(mode, remove_local=remove_local)
         self.provider.truncate(mode)
 
-    def clear(self, mode: str):
+    def clear(self, mode: str, remove_local: bool = False):
         """
         Clear all attachments in mode
 
         :param mode: mode
+        :param remove_local: remove local copy
         """
+        if mode not in self.items:
+            self.items[mode] = {}
+        if remove_local:
+            for id in self.items[mode]:
+                self.window.core.filesystem.remove_upload(self.items[mode][id].path)
         self.items[mode] = {}
 
     def clear_all(self):
@@ -242,7 +264,12 @@ class Attachments:
         """
         self.items = {}
 
-    def replace_id(self, mode: str, tmp_id: str, attachment: AttachmentItem):
+    def replace_id(
+            self,
+            mode: str,
+            tmp_id: str,
+            attachment: AttachmentItem
+    ):
         """
         Replace temporary id with real one
 
