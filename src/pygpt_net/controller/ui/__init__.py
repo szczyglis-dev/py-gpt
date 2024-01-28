@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 10:00:00                  #
+# Updated Date: 2024.01.28 12:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -51,6 +51,9 @@ class UI:
 
         # update token counters
         self.update_tokens()
+
+        # update vision
+        self.vision.update()
 
     def update_font_size(self):
         """Update font size"""

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.28 12:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, call
@@ -32,6 +32,7 @@ def test_update(mock_window):
     """Test update"""
     ui = UI(mock_window)
 
+    ui.vision.update = MagicMock()
     ui.update_toolbox = MagicMock()
     ui.update_chat_label = MagicMock()
     ui.mode.update = MagicMock()
@@ -43,6 +44,7 @@ def test_update(mock_window):
     ui.update_chat_label.assert_called_once()
     ui.mode.update.assert_called_once()
     ui.update_tokens.assert_called_once()
+    ui.vision.update.assert_called_once()
 
 
 def test_update_font_size(mock_window):
