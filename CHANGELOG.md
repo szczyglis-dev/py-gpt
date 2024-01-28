@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.124 (2024-01-27)
+
+- Fixed Vision checkbox visibility when switching to plain-text mode
+- Added RMB context menu option "Save as..." to selected text for saving selected text (or whole document) to a text file
+
 # 2.0.123 (2024-01-27)
 
 - Standarized models names
