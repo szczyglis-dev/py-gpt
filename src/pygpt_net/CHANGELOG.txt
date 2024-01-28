@@ -1,3 +1,16 @@
+2.0.126 (2024-01-28)
+
+- New features in file explorer (Files tab):
+
+- Create empty file
+- Create directory
+- Upload files to selected directory
+- Download file or directory
+- Duplicate file or directory
+- Use as attachment
+- Ask for read this file
+- Copy working/system path to input and clipboard
+
 2.0.125 (2024-01-28)
 
 - Fixed chars encoding in save text to file option

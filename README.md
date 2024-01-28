@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.125** | build: **2024.01.28** | Python: **3.10+**
+Release: **2.0.126** | build: **2024.01.28** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1953,6 +1953,19 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.126 (2024-01-28)
+
+- New features in file explorer (`Files` tab):
+
+- Create empty file
+- Create directory
+- Upload files to selected directory
+- Download file or directory
+- Duplicate file or directory
+- Use as attachment
+- Ask for read this file
+- Copy working/system path to input and clipboard
 
 # 2.0.125 (2024-01-28)
 
