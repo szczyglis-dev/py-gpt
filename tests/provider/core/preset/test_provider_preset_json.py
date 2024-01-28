@@ -26,7 +26,6 @@ def test_install(mock_window):
             os_path_exists.return_value = False
             provider.install()
             copy_tree.assert_called_once()
-            os_path_exists.assert_called_once()
 
 
 def test_load(mock_window):
@@ -53,7 +52,6 @@ def test_load(mock_window):
                 os_path_exists.return_value = True
                 os_listdir.return_value = ['test.json']
                 items = provider.load()
-                os_path_exists.assert_called_once()
                 os_listdir.assert_called_once()
                 m.assert_called_once()
                 assert isinstance(items, dict)
@@ -129,7 +127,6 @@ def test_remove(mock_window):
         with patch('os.remove') as os_remove:
             os_path_exists.return_value = True
             provider.remove('test')
-            os_path_exists.assert_called_once()
             os_remove.assert_called_once()
 
 

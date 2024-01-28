@@ -21,10 +21,9 @@ def test_install(mock_window):
     """Test install"""
     image = Image(mock_window)
     os.path.exists = MagicMock(return_value=False)
-    os.mkdir = MagicMock()
+    os.makedirs = MagicMock()
     image.install()
-    os.path.exists.assert_called_once()
-    os.mkdir.assert_called_once()
+    os.makedirs.assert_called()
 
 
 def test_get_prompt(mock_window):

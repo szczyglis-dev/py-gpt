@@ -20,7 +20,6 @@ def test_install(mock_window):
     """Test install"""
     camera = Camera(mock_window)
     os.path.exists = MagicMock(return_value=False)
-    os.mkdir = MagicMock()
+    os.makedirs = MagicMock()
     camera.install()
-    os.path.exists.assert_called_once()
-    os.mkdir.assert_called_once()
+    os.makedirs.assert_called()

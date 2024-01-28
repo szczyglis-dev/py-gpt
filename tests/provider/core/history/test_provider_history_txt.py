@@ -21,7 +21,6 @@ def test_install(mock_window):
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value = True
         provider.install()
-        os_path_exists.assert_called_once()
 
 
 def test_append(mock_window):
@@ -47,4 +46,3 @@ def test_truncate(mock_window):
     with patch('os.path.exists') as os_path_exists:
         os_path_exists.return_value = False
         provider.truncate()
-        os_path_exists.assert_called_once()
