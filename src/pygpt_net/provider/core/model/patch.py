@@ -140,7 +140,7 @@ class Patch:
                     data["gpt-4-1106-preview"].name = "gpt-4-1106-preview"
                 if "gpt-4-vision-preview" in data:
                     data["gpt-4-vision-preview"].name = "gpt-4-vision-preview"
-                    updated = True
+                updated = True
 
         # update file
         if updated:
@@ -148,8 +148,7 @@ class Patch:
             self.window.core.models.items = data
             self.window.core.models.save()
 
-        # patch missing models
-        if is_old:
-            updated = self.window.core.models.patch_missing()
+            # also patch any missing models
+            self.window.core.models.patch_missing()
 
         return updated
