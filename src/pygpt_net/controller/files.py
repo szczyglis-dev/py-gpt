@@ -66,6 +66,8 @@ class Files:
             self.window.ui.dialog['create'].show()
             self.window.ui.dialog['create'].input.setFocus()
             return
+
+        self.window.ui.dialog['create'].close()
         try:
             filepath = os.path.join(path, name)
             open(filepath, 'a').close()
