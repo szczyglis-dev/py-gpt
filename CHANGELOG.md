@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.125 (2024-01-28)
+
+- Fixed chars encoding in save text to file option
+
 # 2.0.124 (2024-01-28)
 
 - Fixed Vision checkbox visibility when switching to plain-text mode
