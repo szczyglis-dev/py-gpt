@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 10:00:00                  #
+# Updated Date: 2024.01.28 14:00:00                  #
 # ================================================== #
 
 import os
@@ -196,22 +196,26 @@ class Attachment:
 
     def open_add(self):
         """Open add attachment file dialog"""
+        last_dir = self.window.core.config.get_last_used_dir()
         mode = self.window.core.config.get('mode')
         dialog = QFileDialog(self.window)
+        dialog.setDirectory(last_dir)
         dialog.setFileMode(QFileDialog.ExistingFiles)
         if dialog.exec():
             files = dialog.selectedFiles()
-            for path in files:
-                # build attachment object
-                basename = os.path.basename(path)
-                attachment = self.window.core.attachments.new(mode, basename, path, False)
-                # append attachment to assistant if current mode = assistant
-                if mode == 'assistant':
-                    assistant_id = self.window.core.config.get('assistant')
-                    if assistant_id is not None:
-                        assistant = self.window.core.assistants.get_by_id(assistant_id)
-                        if assistant is not None:
-                            self.window.controller.assistant.files.append(assistant, attachment)
+            if files:
+                self.window.core.config.set_last_used_dir(os.path.dirname(files[0]))
+                for path in files:
+                    # build attachment object
+                    basename = os.path.basename(path)
+                    attachment = self.window.core.attachments.new(mode, basename, path, False)
+                    # append attachment to assistant if current mode = assistant
+                    if mode == 'assistant':
+                        assistant_id = self.window.core.config.get('assistant')
+                        if assistant_id is not None:
+                            assistant = self.window.core.assistants.get_by_id(assistant_id)
+                            if assistant is not None:
+                                self.window.controller.assistant.files.append(assistant, attachment)
 
             # save attachments and update attachments list
             self.window.core.attachments.save()

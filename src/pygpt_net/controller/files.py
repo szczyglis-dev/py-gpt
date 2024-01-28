@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 08:00:00                  #
+# Updated Date: 2024.01.28 14:00:00                  #
 # ================================================== #
 
 import os
@@ -50,19 +50,25 @@ class Files:
 
     def upload_local(self):
         """Upload local file(s)"""
-        files, _ = QFileDialog.getOpenFileNames(self.window, "Select files to upload", "")
-        if files:
-            target_directory = self.window.core.config.get_user_dir('data')
-            num = 0
-            for file_path in files:
-                try:
-                    os.makedirs(target_directory, exist_ok=True)
-                    copy2(file_path, target_directory)
-                    num += 1
-                except Exception as e:
-                    print(f'Error copying file {file_path}: {e}')
-            if num > 0:
-                self.window.update_status(f'[OK] Uploaded: {num} files.')
+        last_dir = self.window.core.config.get_last_used_dir()
+        dialog = QFileDialog(self.window)
+        dialog.setDirectory(last_dir)
+        dialog.setFileMode(QFileDialog.ExistingFiles)
+        if dialog.exec():
+            files = dialog.selectedFiles()
+            if files:
+                self.window.core.config.set_last_used_dir(os.path.dirname(files[0]))
+                target_directory = self.window.core.config.get_user_dir('data')
+                num = 0
+                for file_path in files:
+                    try:
+                        os.makedirs(target_directory, exist_ok=True)
+                        copy2(file_path, target_directory)
+                        num += 1
+                    except Exception as e:
+                        print(f'Error copying file {file_path}: {e}')
+                if num > 0:
+                    self.window.update_status(f'[OK] Uploaded: {num} files.')
 
     def rename(self, path: str):
         """

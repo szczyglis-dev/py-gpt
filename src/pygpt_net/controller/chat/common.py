@@ -247,12 +247,7 @@ class Common:
 
         :param text: text to save
         """
-        last_dir = self.window.core.config.get_user_dir('data')
-        if self.window.core.config.has("dialog.last_dir"):
-            tmp_dir = self.window.core.config.get("dialog.last_dir")
-            if os.path.isdir(tmp_dir):
-                last_dir = tmp_dir
-
+        last_dir = self.window.core.config.get_last_used_dir()
         options = QFileDialog.Options()
         selected_filter = "Text Files (*.txt)"
         file_name, _ = QFileDialog.getSaveFileName(
@@ -264,9 +259,7 @@ class Common:
             options,
         )
         if file_name:
-            last_dir = os.path.dirname(file_name)
-            self.window.core.config.set('dialog.last_dir', last_dir)
-            self.window.core.config.save()
+            self.window.core.config.set_last_used_dir(os.path.dirname(file_name))
             with open(file_name, 'w', encoding="utf-8") as f:
                 f.write(text)
             self.window.ui.status(trans('status.saved'))

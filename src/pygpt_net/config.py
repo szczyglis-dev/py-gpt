@@ -314,6 +314,28 @@ class Config:
             self.load_base_config()
         self.data = copy.deepcopy(self.data_base)
 
+    def get_last_used_dir(self) -> str:
+        """
+        Return last used directory
+
+        :return: last used directory
+        """
+        last_dir = self.get_user_dir('data')
+        if self.has("dialog.last_dir"):
+            tmp_dir = self.get("dialog.last_dir")
+            if os.path.isdir(tmp_dir):
+                last_dir = tmp_dir
+        return last_dir
+
+    def set_last_used_dir(self, path: str):
+        """
+        Save last used directory
+
+        :param path: path
+        """
+        self.set('dialog.last_dir', path)
+        self.save()
+
     def get_base(self, option: str = None) -> any:
         """
         Return base config option or all base config
