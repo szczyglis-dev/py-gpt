@@ -259,8 +259,9 @@ class Common:
             options,
         )
         if file_name:
+            # convert text to plain text
             self.window.core.config.set_last_used_dir(os.path.dirname(file_name))
             with open(file_name, 'w', encoding="utf-8") as f:
-                f.write(text)
+                f.write(str(text).strip())
             self.window.ui.status(trans('status.saved'))
 

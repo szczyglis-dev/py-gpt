@@ -65,6 +65,9 @@ class NotepadOutput(QTextEdit):
         menu = self.createStandardContextMenu()
         selected_text = self.textCursor().selectedText()
         if selected_text:
+            # plain text
+            plain_text = self.textCursor().selection().toPlainText()
+
             # audio read
             action = menu.addAction(trans('text.context_menu.audio.read'))
             action.triggered.connect(self.audio_read_selection)
@@ -98,7 +101,7 @@ class NotepadOutput(QTextEdit):
             # save as (selected)
             action = QAction(QIcon.fromTheme("document-save"), trans('action.save_as'), self)
             action.triggered.connect(
-                lambda: self.window.controller.chat.common.save_text(selected_text))
+                lambda: self.window.controller.chat.common.save_text(plain_text))
             menu.addAction(action)
         else:
             # save as (all)
