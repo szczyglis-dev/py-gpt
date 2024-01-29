@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 22:00:00                  #
+# Updated Date: 2024.01.29 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -214,6 +214,41 @@ class Storage:
             is_important=int(meta.important),
             is_archived=int(meta.archived),
             label=int(meta.label),
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def update_meta_all(self, meta: CtxMeta, items: list) -> bool:
+        """
+        Update all, meta and items
+
+        :param meta: CtxMeta
+        :param items: list of CtxItem
+        """
+        self.update_meta(meta)
+        self.set_meta_ts(meta.id, meta.updated)
+        for item in items:
+            self.insert_item(meta, item)
+        return True
+
+    def set_meta_ts(self, id: int, ts: int) -> bool:
+        """
+        Update ctx meta updated timestamp
+
+        :param id: ctx meta ID
+        :param ts: timestamp
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                updated_ts = :updated_ts
+            WHERE id = :id
+        """).bindparams(
+            id=id,
+            updated_ts=ts
         )
         with db.begin() as conn:
             conn.execute(stmt)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.29 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -50,7 +50,7 @@ class Common:
         # update ctx label
         self.window.controller.ui.update_ctx_label(label)
 
-    def update_label(self, mode, assistant_id=None):
+    def update_label(self, mode: str, assistant_id: str = None):
         """
         Update ctx label
 
@@ -67,6 +67,27 @@ class Common:
 
         # update ctx label
         self.window.controller.ui.update_ctx_label(label)
+
+    def duplicate_by_idx(self, idx: int):
+        """
+        Duplicate context by idx on list
+
+        :param idx: context list idx
+        """
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        if id is not None:
+            self.duplicate(id)
+
+    def duplicate(self, meta_id: int):
+        """
+        Duplicate context by meta id
+
+        :param meta_id: context id
+        """
+        new_id = self.window.core.ctx.duplicate(meta_id)
+        if new_id is not None:
+            self.window.update_status("Context duplicated, new ctx id: {}".format(new_id))
+            self.window.controller.ctx.update()
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""

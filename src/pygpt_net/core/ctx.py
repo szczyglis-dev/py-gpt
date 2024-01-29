@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.01.29 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -543,6 +543,23 @@ class Ctx:
         """Remove last item"""
         if len(self.items) > 0:
             self.items.pop()
+
+    def duplicate(self, id: int) -> int:
+        """
+        Duplicate ctx
+
+        :param id: ctx id
+        :return: new ctx id
+        """
+        if id in self.meta:
+            meta = self.create()
+            new_id = meta.id
+            old_data = self.meta[id].to_dict()
+            meta.from_dict(old_data)
+            meta.id = new_id
+            items = self.load(id)
+            self.provider.save_all(meta.id, meta, items)
+            return meta.id
 
     def remove_first(self):
         """Remove first item"""

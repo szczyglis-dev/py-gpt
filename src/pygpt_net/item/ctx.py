@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.29 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -123,6 +123,41 @@ class CtxItem:
             "internal": self.internal,
         }
 
+    def from_dict(self, data: dict):
+        """
+        Load context item from dict
+
+        :param data: dict
+        """
+        self.id = data.get("id", None)
+        self.meta_id = data.get("meta_id", None)
+        self.external_id = data.get("external_id", None)
+        self.stream = data.get("stream", None)
+        self.cmds = data.get("cmds", [])
+        self.results = data.get("results", [])
+        self.urls = data.get("urls", [])
+        self.images = data.get("images", [])
+        self.files = data.get("files", [])
+        self.attachments = data.get("attachments", [])
+        self.reply = data.get("reply", False)
+        self.input = data.get("input", None)
+        self.output = data.get("output", None)
+        self.mode = data.get("mode", None)
+        self.model = data.get("model", None)
+        self.thread = data.get("thread", None)
+        self.msg_id = data.get("msg_id", None)
+        self.run_id = data.get("run_id", None)
+        self.input_name = data.get("input_name", None)
+        self.output_name = data.get("output_name", None)
+        self.input_timestamp = data.get("input_timestamp", None)
+        self.output_timestamp = data.get("output_timestamp", None)
+        self.input_tokens = data.get("input_tokens", 0)
+        self.output_tokens = data.get("output_tokens", 0)
+        self.total_tokens = data.get("total_tokens", 0)
+        self.extra = data.get("extra", None)
+        self.current = data.get("current", False)
+        self.internal = data.get("internal", False)
+
     def dump(self) -> str:
         """
         Dump context item to JSON string
@@ -169,3 +204,63 @@ class CtxMeta:
         self.important = False
         self.archived = False
         self.label = 0  # label color
+
+    def to_dict(self) -> dict:
+        """
+        Dump context meta to dict
+
+        :return: dict
+        """
+        return {
+            "id": self.id,
+            "external_id": self.external_id,
+            "uuid": self.uuid,
+            "name": self.name,
+            "date": self.date,
+            "created": self.created,
+            "updated": self.updated,
+            "mode": self.mode,
+            "model": self.model,
+            "last_mode": self.last_mode,
+            "last_model": self.last_model,
+            "thread": self.thread,
+            "assistant": self.assistant,
+            "preset": self.preset,
+            "run": self.run,
+            "status": self.status,
+            "extra": self.extra,
+            "initialized": self.initialized,
+            "deleted": self.deleted,
+            "important": self.important,
+            "archived": self.archived,
+            "label": self.label,
+        }
+
+    def from_dict(self, data: dict):
+        """
+        Load context meta from dict
+
+        :param data: dict
+        """
+        self.id = data.get("id", None)
+        self.external_id = data.get("external_id", None)
+        self.uuid = data.get("uuid", None)
+        self.name = data.get("name", None)
+        self.date = data.get("date", None)
+        self.created = data.get("created", None)
+        self.updated = data.get("updated", None)
+        self.mode = data.get("mode", None)
+        self.model = data.get("model", None)
+        self.last_mode = data.get("last_mode", None)
+        self.last_model = data.get("last_model", None)
+        self.thread = data.get("thread", None)
+        self.assistant = data.get("assistant", None)
+        self.preset = data.get("preset", None)
+        self.run = data.get("run", None)
+        self.status = data.get("status", None)
+        self.extra = data.get("extra", None)
+        self.initialized = data.get("initialized", False)
+        self.deleted = data.get("deleted", False)
+        self.important = data.get("important", False)
+        self.archived = data.get("archived", False)
+        self.label = data.get("label", 0)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 18:00:00                  #
+# Updated Date: 2024.01.29 23:00:00                  #
 # ================================================== #
 import os
 
@@ -64,12 +64,17 @@ class ContextList(BaseList):
         actions['rename'].triggered.connect(
             lambda: self.action_rename(event))
 
+        actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
+        actions['duplicate'].triggered.connect(
+            lambda: self.action_duplicate(event))
+
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 
         menu = QMenu(self)
         menu.addAction(actions['rename'])
+        menu.addAction(actions['duplicate'])
         menu.addAction(actions['delete'])
 
         # set label menu
@@ -125,6 +130,17 @@ class ContextList(BaseList):
         idx = item.row()
         if idx >= 0:
             self.window.controller.ctx.rename(idx)
+
+    def action_duplicate(self, event):
+        """
+        Rename duplicate handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.ctx.common.duplicate_by_idx(idx)
 
     def action_important(self, event):
         """
