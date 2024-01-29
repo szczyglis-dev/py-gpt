@@ -8,9 +8,11 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.18 10:00:00                  #
 # ================================================== #
+from PySide6.QtGui import QIcon
 
 from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class Notepad:
@@ -61,6 +63,7 @@ class Notepad:
                         self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
                     else:
                         self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad'))
+                    self.window.ui.tabs['output'].setTabIcon(tab, QIcon(":/icons/paste.svg"))
 
         for idx in items:
             title = items[idx].title

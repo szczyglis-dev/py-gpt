@@ -12,6 +12,7 @@
 import os
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QCheckBox, QWidget, QSizePolicy
 
 from pygpt_net.ui.layout.chat.input import Input
@@ -24,6 +25,7 @@ from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
 from pygpt_net.ui.widget.filesystem.explorer import FileExplorer
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class Output:
@@ -78,12 +80,19 @@ class Output:
         # append notepads
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
+                tab = i + (self.window.controller.notepad.start_tab_idx - 1)
                 title = trans('output.tab.notepad')
                 if num_notepads > 1:
                     title += " " + str(i)
                 self.window.ui.tabs['output'].addTab(self.window.ui.notepad[i], title)
+                self.window.ui.tabs['output'].setTabIcon(tab, QIcon(":/icons/paste.svg"))
 
         self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)
+
+        self.window.ui.tabs['output'].setTabIcon(0, QIcon(":/icons/more_horizontal.svg"))
+        self.window.ui.tabs['output'].setTabIcon(1, QIcon(":/icons/folder_filled.svg"))
+        self.window.ui.tabs['output'].setTabIcon(2, QIcon(":/icons/calendar.svg"))
+        self.window.ui.tabs['output'].setTabIcon(3, QIcon(":/icons/brush.svg"))
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.tabs['output'])
@@ -103,9 +112,11 @@ class Output:
         """
         self.window.ui.nodes['chat.label'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.label'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.window.ui.nodes['chat.label'].setWordWrap(False)
 
         self.window.ui.nodes['chat.model'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.model'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.window.ui.nodes['chat.model'].setWordWrap(False)
 
         self.window.ui.nodes['chat.plugins'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.plugins'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)

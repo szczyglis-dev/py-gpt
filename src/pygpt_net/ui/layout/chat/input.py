@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QRadioButton, QCheckBox, QWidget
 
 from pygpt_net.ui.layout.chat.attachments import Attachments
@@ -20,6 +21,7 @@ from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class Input:
@@ -56,6 +58,10 @@ class Input:
         self.window.ui.tabs['input'].addTab(files, trans('attachments.tab'))
         self.window.ui.tabs['input'].addTab(files_uploaded, trans('attachments_uploaded.tab'))
         self.window.ui.tabs['input'].currentChanged.connect(self.update_min_height)  # update min height on tab change
+
+        self.window.ui.tabs['input'].setTabIcon(0, QIcon(":/icons/more_horizontal.svg"))
+        self.window.ui.tabs['input'].setTabIcon(1, QIcon(":/icons/attachment.svg"))
+        self.window.ui.tabs['input'].setTabIcon(2, QIcon(":/icons/upload.svg"))
 
         # layout
         layout = QVBoxLayout()
