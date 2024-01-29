@@ -29,3 +29,17 @@ GitHub community:
 
 * **kaneda2004**
 * **moritz-t-w**
+
+
+Third-party libraries
+=====================
+
+Full list of external libraries used in this project is located in the **requirements.txt** file in the main folder of this repository.
+
+All used SVG icons are from ``Material Design Icons`` provided by Google:
+
+https://github.com/google/material-design-icons
+
+https://fonts.google.com/icons
+
+

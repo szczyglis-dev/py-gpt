@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.129 (2024-01-29)
+
+- Added Material Design SVG icons (by Google)
+- Added icon resources compiler script
+- Improved file explorer
+
 # 2.0.128 (2024-01-29)
 
 - Added improvements to RMB context menu handling in Files

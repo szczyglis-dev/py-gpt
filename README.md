@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.128** | build: **2024.01.29** | Python: **3.10+**
+Release: **2.0.129** | build: **2024.01.29** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1960,6 +1960,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.129 (2024-01-29)
+
+- Added Material Design SVG icons (by Google)
+- Added icon resources compiler script
+- Improved file explorer
+
 # 2.0.128 (2024-01-29)
 
 - Added improvements to RMB context menu handling in Files
@@ -2028,4 +2034,14 @@ The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in th
 **Contact:** <info@pygpt.net>
 
 **License:** MIT License
+
+## Third-party libraries
+
+Full list of external libraries used in this project is located in the **[requirements.txt](requirements.txt)** file in the main folder of this repository.
+
+All used SVG icons are from `Material Design Icons` provided by Google:
+
+https://github.com/google/material-design-icons
+
+https://fonts.google.com/icons
 
