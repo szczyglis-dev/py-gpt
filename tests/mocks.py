@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.29 17:00:00                  #
 # ================================================== #
 
 import pytest
@@ -18,6 +18,11 @@ from pygpt_net.config import Config
 @pytest.fixture
 def mock_window():
     window = MagicMock(spec=QMainWindow)
+    window.STATE_IDLE = 'idle'
+    window.STATE_BUSY = 'busy'
+    window.STATE_ERROR = 'error'
+    window.state = MagicMock()
+    window.stateChanged = MagicMock()
     window.core = MagicMock()
     window.core.config = Config(window)  # real config object
     window.core.config.initialized = True  # prevent initializing config
@@ -35,6 +40,11 @@ def mock_window():
 @pytest.fixture
 def mock_window_conf():
     window = MagicMock(spec=QMainWindow)
+    window.state = MagicMock()
+    window.stateChanged = MagicMock()
+    window.STATE_IDLE = 'idle'
+    window.STATE_BUSY = 'busy'
+    window.STATE_ERROR = 'error'
     window.core = MagicMock()
     window.core.models = MagicMock()
     window.core.config = MagicMock(spec=Config)  # mock config object
