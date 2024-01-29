@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.01.29 18:00:00                  #
 # ================================================== #
 import os
 
@@ -79,6 +79,10 @@ class ContextList(BaseList):
             if status_id == 0:
                 name = '-'
             status_action = QAction(name, self)
+            if status_id == 0:
+                status_action.setIcon(QIcon(":/icons/close.svg"))
+            else:
+                status_action.setIcon(QIcon(":/icons/edit.svg"))
             status_action.triggered.connect(
                 lambda checked=False, s_id=status_id: self.window.controller.ctx.set_label(idx, s_id))
             set_label_menu.addAction(status_action)
@@ -92,6 +96,7 @@ class ContextList(BaseList):
                 id = index['id']
                 name = index['name'] + " (" + index['id'] + ")"
                 action = idx_menu.addAction("IDX: " + name)
+                action.setIcon(QIcon(":/icons/search.svg"))
                 action.triggered.connect(lambda checked=False, idx=idx, index=id:
                                          self.action_idx(idx, index))
 

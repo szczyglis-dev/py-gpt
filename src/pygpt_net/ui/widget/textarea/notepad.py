@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.01.29 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -70,16 +70,18 @@ class NotepadOutput(QTextEdit):
             plain_text = self.textCursor().selection().toPlainText()
 
             # audio read
-            action = menu.addAction(trans('text.context_menu.audio.read'))
+            action = QAction(QIcon(":/icons/volume.svg"), trans('text.context_menu.audio.read'), self)
             action.triggered.connect(self.audio_read_selection)
+            menu.addAction(action)
 
             # copy to
             copy_to_menu = QMenu(trans('text.context_menu.copy_to'), self)
 
             # input
-            action = copy_to_menu.addAction(trans('text.context_menu.copy_to.input'))
+            action = QAction(QIcon(":/icons/more_horizontal.svg"), trans('text.context_menu.copy_to.input'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.append_to_input(selected_text))
+            copy_to_menu.addAction(action)
 
             # notepad
             num_notepads = self.window.controller.notepad.get_num_notepads()
@@ -88,14 +90,16 @@ class NotepadOutput(QTextEdit):
                     if i == self.id:
                         continue
                     name = self.window.controller.notepad.get_notepad_name(i)
-                    action = copy_to_menu.addAction(name)
+                    action = QAction(QIcon(":/icons/paste.svg"), name, self)
                     action.triggered.connect(lambda checked=False, i=i:
                                              self.window.controller.notepad.append_text(selected_text, i))
+                    copy_to_menu.addAction(action)
 
             # calendar
-            action = copy_to_menu.addAction(trans('text.context_menu.copy_to.calendar'))
+            action = QAction(QIcon(":/icons/calendar.svg"), trans('text.context_menu.copy_to.calendar'), self)
             action.triggered.connect(
                 lambda: self.window.controller.calendar.note.append_text(selected_text))
+            copy_to_menu.addAction(action)
 
             menu.addMenu(copy_to_menu)
 

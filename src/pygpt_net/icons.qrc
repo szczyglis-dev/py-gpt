@@ -156,6 +156,9 @@
         <file alias="grid.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/grid.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="hearing.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/hearing.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
         <file alias="help.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/help.svg</file>
     </qresource>
     <qresource prefix="/icons">
@@ -201,10 +204,10 @@
         <file alias="menu.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/menu.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="mic_off.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/mic_off.svg</file>
+        <file alias="mic.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/mic.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file alias="miic.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/miic.svg</file>
+        <file alias="mic_off.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/mic_off.svg</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="more_horizontal.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/more_horizontal.svg</file>
@@ -364,6 +367,9 @@
     </qresource>
     <qresource prefix="/icons">
         <file alias="voice.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/voice.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="volume.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/volume.svg</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="warning.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/warning.svg</file>

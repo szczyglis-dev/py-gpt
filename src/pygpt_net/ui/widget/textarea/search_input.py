@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.29 18:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QLineEdit, QStyle
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class CtxSearchInput(QLineEdit):
@@ -27,7 +28,7 @@ class CtxSearchInput(QLineEdit):
         self.setPlaceholderText(trans('ctx.list.search.placeholder'))
 
         self.clear_action = QAction(self)
-        self.clear_action.setIcon(self.style().standardIcon(QStyle.SP_DialogCloseButton))
+        self.clear_action.setIcon(QIcon(":/icons/close.svg"))
         self.clear_action.triggered.connect(self.clear_search_string)
         self.addAction(self.clear_action, QLineEdit.TrailingPosition)
 

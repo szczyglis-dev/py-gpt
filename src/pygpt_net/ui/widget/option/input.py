@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 10:00:00                  #
+# Updated Date: 2024.01.29 18:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QLineEdit
+import pygpt_net.icons_rc
 
 
 class OptionInputInline(QLineEdit):
@@ -134,8 +135,10 @@ class PasswordInput(QLineEdit):
         self.setEchoMode(QLineEdit.Password)
         self.toggle_password_action = QAction('+', self)
         self.toggle_password_action.triggered.connect(self.toggle_password_visibility)
-        self.addAction(self.toggle_password_action, QLineEdit.TrailingPosition)
-
+        action = QAction(self)
+        action.setIcon(QIcon(":/icons/view.svg"))
+        action.triggered.connect(self.toggle_password_visibility)
+        self.addAction(action, QLineEdit.TrailingPosition)
         self.is_password_shown = False
 
     def toggle_password_visibility(self):

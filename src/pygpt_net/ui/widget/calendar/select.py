@@ -6,14 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.29 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
-from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent
+from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon
 from PySide6.QtWidgets import QCalendarWidget, QMenu
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class CalendarSelect(QCalendarWidget):
@@ -145,6 +146,7 @@ class CalendarSelect(QCalendarWidget):
         context_menu = QMenu(self)
         action_text = trans('calendar.day.search') + ': ' + selected_date.toString()
         action = QAction(action_text, self)
+        action.setIcon(QIcon(":/icons/history.svg"))
         action.triggered.connect(lambda: self.execute_action(selected_date))
         context_menu.addAction(action)
         
@@ -152,6 +154,10 @@ class CalendarSelect(QCalendarWidget):
         set_label_menu = context_menu.addMenu(trans('calendar.day.label'))
         for status_id, status_info in self.window.controller.calendar.statuses.items():
             status_action = QAction(trans('calendar.day.' + status_info['label']), self)
+            if status_id == 0:
+                status_action.setIcon(QIcon(":/icons/close.svg"))
+            else:
+                status_action.setIcon(QIcon(":/icons/edit.svg"))
             status_action.triggered.connect(lambda checked=False, s_id=status_id: self.set_label_for_day(selected_date, s_id))
             set_label_menu.addAction(status_action)
 
