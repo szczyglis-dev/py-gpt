@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.01.29 17:00:00                  #
 # ================================================== #
 
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QSystemTrayIcon, QMenu
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class Tray:
@@ -57,29 +58,41 @@ class Tray:
         self.icon.setToolTip("PyGPT v{}".format(self.window.meta['version']))
 
         # new context
-        self.window.ui.tray_menu['new'] = QAction(trans("menu.file.new"), self.window)
+        action = QAction(trans("menu.file.new"), self.window)
+        action.setIcon(QIcon(":/icons/add.svg"))
+        self.window.ui.tray_menu['new'] = action
         self.window.ui.tray_menu['new'].triggered.connect(self.new_ctx)
 
         # scheduled tasks
-        self.window.ui.tray_menu['scheduled'] = QAction(trans("menu.tray.scheduled"), self.window)
+        action = QAction(trans("menu.tray.scheduled"), self.window)
+        action.setIcon(QIcon(":/icons/schedule.svg"))
+        self.window.ui.tray_menu['scheduled'] = action
         self.window.ui.tray_menu['scheduled'].triggered.connect(self.open_scheduled_tasks)
 
         # check for updates
-        self.window.ui.tray_menu['update'] = QAction(trans("menu.info.updates"), self.window)
+        action = QAction(trans("menu.info.updates"), self.window)
+        action.setIcon(QIcon(":/icons/public_filled.svg"))
+        self.window.ui.tray_menu['update'] = action
         self.window.ui.tray_menu['update'].triggered.connect(self.check_updates)
 
         # open notepad
-        self.window.ui.tray_menu['open_notepad'] = QAction(trans("menu.tray.notepad"), self.window)
+        action = QAction(trans("menu.tray.notepad"), self.window)
+        action.setIcon(QIcon(":/icons/paste.svg"))
+        self.window.ui.tray_menu['open_notepad'] = action
         self.window.ui.tray_menu['open_notepad'].triggered.connect(self.open_notepad)
 
         if self.window.controller.notepad.get_num_notepads() == 0:
             self.hide_notepad_menu()
 
         # ask with screenshot
-        self.window.ui.tray_menu['screenshot'] = QAction(trans("menu.tray.screenshot"), self.window)
+        action = QAction(trans("menu.tray.screenshot"), self.window)
+        action.setIcon(QIcon(":/icons/computer.svg"))
+        self.window.ui.tray_menu['screenshot'] = action
         self.window.ui.tray_menu['screenshot'].triggered.connect(self.make_screenshot)
 
-        self.window.ui.tray_menu['exit'] = QAction(trans("menu.file.exit"), self.window)
+        action = QAction(trans("menu.file.exit"), self.window)
+        action.setIcon(QIcon(":/icons/logout.svg"))
+        self.window.ui.tray_menu['exit'] = action
         self.window.ui.tray_menu['exit'].triggered.connect(app.quit)
 
         menu = QMenu(self.window)
