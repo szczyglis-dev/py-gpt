@@ -8,7 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.28 19:00:00                  #
 # ================================================== #
-
+import datetime
 import os
 import shutil
 
@@ -110,12 +110,12 @@ class Files:
             try:
                 os.remove(path)
                 self.window.update_status(
-                    "[OK] Deleted file/dir: {}".format(os.path.basename(path))
+                    "[OK] Deleted file: {}".format(os.path.basename(path))
                 )
                 self.update_explorer()
             except Exception as e:
                 self.window.core.debug.log(e)
-                print("Error deleting file/dir: {} - {}".format(path, e))
+                print("Error deleting file: {} - {}".format(path, e))
 
     def duplicate_local(self, path: str, name: str, force: bool = False):
         """
@@ -145,18 +145,18 @@ class Files:
             new_path = os.path.join(parent_dir, name)
 
             if os.path.exists(new_path):
-                self.window.update_status("[ERROR] File/dir already exists: {}".format(os.path.basename(new_path)))
+                self.window.update_status("[ERROR] File already exists: {}".format(os.path.basename(new_path)))
                 return
 
             if os.path.isdir(path):
                 shutil.copytree(path, new_path)
             else:
                 copy2(path, new_path)
-            self.window.update_status("[OK] Duplicated file/dir: {}".format(os.path.basename(path)))
+            self.window.update_status("[OK] Duplicated file: {} -> {}".format(os.path.basename(path), name))
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
-            print("Error duplicating file/dir: {} - {}".format(path, e))
+            print("Error duplicating file: {} - {}".format(path, e))
 
     def download_local(self, path: str):
         """
@@ -178,10 +178,10 @@ class Files:
                         shutil.copytree(path, files[0])
                     else:
                         shutil.copy2(path, files[0])
-                    self.window.update_status("[OK] Downloaded file/dir: {}".format(os.path.basename(path)))
+                    self.window.update_status("[OK] Downloaded file: {}".format(os.path.basename(path)))
                 except Exception as e:
                     self.window.core.debug.log(e)
-                    print("Error downloading file/dir: {} - {}".format(path, e))
+                    print("Error downloading file: {} - {}".format(path, e))
 
     def upload_local(self, parent_path: str = None):
         """
@@ -203,9 +203,17 @@ class Files:
                     target_directory = self.window.core.config.get_user_dir('data')
                 num = 0
                 for file_path in files:
+                    path_to = os.path.join(target_directory, os.path.basename(file_path))
                     try:
-                        os.makedirs(target_directory, exist_ok=True)
-                        copy2(file_path, target_directory)
+                        # if exists, append timestamp
+                        if os.path.exists(path_to):
+                            new_name = self.make_ts_prefix() + "_" + os.path.basename(file_path)
+                            target_path = os.path.join(target_directory, new_name)
+                        else:
+                            target_path = os.path.join(target_directory, os.path.basename(file_path))
+                        if not os.path.exists(target_directory):
+                            os.makedirs(target_directory, exist_ok=True)
+                        copy2(file_path, target_path)
                         num += 1
                     except Exception as e:
                         self.window.core.debug.log(e)
@@ -235,7 +243,7 @@ class Files:
         """
         new_path = os.path.join(os.path.dirname(path), name)
         if os.path.exists(new_path):
-            self.window.update_status("[ERROR] File/dir already exists: {}".format(os.path.basename(new_path)))
+            self.window.update_status("[ERROR] File already exists: {}".format(os.path.basename(new_path)))
             return
         os.rename(path, new_path)
         self.window.update_status("[OK] Renamed: {} -> {}".format(os.path.basename(path), name))
@@ -360,10 +368,16 @@ class Files:
         :param path: path to file
         """
         if os.path.isdir(path):
-            cmd = "Please read files from current directory: {}".format(self.strip_work_path(path))
+            cmd = "Please list files from directory: {}".format(self.strip_work_path(path))
         else:
             cmd = "Please read this file from current directory: {}".format(self.strip_work_path(path))
         self.window.controller.chat.common.append_to_input(cmd)
+
+    def make_ts_prefix(self) -> str:
+        """
+        Make timestamp prefix
+        """
+        return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     def strip_work_path(self, path: str) -> str:
         """

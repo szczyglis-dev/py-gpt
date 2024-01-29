@@ -205,7 +205,7 @@ class FileExplorer(QWidget):
                 lambda: self.action_make_dir(parent))
 
             # upload to dir
-            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('files.local.upload'), self)
+            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('action.upload'), self)
             actions['upload'].triggered.connect(
                 lambda: self.window.controller.files.upload_local(parent))
 
@@ -217,26 +217,6 @@ class FileExplorer(QWidget):
             menu = QMenu(self)
             menu.addAction(actions['open'])
             menu.addAction(actions['open_dir'])
-            menu.addAction(actions['download'])
-
-            menu.addAction(actions['touch'])
-            menu.addAction(actions['mkdir'])
-            menu.addAction(actions['upload'])
-
-            menu.addAction(actions['rename'])
-            menu.addAction(actions['duplicate'])
-            menu.addAction(actions['delete'])
-
-            # indexes list
-            idx_menu = QMenu(trans('action.idx'), self)
-            idx_list = self.window.core.config.get('llama.idx.list')
-            if len(idx_list) > 0:
-                for idx in idx_list:
-                    id = idx['id']
-                    name = idx['name'] + " (" + idx['id'] + ")"
-                    action = idx_menu.addAction("IDX: " + name)
-                    action.triggered.connect(lambda checked=False, id=id, path=path: self.action_idx(path, id))
-                menu.addMenu(idx_menu)
 
             # use
             use_menu = QMenu(trans('action.use'), self)
@@ -272,6 +252,26 @@ class FileExplorer(QWidget):
             use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
+            # indexes list
+            idx_menu = QMenu(trans('action.idx'), self)
+            idx_list = self.window.core.config.get('llama.idx.list')
+            if len(idx_list) > 0:
+                for idx in idx_list:
+                    id = idx['id']
+                    name = idx['name'] + " (" + idx['id'] + ")"
+                    action = idx_menu.addAction("IDX: " + name)
+                    action.triggered.connect(lambda checked=False, id=id, path=path: self.action_idx(path, id))
+                menu.addMenu(idx_menu)
+
+            menu.addAction(actions['download'])
+            menu.addAction(actions['touch'])
+            menu.addAction(actions['mkdir'])
+            menu.addAction(actions['upload'])
+
+            menu.addAction(actions['rename'])
+            menu.addAction(actions['duplicate'])
+            menu.addAction(actions['delete'])
+
             menu.exec(QCursor.pos())
         else:
             # no item selected
@@ -293,7 +293,7 @@ class FileExplorer(QWidget):
                 lambda: self.action_make_dir(self.directory))
 
             # upload in dir
-            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('files.local.upload'), self)
+            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('action.upload'), self)
             actions['upload'].triggered.connect(
                 lambda: self.window.controller.files.upload_local())
 
