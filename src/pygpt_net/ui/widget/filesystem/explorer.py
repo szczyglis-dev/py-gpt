@@ -47,6 +47,12 @@ class FileExplorer(QWidget):
 
         header = QHBoxLayout()
 
+        self.btn_open = QPushButton(trans('action.open'))
+        self.btn_open.setMaximumHeight(40)
+        self.btn_open.clicked.connect(
+                lambda: self.action_open(self.directory))
+        self.btn_open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
         self.btn_upload = QPushButton(trans('files.local.upload'))
         self.btn_upload.setMaximumHeight(40)
         self.btn_upload.clicked.connect(self.window.controller.files.upload_local)
@@ -66,12 +72,12 @@ class FileExplorer(QWidget):
         self.path_label.setMaximumHeight(40)
         self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
+        header.addWidget(self.btn_open)
+        header.addWidget(self.path_label)
+        header.addStretch()
         header.addWidget(self.btn_upload)
         header.addWidget(self.btn_idx)
         header.addWidget(self.btn_clear)
-        header.addStretch()
-        header.addWidget(self.path_label)
-
         layout = QVBoxLayout()
 
         self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
