@@ -70,12 +70,14 @@ class FileExplorer(QWidget):
 
         self.path_label = QLabel(self.directory)
         self.path_label.setMaximumHeight(40)
-        self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.path_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
         header.addWidget(self.btn_open)
+        header.addWidget(self.btn_upload)
+        header.addStretch()
         header.addWidget(self.path_label)
         header.addStretch()
-        header.addWidget(self.btn_upload)
+
         header.addWidget(self.btn_idx)
         header.addWidget(self.btn_clear)
         layout = QVBoxLayout()
