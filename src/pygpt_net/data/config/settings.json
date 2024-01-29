@@ -49,18 +49,6 @@
         "step": 1,
         "advanced": false
     },
-    "lock_modes": {
-        "section": "general",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.lock_modes",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "layout.tray": {
         "section": "general",
         "type": "bool",
@@ -301,6 +289,18 @@
         "type": "bool",
         "slider": false,
         "label": "settings.ctx.auto_summary",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "lock_modes": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.lock_modes",
         "value": true,
         "min": null,
         "max": null,

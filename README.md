@@ -1709,8 +1709,6 @@ Config -> Settings...
 
 - `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
-- `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
-
 - `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
 - `Start minimized`: Enables minimized on start. Default: False.
@@ -1753,9 +1751,13 @@ Config -> Settings...
 
 - `Use Context`: Toggles the use of conversation context (memory of previous inputs).
 
-- `Store History`: Toggles conversation history store in .txt files. These files are stored in the *history* directory within the user's work directory.
+- `Store History`: Toggles conversation history store.
 
 - `Store Time in History`: Chooses whether timestamps are added to the .txt files.
+
+- `Context Auto-summary`: Enables automatic generation of titles for contexts, Default: True.
+
+- `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
 - `Model used for auto-summary`: Model used for context auto-summary (default: *gpt-3.5-turbo-1106*).
 
