@@ -70,7 +70,7 @@ class ChatOutput(QTextBrowser):
             copy_to_menu = QMenu(trans('text.context_menu.copy_to'), self)
 
             # input
-            action = QAction(QIcon(":/icons/more_horizontal.svg"), trans('text.context_menu.copy_to.input'), self)
+            action = QAction(QIcon(":/icons/text.svg"), trans('text.context_menu.copy_to.input'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.append_to_input(selected_text))
             copy_to_menu.addAction(action)

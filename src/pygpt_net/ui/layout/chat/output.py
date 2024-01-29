@@ -89,9 +89,9 @@ class Output:
 
         self.window.ui.tabs['output'].currentChanged.connect(self.window.controller.ui.output_tab_changed)
 
-        self.window.ui.tabs['output'].setTabIcon(0, QIcon(":/icons/more_horizontal.svg"))
+        self.window.ui.tabs['output'].setTabIcon(0, QIcon(":/icons/home.svg"))
         self.window.ui.tabs['output'].setTabIcon(1, QIcon(":/icons/folder_filled.svg"))
-        self.window.ui.tabs['output'].setTabIcon(2, QIcon(":/icons/calendar.svg"))
+        self.window.ui.tabs['output'].setTabIcon(2, QIcon(":/icons/schedule.svg"))
         self.window.ui.tabs['output'].setTabIcon(3, QIcon(":/icons/brush.svg"))
 
         layout = QVBoxLayout()
