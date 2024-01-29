@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -16,6 +16,7 @@ from PySide6.QtGui import QImage, QPainter, QPen, QAction, QIcon
 from PySide6.QtWidgets import QMenu, QWidget, QFileDialog, QMessageBox, QApplication
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class PainterWidget(QWidget):
@@ -41,19 +42,19 @@ class PainterWidget(QWidget):
         :param event: Event
         """
         actions = {}
-        actions['undo'] = QAction(QIcon.fromTheme("undo"), trans('action.undo'), self)
+        actions['undo'] = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
         actions['undo'].triggered.connect(
             lambda: self.undo())
-        actions['open'] = QAction(QIcon.fromTheme("document-open"), trans('action.open'), self)
+        actions['open'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open())
-        actions['capture'] = QAction(QIcon.fromTheme("view-fullscreen"), trans('painter.btn.capture'), self)
+        actions['capture'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('painter.btn.capture'), self)
         actions['capture'].triggered.connect(
             lambda: self.action_capture())
-        actions['save'] = QAction(QIcon.fromTheme("document-save"), trans('img.action.save'), self)
+        actions['save'] = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
         actions['save'].triggered.connect(
             lambda: self.action_save())
-        actions['clear'] = QAction(QIcon.fromTheme("edit-delete"), trans('painter.btn.clear'), self)
+        actions['clear'] = QAction(QIcon(":/icons/close.svg"), trans('painter.btn.clear'), self)
         actions['clear'].triggered.connect(
             lambda: self.action_clear())
 

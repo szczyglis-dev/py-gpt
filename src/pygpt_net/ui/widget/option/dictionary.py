@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 21:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMen
     QCheckBox
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class OptionDict(QWidget):
@@ -206,10 +207,10 @@ class OptionDictItems(QTreeView):
         :param event: context menu event
         """
         actions = {}
-        actions['edit'] = QAction(QIcon.fromTheme("edit"), trans('action.edit'), self)
+        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('action.edit'), self)
         actions['edit'].triggered.connect(
             lambda: self.parent.edit_item(event))
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.parent.delete_item(event))
         menu = QMenu(self)

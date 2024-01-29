@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 23:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 from .lang import Lang
 from .theme import Theme
@@ -31,9 +32,9 @@ class Config:
 
     def setup(self):
         """Setup config menu"""
-        self.window.ui.menu['config.settings'] = QAction(QIcon.fromTheme("preferences-other"),
+        self.window.ui.menu['config.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                                          trans("menu.config.settings"), self.window)
-        self.window.ui.menu['config.models'] = QAction(QIcon.fromTheme("preferences-other"),
+        self.window.ui.menu['config.models'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                                        trans("menu.config.models"), self.window)
 
         css_files = []
@@ -59,7 +60,7 @@ class Config:
 
         for css_file in css_files:
             name = css_file.split("/")[-1]
-            self.window.ui.menu['config.edit.css.' + name] = QAction(QIcon.fromTheme("document-edit"),
+            self.window.ui.menu['config.edit.css.' + name] = QAction(QIcon(":/icons/edit.svg"),
                                                                      name, self.window)
             self.window.ui.menu['config.edit.css.' + name].triggered.connect(
                 lambda checked=True, file=css_file: self.window.controller.settings.toggle_file_editor(file))
@@ -67,15 +68,15 @@ class Config:
 
         for json_file in json_files:
             name = json_file
-            self.window.ui.menu['config.edit.json.' + name] = QAction(QIcon.fromTheme("document-edit"),
+            self.window.ui.menu['config.edit.json.' + name] = QAction(QIcon(":/icons/edit.svg"),
                                                                       name, self.window)
             self.window.ui.menu['config.edit.json.' + name].triggered.connect(
                 lambda checked=True, file=json_file: self.window.controller.settings.toggle_file_editor(file))
             self.window.ui.menu['config.edit.json'].addAction(self.window.ui.menu['config.edit.json.' + name])
 
-        self.window.ui.menu['config.open_dir'] = QAction(QIcon.fromTheme("folder-open"),
+        self.window.ui.menu['config.open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"),
                                                          trans("menu.config.open_dir"), self.window)
-        self.window.ui.menu['config.save'] = QAction(QIcon.fromTheme("document-save"),
+        self.window.ui.menu['config.save'] = QAction(QIcon(":/icons/save.svg"),
                                                      trans("menu.config.save"), self.window)
 
         self.window.ui.menu['config.settings'].triggered.connect(

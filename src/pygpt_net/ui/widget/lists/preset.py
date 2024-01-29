@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class PresetList(BaseList):
@@ -49,15 +50,15 @@ class PresetList(BaseList):
         :param event: context menu event
         """
         actions = {}
-        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('preset.action.edit'), self)
+        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
         actions['edit'].triggered.connect(
             lambda: self.action_edit(event))
 
-        actions['duplicate'] = QAction(QIcon.fromTheme("edit-copy"), trans('preset.action.duplicate'), self)
+        actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('preset.action.duplicate'), self)
         actions['duplicate'].triggered.connect(
             lambda: self.action_duplicate(event))
 
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('preset.action.delete'), self)
+        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 

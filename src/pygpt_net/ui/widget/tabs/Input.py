@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 11:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class InputTabs(QTabWidget):
@@ -41,7 +42,7 @@ class InputTabs(QTabWidget):
         """
         context_menu = QMenu()
         actions = {}
-        actions['clear'] = QAction(QIcon.fromTheme("edit-delete"), trans('attachments.btn.clear'), self)
+        actions['clear'] = QAction(QIcon(":/icons/delete.svg"), trans('attachments.btn.clear'), self)
         actions['clear'].triggered.connect(
             lambda: self.window.controller.attachment.clear())
         context_menu.addAction(actions['clear'])

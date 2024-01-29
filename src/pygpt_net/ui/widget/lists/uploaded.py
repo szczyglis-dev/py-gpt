@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon, QResizeEvent
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class UploadedFileList(BaseList):
@@ -70,15 +71,15 @@ class UploadedFileList(BaseList):
         :param event: context menu event
         """
         actions = {}
-        actions['download'] = QAction(QIcon.fromTheme("edit-download"), trans('action.download'), self)
+        actions['download'] = QAction(QIcon(":/icons/download.svg"), trans('action.download'), self)
         actions['download'].triggered.connect(
             lambda: self.action_download(event))
 
-        actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
+        actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
         actions['rename'].triggered.connect(
             lambda: self.action_rename(event))
 
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 

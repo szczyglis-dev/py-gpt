@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 12:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -15,6 +15,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QTextEdit, QApplication, QMenu
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class ChatInput(QTextEdit):
@@ -64,13 +65,13 @@ class ChatInput(QTextEdit):
             menu.addMenu(copy_to_menu)
 
             # save as (selected)
-            action = QAction(QIcon.fromTheme("document-save"), trans('action.save_as'), self)
+            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(plain_text))
             menu.addAction(action)
         else:
             # save as (all)
-            action = QAction(QIcon.fromTheme("document-save"), trans('action.save_as'), self)
+            action = QAction(QIcon(":/icons/save.svg"), trans('action.save_as'), self)
             action.triggered.connect(
                 lambda: self.window.controller.chat.common.save_text(self.toPlainText()))
             menu.addAction(action)

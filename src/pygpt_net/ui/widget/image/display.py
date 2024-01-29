@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMenu, QLabel
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class ImageLabel(QLabel):
@@ -34,19 +35,19 @@ class ImageLabel(QLabel):
         :param event: context menu event
         """
         actions = {}
-        actions['open'] = QAction(QIcon.fromTheme("view-fullscreen"), trans('img.action.open'), self)
+        actions['open'] = QAction(QIcon(":/icons/fullscreen.svg"), trans('img.action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open(event))
 
-        actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
+        actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
         actions['open_dir'].triggered.connect(
             lambda: self.action_open_dir(event))
 
-        actions['save'] = QAction(QIcon.fromTheme("document-save"), trans('img.action.save'), self)
+        actions['save'] = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
         actions['save'].triggered.connect(
             lambda: self.action_save(event))
 
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 

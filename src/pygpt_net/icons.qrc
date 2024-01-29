@@ -1,0 +1,389 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="abc.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/abc.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="add.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/add.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="add_circle.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/add_circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="add_folder.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/add_folder.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="add_library.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/add_library.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="alarm.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/alarm.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="apps.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/apps.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="asterisk.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/asterisk.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="attachment.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/attachment.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="attachments.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/attachments.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="back.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/back.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="backspace.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/backspace.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="block.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/block.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="bookmark.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/bookmark.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="brush.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/brush.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="build.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/build.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="calendar.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/calendar.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="camera.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/camera.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="check.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/check.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="check_circle.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/check_circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="checklist.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/checklist.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="circle.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="clear.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/clear.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="clock.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/clock.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="close.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/close.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="close_circle.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/close_circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="code.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/code.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="computer.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/computer.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="copy.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/copy.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="crop.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/crop.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="cut.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/cut.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="db.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/db.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="delete.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/delete.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="done.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/done.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="download.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/download.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="draft.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/draft.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="drag.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/drag.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="edit.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/edit.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="emergency.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/emergency.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="equalizer.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/equalizer.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="error.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/error.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="event_available.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/event_available.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="expand.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/expand.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="fast_forward.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/fast_forward.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="fast_rewind.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/fast_rewind.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="favorite.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/favorite.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="folder.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/folder.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="folder_filled.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/folder_filled.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="forward.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/forward.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="full.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/full.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="fullscreen.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/fullscreen.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="grid.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/grid.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="help.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/help.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="history.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/history.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="home.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/home.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="home_filled.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/home_filled.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="image.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/image.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="info.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/info.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="key.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/key.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="keyboard.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/keyboard.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="language.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/language.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="list.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/list.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="lock.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/lock.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="logout.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/logout.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="map.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/map.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="memory.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/memory.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="menu.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/menu.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="mic_off.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/mic_off.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="miic.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/miic.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="more_horizontal.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/more_horizontal.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="mute.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/mute.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="open_tab.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/open_tab.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="palette.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/palette.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="paste.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/paste.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="pause.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/pause.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="pause_circle.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/pause_circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="photos.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/photos.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="pin.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/pin.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="play.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/play.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="play_pause.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/play_pause.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="playlist_add.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/playlist_add.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="power.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/power.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="print.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/print.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="public_filled.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/public_filled.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="reload.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/reload.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="repeat.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/repeat.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="replay.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/replay.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="resize.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/resize.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="robot.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/robot.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="router.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/router.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="save.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/save.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="schedule.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/schedule.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="screenshot.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/screenshot.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="search.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/search.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="security.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/security.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="sensors.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/sensors.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="settings.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/settings.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="settings_filled.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/settings_filled.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="share.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/share.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="shedule.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/shedule.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="sort.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/sort.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="stack.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/stack.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="stacks.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/stacks.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="star.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/star.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="stop.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/stop.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="stop_circle.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/stop_circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="sync.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/sync.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="tag.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/tag.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="task.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/task.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="terminal.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/terminal.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="text.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/text.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="textfile.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/textfile.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="timer.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/timer.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="today.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/today.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="tune.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/tune.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="undo.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/undo.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="update.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/update.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="updater.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/updater.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="upload.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/upload.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="video.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/video.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="view.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/view.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="voice.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/voice.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="warning.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/warning.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="webcam.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/webcam.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="width.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/width.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="window.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/window.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="work.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/work.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="zoom_in.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/zoom_in.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="zoom_out.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/zoom_out.svg</file>
+    </qresource>
+</RCC>

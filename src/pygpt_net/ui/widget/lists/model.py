@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 06:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class ModelList(BaseList):
@@ -39,7 +40,7 @@ class ModelList(BaseList):
         :param event: context menu event
         """
         actions = {}
-        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.edit'), self)
+        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('action.edit'), self)
         actions['edit'].triggered.connect(
             lambda: self.action_edit(event))
 

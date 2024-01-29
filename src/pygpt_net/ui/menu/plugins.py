@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class Plugins:
@@ -25,7 +26,7 @@ class Plugins:
 
     def setup(self):
         """Setup plugins menu"""
-        self.window.ui.menu['plugins.settings'] = QAction(QIcon.fromTheme("preferences-other"),
+        self.window.ui.menu['plugins.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                                           trans("menu.plugins.settings"), self.window)
 
         self.window.ui.menu['plugins.settings'].triggered.connect(

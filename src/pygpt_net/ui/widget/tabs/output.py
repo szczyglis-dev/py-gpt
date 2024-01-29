@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class OutputTabs(QTabWidget):
@@ -37,7 +38,7 @@ class OutputTabs(QTabWidget):
         start = self.window.controller.notepad.start_tab_idx
         actions = {}
         idx = index - (start - 1)
-        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
+        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
         actions['edit'].triggered.connect(
             lambda: self.rename_tab(idx))
         context_menu.addAction(actions['edit'])

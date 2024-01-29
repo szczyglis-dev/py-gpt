@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class IndexList(BaseList):
@@ -38,26 +39,26 @@ class IndexList(BaseList):
         :param event: context menu event
         """
         actions = {}
-        actions['edit'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.edit'), self)
+        actions['edit'] = QAction(QIcon(":/icons/ediit.svg"), trans('action.edit'), self)
         actions['edit'].triggered.connect(
             lambda: self.action_edit(event))
 
         txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_db_all')
-        actions['idx_db_all'] = QAction(QIcon.fromTheme("search"), txt, self)
+        actions['idx_db_all'] = QAction(QIcon(":/icons/search.svg"), txt, self)
         actions['idx_db_all'].triggered.connect(
             lambda: self.action_idx_db_all(event))
 
         txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_db_update')
-        actions['idx_db_update'] = QAction(QIcon.fromTheme("search"), txt, self)
+        actions['idx_db_update'] = QAction(QIcon(":/icons/search.svg"), txt, self)
         actions['idx_db_update'].triggered.connect(
             lambda: self.action_idx_db_update(event))
 
         txt = trans('idx.index_now') + ': ' + trans('settings.llama.extra.btn.idx_files_all')
-        actions['idx_files_all'] = QAction(QIcon.fromTheme("search"), txt, self)
+        actions['idx_files_all'] = QAction(QIcon(":/icons/search.svg"), txt, self)
         actions['idx_files_all'].triggered.connect(
             lambda: self.action_idx_files_all(event))
 
-        actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('idx.btn.clear'), self)
+        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('idx.btn.clear'), self)
         actions['delete'].triggered.connect(
             lambda: self.action_clear(event))
 

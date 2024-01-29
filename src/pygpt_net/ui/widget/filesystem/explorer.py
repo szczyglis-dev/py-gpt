@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 00:00:00                  #
+# Updated Date: 2024.01.29 14:00:00                  #
 # ================================================== #
 
 import datetime
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSyste
 from pygpt_net.ui.widget.element.button import ContextMenuButton
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 
 class FileExplorer(QWidget):
@@ -165,27 +166,27 @@ class FileExplorer(QWidget):
             actions = {}
 
             # open file
-            actions['open'] = QAction(QIcon.fromTheme("document-open"), trans('action.open'), self)
+            actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
             actions['open'].triggered.connect(
                 lambda: self.action_open(path))
 
             # open in file manager
-            actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
+            actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(path))
 
             # download
-            actions['download'] = QAction(QIcon.fromTheme("document-save"), trans('action.download'), self)
+            actions['download'] = QAction(QIcon(":/icons/download.svg"), trans('action.download'), self)
             actions['download'].triggered.connect(
                 lambda: self.window.controller.files.download_local(path))
 
             # rename
-            actions['rename'] = QAction(QIcon.fromTheme("edit-edit"), trans('action.rename'), self)
+            actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
             actions['rename'].triggered.connect(
                 lambda: self.action_rename(path))
 
             # duplicate
-            actions['duplicate'] = QAction(QIcon.fromTheme("edit-copy"), trans('action.duplicate'), self)
+            actions['duplicate'] = QAction(QIcon(":/icons/stack.svg"), trans('action.duplicate'), self)
             actions['duplicate'].triggered.connect(
                 lambda: self.window.controller.files.duplicate_local(path, ""))
 
@@ -195,22 +196,22 @@ class FileExplorer(QWidget):
                 parent = os.path.dirname(path)
 
             # touch file
-            actions['touch'] = QAction(QIcon.fromTheme("edit-add"), trans('action.touch'), self)
+            actions['touch'] = QAction(QIcon(":/icons/add.svg"), trans('action.touch'), self)
             actions['touch'].triggered.connect(
                 lambda: self.window.controller.files.touch_file(parent))
 
             # make dir in dir
-            actions['mkdir'] = QAction(QIcon.fromTheme("edit-add"), trans('action.mkdir'), self)
+            actions['mkdir'] = QAction(QIcon(":/icons/add_folder.svg"), trans('action.mkdir'), self)
             actions['mkdir'].triggered.connect(
                 lambda: self.action_make_dir(parent))
 
             # upload to dir
-            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('action.upload'), self)
+            actions['upload'] = QAction(QIcon(":/icons/upload.svg"), trans('action.upload'), self)
             actions['upload'].triggered.connect(
                 lambda: self.window.controller.files.upload_local(parent))
 
             # delete
-            actions['delete'] = QAction(QIcon.fromTheme("edit-delete"), trans('action.delete'), self)
+            actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
             actions['delete'].triggered.connect(
                 lambda: self.action_delete(path))
 
@@ -223,24 +224,24 @@ class FileExplorer(QWidget):
 
             # use as attachment
             if not os.path.isdir(path):
-                actions['use_attachment'] = QAction(QIcon.fromTheme("edit-add"), trans('action.use.attachment'), self)
+                actions['use_attachment'] = QAction(QIcon(":/icons/attachment.svg"), trans('action.use.attachment'), self)
                 actions['use_attachment'].triggered.connect(
                     lambda: self.window.controller.files.use_attachment(path))
 
             # copy work path
-            actions['use_copy_work_path'] = QAction(QIcon.fromTheme("edit-copy"), trans('action.use.copy_work_path'),
+            actions['use_copy_work_path'] = QAction(QIcon(":/icons/copy.svg"), trans('action.use.copy_work_path'),
                                                     self)
             actions['use_copy_work_path'].triggered.connect(
                 lambda: self.window.controller.files.copy_work_path(path))
 
             # copy sys path
-            actions['use_copy_sys_path'] = QAction(QIcon.fromTheme("edit-copy"), trans('action.use.copy_sys_path'),
+            actions['use_copy_sys_path'] = QAction(QIcon(":/icons/copy.svg"), trans('action.use.copy_sys_path'),
                                                    self)
             actions['use_copy_sys_path'].triggered.connect(
                 lambda: self.window.controller.files.copy_sys_path(path))
 
             # use read cmd
-            actions['use_read_cmd'] = QAction(QIcon.fromTheme("edit-add"), trans('action.use.read_cmd'), self)
+            actions['use_read_cmd'] = QAction(QIcon(":/icons/view.svg"), trans('action.use.read_cmd'), self)
             actions['use_read_cmd'].triggered.connect(
                 lambda: self.window.controller.files.make_read_cmd(path))
 
@@ -259,8 +260,9 @@ class FileExplorer(QWidget):
                 for idx in idx_list:
                     id = idx['id']
                     name = idx['name'] + " (" + idx['id'] + ")"
-                    action = idx_menu.addAction("IDX: " + name)
+                    action = QAction(QIcon(":/icons/search.svg"), "IDX: " + name, self)
                     action.triggered.connect(lambda checked=False, id=id, path=path: self.action_idx(path, id))
+                    idx_menu.addAction(action)
                 menu.addMenu(idx_menu)
 
             menu.addAction(actions['download'])
@@ -278,22 +280,22 @@ class FileExplorer(QWidget):
             actions = {}
 
             # touch file
-            actions['touch'] = QAction(QIcon.fromTheme("edit-add"), trans('action.touch'), self)
+            actions['touch'] = QAction(QIcon(":/icons/add.svg"), trans('action.touch'), self)
             actions['touch'].triggered.connect(
                 lambda: self.window.controller.files.touch_file(self.directory))
 
             # open in file manager
-            actions['open_dir'] = QAction(QIcon.fromTheme("system-file-manager"), trans('action.open_dir'), self)
+            actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
                 lambda: self.action_open_dir(self.directory))
 
             # make dir in dir
-            actions['mkdir'] = QAction(QIcon.fromTheme("edit-add"), trans('action.mkdir'), self)
+            actions['mkdir'] = QAction(QIcon(":/icons/add_folder.svg"), trans('action.mkdir'), self)
             actions['mkdir'].triggered.connect(
                 lambda: self.action_make_dir(self.directory))
 
             # upload in dir
-            actions['upload'] = QAction(QIcon.fromTheme("edit-add"), trans('action.upload'), self)
+            actions['upload'] = QAction(QIcon(":/icons/upload.svg"), trans('action.upload'), self)
             actions['upload'].triggered.connect(
                 lambda: self.window.controller.files.upload_local())
 
