@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -88,6 +88,8 @@ class Input:
         :param reply: reply mode (from plugins)
         :param internal: internal call
         """
+        self.window.stateChanged.emit(self.window.STATE_IDLE)
+
         # check if input is not locked
         if self.locked and not force and not internal:
             return
@@ -142,6 +144,7 @@ class Input:
         if mode not in self.no_api_key_allowed:
             if not self.window.controller.chat.common.check_api_key():
                 self.generating = False
+                self.window.stateChanged.emit(self.window.STATE_ERROR)
                 return
 
         self.window.ui.status(trans('status.sending'))
@@ -191,6 +194,10 @@ class Input:
             self.window.controller.idx.on_ctx_end(ctx)  # update ctx DB index
 
         self.log("End.")
+
+        # restore state to idle if no errors
+        if self.window.state != self.window.STATE_ERROR:
+            self.window.stateChanged.emit(self.window.STATE_IDLE)
 
     def log(self, data: any):
         """

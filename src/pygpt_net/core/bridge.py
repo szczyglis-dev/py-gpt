@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 class Bridge:
     def __init__(self, window=None):
         """
-        Mode and models bridge
+        Provider bridge
 
         :param window: Window instance
         """
@@ -25,6 +25,8 @@ class Bridge:
         :param kwargs: keyword arguments
         """
         allowed_model_change = ["vision"]
+
+        self.window.stateChanged.emit(self.window.STATE_BUSY)  # set busy
 
         # debug
         self.window.core.debug.info("Bridge call...")
@@ -73,10 +75,8 @@ class Bridge:
         :param kwargs: keyword arguments
         :return: response content
         """
-        # debug
         self.window.core.debug.info("Bridge quick call...")
         if self.window.core.debug.enabled():
             debug = {k: str(v) for k, v in kwargs.items()}
             self.window.core.debug.debug(str(debug))
-
         return self.window.core.gpt.quick_call(**kwargs)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -196,6 +196,7 @@ class Text:
                 self.window.ui.dialogs.alert(str(e))
                 self.window.ui.status(trans('status.error'))
                 print("Error when calling API: " + str(e))
+                self.window.stateChanged.emit(self.window.STATE_ERROR)
 
             # handle response (if no assistant mode)
             # assistant response is handled in assistant thread
@@ -208,6 +209,7 @@ class Text:
             self.window.ui.dialogs.alert(str(e))
             self.window.ui.status(trans('status.error'))
             print("Error in sending text: " + str(e))
+            self.window.stateChanged.emit(self.window.STATE_ERROR)
 
         # if commands enabled: post-execute commands (if no assistant mode)
         if mode != "assistant":

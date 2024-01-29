@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 12:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 import os
 
@@ -173,6 +173,7 @@ class Common:
         self.unlock_input()
         self.window.controller.chat.input.generating = False
         self.window.ui.status(trans('status.stopped'))
+        self.window.stateChanged.emit(self.window.STATE_IDLE)
 
     def check_api_key(self) -> bool:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 09:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 import time
@@ -86,6 +86,8 @@ class Threads:
         worker.signals.destroyed.connect(self.handle_destroy)
         worker.signals.started.connect(self.handle_started)
 
+        self.window.stateChanged.emit(self.window.STATE_BUSY)
+
         # start
         self.window.threadpool.start(worker)
         self.started = True
@@ -105,10 +107,12 @@ class Threads:
             self.stop = False
             self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
+            self.window.stateChanged.emit(self.window.STATE_IDLE)
         elif status == "failed":
             self.stop = False
             self.window.controller.chat.common.unlock_input()
             self.window.statusChanged.emit(trans('assistant.run.failed'))
+            self.window.stateChanged.emit(self.window.STATE_ERROR)
 
     @Slot()
     def handle_destroy(self):

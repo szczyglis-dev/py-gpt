@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 import json
@@ -45,6 +45,8 @@ class Command:
                     break
                 if self.window.core.debug.enabled():
                     self.window.core.debug.debug("Apply [{}] to plugin: ".format(event.name) + id)
+
+                self.window.stateChanged.emit(self.window.STATE_BUSY)
                 self.window.core.dispatcher.apply(id, event)
 
         # WARNING: do not emit finished signal here if event is internal (otherwise it will be emitted twice)

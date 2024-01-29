@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 12:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -24,6 +24,20 @@ class Tray:
         """
         self.window = window
         self.is_tray = False
+        self.icon = None
+
+    def set_icon(self, state: str):
+        """
+        Set tray icon
+
+        :param state: State name
+        """
+        if not self.is_tray:
+            return
+
+        self.icon.setIcon(
+            self.window.ui.get_tray_icon(state)
+        )
 
     def setup(self, app=None):
         """
@@ -36,8 +50,11 @@ class Tray:
 
         self.is_tray = True
 
-        tray = QSystemTrayIcon(self.window.ui.get_app_icon(), app)
-        tray.setToolTip("PyGPT v{}".format(self.window.meta['version']))
+        self.icon = QSystemTrayIcon(
+            self.window.ui.get_tray_icon(self.window.STATE_IDLE),
+            app
+        )
+        self.icon.setToolTip("PyGPT v{}".format(self.window.meta['version']))
 
         # new context
         self.window.ui.tray_menu['new'] = QAction(trans("menu.file.new"), self.window)
@@ -73,8 +90,8 @@ class Tray:
         menu.addAction(self.window.ui.tray_menu['screenshot'])
         menu.addAction(self.window.ui.tray_menu['exit'])
 
-        tray.setContextMenu(menu)
-        tray.show()
+        self.icon.setContextMenu(menu)
+        self.icon.show()
 
     def new_ctx(self):
         """Create new context"""

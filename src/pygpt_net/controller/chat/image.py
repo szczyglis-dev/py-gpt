@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 import os
@@ -130,6 +130,8 @@ class Image:
         self.window.controller.chat.render.append_extra(ctx)
         self.window.controller.chat.render.end_extra()
 
+        self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
+
     def handle_response_inline(self, ctx: CtxItem, paths: list, prompt: str):
         """
         Handle inline response
@@ -164,6 +166,8 @@ class Image:
         # NOT internal-mode, user called, so append only img output to chat (show images now)
         self.window.controller.chat.render.append_extra(ctx)
         self.window.controller.chat.render.end_extra()
+
+        self.window.stateChanged.emit(self.window.STATE_IDLE)  # set state to idle
 
     def open_images(self, paths: list):
         """

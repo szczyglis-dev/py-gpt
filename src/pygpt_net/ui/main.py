@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 17:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
@@ -21,7 +21,14 @@ from pygpt_net.utils import get_app_meta
 
 class MainWindow(QMainWindow, QtStyleTools):
 
+    # states
+    STATE_IDLE = 'idle'
+    STATE_BUSY = 'busy'
+    STATE_ERROR = 'error'
+
+    # signals
     statusChanged = Signal(str)
+    stateChanged = Signal(str)
     logger_message = Signal(object)
 
     def __init__(self, app: QApplication, args: dict = None):
@@ -40,6 +47,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.is_closing = False
         self.timer_interval = 30
         self.post_timer_interval = 1000
+        self.state = self.STATE_IDLE
 
         # load version info
         self.meta = get_app_meta()
@@ -62,8 +70,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.ui = UI(self)
         self.ui.init()
 
-        # setup global signals
+        # setup signals
         self.statusChanged.connect(self.update_status)
+        self.stateChanged.connect(self.update_state)
 
     def add_plugin(self, plugin):
         """
@@ -133,6 +142,16 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param text: status text
         """
         self.ui.status(text)
+
+    @Slot(str)
+    def update_state(self, state: str):
+        """
+        Update state
+
+        :param state: state
+        """
+        self.state = state
+        self.ui.tray.set_icon(state)
 
     def closeEvent(self, event):
         """

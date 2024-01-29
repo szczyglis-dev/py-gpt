@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.01.29 16:00:00                  #
 # ================================================== #
 
 import os
@@ -24,6 +24,9 @@ from pygpt_net.ui.tray import Tray
 
 
 class UI:
+
+    STATUS_MAX_CHARS = 80
+
     def __init__(self, window=None):
         """
         UI (main)
@@ -97,8 +100,10 @@ class UI:
         self.window.setCentralWidget(self.window.ui.splitters['main'])
 
         # set window title
-        self.window.setWindowTitle('PyGPT - Desktop AI Assistant v{} | build {}'.
-                                   format(self.window.meta['version'], self.window.meta['build']))
+        self.window.setWindowTitle(
+            'PyGPT - Desktop AI Assistant v{} | build {}'.format(self.window.meta['version'],
+                                                                 self.window.meta['build'])
+        )
 
     def post_setup(self):
         """Post setup UI (just before show)"""
@@ -111,12 +116,18 @@ class UI:
         :param text: status text
         """
         msg = str(text)
-        status = msg[:80] + '...' if len(msg) > 80 else msg  # truncate, if needed, to 80 chars
+        status = msg[:self.STATUS_MAX_CHARS] + '...' if len(msg) > self.STATUS_MAX_CHARS else msg  # truncate
         self.nodes['status'].setText(status)
 
     def setup_font(self):
         """Setup UI font"""
-        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'fonts', 'Lato', 'Lato-Regular.ttf')
+        path = os.path.join(
+            self.window.core.config.get_app_path(),
+            'data',
+            'fonts',
+            'Lato',
+            'Lato-Regular.ttf'
+        )
         font_id = QFontDatabase.addApplicationFont(path)
         if font_id == -1:
             print("Error loading font file {}".format(path))
@@ -161,5 +172,34 @@ class UI:
         return self.hooks[name]
 
     def get_app_icon(self) -> QIcon:
-        """Get app icon"""
-        return QIcon(os.path.join(self.window.core.config.get_app_path(), 'data', 'icon.ico'))
+        """
+        Get app icon
+
+        :return: App icon
+        """
+        return QIcon(os.path.join(
+            self.window.core.config.get_app_path(),
+            'data',
+            'icon.ico'
+        ))
+
+    def get_tray_icon(self, state: str = "idle") -> QIcon:
+        """
+        Get tray icon
+
+        :param state: Tray state
+        :return: Tray icon
+        """
+        if state == self.window.STATE_IDLE:
+            icon = "icon_tray_idle.ico"
+        elif state == self.window.STATE_BUSY:
+            icon = "icon_tray_busy.ico"
+        elif state == self.window.STATE_ERROR:
+            icon = "icon_tray_error.ico"
+        else:
+            icon = "icon_tray_idle.ico"
+        return QIcon(os.path.join(
+            self.window.core.config.get_app_path(),
+            'data',
+            icon
+        ))
