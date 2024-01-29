@@ -5,6 +5,9 @@
     "layout": {
         "label": "settings.section.layout"
     },
+    "files": {
+        "label": "settings.section.files"
+    },
     "ctx": {
         "label": "settings.section.ctx"
     },

@@ -49,32 +49,6 @@
         "step": 1,
         "advanced": false
     },
-    "upload.store": {
-        "section": "general",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.upload.store",
-        "description": "settings.upload.store.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
-    "upload.data_dir": {
-        "section": "general",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.upload.data_dir",
-        "description": "settings.upload.data_dir.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "lock_modes": {
         "section": "general",
         "type": "bool",
@@ -246,6 +220,32 @@
         "max": 0,
         "multiplier": 1,
         "step": 1,
+        "advanced": false
+    },
+    "upload.store": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.upload.store",
+        "description": "settings.upload.store.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "upload.data_dir": {
+        "section": "files",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.upload.data_dir",
+        "description": "settings.upload.data_dir.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
         "advanced": false
     },
     "ctx.records.limit": {
