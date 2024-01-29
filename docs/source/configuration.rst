@@ -21,10 +21,6 @@ The following basic options can be modified directly within the application:
 
 * ``Number of notepads`` Number of notepad tabs. Restart of the application is required for this option to take effect.
 
-* ``Store attachments in the workdir upload directory``: Enable to store a local copy of uploaded attachments for future use. Default: True
-
-* ``Store images, capture and uploads in data directory``: Enable to store everything in single data directory. Default: False
-
 * ``Lock incompatible modes`` If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
 * ``Show tray icon`` Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
@@ -54,6 +50,12 @@ The following basic options can be modified directly within the application:
 * ``Use theme colors in chat window`` Use color theme in chat window, Default: True.
 
 * ``Disable markdown formatting in output`` Enable plain-text display in output window, Default: False.
+
+**Files and attachments**
+
+* ``Store attachments in the workdir upload directory``: Enable to store a local copy of uploaded attachments for future use. Default: True
+
+* ``Store images, capture and uploads in data directory``: Enable to store everything in single data directory. Default: False
 
 **Context**
 
@@ -132,6 +134,12 @@ The following basic options can be modified directly within the application:
 * ``Additional online data loaders`` List of the online data loaders from Llama Hub to use.
 
 * ``DB (ALL), DB (UPDATE), FILES (ALL)`` Index the data – batch indexing is available here
+
+**Developer**
+
+* ``Show debug menu`` enables debug (developer) menu
+
+* ``Log llama-index usages to console`` Enables logging llama-index usages to console.
 
 
 JSON files

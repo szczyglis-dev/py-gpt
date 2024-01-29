@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.129** | build: **2024.01.29** | Python: **3.10+**
+Release: **2.0.130** | build: **2024.01.29** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1709,10 +1709,6 @@ Config -> Settings...
 
 - `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
-- `Store attachments in the workdir upload directory`: Enable to store a local copy of uploaded attachments for future use. Default: True
-
-- `Store images, capture and upload in data directory`: Enable to store everything in single data directory. Default: False
-
 - `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
 
 - `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
@@ -1742,6 +1738,12 @@ Config -> Settings...
 - `Use theme colors in chat window`: Use color theme in chat window, Default: True.
 
 - `Disable markdown formatting in output`: Enables plain-text display in output window, Default: False.
+
+**Files and attachments**
+
+- `Store attachments in the workdir upload directory`: Enable to store a local copy of uploaded attachments for future use. Default: True
+
+- `Store images, capture and upload in data directory`: Enable to store everything in single data directory. Default: False
 
 **Context**
 
@@ -1959,6 +1961,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.130 (2024-01-29)
+
+- Added status indicator in Tray - feature [#12](https://github.com/szczyglis-dev/py-gpt/issues/12)
+- Added icons to tabs, tray and context menus
+- Added "Files and attachments" section in Settings
 
 # 2.0.129 (2024-01-29)
 

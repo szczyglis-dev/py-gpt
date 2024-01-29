@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.130 (2024-01-29)
+
+- Added status indicator in Tray - feature [#12](https://github.com/szczyglis-dev/py-gpt/issues/12)
+- Added icons to tabs, tray and context menus
+- Added "Files and attachments" section in Settings
+
 # 2.0.129 (2024-01-29)
 
 - Added Material Design SVG icons (by Google)
