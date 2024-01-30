@@ -23,7 +23,8 @@ class Vision:
             "chat",
             "completion",
             "langchain",
-            "llama_index"
+            "llama_index",
+            "agent",
         ]
 
     def setup(self):

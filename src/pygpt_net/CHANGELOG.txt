@@ -1,3 +1,9 @@
+2.0.133 (2024-01-30)
+
+- Added the ability for autonomous image generation using the "DALL-E (inline)" plugin in "Agent mode".
+- Added a "Redo" option to the "Painter/Draw" tool.
+- Enabled Vision in "Agent mode".
+
 2.0.132 (2024-01-30)
 
 - Experimental: Added new working mode: "Agent (autonomous)", which works similarly to the "Autonomous Mode" plugin but as a separate mode with editable system prompt presets.

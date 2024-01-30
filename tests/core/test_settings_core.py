@@ -98,7 +98,7 @@ def test_load_app_settings(mock_window):
     mock_window.core.config.data['test2'] = 'value2'
     settings.load_app_settings()
     mock_window.core.config.from_base_config.assert_called_once()
-    mock_window.core.config.save.assert_called_once_with('config.backup.json')
+    mock_window.core.config.save.assert_called_once_with('config.json.backup')
     assert mock_window.core.config.data['test1'] == 'value1'
     assert mock_window.core.config.data['test2'] == 'value2'
 

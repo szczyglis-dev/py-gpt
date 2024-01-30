@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.132** | build: **2024.01.30** | Python: **3.10+**
+Release: **2.0.133** | build: **2024.01.30** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1937,6 +1937,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.133 (2024-01-30)
+
+- Added the ability for autonomous image generation using the `DALL-E (inline)` plugin in `Agent mode`.
+- Added a `Redo` option to the `Painter/Draw` tool.
+- Enabled Vision in `Agent mode`.
 
 # 2.0.132 (2024-01-30)
 
