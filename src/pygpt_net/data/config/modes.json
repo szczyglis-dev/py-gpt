@@ -46,6 +46,12 @@
             "name": "Index (Llama-index)",
             "label": "mode.llama_index",
             "default": false
+        },
+        "agent": {
+            "id": "agent",
+            "name": "Agent (autonomous)",
+            "label": "mode.agent",
+            "default": false
         }
     }
 }

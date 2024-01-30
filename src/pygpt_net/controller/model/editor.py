@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 04:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -139,9 +139,16 @@ class Editor:
         idx = None
         self.window.model_settings.setup(idx)  # widget dialog setup
         parent = "model"
-        keys = ['langchain.args', 'langchain.env']
+        keys = [
+            "langchain.args",
+            "langchain.env",
+        ]
         for key in keys:
-            self.window.ui.dialogs.register_dictionary(key, parent, self.get_option(key))
+            self.window.ui.dialogs.register_dictionary(
+                key,
+                parent,
+                self.get_option(key),
+            )
 
     def toggle_editor(self):
         """Toggle models editor dialog"""
@@ -161,7 +168,11 @@ class Editor:
             self.config_initialized = True
         if not self.dialog or force:
             self.init()
-            self.window.ui.dialogs.open('models.editor', width=self.width, height=self.height)
+            self.window.ui.dialogs.open(
+                "models.editor",
+                width=self.width,
+                height=self.height,
+            )
             self.dialog = True
 
     def close(self):
@@ -191,7 +202,7 @@ class Editor:
             self.set_tab_by_id(self.current)
 
         # load and apply options to config dialog
-        self.window.controller.config.load_options('model', options)
+        self.window.controller.config.load_options("model", options)
 
     def save(self, persist: bool = True):
         """
@@ -202,7 +213,11 @@ class Editor:
         options = copy.deepcopy(self.get_options())  # copy options
         data_dict = {}
         for key in options:
-            value = self.window.controller.config.get_value('model', key, options[key])
+            value = self.window.controller.config.get_value(
+                "model",
+                key,
+                options[key],
+            )
             data_dict[key] = value
         self.window.core.models.items[self.current].from_dict(data_dict)
 
@@ -210,7 +225,7 @@ class Editor:
         if persist:
             self.window.core.models.save()
             self.close()
-            self.window.ui.status(trans('info.settings.saved'))
+            self.window.ui.status(trans("info.settings.saved"))
 
     def reload_items(self):
         """Reload items"""
@@ -244,8 +259,11 @@ class Editor:
         """
         model = self.get_model_by_tab_idx(idx)
         if not force:
-            self.window.ui.dialogs.confirm('models.editor.delete', idx,
-                                           trans('dialog.models.editor.delete.confirm'))
+            self.window.ui.dialogs.confirm(
+                "models.editor.delete",
+                idx,
+                trans("dialog.models.editor.delete.confirm"),
+            )
             return
         self.window.core.models.delete(model)
         self.window.core.models.save()
@@ -261,8 +279,11 @@ class Editor:
         :param force: force load defaults
         """
         if not force:
-            self.window.ui.dialogs.confirm('models.editor.defaults.user', -1,
-                                           trans('dialog.models.editor.defaults.user.confirm'))
+            self.window.ui.dialogs.confirm(
+                "models.editor.defaults.user",
+                -1,
+                trans("dialog.models.editor.defaults.user.confirm"),
+            )
             return
 
         # reload settings window
@@ -279,8 +300,11 @@ class Editor:
         :param force: force load defaults
         """
         if not force:
-            self.window.ui.dialogs.confirm('models.editor.defaults.app', -1,
-                                           trans('dialog.models.editor.defaults.app.confirm'))
+            self.window.ui.dialogs.confirm(
+                "models.editor.defaults.app",
+                -1,
+                trans("dialog.models.editor.defaults.app.confirm"),
+            )
             return
 
         # restore default models (from app base models)
@@ -291,7 +315,9 @@ class Editor:
         self.current = None
         self.reload_items()
         self.init()
-        self.window.ui.dialogs.alert(trans('dialog.models.editor.defaults.app.result'))
+        self.window.ui.dialogs.alert(
+            trans('dialog.models.editor.defaults.app.result')
+        )
 
     def set_by_tab(self, idx: int):
         """

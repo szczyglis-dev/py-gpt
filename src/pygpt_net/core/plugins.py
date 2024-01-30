@@ -72,6 +72,19 @@ class Plugins:
             return self.plugins[id]
         return None
 
+    def get_option(self, id: str, key: str) -> any:
+        """
+        Get plugin option
+
+        :param id: plugin id
+        :param key: option key
+        :return: option value
+        """
+        if self.is_registered(id):
+            if key in self.plugins[id].options:
+                return self.plugins[id].options[key]['value']
+        return None
+
     def register(self, plugin: any):
         """
         Register plugin

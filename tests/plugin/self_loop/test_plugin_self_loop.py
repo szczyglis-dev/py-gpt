@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import os
@@ -32,6 +32,7 @@ def test_handle_user_send(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
+    mock_window.controller.agent.on_user_send = MagicMock()
     ctx = CtxItem()
     event = Event()
     event.name = "user.send"
@@ -40,26 +41,23 @@ def test_handle_user_send(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert plugin.iteration == 0
-    assert plugin.prev_output is None
-
+    mock_window.controller.agent.on_user_send.assert_called_once()
 
 def test_handle_ctx_end(mock_window):
     """Test handle event: ctx.end"""
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
+    mock_window.controller.agent.on_ctx_end = MagicMock()
     mock_window.controller.chat.input.send = MagicMock()
     ctx = CtxItem()
     event = Event()
     event.name = "ctx.end"
     event.data = {}
     event.ctx = ctx
-    plugin.iteration = 0
-    plugin.prev_output = "prev output"
     plugin.options["iterations"]["value"] = 1
     plugin.handle(event)
-    mock_window.controller.chat.input.send.assert_called_once_with("prev output", force=True, internal=True)
+    mock_window.controller.agent.on_ctx_end.assert_called_once()
 
 
 def test_handle_ctx_before(mock_window):
@@ -67,6 +65,7 @@ def test_handle_ctx_before(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
+    mock_window.controller.agent.on_ctx_before = MagicMock()
     mock_window.controller.chat.input.send = MagicMock()
     ctx = CtxItem()
     ctx.input_name = "input name"
@@ -77,13 +76,8 @@ def test_handle_ctx_before(mock_window):
     event.name = "ctx.before"
     event.data = {}
     event.ctx = ctx
-    plugin.iteration = 1
-    plugin.prev_output = "prev output"
-    plugin.options["reverse_roles"]["value"] = True
-    plugin.options["iterations"]["value"] = 3
     plugin.handle(event)
-    assert ctx.input_name == "output name"
-    assert ctx.output_name == "input name"
+    mock_window.controller.agent.on_ctx_before.assert_called_once()
 
 
 def test_handle_ctx_after(mock_window):
@@ -92,14 +86,14 @@ def test_handle_ctx_after(mock_window):
     plugin.init_options()
     plugin.setup()
     mock_window.controller.chat.input.send = MagicMock()
+    mock_window.controller.agent.on_ctx_after = MagicMock()
     ctx = CtxItem()
     ctx.output = "output"
     event = Event()
     event.name = "ctx.after"
     event.data = {}
     event.ctx = ctx
-    plugin.iteration = 1
     plugin.prev_output = ""
     plugin.handle(event)
-    assert plugin.prev_output == "output"
+    mock_window.controller.agent.on_ctx_after.assert_called_once()
 

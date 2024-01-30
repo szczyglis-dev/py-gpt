@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
@@ -162,6 +162,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.is_closing = True
         print("Closing...")
         print("Sending terminate signal to plugins...")
+        self.controller.chat.common.stop()
         self.controller.plugins.destroy()
         print("Saving notepad...")
         self.controller.notepad.save_all()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import os
@@ -676,6 +676,15 @@ class Patch:
                         },
                     ]
                     updated = True
+
+            # < 2.0.132
+            if old < parse_version("2.0.132"):
+                print("Migrating config from < 2.0.132...")
+                if 'agent.auto_stop' not in data:
+                    data['agent.auto_stop'] = True
+                if 'agent.iterations' not in data:
+                    data['agent.iterations'] = 3
+                updated = True
 
         # update file
         migrated = False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -60,6 +60,10 @@ class Editor:
             "langchain": {
                 "type": "bool",
                 "label": "preset.langchain",
+            },
+            "agent": {
+                "type": "bool",
+                "label": "preset.agent",
             },
             # "assistant": {
             # "type": "bool",
@@ -169,21 +173,23 @@ class Editor:
 
         # set current mode at start
         if id is None:
-            mode = self.window.core.config.get('mode')
-            if mode == 'chat':
+            mode = self.window.core.config.get("mode")
+            if mode == "chat":
                 data.chat = True
-            elif mode == 'completion':
+            elif mode == "completion":
                 data.completion = True
-            elif mode == 'img':
+            elif mode == "img":
                 data.img = True
-            elif mode == 'vision':
+            elif mode == "vision":
                 data.vision = True
-            elif mode == 'langchain':
+            elif mode == "langchain":
                 data.langchain = True
-            # elif mode == 'assistant':
+            # elif mode == "'"assistant':
                 # data.assistant = True
-            elif mode == 'llama_index':
+            elif mode == "llama_index":
                 data.llama_index = True
+            elif mode == "agent":
+                data.agent = True
 
         options = {}
         data_dict = data.to_dict()
@@ -192,7 +198,10 @@ class Editor:
             options[key]['value'] = data_dict[key]
 
         # load options
-        self.window.controller.config.load_options(self.id, options)
+        self.window.controller.config.load_options(
+            self.id,
+            options,
+        )
 
         # set focus to name field
         self.window.ui.config[self.id]['name'].setFocus()
@@ -203,15 +212,23 @@ class Editor:
 
         :param force: force overwrite file
         """
-        id = self.window.controller.config.get_value(self.id, 'filename', self.options['filename'])
-        mode = self.window.core.config.get('mode')
+        id = self.window.controller.config.get_value(
+            self.id,
+            "filename",
+            self.options["filename"],
+        )
+        mode = self.window.core.config.get("mode")
 
         # disallow editing current preset cache
-        if id.startswith('current.'):
+        if id.startswith("current."):
             return
 
         if id is None or id == "":
-            name = self.window.controller.config.get_value(self.id, 'name', self.options['name'])
+            name = self.window.controller.config.get_value(
+                self.id,
+                "name",
+                self.options["name"],
+            )
             if name is None or name == "":
                 self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
                 self.window.ui.status(trans('status.preset.empty_id'))
@@ -219,7 +236,11 @@ class Editor:
 
             # generate new filename
             id = self.window.controller.presets.make_filename(name)
-            path = os.path.join(self.window.core.config.path, 'presets', id + '.json')
+            path = os.path.join(
+                self.window.core.config.path,
+                "presets",
+                id + ".json",
+            )
             if os.path.exists(path) and not force:
                 id = id + '_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
@@ -228,18 +249,28 @@ class Editor:
         if id not in self.window.core.presets.items:
             self.window.core.presets.items[id] = PresetItem()
         elif not force:
-            self.window.ui.dialogs.confirm('preset_exists', id, trans('confirm.preset.overwrite'))
+            self.window.ui.dialogs.confirm(
+                'preset_exists',
+                id,
+                trans('confirm.preset.overwrite'),
+            )
             return
 
         # check if at least one mode is selected
-        modes = ['chat', 'completion', 'img', 'vision', 'langchain', 'assistant']
+        modes = ["chat", "completion", "img", "vision", "langchain", "assistant", "agent", "llama_index"]
         is_mode = False
         for mode in modes:
-            if self.window.controller.config.get_value(self.id, mode, self.options[mode]):
+            if self.window.controller.config.get_value(
+                    self.id,
+                    mode,
+                    self.options[mode],
+            ):
                 is_mode = True
                 break
         if not is_mode:
-            self.window.ui.dialogs.alert(trans('alert.preset.no_chat_completion'))
+            self.window.ui.dialogs.alert(
+                trans('alert.preset.no_chat_completion')
+            )
             return
 
         # assign data from fields to preset object in items
@@ -276,7 +307,11 @@ class Editor:
         """
         data_dict = {}
         for key in self.options:
-            data_dict[key] = self.window.controller.config.get_value(self.id, key, self.options[key])
+            data_dict[key] = self.window.controller.config.get_value(
+                self.id,
+                key,
+                self.options[key],
+            )
         if data_dict['name'] is None or data_dict['name'] == "":
             data_dict['name'] = id + " " + trans('preset.untitled')
         if data_dict['model'] == '_':
@@ -296,16 +331,36 @@ class Editor:
 
     def from_current(self):
         """Copy data from current active preset"""
-        self.window.controller.config.apply_value(self.id, "ai_name", self.options["ai_name"],
-                                                  self.window.core.config.get('ai_name'))
-        self.window.controller.config.apply_value(self.id, "user_name", self.options["user_name"],
-                                                  self.window.core.config.get('user_name'))
-        self.window.controller.config.apply_value(self.id, "prompt", self.options["prompt"],
-                                                  self.window.core.config.get('prompt'))
-        self.window.controller.config.apply_value(self.id, "temperature", self.options["temperature"],
-                                                  self.window.core.config.get('temperature'))
-        self.window.controller.config.apply_value(self.id, "model", self.options["model"],
-                                                  self.window.core.config.get('model'))
+        self.window.controller.config.apply_value(
+            self.id,
+            "ai_name",
+            self.options["ai_name"],
+            self.window.core.config.get('ai_name'),
+        )
+        self.window.controller.config.apply_value(
+            self.id,
+            "user_name",
+            self.options["user_name"],
+            self.window.core.config.get('user_name'),
+        )
+        self.window.controller.config.apply_value(
+            self.id,
+            "prompt",
+            self.options["prompt"],
+            self.window.core.config.get('prompt'),
+        )
+        self.window.controller.config.apply_value(
+            self.id,
+            "temperature",
+            self.options["temperature"],
+            self.window.core.config.get('temperature'),
+        )
+        self.window.controller.config.apply_value(
+            self.id,
+            "model",
+            self.options["model"],
+            self.window.core.config.get('model'),
+        )
 
     def update_from_global(self, key, value):
         """Update field from global config"""

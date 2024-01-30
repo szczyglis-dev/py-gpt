@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -140,6 +140,16 @@ class Patch:
                     data["gpt-4-1106-preview"].name = "gpt-4-1106-preview"
                 if "gpt-4-vision-preview" in data:
                     data["gpt-4-vision-preview"].name = "gpt-4-vision-preview"
+                updated = True
+
+            # < 2.0.132  <--- add agent mode
+            if old < parse_version("2.0.132"):
+                print("Migrating models from < 2.0.132...")
+                for id in data:
+                    model = data[id]
+                    if model.id.startswith("gpt-"):
+                        if "agent" not in model.mode:
+                            model.mode.append("agent")
                 updated = True
 
         # update file

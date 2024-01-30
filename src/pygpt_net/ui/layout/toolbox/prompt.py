@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import Qt
@@ -65,6 +65,8 @@ class Prompt:
         self.window.ui.nodes['preset.prompt'].real_time = True
         self.window.ui.nodes['preset.prompt'].update_ui = False
         self.window.ui.nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.window.ui.nodes['preset.prompt'].textChanged.connect(
+            lambda: self.window.controller.ui.update_tokens())
 
         self.window.ui.nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), self.window)
 

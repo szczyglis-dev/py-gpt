@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -37,6 +37,10 @@ class Output:
         # if stream mode then append chunk by chunk
         if stream_mode and mode not in self.not_stream_modes:
             self.append_stream(ctx, mode)
+
+        # agent mode
+        if mode == 'agent':
+            self.window.controller.agent.on_ctx_after(ctx)
 
         # event: context after
         event = Event(Event.CTX_AFTER)
@@ -90,7 +94,7 @@ class Output:
                     response = None
 
                     # chat and vision
-                    if mode == "chat" or mode == "vision":
+                    if mode == "chat" or mode == "vision" or mode == "agent":
                         if chunk.choices[0].delta.content is not None:
                             response = chunk.choices[0].delta.content
 
@@ -163,15 +167,24 @@ class Output:
 
     def handle_cmd(self, ctx: CtxItem):
         """
-        Handle plugin commands
+        Handle commands
 
         :param ctx: CtxItem
         """
-        cmds = self.window.core.command.extract_cmds(ctx.output)
+        mode = self.window.core.config.get('mode')
+        cmds = self.window.core.command.extract_cmds(ctx.output)  # extract raw commands
+
         if len(cmds) > 0:
-            ctx.cmds = cmds  # append to ctx
+            ctx.cmds = cmds  # append commands to ctx
+
+            # agent mode
+            if mode == 'agent':
+                commands = self.window.controller.plugins.from_commands(cmds)  # pack to execution list
+                self.window.controller.agent.on_cmd(ctx, commands)
+
+            # plugins
             if self.window.core.config.get('cmd'):
-                self.log("Executing commands...")
+                self.log("Executing plugin commands...")
                 self.window.ui.status(trans('status.cmd.wait'))
                 self.window.controller.plugins.apply_cmds(ctx, cmds)
             else:

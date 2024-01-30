@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -45,6 +45,10 @@ class Confirm:
         # images
         elif type == 'img_delete':
             self.window.controller.chat.image.delete(id, True)
+
+        # agent infinity loop run
+        elif type == 'agent.infinity.run':
+            self.window.controller.chat.input.send_input(force=True)
 
         # attachments
         elif type == 'attachments.delete':

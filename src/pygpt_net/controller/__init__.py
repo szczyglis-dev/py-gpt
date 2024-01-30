@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
+from pygpt_net.controller.agent import Agent
 from pygpt_net.controller.assistant import Assistant
 from pygpt_net.controller.attachment import Attachment
 from pygpt_net.controller.audio import Audio
@@ -44,6 +45,7 @@ class Controller:
         :param window: Window instance
         """
         self.window = window
+        self.agent = Agent(window)
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
@@ -81,6 +83,7 @@ class Controller:
         self.lang.setup()
         self.assistant.setup()
         self.chat.setup()
+        self.agent.setup()
         self.ctx.setup()
         self.presets.setup()
         self.idx.setup()

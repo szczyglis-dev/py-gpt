@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtCore import QSize
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QWidget, QSizePolicy
 
+from .agent import Agent
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
@@ -31,6 +32,7 @@ class Footer:
         :param window: Window instance
         """
         self.window = window
+        self.agent = Agent(window)
         self.image = Image(window)
         self.indexes = Indexes(window)
         self.vision = Vision(window)
@@ -57,6 +59,7 @@ class Footer:
         rows = QVBoxLayout()
         # rows.addWidget(self.window.ui.nodes['temperature.label'])
         # rows.addWidget(self.window.ui.config['global']['current_temperature'])
+        rows.addWidget(self.agent.setup())
         rows.addWidget(self.image.setup())
         rows.addWidget(self.vision.setup())
         rows.addWidget(self.indexes.setup_options())

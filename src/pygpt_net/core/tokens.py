@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import tiktoken
 
 from pygpt_net.item.ctx import CtxItem
 
-CHAT_MODES = ["chat", "vision", "langchain", "assistant", "llama_index"]
+CHAT_MODES = ["chat", "vision", "langchain", "assistant", "llama_index", "agent"]
 
 
 class Tokens:

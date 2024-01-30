@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 23:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -41,13 +41,14 @@ class Ctx:
         self.last_model = None
         self.search_string = None
         self.allowed_modes = {
-            'chat': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
-            'completion': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
-            'img': ['img'],
-            'langchain': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
-            'vision': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
-            'assistant': ['assistant'],
-            'llama_index': ['chat', 'completion', 'img', 'langchain', 'vision', 'assistant', 'llama_index'],
+            'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'img': ["img"],
+            'langchain': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'vision': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'assistant': ["assistant"],
+            'llama_index': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
+            'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
         }
 
     def install(self):

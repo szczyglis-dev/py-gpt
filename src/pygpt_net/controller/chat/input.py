@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -29,12 +29,29 @@ class Input:
         self.no_api_key_allowed = ['langchain', 'llama_index']
         self.no_ctx_idx_modes = ['img', 'assistant', 'llama_index']  # assistant handled in async
 
-    def send_input(self):
+    def send_input(self, force: bool = False):
         """
         Send text from user input (called from UI)
+
+        :param force: force send
         """
         # get text from input
         text = self.window.ui.nodes['input'].toPlainText().strip()
+        mode = self.window.core.config.get('mode')
+
+        # if agent mode: iterations check
+        if not force:
+            if (mode == "agent" and self.window.core.config.get('agent.iterations') == 0) \
+                    or (self.window.controller.plugins.is_enabled("self_loop")
+                        and self.window.core.plugins.get_option("self_loop", "iterations") == 0):
+
+                # show alert confirm
+                self.window.ui.dialogs.confirm(
+                    "agent.infinity.run",
+                    0,
+                    trans("agent.infinity.confirm.content"),
+                )
+                return
 
         if self.generating \
                 and text is not None \
@@ -42,6 +59,10 @@ class Input:
             self.window.controller.chat.common.stop()  # TODO: to chat main
             self.window.controller.chat.render.clear_input()
             return
+
+        # agent mode
+        if mode == 'agent':
+            self.window.controller.agent.on_user_send(text)
 
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {
@@ -99,6 +120,7 @@ class Input:
         self.generating = True  # set generating flag
 
         mode = self.window.core.config.get('mode')
+
         if mode == 'assistant':
             # check if assistant is selected
             if self.window.core.config.get('assistant') is None \
@@ -120,6 +142,10 @@ class Input:
         self.stop = False
 
         self.log("Input prompt: {}".format(text))  # log
+
+        # agent mode
+        if mode == 'agent':
+            text = self.window.controller.agent.on_input_before(text)
 
         # event: before input
         event = Event(Event.INPUT_BEFORE, {
@@ -182,6 +208,13 @@ class Input:
                 self.window.controller.attachment.update()
 
         self.log("Context: END: {}".format(ctx))
+
+        # agent mode
+        if mode == 'agent':
+            self.window.controller.agent.on_ctx_end(
+                ctx,
+                iterations=self.window.core.config.get("agent.iterations"),
+            )
 
         # event: context end
         event = Event(Event.CTX_END)

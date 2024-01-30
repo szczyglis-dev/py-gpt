@@ -11,9 +11,10 @@
   "langchain": false,
   "assistant": false,
   "llama_index": true,
+  "agent": false,
   "__meta__": {
-    "version": "2.0.102",
-    "app.version": "2.0.102",
-    "updated_at": "2024-01-13T11:00:00"
+    "version": "2.0.104",
+    "app.version": "2.0.104",
+    "updated_at": "2024-01-30T14:00:00"
   }
 }

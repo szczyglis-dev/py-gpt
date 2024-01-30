@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import copy
@@ -36,12 +36,11 @@ class Presets:
         """Patch provider data"""
         self.provider.patch(app_version)
 
-    def build(self):
+    def build(self) -> PresetItem:
         """
         Build empty preset
 
         :return: empty preset
-        :rtype: PresetItem
         """
         return PresetItem()
 
@@ -55,6 +54,7 @@ class Presets:
         curr_langchain = self.build()
         curr_assistant = self.build()
         curr_llama = self.build()
+        curr_agent = self.build()
 
         # prepare ids
         id_chat = 'current.chat'
@@ -64,6 +64,7 @@ class Presets:
         id_langchain = 'current.langchain'
         id_assistant = 'current.assistant'
         id_llama = 'current.llama_index'
+        id_agent = 'current.agent'
 
         # set default initial prompt for chat mode
         curr_chat.prompt = self.window.core.config.get('default_prompt')
@@ -83,6 +84,8 @@ class Presets:
             curr_assistant = self.items[id_assistant]
         if id_llama in self.items:
             curr_llama = self.items[id_llama]
+        if id_agent in self.items:
+            curr_agent = self.items[id_agent]
 
         # allow usage in specific mode
         curr_chat.chat = True
@@ -92,6 +95,7 @@ class Presets:
         curr_langchain.langchain = True
         curr_assistant.assistant = True
         curr_llama.llama_index = True
+        curr_agent.agent = True
 
         # always apply default name
         curr_chat.name = '*'
@@ -101,6 +105,7 @@ class Presets:
         curr_langchain.name = '*'
         curr_assistant.name = '*'
         curr_llama.name = '*'
+        curr_agent.name = '*'
 
         # append at first position
         self.items = {
@@ -111,6 +116,7 @@ class Presets:
             id_langchain: curr_langchain,
             id_assistant: curr_assistant,
             id_llama: curr_llama,
+            id_agent: curr_agent,
             **self.items
         }
 
@@ -119,7 +125,7 @@ class Presets:
         Check if preset exists
 
         :param id: preset id
-        :return: bool
+        :return: True if exists
         """
         if id in self.items:
             return True
@@ -147,6 +153,8 @@ class Presets:
             return 'assistant'
         if preset.llama_index:
             return 'llama_index'
+        if preset.agent:
+            return 'agent'
         return None
 
     def has(self, mode: str, id: str) -> bool:
@@ -154,8 +162,8 @@ class Presets:
         Check if preset for mode exists
 
         :param mode: mode name
-        :param name: preset id
-        :return: bool
+        :param id : preset id
+        :return: True if exists
         """
         presets = self.get_by_mode(mode)
         if id in presets:
@@ -188,7 +196,8 @@ class Presets:
                     or (mode == 'vision' and self.items[id].vision) \
                     or (mode == 'langchain' and self.items[id].langchain) \
                     or (mode == 'assistant' and self.items[id].assistant) \
-                    or (mode == 'llama_index' and self.items[id].llama_index):
+                    or (mode == 'llama_index' and self.items[id].llama_index) \
+                    or (mode == 'agent' and self.items[id].agent):
                 presets[id] = self.items[id]
         return presets
 
@@ -267,7 +276,12 @@ class Presets:
         """
         Sort presets by name
         """
-        self.items = dict(sorted(self.items.items(), key=lambda item: item[1].name))
+        self.items = dict(
+            sorted(
+                self.items.items(),
+                key=lambda item: item[1].name
+            )
+        )
 
     def get_all(self) -> dict:
         """

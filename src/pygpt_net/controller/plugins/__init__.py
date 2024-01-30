@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -310,7 +310,20 @@ class Plugins:
         if c > 0:
             count_str = "+ " + str(c) + " " + trans('chatbox.plugins')
         self.window.ui.nodes['chat.plugins'].setText(count_str)
-        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)  
+        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
+
+    def from_commands(self, cmds: list):
+        """
+        Pack commands
+
+        :param cmds: commands list
+        :return parsed commands
+        """
+        commands = []
+        for cmd in cmds:
+            if 'cmd' in cmd:
+                commands.append(cmd)
+        return commands
 
     def apply_cmds(self, ctx: CtxItem, cmds: list):
         """
@@ -319,10 +332,7 @@ class Plugins:
         :param ctx: CtxItem
         :param cmds: commands list
         """
-        commands = []
-        for cmd in cmds:
-            if 'cmd' in cmd:
-                commands.append(cmd)
+        commands = self.from_commands(cmds)
 
         if len(commands) == 0:
             return
@@ -341,10 +351,7 @@ class Plugins:
         :param ctx: CtxItem
         :param cmds: commands list
         """
-        commands = []
-        for cmd in cmds:
-            if 'cmd' in cmd:
-                commands.append(cmd)
+        commands = self.from_commands(cmds)
 
         if len(commands) == 0:
             return

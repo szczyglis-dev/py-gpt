@@ -165,12 +165,12 @@ Choose the voice. Available voices to choose from:
 *Default:* `alloy`
 
 
-Autonomous Mode
-----------------
+Autonomous Mode (inline)
+------------------------
 
 **WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
-The plugin activates autonomous mode, where AI begins a conversation with itself. 
+The plugin activates autonomous mode in standard chat modes, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 

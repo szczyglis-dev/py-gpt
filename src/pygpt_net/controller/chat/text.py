@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -43,7 +43,7 @@ class Text:
 
         # prepare names
         self.log("User name: {}".format(self.window.core.config.get('user_name')))  # log
-        self.log("AI name: {}".format(self.window.core.config.get('ai_name')))  # log
+        self.log# Updated Date: 2024.01.03 19:00:00                  #("AI name: {}".format(self.window.core.config.get('ai_name')))  # log
 
         # event: username prepare
         event = Event(Event.USER_NAME, {
@@ -89,6 +89,10 @@ class Text:
 
         self.log("Context: INPUT: {}".format(ctx))
 
+        # agent mode
+        if mode == 'agent':
+            self.window.controller.agent.on_ctx_before(ctx)
+
         # event: context before
         event = Event(Event.CTX_BEFORE)
         event.ctx = ctx
@@ -103,6 +107,14 @@ class Text:
         })
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
+
+        # agent mode
+        if mode == 'agent':
+            sys_prompt = self.window.controller.agent.on_system_prompt(
+                sys_prompt,
+                append_prompt=None,  # preset is used
+                auto_stop=self.window.core.config.get('agent.auto_stop'),
+            )
 
         # event: system prompt (append to system prompt)
         event = Event(Event.SYSTEM_PROMPT, {

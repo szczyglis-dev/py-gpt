@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -22,15 +22,8 @@ class Plugin(BasePlugin):
         self.name = "Autonomous Mode: AI to AI conversation"
         self.description = "Enables autonomous conversation (AI to AI), manages loop, " \
                            "and connects output back to input."
-        self.iteration = 0
-        self.prev_output = None
         self.order = 9998
         self.use_locale = True
-        self.is_user = True
-        self.stop = False
-        self.allowed_cmds = [
-            "goal_update",
-        ]
         self.init_options()
 
     def init_options(self):
@@ -175,6 +168,14 @@ class Plugin(BasePlugin):
         """
         self.window = window
 
+    def is_allowed(self) -> bool:
+        """
+        Check if plugin is allowed to run
+
+        :return: True if plugin is allowed to run
+        """
+        return self.window.core.config.get("mode") != "agent"  # check global mode
+
     def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event
@@ -183,6 +184,9 @@ class Plugin(BasePlugin):
         :param args: event args
         :param kwargs: event kwargs
         """
+        if not self.is_allowed():
+            return
+
         name = event.name
         data = event.data
         ctx = event.ctx
@@ -222,17 +226,73 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        stop_cmd = ""
-        if self.get_option_value("auto_stop"):
-            stop_cmd = '\n\nON FINISH: When you believe that the task has been completed 100% and all goals have ' \
-                       'been achieved, include the following command in your response, which will stop further ' \
-                       'conversation. Remember to put it in the form as given, at the end of response and including ' \
-                       'the surrounding ~###~ marks: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
+        return self.window.controller.agent.on_system_prompt(
+            prompt,
+            append_prompt=self.get_first_active_prompt(),
+            auto_stop=self.get_option_value("auto_stop"),
+        )
 
-        # select prompt to use
-        append_prompt = self.get_first_active_prompt()
-        prompt += "\n" + append_prompt + stop_cmd
-        return prompt
+    def on_input_before(self, prompt: str) -> str:
+        """
+        Event: On user input before
+
+        :param prompt: prompt
+        :return: updated prompt
+        """
+        return self.window.controller.agent.on_input_before(prompt)
+
+    def cmd(self, ctx: CtxItem, cmds: list):
+        """
+        Event: On command
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        """
+        self.window.controller.agent.cmd(ctx, cmds)  # force execute
+
+    def on_stop(self):
+        """
+        Event: On force stop
+        """
+        self.window.controller.agent.on_stop()  # force stop
+
+    def on_user_send(self, text: str):
+        """
+        Event: On user send text
+
+        :param text: text
+        """
+        self.window.controller.agent.on_user_send(text)
+
+    def on_ctx_end(self, ctx: CtxItem):
+        """
+        Event: On context end
+
+        :param ctx: CtxItem
+        """
+        self.window.controller.agent.on_ctx_end(
+            ctx,
+            iterations=int(self.get_option_value("iterations")),
+        )
+
+    def on_ctx_before(self, ctx: CtxItem):
+        """
+        Event: Before ctx
+
+        :param ctx: CtxItem
+        """
+        self.window.controller.agent.on_ctx_before(
+            ctx,
+            reverse_roles=self.get_option_value("reverse_roles"),
+        )
+
+    def on_ctx_after(self, ctx: CtxItem):
+        """
+        Event: After ctx
+
+        :param ctx: CtxItem
+        """
+        self.window.controller.agent.on_ctx_after(ctx)
 
     def get_first_active_prompt(self) -> str:
         """
@@ -244,115 +304,3 @@ class Plugin(BasePlugin):
             if item["enabled"]:
                 return item["prompt"]
         return ""
-
-    def on_input_before(self, prompt: str) -> str:
-        """
-        Event: On user input before
-
-        :param prompt: prompt
-        :return: updated prompt
-        """
-        if not self.is_user:
-            return prompt
-
-        return "user: " + prompt
-
-    def cmd(self, ctx: CtxItem, cmds: list):
-        """
-        Event: On command
-
-        :param ctx: CtxItem
-        :param cmds: commands dict
-        """
-        is_cmd = False
-        my_commands = []
-        for item in cmds:
-            if item["cmd"] in self.allowed_cmds:
-                my_commands.append(item)
-                is_cmd = True
-
-        if not is_cmd:
-            return
-
-        for item in my_commands:
-            try:
-                if item["cmd"] == "goal_update":
-                    if item["params"]["status"] == "finished":
-                        self.on_stop()
-                        self.window.ui.status(trans('status.finished'))  # show info
-            except Exception as e:
-                self.log("Error: " + str(e))
-                return
-
-    def on_stop(self):
-        """
-        Event: On force stop
-
-        :param value: value
-        """
-        self.iteration = 0
-        self.prev_output = None
-        self.stop = True
-
-    def on_user_send(self, text: str):
-        """
-        Event: On user send text
-
-        :param text: text
-        """
-        self.iteration = 0
-        self.prev_output = None
-        self.is_user = True
-        if self.stop:
-            self.stop = False
-
-    def on_ctx_end(self, ctx: CtxItem):
-        """
-        Event: On context end
-
-        :param ctx: CtxItem
-        """
-        if self.stop:
-            self.stop = False
-            self.iteration = 0
-            self.prev_output = None
-
-        iterations = int(self.get_option_value("iterations"))
-        if iterations == 0 or self.iteration < iterations:
-            self.iteration += 1
-            if self.prev_output is not None and self.prev_output != "":
-                self.debug(
-                    "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
-                self.window.controller.chat.input.send(
-                    self.prev_output,
-                    force=True,
-                    internal=True,
-                )
-                # internal call will not trigger async mode and will hide the message from previous iteration
-
-    def on_ctx_before(self, ctx: CtxItem):
-        """
-        Event: Before ctx
-
-        :param ctx: CtxItem
-        """
-        ctx.internal = True  # always force internal call
-        self.is_user = False
-        if self.iteration == 0:
-            ctx.first = True
-
-        if self.iteration > 0 \
-                and self.iteration % 2 != 0 \
-                and self.get_option_value("reverse_roles"):
-            tmp_input_name = ctx.input_name
-            tmp_output_name = ctx.output_name
-            ctx.input_name = tmp_output_name
-            ctx.output_name = tmp_input_name
-
-    def on_ctx_after(self, ctx: CtxItem):
-        """
-        Event: After ctx
-
-        :param ctx: CtxItem
-        """
-        self.prev_output = ctx.output

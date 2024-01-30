@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -49,6 +49,12 @@ class Mode:
             self.window.ui.nodes['dalle.options'].setVisible(True)
         else:
             self.window.ui.nodes['dalle.options'].setVisible(False)
+
+        # agent options
+        if mode == "agent":
+            self.window.ui.nodes['agent.options'].setVisible(True)
+        else:
+            self.window.ui.nodes['agent.options'].setVisible(False)
 
         # assistants list
         if mode == "assistant":

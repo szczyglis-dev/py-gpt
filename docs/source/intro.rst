@@ -21,7 +21,7 @@ Features
 ---------
 * Desktop AI Assistant for ``Linux``, ``Windows`` and ``Mac``, written in Python.
 * Works similarly to ``ChatGPT``, but locally (on a desktop computer).
-* 7 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain and Chat with files.
+* 8 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files and Agent (autonomous).
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain``.
 * Handles and stores the full context of conversations (short-term memory).
 * Real-time video camera capture in Vision mode

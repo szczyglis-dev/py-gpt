@@ -8,7 +8,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Audio Input (OpenAI Whisper)`` - offers speech recognition through the `OpenAI Whisper API`.
 * ``Audio Output (Microsoft Azure)`` - provides voice synthesis using the Microsoft Azure Text To Speech API.
 * ``Audio Output (OpenAI TTS)`` - provides voice synthesis using the `OpenAI Text To Speech API`.
-* ``Autonomous Mode: AI to AI conversation`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
+* ``Autonomous Mode (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
 * ``Chat with files (Llama-index, inline)`` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files). ``Experimental.``
 * ``Command: Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 * ``Command: Custom Commands`` - allows you to create and execute custom commands on your system.

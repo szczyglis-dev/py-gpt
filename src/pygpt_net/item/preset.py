@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.30 17:00:00                  #
 # ================================================== #
 
 import json
@@ -25,6 +25,7 @@ class PresetItem:
         self.langchain = False
         self.assistant = False
         self.llama_index = False
+        self.agent = False
         self.temperature = 1.0
         self.filename = None
         self.model = None
@@ -43,6 +44,7 @@ class PresetItem:
             "langchain": self.langchain,
             "assistant": self.assistant,
             "llama_index": self.llama_index,
+            "agent": self.agent,
             "temperature": self.temperature,
             "filename": self.filename,
             "model": self.model,
@@ -71,6 +73,8 @@ class PresetItem:
             self.assistant = data["assistant"]
         if "llama_index" in data:
             self.llama_index = data["llama_index"]
+        if "agent" in data:
+            self.agent = data["agent"]
         if "temperature" in data:
             self.temperature = data["temperature"]
         if "filename" in data:
