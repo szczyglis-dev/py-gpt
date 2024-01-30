@@ -241,10 +241,18 @@ You can review the code of the built-in loaders in ``pygpt_net.provider.loaders`
 Agent (autonomous)
 -------------------
 
-**WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
+This mode is experimental.
+
+**WARNING: Please use this mode with caution!** - autonomous mode, when connected with other plugins, may produce unexpected results!
 
 The mode activates autonomous mode, where AI begins a conversation with itself. 
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
+**WARNING:** Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
+
 This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using `DALL-E`.
+
+You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
+
+When the ``Auto-stop`` option is enabled, the agent will attempt to stop once the goal has been reached.

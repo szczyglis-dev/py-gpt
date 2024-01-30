@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.0.132 (2024-01-30)
+
+- Experimental: Added new working mode: `Agent (autonomous)`, which works similarly to the `Autonomous Mode` plugin but as a separate mode with editable system prompt presets.
+- Renamed `Autonomous Mode` plugin to `Autonomous Mode (inline)`.
+- Fixed real-time system prompt tokens calculation update.
+- Updated icons' fill color.
+
 # 2.0.131 (2024-01-30)
 
 - Fix: set a limited height for list items in editable lists within the options.
