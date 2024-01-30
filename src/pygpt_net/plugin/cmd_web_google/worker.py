@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -47,8 +47,11 @@ class Worker(BaseWorker):
                         prompt = item["params"]["summarize_prompt"]
 
                     # search for query
-                    result, total_found, current, url = self.websearch.make_query(item["params"]["query"],
-                                                                                  page, prompt)
+                    result, total_found, current, url = self.websearch.make_query(
+                        item["params"]["query"],
+                        page,
+                        prompt,
+                    )
                     msg = "Web search finished: '{}'".format(item["params"]["query"])
                     data = {
                         'content': result,
@@ -59,7 +62,12 @@ class Worker(BaseWorker):
                     if url:
                         self.ctx.urls.append(url)
 
-                    self.response({"request": request, "result": data})
+                    self.response(
+                        {
+                            "request": request,
+                            "result": data,
+                        }
+                    )
 
                 # cmd: web_url_open
                 elif item["cmd"] == "web_url_open":
@@ -70,7 +78,10 @@ class Worker(BaseWorker):
                     msg = "Opening Web URL: '{}'".format(item["params"]["url"])
 
                     # open url
-                    result, url = self.websearch.open_url(url, prompt)
+                    result, url = self.websearch.open_url(
+                        url,
+                        prompt,
+                    )
                     data = {
                         'content': result,
                         'url': url,
@@ -78,10 +89,20 @@ class Worker(BaseWorker):
                     if url:
                         self.ctx.urls.append(url)
 
-                    self.response({"request": request, "result": data})
+                    self.response(
+                        {
+                            "request": request,
+                            "result": data,
+                        }
+                    )
 
             except Exception as e:
-                self.response({"request": item, "result": "Error: {}".format(e)})
+                self.response(
+                    {
+                        "request": item,
+                        "result": "Error: {}".format(e),
+                    }
+                )
                 self.error(e)
                 self.log("Error: {}".format(e))
 

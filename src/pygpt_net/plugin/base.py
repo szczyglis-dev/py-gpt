@@ -77,7 +77,6 @@ class BasePlugin:
 
         :param name: option name
         :return: True if exists
-        :rtype: bool
         """
         return name in self.options
 
@@ -86,7 +85,7 @@ class BasePlugin:
         Return option
 
         :param name: option name
-        :return: option
+        :return: option dict
         """
         if self.has_option(name):
             return self.options[name]

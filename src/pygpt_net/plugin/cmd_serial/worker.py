@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import serial
@@ -46,7 +46,9 @@ class Worker(BaseWorker):
                         sleep = self.plugin.get_option_value("sleep")
                         self.log("Using serial port: {} @ {} bps".format(port, speed))
                         try:
-                            msg = "Sending command to USB port: {}".format(item["params"]['command'])
+                            msg = "Sending command to USB port: {}".format(
+                                item["params"]['command'],
+                            )
                             self.log(msg)
                             data = self.send_command(
                                 port,
@@ -56,9 +58,15 @@ class Worker(BaseWorker):
                                 sleep=sleep,
                             )
                             self.log("Response: {}".format(data))
-                            response = {"request": request, "result": data}
+                            response = {
+                                "request": request,
+                                "result": data,
+                            }
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -71,7 +79,9 @@ class Worker(BaseWorker):
                         sleep = self.plugin.get_option_value("sleep")
                         self.log("Using serial port: {} @ {} bps".format(port, speed))
                         try:
-                            msg = "Sending binary data to USB port: {}".format(item["params"]['bytes'])
+                            msg = "Sending binary data to USB port: {}".format(
+                                item["params"]['bytes'],
+                            )
                             self.log(msg)
                             data = self.send_binary_data(
                                 port,
@@ -81,9 +91,15 @@ class Worker(BaseWorker):
                                 sleep=sleep,
                             )
                             self.log("Response: {}".format(data))
-                            response = {"request": request, "result": data}
+                            response = {
+                                "request": request,
+                                "result": data,
+                            }
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -93,7 +109,8 @@ class Worker(BaseWorker):
                         port = self.plugin.get_option_value("serial_port")
                         speed = self.plugin.get_option_value("serial_bps")
                         timeout = self.plugin.get_option_value("timeout")
-                        duration = int(item["params"]['duration']) if "duration" in item["params"] else 3
+                        duration = int(item["params"]['duration']) \
+                            if "duration" in item["params"] else 3
                         self.log("Using serial port: {} @ {} bps".format(port, speed))
                         try:
                             msg = "Reading data from USB port..."
@@ -105,15 +122,26 @@ class Worker(BaseWorker):
                                 duration=duration,
                             )
                             self.log("Response: {}".format(data))
-                            response = {"request": request, "result": data}
+                            response = {
+                                "request": request,
+                                "result": data,
+                            }
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
 
             except Exception as e:
-                self.response({"request": item, "result": "Error: {}".format(e)})
+                self.response(
+                    {
+                        "request": item,
+                        "result": "Error: {}".format(e),
+                    }
+                )
                 self.error(e)
                 self.log("Error: {}".format(e))
 

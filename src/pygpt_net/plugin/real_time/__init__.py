@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -29,28 +29,34 @@ class Plugin(BasePlugin):
         """
         Initialize options
         """
-        self.add_option("hour",
-                        type="bool",
-                        value=True,
-                        label="Append time",
-                        description="If enabled, current time will be appended to system prompt.",
-                        tooltip="Hour will be appended to system prompt.")
-        self.add_option("date",
-                        type="bool",
-                        value=True,
-                        label="Append date",
-                        description="If enabled, current date will be appended to system prompt.",
-                        tooltip="Date will be appended to system prompt.")
+        self.add_option(
+            "hour",
+            type="bool",
+            value=True,
+            label="Append time",
+            description="If enabled, current time will be appended to system prompt.",
+            tooltip="Hour will be appended to system prompt.",
+        )
+        self.add_option(
+            "date",
+            type="bool",
+            value=True,
+            label="Append date",
+            description="If enabled, current date will be appended to system prompt.",
+            tooltip="Date will be appended to system prompt.",
+        )
 
         desc = "Template to append to system prompt.\n" \
                "Placeholder {time} will be replaced with current date and time in real-time. "
         tooltip = "Text to append to system prompt."
-        self.add_option("tpl",
-                        type="textarea",
-                        value=" Current time is {time}.",
-                        label="Template",
-                        description=desc,
-                        tooltip=tooltip)
+        self.add_option(
+            "tpl",
+            type="textarea",
+            value=" Current time is {time}.",
+            label="Template",
+            description=desc,
+            tooltip=tooltip,
+        )
 
     def setup(self) -> dict:
         """
@@ -73,6 +79,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: args
+        :param kwargs: kwargs
         """
         name = event.name
         data = event.data
@@ -81,7 +89,10 @@ class Plugin(BasePlugin):
             silent = False
             if 'silent' in data and data['silent']:
                 silent = True
-            data['value'] = self.on_system_prompt(data['value'], silent)
+            data['value'] = self.on_system_prompt(
+                data['value'],
+                silent,
+            )
 
     def on_system_prompt(self, prompt: str, silent: bool = False) -> str:
         """
@@ -96,11 +107,14 @@ class Plugin(BasePlugin):
 
         if self.get_option_value("hour") or self.get_option_value("date"):
             if self.get_option_value("hour") and self.get_option_value("date"):
-                prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                prompt += self.get_option_value("tpl").\
+                    format(time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             elif self.get_option_value("hour"):
-                prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%H:%M:%S'))
+                prompt += self.get_option_value("tpl").\
+                    format(time=datetime.now().strftime('%H:%M:%S'))
             elif self.get_option_value("date"):
-                prompt += self.get_option_value("tpl").format(time=datetime.now().strftime('%Y-%m-%d'))
+                prompt += self.get_option_value("tpl").\
+                    format(time=datetime.now().strftime('%Y-%m-%d'))
 
         if not silent:
             self.debug("Plugin: real_time:on_system_prompt [after]: " + str(prompt))  # log

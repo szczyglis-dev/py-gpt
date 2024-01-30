@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -38,7 +38,8 @@ class Worker(BaseWorker):
         msg = None
         for item in self.cmds:
             try:
-                if item["cmd"] in self.plugin.allowed_cmds and self.plugin.is_cmd_allowed(item["cmd"]):
+                if item["cmd"] in self.plugin.allowed_cmds \
+                        and self.plugin.is_cmd_allowed(item["cmd"]):
                     request = {"cmd": item["cmd"]}  # prepare request item for result
 
                     # save file
@@ -48,15 +49,21 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['filename']
+                                item["params"]['filename'],
                             )
                             data = item["params"]['data']
                             with open(path, 'w', encoding="utf-8") as file:
                                 file.write(data)
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("File saved: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -68,15 +75,21 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['filename']
+                                item["params"]['filename'],
                             )
                             data = item["params"]['data']
                             with open(path, 'a', encoding="utf-8") as file:
                                 file.write(data)
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("File appended: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -88,18 +101,27 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['filename']
+                                item["params"]['filename'],
                             )
                             if os.path.exists(path):
                                 with open(path, 'r', encoding="utf-8") as file:
                                     data = file.read()
-                                    response = {"request": request, "result": data}
+                                    response = {
+                                        "request": request,
+                                        "result": data,
+                                    }
                                     self.log("File read: {}".format(path))
                             else:
-                                response = {"request": request, "result": "File not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File not found",
+                                }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -111,17 +133,23 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['filename']
+                                item["params"]['filename'],
                             )
                             if os.path.exists(path):
                                 os.remove(path)
                                 response = {"request": request, "result": "OK"}
                                 self.log("File deleted: {}".format(path))
                             else:
-                                response = {"request": request, "result": "File not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File not found",
+                                }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -133,18 +161,27 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.exists(path):
                                 files = os.listdir(path)
-                                response = {"request": request, "result": files}
+                                response = {
+                                    "request": request,
+                                    "result": files,
+                                }
                                 self.log("Files listed: {}".format(path))
                                 self.log("Result: {}".format(files))
                             else:
-                                response = {"request": request, "result": "Directory not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "Directory not found",
+                                }
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -156,17 +193,26 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if not os.path.exists(path):
                                 os.makedirs(path)
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("Directory created: {}".format(path))
                             else:
-                                response = {"request": request, "result": "Directory already exists"}
+                                response = {
+                                    "request": request,
+                                    "result": "Directory already exists",
+                                }
                                 self.log("Directory already exists: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -178,17 +224,26 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.exists(path):
                                 shutil.rmtree(path)
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("Directory deleted: {}".format(path))
                             else:
-                                response = {"request": request, "result": "Directory not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "Directory not found",
+                                }
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -198,7 +253,7 @@ class Worker(BaseWorker):
                         try:
                             dst = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['dst']
+                                item["params"]['dst'],
                             )
                             msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
                             self.log(msg)
@@ -209,7 +264,7 @@ class Worker(BaseWorker):
                                 # Download file from URL
                                 req = Request(
                                     url=src,
-                                    headers={'User-Agent': 'Mozilla/5.0'}
+                                    headers={'User-Agent': 'Mozilla/5.0'},
                                 )
                                 context = ssl.create_default_context()
                                 context.check_hostname = False
@@ -224,7 +279,7 @@ class Worker(BaseWorker):
                                 # Handle local file paths
                                 src = os.path.join(
                                     self.plugin.window.core.config.get_user_dir('data'),
-                                    item["params"]['src']
+                                    item["params"]['src'],
                                 )
 
                                 # Copy local file
@@ -232,10 +287,16 @@ class Worker(BaseWorker):
                                     shutil.copyfileobj(in_file, out_file)
 
                             # handle result
-                            response = {"request": request, "result": "OK"}
+                            response = {
+                                "request": request,
+                                "result": "OK",
+                            }
                             self.log("File downloaded: {} into {}".format(src, dst))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -247,17 +308,23 @@ class Worker(BaseWorker):
                             self.log(msg)
                             dst = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['dst']
+                                item["params"]['dst'],
                             )
                             src = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['src']
+                                item["params"]['src'],
                             )
                             shutil.copyfile(src, dst)
-                            response = {"request": request, "result": "OK"}
+                            response = {
+                                "request": request,
+                                "result": "OK",
+                            }
                             self.log("File copied: {} into {}".format(src, dst))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -270,17 +337,23 @@ class Worker(BaseWorker):
                             self.log(msg)
                             dst = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['dst']
+                                item["params"]['dst'],
                             )
                             src = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['src']
+                                item["params"]['src'],
                             )
                             shutil.copytree(src, dst)
-                            response = {"request": request, "result": "OK"}
+                            response = {
+                                "request": request,
+                                "result": "OK",
+                            }
                             self.log("Directory copied: {} into {}".format(src, dst))
                         except Exception as e:
-                            response = {"request": request, "result": "Error {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -292,17 +365,23 @@ class Worker(BaseWorker):
                             self.log(msg)
                             dst = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['dst']
+                                item["params"]['dst'],
                             )
                             src = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['src']
+                                item["params"]['src'],
                             )
                             shutil.move(src, dst)
-                            response = {"request": request, "result": "OK"}
+                            response = {
+                                "request": request,
+                                "result": "OK",
+                            }
                             self.log("Moved: {} into {}".format(src, dst))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -314,16 +393,22 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.isdir(path):
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("Directory exists: {}".format(path))
                             else:
                                 response = {"request": request, "result": "Directory not found"}
                                 self.log("Directory not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -335,16 +420,25 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.isfile(path):
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("File exists: {}".format(path))
                             else:
-                                response = {"request": request, "result": "File not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File not found",
+                                }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -356,16 +450,25 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.exists(path):
-                                response = {"request": request, "result": "OK"}
+                                response = {
+                                    "request": request,
+                                    "result": "OK",
+                                }
                                 self.log("Path exists: {}".format(path))
                             else:
-                                response = {"request": request, "result": "File or directory not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File or directory not found",
+                                }
                                 self.log("Path not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -377,16 +480,25 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.exists(path):
-                                response = {"request": request, "result": os.path.getsize(path)}
+                                response = {
+                                    "request": request,
+                                    "result": os.path.getsize(path),
+                                }
                                 self.log("File size: {}".format(os.path.getsize(path)))
                             else:
-                                response = {"request": request, "result": "File not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File not found",
+                                }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -398,7 +510,7 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
                             if os.path.exists(path):
                                 data = {
@@ -413,13 +525,22 @@ class Worker(BaseWorker):
                                     "is_mount": os.path.ismount(path),
                                     'stat': os.stat(path),
                                 }
-                                response = {"request": request, "result": data}
+                                response = {
+                                    "request": request,
+                                    "result": data,
+                                }
                                 self.log("File info: {}".format(data))
                             else:
-                                response = {"request": request, "result": "File not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File not found",
+                                }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
@@ -431,7 +552,7 @@ class Worker(BaseWorker):
                             self.log(msg)
                             path = os.path.join(
                                 self.plugin.window.core.config.get_user_dir('data'),
-                                item["params"]['path']
+                                item["params"]['path'],
                             )
 
                             if os.path.exists(path):
@@ -441,19 +562,33 @@ class Worker(BaseWorker):
                                 self.plugin.window.core.attachments.new(mode, title, path, False)
                                 self.plugin.window.core.attachments.save()
                                 self.plugin.window.controller.attachment.update()
-                                response = {"request": request, "result": "Sending attachment: {}".format(title)}
+                                response = {
+                                    "request": request,
+                                    "result": "Sending attachment: {}".format(title),
+                                }
                                 self.log("Added attachment: {}".format(path))
                             else:
-                                response = {"request": request, "result": "File not found"}
+                                response = {
+                                    "request": request,
+                                    "result": "File not found",
+                                }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:
-                            response = {"request": request, "result": "Error: {}".format(e)}
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
                             self.error(e)
                             self.log("Error: {}".format(e))
                         self.response(response)
 
             except Exception as e:
-                self.response({"request": item, "result": "Error: {}".format(e)})
+                self.response(
+                    {
+                        "request": item,
+                        "result": "Error: {}".format(e),
+                    }
+                )
                 self.error(e)
                 self.log("Error: {}".format(e))
 

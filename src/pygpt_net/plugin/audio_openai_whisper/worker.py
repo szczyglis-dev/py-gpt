@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import time
@@ -61,29 +61,49 @@ class Worker(BaseWorker):
                         recognizer = sr.Recognizer()
 
                         # set recognizer options
-                        recognizer.energy_threshold = self.plugin.get_option_value('recognition_energy_threshold')
+                        recognizer.energy_threshold = self.plugin.get_option_value(
+                            'recognition_energy_threshold'
+                        )
                         recognizer.dynamic_energy_threshold = \
-                            self.plugin.get_option_value('recognition_dynamic_energy_threshold')
+                            self.plugin.get_option_value(
+                                'recognition_dynamic_energy_threshold'
+                            )
                         recognizer.dynamic_energy_adjustment_damping = \
-                            self.plugin.get_option_value('recognition_dynamic_energy_adjustment_damping')
+                            self.plugin.get_option_value(
+                                'recognition_dynamic_energy_adjustment_damping'
+                            )
                         recognizer.dynamic_energy_adjustment_ratio = \
-                            self.plugin.get_option_value('recognition_dynamic_energy_adjustment_ratio')
-                        recognizer.pause_threshold = self.plugin.get_option_value('recognition_pause_threshold')
-                        adjust_duration = self.plugin.get_option_value('recognition_adjust_for_ambient_noise_duration')
+                            self.plugin.get_option_value(
+                                'recognition_dynamic_energy_adjustment_ratio'
+                            )
+                        recognizer.pause_threshold = self.plugin.get_option_value(
+                            'recognition_pause_threshold'
+                        )
+                        adjust_duration = self.plugin.get_option_value(
+                            'recognition_adjust_for_ambient_noise_duration'
+                        )
 
                         # adjust for ambient noise
                         if self.plugin.get_option_value('adjust_noise'):
-                            recognizer.adjust_for_ambient_noise(source, duration=adjust_duration)
+                            recognizer.adjust_for_ambient_noise(
+                                source,
+                                duration=adjust_duration,
+                            )
                             self.plugin.is_first_adjust = False
 
                         timeout = self.plugin.get_option_value('timeout')
                         phrase_length = self.plugin.get_option_value('phrase_length')
 
-                        # check for magic word, if no magic word detected, then set to magic word timeout and length
+                        # check for magic word, if no magic word detected,
+                        # then set to magic word timeout and length
                         if self.plugin.get_option_value('magic_word'):
                             if not self.plugin.magic_word_detected:
-                                timeout = self.plugin.get_option_value('magic_word_timeout')
-                                phrase_length = self.plugin.get_option_value('magic_word_phrase_length')
+                                timeout = self.plugin.get_option_value(
+                                    'magic_word_timeout'
+                                )
+                                phrase_length = self.plugin.get_option_value(
+                                    'magic_word_phrase_length'
+                                )
 
                         # set begin status
                         if self.plugin.can_listen():
@@ -99,9 +119,16 @@ class Worker(BaseWorker):
                         ambient_noise_energy = min_energy * recognizer.energy_threshold
 
                         if timeout > 0 and phrase_length > 0:
-                            audio_data = recognizer.listen(source, timeout, phrase_length)
+                            audio_data = recognizer.listen(
+                                source,
+                                timeout,
+                                phrase_length,
+                            )
                         elif timeout > 0:
-                            audio_data = recognizer.listen(source, timeout)
+                            audio_data = recognizer.listen(
+                                source,
+                                timeout,
+                            )
                         else:
                             audio_data = recognizer.listen(source)
 
@@ -116,9 +143,12 @@ class Worker(BaseWorker):
                             # check RMS / energy
                             rms = audioop.rms(raw_data, 2)
                             if min_energy > 0:
-                                self.status("{}: {} / {} (x{})".
-                                            format(trans('audio.speak.energy'),
-                                                   rms, int(ambient_noise_energy), min_energy))
+                                self.status("{}: {} / {} (x{})".format(
+                                    trans('audio.speak.energy'),
+                                    rms,
+                                    int(ambient_noise_energy),
+                                    min_energy,
+                                ))
                             if rms < ambient_noise_energy:
                                 continue
 
@@ -132,7 +162,7 @@ class Worker(BaseWorker):
                                 transcript = self.client.audio.transcriptions.create(
                                     model=self.plugin.get_option_value('model'),
                                     file=audio_file,
-                                    response_format="text"
+                                    response_format="text",
                                 )
                                 # handle transcript
                                 if transcript is not None and transcript.strip() != '':
@@ -156,7 +186,8 @@ class Worker(BaseWorker):
                                     if len(stop_words) > 0:
                                         is_stop_word = transcript.replace('.', '').strip().lower() in stop_words
 
-                        if not self.plugin.get_option_value('continuous_listen') or is_stop_word:
+                        if not self.plugin.get_option_value('continuous_listen') \
+                                or is_stop_word:
                             self.stopped()
                             self.status('')  # clear status
                             break

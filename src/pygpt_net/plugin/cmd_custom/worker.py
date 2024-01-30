@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 10:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import os.path
@@ -52,10 +52,15 @@ class Worker(BaseWorker):
                         # append custom params to cmd placeholders
                         if 'params' in my_cmd and my_cmd["params"].strip() != "":
                             # append params to cmd placeholders
-                            params_list = self.plugin.extract_params(my_cmd["params"])
+                            params_list = self.plugin.extract_params(
+                                my_cmd["params"],
+                            )
                             for param in params_list:
                                 if param in item["params"]:
-                                    cmd = cmd.replace("{" + param + "}", item["params"][param])
+                                    cmd = cmd.replace(
+                                        "{" + param + "}",
+                                        item["params"][param],
+                                    )
 
                         # check if cmd is not empty
                         if cmd is None or cmd == "":
@@ -65,8 +70,12 @@ class Worker(BaseWorker):
                         # execute custom cmd
                         msg = "Running custom cmd: {}".format(cmd)
                         self.log(msg)
-                        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                                   stderr=subprocess.PIPE)
+                        process = subprocess.Popen(
+                            cmd,
+                            shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                        )
                         stdout, stderr = process.communicate()
                         result = None
                         if stdout:
@@ -78,11 +87,18 @@ class Worker(BaseWorker):
                         if result is None:
                             result = "No result (STDOUT/STDERR empty)"
                             self.log(result)
-                        response = {"request": request, "result": result}
+
+                        response = {
+                            "request": request,
+                            "result": result,
+                        }
 
                     except Exception as e:
                         msg = "Error: {}".format(e)
-                        response = {"request": request, "result": "Error {}".format(e)}
+                        response = {
+                            "request": request,
+                            "result": "Error {}".format(e),
+                        }
                         self.error(e)
                         self.log(msg)
                     self.response(response)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.model import ModelItem
@@ -21,7 +21,13 @@ class Plugin(BasePlugin):
         self.id = "openai_dalle"
         self.name = "DALL-E 3: Image generation"
         self.description = "Integrates DALL-E 3 image generation with any chat"
-        self.allowed_modes = ["chat", "langchain", "vision", "llama_index", "assistant"]
+        self.allowed_modes = [
+            "chat",
+            "langchain",
+            "vision",
+            "llama_index",
+            "assistant",
+        ]
         self.allowed_cmds = [
             "image",
         ]
@@ -46,13 +52,15 @@ class Plugin(BasePlugin):
                  'language in which I am speaking to you. The image will be generated on my machine  immediately ' \
                  'after the command is issued, allowing us to discuss the photo once it has been created.  Please ' \
                  'engage with me about the photo itself, not only by giving the generate command. '
-        self.add_option("prompt",
-                        type="textarea",
-                        value=prompt,
-                        label="Prompt",
-                        description="Prompt used for generating a query for DALL-E in background.",
-                        tooltip="Prompt",
-                        advanced=True)
+        self.add_option(
+            "prompt",
+            type="textarea",
+            value=prompt,
+            label="Prompt",
+            description="Prompt used for generating a query for DALL-E in background.",
+            tooltip="Prompt",
+            advanced=True,
+        )
 
     def setup(self) -> dict:
         """
@@ -75,6 +83,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: args
+        :param kwargs: kwargs
         """
         name = event.name
         data = event.data
@@ -87,6 +97,7 @@ class Plugin(BasePlugin):
             if mode not in self.allowed_modes:
                 return
             data['value'] = self.on_system_prompt(data['value'])
+
         elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
             self.cmd(ctx, data['commands'])
 

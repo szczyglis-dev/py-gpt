@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 01:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -40,14 +40,15 @@ class Plugin(BasePlugin):
         desc = "Prompt that will be appended to every system prompt. " \
                "All active prompts will be appended to the system prompt in the order they are listed here."
         tooltip = desc
-        self.add_option("prompts",
-                        type="dict",
-                        value=items,
-                        label="Prompts",
-                        description=desc,
-                        tooltip=tooltip,
-                        keys=keys,
-                        )
+        self.add_option(
+            "prompts",
+            type="dict",
+            value=items,
+            label="Prompts",
+            description=desc,
+            tooltip=tooltip,
+            keys=keys,
+        )
 
     def setup(self) -> dict:
         """
@@ -70,6 +71,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: args
+        :param kwargs: kwargs
         """
         name = event.name
         data = event.data

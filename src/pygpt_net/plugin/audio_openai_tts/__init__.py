@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import os
@@ -26,8 +26,18 @@ class Plugin(BasePlugin):
         self.name = "Audio Output (OpenAI TTS)"
         self.type = ['audio.output']
         self.description = "Enables audio/voice output (speech synthesis) using OpenAI TTS (Text-To-Speech) API"
-        self.allowed_voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
-        self.allowed_models = ['tts-1', 'tts-1-hd']
+        self.allowed_voices = [
+            'alloy',
+            'echo',
+            'fable',
+            'onyx',
+            'nova',
+            'shimmer',
+        ]
+        self.allowed_models = [
+            'tts-1',
+            'tts-1-hd',
+        ]
         self.input_text = None
         self.playback = None
         self.order = 1
@@ -37,16 +47,22 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""
-        self.add_option("model",
-                        type="text",
-                        value="tts-1",
-                        label="Model",
-                        description="Specify model, available models: tts-1, tts-1-hd")
-        self.add_option("voice",
-                        type="text",
-                        value="alloy",
-                        label="Voice",
-                        description="Specify voice, available voices: alloy, echo, fable, onyx, nova, shimmer")
+        self.add_option(
+            "model",
+            type="text",
+            value="tts-1",
+            label="Model",
+            description="Specify model, available models: "
+                        "tts-1, tts-1-hd",
+        )
+        self.add_option(
+            "voice",
+            type="text",
+            value="alloy",
+            label="Voice",
+            description="Specify voice, available voices: "
+                        "alloy, echo, fable, onyx, nova, shimmer",
+        )
 
     def setup(self) -> dict:
         """
@@ -75,6 +91,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: args
+        :param kwargs: kwargs
         """
         name = event.name
         data = event.data
@@ -82,10 +100,13 @@ class Plugin(BasePlugin):
 
         if name == Event.INPUT_BEFORE:
             self.on_input_before(data['value'])
+
         elif name == Event.CTX_AFTER:
             self.on_ctx_after(ctx)
+
         elif name == Event.AUDIO_READ_TEXT:
             self.on_ctx_after(ctx)
+
         elif name == Event.AUDIO_OUTPUT_STOP:
             self.stop_audio()
 
@@ -93,7 +114,7 @@ class Plugin(BasePlugin):
         """
         Event: Before input
 
-        :param text: text
+        :param text: text to read
         """
         self.input_text = text
 
@@ -119,7 +140,10 @@ class Plugin(BasePlugin):
                 worker.plugin = self
                 worker.client = self.window.core.gpt.get_client()
                 worker.model = model
-                worker.path = os.path.join(self.window.core.config.path, self.output_file)
+                worker.path = os.path.join(
+                    self.window.core.config.path,
+                    self.output_file,
+                )
                 worker.voice = voice
                 worker.text = self.window.core.audio.clean_text(text)
 
@@ -143,7 +167,7 @@ class Plugin(BasePlugin):
         """
         Set status
 
-        :param status:status
+        :param status: status text
         """
         self.window.ui.plugin_addon['audio.output'].set_status(status)
 
@@ -172,7 +196,7 @@ class Plugin(BasePlugin):
         """
         Handle thread playback object
 
-        :param playback
+        :param playback: playback object
         """
         self.playback = playback
 

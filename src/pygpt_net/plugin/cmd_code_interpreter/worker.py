@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -36,14 +36,25 @@ class Worker(BaseWorker):
                 request = {"cmd": item["cmd"]}  # prepare request item for result
 
                 # code_execute (from existing file)
-                if item["cmd"] == "code_execute_file" and self.plugin.is_cmd_allowed("code_execute_file"):
+                if item["cmd"] == "code_execute_file" \
+                        and self.plugin.is_cmd_allowed("code_execute_file"):
                     try:
                         if not self.plugin.runner.is_sandbox():
-                            response = self.plugin.runner.code_execute_file_host(self.ctx, item, request)
+                            response = self.plugin.runner.code_execute_file_host(
+                                self.ctx,
+                                item,
+                                request,
+                            )
                         else:
-                            response = self.plugin.runner.code_execute_file_sandbox(self.ctx, item, request)
+                            response = self.plugin.runner.code_execute_file_sandbox(
+                                self.ctx,
+                                item, request,
+                            )
                     except Exception as e:
-                        response = {"request": request, "result": "Error: {}".format(e)}
+                        response = {
+                            "request": request,
+                            "result": "Error: {}".format(e),
+                        }
                         self.error(e)
                         self.log("Error: {}".format(e))
                     self.response(response)
@@ -52,11 +63,21 @@ class Worker(BaseWorker):
                 elif item["cmd"] == "code_execute" and self.plugin.is_cmd_allowed("code_execute"):
                     try:
                         if not self.plugin.runner.is_sandbox():
-                            response = self.plugin.runner.code_execute_host(self.ctx, item, request)
+                            response = self.plugin.runner.code_execute_host(
+                                self.ctx,
+                                item, request,
+                            )
                         else:
-                            response = self.plugin.runner.code_execute_sandbox(self.ctx, item, request)
+                            response = self.plugin.runner.code_execute_sandbox(
+                                self.ctx,
+                                item,
+                                request,
+                            )
                     except Exception as e:
-                        response = {"request": request, "result": "Error: {}".format(e)}
+                        response = {
+                            "request": request,
+                            "result": "Error: {}".format(e),
+                        }
                         self.error(e)
                         self.log("Error: {}".format(e))
                     self.response(response)
@@ -65,20 +86,35 @@ class Worker(BaseWorker):
                 elif item["cmd"] == "sys_exec" and self.plugin.is_cmd_allowed("sys_exec"):
                     try:
                         if not self.plugin.runner.is_sandbox():
-                            response = self.plugin.runner.sys_exec_host(self.ctx, item, request)
+                            response = self.plugin.runner.sys_exec_host(
+                                self.ctx,
+                                item,
+                                request,
+                            )
                         else:
-                            response = self.plugin.runner.sys_exec_sandbox(self.ctx, item, request)
+                            response = self.plugin.runner.sys_exec_sandbox(
+                                self.ctx,
+                                item,
+                                request,
+                            )
                     except Exception as e:
-                        response = {"request": request, "result": "Error: {}".format(e)}
+                        response = {
+                            "request": request,
+                            "result": "Error: {}".format(e),
+                        }
                         self.error(e)
                         self.log("Error: {}".format(e))
                     self.response(response)
+
             except Exception as e:
-                response = {"request": item, "result": "Error: {}".format(e)}
+                response = {
+                    "request": item,
+                    "result": "Error: {}".format(e),
+                }
                 self.response(response)
                 self.error(e)
                 self.log("Error: {}".format(e))
 
         if msg is not None:
-            self.log(msg)
-            self.status(msg)
+            self.log(str(msg))
+            self.status(str(msg))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -42,34 +42,42 @@ class Plugin(BasePlugin):
                  'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other ' \
                  'syntax. When making query use language that I spoke to you.'
 
-        self.add_option("prompt",
-                        type="textarea",
-                        value=prompt,
-                        label="Prompt",
-                        description="Prompt used for instruct how to use additional data provided from Llama-index",
-                        tooltip="Prompt",
-                        advanced=True)
-        self.add_option("idx",
-                        type="text",
-                        value="base",
-                        label="Indexes to use",
-                        description="ID's of indexes to use, default: base, separate by comma if you want to use "
-                                    "more than one index at once",
-                        tooltip="Index name")
-        self.add_option("ask_llama_first",
-                        type="bool",
-                        value=False,
-                        label="Ask Llama-index first",
-                        description="When enabled, then Llama-index will be asked first, and response will be used "
-                                    "as additional knowledge in prompt. When disabled, then Llama-index will be "
-                                    "asked only when needed.")
-        self.add_option("model_query",
-                        type="combo",
-                        value="gpt-3.5-turbo",
-                        label="Model",
-                        description="Model used for querying Llama-index, default: gpt-3.5-turbo",
-                        tooltip="Query model",
-                        use="models")
+        self.add_option(
+            "prompt",
+            type="textarea",
+            value=prompt,
+            label="Prompt",
+            description="Prompt used for instruct how to use additional data provided from Llama-index",
+            tooltip="Prompt",
+            advanced=True,
+        )
+        self.add_option(
+            "idx",
+            type="text",
+            value="base",
+            label="Indexes to use",
+            description="ID's of indexes to use, default: base, separate by comma if you want to use "
+                        "more than one index at once",
+            tooltip="Index name",
+        )
+        self.add_option(
+            "ask_llama_first",
+            type="bool",
+            value=False,
+            label="Ask Llama-index first",
+            description="When enabled, then Llama-index will be asked first, and response will be used "
+                        "as additional knowledge in prompt. When disabled, then Llama-index will be "
+                        "asked only when needed.",
+        )
+        self.add_option(
+            "model_query",
+            type="combo",
+            value="gpt-3.5-turbo",
+            label="Model",
+            description="Model used for querying Llama-index, default: gpt-3.5-turbo",
+            tooltip="Query model",
+            use="models",
+        )
 
     def setup(self) -> dict:
         """
@@ -92,6 +100,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: args
+        :param kwargs: kwargs
         """
         name = event.name
         data = event.data
@@ -102,13 +112,19 @@ class Plugin(BasePlugin):
             if self.mode in self.ignored_modes:  # ignore
                 return
             data['value'] = self.on_system_prompt(data['value'])
+
         elif name == Event.INPUT_BEFORE:  # get only mode
             if "mode" in data:
                 self.mode = data['mode']
+
         elif name == Event.POST_PROMPT:
             if self.mode in self.ignored_modes:  # ignore
                 return
-            data['value'] = self.on_post_prompt(data['value'], ctx)
+            data['value'] = self.on_post_prompt(
+                data['value'],
+                ctx
+            )
+
         elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
             if self.mode in self.ignored_modes:  # ignore
                 return
@@ -212,9 +228,14 @@ class Plugin(BasePlugin):
             try:
                 if item["cmd"] == "get_knowledge":
                     question = item["params"]["question"]
-                    request = {"cmd": item["cmd"]}
+                    request = {
+                        "cmd": item["cmd"],
+                    }
                     data = self.query(question)  # send question to Llama-index
-                    response = {"request": request, "result": data}
+                    response = {
+                        "request": request,
+                        "result": data,
+                    }
                     ctx.results.append(response)
                     ctx.reply = True
             except Exception as e:

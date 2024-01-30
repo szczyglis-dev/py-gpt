@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -21,7 +21,9 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "crontab"
         self.name = "Crontab / Task scheduler"
-        self.type = ['schedule']
+        self.type = [
+            'schedule',
+        ]
         self.description = "Plugin provides cron-based job scheduling - " \
                            "you can schedule prompts to be sent at any time using cron-based syntax for task setup."
         self.order = 100
@@ -53,21 +55,25 @@ class Plugin(BasePlugin):
                "the cron-based job format. If you are unfamiliar with Cron, consider visiting the Cron Guru " \
                "page for assistance."
         tooltip = "Check out the tutorials about Cron or visit the Crontab Guru for help on how to use Cron syntax."
-        self.add_option("crontab",
-                        type="dict",
-                        value=items,
-                        label="Your tasks",
-                        description=desc,
-                        tooltip=tooltip,
-                        keys=keys,
-                        urls={
-                            "Crontab Guru": "https://crontab.guru",
-                        })
-        self.add_option("new_ctx",
-                        type="bool",
-                        value=True,
-                        label="Create a new context on job run",
-                        description="If enabled, then a new context will be created on every run of the job")
+        self.add_option(
+            "crontab",
+            type="dict",
+            value=items,
+            label="Your tasks",
+            description=desc,
+            tooltip=tooltip,
+            keys=keys,
+            urls={
+                "Crontab Guru": "https://crontab.guru",
+            },
+        )
+        self.add_option(
+            "new_ctx",
+            type="bool",
+            value=True,
+            label="Create a new context on job run",
+            description="If enabled, then a new context will be created on every run of the job",
+        )
 
     def setup(self) -> dict:
         """
@@ -94,7 +100,7 @@ class Plugin(BasePlugin):
         """
         self.schedule_tasks()
 
-    def count_active(self):
+    def count_active(self) -> int:
         """
         Count active tasks
 
@@ -111,20 +117,26 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: event args
+        :param kwargs: event kwargs
         """
         name = event.name
         data = event.data
+
         if name == Event.PLUGIN_SETTINGS_CHANGED:
-            self.window.ui.tray.update_schedule_tasks(self.count_active())
+            self.window.ui.tray.update_schedule_tasks(
+                self.count_active()
+            )
+
         elif name == Event.PLUGIN_OPTION_GET:
             if "name" in data and data["name"] == "scheduled_tasks_count":
                 data["value"] = self.count_active()  # return number of active tasks
 
-    def job(self, item):
+    def job(self, item: dict):
         """
         Execute task
 
-        :param item: task item
+        :param item: task item dict
         """
         if item["prompt"] == "" or item["prompt"] is None:
             self.log("Prompt is empty, skipping task")
@@ -162,7 +174,6 @@ class Plugin(BasePlugin):
                 cron = item["crontab"]
                 base_time = datetime.now()
                 iter = croniter(cron, base_time)
-
                 is_timer = False
                 timer = None
                 for timer in self.timers:
@@ -172,7 +183,10 @@ class Plugin(BasePlugin):
 
                 # add to timers if not exists
                 if not is_timer:
-                    timer = {"item": item, "next_time": None}
+                    timer = {
+                        "item": item,
+                        "next_time": None,
+                    }
                     self.timers.append(timer)
 
                 next_time = timer["next_time"]
@@ -196,7 +210,9 @@ class Plugin(BasePlugin):
         num_jobs = len(self.timers)
         if num_jobs > 0:
             self.window.ui.plugin_addon['schedule'].setVisible(True)
-            self.window.ui.plugin_addon['schedule'].setText("+ Cron: {} job(s)".format(len(self.timers)))
+            self.window.ui.plugin_addon['schedule'].setText(
+                "+ Cron: {} job(s)".format(len(self.timers)),
+            )
         else:
             self.window.ui.plugin_addon['schedule'].setVisible(False)
             self.window.ui.plugin_addon['schedule'].setText("")

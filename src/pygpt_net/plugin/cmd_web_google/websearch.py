@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import json
@@ -28,7 +28,12 @@ class WebSearch:
         self.plugin = plugin
         self.signals = None
 
-    def google_search(self, q: str, num: int, offset: int = 0) -> list:
+    def google_search(
+            self,
+            q: str,
+            num: int,
+            offset: int = 0
+    ) -> list:
         """
         Google search
 
@@ -49,20 +54,27 @@ class WebSearch:
             url += '&sort=date-sdate:d:s'
             url += '&fields=items(link)'
             url += '&q=' + quote(q)
-
-            self.debug("Plugin: cmd_web_google:google_search: calling API: {}".format(url))  # log
+            self.debug(
+                "Plugin: cmd_web_google:google_search: calling API: {}".format(url)
+            )
             data = urlopen(url, timeout=4).read()
             res = json.loads(data)
-            self.debug("Plugin: cmd_web_google:google_search: received response: {}".format(res))  # log
+            self.debug(
+                "Plugin: cmd_web_google:google_search: received response: {}".format(res)
+            )
             if 'items' not in res:
                 return []
             for item in res['items']:
                 urls.append(item['link'])
-            self.debug("Plugin: cmd_web_google:google_search [urls]: {}".format(urls))  # log
+            self.debug(
+                "Plugin: cmd_web_google:google_search [urls]: {}".format(urls)
+            )
             return urls
         except Exception as e:
             self.error(e)
-            self.debug("Plugin: cmd_web_google:google_search: error: {}".format(e))  # log
+            self.debug(
+                "Plugin: cmd_web_google:google_search: error: {}".format(e)
+            )
             self.log("Error in Google Search: " + str(e))
         return []
 
@@ -73,7 +85,10 @@ class WebSearch:
         :param query: query string
         :return: list of founded URLs
         """
-        return self.google_search(query, int(self.plugin.get_option_value("num_pages")))
+        return self.google_search(
+            query,
+            int(self.plugin.get_option_value("num_pages")),
+        )
 
     def query_url(self, url: str) -> str:
         """
@@ -82,7 +97,9 @@ class WebSearch:
         :param url: URL to query
         :return: text content
         """
-        self.debug("Plugin: cmd_web_google:query_url: crawling URL: {}".format(url))  # log
+        self.debug(
+            "Plugin: cmd_web_google:query_url: crawling URL: {}".format(url)
+        )
         text = ''
         html = ''
         try:
@@ -90,15 +107,21 @@ class WebSearch:
                 url=url,
                 headers={'User-Agent': 'Mozilla/5.0'},
             )
-
             # get data from URL
             if self.plugin.get_option_value('disable_ssl'):
                 context = ssl.create_default_context()
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
-                data = urlopen(req, context=context, timeout=4).read()
+                data = urlopen(
+                    req,
+                    context=context,
+                    timeout=4,
+                ).read()
             else:
-                data = urlopen(req, timeout=4).read()
+                data = urlopen(
+                    req,
+                    timeout=4,
+                ).read()
 
             # try to decode
             try:
@@ -112,14 +135,22 @@ class WebSearch:
                     text += element.text
                 text = text.replace("\n", " ").replace("\t", " ")
                 text = re.sub(r'\s+', ' ', text)
-                self.debug("Plugin: cmd_web_google:query_url: received text: {}".format(text))  # log
+                self.debug(
+                    "Plugin: cmd_web_google:query_url: received text: {}".format(text)
+                )
                 return text
         except Exception as e:
             self.error(e)
-            self.debug("Plugin: cmd_web_google:query_url: error querying: {}".format(url))  # log
+            self.debug(
+                "Plugin: cmd_web_google:query_url: error querying: {}".format(url)
+            )
             self.log("Error in query_web: " + str(e))
 
-    def to_chunks(self, text: str, chunk_size: int) -> list:
+    def to_chunks(
+            self,
+            text: str,
+            chunk_size: int
+    ) -> list:
         """
         Split text into chunks
 
@@ -131,7 +162,12 @@ class WebSearch:
             return []
         return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
-    def get_summarized_text(self, chunks: list, query: str, summarize_prompt: str = None) -> str:
+    def get_summarized_text(
+            self,
+            chunks: list,
+            query: str,
+            summarize_prompt: str = None
+    ) -> str:
         """
         Get summarized text from chunks
 
@@ -168,8 +204,9 @@ class WebSearch:
         # summarize per chunk
         for chunk in chunks:
             # print("Chunk: " + chunk)
-            self.debug("Plugin: cmd_web_google:get_summarized_text (chunk, max_tokens): {}, {}".
-                       format(chunk, max_tokens))  # log
+            self.debug(
+                "Plugin: cmd_web_google:get_summarized_text (chunk, max_tokens): {}, {}".format(chunk, max_tokens)
+            )
             try:
                 response = self.plugin.window.core.bridge.quick_call(
                     prompt=chunk,
@@ -181,11 +218,17 @@ class WebSearch:
                     summary += response
             except Exception as e:
                 self.error(e)
-                self.debug("Plugin: cmd_web_google:get_summarized_text: error: {}".format(e))
-
+                self.debug(
+                    "Plugin: cmd_web_google:get_summarized_text: error: {}".format(e)
+                )
         return summary
 
-    def make_query(self, query: str, page_no: int = 1, summarize_prompt: str = "") -> (str, int, int, str):
+    def make_query(
+            self,
+            query: str,
+            page_no: int = 1,
+            summarize_prompt: str = ""
+    ) -> (str, int, int, str):
         """
         Get result from search query
 
@@ -228,10 +271,14 @@ class WebSearch:
                 content = content[:max_per_page]
 
             chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
-            self.debug("Plugin: cmd_web_google: URL: {}".format(url))  # log
-
-            result = self.get_summarized_text(chunks, str(query), summarize_prompt)
-
+            self.debug(
+                "Plugin: cmd_web_google: URL: {}".format(url)
+            )
+            result = self.get_summarized_text(
+                chunks,
+                str(query),
+                summarize_prompt,
+            )
             # if result then stop
             if result is not None and result != "":
                 self.log("Summary generated (chars: {})".format(len(result)))
@@ -239,16 +286,25 @@ class WebSearch:
             i += 1
 
         self.debug(
-            "Plugin: cmd_web_google: summary: {}".format(result))  # log
+            "Plugin: cmd_web_google: summary: {}".format(result)
+        )
         if result is not None:
-            self.debug("Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
+            self.debug(
+                "Plugin: cmd_web_google: summary length: {}".format(len(result))
+            )
 
         if len(result) > max_result_size:
             result = result[:max_result_size]
 
-        self.debug("Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
+        self.debug(
+            "Plugin: cmd_web_google: result length: {}".format(len(result))
+        )
 
-        return result, total_found, current, url
+        return \
+            result, \
+            total_found, \
+            current, \
+            url
 
     def open_url(self, url: str, summarize_prompt: str = "") -> (str, str):
         """
@@ -271,7 +327,10 @@ class WebSearch:
         self.log("Content found (chars: {}). Please wait...".format(len(content)))
         if 0 < max_per_page < len(content):
             content = content[:max_per_page]
-        chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
+        chunks = self.to_chunks(
+            content,
+            chunk_size,
+        )  # it returns list of chunks
 
         self.debug("Plugin: cmd_web_google: URL: {}".format(url))  # log
 
@@ -283,12 +342,16 @@ class WebSearch:
 
         self.debug("Plugin: cmd_web_google: summary: {}".format(result))  # log
         if result is not None:
-            self.debug("Plugin: cmd_web_google: summary length: {}".format(len(result)))  # log
+            self.debug(
+                "Plugin: cmd_web_google: summary length: {}".format(len(result))
+            )
 
         if len(result) > max_result_size:
             result = result[:max_result_size]
 
-        self.debug("Plugin: cmd_web_google: result length: {}".format(len(result)))  # log
+        self.debug(
+            "Plugin: cmd_web_google: result length: {}".format(len(result))
+        )
 
         return result, url
 

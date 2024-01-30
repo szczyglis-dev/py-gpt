@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -19,12 +19,20 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "openai_vision"
         self.name = "GPT-4 Vision (inline)"
-        self.type = ['vision']
+        self.type = [
+            "vision",
+        ]
         self.description = "Integrates GPT-4 Vision abilities with any chat mode"
         self.order = 100
         self.use_locale = True
         self.prompt = ""
-        self.allowed_urls_ext = ['.jpg', '.png', '.jpeg', '.gif', '.webp']
+        self.allowed_urls_ext = [
+            ".jpg",
+            ".png",
+            ".jpeg",
+            ".gif",
+            ".webp",
+        ]
         self.allowed_cmds = [
             "camera_capture",
             "make_screenshot",
@@ -37,43 +45,53 @@ class Plugin(BasePlugin):
                  "related to the photo.  Remember to always describe in great detail all the aspects related to the " \
                  "photo, try to place them in the context of the conversation, and make a full analysis of what you " \
                  "see. "
-        self.add_option("model",
-                        type="combo",
-                        use="models",
-                        value="gpt-4-vision-preview",
-                        label="Model",
-                        description="Model used to temporarily providing vision abilities, "
-                                    "default: gpt-4-vision-preview",
-                        tooltip="Model")
-        self.add_option("cmd_capture",
-                        type="bool",
-                        value=False,
-                        label="Allow command: camera capture",
-                        description="Allow to use command: camera capture",
-                        tooltip="If enabled, model will be able to capture images from camera")
-        self.add_option("cmd_screenshot",
-                        type="bool",
-                        value=False,
-                        label="Allow command: make screenshot",
-                        description="Allow to use command: make screenshot",
-                        tooltip="If enabled, model will be able to making screenshots")
-        self.add_option("prompt",
-                        type="textarea",
-                        value=prompt,
-                        label="Prompt",
-                        description="Prompt used for vision mode. It will append or replace current system prompt "
-                                    "when using vision model",
-                        tooltip="Prompt",
-                        advanced=True)
-        self.add_option("replace_prompt",
-                        type="bool",
-                        value=False,
-                        label="Replace prompt",
-                        description="Replace whole system prompt with vision prompt against appending "
-                                    "it to the current prompt",
-                        tooltip="Replace whole system prompt with vision prompt against appending it to the "
-                                "current prompt",
-                        advanced=True)
+        self.add_option(
+            "model",
+            type="combo",
+            use="models",
+            value="gpt-4-vision-preview",
+            label="Model",
+            description="Model used to temporarily providing vision abilities, "
+                        "default: gpt-4-vision-preview",
+            tooltip="Model",
+        )
+        self.add_option(
+            "cmd_capture",
+            type="bool",
+            value=False,
+            label="Allow command: camera capture",
+            description="Allow to use command: camera capture",
+            tooltip="If enabled, model will be able to capture images from camera",
+        )
+        self.add_option(
+            "cmd_screenshot",
+            type="bool",
+            value=False,
+            label="Allow command: make screenshot",
+            description="Allow to use command: make screenshot",
+            tooltip="If enabled, model will be able to making screenshots",
+        )
+        self.add_option(
+            "prompt",
+            type="textarea",
+            value=prompt,
+            label="Prompt",
+            description="Prompt used for vision mode. It will append or replace current system prompt "
+                        "when using vision model",
+            tooltip="Prompt",
+            advanced=True,
+        )
+        self.add_option(
+            "replace_prompt",
+            type="bool",
+            value=False,
+            label="Replace prompt",
+            description="Replace whole system prompt with vision prompt against appending "
+                        "it to the current prompt",
+            tooltip="Replace whole system prompt with vision prompt against appending it to the "
+                    "current prompt",
+            advanced=True,
+        )
 
     def setup(self) -> dict:
         """
@@ -105,6 +123,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: event args
+        :param kwargs: event kwargs
         """
         name = event.name
         data = event.data
@@ -112,29 +132,45 @@ class Plugin(BasePlugin):
 
         if name == Event.MODE_BEFORE:
             if self.is_allowed(data['value']):
-                data['value'] = self.on_mode_before(ctx, mode=data['value'])  # mode change
+                data['value'] = self.on_mode_before(
+                    ctx,
+                    mode=data['value'],
+                )  # mode change
+
         elif name == Event.MODEL_BEFORE:
             if "mode" in data and data["mode"] == "vision":
                 key = self.get_option_value("model")
                 if self.window.core.models.has(key):
                     data['model'] = self.window.core.models.get(key)
+
         elif name == Event.PRE_PROMPT:
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_pre_prompt(data['value'])
+
         elif name == Event.INPUT_BEFORE:
             self.prompt = str(data['value'])
+
         elif name == Event.SYSTEM_PROMPT:
             if self.is_allowed(data['mode']):
                 data['value'] = self.on_system_prompt(data['value'])
+
         elif name == Event.UI_ATTACHMENTS:
             data['value'] = True  # allow render attachments UI elements
+
         elif name == Event.UI_VISION:
             if self.is_allowed(data['mode']):
                 data['value'] = True  # allow render vision UI elements
-        elif name in [Event.CTX_SELECT, Event.MODE_SELECT, Event.MODEL_SELECT]:
+
+        elif name in [
+            Event.CTX_SELECT,
+            Event.MODE_SELECT,
+            Event.MODEL_SELECT,
+        ]:
             self.on_toggle(False)  # always reset vision flag / disable vision mode
+
         elif name == Event.CMD_SYNTAX:
             self.cmd_syntax(data)
+
         elif name == Event.CMD_EXECUTE:
             self.cmd(ctx, data['commands'])
 
@@ -144,14 +180,19 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
-        if not self.get_option_value("cmd_capture") and not self.get_option_value("cmd_screenshot"):
+        if not self.get_option_value("cmd_capture") \
+                and not self.get_option_value("cmd_screenshot"):
             return
 
         # append syntax
         if self.get_option_value("cmd_capture"):
-            data['syntax'].append('"camera_capture": use it to capture image from user camera')
+            data['syntax'].append(
+                '"camera_capture": use it to capture image from user camera'
+            )
         if self.get_option_value("cmd_screenshot"):
-            data['syntax'].append('"make_screenshot": use it to make screenshot from user screen')
+            data['syntax'].append(
+                '"make_screenshot": use it to make screenshot from user screen'
+            )
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -172,15 +213,25 @@ class Plugin(BasePlugin):
 
         for item in my_commands:
             if item["cmd"] == "camera_capture" and self.get_option_value("cmd_capture"):
-                request = {"cmd": item["cmd"]}
+                request = {
+                    "cmd": item["cmd"],
+                }
                 self.window.controller.camera.manual_capture(force=True)
-                response = {"request": request, "result": "OK"}
+                response = {
+                    "request": request,
+                    "result": "OK",
+                }
                 ctx.results.append(response)
                 ctx.reply = True
             elif item["cmd"] == "make_screenshot" and self.get_option_value("cmd_screenshot"):
-                request = {"cmd": item["cmd"]}
+                request = {
+                    "cmd": item["cmd"],
+                }
                 self.window.controller.painter.capture.screenshot()
-                response = {"request": request, "result": "OK"}
+                response = {
+                    "request": request,
+                    "result": "OK",
+                }
                 ctx.results.append(response)
                 ctx.reply = True
 
@@ -248,7 +299,10 @@ class Plugin(BasePlugin):
         result = False
         mode = self.window.core.config.get('mode')
         attachments = self.window.core.attachments.get_all(mode)
-        self.window.core.gpt.vision.build_content(str(self.prompt), attachments)  # tmp build content
+        self.window.core.gpt.vision.build_content(
+            str(self.prompt),
+            attachments,
+        )  # tmp build content
 
         built_attachments = self.window.core.gpt.vision.attachments
         built_urls = self.window.core.gpt.vision.urls

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 01:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -101,18 +101,19 @@ class Plugin(BasePlugin):
                           "objective is achieved.\n21. Conduct the entire discussion in my native language.\n" \
                           "22. Upon reaching the final goal, provide a comprehensive summary including " \
                           "all solutions found, along with a complete, expanded response."
-        self.add_option("iterations",
-                        type="int",
-                        value=3,
-                        label="Iterations",
-                        description="How many iterations to run? 0 = infinite.\nWARNING: setting this to 0 can "
-                                    "cause a lot of requests and heavy tokens usage!",
-                        min=0,
-                        max=100,
-                        multiplier=1,
-                        step=1,
-                        slider=True)
-
+        self.add_option(
+            "iterations",
+            type="int",
+            value=3,
+            label="Iterations",
+            description="How many iterations to run? 0 = infinite.\n"
+                        "WARNING: setting this to 0 can cause a lot of requests and heavy tokens usage!",
+            min=0,
+            max=100,
+            multiplier=1,
+            step=1,
+            slider=True,
+        )
         # prompts list
         keys = {
             "enabled": "bool",
@@ -134,24 +135,29 @@ class Plugin(BasePlugin):
         desc = "Prompt used to instruct how to handle autonomous mode, you can create as many prompts as you want." \
                "First active prompt on list will be used to handle autonomous mode."
         tooltip = desc
-        self.add_option("prompts",
-                        type="dict",
-                        value=items,
-                        label="Prompts",
-                        description=desc,
-                        tooltip=tooltip,
-                        keys=keys,
-                        )
-        self.add_option("auto_stop",
-                        type="bool",
-                        value=True,
-                        label="Auto-stop after goal is reached",
-                        description="If enabled, plugin will stop after goal is reached.")
-        self.add_option("reverse_roles",
-                        type="bool",
-                        value=True,
-                        label="Reverse roles between iterations",
-                        description="If enabled, roles will be reversed between iterations.")
+        self.add_option(
+            "prompts",
+            type="dict",
+            value=items,
+            label="Prompts",
+            description=desc,
+            tooltip=tooltip,
+            keys=keys,
+        )
+        self.add_option(
+            "auto_stop",
+            type="bool",
+            value=True,
+            label="Auto-stop after goal is reached",
+            description="If enabled, plugin will stop after goal is reached.",
+        )
+        self.add_option(
+            "reverse_roles",
+            type="bool",
+            value=True,
+            label="Reverse roles between iterations",
+            description="If enabled, roles will be reversed between iterations.",
+        )
 
     def setup(self) -> dict:
         """
@@ -174,6 +180,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: event args
+        :param kwargs: event kwargs
         """
         name = event.name
         data = event.data
@@ -181,21 +189,31 @@ class Plugin(BasePlugin):
 
         if name == Event.CTX_BEFORE:
             self.on_ctx_before(ctx)
+
         elif name == Event.CTX_AFTER:
             self.on_ctx_after(ctx)
+
         elif name == Event.CTX_END:
             self.on_ctx_end(ctx)
+
         elif name == Event.USER_SEND:
             self.on_user_send(data['value'])
+
         elif name == Event.FORCE_STOP:
             self.on_stop()
+
         elif name == Event.SYSTEM_PROMPT:
             data['value'] = self.on_system_prompt(data['value'])
+
         elif name == Event.INPUT_BEFORE:
             data['value'] = self.on_input_before(data['value'])
+
         elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
             if self.get_option_value("auto_stop"):
-                self.cmd(ctx, data['commands'])
+                self.cmd(
+                    ctx,
+                    data['commands'],
+                )
 
     def on_system_prompt(self, prompt: str) -> str:
         """
@@ -305,7 +323,11 @@ class Plugin(BasePlugin):
             if self.prev_output is not None and self.prev_output != "":
                 self.debug(
                     "Plugin: self_loop:on_ctx_end: {}".format(self.prev_output))  # log
-                self.window.controller.chat.input.send(self.prev_output, force=True, internal=True)
+                self.window.controller.chat.input.send(
+                    self.prev_output,
+                    force=True,
+                    internal=True,
+                )
                 # internal call will not trigger async mode and will hide the message from previous iteration
 
     def on_ctx_before(self, ctx: CtxItem):
@@ -319,7 +341,9 @@ class Plugin(BasePlugin):
         if self.iteration == 0:
             ctx.first = True
 
-        if self.iteration > 0 and self.iteration % 2 != 0 and self.get_option_value("reverse_roles"):
+        if self.iteration > 0 \
+                and self.iteration % 2 != 0 \
+                and self.get_option_value("reverse_roles"):
             tmp_input_name = ctx.input_name
             tmp_output_name = ctx.output_name
             ctx.input_name = tmp_output_name

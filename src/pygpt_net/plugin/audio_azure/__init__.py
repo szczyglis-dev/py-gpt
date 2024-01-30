@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import os
@@ -38,35 +38,43 @@ class Plugin(BasePlugin):
         url_api = {
             "API Key": "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech",
         }
-        self.add_option("azure_api_key",
-                        type="text",
-                        value="",
-                        label="Azure API Key",
-                        description="You can obtain your own API key at: "
+        self.add_option(
+            "azure_api_key",
+            type="text",
+            value="",
+            label="Azure API Key",
+            description="You can obtain your own API key at: "
                         "https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech/",
-                        tooltip="Azure API Key",
-                        secret=True,
-                        persist=True,
-                        urls=url_api)
-        self.add_option("azure_region",
-                        type="text",
-                        value="eastus",
-                        label="Azure Region",
-                        description="Specify Azure region, e.g. eastus",
-                        tooltip="Azure Region")
-        self.add_option("voice_en",
-                        type="text",
-                        value="en-US-AriaNeural",
-                        label="Voice (EN)",
-                        description="Specify voice for English language, e.g. en-US-AriaNeural",
-                        tooltip="Voice (EN)")
-        self.add_option("voice_pl",
-                        type="text",
-                        value="pl-PL-AgnieszkaNeural",
-                        label="Voice (non-English)",
-                        description="Specify voice for non-English languages, "
-                                    "e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
-                        tooltip="Voice (PL)")
+            tooltip="Azure API Key",
+            secret=True,
+            persist=True,
+            urls=url_api,
+        )
+        self.add_option(
+            "azure_region",
+            type="text",
+            value="eastus",
+            label="Azure Region",
+            description="Specify Azure region, e.g. eastus",
+            tooltip="Azure Region",
+        )
+        self.add_option(
+            "voice_en",
+            type="text",
+            value="en-US-AriaNeural",
+            label="Voice (EN)",
+            description="Specify voice for English language, e.g. en-US-AriaNeural",
+            tooltip="Voice (EN)",
+        )
+        self.add_option(
+            "voice_pl",
+            type="text",
+            value="pl-PL-AgnieszkaNeural",
+            label="Voice (non-English)",
+            description="Specify voice for non-English languages, "
+                        "e.g. pl-PL-MarekNeural or pl-PL-AgnieszkaNeural",
+            tooltip="Voice (PL)",
+        )
 
     def setup(self) -> dict:
         """
@@ -89,6 +97,8 @@ class Plugin(BasePlugin):
         Handle dispatched event
 
         :param event: event object
+        :param args: args
+        :param kwargs: kwargs
         """
         name = event.name
         data = event.data
@@ -96,8 +106,10 @@ class Plugin(BasePlugin):
 
         if name == Event.INPUT_BEFORE:
             self.on_input_before(data['value'])
+
         elif name == Event.CTX_AFTER:
             self.on_ctx_after(ctx)
+
         elif name == Event.AUDIO_OUTPUT_STOP:
             self.stop_audio()
 
@@ -120,14 +132,21 @@ class Plugin(BasePlugin):
         region = self.get_option_value("azure_region")
 
         if api_key is None or api_key == "":
-            self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugin settings.")
+            self.window.ui.dialogs.alert(
+                "Azure API KEY is not set. Please set it in plugin settings."
+            )
             return
         if region is None or region == "":
-            self.window.ui.dialogs.alert("Azure Region is not set. Please set it in plugin settings.")
+            self.window.ui.dialogs.alert(
+                "Azure Region is not set. Please set it in plugin settings."
+            )
             return
 
         text = ctx.output
-        path = os.path.join(self.window.core.config.path, self.output_file)
+        path = os.path.join(
+            self.window.core.config.path,
+            self.output_file
+        )
         try:
             if text is not None and len(text) > 0:
                 lang = self.window.core.config.get('lang')
@@ -161,7 +180,7 @@ class Plugin(BasePlugin):
         """
         Set status
 
-        :param status: status
+        :param status: status text
         """
         self.window.ui.plugin_addon['audio.output'].set_status(status)
 

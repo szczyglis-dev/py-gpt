@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import pygame
@@ -46,7 +46,11 @@ class Worker(BaseWorker):
             }
             body = f"<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' " \
                    f"xml:lang='en-US'><voice name='{self.voice}'>{self.text}</voice></speak>"
-            response = requests.post(url, headers=headers, data=body.encode('utf-8'))
+            response = requests.post(
+                url,
+                headers=headers,
+                data=body.encode('utf-8'),
+            )
             if response.status_code == 200:
                 with open(self.path, "wb") as file:
                     file.write(response.content)
@@ -56,13 +60,20 @@ class Worker(BaseWorker):
                 playback.play()
                 self.send(playback)  # send playback object to main thread
             else:
-                msg = "Error: {} - {}".format(response.status_code, response.text)
+                msg = "Error: {} - {}".format(
+                    response.status_code,
+                    response.text
+                )
                 self.error(msg)
         except Exception as e:
             self.error(e)
 
     def send(self, playback):
-        """Send playback object to main thread"""
+        """
+        Send playback object to main thread
+
+        :param playback: playback object
+        """
         self.signals.playback.emit(playback)
 
     def stop_playback(self):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 13:00:00                  #
 # ================================================== #
 
 import pygame
@@ -39,7 +39,7 @@ class Worker(BaseWorker):
             response = self.client.audio.speech.create(
                 model=self.model,
                 voice=self.voice,
-                input=self.text
+                input=self.text,
             )
             response.stream_to_file(self.path)
             pygame.mixer.init()
@@ -51,7 +51,11 @@ class Worker(BaseWorker):
             self.error(e)
 
     def send(self, playback):
-        """Send playback object to main thread"""
+        """
+        Send playback object to main thread
+
+        :param playback: playback object
+        """
         self.signals.playback.emit(playback)
 
     def stop_playback(self):
