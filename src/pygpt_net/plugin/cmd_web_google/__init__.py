@@ -219,26 +219,15 @@ class Plugin(BasePlugin):
 
     def on_input_before(self, text: str):
         """
-        Event: Before input
+        Event: INPUT_BEFORE
 
-        :param text: text
+        :param text: input text
         """
         self.input_text = text
 
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        full_msg = '[CMD] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        print(full_msg)
-
     def cmd_syntax(self, data: dict):
         """
-        Event: On cmd syntax prepare
+        Event: CMD_SYNTAX
 
         :param data: event data dict
         """
@@ -251,7 +240,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On cmd
+        Event: CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -334,3 +323,14 @@ class Plugin(BasePlugin):
             ctx.results.append(response)
             ctx.reply = True
             return
+
+    def log(self, msg: str):
+        """
+        Log message to console
+
+        :param msg: message to log
+        """
+        full_msg = '[CMD] ' + str(msg)
+        self.debug(full_msg)
+        self.window.ui.status(full_msg)
+        print(full_msg)

@@ -265,7 +265,7 @@ class Plugin(BasePlugin):
         Get and parse words from option string
 
         :param key: option key
-        :return: words
+        :return: words list
         """
         words_str = self.get_option_value(key)
         words = []
@@ -276,6 +276,8 @@ class Plugin(BasePlugin):
 
     def toggle_speech(self, state: bool):
         """
+        Event: AUDIO_INPUT_TOGGLE
+
         Toggle speech
 
         :param state: state to set
@@ -332,12 +334,12 @@ class Plugin(BasePlugin):
         elif name == Event.AUDIO_INPUT_TOGGLE:
             self.toggle_speech(data['value'])
 
-        elif name == 'audio.input.stop':
+        elif name == Event.AUDIO_INPUT_STOP:
             self.on_stop()
 
     def on_ctx_begin(self, ctx: CtxItem):
         """
-        Event: On new context begin
+        Event: CTX_BEGIN
 
         :param ctx: CtxItem
         """
@@ -345,19 +347,19 @@ class Plugin(BasePlugin):
 
     def on_ctx_end(self, ctx: CtxItem):
         """
-        Event: On context end
+        Event: CTX_END
 
         :param ctx: CtxItem
         """
         self.waiting = False
 
     def on_enable(self):
-        """Event: On plugin enable"""
+        """Event: ENABLE"""
         self.speech_enabled = True
         self.handle_thread()
 
     def on_disable(self):
-        """Event: On plugin disable"""
+        """Event: DISABLE"""
         self.speech_enabled = False
         self.listening = False
         self.stop = True
@@ -365,7 +367,7 @@ class Plugin(BasePlugin):
         self.set_status('')
 
     def on_stop(self):
-        """Event: On input stop"""
+        """Event: AUDIO_INPUT_STOP"""
         self.stop = True
         self.listening = False
         self.speech_enabled = False
@@ -373,7 +375,7 @@ class Plugin(BasePlugin):
 
     def on_input_before(self, text: str):
         """
-        Event: Before input
+        Event: INPUT_BEFORE
 
         :param text: text from input
         """

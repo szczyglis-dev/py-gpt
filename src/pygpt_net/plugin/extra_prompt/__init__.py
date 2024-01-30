@@ -83,7 +83,7 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt: str) -> str:
         """
-        Event: On prepare system prompt
+        Event: SYSTEM_PROMPT
 
         :param prompt: prompt
         :return: updated prompt

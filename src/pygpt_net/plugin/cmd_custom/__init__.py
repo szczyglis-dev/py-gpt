@@ -88,22 +88,14 @@ class Plugin(BasePlugin):
             self.cmd_syntax(data)
 
         elif name == Event.CMD_EXECUTE:
-            self.cmd(ctx, data['commands'])
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        full_msg = '[CMD] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        print(full_msg)
+            self.cmd(
+                ctx,
+                data['commands'],
+            )
 
     def cmd_syntax(self, data: dict):
         """
-        Event: On cmd syntax prepare
+        Event: CMD_SYNTAX
 
         :param data: event data dict
         """
@@ -120,27 +112,9 @@ class Plugin(BasePlugin):
 
             data['syntax'].append(cmd)
 
-    def extract_params(self, text: str) -> list:
-        """
-        Extract params from params string
-
-        :param text: text
-        :return: params list
-        """
-        params = []
-        if text is None or text == "":
-            return params
-        params_list = text.split(",")
-        for param in params_list:
-            param = param.strip()
-            if param == "":
-                continue
-            params.append(param)
-        return params
-
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On command
+        Event: CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -181,3 +155,32 @@ class Plugin(BasePlugin):
 
         except Exception as e:
             self.error(e)
+
+    def extract_params(self, text: str) -> list:
+        """
+        Extract params from params string
+
+        :param text: text
+        :return: params list
+        """
+        params = []
+        if text is None or text == "":
+            return params
+        params_list = text.split(",")
+        for param in params_list:
+            param = param.strip()
+            if param == "":
+                continue
+            params.append(param)
+        return params
+
+    def log(self, msg: str):
+        """
+        Log message to console
+
+        :param msg: message to log
+        """
+        full_msg = '[CMD] ' + str(msg)
+        self.debug(full_msg)
+        self.window.ui.status(full_msg)
+        print(full_msg)

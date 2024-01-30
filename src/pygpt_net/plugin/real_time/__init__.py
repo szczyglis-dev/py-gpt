@@ -96,10 +96,10 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt: str, silent: bool = False) -> str:
         """
-        Event: On prepare system prompt
+        Event: SYSTEM_PROMPT
 
         :param prompt: prompt
-        :param silent: silent mode
+        :param silent: silent mode (no logs)
         :return: updated prompt
         """
         if not silent:

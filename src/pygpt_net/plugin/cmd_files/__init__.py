@@ -338,34 +338,14 @@ class Plugin(BasePlugin):
             self.cmd_syntax(data)
 
         elif name == Event.CMD_EXECUTE:
-            self.cmd(ctx, data['commands'])
-
-    def is_cmd_allowed(self, cmd: str) -> bool:
-        """
-        Check if cmd is allowed
-
-        :param cmd: command name
-        :return: True if allowed
-        """
-        key = "cmd_" + cmd
-        if self.has_option(key) and self.get_option_value(key) is True:
-            return True
-        return False
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        full_msg = '[CMD] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        print(full_msg)
+            self.cmd(
+                ctx,
+                data['commands'],
+            )
 
     def cmd_syntax(self, data: dict):
         """
-        Event: On cmd syntax prepare
+        Event: CMD_SYNTAX
 
         :param data: event data dict
         """
@@ -379,7 +359,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On cmd
+        Event: CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -419,3 +399,26 @@ class Plugin(BasePlugin):
 
         except Exception as e:
             self.error(e)
+
+    def is_cmd_allowed(self, cmd: str) -> bool:
+        """
+        Check if cmd is allowed
+
+        :param cmd: command name
+        :return: True if allowed
+        """
+        key = "cmd_" + cmd
+        if self.has_option(key) and self.get_option_value(key) is True:
+            return True
+        return False
+
+    def log(self, msg: str):
+        """
+        Log message to console
+
+        :param msg: message to log
+        """
+        full_msg = '[CMD] ' + str(msg)
+        self.debug(full_msg)
+        self.window.ui.status(full_msg)
+        print(full_msg)

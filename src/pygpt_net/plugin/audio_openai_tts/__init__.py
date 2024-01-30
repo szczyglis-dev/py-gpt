@@ -101,10 +101,10 @@ class Plugin(BasePlugin):
         if name == Event.INPUT_BEFORE:
             self.on_input_before(data['value'])
 
-        elif name == Event.CTX_AFTER:
-            self.on_ctx_after(ctx)
-
-        elif name == Event.AUDIO_READ_TEXT:
+        elif name in [
+            Event.CTX_AFTER,
+            Event.AUDIO_READ_TEXT
+        ]:
             self.on_ctx_after(ctx)
 
         elif name == Event.AUDIO_OUTPUT_STOP:
@@ -112,7 +112,7 @@ class Plugin(BasePlugin):
 
     def on_input_before(self, text: str):
         """
-        Event: Before input
+        Event: INPUT_BEFORE
 
         :param text: text to read
         """
@@ -120,7 +120,7 @@ class Plugin(BasePlugin):
 
     def on_ctx_after(self, ctx: CtxItem):
         """
-        Event: After ctx
+        Events: CTX_AFTER, AUDIO_READ_TEXT
 
         :param ctx: CtxItem
         """
@@ -186,7 +186,11 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.output'].stop_audio()
 
     def stop_audio(self):
-        """Stop playing the audio"""
+        """
+        Event: AUDIO_OUTPUT_STOP
+
+        Stop playing the audio
+        """
         if self.playback is not None:
             self.playback.stop()
             self.playback = None

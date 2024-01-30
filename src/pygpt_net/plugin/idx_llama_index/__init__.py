@@ -33,9 +33,9 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""   # TODO: make better prompt, redefine context
-        prompt = 'ADDITIONAL KNOWLEDGE: I will provide you with additional data about my question. ' \
+        prompt = 'ADDITIONAL CONTEXT: I will provide you with additional data about my question. ' \
                  'When it is provided, then use this data as your additional knowledge and use it in your response. ' \
-                 'Additional knowledge will be prefixed with an "Additional data:" prefix. You can also provide a ' \
+                 'Additional context will be prefixed with an "Additional data:" prefix. You can also provide a ' \
                  'command to query my knowledge database anytime you need any additional data - to do this, return ' \
                  'to me the prepared prompt in JSON format, all in one line, using the following syntax: ' \
                  '~###~{"cmd": "get_knowledge", "params": {"question": "simple and concrete question here"}}~###~. ' \
@@ -125,25 +125,20 @@ class Plugin(BasePlugin):
                 ctx
             )
 
-        elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
+        elif name in [
+            Event.CMD_INLINE,
+            Event.CMD_EXECUTE,
+        ]:
             if self.mode in self.ignored_modes:  # ignore
                 return
-            self.cmd(ctx, data['commands'])
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        full_msg = '[LLAMA-INDEX] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        print(full_msg)
+            self.cmd(
+                ctx,
+                data['commands'],
+            )
 
     def on_system_prompt(self, prompt: str) -> str:
         """
-        Event: On prepare system prompt
+        Event: SYSTEM_PROMPT
 
         :param prompt: prompt
         :return: updated prompt
@@ -153,7 +148,7 @@ class Plugin(BasePlugin):
 
     def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
         """
-        Event: On post system prompt
+        Event: POST_PROMPT
 
         :param prompt: system prompt
         :param ctx: CtxItem
@@ -209,7 +204,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On command
+        Events: CMD_INLINE, CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -241,3 +236,14 @@ class Plugin(BasePlugin):
             except Exception as e:
                 self.log("Error: " + str(e))
                 return
+
+    def log(self, msg: str):
+        """
+        Log message to console
+
+        :param msg: message to log
+        """
+        full_msg = '[LLAMA-INDEX] ' + str(msg)
+        self.debug(full_msg)
+        self.window.ui.status(full_msg)
+        print(full_msg)

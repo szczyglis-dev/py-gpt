@@ -115,7 +115,7 @@ class Plugin(BasePlugin):
 
     def on_input_before(self, text: str):
         """
-        Event: Before input
+        Event: INPUT_BEFORE
 
         :param text: Text
         """
@@ -123,7 +123,7 @@ class Plugin(BasePlugin):
 
     def on_ctx_after(self, ctx: CtxItem):
         """
-        Event: After ctx
+        Event: CTX_AFTER
 
         :param ctx: CtxItem
         """
@@ -176,6 +176,16 @@ class Plugin(BasePlugin):
         except Exception as e:
             self.error(e)
 
+    def stop_audio(self):
+        """
+        Event: AUDIO_OUTPUT_STOP
+
+        Stop playing the audio
+        """
+        if self.playback is not None:
+            self.playback.stop()
+            self.playback = None
+
     def set_status(self, status: str):
         """
         Set status
@@ -197,12 +207,6 @@ class Plugin(BasePlugin):
         self.window.ui.plugin_addon['audio.output'].stop.setVisible(False)
         self.window.ui.plugin_addon['audio.output'].set_status('Stopped')
         self.window.ui.plugin_addon['audio.output'].stop_audio()
-
-    def stop_audio(self):
-        """Stop playing the audio"""
-        if self.playback is not None:
-            self.playback.stop()
-            self.playback = None
 
     @Slot(object)
     def handle_playback(self, playback):

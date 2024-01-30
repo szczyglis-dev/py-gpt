@@ -12,14 +12,13 @@
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.utils import trans
 
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "self_loop"
-        self.name = "Autonomous Mode: AI to AI conversation"
+        self.name = "Autonomous Mode (inline)"
         self.description = "Enables autonomous conversation (AI to AI), manages loop, " \
                            "and connects output back to input."
         self.order = 9998
@@ -212,7 +211,10 @@ class Plugin(BasePlugin):
         elif name == Event.INPUT_BEFORE:
             data['value'] = self.on_input_before(data['value'])
 
-        elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
+        elif name in [
+            Event.CMD_INLINE,
+            Event.CMD_EXECUTE,
+        ]:
             if self.get_option_value("auto_stop"):
                 self.cmd(
                     ctx,
@@ -221,7 +223,7 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt: str) -> str:
         """
-        Event: On prepare system prompt
+        Event: SYSTEM_PROMPT
 
         :param prompt: prompt
         :return: updated prompt
@@ -234,7 +236,7 @@ class Plugin(BasePlugin):
 
     def on_input_before(self, prompt: str) -> str:
         """
-        Event: On user input before
+        Event: INPUT_BEFORE
 
         :param prompt: prompt
         :return: updated prompt
@@ -243,7 +245,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On command
+        Events: CMD_INLINE, CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -252,13 +254,13 @@ class Plugin(BasePlugin):
 
     def on_stop(self):
         """
-        Event: On force stop
+        Event: FORCE_STOP
         """
         self.window.controller.agent.on_stop()  # force stop
 
     def on_user_send(self, text: str):
         """
-        Event: On user send text
+        Event: USER_SEND
 
         :param text: text
         """
@@ -266,7 +268,7 @@ class Plugin(BasePlugin):
 
     def on_ctx_end(self, ctx: CtxItem):
         """
-        Event: On context end
+        Event: CTX_END
 
         :param ctx: CtxItem
         """
@@ -277,7 +279,7 @@ class Plugin(BasePlugin):
 
     def on_ctx_before(self, ctx: CtxItem):
         """
-        Event: Before ctx
+        Event: CTX_BEFORE
 
         :param ctx: CtxItem
         """
@@ -288,7 +290,7 @@ class Plugin(BasePlugin):
 
     def on_ctx_after(self, ctx: CtxItem):
         """
-        Event: After ctx
+        Event: CTX_AFTER
 
         :param ctx: CtxItem
         """
@@ -296,7 +298,7 @@ class Plugin(BasePlugin):
 
     def get_first_active_prompt(self) -> str:
         """
-        Get first active prompt
+        Get first active prompt from prompts list
 
         :return: system prompt
         """

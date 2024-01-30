@@ -156,8 +156,13 @@ class Plugin(BasePlugin):
 
         # send prompt
         if self.get_option_value("new_ctx"):
-            self.window.controller.ctx.new(force=True)
-        self.window.controller.chat.input.send(item["prompt"], force=True)
+            self.window.controller.ctx.new(
+                force=True,
+            )
+        self.window.controller.chat.input.send(
+            item["prompt"],
+            force=True,
+        )
 
     def schedule_tasks(self):
         """Schedule tasks based on crontab"""

@@ -172,11 +172,14 @@ class Plugin(BasePlugin):
             self.cmd_syntax(data)
 
         elif name == Event.CMD_EXECUTE:
-            self.cmd(ctx, data['commands'])
+            self.cmd(
+                ctx,
+                data['commands'],
+            )
 
     def cmd_syntax(self, data: dict):
         """
-        Event: On cmd syntax prepare
+        Event: CMD_SYNTAX
 
         :param data: event data dict
         """
@@ -196,7 +199,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On cmd
+        Event: CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -235,20 +238,9 @@ class Plugin(BasePlugin):
                 ctx.results.append(response)
                 ctx.reply = True
 
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        full_msg = '[Vision] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        print(full_msg)
-
     def on_toggle(self, value: bool):
         """
-        Event: On toggle vision mode
+        Events: CTX_SELECT, MODE_SELECT, MODEL_SELECT
 
         :param value: vision mode state
         """
@@ -257,7 +249,7 @@ class Plugin(BasePlugin):
 
     def on_system_prompt(self, prompt: str) -> str:
         """
-        Event: On prepare system prompt
+        Event: SYSTEM_PROMPT
 
         :param prompt: prompt
         :return: updated prompt
@@ -274,7 +266,7 @@ class Plugin(BasePlugin):
 
     def on_pre_prompt(self, prompt: str) -> str:
         """
-        Event: On pre-prepare system prompt
+        Event: PRE_PROMPT
 
         :param prompt: prompt
         :return: updated prompt
@@ -298,16 +290,16 @@ class Plugin(BasePlugin):
         """
         result = False
         mode = self.window.core.config.get('mode')
-        attachments = self.window.core.attachments.get_all(mode)
+        attachments = self.window.core.attachments.get_all(mode)  # from global mode
         self.window.core.gpt.vision.build_content(
             str(self.prompt),
             attachments,
-        )  # tmp build content
+        )  # tmp build content, provide attachments from global mode
 
         built_attachments = self.window.core.gpt.vision.attachments
         built_urls = self.window.core.gpt.vision.urls
 
-        # check for images in URLs
+        # check for images in URLs found in prompt
         img_urls = []
         for url in built_urls:
             for ext in self.allowed_urls_ext:
@@ -322,7 +314,7 @@ class Plugin(BasePlugin):
 
     def on_mode_before(self, ctx: CtxItem, mode: str) -> str:
         """
-        Event: On before mode execution
+        Event: MODE_BEFORE
 
         :param ctx: current ctx
         :param mode: current mode
@@ -343,3 +335,14 @@ class Plugin(BasePlugin):
             return 'vision'  # jump to vision mode (only for this call)
 
         return mode  # keep current mode
+
+    def log(self, msg: str):
+        """
+        Log message to console
+
+        :param msg: message to log
+        """
+        full_msg = '[Vision] ' + str(msg)
+        self.debug(full_msg)
+        self.window.ui.status(full_msg)
+        print(full_msg)

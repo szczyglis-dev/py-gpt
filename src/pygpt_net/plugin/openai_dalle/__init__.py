@@ -98,23 +98,18 @@ class Plugin(BasePlugin):
                 return
             data['value'] = self.on_system_prompt(data['value'])
 
-        elif name == Event.CMD_INLINE or name == Event.CMD_EXECUTE:
-            self.cmd(ctx, data['commands'])
-
-    def log(self, msg: str):
-        """
-        Log message to console
-
-        :param msg: message to log
-        """
-        full_msg = '[DALL-E] ' + str(msg)
-        self.debug(full_msg)
-        self.window.ui.status(full_msg)
-        print(full_msg)
+        elif name in [
+            Event.CMD_INLINE,
+            Event.CMD_EXECUTE,
+        ]:
+            self.cmd(
+                ctx,
+                data['commands'],
+            )
 
     def on_system_prompt(self, prompt: str) -> str:
         """
-        Event: On prepare system prompt
+        Event: SYSTEM_PROMPT
 
         :param prompt: prompt
         :return: updated prompt
@@ -124,7 +119,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Event: On command
+        Events: CMD_INLINE, CMD_EXECUTE
 
         :param ctx: CtxItem
         :param cmds: commands dict
@@ -160,3 +155,14 @@ class Plugin(BasePlugin):
             except Exception as e:
                 self.log("Error: " + str(e))
                 return
+
+    def log(self, msg: str):
+        """
+        Log message to console
+
+        :param msg: message to log
+        """
+        full_msg = '[DALL-E] ' + str(msg)
+        self.debug(full_msg)
+        self.window.ui.status(full_msg)
+        print(full_msg)
