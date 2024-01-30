@@ -1,5 +1,13 @@
 # CHANGELOG
 
+# 2.0.131 (2024-01-30)
+
+- Fix: set a limited height for list items in editable lists within the options.
+- Added new plugin: `System Prompt Extra`: plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+- Added a list of prompts for define and use in the `Autonomous Mode` plugin (the previous division into "normal" and "extended" prompts has been replaced with an unlimited, user-editable list).
+- Added textarea stretch on dialog resize in dictionary options editor
+- Introduced a new `duplicate` option in the context list (it copies the selected context to a new one).
+
 # 2.0.130 (2024-01-29)
 
 - Added status indicator in Tray - feature [#12](https://github.com/szczyglis-dev/py-gpt/issues/12)

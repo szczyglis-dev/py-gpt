@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.130** | build: **2024.01.29** | Python: **3.10+**
+Release: **2.0.131** | build: **2024.01.29** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -872,6 +872,8 @@ as well as list and create directories.
 
 - `Real Time` - automatically adds the current date and time to prompt, informing the model of the real-time moment.
 
+- `System Prompt Extra (append)` - the plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+
 
 ## Audio Input (OpenAI Whisper)
 
@@ -1057,72 +1059,14 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 **WARNING**: Setting this option to `0` activates an **infinity loop** which can generate a large number of requests and cause very high token consumption, so use this option with caution!
 
+- `Prompts` *prompts*
+
+Editable liist of prompts used to instruct how to handle autonomous mode, you can create as many prompts as you want. 
+First active prompt on list will be used to handle autonomous mode.
+
 - `Auto-stop after goal is reached` *auto_stop*
 
 If enabled, plugin will stop after goal is reached." *Default:* `True`
-
-- `Prompt` *prompt*
-
-Prompt used to instruct how to handle autonomous mode. You can extend it with your own rules.
-
-*Default:* 
-
-```console
-AUTONOMOUS MODE:
-1. You will now enter self-dialogue mode, where you will be conversing with yourself, not with a human.
-2. When you enter self-dialogue mode, remember that you are engaging in a conversation with yourself. Any user input will be considered a reply featuring your previous response.
-3. The objective of this self-conversation is well-defined—focus on achieving it.
-4. Your new message should be a continuation of the last response you generated, essentially replying to yourself and extending it.
-5. After each response, critically evaluate its effectiveness and alignment with the goal. If necessary, refine your approach.
-6. Incorporate self-critique after every response to capitalize on your strengths and address areas needing improvement.
-7. To advance towards the goal, utilize all the strategic thinking and resources at your disposal.
-8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping stone towards the ultimate objective.
-9. Treat the entire dialogue as a monologue aimed at devising the best possible solution to the problem.
-10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria.
-11. You are allowed to use any commands and tools without asking for it.
-12. While using commands, always use the correct syntax and never interrupt the command before generating the full instruction.
-13. ALWAYS break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence.
-14. With each subsequent response, make an effort to enhance your previous reply by enriching it with new ideas and do it automatically without asking for it.
-15. Any input that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent your previous responses.
-16. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
-```
-
-**Tip:** do not append `user:` prefix to your input - this prefix is appended to user input automatically behind the scenes.
-
-- `Extended Prompt` *extended_prompt*
-
-Extended Prompt used to instruct how to handle autonomous mode. You can extend it with your own rules. You can choose extended prompt to more extended step-by-step reasoning.
-
-*Default:* 
-
-```console
-AUTONOMOUS MODE:
-1. You will now enter self-dialogue mode, where you will be conversing with yourself, not with a human.
-2. When you enter self-dialogue mode, remember that you are engaging in a conversation with yourself. Any user input will be considered a reply featuring your previous response.
-3. The objective of this self-conversation is well-defined—focus on achieving it.
-4. Your new message should be a continuation of the last response you generated, essentially replying to yourself and extending it.
-5. After each response, critically evaluate its effectiveness and alignment with the goal. If necessary, refine your approach.
-6. Incorporate self-critique after every response to capitalize on your strengths and address areas needing improvement.
-7. To advance towards the goal, utilize all the strategic thinking and resources at your disposal.
-8. Ensure that the dialogue remains coherent and logical, with each response serving as a stepping stone towards the ultimate objective.
-9. Treat the entire dialogue as a monologue aimed at devising the best possible solution to the problem.10. Conclude the self-dialogue upon realizing the goal or reaching a pivotal conclusion that meets the initial criteria.
-11. You are allowed to use any commands and tools without asking for it.
-12. While using commands, always use the correct syntax and never interrupt the command before generating the full instruction.
-13. Break down the main task into manageable logical subtasks, systematically addressing and analyzing each one in sequence.
-14. With each subsequent response, make an effort to enhance your previous reply by enriching it with new ideas and do it automatically without asking for it.
-15. Any input that begins with 'user: ' will come from me, and I will be able to provide you with ANY additional commands or goal updates in this manner. The other inputs, not prefixed with 'user: ' will represent your previous responses.
-16. Start by breaking down the task into as many smaller sub-tasks as possible, then proceed to complete each one in sequence.  Next, break down each sub-task into even smaller tasks, carefully and step by step go through all of them until the required goal is fully and correctly achieved.
-17. Always split every step into parts: main goal, current sub-task, potential problems, pros and cons, criticism of the previous step, very detailed (about 10-15 paragraphs) response to current subtask, possible improvements, next sub-task to achieve and summary.
-18. Do not start the next subtask until you have completed the previous one.
-19. Ensure to address and correct any criticisms or mistakes from the previous step before starting the next subtask.
-20. Do not finish until all sub-tasks and the main goal are fully achieved in the best possible way. If possible, improve the path to the goal until the full objective is achieved.
-21. Conduct the entire discussion in my native language.
-22. Upon reaching the final goal, provide a comprehensive summary including all solutions found, along with a complete, expanded response.
-```
-
-- `Use extended` *use_extended*
-
-If enabled, extended prompt will be used." *Default:* `False`
 
 - `Reverse roles between iterations` *reverse_roles*
 
@@ -1513,6 +1457,19 @@ If enabled, it appends the current date to the system prompt.  *Default:* `True`
 
 Template to append to the system prompt. The placeholder `{time}` will be replaced with the 
 current date and time in real-time. *Default:* `Current time is {time}.`
+
+## System Prompt Extra (append)
+
+The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
+You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+
+**Options**
+
+- `Prompts` *prompts*
+
+List of extra prompts - prompts that will be appended to system prompt. 
+All active extra prompts defined on list will be appended to the system prompt in the order they are listed here.
+
 
 # Creating Your Own Plugins
 
@@ -1963,6 +1920,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.131 (2024-01-30)
+
+- Fix: set a limited height for list items in editable lists within the options.
+- Added new plugin: `System Prompt Extra`: plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+- Added a list of prompts for define and use in the `Autonomous Mode` plugin (the previous division into "normal" and "extended" prompts has been replaced with an unlimited, user-editable list).
+- Added textarea stretch on dialog resize in dictionary options editor
+- Introduced a new `duplicate` option in the context list (it copies the selected context to a new one).
 
 # 2.0.130 (2024-01-29)
 
