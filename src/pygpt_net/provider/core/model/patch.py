@@ -145,9 +145,10 @@ class Patch:
             # < 2.0.132  <--- add agent mode
             if old < parse_version("2.0.132"):
                 print("Migrating models from < 2.0.132...")
+                exclude = ["gpt-3.5-turbo-instruct", "gpt-4-vision-preview"]
                 for id in data:
                     model = data[id]
-                    if model.id.startswith("gpt-"):
+                    if model.id.startswith("gpt-") and model.id not in exclude:
                         if "agent" not in model.mode:
                             model.mode.append("agent")
                 updated = True
