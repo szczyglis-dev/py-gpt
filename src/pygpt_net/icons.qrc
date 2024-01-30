@@ -54,6 +54,9 @@
         <file alias="camera.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/camera.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="chat.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/chat.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
         <file alias="check.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/check.svg</file>
     </qresource>
     <qresource prefix="/icons">
@@ -175,6 +178,9 @@
     </qresource>
     <qresource prefix="/icons">
         <file alias="info.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/info.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="input.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/input.svg</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="key.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/key.svg</file>
