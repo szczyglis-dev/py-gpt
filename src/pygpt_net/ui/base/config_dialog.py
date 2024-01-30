@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.30 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -31,12 +31,13 @@ class BaseConfigDialog:
         """
         self.window = window
 
-    def build_widgets(self, id: str, options: dict) -> dict:
+    def build_widgets(self, id: str, options: dict, **kwargs) -> dict:
         """
         Build settings options widgets
 
         :param id: settings ID
         :param options: settings options
+        :param kwargs: additional arguments
         :return: settings widgets
         """
         widgets = {}
@@ -57,6 +58,8 @@ class BaseConfigDialog:
             elif option['type'] == 'textarea':
                 widgets[key] = OptionTextarea(self.window, id, key, option)  # textarea
                 widgets[key].setMinimumHeight(150)
+                if kwargs.get('stretch', False):
+                    widgets[key].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             elif option['type'] == 'bool':
                 widgets[key] = OptionCheckbox(self.window, id, key, option)  # checkbox
             elif option['type'] == 'dict':
@@ -121,12 +124,13 @@ class BaseConfigDialog:
 
         return layout
 
-    def add_row_option(self, widget: QWidget, option: dict) -> QHBoxLayout:
+    def add_row_option(self, widget: QWidget, option: dict, **kwargs) -> QHBoxLayout:
         """
         Add option row (label + option)
 
         :param widget: Widget
         :param option: Option
+        :param kwargs: Additional arguments
         :return: QHBoxLayout
         """
         label = option['label']

@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.09 17:00:00                  #
+# Updated Date: 2024.01.30 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QWidget
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QWidget, QSizePolicy
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -56,7 +56,7 @@ class Dictionary(BaseConfigDialog):
 
             # widgets
             fields = self.window.controller.config.dictionary.to_options(parent_id, fields)  # item to options
-            widgets = self.build_widgets(parent_id, fields)  # from base config dialog
+            widgets = self.build_widgets(parent_id, fields, stretch=True)  # from base config dialog
 
             for key in widgets:
                 self.window.ui.config[parent_id][key] = widgets[key]
@@ -95,15 +95,15 @@ class Dictionary(BaseConfigDialog):
             footer.addWidget(self.window.ui.nodes[parent_id + '.btn.dismiss'])
             footer.addWidget(self.window.ui.nodes[parent_id + '.btn.save'])
 
-            rows.addStretch()
-
             # scroll area
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
+            scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
             widget = QWidget()
             widget.setLayout(rows)
             scroll.setWidget(widget)
+            widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
             layout = QVBoxLayout()
             layout.addWidget(scroll)  # options

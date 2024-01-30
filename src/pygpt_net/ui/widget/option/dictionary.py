@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.01.30 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex
+from PySide6.QtCore import Qt, QAbstractItemModel, QModelIndex, QSize
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTreeView, QMenu, QStyledItemDelegate, QComboBox, \
-    QCheckBox
+    QCheckBox, QSizePolicy
 
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
@@ -55,6 +55,8 @@ class OptionDict(QWidget):
         headers = list(self.keys.keys())
 
         self.list = OptionDictItems(self)
+        max_height_delegate = MaxHeightDelegate(40, self.list)
+        self.list.setItemDelegate(max_height_delegate)
         self.model = OptionDictModel(self.items, headers)
         self.model.dataChanged.connect(self.model.saveData)
 
@@ -387,3 +389,14 @@ class ComboBoxDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.currentText(), Qt.EditRole)
+
+
+class MaxHeightDelegate(QStyledItemDelegate):
+    def __init__(self, max, parent=None):
+        super().__init__(parent)
+        self.maxHeight = max
+
+    def sizeHint(self, option, index):
+        original = super().sizeHint(option, index)
+        limited = min(original.height(), self.maxHeight)
+        return QSize(original.width(), limited)
