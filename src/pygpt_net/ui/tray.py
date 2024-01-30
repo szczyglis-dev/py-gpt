@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 17:00:00                  #
+# Updated Date: 2024.01.30 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -53,9 +53,12 @@ class Tray:
 
         self.icon = QSystemTrayIcon(
             self.window.ui.get_tray_icon(self.window.STATE_IDLE),
-            app
+            app,
         )
-        self.icon.setToolTip("PyGPT v{}".format(self.window.meta['version']))
+        self.icon.setToolTip("PyGPT v{} ({})".format(
+            self.window.meta['version'],
+            self.window.meta['build']),
+        )
 
         # new context
         action = QAction(trans("menu.file.new"), self.window)
@@ -90,6 +93,7 @@ class Tray:
         self.window.ui.tray_menu['screenshot'] = action
         self.window.ui.tray_menu['screenshot'].triggered.connect(self.make_screenshot)
 
+        # exit
         action = QAction(trans("menu.file.exit"), self.window)
         action.setIcon(QIcon(":/icons/logout.svg"))
         self.window.ui.tray_menu['exit'] = action
@@ -102,7 +106,6 @@ class Tray:
         menu.addAction(self.window.ui.tray_menu['open_notepad'])
         menu.addAction(self.window.ui.tray_menu['screenshot'])
         menu.addAction(self.window.ui.tray_menu['exit'])
-
         self.icon.setContextMenu(menu)
         self.icon.show()
 
