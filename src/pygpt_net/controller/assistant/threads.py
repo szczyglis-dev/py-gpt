@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import time
@@ -159,7 +159,10 @@ class RunWorker(QRunnable):
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant.threads.stop:
-                status = self.window.core.gpt.assistants.run_status(self.ctx.thread, self.ctx.run_id)
+                status = self.window.core.gpt.assistants.run_status(
+                    self.ctx.thread,
+                    self.ctx.run_id,
+                )
                 self.signals.updated.emit(status, self.ctx)
                 # finished or failed
                 if status in self.stop_reasons:

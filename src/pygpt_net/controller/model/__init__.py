@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -33,7 +33,10 @@ class Model:
         # check if model change is not locked
         if self.change_locked():
             return
-        self.set_by_idx(self.window.core.config.get('mode'), idx)
+        self.set_by_idx(
+            self.window.core.config.get('mode'),
+            idx,
+        )
 
         # update all layout
         self.window.controller.ui.update()
@@ -116,7 +119,9 @@ class Model:
     def update_list(self):
         """Update models list"""
         mode = self.window.core.config.get('mode')
-        self.window.ui.toolbox.model.update(self.window.core.models.get_by_mode(mode))
+        self.window.ui.toolbox.model.update(
+            self.window.core.models.get_by_mode(mode)
+        )
 
     def update(self):
         """Update models"""

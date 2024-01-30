@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 import os
 
@@ -215,7 +215,9 @@ class Common:
             {'value': value},
         )
         if not value:
-            self.window.controller.theme.markdown.update(force=True)  # with state store
+            self.window.controller.theme.markdown.update(
+                force=True,
+            )  # with state store
         else:
             self.window.controller.theme.markdown.clear()
 
@@ -262,8 +264,12 @@ class Common:
         )
         if file_name:
             # convert text to plain text
-            self.window.core.config.set_last_used_dir(os.path.dirname(file_name))
+            self.window.core.config.set_last_used_dir(
+                os.path.dirname(file_name),
+            )
             with open(file_name, 'w', encoding="utf-8") as f:
-                f.write(str(text).strip())
+                f.write(
+                    str(text).strip()
+                )
             self.window.ui.status(trans('status.saved'))
 

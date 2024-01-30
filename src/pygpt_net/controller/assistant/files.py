@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 23:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import os
@@ -102,8 +102,11 @@ class Files:
         :param force: force sync files
         """
         if not force:
-            self.window.ui.dialogs.confirm('assistant_import_files', '',
-                                           trans('confirm.assistant.import_files'))
+            self.window.ui.dialogs.confirm(
+                'assistant_import_files',
+                '',
+                trans('confirm.assistant.import_files'),
+            )
             return
 
         id = self.window.core.config.get('assistant')
@@ -167,7 +170,11 @@ class Files:
         if assistant is None:
             self.rename_close()
             return
-        self.window.core.assistants.rename_file(assistant, file_id, name)
+        self.window.core.assistants.rename_file(
+            assistant,
+            file_id,
+            name,
+        )
         self.rename_close()
 
     def clear_files(self, force: bool = False):
@@ -177,8 +184,11 @@ class Files:
         :param force: force clear files
         """
         if not force:
-            self.window.ui.dialogs.confirm('attachments_uploaded.clear', -1,
-                                           trans('attachments_uploaded.clear.confirm'))
+            self.window.ui.dialogs.confirm(
+                'attachments_uploaded.clear',
+                -1,
+                trans('attachments_uploaded.clear.confirm'),
+            )
             return
 
         id = self.window.core.config.get('assistant')
@@ -213,8 +223,11 @@ class Files:
         :param force: force delete without confirmation
         """
         if not force:
-            self.window.ui.dialogs.confirm('attachments_uploaded.delete', idx,
-                                           trans('attachments_uploaded.delete.confirm'))
+            self.window.ui.dialogs.confirm(
+                'attachments_uploaded.delete',
+                idx,
+                trans('attachments_uploaded.delete.confirm'),
+            )
             return
 
         # get current assistant
@@ -290,7 +303,10 @@ class Files:
                     continue
 
                 # upload local attachment file and get new ID (file_id)
-                new_id = self.window.core.gpt.assistants.file_upload(assistant_id, attachment.path)
+                new_id = self.window.core.gpt.assistants.file_upload(
+                    assistant_id,
+                    attachment.path,
+                )
                 if new_id is not None:
                     # mark as already uploaded
                     attachment.send = True
@@ -298,7 +314,11 @@ class Files:
                     attachment.remote = new_id
 
                     # replace old ID with new one
-                    self.window.core.attachments.replace_id(mode, old_id, attachment)
+                    self.window.core.attachments.replace_id(
+                        mode,
+                        old_id,
+                        attachment,
+                    )
 
                     # update assistant remote files list
                     assistant.files[new_id] = {
@@ -308,7 +328,12 @@ class Files:
                     }
 
                     # update assistant attachments list
-                    self.window.core.assistants.replace_attachment(assistant, attachment, old_id, new_id)
+                    self.window.core.assistants.replace_attachment(
+                        assistant,
+                        attachment,
+                        old_id,
+                        new_id,
+                    )
                     num += 1  # increment uploaded files counter
 
         # update assistants list

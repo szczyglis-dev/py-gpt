@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.18 10:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 from PySide6.QtGui import QIcon
 
@@ -60,15 +60,28 @@ class Notepad:
                 if i not in items or not items[i].initialized:
                     tab = i + (self.start_tab_idx - 1)
                     if num_notepads > 1:
-                        self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad') + " " + str(i))
+                        self.window.ui.tabs['output'].setTabText(
+                            tab,
+                            trans('output.tab.notepad') + " " + str(i),
+                        )
                     else:
-                        self.window.ui.tabs['output'].setTabText(tab, trans('output.tab.notepad'))
-                    self.window.ui.tabs['output'].setTabIcon(tab, QIcon(":/icons/paste.svg"))
+                        self.window.ui.tabs['output'].setTabText(
+                            tab,
+                            trans('output.tab.notepad'),
+                        )
+                    self.window.ui.tabs['output'].setTabIcon(
+                        tab,
+                        QIcon(":/icons/paste.svg"),
+                    )
 
         for idx in items:
             title = items[idx].title
             if items[idx].initialized and title is not None and len(title) > 0:
-                self.update_name(idx, items[idx].title, False)
+                self.update_name(
+                    idx,
+                    items[idx].title,
+                    False,
+                )
 
     def get_notepad_name(self, idx: int):
         """
@@ -126,14 +139,23 @@ class Notepad:
         if name is None or len(name) == 0:
             # set default name
             if num > 1:
-                self.window.ui.tabs['output'].setTabText(tab_idx, trans('output.tab.notepad') + " " + str(idx))
+                self.window.ui.tabs['output'].setTabText(
+                    tab_idx,
+                    trans('output.tab.notepad') + " " + str(idx),
+                )
             else:
-                self.window.ui.tabs['output'].setTabText(tab_idx, trans('output.tab.notepad'))
+                self.window.ui.tabs['output'].setTabText(
+                    tab_idx,
+                    trans('output.tab.notepad'),
+                )
             item.title = ""
             item.initialized = False
         else:
             # set custom name
-            self.window.ui.tabs['output'].setTabText(tab_idx, name)
+            self.window.ui.tabs['output'].setTabText(
+                tab_idx,
+                name,
+            )
             item.title = name
             item.initialized = True
         self.window.core.notepad.update(item)

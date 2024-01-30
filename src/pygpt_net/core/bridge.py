@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Bridge:
@@ -40,6 +40,7 @@ class Bridge:
         mode = kwargs.get("mode", None)
         model = kwargs.get("model", None)  # model instance
 
+        # TODO: get mode from model instance
         if mode == "agent":
             mode = "chat"  # inline switch to chat mode, because agent is a virtual mode only
 

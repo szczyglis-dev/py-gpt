@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Combo:
@@ -18,7 +18,12 @@ class Combo:
         """
         self.window = window
 
-    def apply(self, parent_id: str, key: str, option: dict):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
         """
         Apply value to combobox
 
@@ -31,7 +36,14 @@ class Combo:
         if index != -1:
             self.window.ui.config[parent_id][key].combo.setCurrentIndex(index)
 
-    def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
+    def on_update(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            value: any,
+            hooks: bool = True
+    ):
         """
         Event: on change combobox value
 
@@ -47,11 +59,16 @@ class Combo:
             if self.window.ui.has_hook(hook_name):
                 hook = self.window.ui.get_hook(hook_name)
                 try:
-                    hook(key, value, 'combo')
+                    hook(key, value, "combo")
                 except Exception as e:
                     self.window.core.debug.log(e)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> str:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ) -> str:
         """
         Get checkbox value
 

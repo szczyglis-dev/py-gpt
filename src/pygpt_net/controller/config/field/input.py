@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Input:
@@ -18,7 +18,12 @@ class Input:
         """
         self.window = window
 
-    def apply(self, parent_id: str, key: str, option: dict):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
         """
         Apply value to input
 
@@ -27,21 +32,28 @@ class Input:
         :param option: Option data
         """
         value = option["value"]
-        if 'type' in option and option['type'] == 'int':
+        if "type" in option and option["type"] == "int":
             value = round(int(value), 0)
-        elif 'type' in option and option['type'] == 'float':
+        elif "type" in option and option["type"] == "float":
             value = float(value)
 
-        if 'type' in option and option['type'] == 'int' or option['type'] == 'float':
+        if "type" in option and option["type"] == "int" or option["type"] == "float":
             if value is not None:
-                if 'min' in option and option['min'] is not None and value < option['min']:
-                    value = option['min']
-                elif 'max' in option and option['max'] is not None and value > option['max']:
-                    value = option['max']
+                if "min" in option and option["min"] is not None and value < option["min"]:
+                    value = option["min"]
+                elif "max" in option and option["max"] is not None and value > option["max"]:
+                    value = option["max"]
 
-        self.window.ui.config[parent_id][key].setText('{}'.format(value))
+        self.window.ui.config[parent_id][key].setText("{}".format(value))
 
-    def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
+    def on_update(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            value: any,
+            hooks: bool = True
+    ):
         """
         On update event handler
 
@@ -60,11 +72,16 @@ class Input:
             if self.window.ui.has_hook(hook_name):
                 hook = self.window.ui.get_hook(hook_name)
                 try:
-                    hook(key, value, 'input')
+                    hook(key, value, "input")
                 except Exception as e:
                     self.window.core.debug.log(e)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> any:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ) -> any:
         """
         Get value from input
 
@@ -74,16 +91,16 @@ class Input:
         :return: Value
         """
         value = None
-        if option['type'] == 'int':
+        if option["type"] == "int":
             try:
                 value = int(self.window.ui.config[parent_id][key].text())
             except ValueError:
                 value = 0
-        elif option['type'] == 'float':
+        elif option["type"] == "float":
             try:
                 value = float(self.window.ui.config[parent_id][key].text())
             except ValueError:
                 value = 0.0
-        elif option['type'] == 'text':
+        elif option["type"] == "text":
             value = self.window.ui.config[parent_id][key].text()
         return value

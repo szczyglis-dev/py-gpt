@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.15 12:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -38,7 +38,8 @@ class Lang:
         for lang in langs:
             self.window.ui.menu['lang'][lang] = QAction(lang.upper(), self.window, checkable=True)
             self.window.ui.menu['lang'][lang].triggered.connect(
-                lambda checked=None, lang=lang: self.window.controller.lang.toggle(lang))
+                lambda checked=None,
+                       lang=lang: self.window.controller.lang.toggle(lang))
             self.window.ui.menu['menu.lang'].addAction(self.window.ui.menu['lang'][lang])
         self.update()
 

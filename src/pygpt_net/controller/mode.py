@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -50,7 +50,9 @@ class Mode:
         if mode == "assistant":
             if self.window.core.ctx.current is not None \
                     and self.window.core.ctx.assistant is not None:
-                self.window.controller.assistant.select_by_id(self.window.core.ctx.assistant)
+                self.window.controller.assistant.select_by_id(
+                    self.window.core.ctx.assistant
+                )
 
         self.window.core.config.set('mode', mode)
         self.window.core.config.set('model', "")

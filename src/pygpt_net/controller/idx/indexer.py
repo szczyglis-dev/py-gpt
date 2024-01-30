@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 19:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -81,7 +81,7 @@ class Indexer:
             self.window.ui.dialogs.confirm(
                 'idx.index.db',
                 ctx_idx,
-                content
+                content,
             )
             return
 
@@ -151,7 +151,7 @@ class Indexer:
             self.window.ui.dialogs.confirm(
                 'idx.index.db.all',
                 ts,
-                content
+                content,
             )
             return
         worker = IndexWorker()
@@ -204,7 +204,7 @@ class Indexer:
             self.window.ui.dialogs.confirm(
                 'idx.index.files.all',
                 idx,
-                content
+                content,
             )
             return
         self.index_path(path, idx)
@@ -241,7 +241,7 @@ class Indexer:
             self.window.ui.dialogs.confirm(
                 'idx.index.file',
                 path,
-                content
+                content,
             )
             return
         self.index_path(path, idx)
@@ -268,7 +268,7 @@ class Indexer:
             self.window.ui.dialogs.confirm(
                 'idx.clear',
                 idx,
-                content
+                content,
             )
             return
 
@@ -434,24 +434,24 @@ class IndexWorker(QRunnable):
                 print("[LLAMA-INDEX] Idx: {}, type: {}, content: {}".format(
                     self.idx,
                     self.type,
-                    self.content
+                    self.content,
                 ))
 
             # execute indexing
             if self.type == "file":
                 result, errors = self.window.core.idx.index_files(
                     self.idx,
-                    self.content
+                    self.content,
                 )
             elif self.type == "db_meta":
                 result, errors = self.window.core.idx.index_db_by_meta_id(
                     self.idx,
-                    self.content
+                    self.content,
                 )
             elif self.type == "db_current":
                 result, errors = self.window.core.idx.index_db_from_updated_ts(
                     self.idx,
-                    self.content
+                    self.content,
                 )
 
             if is_log:
@@ -461,7 +461,7 @@ class IndexWorker(QRunnable):
                 self.idx,
                 result,
                 errors,
-                self.silent
+                self.silent,
             )
         except Exception as e:
             self.signals.error.emit(e)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 23:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -86,7 +86,9 @@ class Common:
         """
         new_id = self.window.core.ctx.duplicate(meta_id)
         if new_id is not None:
-            self.window.update_status("Context duplicated, new ctx id: {}".format(new_id))
+            self.window.update_status(
+                "Context duplicated, new ctx id: {}".format(new_id)
+            )
             self.window.controller.ctx.update()
 
     def dismiss_rename(self):

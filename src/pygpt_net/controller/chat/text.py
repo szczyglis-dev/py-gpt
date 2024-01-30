@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -41,9 +41,8 @@ class Text:
         """
         self.window.ui.status(trans('status.sending'))
 
-        # prepare names
+        # prepare name
         self.log("User name: {}".format(self.window.core.config.get('user_name')))  # log
-        self.log# Updated Date: 2024.01.03 19:00:00                  #("AI name: {}".format(self.window.core.config.get('ai_name')))  # log
 
         # event: username prepare
         event = Event(Event.USER_NAME, {
@@ -161,7 +160,10 @@ class Text:
         self.window.core.ctx.add(ctx)
 
         # update ctx list, but not reload all to prevent focus out on lists
-        self.window.controller.ctx.update(reload=True, all=False)
+        self.window.controller.ctx.update(
+            reload=True,
+            all=False,
+        )
 
         # process events to update UI
         QApplication.processEvents()
@@ -213,7 +215,11 @@ class Text:
             # handle response (if no assistant mode)
             # assistant response is handled in assistant thread
             if mode != "assistant":
-                self.window.controller.chat.output.handle(ctx, mode, stream_mode)
+                self.window.controller.chat.output.handle(
+                    ctx,
+                    mode,
+                    stream_mode,
+                )
 
         except Exception as e:
             self.log("Output error: {}".format(e))  # log

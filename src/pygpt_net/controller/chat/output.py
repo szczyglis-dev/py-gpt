@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -70,7 +70,9 @@ class Output:
 
         # get sub mode for langchain
         if mode == "langchain":
-            model_config = self.window.core.models.get(self.window.core.config.get('model'))
+            model_config = self.window.core.models.get(
+                self.window.core.config.get('model')
+            )
             sub_mode = 'chat'
             # get available modes for langchain
             if 'mode' in model_config.langchain:
@@ -124,7 +126,11 @@ class Output:
                             continue
                         output += response
                         output_tokens += 1
-                        self.window.controller.chat.render.append_chunk(ctx, response, begin)
+                        self.window.controller.chat.render.append_chunk(
+                            ctx,
+                            response,
+                            begin,
+                        )
                         QApplication.processEvents()  # process events to update UI after each chunk
                         begin = False
 
@@ -159,7 +165,12 @@ class Output:
             extra_data = " (VISION)"
         self.window.ui.status(
             trans('status.tokens') + ": {} + {} = {}{}".
-            format(ctx.input_tokens, ctx.output_tokens, ctx.total_tokens, extra_data))
+            format(
+                ctx.input_tokens,
+                ctx.output_tokens,
+                ctx.total_tokens,
+                extra_data,
+            ))
 
         # store to history
         if self.window.core.config.get('store_history'):
@@ -180,15 +191,24 @@ class Output:
             # agent mode
             if mode == 'agent':
                 commands = self.window.controller.plugins.from_commands(cmds)  # pack to execution list
-                self.window.controller.agent.on_cmd(ctx, commands)
+                self.window.controller.agent.on_cmd(
+                    ctx,
+                    commands,
+                )
 
             # plugins
             if self.window.core.config.get('cmd'):
                 self.log("Executing plugin commands...")
                 self.window.ui.status(trans('status.cmd.wait'))
-                self.window.controller.plugins.apply_cmds(ctx, cmds)
+                self.window.controller.plugins.apply_cmds(
+                    ctx,
+                    cmds,
+                )
             else:
-                self.window.controller.plugins.apply_cmds_inline(ctx, cmds)
+                self.window.controller.plugins.apply_cmds_inline(
+                    ctx,
+                    cmds,
+                )
 
     def log(self, data: any):
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -41,7 +41,10 @@ class Files:
                 if c > 0:
                     is_upload = True
                     self.window.ui.status(trans('status.uploading'))
-                    num_uploaded = self.window.controller.assistant.files.upload(mode, attachments)
+                    num_uploaded = self.window.controller.assistant.files.upload(
+                        mode,
+                        attachments,
+                    )
                     self.window.core.gpt.assistants.file_ids = self.window.core.attachments.get_ids(mode)
                     attachments_list = self.window.core.attachments.make_json_list(attachments)
 

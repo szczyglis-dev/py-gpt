@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Placeholder:
@@ -102,7 +102,7 @@ class Placeholder:
 
         :return: placeholders list
         """
-        types = ['str', 'int', 'float', 'bool', 'dict', 'list', 'None']
+        types = ["str", "int", "float", "bool", "dict", "list", "None"]
         data = []
         for type in types:
             data.append({type: type})

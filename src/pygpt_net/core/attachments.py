@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.01.30 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -57,7 +57,7 @@ class Attachments:
 
     def count(self, mode: str) -> int:
         """
-        Count attachments
+        Count attachments in mode
 
         :param mode: mode
         :return: attachments count
@@ -69,7 +69,7 @@ class Attachments:
 
     def get_ids(self, mode: str) -> list:
         """
-        Get items IDs
+        Get items IDs in mode
 
         :param mode: mode
         :return: items UUIDs
@@ -81,7 +81,7 @@ class Attachments:
 
     def get_id_by_idx(self, mode: str, idx: int) -> str | None:
         """
-        Get ID by index
+        Get ID by index in mode
 
         :param mode: mode
         :param idx: index
@@ -95,7 +95,7 @@ class Attachments:
 
     def get_by_id(self, mode: str, id: str) -> AttachmentItem | None:
         """
-        Return attachment by ID
+        Return attachment by ID in mode
 
         :param mode: mode
         :param id: file id
@@ -109,7 +109,7 @@ class Attachments:
 
     def get_by_idx(self, mode: str, index: int) -> AttachmentItem | None:
         """
-        Return item by index
+        Return item by index in mode
 
         :param mode: mode
         :param index: item index
@@ -230,7 +230,9 @@ class Attachments:
 
         if id in self.items[mode]:
             if remove_local:
-                self.window.core.filesystem.remove_upload(self.items[mode][id].path)
+                self.window.core.filesystem.remove_upload(
+                    self.items[mode][id].path,
+                )
             del self.items[mode][id]
             self.save()
 
@@ -241,7 +243,10 @@ class Attachments:
         :param mode: mode
         :param remove_local: remove local copy
         """
-        self.clear(mode, remove_local=remove_local)
+        self.clear(
+            mode,
+            remove_local=remove_local,
+        )
         self.provider.truncate(mode)
 
     def clear(self, mode: str, remove_local: bool = False):
@@ -255,7 +260,9 @@ class Attachments:
             self.items[mode] = {}
         if remove_local:
             for id in self.items[mode]:
-                self.window.core.filesystem.remove_upload(self.items[mode][id].path)
+                self.window.core.filesystem.remove_upload(
+                    self.items[mode][id].path,
+                )
         self.items[mode] = {}
 
     def clear_all(self):
@@ -309,7 +316,7 @@ class Attachments:
             attachment = attachments[id]
             result[id] = {
                 'name': attachment.name,
-                'path': attachment.path
+                'path': attachment.path,
             }
         return result
 
@@ -326,9 +333,11 @@ class Attachments:
             item = AttachmentItem()
             item.name = id
 
-            if 'name' in file and file['name'] is not None and file['name'] != "":
+            if 'name' in file \
+                    and file['name'] is not None and file['name'] != "":
                 item.name = file['name']
-            if 'path' in file and file['path'] is not None and file['path'] != "":
+            if 'path' in file \
+                    and file['path'] is not None and file['path'] != "":
                 item.path = file['path']
 
             item.id = id
@@ -356,7 +365,9 @@ class Attachments:
             for id in self.items[mode]:
                 attachment = self.items[mode][id]
                 if attachment.path is not None:
-                    attachment.path = self.window.core.filesystem.to_workdir(attachment.path)
+                    attachment.path = self.window.core.filesystem.to_workdir(
+                        attachment.path,
+                    )
 
     def save(self):
         """Save attachments"""
@@ -366,5 +377,7 @@ class Attachments:
             for id in data[mode]:
                 attachment = data[mode][id]
                 if attachment.path is not None:
-                    attachment.path = self.window.core.filesystem.make_local(attachment.path)
+                    attachment.path = self.window.core.filesystem.make_local(
+                        attachment.path,
+                    )
         self.provider.save(data)

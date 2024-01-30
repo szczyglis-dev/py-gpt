@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 16:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import os
@@ -213,7 +213,10 @@ class Image:
         :param path: path to image
         """
         if os.path.exists(path):
-            self.window.controller.files.open_dir(path, True)
+            self.window.controller.files.open_dir(
+                path,
+                True,
+            )
 
     def save(self, path: str):
         """
@@ -221,10 +224,12 @@ class Image:
 
         :param path: path to image
         """
-        save_path = QFileDialog.getSaveFileName(self.window,
-                                                trans('img.save.title'),
-                                                os.path.basename(path),
-                                                "PNG (*.png)")
+        save_path = QFileDialog.getSaveFileName(
+            self.window,
+            trans('img.save.title'),
+            os.path.basename(path),
+            "PNG (*.png)",
+        )
         if save_path:
             try:
                 shutil.copyfile(path, save_path[0])
@@ -240,7 +245,11 @@ class Image:
         :param force: force delete without confirmation
         """
         if not force:
-            self.window.ui.dialogs.confirm('img_delete', path, trans('confirm.img.delete'))
+            self.window.ui.dialogs.confirm(
+                'img_delete',
+                path,
+                trans('confirm.img.delete'),
+            )
             return
         try:
             os.remove(path)

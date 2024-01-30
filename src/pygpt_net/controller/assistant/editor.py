@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
@@ -88,7 +88,11 @@ class Editor:
         """Setup editor"""
         parent = "assistant"
         key = "tool.function"
-        self.window.ui.dialogs.register_dictionary(key, parent, self.get_option(key))
+        self.window.ui.dialogs.register_dictionary(
+            key,
+            parent,
+            self.get_option(key),
+        )
 
     def edit(self, idx: int = None):
         """
@@ -146,7 +150,13 @@ class Editor:
             functions = assistant.get_functions()
             values = []
             for function in functions:
-                values.append({"name": function['name'], "params": function['params'], "desc": function['desc']})
+                values.append(
+                    {
+                        "name": function['name'],
+                        "params": function['params'],
+                        "desc": function['desc'],
+                    }
+                )
             self.window.ui.config[self.id]['tool.function'].items = values
             self.window.ui.config[self.id]['tool.function'].model.updateData(values)
         else:
@@ -165,7 +175,9 @@ class Editor:
 
         # check name
         if name is None or name == "" or model is None or model == "":
-            self.window.ui.dialogs.alert(trans('assistant.form.empty.fields'))
+            self.window.ui.dialogs.alert(
+                trans('assistant.form.empty.fields')
+            )
             return
 
         if id is None or id == "" or not self.window.core.assistants.has(id):
@@ -175,7 +187,12 @@ class Editor:
                 return
             id = assistant.id  # set to ID created in API
             self.window.core.assistants.add(assistant)
-            self.window.controller.config.apply_value(self.id, "id", self.options["id"], id)
+            self.window.controller.config.apply_value(
+                self.id,
+                "id",
+                self.options["id"],
+                id,
+            )
             created = True
         else:
             assistant = self.window.core.assistants.get_by_id(id)
@@ -204,27 +221,52 @@ class Editor:
 
         :param assistant: assistant
         """
-        model = self.window.controller.config.get_value(self.id, 'model', self.options['model'])
+        model = self.window.controller.config.get_value(
+            self.id,
+            'model',
+            self.options['model'],
+        )
         if model == '_':
             model = None
-        assistant.name = self.window.controller.config.get_value(self.id, 'name', self.options['name'])
+
+        assistant.name = self.window.controller.config.get_value(
+            self.id,
+            'name',
+            self.options['name'],
+        )
         assistant.model = model
-        assistant.description = self.window.controller.config.get_value(self.id, 'description',
-                                                                        self.options['description'])
-        assistant.instructions = self.window.controller.config.get_value(self.id, 'instructions',
-                                                                         self.options['instructions'])
+        assistant.description = self.window.controller.config.get_value(
+            self.id,
+            'description',
+            self.options['description'],
+        )
+        assistant.instructions = self.window.controller.config.get_value(
+            self.id,
+            'instructions',
+            self.options['instructions'],
+        )
         assistant.tools = {
-            'code_interpreter': self.window.controller.config.get_value(self.id, 'tool.code_interpreter',
-                                                                        self.options['tool.code_interpreter']),
-            'retrieval': self.window.controller.config.get_value(self.id, 'tool.retrieval',
-                                                                 self.options['tool.retrieval']),
+            'code_interpreter': self.window.controller.config.get_value(
+                self.id,
+                'tool.code_interpreter',
+                self.options['tool.code_interpreter'],
+            ),
+            'retrieval': self.window.controller.config.get_value(
+                self.id,
+                'tool.retrieval',
+                self.options['tool.retrieval'],
+            ),
             'function': [],  # functions are assigned separately (below)
         }
 
         # assign assistant's functions tool
+        values = self.window.controller.config.get_value(
+                self.id,
+                'tool.function',
+                self.options['tool.function'],
+        )
         functions = []
-        for function in self.window.controller.config.get_value(self.id, 'tool.function',
-                                                                self.options['tool.function']):
+        for function in values:
             name = function['name']
             params = function['params']
             desc = function['desc']
@@ -234,7 +276,13 @@ class Editor:
                 params = '{"type": "object", "properties": {}}'  # default empty JSON params
             if desc is None:
                 desc = ""
-            functions.append({"name": name, "params": params, "desc": desc})
+            functions.append(
+                {
+                    "name": name,
+                    "params": params,
+                    "desc": desc,
+                }
+            )
 
         if len(functions) > 0:
             assistant.tools['function'] = functions

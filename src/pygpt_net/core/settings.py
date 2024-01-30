@@ -99,7 +99,7 @@ class Settings:
                 persist_values[option] = self.window.core.config.get(option)
 
         # save current config backup
-        self.window.core.config.save('config.backup.json')
+        self.window.core.config.save('config.json.backup')
 
         # replace config with app base config
         self.window.core.config.from_base_config()

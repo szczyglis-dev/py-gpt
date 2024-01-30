@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import os
@@ -73,7 +73,10 @@ class Attachment:
         suffix = ''
         if num_files > 0:
             suffix = f' ({num_files})'
-        self.window.ui.tabs['input'].setTabText(1, trans('attachments.tab') + suffix)
+        self.window.ui.tabs['input'].setTabText(
+            1,
+            trans('attachments.tab') + suffix,
+        )
 
     def select(self, mode: str, idx: int):
         """
@@ -82,7 +85,10 @@ class Attachment:
         :param mode: mode
         :param idx: index
         """
-        self.window.core.attachments.current = self.window.core.attachments.get_id_by_idx(mode, idx)
+        self.window.core.attachments.current = self.window.core.attachments.get_id_by_idx(
+            mode,
+            idx,
+        )
 
     def selection_change(self):
         """
@@ -101,11 +107,22 @@ class Attachment:
         """
         mode = self.window.core.config.get('mode')
         if not force:
-            self.window.ui.dialogs.confirm('attachments.delete', idx, trans('attachments.delete.confirm'))
+            self.window.ui.dialogs.confirm(
+                'attachments.delete',
+                idx,
+                trans('attachments.delete.confirm'),
+            )
             return
 
-        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
-        self.window.core.attachments.delete(mode, file_id, remove_local=remove_local)
+        file_id = self.window.core.attachments.get_id_by_idx(
+            mode,
+            idx,
+        )
+        self.window.core.attachments.delete(
+            mode,
+            file_id,
+            remove_local=remove_local,
+        )
 
         # clear current if current == deleted
         if self.window.core.attachments.current == file_id:
@@ -125,10 +142,16 @@ class Attachment:
         """
 
         # get attachment ID by index
-        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
+        file_id = self.window.core.attachments.get_id_by_idx(
+            mode,
+            idx,
+        )
 
         # get attachment object by ID
-        data = self.window.core.attachments.get_by_id(mode, file_id)
+        data = self.window.core.attachments.get_by_id(
+            mode,
+            file_id,
+        )
         if data is None:
             return
 
@@ -148,13 +171,20 @@ class Attachment:
         """
         # rename filename in attachments
         mode = self.window.core.config.get('mode')
-        self.window.core.attachments.rename_file(mode, file_id, name)
+        self.window.core.attachments.rename_file(
+            mode,
+            file_id,
+            name,
+        )
 
         # rename filename in assistant data if mode = assistant
         if self.window.core.config.get('mode') == 'assistant':
             assistant_id = self.window.core.config.get('assistant')
             if assistant_id is not None:
-                self.window.controller.assistant.files.update_name(file_id, name)
+                self.window.controller.assistant.files.update_name(
+                    file_id,
+                    name,
+                )
 
         # close rename dialog and update attachments list
         self.window.ui.dialog['rename'].close()
@@ -167,7 +197,10 @@ class Attachment:
         :param mode: mode
         :param attachment: attachment object
         """
-        self.window.core.attachments.add(mode, attachment)
+        self.window.core.attachments.add(
+            mode,
+            attachment,
+        )
         self.update()
 
     def clear(self, force: bool = False, remove_local=False):
@@ -178,12 +211,19 @@ class Attachment:
         :param remove_local: remove local copies
         """
         if not force:
-            self.window.ui.dialogs.confirm('attachments.clear', -1, trans('attachments.clear.confirm'))
+            self.window.ui.dialogs.confirm(
+                'attachments.clear',
+                -1,
+                trans('attachments.clear.confirm'),
+            )
             return
 
         # delete all from attachments for current mode
         mode = self.window.core.config.get('mode')
-        self.window.core.attachments.delete_all(mode, remove_local=remove_local)
+        self.window.core.attachments.delete_all(
+            mode,
+            remove_local=remove_local,
+        )
 
         self.window.controller.chat.vision.unavailable()  # set no content to provide
 
@@ -191,9 +231,13 @@ class Attachment:
             # delete all from assistant data
             assistant_id = self.window.core.config.get('assistant')
             if assistant_id is not None:
-                assistant = self.window.core.assistants.get_by_id(assistant_id)
+                assistant = self.window.core.assistants.get_by_id(
+                    assistant_id,
+                )
                 if assistant is not None:
-                    self.window.controller.assistant.files.clear_attachments(assistant)
+                    self.window.controller.assistant.files.clear_attachments(
+                        assistant,
+                    )
         self.update()
 
     def open_add(self):
@@ -206,18 +250,28 @@ class Attachment:
         if dialog.exec():
             files = dialog.selectedFiles()
             if files:
-                self.window.core.config.set_last_used_dir(os.path.dirname(files[0]))
+                self.window.core.config.set_last_used_dir(
+                    os.path.dirname(files[0]),
+                )
                 for path in files:
                     # build attachment object
                     basename = os.path.basename(path)
-                    attachment = self.window.core.attachments.new(mode, basename, path, False)
+                    attachment = self.window.core.attachments.new(
+                        mode,
+                        basename,
+                        path,
+                        False,
+                    )
                     # append attachment to assistant if current mode = assistant
                     if mode == 'assistant':
                         assistant_id = self.window.core.config.get('assistant')
                         if assistant_id is not None:
                             assistant = self.window.core.assistants.get_by_id(assistant_id)
                             if assistant is not None:
-                                self.window.controller.assistant.files.append(assistant, attachment)
+                                self.window.controller.assistant.files.append(
+                                    assistant,
+                                    attachment,
+                                )
 
             # save attachments and update attachments list
             self.window.core.attachments.save()
@@ -231,10 +285,19 @@ class Attachment:
         :param idx: index
         """
         # TODO: check dict/obj
-        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
-        data = self.window.core.attachments.get_by_id(mode, file_id)
+        file_id = self.window.core.attachments.get_id_by_idx(
+            mode,
+            idx,
+        )
+        data = self.window.core.attachments.get_by_id(
+            mode,
+            file_id,
+        )
         if data.path is not None and data.path != '' and os.path.exists(data.path):
-            self.window.controller.files.open_dir(data.path, True)
+            self.window.controller.files.open_dir(
+                data.path,
+                True,
+            )
 
     def open(self, mode: str, idx: int):
         """
@@ -244,10 +307,18 @@ class Attachment:
         :param idx: index
         """
         # TODO: check dict/obj
-        file_id = self.window.core.attachments.get_id_by_idx(mode, idx)
-        data = self.window.core.attachments.get_by_id(mode, file_id)
+        file_id = self.window.core.attachments.get_id_by_idx(
+            mode,
+            idx,
+        )
+        data = self.window.core.attachments.get_by_id(
+            mode,
+            file_id,
+        )
         if data.path is not None and data.path != '' and os.path.exists(data.path):
-            self.window.controller.files.open(data.path)
+            self.window.controller.files.open(
+                data.path,
+            )
 
     def import_from_assistant(self, mode: str, assistant: AssistantItem):
         """
@@ -259,7 +330,10 @@ class Attachment:
         if assistant is None:
             return
         # restore attachments from assistant
-        self.window.core.attachments.from_attachments(mode, assistant.attachments)
+        self.window.core.attachments.from_attachments(
+            mode,
+            assistant.attachments,
+        )
 
     def has(self, mode: str) -> bool:
         """
@@ -285,16 +359,25 @@ class Attachment:
 
             # prepare path to download file
             data.filename = os.path.basename(data.filename)
-            path = os.path.join(self.window.core.config.get_user_dir('data'), data.filename)
+            path = os.path.join(
+                self.window.core.config.get_user_dir('data'),
+                data.filename,
+            )
 
             # check if file exists, if yes, append timestamp prefix
             if os.path.exists(path):
                 # append timestamp prefix to filename
                 filename = f'{datetime.now().strftime("%Y%m%d%H%M%S")}_{data.filename}'
-                path = os.path.join(self.window.core.config.get_user_dir('data'), filename)
+                path = os.path.join(
+                    self.window.core.config.get_user_dir('data'),
+                    filename,
+                )
 
             # download file
-            self.window.core.gpt.assistants.file_download(file_id, path)
+            self.window.core.gpt.assistants.file_download(
+                file_id,
+                path,
+            )
             return path  # return path to downloaded file
         except Exception as e:
             self.window.core.debug.log(e)

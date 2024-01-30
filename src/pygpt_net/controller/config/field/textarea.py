@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Textarea:
@@ -18,7 +18,12 @@ class Textarea:
         """
         self.window = window
 
-    def apply(self, parent_id: str, key: str, option: dict):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
         """
         Apply value to textarea
 
@@ -26,9 +31,16 @@ class Textarea:
         :param key: Option key
         :param option: Option data
         """
-        self.window.ui.config[parent_id][key].setText('{}'.format(option["value"]))
+        self.window.ui.config[parent_id][key].setText("{}".format(option["value"]))
 
-    def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
+    def on_update(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            value: any,
+            hooks: bool = True
+    ):
         """
         Event: on update
 
@@ -38,7 +50,7 @@ class Textarea:
         :param value: Option value
         :param hooks: Run hooks
         """
-        option['value'] = value
+        option["value"] = value
         self.apply(parent_id, key, option)
 
         # on update hooks
@@ -47,13 +59,19 @@ class Textarea:
             if self.window.ui.has_hook(hook_name):
                 hook = self.window.ui.get_hook(hook_name)
                 try:
-                    hook(key, value, 'textarea')
+                    hook(key, value, "textarea")
                 except Exception as e:
                     self.window.core.debug.log(e)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> str:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ) -> str:
         """
         Get value of textarea
+
         :param parent_id: Parent ID
         :param key: Option key
         :param option: Option data

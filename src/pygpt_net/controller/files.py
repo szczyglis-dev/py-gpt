@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 19:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
+
 import datetime
 import os
 import shutil
@@ -52,7 +53,9 @@ class Files:
             return
         try:
             shutil.rmtree(path)  # delete directory with all files
-            self.window.update_status("[OK] Deleted directory: {}".format(os.path.basename(path)))
+            self.window.update_status(
+                "[OK] Deleted directory: {}".format(os.path.basename(path))
+            )
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
@@ -78,7 +81,9 @@ class Files:
         try:
             filepath = os.path.join(path, name)
             open(filepath, 'a').close()
-            self.window.update_status("[OK] Created file: {}".format(os.path.basename(filepath)))
+            self.window.update_status(
+                "[OK] Created file: {}".format(os.path.basename(filepath))
+            )
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
@@ -129,7 +134,8 @@ class Files:
             if os.path.isdir(path):
                 new_name = os.path.basename(path) + "_copy"
             else:
-                new_name = os.path.splitext(os.path.basename(path))[0] + "_copy" + os.path.splitext(path)[1]
+                new_name = os.path.splitext(os.path.basename(path))[0] \
+                           + "_copy" + os.path.splitext(path)[1]
             self.window.ui.dialog['create'].id = 'duplicate'
             self.window.ui.dialog['create'].input.setText(new_name)
             self.window.ui.dialog['create'].current = path
@@ -145,14 +151,18 @@ class Files:
             new_path = os.path.join(parent_dir, name)
 
             if os.path.exists(new_path):
-                self.window.update_status("[ERROR] File already exists: {}".format(os.path.basename(new_path)))
+                self.window.update_status(
+                    "[ERROR] File already exists: {}".format(os.path.basename(new_path))
+                )
                 return
 
             if os.path.isdir(path):
                 shutil.copytree(path, new_path)
             else:
                 copy2(path, new_path)
-            self.window.update_status("[OK] Duplicated file: {} -> {}".format(os.path.basename(path), name))
+            self.window.update_status(
+                "[OK] Duplicated file: {} -> {}".format(os.path.basename(path), name)
+            )
             self.update_explorer()
         except Exception as e:
             self.window.core.debug.log(e)
@@ -172,13 +182,17 @@ class Files:
         if dialog.exec():
             files = dialog.selectedFiles()
             if files:
-                self.window.core.config.set_last_used_dir(os.path.dirname(files[0]))
+                self.window.core.config.set_last_used_dir(
+                    os.path.dirname(files[0])
+                )
                 try:
                     if os.path.isdir(path):
                         shutil.copytree(path, files[0])
                     else:
                         shutil.copy2(path, files[0])
-                    self.window.update_status("[OK] Downloaded file: {}".format(os.path.basename(path)))
+                    self.window.update_status(
+                        "[OK] Downloaded file: {}".format(os.path.basename(path))
+                    )
                 except Exception as e:
                     self.window.core.debug.log(e)
                     print("Error downloading file: {} - {}".format(path, e))
@@ -196,23 +210,37 @@ class Files:
         if dialog.exec():
             files = dialog.selectedFiles()
             if files:
-                self.window.core.config.set_last_used_dir(os.path.dirname(files[0]))
+                self.window.core.config.set_last_used_dir(
+                    os.path.dirname(files[0])
+                )
                 if parent_path is not None:
                     target_directory = parent_path
                 else:
                     target_directory = self.window.core.config.get_user_dir('data')
                 num = 0
                 for file_path in files:
-                    path_to = os.path.join(target_directory, os.path.basename(file_path))
+                    path_to = os.path.join(
+                        target_directory,
+                        os.path.basename(file_path),
+                    )
                     try:
                         # if exists, append timestamp
                         if os.path.exists(path_to):
                             new_name = self.make_ts_prefix() + "_" + os.path.basename(file_path)
-                            target_path = os.path.join(target_directory, new_name)
+                            target_path = os.path.join(
+                                target_directory,
+                                new_name,
+                            )
                         else:
-                            target_path = os.path.join(target_directory, os.path.basename(file_path))
+                            target_path = os.path.join(
+                                target_directory,
+                                os.path.basename(file_path),
+                            )
                         if not os.path.exists(target_directory):
-                            os.makedirs(target_directory, exist_ok=True)
+                            os.makedirs(
+                                target_directory,
+                                exist_ok=True,
+                            )
                         copy2(file_path, target_path)
                         num += 1
                     except Exception as e:
@@ -243,10 +271,14 @@ class Files:
         """
         new_path = os.path.join(os.path.dirname(path), name)
         if os.path.exists(new_path):
-            self.window.update_status("[ERROR] File already exists: {}".format(os.path.basename(new_path)))
+            self.window.update_status(
+                "[ERROR] File already exists: {}".format(os.path.basename(new_path))
+            )
             return
         os.rename(path, new_path)
-        self.window.update_status("[OK] Renamed: {} -> {}".format(os.path.basename(path), name))
+        self.window.update_status(
+            "[OK] Renamed: {} -> {}".format(os.path.basename(path), name)
+        )
         self.window.ui.dialog['rename'].close()
         self.update_explorer()
 
@@ -284,7 +316,9 @@ class Files:
         """
         path = self.window.core.filesystem.get_path(path)
         if select:  # path to file: open containing directory
-            path = self.window.core.filesystem.get_path(os.path.dirname(path))
+            path = self.window.core.filesystem.get_path(
+                os.path.dirname(path)
+            )
 
         if os.path.exists(path):
             if not self.window.core.platforms.is_snap():
@@ -315,14 +349,20 @@ class Files:
         """
         self.window.ui.dialog['create'].close()
         if name is None:
-            self.window.update_status("[ERROR] Directory name is empty.")
+            self.window.update_status(
+                "[ERROR] Directory name is empty."
+            )
             return
         path_dir = os.path.join(path, name)
         if os.path.exists(path_dir):
-            self.window.update_status("[ERROR] Directory or file already exists.")
+            self.window.update_status(
+                "[ERROR] Directory or file already exists."
+            )
             return
         os.makedirs(path_dir, exist_ok=True)
-        self.window.update_status("[OK] Directory created: {}".format(name))
+        self.window.update_status(
+            "[OK] Directory created: {}".format(name)
+        )
         self.update_explorer()
 
     def update_explorer(self):
@@ -338,7 +378,12 @@ class Files:
         """
         title = os.path.basename(path)
         mode = self.window.core.config.get("mode")
-        self.window.core.attachments.new(mode, title, path, False)
+        self.window.core.attachments.new(
+            mode=mode,
+            name=title,
+            path=path,
+            auto_save=False,
+        )
         self.window.core.attachments.save()
         self.window.controller.attachment.update()
 

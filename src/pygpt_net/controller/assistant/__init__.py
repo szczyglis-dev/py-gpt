@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -93,7 +93,10 @@ class Assistant:
         # update attachments list with list of attachments from assistant
         mode = self.window.core.config.get('mode')
         assistant = self.window.core.assistants.get_by_id(id)
-        self.window.controller.attachment.import_from_assistant(mode, assistant)
+        self.window.controller.attachment.import_from_assistant(
+            mode,
+            assistant,
+        )
         self.window.controller.attachment.update()
         self.update(False)
 
@@ -138,7 +141,10 @@ class Assistant:
         if assistant is None or assistant == "":
             mode = self.window.core.config.get('mode')
             if mode == 'assistant':
-                self.window.core.config.set('assistant', self.window.core.assistants.get_default_assistant())
+                self.window.core.config.set(
+                    'assistant',
+                    self.window.core.assistants.get_default_assistant(),
+                )
                 self.update()
 
     def create(self) -> AssistantItem:
@@ -171,8 +177,11 @@ class Assistant:
         :param force: if true, imports without confirmation
         """
         if not force:
-            self.window.ui.dialogs.confirm('assistant_import', '',
-                                           trans('confirm.assistant.import'))
+            self.window.ui.dialogs.confirm(
+                'assistant_import',
+                '',
+                trans('confirm.assistant.import'),
+            )
             return
 
         try:
@@ -203,8 +212,11 @@ class Assistant:
         id = self.window.core.config.get('assistant')
 
         if not force:
-            self.window.ui.dialogs.confirm('assistant_clear', '',
-                                           trans('confirm.assistant.clear'))
+            self.window.ui.dialogs.confirm(
+                'assistant_clear',
+                '',
+                trans('confirm.assistant.clear'),
+            )
             return
 
         if id is not None and id != "":
@@ -228,8 +240,11 @@ class Assistant:
                 if self.window.core.assistants.has(id):
                     # if exists then show confirmation dialog
                     if not force:
-                        self.window.ui.dialogs.confirm('assistant_delete', idx,
-                                                       trans('confirm.assistant.delete'))
+                        self.window.ui.dialogs.confirm(
+                            'assistant_delete',
+                            idx,
+                            trans('confirm.assistant.delete'),
+                        )
                         return
 
                     # clear if this is current assistant

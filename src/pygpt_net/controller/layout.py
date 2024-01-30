@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 
@@ -36,11 +36,14 @@ class Layout:
         self.scroll_restore()
 
         # restore plugin settings state
-        self.window.controller.plugins.set_by_tab(self.window.ui.tabs['plugin.settings'].currentIndex())
+        self.window.controller.plugins.set_by_tab(
+            self.window.ui.tabs['plugin.settings'].currentIndex()
+        )
         self.window.controller.ui.update_tokens()  # update tokens
 
         # minimize window after startup
-        if self.window.core.config.has('layout.minimized') and self.window.core.config.get('layout.minimized'):
+        if self.window.core.config.has('layout.minimized') \
+                and self.window.core.config.get('layout.minimized'):
             self.window.showMinimized()
 
     def save(self):

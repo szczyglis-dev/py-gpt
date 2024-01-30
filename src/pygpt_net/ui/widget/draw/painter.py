@@ -31,6 +31,7 @@ class PainterWidget(QWidget):
         self.lastPoint = QPoint()
         self.originalImage = None
         self.undoStack = []
+        self.redoStack = []
         self.undoLimit = 10
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFocus()
@@ -45,6 +46,9 @@ class PainterWidget(QWidget):
         actions['undo'] = QAction(QIcon(":/icons/undo.svg"), trans('action.undo'), self)
         actions['undo'].triggered.connect(
             lambda: self.undo())
+        actions['redo'] = QAction(QIcon(":/icons/redo.svg"), trans('action.redo'), self)
+        actions['redo'].triggered.connect(
+            lambda: self.redo())
         actions['open'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open'), self)
         actions['open'].triggered.connect(
             lambda: self.action_open())
@@ -60,6 +64,7 @@ class PainterWidget(QWidget):
 
         menu = QMenu(self)
         menu.addAction(actions['undo'])
+        menu.addAction(actions['redo'])
         menu.addAction(actions['open'])
         menu.addAction(actions['capture'])
         menu.addAction(actions['save'])
@@ -139,11 +144,20 @@ class PainterWidget(QWidget):
         if len(self.undoStack) >= self.undoLimit:
             self.undoStack.pop(0)
         self.undoStack.append(self.image.copy())
+        self.redoStack.clear()  # clear redo on new action
 
     def undo(self):
         """Undo the last action"""
         if self.undoStack:
+            self.redoStack.append(self.image.copy())
             self.image = self.undoStack.pop()
+            self.update()
+
+    def redo(self):
+        """Redo the last undo action"""
+        if self.redoStack:
+            self.undoStack.append(self.image.copy())
+            self.image = self.redoStack.pop()
             self.update()
 
     def set_brush_color(self, color):

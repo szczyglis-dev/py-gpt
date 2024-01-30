@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -106,8 +106,10 @@ class Settings:
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
-                action.triggered.connect(lambda checked=False, id=id:
-                                         self.window.controller.idx.indexer.index_ctx_from_ts(id, 0))
+                action.triggered.connect(
+                    lambda checked=False,
+                           id=id: self.window.controller.idx.indexer.index_ctx_from_ts(id, 0)
+                )
         menu.exec_(parent.mapToGlobal(pos))
 
     def idx_db_update_context_menu(self, parent, pos):
@@ -124,8 +126,9 @@ class Settings:
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
-                action.triggered.connect(lambda checked=False, id=id:
-                                         self.window.controller.idx.indexer.index_ctx_current(id))
+                action.triggered.connect(
+                    lambda checked=False,
+                           id=id: self.window.controller.idx.indexer.index_ctx_current(id))
         menu.exec_(parent.mapToGlobal(pos))
 
     def idx_data_context_menu(self, parent, pos):
@@ -142,6 +145,7 @@ class Settings:
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
-                action.triggered.connect(lambda checked=False, id=id:
-                                         self.window.controller.idx.indexer.index_all_files(id))
+                action.triggered.connect(
+                    lambda checked=False,
+                           id=id: self.window.controller.idx.indexer.index_all_files(id))
         menu.exec_(parent.mapToGlobal(pos))

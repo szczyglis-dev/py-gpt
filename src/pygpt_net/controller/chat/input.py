@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -26,8 +26,15 @@ class Input:
         self.locked = False
         self.stop = False
         self.generating = False
-        self.no_api_key_allowed = ['langchain', 'llama_index']
-        self.no_ctx_idx_modes = ['img', 'assistant', 'llama_index']  # assistant handled in async
+        self.no_api_key_allowed = [
+            "langchain",
+            "llama_index"
+        ]
+        self.no_ctx_idx_modes = [
+            "img",
+            "assistant",
+            "llama_index"
+        ]  # assistant handled in async
 
     def send_input(self, force: bool = False):
         """

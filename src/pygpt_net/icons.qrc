@@ -261,6 +261,9 @@
         <file alias="public_filled.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/public_filled.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="redo.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/redo.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
         <file alias="reload.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/reload.svg</file>
     </qresource>
     <qresource prefix="/icons">

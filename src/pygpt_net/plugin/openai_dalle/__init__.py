@@ -27,6 +27,7 @@ class Plugin(BasePlugin):
             "vision",
             "llama_index",
             "assistant",
+            "agent",
         ]
         self.allowed_cmds = [
             "image",

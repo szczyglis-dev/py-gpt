@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 00:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Checkbox:
@@ -18,7 +18,12 @@ class Checkbox:
         """
         self.window = window
 
-    def apply(self, parent_id: str, key: str, option: dict):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
         """
         Apply value to checkbox
 
@@ -32,7 +37,14 @@ class Checkbox:
         if key in self.window.ui.config[parent_id]:
             self.window.ui.config[parent_id][key].box.setChecked(bool(value))
 
-    def on_update(self, parent_id: str, key: str, option: dict, value: any, hooks: bool = True):
+    def on_update(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            value: any,
+            hooks: bool = True
+    ):
         """
         Event: on update checkbox value
 
@@ -52,7 +64,12 @@ class Checkbox:
                 except Exception as e:
                     self.window.core.debug.log(e)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> bool:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ) -> bool:
         """
         Get checkbox value
 

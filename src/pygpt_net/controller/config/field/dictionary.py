@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -21,7 +21,12 @@ class Dictionary:
         """
         self.window = window
 
-    def apply(self, parent_id: str, key: str, option: dict):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ):
         """
         Apply values to dictionary
 
@@ -35,7 +40,13 @@ class Dictionary:
         self.window.ui.config[parent_id][key].items = values  # replace model data list
         self.window.ui.config[parent_id][key].model.updateData(values)  # update model data
 
-    def apply_row(self, parent_id: str, key: str, values: dict, idx: int):
+    def apply_row(
+            self,
+            parent_id: str,
+            key: str,
+            values: dict,
+            idx: int
+    ):
         """
         Apply data values to dictionary
 
@@ -46,7 +57,12 @@ class Dictionary:
         """
         self.window.ui.config[parent_id][key].update_item(idx, values)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> list:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ) -> list:
         """
         Get dictionary values
 
@@ -57,7 +73,13 @@ class Dictionary:
         """
         return self.window.ui.config[parent_id][key].model.items
 
-    def delete_item(self, parent_object, id: str, force: bool = False, hooks: bool = True):
+    def delete_item(
+            self,
+            parent_object,
+            id: str,
+            force: bool = False,
+            hooks: bool = True
+    ):
         """
         Show delete item (from dict list) confirmation dialog or executes delete
 
@@ -67,8 +89,12 @@ class Dictionary:
         :param hooks: run hooks
         """
         if not force:
-            self.window.ui.dialogs.confirm('settings.dict.delete', id, trans('settings.dict.delete.confirm'),
-                                           parent_object)
+            self.window.ui.dialogs.confirm(
+                "settings.dict.delete",
+                id,
+                trans("settings.dict.delete.confirm"),
+                parent_object,
+            )
             return
 
         # delete item
@@ -81,11 +107,15 @@ class Dictionary:
                 if self.window.ui.has_hook(hook_name):
                     hook = self.window.ui.get_hook(hook_name)
                     try:
-                        hook(id, {}, 'dictionary')
+                        hook(id, {}, "dictionary")
                     except Exception as e:
                         self.window.core.debug.log(e)
 
-    def to_options(self, parent_id: str, option: dict) -> dict:
+    def to_options(
+            self,
+            parent_id: str,
+            option: dict
+    ) -> dict:
         """
         Convert dictionary items option to options
 
@@ -100,16 +130,21 @@ class Dictionary:
             item = option["keys"][key]
             if isinstance(item, str):
                 item = {
-                    'label': parent_id + '.' + key,
-                    'type': item,  # field type is provided as value in this case
+                    "label": parent_id + '.' + key,
+                    "type": item,  # field type is provided as value in this case
                 }
             options[key] = item
-            if 'label' not in options[key]:
-                options[key]['label'] = key
-                options[key]['label'] = parent_id + '.' + options[key]['label']
+            if "label" not in options[key]:
+                options[key]["label"] = key
+                options[key]["label"] = parent_id + "." + options[key]["label"]
         return options
 
-    def append_editor(self, id: str, option: dict, data: dict):
+    def append_editor(
+            self,
+            id: str,
+            option: dict,
+            data: dict
+    ):
         """
         Apply dict item option sub-values to dict editor
 
@@ -121,10 +156,20 @@ class Dictionary:
         sub_options = self.to_options(id, option)
         for key in sub_options:
             sub_option = sub_options[key]
-            sub_option['value'] = data[key]
-            self.window.controller.config.apply(parent_id, key, sub_option)
+            sub_option["value"] = data[key]
+            self.window.controller.config.apply(
+                parent_id,
+                key,
+                sub_option,
+            )
 
-    def save_editor(self, option_key: str, parent: str, fields: dict, hooks: bool = True):
+    def save_editor(
+            self,
+            option_key: str,
+            parent: str,
+            fields: dict,
+            hooks: bool = True
+    ):
         """
         Save dict editor (called from dict editor dialog save button)
 
@@ -136,13 +181,22 @@ class Dictionary:
         values = {}
         dict_id = parent + "." + option_key
         dialog_id = "dictionary." + parent + "." + option_key  # dictionary parent ID
-        idx = self.window.ui.dialog['editor.' + dialog_id].idx  # editing record idx is stored in dialog idx
+        idx = self.window.ui.dialog["editor." + dialog_id].idx  # editing record idx is stored in dialog idx
         for key in fields:
-            value = self.window.controller.config.get_value("dictionary." + dict_id, key, fields[key])
+            value = self.window.controller.config.get_value(
+                "dictionary." + dict_id,
+                key,
+                fields[key],
+            )
             values[key] = value
 
         # update values in dictionary item on list in parent
-        self.apply_row(parent, option_key, values, idx)
+        self.apply_row(
+            parent,
+            option_key,
+            values,
+            idx,
+        )
 
         # close dialog
         self.window.ui.dialog['editor.' + dialog_id].close()
@@ -153,6 +207,6 @@ class Dictionary:
             if self.window.ui.has_hook(hook_name):
                 hook = self.window.ui.get_hook(hook_name)
                 try:
-                    hook(option_key, [values], 'dictionary')  # value must be list here
+                    hook(option_key, [values], "dictionary")  # value must be list here
                 except Exception as e:
                     self.window.core.debug.log(e)

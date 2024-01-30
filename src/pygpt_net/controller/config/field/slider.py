@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.01.30 20:00:00                  #
 # ================================================== #
 
 class Slider:
@@ -18,7 +18,13 @@ class Slider:
         """
         self.window = window
 
-    def apply(self, parent_id: str, key: str, option: dict, type: str = None):
+    def apply(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            type: str = None
+    ):
         """
         Apply value to slider
 
@@ -31,12 +37,12 @@ class Slider:
         is_integer = False
         multiplier = 1
 
-        if 'type' in option and option['type'] == 'int':
+        if "type" in option and option["type"] == "int":
             is_integer = True
-        if 'multiplier' in option:
-            multiplier = option['multiplier']
+        if "multiplier" in option:
+            multiplier = option["multiplier"]
 
-        if type != 'slider':
+        if type != "slider":
             if is_integer:
                 try:
                     value = round(int(value), 0)
@@ -48,10 +54,10 @@ class Slider:
                 except ValueError as e:
                     value = 0.0
 
-            if 'min' in option and value < option['min']:
-                value = option['min']
-            elif 'max' in option and value > option['max']:
-                value = option['max']
+            if "min" in option and value < option["min"]:
+                value = option["min"]
+            elif "max" in option and value > option["max"]:
+                value = option["max"]
 
             # update connected input field
             self.window.ui.config[parent_id][key].input.setText(str(value))
@@ -59,19 +65,19 @@ class Slider:
         slider_value = round(float(value) * multiplier, 0)
 
         # from slider
-        if type == 'slider':
+        if type == "slider":
             input_value = value / multiplier
             if is_integer:
                 input_value = round(int(input_value), 0)
-            txt = '{}'.format(input_value)
+            txt = "{}".format(input_value)
             self.window.ui.config[parent_id][key].input.setText(txt)
 
         # from input
-        elif type == 'input':
-            if 'min' in option and slider_value < option['min'] * multiplier:
-                slider_value = option['min'] * multiplier
-            elif 'max' in option and slider_value > option['max'] * multiplier:
-                slider_value = option['max'] * multiplier
+        elif type == "input":
+            if "min" in option and slider_value < option["min"] * multiplier:
+                slider_value = option["min"] * multiplier
+            elif "max" in option and slider_value > option["max"] * multiplier:
+                slider_value = option["max"] * multiplier
             self.window.ui.config[parent_id][key].slider.setValue(slider_value)
 
         # from value
@@ -79,7 +85,15 @@ class Slider:
             self.window.ui.config[parent_id][key].input.setText(str(value))
             self.window.ui.config[parent_id][key].slider.setValue(slider_value)
 
-    def on_update(self, parent_id: str, key: str, option: dict, value: any, type: str = None, hooks: bool = True):
+    def on_update(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict,
+            value: any,
+            type: str = None,
+            hooks: bool = True
+    ):
         """
         Event: on slider update
 
@@ -103,7 +117,12 @@ class Slider:
                 except Exception as e:
                     self.window.core.debug.log(e)
 
-    def get_value(self, parent_id: str, key: str, option: dict) -> any:
+    def get_value(
+            self,
+            parent_id: str,
+            key: str,
+            option: dict
+    ) -> any:
         """
         Get slider value
 
@@ -114,10 +133,10 @@ class Slider:
         """
         is_integer = False
         multiplier = 1
-        if 'type' in option and option['type'] == 'int':
+        if "type" in option and option["type"] == "int":
             is_integer = True
-        if 'multiplier' in option:
-            multiplier = option['multiplier']
+        if "multiplier" in option:
+            multiplier = option["multiplier"]
         value = self.window.ui.config[parent_id][key].slider.value()
         if is_integer:
             return round(int(value), 0)
