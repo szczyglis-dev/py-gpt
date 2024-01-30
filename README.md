@@ -1943,6 +1943,7 @@ may consume additional tokens that are not displayed in the main window.
 - Experimental: Added new working mode: `Agent (autonomous)`, which works similarly to the `Autonomous Mode` plugin but as a separate mode with editable system prompt presets.
 - Renamed `Autonomous Mode` plugin to `Autonomous Mode (inline)`.
 - Fixed real-time system prompt tokens calculation update.
+- Fixed preset saving in editor.
 - Updated icons' fill color.
 
 # 2.0.131 (2024-01-30)

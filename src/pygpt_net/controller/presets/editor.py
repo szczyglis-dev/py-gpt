@@ -257,7 +257,7 @@ class Editor:
             return
 
         # check if at least one mode is selected
-        modes = ["chat", "completion", "img", "vision", "langchain", "assistant", "agent", "llama_index"]
+        modes = ["chat", "completion", "img", "vision", "langchain", "agent", "llama_index"]
         is_mode = False
         for mode in modes:
             if self.window.controller.config.get_value(
