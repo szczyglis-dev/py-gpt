@@ -42,4 +42,4 @@ https://github.com/google/material-design-icons
 
 https://fonts.google.com/icons
 
-
+Code of the Llama-index offline loaders integrated into app is taken from LlamaHub: https://llamahub.ai
