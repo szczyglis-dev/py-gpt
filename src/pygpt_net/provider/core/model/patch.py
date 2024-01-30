@@ -142,9 +142,9 @@ class Patch:
                     data["gpt-4-vision-preview"].name = "gpt-4-vision-preview"
                 updated = True
 
-            # < 2.0.132  <--- add agent mode
-            if old < parse_version("2.0.132"):
-                print("Migrating models from < 2.0.132...")
+            # < 2.0.134  <--- add agent mode
+            if old < parse_version("2.0.134"):
+                print("Migrating models from < 2.0.134...")
                 exclude = ["gpt-3.5-turbo-instruct", "gpt-4-vision-preview"]
                 for id in data:
                     model = data[id]

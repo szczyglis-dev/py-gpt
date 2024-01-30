@@ -1,7 +1,7 @@
 {
     "__meta__": {
-        "version": "2.0.133",
-        "app.version": "2.0.133",
+        "version": "2.0.134",
+        "app.version": "2.0.134",
         "updated_at": "2024-01-30T03:53:56"
     },
     "items": {
@@ -56,7 +56,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -106,7 +107,8 @@
             "mode": [
                 "chat",
                 "assistant",
-                "langchain"
+                "langchain",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -144,7 +146,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -195,7 +198,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -246,7 +250,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -297,7 +302,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -348,7 +354,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",
@@ -399,7 +406,8 @@
                 "chat",
                 "assistant",
                 "langchain",
-                "llama_index"
+                "llama_index",
+                "agent"
             ],
             "langchain": {
                 "provider": "openai",

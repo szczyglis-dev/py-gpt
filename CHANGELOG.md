@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.134 (2024-01-30)
+
+- Updated models list
+
 # 2.0.133 (2024-01-30)
 
 - Added the ability for autonomous image generation using the `DALL-E (inline)` plugin in `Agent mode`.
