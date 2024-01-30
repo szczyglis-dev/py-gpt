@@ -21,6 +21,7 @@ from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
 from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
 from pygpt_net.plugin.cmd_web_google import Plugin as CmdWebGooglePlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
+from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
 from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
@@ -120,6 +121,7 @@ def run(**kwargs):
     # register base plugins
     launcher.add_plugin(SelfLoopPlugin())
     launcher.add_plugin(RealTimePlugin())
+    launcher.add_plugin(ExtraPromptPlugin())
     launcher.add_plugin(AudioAzurePlugin())
     launcher.add_plugin(AudioOpenAITTSPlugin())
     launcher.add_plugin(AudioOpenAIWhisperPlugin())

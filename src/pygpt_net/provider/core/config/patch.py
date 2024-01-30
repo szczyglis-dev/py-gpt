@@ -654,6 +654,29 @@ class Patch:
                     data['upload.data_dir'] = False
                 updated = True
 
+            # < 2.0.131
+            if old < parse_version("2.0.131"):
+                print("Migrating config from < 2.0.131...")
+                if 'self_loop' in data['plugins'] \
+                        and 'prompts' not in data['plugins']['self_loop'] \
+                        and 'prompt' in data['plugins']['self_loop'] \
+                        and 'extended_prompt' in data['plugins']['self_loop']:
+
+                    # copy old prompts to new list of prompts
+                    data['plugins']['self_loop']['prompts'] = [
+                        {
+                            "enabled": True,
+                            "name": "Default",
+                            "prompt": data['plugins']['self_loop']['prompt'],
+                        },
+                        {
+                            "enabled": False,
+                            "name": "Extended",
+                            "prompt": data['plugins']['self_loop']['extended_prompt'],
+                        },
+                    ]
+                    updated = True
+
         # update file
         migrated = False
         if updated:

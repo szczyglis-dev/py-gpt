@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 12:00:00                  #
+# Updated Date: 2024.01.30 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -112,36 +112,46 @@ class Plugin(BasePlugin):
                         multiplier=1,
                         step=1,
                         slider=True)
-        self.add_option("reverse_roles",
-                        type="bool",
-                        value=True,
-                        label="Reverse roles between iterations",
-                        description="If enabled, roles will be reversed between iterations.")
+
+        # prompts list
+        keys = {
+            "enabled": "bool",
+            "name": "text",
+            "prompt": "textarea",
+        }
+        items = [
+            {
+                "enabled": True,
+                "name": "Default",
+                "prompt": prompt,
+            },
+            {
+                "enabled": False,
+                "name": "Extended",
+                "prompt": extended_prompt,
+            },
+        ]
+        desc = "Prompt used to instruct how to handle autonomous mode, you can create as many prompts as you want." \
+               "First active prompt on list will be used to handle autonomous mode."
+        tooltip = desc
+        self.add_option("prompts",
+                        type="dict",
+                        value=items,
+                        label="Prompts",
+                        description=desc,
+                        tooltip=tooltip,
+                        keys=keys,
+                        )
         self.add_option("auto_stop",
                         type="bool",
                         value=True,
                         label="Auto-stop after goal is reached",
                         description="If enabled, plugin will stop after goal is reached.")
-        self.add_option("prompt",
-                        type="textarea",
-                        value=prompt,
-                        label="Prompt",
-                        description="Prompt used to instruct how to handle autonomous mode",
-                        tooltip="Prompt",
-                        advanced=True)
-        self.add_option("extended_prompt",
-                        type="textarea",
-                        value=extended_prompt,
-                        label="Extended Prompt",
-                        description="Prompt used to instruct how to handle autonomous mode "
-                                    "(extended step-by-step reasoning)",
-                        tooltip="Extended Prompt",
-                        advanced=True)
-        self.add_option("use_extended",
+        self.add_option("reverse_roles",
                         type="bool",
-                        value=False,
-                        label="Use extended prompt",
-                        description="If enabled, plugin will use extended prompt.")
+                        value=True,
+                        label="Reverse roles between iterations",
+                        description="If enabled, roles will be reversed between iterations.")
 
     def setup(self) -> dict:
         """
@@ -202,12 +212,20 @@ class Plugin(BasePlugin):
                        'the surrounding ~###~ marks: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
 
         # select prompt to use
-        append_prompt = self.get_option_value("prompt")
-        if self.get_option_value("use_extended"):
-            append_prompt = self.get_option_value("extended_prompt")
-
+        append_prompt = self.get_first_active_prompt()
         prompt += "\n" + append_prompt + stop_cmd
         return prompt
+
+    def get_first_active_prompt(self) -> str:
+        """
+        Get first active prompt
+
+        :return: system prompt
+        """
+        for item in self.get_option_value("prompts"):
+            if item["enabled"]:
+                return item["prompt"]
+        return ""
 
     def on_input_before(self, prompt: str) -> str:
         """
