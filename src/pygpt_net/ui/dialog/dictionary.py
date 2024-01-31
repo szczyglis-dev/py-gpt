@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 00:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QWidget, QSizePolicy
@@ -55,14 +55,23 @@ class Dictionary(BaseConfigDialog):
             self.window.ui.config[parent_id] = {}
 
             # widgets
-            fields = self.window.controller.config.dictionary.to_options(parent_id, fields)  # item to options
-            widgets = self.build_widgets(parent_id, fields, stretch=True)  # from base config dialog
+            fields = self.window.controller.config.dictionary.to_options(
+                parent_id,
+                fields,
+            )  # item to options
+
+            widgets = self.build_widgets(
+                parent_id,
+                fields,
+                stretch=True,
+            )  # from base config dialog
 
             for key in widgets:
                 self.window.ui.config[parent_id][key] = widgets[key]
 
             # apply widgets to layouts
             options = {}
+            is_stretch = False
             for key in widgets:
                 if fields[key]["type"] == 'int' or fields[key]["type"] == 'float':
                     options[key] = self.add_option(widgets[key], fields[key])
@@ -75,20 +84,32 @@ class Dictionary(BaseConfigDialog):
                 elif fields[key]["type"] == 'combo':
                     options[key] = self.add_row_option(widgets[key], fields[key])
 
+                # stretch all only if textarea is present
+                if fields[key]["type"] == 'textarea':
+                    is_stretch = True
+
             rows = QVBoxLayout()
             for key in options:
                 rows.addLayout(options[key])
+
+            if not is_stretch:
+                rows.addStretch()
 
             # footer
             self.window.ui.nodes[parent_id + '.btn.save'] = QPushButton(trans("dialog.preset.btn.save"))
             self.window.ui.nodes[parent_id + '.btn.save'].clicked.connect(
                 lambda checked=True, option_key=option_key, parent=parent, fields=fields:
-                self.window.controller.config.dictionary.save_editor(option_key, parent, fields))
+                self.window.controller.config.dictionary.save_editor(
+                    option_key,
+                    parent,
+                    fields,
+                ))
             self.window.ui.nodes[parent_id + '.btn.save'].setAutoDefault(True)
 
             self.window.ui.nodes[parent_id + '.btn.dismiss'] = QPushButton(trans("dialog.rename.dismiss"))
             self.window.ui.nodes[parent_id + '.btn.dismiss'].clicked.connect(
-                lambda checked=True, parent_id=parent_id: self.window.ui.dialogs.close('editor.' + parent_id))
+                lambda checked=True, parent_id=parent_id: self.window.ui.dialogs.close('editor.' + parent_id)
+            )
             self.window.ui.nodes[parent_id + '.btn.dismiss'].setAutoDefault(False)
 
             footer = QHBoxLayout()
