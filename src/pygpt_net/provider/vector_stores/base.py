@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 18:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
+from llama_index.indices.base import BaseIndex
 from llama_index import (
-    VectorStoreIndex,
     ServiceContext,
 )
 
@@ -51,7 +51,7 @@ class BaseStore:
         """
         pass
 
-    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
         """
         Get index instance
 
@@ -61,7 +61,7 @@ class BaseStore:
         """
         pass
 
-    def store(self, id: str, index: VectorStoreIndex = None):
+    def store(self, id: str, index: BaseIndex = None):
         """
         Store/persist index
 
@@ -72,9 +72,28 @@ class BaseStore:
 
     def remove(self, id: str) -> bool:
         """
+        Clear index
+
+        :param id: index name
+        :return: True if success
+        """
+        pass
+
+    def truncate(self, id: str) -> bool:
+        """
         Truncate index
 
         :param id: index name
+        :return: True if success
+        """
+        pass
+
+    def remove_document(self, id: str, doc_id: str) -> bool:
+        """
+        Remove document from index
+
+        :param id: index name
+        :param doc_id: document ID
         :return: True if success
         """
         pass

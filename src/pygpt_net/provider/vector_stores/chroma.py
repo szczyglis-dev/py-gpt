@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 18:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import os.path
 import chromadb
 
+from llama_index.indices.base import BaseIndex
 from llama_index import (
     VectorStoreIndex,
     StorageContext,
@@ -42,7 +43,10 @@ class ChromaProvider(BaseStore):
         :param id: index name
         :return: database path
         """
-        return os.path.join(self.window.core.config.get_user_dir('idx'), 'chroma_' + id)
+        return os.path.join(
+            self.window.core.config.get_user_dir('idx'),
+            'chroma_' + id,
+        )
 
     def get_db(self, id: str):
         """
@@ -51,8 +55,10 @@ class ChromaProvider(BaseStore):
         :param id: index name
         :return: database instance
         """
-        path = self.get_path(id=id)
-        return chromadb.PersistentClient(path=path)
+        path = self.get_path(id)
+        return chromadb.PersistentClient(
+            path=path,
+        )
 
     def exists(self, id: str = None) -> bool:
         """
@@ -61,7 +67,7 @@ class ChromaProvider(BaseStore):
         :param id: index name
         :return: True if exists
         """
-        path = self.get_path(id=id)
+        path = self.get_path(id)
         return os.path.exists(path)
 
     def create(self, id: str):
@@ -70,12 +76,15 @@ class ChromaProvider(BaseStore):
 
         :param id: index name
         """
-        path = self.get_path(id=id)
+        path = self.get_path(id)
         if not os.path.exists(path):
             index = VectorStoreIndex([])  # create empty index
-            self.store(id=id, index=index)
+            self.store(
+                id=id,
+                index=index,
+            )
 
-    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
         """
         Get index
 
@@ -83,19 +92,24 @@ class ChromaProvider(BaseStore):
         :param service_context: Service context
         :return: index instance
         """
-        if not self.exists(id=id):
-            self.create(id=id)
-        path = self.get_path(id=id)
-        db = self.get_db(id=id)
+        if not self.exists(id):
+            self.create(id)
+        path = self.get_path(id)
+        db = self.get_db(id)
         chroma_collection = db.get_or_create_collection(id)
-        vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-        storage_context = StorageContext.from_defaults(persist_dir=path)
+        vector_store = ChromaVectorStore(
+            chroma_collection=chroma_collection,
+        )
+        storage_context = StorageContext.from_defaults(
+            persist_dir=path,
+        )
         self.indexes[id] = VectorStoreIndex.from_vector_store(
-            vector_store, storage_context=storage_context
+            vector_store,
+            storage_context=storage_context,
         )
         return self.indexes[id]
 
-    def store(self, id: str, index: VectorStoreIndex = None):
+    def store(self, id: str, index: BaseIndex = None):
         """
         Store index
 
@@ -104,21 +118,48 @@ class ChromaProvider(BaseStore):
         """
         if index is None:
             index = self.indexes[id]
-        path = self.get_path(id=id)
-        index.storage_context.persist(persist_dir=path)
+        path = self.get_path(id)
+        index.storage_context.persist(
+            persist_dir=path,
+        )
         self.indexes[id] = index
 
     def remove(self, id: str) -> bool:
+        """
+        Clear index
+
+        :param id: index name
+        :return: True if success
+        """
+        self.indexes[id] = None
+        path = self.get_path(id)
+        if os.path.exists(path):
+            for f in os.listdir(path):
+                os.remove(os.path.join(path, f))
+            os.rmdir(path)
+        return True
+
+    def truncate(self, id: str) -> bool:
         """
         Truncate index
 
         :param id: index name
         :return: True if success
         """
-        self.indexes[id] = None
-        path = self.get_path(id=id)
-        if os.path.exists(path):
-            for f in os.listdir(path):
-                os.remove(os.path.join(path, f))
-            os.rmdir(path)
+        return self.remove(id)
+
+    def remove_document(self, id: str, doc_id: str) -> bool:
+        """
+        Remove document from index
+
+        :param id: index name
+        :param doc_id: document ID
+        :return: True if success
+        """
+        index = self.get(id)
+        index.delete(doc_id)
+        self.store(
+            id=id,
+            index=index,
+        )
         return True

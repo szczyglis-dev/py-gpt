@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 18:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -14,6 +14,7 @@ import os.path
 
 from pinecone import Pinecone, ServerlessSpec
 
+from llama_index.indices.base import BaseIndex
 from llama_index import (
     VectorStoreIndex,
     StorageContext,
@@ -45,7 +46,10 @@ class PinecodeProvider(BaseStore):
         :param id: index name
         :return: database path
         """
-        return os.path.join(self.window.core.config.get_user_dir('idx'), 'pinecode_' + id)
+        return os.path.join(
+            self.window.core.config.get_user_dir('idx'),
+            'pinecode_' + id,
+        )
 
     def exists(self, id: str = None) -> bool:
         """
@@ -54,7 +58,7 @@ class PinecodeProvider(BaseStore):
         :param id: index name
         :return: True if exists
         """
-        path = self.get_path(id=id)
+        path = self.get_path(id)
         return os.path.exists(path)
 
     def create_index(self, id: str):
@@ -69,7 +73,9 @@ class PinecodeProvider(BaseStore):
             "region": "us-west-2",
         }
         allowed_additional = ["cloud", "region"]
-        kwargs_additional = parse_args(self.window.core.config.get('llama.idx.storage.spec', []))
+        kwargs_additional = parse_args(
+            self.window.core.config.get('llama.idx.storage.spec', []),
+        )
         for key in kwargs_additional:
             if key in allowed_additional:
                 spec_kwargs[key] = kwargs_additional[key]
@@ -83,7 +89,9 @@ class PinecodeProvider(BaseStore):
             "spec": spec,
         }
         allowed_additional = ["name", "dimension", "metric"]
-        kwargs_additional = parse_args(self.window.core.config.get('llama.idx.storage.args', []))
+        kwargs_additional = parse_args(
+            self.window.core.config.get('llama.idx.storage.args', []),
+        )
         for key in kwargs_additional:
             if key in allowed_additional:
                 base_kwargs[key] = kwargs_additional[key]
@@ -97,11 +105,11 @@ class PinecodeProvider(BaseStore):
 
         :param id: index name
         """
-        path = self.get_path(id=id)
+        path = self.get_path(id)
         if not os.path.exists(path):
             # self.create_index(id=id)  # TODO: implement create option from UI
             os.makedirs(path)
-            self.store(id=id)
+            self.store(id)
 
     def get_client(self) -> Pinecone:
         """
@@ -112,7 +120,9 @@ class PinecodeProvider(BaseStore):
         base_kwargs = {
             "api_key": "",
         }
-        kwargs_additional = parse_args(self.window.core.config.get('llama.idx.storage.args', []))
+        kwargs_additional = parse_args(
+            self.window.core.config.get('llama.idx.storage.args', []),
+        )
         if "api_key" in kwargs_additional:
             base_kwargs["api_key"] = kwargs_additional["api_key"]
         return Pinecone(**base_kwargs)  # api_key argument is required
@@ -126,13 +136,17 @@ class PinecodeProvider(BaseStore):
         """
         pc = self.get_client()
         name = id
-        kwargs = parse_args(self.window.core.config.get('llama.idx.storage.args', []))
+        kwargs = parse_args(
+            self.window.core.config.get('llama.idx.storage.args', []),
+        )
         if "index_name" in kwargs:
             name = kwargs["index_name"]
         pinecone_index = pc.Index(name)  # use base index name or custom name
-        return PineconeVectorStore(pinecone_index=pinecone_index)
+        return PineconeVectorStore(
+            pinecone_index=pinecone_index,
+        )
 
-    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
         """
         Get index
 
@@ -140,24 +154,26 @@ class PinecodeProvider(BaseStore):
         :param service_context: service context
         :return: index instance
         """
-        if not self.exists(id=id):
-            self.create(id=id)
-        vector_store = self.get_store(id=id)
-        storage_context = StorageContext.from_defaults(vector_store=vector_store)
+        if not self.exists(id):
+            self.create(id)
+        vector_store = self.get_store(id)
+        storage_context = StorageContext.from_defaults(
+            vector_store=vector_store,
+        )
         self.indexes[id] = VectorStoreIndex.from_vector_store(
             vector_store,
-            storage_context=storage_context
+            storage_context=storage_context,
         )
         return self.indexes[id]
 
-    def store(self, id: str, index: VectorStoreIndex = None):
+    def store(self, id: str, index: BaseIndex = None):
         """
         Store index
 
         :param id: index name
         :param index: index instance
         """
-        path = self.get_path(id=id)
+        path = self.get_path(id)
         lock_file = os.path.join(path, 'store.lock')
         with open(lock_file, 'w') as f:
             f.write(id + ': ' + str(datetime.datetime.now()))
@@ -165,17 +181,42 @@ class PinecodeProvider(BaseStore):
 
     def remove(self, id: str) -> bool:
         """
-        Truncate index
+        Clear index
 
         :param id: index name
         :return: True if success
         """
         self.indexes[id] = None
-        # pc = self.get_client()
-        # pc.delete_index(id)  # TODO: implement delete idx option from UI
-        path = self.get_path(id=id)
+        path = self.get_path(id)
         if os.path.exists(path):
             for f in os.listdir(path):
                 os.remove(os.path.join(path, f))
             os.rmdir(path)
+        return True
+
+    def truncate(self, id: str) -> bool:
+        """
+        Truncate index
+
+        :param id: index name
+        :return: True if success
+        """
+        pc = self.get_client()
+        pc.delete_index(id)
+        return self.remove(id)
+
+    def remove_document(self, id: str, doc_id: str) -> bool:
+        """
+        Remove document from index
+
+        :param id: index name
+        :param doc_id: document ID
+        :return: True if success
+        """
+        index = self.get(id)
+        index.delete(doc_id)
+        self.store(
+            id=id,
+            index=index,
+        )
         return True

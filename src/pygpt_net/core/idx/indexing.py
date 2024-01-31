@@ -6,16 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 19:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import os.path
 from pathlib import Path
 from sqlalchemy import text
+from llama_index.indices.base import BaseIndex
 from llama_index import (
     SimpleDirectoryReader,
     download_loader,
-    VectorStoreIndex,
 )
 from llama_index.readers.schema.base import Document
 
@@ -97,7 +97,7 @@ class Indexing:
                     documents = reader.load_data()
         return documents
 
-    def index_files(self, index: VectorStoreIndex, path: str = None) -> tuple:
+    def index_files(self, index: BaseIndex, path: str = None) -> tuple:
         """
         Index all files in directory
 
@@ -133,7 +133,7 @@ class Indexing:
 
         return indexed, errors
 
-    def index_files_recursive(self, index: VectorStoreIndex, path: str = None) -> tuple:
+    def index_files_recursive(self, index: BaseIndex, path: str = None) -> tuple:
         """
         Index all files in directory and subdirectories recursively.
 
@@ -225,7 +225,7 @@ class Indexing:
                 documents.append(Document(text=doc_str))
         return documents
 
-    def index_db_by_meta_id(self, index: VectorStoreIndex, id: int = 0) -> (int, list):
+    def index_db_by_meta_id(self, index: BaseIndex, id: int = 0) -> (int, list):
         """
         Index data from database by meta id
 
@@ -248,7 +248,7 @@ class Indexing:
             self.window.core.debug.log(e)
         return n, errors
 
-    def index_db_from_updated_ts(self, index: VectorStoreIndex, updated_ts: int = 0) -> (int, list):
+    def index_db_from_updated_ts(self, index: BaseIndex, updated_ts: int = 0) -> (int, list):
         """
         Index data from database from timestamp
 

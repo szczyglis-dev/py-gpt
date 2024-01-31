@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -367,8 +367,9 @@ class Files:
 
     def update_explorer(self):
         """Update file explorer view"""
-        all_idx_data = self.window.core.idx.get_idx_data()  # get all files data, from all indexes
-        self.window.ui.nodes['output_files'].model.update_idx_status(all_idx_data)
+        data = self.window.core.idx.get_idx_data()  # get all files data, from all indexes
+        self.window.ui.nodes['output_files'].index_data = data
+        self.window.ui.nodes['output_files'].model.update_idx_status(data)
 
     def use_attachment(self, path: str):
         """

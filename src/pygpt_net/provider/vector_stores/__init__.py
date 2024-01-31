@@ -6,12 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 18:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
-from llama_index import (
-    VectorStoreIndex,
-)
+from llama_index.indices.base import BaseIndex
 from .base import BaseStore
 
 
@@ -67,7 +65,7 @@ class Storage:
         storage = self.get_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
-        return storage.exists(id=id)
+        return storage.exists(id)
 
     def create(self, id: str):
         """
@@ -78,9 +76,9 @@ class Storage:
         storage = self.get_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
-        storage.create(id=id)
+        storage.create(id)
 
-    def get(self, id: str, service_context=None) -> VectorStoreIndex:
+    def get(self, id: str, service_context=None) -> BaseIndex:
         """
         Get index instance
 
@@ -91,9 +89,12 @@ class Storage:
         storage = self.get_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
-        return storage.get(id=id, service_context=service_context)
+        return storage.get(
+            id=id,
+            service_context=service_context,
+        )
 
-    def store(self, id: str, index: VectorStoreIndex = None):
+    def store(self, id: str, index: BaseIndex = None):
         """
         Store index
 
@@ -103,11 +104,14 @@ class Storage:
         storage = self.get_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
-        storage.store(id=id, index=index)
+        storage.store(
+            id=id,
+            index=index,
+        )
 
     def remove(self, id: str) -> bool:
         """
-        Truncate index
+        Clear index only
 
         :param id: index name
         :return: True if success
@@ -115,4 +119,32 @@ class Storage:
         storage = self.get_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
-        return storage.remove(id=id)
+        return storage.remove(id)
+
+    def truncate(self, id: str) -> bool:
+        """
+        Truncate and clear index
+
+        :param id: index name
+        :return: True if success
+        """
+        storage = self.get_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        return storage.truncate(id)
+
+    def remove_document(self, id: str, doc_id: str) -> bool:
+        """
+        Remove document from index
+
+        :param id: index name
+        :param doc_id: document ID
+        :return: True if success
+        """
+        storage = self.get_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        return storage.remove_document(
+            id=id,
+            doc_id=doc_id,
+        )

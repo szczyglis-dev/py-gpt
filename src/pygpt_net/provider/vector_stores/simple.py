@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 18:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import os.path
+from llama_index.indices.base import BaseIndex
 from llama_index import (
     VectorStoreIndex,
     StorageContext,
@@ -52,9 +53,12 @@ class SimpleProvider(BaseStore):
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
         if not os.path.exists(path):
             index = VectorStoreIndex([])  # create empty index
-            self.store(id=id, index=index)
+            self.store(
+                id=id,
+                index=index,
+            )
 
-    def get(self, id: str, service_context: ServiceContext = None) -> VectorStoreIndex:
+    def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
         """
         Get index
 
@@ -62,14 +66,19 @@ class SimpleProvider(BaseStore):
         :param service_context: Service context
         :return: index instance
         """
-        if not self.exists(id=id):
-            self.create(id=id)
+        if not self.exists(id):
+            self.create(id)
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
-        storage_context = StorageContext.from_defaults(persist_dir=path)
-        self.indexes[id] = load_index_from_storage(storage_context, service_context=service_context)
+        storage_context = StorageContext.from_defaults(
+            persist_dir=path,
+        )
+        self.indexes[id] = load_index_from_storage(
+            storage_context,
+            service_context=service_context,
+        )
         return self.indexes[id]
 
-    def store(self, id: str, index: VectorStoreIndex = None):
+    def store(self, id: str, index: BaseIndex = None):
         """
         Store index
 
@@ -79,12 +88,14 @@ class SimpleProvider(BaseStore):
         if index is None:
             index = self.indexes[id]
         path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
-        index.storage_context.persist(persist_dir=path)
+        index.storage_context.persist(
+            persist_dir=path,
+        )
         self.indexes[id] = index
 
     def remove(self, id: str) -> bool:
         """
-        Truncate index
+        Clear index
 
         :param id: index name
         :return: True if success
@@ -95,4 +106,29 @@ class SimpleProvider(BaseStore):
             for f in os.listdir(path):
                 os.remove(os.path.join(path, f))
             os.rmdir(path)
+        return True
+
+    def truncate(self, id: str) -> bool:
+        """
+        Truncate index
+
+        :param id: index name
+        :return: True if success
+        """
+        return self.remove(id)
+
+    def remove_document(self, id: str, doc_id: str) -> bool:
+        """
+        Remove document from index
+
+        :param id: index name
+        :param doc_id: document ID
+        :return: True if success
+        """
+        index = self.get(id)
+        index.delete(doc_id)
+        self.store(
+            id=id,
+            index=index,
+        )
         return True

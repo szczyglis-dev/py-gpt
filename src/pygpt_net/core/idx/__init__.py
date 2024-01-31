@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -55,14 +55,18 @@ class Idx:
         """
         self.storage.store(idx)
 
-    def remove_index(self, idx: str = "base") -> bool:
+    def remove_index(self, idx: str = "base", truncate: bool = False) -> bool:
         """
         Truncate index
 
         :param idx: index name
+        :param truncate: truncate index
         :return: True if success
         """
-        return self.storage.remove(idx)
+        if truncate:
+            return self.storage.truncate(idx)
+        else:
+            return self.storage.remove(idx)
 
     def index_files(
             self,
@@ -77,10 +81,19 @@ class Idx:
         :return: dict with indexed files (path -> id), list with errors
         """
         context = self.llm.get_service_context()
-        index = self.storage.get(idx, service_context=context)  # get or create index
-        files, errors = self.indexing.index_files(index, path)  # index files
+        index = self.storage.get(
+            idx,
+            service_context=context,
+        )  # get or create index
+        files, errors = self.indexing.index_files(
+            index,
+            path,
+        )  # index files
         if len(files) > 0:
-            self.storage.store(id=idx, index=index)  # store index
+            self.storage.store(
+                id=idx,
+                index=index,
+            )  # store index
         return files, errors
 
     def index_db_by_meta_id(
@@ -96,10 +109,19 @@ class Idx:
         :return: num of indexed files, list with errors
         """
         context = self.llm.get_service_context()
-        index = self.storage.get(idx, service_context=context)  # get or create index
-        num, errors = self.indexing.index_db_by_meta_id(index, id)  # index db records
+        index = self.storage.get(
+            idx,
+            service_context=context,
+        )  # get or create index
+        num, errors = self.indexing.index_db_by_meta_id(
+            index,
+            id,
+        )  # index db records
         if num > 0:
-            self.storage.store(id=idx, index=index)  # store index
+            self.storage.store(
+                id=idx,
+                index=index,
+            )  # store index
         return num, errors
 
     def index_db_from_updated_ts(
@@ -115,10 +137,19 @@ class Idx:
         :return: num of indexed files, list with errors
         """
         context = self.llm.get_service_context()
-        index = self.storage.get(idx, service_context=context)  # get or create index
-        num, errors = self.indexing.index_db_from_updated_ts(index, from_ts)  # index db records
+        index = self.storage.get(
+            idx,
+            service_context=context,
+        )  # get or create index
+        num, errors = self.indexing.index_db_from_updated_ts(
+            index,
+            from_ts,
+        )  # index db records
         if num > 0:
-            self.storage.store(id=idx, index=index)  # store index
+            self.storage.store(
+                id=idx,
+                index=index,
+            )  # store index
         return num, errors
 
     def sync_items(self):
@@ -271,6 +302,27 @@ class Idx:
         if store_id in self.items and idx in self.items[store_id]:
             return file in self.items[store_id][idx].items
         return False
+
+    def remove_file_from_index(self, idx: str, file: str):
+        """
+        Remove file from index
+
+        :param idx: index name
+        :param file: file ID
+        """
+        context = self.llm.get_service_context()  # init environment
+        store_id = self.get_current_store()
+        if store_id in self.items and idx in self.items[store_id]:
+            if file in self.items[store_id][idx].items:
+                # remove from storage
+                doc_id = self.items[store_id][idx].items[file]["id"]
+                self.storage.remove_document(
+                    id=idx,
+                    doc_id=doc_id,
+                )
+                # remove from index data
+                del self.items[store_id][idx].items[file]
+                self.save()
 
     def to_file_id(self, path: str) -> str:
         """

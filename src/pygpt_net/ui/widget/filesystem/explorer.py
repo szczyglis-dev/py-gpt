@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -50,7 +50,8 @@ class FileExplorer(QWidget):
         self.btn_open = QPushButton(trans('action.open'))
         self.btn_open.setMaximumHeight(40)
         self.btn_open.clicked.connect(
-                lambda: self.action_open(self.directory))
+                lambda: self.action_open(self.directory)
+        )
         self.btn_open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.btn_upload = QPushButton(trans('files.local.upload'))
@@ -122,8 +123,10 @@ class FileExplorer(QWidget):
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
-                action.triggered.connect(lambda checked=False, id=id:
-                                         self.window.controller.idx.indexer.index_all_files(id))
+                action.triggered.connect(
+                    lambda checked=False,
+                           id=id: self.window.controller.idx.indexer.index_all_files(id)
+                )
         menu.exec_(parent.mapToGlobal(pos))
 
     def clear_context_menu(self, parent, pos):
@@ -140,8 +143,10 @@ class FileExplorer(QWidget):
                 id = idx['id']
                 name = idx['name'] + " (" + idx['id'] + ")"
                 action = menu.addAction("IDX: " + name)
-                action.triggered.connect(lambda checked=False, id=id:
-                                         self.window.controller.idx.indexer.clear(id))
+                action.triggered.connect(
+                    lambda checked=False,
+                           id=id: self.window.controller.idx.indexer.clear(id)
+                )
         menu.exec_(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
@@ -176,27 +181,32 @@ class FileExplorer(QWidget):
             # open file
             actions['open'] = QAction(QIcon(":/icons/view.svg"), trans('action.open'), self)
             actions['open'].triggered.connect(
-                lambda: self.action_open(path))
+                lambda: self.action_open(path),
+            )
 
             # open in file manager
             actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
-                lambda: self.action_open_dir(path))
+                lambda: self.action_open_dir(path),
+            )
 
             # download
             actions['download'] = QAction(QIcon(":/icons/download.svg"), trans('action.download'), self)
             actions['download'].triggered.connect(
-                lambda: self.window.controller.files.download_local(path))
+                lambda: self.window.controller.files.download_local(path),
+            )
 
             # rename
             actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
             actions['rename'].triggered.connect(
-                lambda: self.action_rename(path))
+                lambda: self.action_rename(path),
+            )
 
             # duplicate
             actions['duplicate'] = QAction(QIcon(":/icons/stack.svg"), trans('action.duplicate'), self)
             actions['duplicate'].triggered.connect(
-                lambda: self.window.controller.files.duplicate_local(path, ""))
+                lambda: self.window.controller.files.duplicate_local(path, ""),
+            )
 
             if os.path.isdir(path):
                 parent = path
@@ -206,22 +216,26 @@ class FileExplorer(QWidget):
             # touch file
             actions['touch'] = QAction(QIcon(":/icons/add.svg"), trans('action.touch'), self)
             actions['touch'].triggered.connect(
-                lambda: self.window.controller.files.touch_file(parent))
+                lambda: self.window.controller.files.touch_file(parent),
+            )
 
             # make dir in dir
             actions['mkdir'] = QAction(QIcon(":/icons/add_folder.svg"), trans('action.mkdir'), self)
             actions['mkdir'].triggered.connect(
-                lambda: self.action_make_dir(parent))
+                lambda: self.action_make_dir(parent),
+            )
 
             # upload to dir
             actions['upload'] = QAction(QIcon(":/icons/upload.svg"), trans('action.upload'), self)
             actions['upload'].triggered.connect(
-                lambda: self.window.controller.files.upload_local(parent))
+                lambda: self.window.controller.files.upload_local(parent),
+            )
 
             # delete
             actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
             actions['delete'].triggered.connect(
-                lambda: self.action_delete(path))
+                lambda: self.action_delete(path),
+            )
 
             menu = QMenu(self)
             menu.addAction(actions['open'])
@@ -232,26 +246,40 @@ class FileExplorer(QWidget):
 
             # use as attachment
             if not os.path.isdir(path):
-                actions['use_attachment'] = QAction(QIcon(":/icons/attachment.svg"), trans('action.use.attachment'), self)
+                actions['use_attachment'] = QAction(
+                    QIcon(":/icons/attachment.svg"),
+                    trans('action.use.attachment'),
+                    self,
+                )
                 actions['use_attachment'].triggered.connect(
-                    lambda: self.window.controller.files.use_attachment(path))
+                    lambda: self.window.controller.files.use_attachment(path),
+                )
 
             # copy work path
-            actions['use_copy_work_path'] = QAction(QIcon(":/icons/copy.svg"), trans('action.use.copy_work_path'),
-                                                    self)
+            actions['use_copy_work_path'] = QAction(
+                QIcon(":/icons/copy.svg"),
+                trans('action.use.copy_work_path'),
+                self,
+            )
             actions['use_copy_work_path'].triggered.connect(
-                lambda: self.window.controller.files.copy_work_path(path))
+                lambda: self.window.controller.files.copy_work_path(path),
+            )
 
             # copy sys path
-            actions['use_copy_sys_path'] = QAction(QIcon(":/icons/copy.svg"), trans('action.use.copy_sys_path'),
-                                                   self)
+            actions['use_copy_sys_path'] = QAction(
+                QIcon(":/icons/copy.svg"),
+                trans('action.use.copy_sys_path'),
+                self,
+            )
             actions['use_copy_sys_path'].triggered.connect(
-                lambda: self.window.controller.files.copy_sys_path(path))
+                lambda: self.window.controller.files.copy_sys_path(path),
+            )
 
             # use read cmd
             actions['use_read_cmd'] = QAction(QIcon(":/icons/view.svg"), trans('action.use.read_cmd'), self)
             actions['use_read_cmd'].triggered.connect(
-                lambda: self.window.controller.files.make_read_cmd(path))
+                lambda: self.window.controller.files.make_read_cmd(path),
+            )
 
             # add actions to menu
             if not os.path.isdir(path):
@@ -261,16 +289,43 @@ class FileExplorer(QWidget):
             use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
-            # indexes list
+            # remove from index
+            file_id = self.window.core.idx.to_file_id(path)
+            remove_actions = []
+            for idx in self.index_data:
+                items = self.index_data[idx]
+                if file_id in items:
+                    action = QAction(QIcon(":/icons/delete.svg"), "Remove from: " + idx, self)
+                    action.triggered.connect(
+                        lambda checked=False,
+                               idx=idx,
+                               file_id=file_id: self.action_idx_remove(file_id, idx)  # by file_id, not path
+                    )
+                    remove_actions.append(action)
+
+            # add to index
             idx_menu = QMenu(trans('action.idx'), self)
             idx_list = self.window.core.config.get('llama.idx.list')
-            if len(idx_list) > 0:
-                for idx in idx_list:
-                    id = idx['id']
-                    name = idx['name'] + " (" + idx['id'] + ")"
-                    action = QAction(QIcon(":/icons/search.svg"), "IDX: " + name, self)
-                    action.triggered.connect(lambda checked=False, id=id, path=path: self.action_idx(path, id))
-                    idx_menu.addAction(action)
+            if len(idx_list) > 0 or len(remove_actions) > 0:
+                # add
+                if len(idx_list) > 0:
+                    for idx in idx_list:
+                        id = idx['id']
+                        name = idx['name'] + " (" + idx['id'] + ")"
+                        action = QAction(QIcon(":/icons/search.svg"), "IDX: " + name, self)
+                        action.triggered.connect(
+                            lambda checked=False,
+                                   id=id,
+                                   path=path: self.action_idx(path, id)
+                        )
+                        idx_menu.addAction(action)
+
+                # remove
+                if len(remove_actions) > 0:
+                    idx_menu.addSeparator()
+                    for action in remove_actions:
+                        idx_menu.addAction(action)
+
                 menu.addMenu(idx_menu)
 
             menu.addAction(actions['download'])
@@ -290,22 +345,26 @@ class FileExplorer(QWidget):
             # touch file
             actions['touch'] = QAction(QIcon(":/icons/add.svg"), trans('action.touch'), self)
             actions['touch'].triggered.connect(
-                lambda: self.window.controller.files.touch_file(self.directory))
+                lambda: self.window.controller.files.touch_file(self.directory),
+            )
 
             # open in file manager
             actions['open_dir'] = QAction(QIcon(":/icons/folder_filled.svg"), trans('action.open_dir'), self)
             actions['open_dir'].triggered.connect(
-                lambda: self.action_open_dir(self.directory))
+                lambda: self.action_open_dir(self.directory),
+            )
 
             # make dir in dir
             actions['mkdir'] = QAction(QIcon(":/icons/add_folder.svg"), trans('action.mkdir'), self)
             actions['mkdir'].triggered.connect(
-                lambda: self.action_make_dir(self.directory))
+                lambda: self.action_make_dir(self.directory),
+            )
 
             # upload in dir
             actions['upload'] = QAction(QIcon(":/icons/upload.svg"), trans('action.upload'), self)
             actions['upload'].triggered.connect(
-                lambda: self.window.controller.files.upload_local())
+                lambda: self.window.controller.files.upload_local(),
+            )
 
             menu = QMenu(self)
             menu.addAction(actions['touch'])
@@ -330,6 +389,15 @@ class FileExplorer(QWidget):
         :param idx: index ID to use (name)
         """
         self.window.controller.idx.indexer.index_file(path, idx)
+
+    def action_idx_remove(self, path: str, idx: str):
+        """
+        Remove file or dir from index handler
+
+        :param path: path to open
+        :param idx: index ID to use (name)
+        """
+        self.window.controller.idx.indexer.index_file_remove(path, idx)
 
     def action_open_dir(self, path: str):
         """
@@ -434,7 +502,11 @@ class IndexedFileSystemModel(QFileSystemModel):
                     last_index_at = items[file_id]['indexed_ts']
 
         # sort indexed_in by timestamp DESC
-        indexed_in = sorted(indexed_in, key=lambda x: indexed_timestamps[x], reverse=True)
+        indexed_in = sorted(
+            indexed_in,
+            key=lambda x: indexed_timestamps[x],
+            reverse=True,
+        )
         if len(indexed_in) > 0:
             return {
                 'indexed': True,

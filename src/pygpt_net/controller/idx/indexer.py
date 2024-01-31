@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.01.31 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -172,7 +172,7 @@ class Indexer:
         """
         Index all files in path (threaded)
 
-        :param path: path to index
+        :param path: path to file or directory
         :param idx: index name
         """
         self.window.update_status(trans('idx.status.indexing'))
@@ -213,7 +213,7 @@ class Indexer:
         """
         Index file (force execute)
 
-        :param path: path to index
+        :param path: path to file or directory
         """
         # get stored index name
         if self.tmp_idx is None:
@@ -230,7 +230,7 @@ class Indexer:
         """
         Index file or directory (threaded)
 
-        :param path: path to index
+        :param path: path to file or directory
         :param idx: index name
         :param force: force index
         """
@@ -246,9 +246,56 @@ class Indexer:
             return
         self.index_path(path, idx)
 
+    def index_file_remove_confirm(self, path: str):
+        """
+        Remove file (force execute)
+
+        :param path: path to index
+        """
+        # get stored index name
+        if self.tmp_idx is None:
+            return
+        self.window.core.idx.remove_file_from_index(self.tmp_idx, path)
+        self.window.update_status(trans('status.deleted') + ": " + path)
+        self.tmp_idx = None
+        self.update_explorer()  # update file status in explorer
+
+    def index_file_remove(
+            self,
+            path: str,
+            idx: str = "base",
+            force: bool = False
+    ):
+        """
+        Remove file or directory from index
+
+        :param path: path to file or directory
+        :param idx: index name
+        :param force: force index
+        """
+        self.tmp_idx = idx  # store tmp index name (for confirmation)
+        if not force:
+            content = trans('idx.confirm.file.remove.content').replace('{dir}', path)
+            self.window.ui.dialogs.confirm(
+                type='idx.index.file.remove',
+                id=path,
+                msg=content,
+            )
+            return
+        self.index_file_remove_confirm(path)
+
     def clear_by_idx(self, idx: int):
         """
         Clear index by list idx
+
+        :param idx: on list idx
+        """
+        idx_name = self.window.core.idx.get_by_idx(idx)
+        self.clear(idx_name)
+
+    def truncate_by_idx(self, idx: int):
+        """
+        Truncate index by list idx
 
         :param idx: on list idx
         """
@@ -278,6 +325,48 @@ class Indexer:
 
         try:
             result = self.window.core.idx.remove_index(idx)
+            if result:
+                self.window.core.idx.clear(idx)
+                self.window.update_status(trans('idx.status.truncate.success'))
+                self.update_explorer()  # update file explorer view
+
+                # reset DB update time if db index was cleared
+                if self.window.core.config.has('llama.idx.db.index'):
+                    if self.window.core.config.get('llama.idx.db.index') == idx:
+                        self.window.core.config.set('llama.idx.db.last', 0)
+                        self.window.core.config.save()
+            else:
+                self.window.update_status(trans('idx.status.truncate.error'))
+        except Exception as e:
+            print(e)
+            self.window.update_status(e)
+
+    def truncate(self, idx: str, force: bool = False):
+        """
+        Truncate index data
+
+        :param idx: index name
+        :param force: force clear
+        """
+        path = os.path.join(self.window.core.config.get_user_dir('idx'), idx)
+        if not force:
+            content = trans('idx.confirm.clear.content').replace('{dir}', path)
+            self.window.ui.dialogs.confirm(
+                type='idx.truncate',
+                id=idx,
+                msg=content,
+            )
+            return
+
+        # remove current index
+        self.window.update_status(trans('idx.status.truncating'))
+        QApplication.processEvents()  # update UI to show status
+
+        try:
+            result = self.window.core.idx.remove_index(
+                idx,
+                truncate=True,
+            )
             if result:
                 self.window.core.idx.clear(idx)
                 self.window.update_status(trans('idx.status.truncate.success'))
