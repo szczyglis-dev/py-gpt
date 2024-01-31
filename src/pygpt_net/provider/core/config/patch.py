@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 import os
@@ -693,6 +693,13 @@ class Patch:
                     data['agent.mode'] = "chat"
                 if 'agent.idx' not in data:
                     data['agent.idx'] = "base"
+                updated = True
+
+            # < 2.0.138
+            if old < parse_version("2.0.138"):
+                print("Migrating config from < 2.0.138...")
+                if 'layout.tray.minimize' not in data:
+                    data['layout.tray.minimize'] = False
                 updated = True
 
         # update file

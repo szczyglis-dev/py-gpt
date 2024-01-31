@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.137** | build: **2024.01.31** | Python: **3.10+**
+Release: **2.0.138** | build: **2024.02.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -510,7 +510,7 @@ in self-dialogue, answering his own questions and comments, in order to find the
 
 **WARNING:** Setting the number of run steps (iterations) to `0` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
 
-This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using `DALL-E`.
+This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved.
 
 You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
 
@@ -938,11 +938,11 @@ Choose the model. *Default:* `whisper-1`
 
 - `Timeout` *timeout*
 
-The duration in seconds that the application waits for voice input from the microphone. *Default:* `2`
+The duration in seconds that the application waits for voice input from the microphone. *Default:* `5`
 
 - `Phrase max length` *phrase_length*
 
-Maximum duration for a voice sample (in seconds). *Default:* `2`
+Maximum duration for a voice sample (in seconds). *Default:* `10`
 
 - `Min energy` *min_energy*
 
@@ -1977,6 +1977,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.138 (2024-02-01)
+
+- Added ability to editing current * (default) presets
+- Added "Restore to default" option to current * (default) presets
+- Added "Minimize to tray" settings option
+- Fixed preset selection when clicked on list with RMB
 
 # 2.0.137 (2024-01-31)
 

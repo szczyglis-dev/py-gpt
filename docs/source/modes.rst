@@ -280,8 +280,6 @@ and cause very high token consumption, so use this option with caution! Confirma
 
 This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into 
 subtasks that the model will autonomously perform one after another until the goal is achieved. 
-The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, 
-or image generation using `DALL-E`.
 
 You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
 

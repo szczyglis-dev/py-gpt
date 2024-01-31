@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.0.138 (2024-02-01)
+
+- Added ability to editing current * (default) presets
+- Added "Restore to default" option to current * (default) presets
+- Added "Minimize to tray" settings option
+- Fixed preset selection when clicked on list with RMB
+
 # 2.0.137 (2024-01-31)
 
 - Improved Agent / Autonomous mode handling

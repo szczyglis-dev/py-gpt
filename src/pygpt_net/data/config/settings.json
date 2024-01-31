@@ -74,6 +74,19 @@
         "step": 1,
         "advanced": false
     },
+    "layout.tray.minimize": {
+        "section": "general",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.layout.tray.minimize",
+        "description": "settings.layout.tray.minimize.desc",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "updater.check.launch": {
         "section": "general",
         "type": "bool",

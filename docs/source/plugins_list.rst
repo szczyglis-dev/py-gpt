@@ -14,11 +14,11 @@ Choose the model. *Default:* `whisper-1`
 
 - ``Timeout`` *timeout*
 
-The duration in seconds that the application waits for voice input from the microphone. *Default:* `2`
+The duration in seconds that the application waits for voice input from the microphone. *Default:* `5`
 
 - ``Phrase max length`` *phrase_length*
 
-Maximum duration for a voice sample (in seconds).  *Default:* `2`
+Maximum duration for a voice sample (in seconds).  *Default:* `10`
 
 - ``Min energy`` *min_energy*
 

@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.137",
-    "app.version": "2.0.137",
-    "updated_at": "2024-01-31T00:00:00"
+    "version": "2.0.138",
+    "app.version": "2.0.138",
+    "updated_at": "2024-02-01T00:00:00"
   },
   "agent.auto_stop" : true,
   "agent.idx": "base",
@@ -68,6 +68,7 @@
   "layout.tabs": {},
   "layout.tooltips": true,
   "layout.tray": true,
+  "layout.tray.minimize": false,
   "layout.window": {},
   "llama.hub.loaders": [
       {
