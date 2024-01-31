@@ -46,9 +46,9 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'files.delete.recursive',
-                path,
-                trans('files.delete.recursive.confirm'),
+                type='files.delete.recursive',
+                id=path,
+                msg=trans('files.delete.recursive.confirm'),
             )
             return
         try:
@@ -98,9 +98,9 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'files.delete',
-                path,
-                trans('files.delete.confirm'),
+                type='files.delete',
+                id=path,
+                msg=trans('files.delete.confirm'),
             )
             return
 

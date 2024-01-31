@@ -246,9 +246,9 @@ class Image:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'img_delete',
-                path,
-                trans('confirm.img.delete'),
+                type='img_delete',
+                id=path,
+                msg=trans('confirm.img.delete'),
             )
             return
         try:

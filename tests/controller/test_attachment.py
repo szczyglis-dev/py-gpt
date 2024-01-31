@@ -119,7 +119,7 @@ def test_rename(mock_window):
     attachment.update = MagicMock()
 
     attachment.rename('vision', 1)
-    mock_window.core.attachments.get_id_by_idx.assert_called_once_with('vision', 1)
+    mock_window.core.attachments.get_id_by_idx.assert_called_once_with(mode='vision', idx=1)
     mock_window.ui.dialog['rename'].id = 'attachment'
     mock_window.ui.dialog['rename'].input.setText.assert_called_once()
     mock_window.ui.dialog['rename'].show.assert_called_once()
@@ -165,7 +165,7 @@ def test_clear_vision(mock_window):
     mock_window.controller.assistant.files.clear_attachments = MagicMock()
     attachment.update = MagicMock()
     attachment.clear(force=True)
-    mock_window.core.attachments.delete_all.assert_called_once_with('vision', remove_local=False)
+    mock_window.core.attachments.delete_all.assert_called_once_with(mode='vision', remove_local=False)
     mock_window.controller.chat.vision.unavailable.assert_called_once()
     attachment.update.assert_called_once()
 
@@ -185,7 +185,7 @@ def test_clear_assistant(mock_window):
     mock_window.controller.assistant.files.clear_attachments = MagicMock()
     attachment.update = MagicMock()
     attachment.clear(force=True)
-    mock_window.core.attachments.delete_all.assert_called_once_with('assistant', remove_local=False)
+    mock_window.core.attachments.delete_all.assert_called_once_with(mode='assistant', remove_local=False)
     mock_window.controller.chat.vision.unavailable.assert_called_once()
     mock_window.controller.assistant.files.clear_attachments.assert_called_once()
     attachment.update.assert_called_once()
@@ -245,7 +245,7 @@ def test_download(mock_window):
 
         mock_window.core.attachments.download = MagicMock()
         result = attachment.download('file_id')
-        mock_window.core.gpt.assistants.file_download.assert_called_once_with('file_id', 'path')
+        mock_window.core.gpt.assistants.file_download.assert_called_once_with(file_id='file_id', path='path')
         assert result == 'path'
 
 

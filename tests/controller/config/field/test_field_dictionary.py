@@ -114,9 +114,11 @@ def test_append_editor(mock_window):
     }
     mock_window.controller.config.apply = MagicMock()
     field.append_editor('id', option, {'key': 'value'})
-    mock_window.controller.config.apply.assert_called_once_with('dictionary.id',
-                                                                'key',
-                                                                {'label': 'id.key', 'type': 'text', 'value': 'value'})
+    mock_window.controller.config.apply.assert_called_once_with(
+        parent_id='dictionary.id',
+        key='key',
+        option={'label': 'id.key', 'type': 'text', 'value': 'value'},
+    )
 
 
 def test_save_editor(mock_window):

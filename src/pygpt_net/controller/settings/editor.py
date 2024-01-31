@@ -94,7 +94,11 @@ class Editor:
         for key in self.options:
             if 'type' not in self.options[key]:
                 continue
-            value = self.window.controller.config.get_value('config', key, self.options[key])
+            value = self.window.controller.config.get_value(
+                parent_id='config', 
+                key=key, 
+                option=self.options[key],
+            )
             self.window.core.config.set(key, value)
 
             # update preset temperature
@@ -223,8 +227,11 @@ class Editor:
         :param force: force load
         """
         if not force:
-            self.window.ui.dialogs.confirm('settings.defaults.user', -1,
-                                           trans('settings.defaults.user.confirm'))
+            self.window.ui.dialogs.confirm(
+                type='settings.defaults.user', 
+                id=-1,
+                msg=trans('settings.defaults.user.confirm'),
+            )
             return
 
         # load default user config
@@ -241,8 +248,11 @@ class Editor:
         :param force: force load
         """
         if not force:
-            self.window.ui.dialogs.confirm('settings.defaults.app', -1,
-                                           trans('settings.defaults.app.confirm'))
+            self.window.ui.dialogs.confirm(
+                type='settings.defaults.app', 
+                id=-1,
+                msg=trans('settings.defaults.app.confirm'),
+            )
             return
 
         # load default user config

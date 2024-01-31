@@ -79,7 +79,7 @@ class Attachments:
 
         return list(self.items[mode].keys())
 
-    def get_id_by_idx(self, mode: str, idx: int) -> str | None:
+    def get_id_by_idx(self, mode: str, idx: int) -> str or None:
         """
         Get ID by index in mode
 
@@ -93,7 +93,7 @@ class Attachments:
                 return id
             i += 1
 
-    def get_by_id(self, mode: str, id: str) -> AttachmentItem | None:
+    def get_by_id(self, mode: str, id: str) -> AttachmentItem or None:
         """
         Return attachment by ID in mode
 
@@ -107,15 +107,15 @@ class Attachments:
         if id in self.items[mode]:
             return self.items[mode][id]
 
-    def get_by_idx(self, mode: str, index: int) -> AttachmentItem | None:
+    def get_by_idx(self, mode: str, idx: int) -> AttachmentItem or None:
         """
         Return item by index in mode
 
         :param mode: mode
-        :param index: item index
+        :param idx: item index
         :return: AttachmentItem or None
         """
-        id = self.get_id_by_idx(mode, index)
+        id = self.get_id_by_idx(mode, idx)
         if id is not None:
             return self.items[mode][id]
 

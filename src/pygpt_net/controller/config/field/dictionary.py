@@ -90,10 +90,10 @@ class Dictionary:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                "settings.dict.delete",
-                id,
-                trans("settings.dict.delete.confirm"),
-                parent_object,
+                type="settings.dict.delete",
+                id=id,
+                msg=trans("settings.dict.delete.confirm"),
+                parent_object=parent_object,
             )
             return
 
@@ -158,9 +158,9 @@ class Dictionary:
             sub_option = sub_options[key]
             sub_option["value"] = data[key]
             self.window.controller.config.apply(
-                parent_id,
-                key,
-                sub_option,
+                parent_id=parent_id,
+                key=key,
+                option=sub_option,
             )
 
     def save_editor(
@@ -184,9 +184,9 @@ class Dictionary:
         idx = self.window.ui.dialog["editor." + dialog_id].idx  # editing record idx is stored in dialog idx
         for key in fields:
             value = self.window.controller.config.get_value(
-                "dictionary." + dict_id,
-                key,
-                fields[key],
+                parent_id="dictionary." + dict_id,
+                key=key,
+                option=fields[key],
             )
             values[key] = value
 

@@ -103,9 +103,9 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'assistant_import_files',
-                '',
-                trans('confirm.assistant.import_files'),
+                type='assistant_import_files',
+                id='',
+                msg=trans('confirm.assistant.import_files'),
             )
             return
 
@@ -185,9 +185,9 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'attachments_uploaded.clear',
-                -1,
-                trans('attachments_uploaded.clear.confirm'),
+                type='attachments_uploaded.clear',
+                id=-1,
+                msg=trans('attachments_uploaded.clear.confirm'),
             )
             return
 
@@ -224,9 +224,9 @@ class Files:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'attachments_uploaded.delete',
-                idx,
-                trans('attachments_uploaded.delete.confirm'),
+                type='attachments_uploaded.delete',
+                id=idx,
+                msg=trans('attachments_uploaded.delete.confirm'),
             )
             return
 

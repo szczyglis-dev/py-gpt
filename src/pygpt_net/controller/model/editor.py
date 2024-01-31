@@ -214,9 +214,9 @@ class Editor:
         data_dict = {}
         for key in options:
             value = self.window.controller.config.get_value(
-                "model",
-                key,
-                options[key],
+                parent_id="model",
+                key=key,
+                option=options[key],
             )
             data_dict[key] = value
         self.window.core.models.items[self.current].from_dict(data_dict)
@@ -260,9 +260,9 @@ class Editor:
         model = self.get_model_by_tab_idx(idx)
         if not force:
             self.window.ui.dialogs.confirm(
-                "models.editor.delete",
-                idx,
-                trans("dialog.models.editor.delete.confirm"),
+                type="models.editor.delete",
+                id=idx,
+                msg=trans("dialog.models.editor.delete.confirm"),
             )
             return
         self.window.core.models.delete(model)
@@ -280,9 +280,9 @@ class Editor:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                "models.editor.defaults.user",
-                -1,
-                trans("dialog.models.editor.defaults.user.confirm"),
+                type="models.editor.defaults.user",
+                id=-1,
+                msg=trans("dialog.models.editor.defaults.user.confirm"),
             )
             return
 
@@ -301,9 +301,9 @@ class Editor:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                "models.editor.defaults.app",
-                -1,
-                trans("dialog.models.editor.defaults.app.confirm"),
+                type="models.editor.defaults.app",
+                id=-1,
+                msg=trans("dialog.models.editor.defaults.app.confirm"),
             )
             return
 

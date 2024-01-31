@@ -1,10 +1,12 @@
-Chat, completion, assistants and vision
-=======================================
+Chat, completion, assistants, vision, agent
+===========================================
 
-Chat (+ inline Vision and Image generation)
--------------------------------------------
+Chat
+-----
 
-This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo``, ``GPT-3.5``, and ``GPT-3``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
+**+ inline Vision and Image generation**
+
+This mode in **PyGPT** mirrors ``ChatGPT``, allowing you to chat with models such as ``GPT-4``, ``GPT-4 Turbo`` and ``GPT-3.5``. It's easy to switch models whenever you want. It works by using the ``ChatCompletion API``.
 
 The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
@@ -33,9 +35,9 @@ Plugin allows you to generate images in Chat mode:
    :width: 800
 
 
-Text Completion
+Completion
 ---------------
-This advanced mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through ``Langchain``.
+This mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through ``Langchain``.
 
 Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
 
@@ -62,6 +64,13 @@ In Assistant mode you are allowed to storage your files (per Assistant) and mana
 
 .. image:: images/v2_mode_assistant_upload.png
    :width: 800
+
+
+Image generation (DALL-E)
+-------------------------
+
+See the section ``Image generation`` for more details.
+
 
 Vision (GPT-4 Vision)
 ---------------------
@@ -119,24 +128,36 @@ Available LLMs providers supported by **PyGPT**:
 .. image:: images/v2_mode_langchain.png
    :width: 800
 
-You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. To integrate a new model, you can create your own wrapper and register it with the application. Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.
+You have the ability to add custom model wrappers for models that are not available by default in **PyGPT**. 
+To integrate a new model, you can create your own wrapper and register it with the application. 
+Detailed instructions for this process are provided in the section titled ``Managing models / Adding models via Langchain``.
 
 
 Chat with files (Llama-index)
 -----------------------------
 
 This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents. 
-To begin, you must first index the files you wish to include. 
-Simply copy or upload them into the ``data`` directory and initiate indexing by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. 
-Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with files (Llama-index, inline)`` plugin.
+It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents.
+
+To start, you need to index (embed) the files you want to use as additional context.
+Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
+
+https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
+
+For a visualization from OpenAI's page, see this picture:
+
+.. image:: images/vectors.png
+
+Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
+
+To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with files (Llama-index, inline)`` plugin.
 
 Built-in file loaders (offline): ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``. 
 You can extend this list in ``Settings / Llama-index`` by providing list of online loaders (from ``LlamaHub``).
 All loaders included for offline use are also from ``LlamaHub``, but they are attached locally with all necessary library dependencies included.
 You can also develop and provide your own custom offline loader and register it within the application.
 
-**From version 2.0.100 Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
+**From version 2.0.100 Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in "Settings / Llama-index" section.**
 
 **WARNING:** remember that when indexing content, API calls to the embedding model (text-embedding-ada-002) are used. Each indexing consumes additional tokens. 
@@ -161,7 +182,8 @@ https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html
 
 Which keyword arguments are passed to providers?
 
-For ``ChromaVectorStore`` and ``SimpleVectorStore`` all arguments are set by PyGPT and passed internally (you do not need to configure anything). For other providers you can provide these arguments:
+For ``ChromaVectorStore`` and ``SimpleVectorStore`` all arguments are set by PyGPT and passed internally (you do not need to configure anything). 
+For other providers you can provide these arguments:
 
 **ElasticsearchStore**
 
@@ -198,7 +220,8 @@ If you want to only query index (without chat) you can enable ``Query index only
 Adding custom vector stores and offline data loaders
 ````````````````````````````````````````````````````
 You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
-To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to ``vector_stores`` keyword argument and loader instance in the ``loaders`` keyword argument:
+To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to 
+``vector_stores`` keyword argument and loader instance in the ``loaders`` keyword argument:
 
 .. code-block:: python
 
@@ -249,10 +272,42 @@ The mode activates autonomous mode, where AI begins a conversation with itself.
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
-**WARNING:** Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
+.. image:: images/v2_agent_toolbox.png
+   :width: 400
 
-This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using `DALL-E`.
+**WARNING:** Setting the number of run steps (iterations) to ``0`` activates an infinite loop which can generate a large number of requests 
+and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
+
+This mode is similar to ``Auto-GPT`` - it can be used to create more advanced inferences and to solve problems by breaking them down into 
+subtasks that the model will autonomously perform one after another until the goal is achieved. 
+The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, 
+or image generation using `DALL-E`.
 
 You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
 
+All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, 
+vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system.
+
 When the ``Auto-stop`` option is enabled, the agent will attempt to stop once the goal has been reached.
+
+**Options**
+
+The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
+You can choose which internal mode the agent should use in the settings:
+
+.. code-block:: ini
+
+   Settings / Agent (autonomous) / Sub-mode to use
+
+Available choices include: ``chat``, ``completion``, ``langchain``, ``vision``, ``llama_index`` (Chat with files).
+
+Default is: ``chat``.
+
+If you want to use the Llama-index mode when running the agent, you can also specify which index ``Llama-index`` should use with the option:
+
+.. code-block:: ini
+
+   Settings / Agent (autonomous) / Index to use
+
+.. image:: images/v2_agent_settings.png
+   :width: 800

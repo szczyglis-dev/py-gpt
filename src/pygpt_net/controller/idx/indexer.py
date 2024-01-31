@@ -79,9 +79,9 @@ class Indexer:
             self.tmp_idx = idx  # store tmp index name (for confirmation)
             content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
             self.window.ui.dialogs.confirm(
-                'idx.index.db',
-                ctx_idx,
-                content,
+                type='idx.index.db',
+                id=ctx_idx,
+                msg=content,
             )
             return
 
@@ -149,9 +149,9 @@ class Indexer:
         if not force:
             content = trans('idx.confirm.db.content') + "\n" + trans('idx.token.warn')
             self.window.ui.dialogs.confirm(
-                'idx.index.db.all',
-                ts,
-                content,
+                type='idx.index.db.all',
+                id=ts,
+                msg=content,
             )
             return
         worker = IndexWorker()
@@ -202,9 +202,9 @@ class Indexer:
             content = trans('idx.confirm.files.content').replace('{dir}', path) \
                       + "\n" + trans('idx.token.warn')
             self.window.ui.dialogs.confirm(
-                'idx.index.files.all',
-                idx,
-                content,
+                type='idx.index.files.all',
+                id=idx,
+                msg=content,
             )
             return
         self.index_path(path, idx)
@@ -239,9 +239,9 @@ class Indexer:
             content = trans('idx.confirm.file.content').replace('{dir}', path) \
                       + "\n" + trans('idx.token.warn')
             self.window.ui.dialogs.confirm(
-                'idx.index.file',
-                path,
-                content,
+                type='idx.index.file',
+                id=path,
+                msg=content,
             )
             return
         self.index_path(path, idx)
@@ -266,9 +266,9 @@ class Indexer:
         if not force:
             content = trans('idx.confirm.clear.content').replace('{dir}', path)
             self.window.ui.dialogs.confirm(
-                'idx.clear',
-                idx,
-                content,
+                type='idx.clear',
+                id=idx,
+                msg=content,
             )
             return
 

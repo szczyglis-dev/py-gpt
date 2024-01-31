@@ -213,9 +213,9 @@ class Editor:
         :param force: force overwrite file
         """
         id = self.window.controller.config.get_value(
-            self.id,
-            "filename",
-            self.options["filename"],
+            parent_id=self.id,
+            key="filename",
+            option=self.options["filename"],
         )
         mode = self.window.core.config.get("mode")
 
@@ -225,9 +225,9 @@ class Editor:
 
         if id is None or id == "":
             name = self.window.controller.config.get_value(
-                self.id,
-                "name",
-                self.options["name"],
+                parent_id=self.id,
+                key="name",
+                option=self.options["name"],
             )
             if name is None or name == "":
                 self.window.ui.dialogs.alert(trans('alert.preset.empty_id'))
@@ -250,9 +250,9 @@ class Editor:
             self.window.core.presets.items[id] = PresetItem()
         elif not force:
             self.window.ui.dialogs.confirm(
-                'preset_exists',
-                id,
-                trans('confirm.preset.overwrite'),
+                type='preset_exists',
+                id=id,
+                msg=trans('confirm.preset.overwrite'),
             )
             return
 
@@ -261,9 +261,9 @@ class Editor:
         is_mode = False
         for mode in modes:
             if self.window.controller.config.get_value(
-                    self.id,
-                    mode,
-                    self.options[mode],
+                parent_id=self.id,
+                key=mode,
+                option=self.options[mode],
             ):
                 is_mode = True
                 break
@@ -308,9 +308,9 @@ class Editor:
         data_dict = {}
         for key in self.options:
             data_dict[key] = self.window.controller.config.get_value(
-                self.id,
-                key,
-                self.options[key],
+                parent_id=self.id,
+                key=key,
+                option=self.options[key],
             )
         if data_dict['name'] is None or data_dict['name'] == "":
             data_dict['name'] = id + " " + trans('preset.untitled')
@@ -332,34 +332,34 @@ class Editor:
     def from_current(self):
         """Copy data from current active preset"""
         self.window.controller.config.apply_value(
-            self.id,
-            "ai_name",
-            self.options["ai_name"],
-            self.window.core.config.get('ai_name'),
+            parent_id=self.id,
+            key="ai_name",
+            option=self.options["ai_name"],
+            value=self.window.core.config.get('ai_name'),
         )
         self.window.controller.config.apply_value(
-            self.id,
-            "user_name",
-            self.options["user_name"],
-            self.window.core.config.get('user_name'),
+            parent_id=self.id,
+            key="user_name",
+            option=self.options["user_name"],
+            value=self.window.core.config.get('user_name'),
         )
         self.window.controller.config.apply_value(
-            self.id,
-            "prompt",
-            self.options["prompt"],
-            self.window.core.config.get('prompt'),
+            parent_id=self.id,
+            key="prompt",
+            option=self.options["prompt"],
+            value=self.window.core.config.get('prompt'),
         )
         self.window.controller.config.apply_value(
-            self.id,
-            "temperature",
-            self.options["temperature"],
-            self.window.core.config.get('temperature'),
+            parent_id=self.id,
+            key="temperature",
+            option=self.options["temperature"],
+            value=self.window.core.config.get('temperature'),
         )
         self.window.controller.config.apply_value(
-            self.id,
-            "model",
-            self.options["model"],
-            self.window.core.config.get('model'),
+            parent_id=self.id,
+            key="model",
+            option=self.options["model"],
+            value=self.window.core.config.get('model'),
         )
 
     def update_from_global(self, key, value):

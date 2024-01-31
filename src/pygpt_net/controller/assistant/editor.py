@@ -169,9 +169,21 @@ class Editor:
     def save(self):
         """Save assistant"""
         created = False
-        id = self.window.controller.config.get_value(self.id, 'id', self.options['id'])  # empty or not
-        name = self.window.controller.config.get_value(self.id, 'name', self.options['name'])
-        model = self.window.controller.config.get_value(self.id, 'model', self.options['model'])
+        id = self.window.controller.config.get_value(
+            parent_id=self.id, 
+            key='id', 
+            option=self.options['id'],
+        )  # empty or not
+        name = self.window.controller.config.get_value(
+            parent_id=self.id, 
+            key='name', 
+            option=self.options['name'],
+        )
+        model = self.window.controller.config.get_value(
+            parent_id=self.id, 
+            key='model', 
+            option=self.options['model'],
+        )
 
         # check name
         if name is None or name == "" or model is None or model == "":
@@ -188,10 +200,10 @@ class Editor:
             id = assistant.id  # set to ID created in API
             self.window.core.assistants.add(assistant)
             self.window.controller.config.apply_value(
-                self.id,
-                "id",
-                self.options["id"],
-                id,
+                parent_id=self.id,
+                key="id",
+                option=self.options["id"],
+                value=id,
             )
             created = True
         else:
@@ -222,48 +234,48 @@ class Editor:
         :param assistant: assistant
         """
         model = self.window.controller.config.get_value(
-            self.id,
-            'model',
-            self.options['model'],
+            parent_id=self.id,
+            key='model',
+            option=self.options['model'],
         )
         if model == '_':
             model = None
 
         assistant.name = self.window.controller.config.get_value(
-            self.id,
-            'name',
-            self.options['name'],
+            parent_id=self.id,
+            key='name',
+            option=self.options['name'],
         )
         assistant.model = model
         assistant.description = self.window.controller.config.get_value(
-            self.id,
-            'description',
-            self.options['description'],
+            parent_id=self.id,
+            key='description',
+            option=self.options['description'],
         )
         assistant.instructions = self.window.controller.config.get_value(
-            self.id,
-            'instructions',
-            self.options['instructions'],
+            parent_id=self.id,
+            key='instructions',
+            option=self.options['instructions'],
         )
         assistant.tools = {
             'code_interpreter': self.window.controller.config.get_value(
-                self.id,
-                'tool.code_interpreter',
-                self.options['tool.code_interpreter'],
+                parent_id=self.id,
+                key='tool.code_interpreter',
+                option=self.options['tool.code_interpreter'],
             ),
             'retrieval': self.window.controller.config.get_value(
-                self.id,
-                'tool.retrieval',
-                self.options['tool.retrieval'],
+                parent_id=self.id,
+                key='tool.retrieval',
+                option=self.options['tool.retrieval'],
             ),
             'function': [],  # functions are assigned separately (below)
         }
 
         # assign assistant's functions tool
         values = self.window.controller.config.get_value(
-                self.id,
-                'tool.function',
-                self.options['tool.function'],
+                parent_id=self.id,
+                key='tool.function',
+                option=self.options['tool.function'],
         )
         functions = []
         for function in values:

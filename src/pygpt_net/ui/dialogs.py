@@ -80,9 +80,9 @@ class Dialogs:
 
     def confirm(
             self,
-            type,
-            id,
-            msg,
+            type: str,
+            id: any,
+            msg: str,
             parent_object=None
     ):
         """
@@ -108,7 +108,7 @@ class Dialogs:
         self.window.ui.dialog['alert'].message.setPlainText(msg)
         self.window.ui.dialog['alert'].show()
 
-    def open_editor(self, id, data_id, width=400, height=400):
+    def open_editor(self, id: str, data_id: str, width: int = 400, height: int = 400):
         """
         Open editor dialog
 
@@ -129,8 +129,8 @@ class Dialogs:
             option: dict,
             data: dict,
             idx: int,
-            width=400,
-            height=400
+            width: int = 400,
+            height: int = 400
     ):
         """
         Open dictionary editor dialog
@@ -170,9 +170,9 @@ class Dialogs:
 
     def open(
             self,
-            id,
-            width=400,
-            height=400
+            id: str,
+            width: int = 400,
+            height: int = 400
     ):
         """
         Open debug/config dialog
@@ -190,7 +190,7 @@ class Dialogs:
         self.window.ui.dialog[id].move(qr.topLeft())
         self.window.ui.dialog[id].show()
 
-    def close(self, id):
+    def close(self, id: str):
         """
         Close debug/config dialog
 
