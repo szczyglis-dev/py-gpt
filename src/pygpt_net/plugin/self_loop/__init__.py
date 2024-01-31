@@ -21,6 +21,9 @@ class Plugin(BasePlugin):
         self.name = "Autonomous Mode (inline)"
         self.description = "Enables autonomous conversation (AI to AI), manages loop, " \
                            "and connects output back to input."
+        self.type = [
+            "agent",
+        ]
         self.order = 9998
         self.use_locale = True
         self.init_options()
@@ -183,12 +186,12 @@ class Plugin(BasePlugin):
         :param args: event args
         :param kwargs: event kwargs
         """
-        if not self.is_allowed():
-            return
-
         name = event.name
         data = event.data
         ctx = event.ctx
+
+        if not self.is_allowed() and name != Event.DISABLE:
+            return
 
         if name == Event.CTX_BEFORE:
             self.on_ctx_before(ctx)
@@ -210,6 +213,16 @@ class Plugin(BasePlugin):
 
         elif name == Event.INPUT_BEFORE:
             data['value'] = self.on_input_before(data['value'])
+
+        elif name in [
+            Event.ENABLE,
+            Event.DISABLE,
+        ]:
+            if data['value'] == self.id:
+                self.window.controller.agent.update()  # update agent status bar
+
+        elif name == Event.PLUGIN_SETTINGS_CHANGED:
+            self.window.controller.agent.update()  # update agent status bar
 
         elif name in [
             Event.CMD_INLINE,

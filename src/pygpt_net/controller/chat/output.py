@@ -84,6 +84,12 @@ class Output:
         # chunks: stream begin
         self.window.controller.chat.render.stream_begin()
 
+        response_mode = mode
+        if mode == "agent":
+            tmp_mode = self.window.core.config.get("agent.mode")
+            if tmp_mode is not None and tmp_mode != "_":
+                response_mode = tmp_mode
+
         # read stream
         try:
             if ctx.stream is not None:
@@ -96,22 +102,22 @@ class Output:
                     response = None
 
                     # chat and vision
-                    if mode == "chat" or mode == "vision" or mode == "agent":
+                    if response_mode == "chat" or response_mode == "vision":
                         if chunk.choices[0].delta.content is not None:
                             response = chunk.choices[0].delta.content
 
                     # completion
-                    elif mode == "completion":
+                    elif response_mode == "completion":
                         if chunk.choices[0].text is not None:
                             response = chunk.choices[0].text
 
                     # llama_index
-                    elif mode == "llama_index":
+                    elif response_mode == "llama_index":
                         if chunk is not None:
                             response = chunk
 
                     # langchain (can provide different modes itself)
-                    elif mode == "langchain":
+                    elif response_mode == "langchain":
                         if sub_mode == 'chat':
                             # if chat model response is an object
                             if chunk.content is not None:

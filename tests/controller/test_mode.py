@@ -38,7 +38,6 @@ def test_select(mock_window):
     mock_window.controller.ctx.update_ctx.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
     mock_window.ui.status.assert_called_once()
-    mock_window.controller.ui.vision.update.assert_called_once()
 
     assert mock_window.core.config.get('mode') == 'chat'
     assert mock_window.core.config.get('preset') == ''
@@ -72,7 +71,6 @@ def test_select_assistant(mock_window):
     mock_window.controller.ctx.update_ctx.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
     mock_window.ui.status.assert_called_once()
-    mock_window.controller.ui.vision.update.assert_called_once()
 
     mock_window.controller.assistant.select_by_id.assert_called_once_with('test')
     mock_window.controller.ctx.common.update_label_by_current.assert_called_once()

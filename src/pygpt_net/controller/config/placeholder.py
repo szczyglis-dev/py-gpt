@@ -54,6 +54,10 @@ class Placeholder:
             return self.get_vector_storage()
         elif id == "var_types":
             return self.get_var_types()
+        elif id == "agent_modes":
+            return self.get_agent_modes()
+        elif id == "idx":
+            return self.get_idx()
         else:
             return []
 
@@ -134,4 +138,30 @@ class Placeholder:
         data.append({'_': '---'})
         for id in models:
             data.append({id: id})  # TODO: name
+        return data
+
+    def get_agent_modes(self) -> list:
+        """
+        Get modes placeholders list
+
+        :return: Models placeholders list
+        """
+        modes = ["chat", "completion", "vision", "langchain", "llama_index"]
+        data = []
+        data.append({'_': '---'})
+        for id in modes:
+            data.append({id: id})  # TODO: name
+        return data
+
+    def get_idx(self) -> list:
+        """
+        Get indexes placeholders list
+
+        :return: Indexes placeholders list
+        """
+        indexes = self.window.core.idx.get_all()
+        data = []
+        data.append({'_': '---'})
+        for id in indexes:
+            data.append({id: id})
         return data

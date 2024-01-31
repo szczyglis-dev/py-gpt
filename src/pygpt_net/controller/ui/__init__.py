@@ -55,6 +55,9 @@ class UI:
         # update vision
         self.vision.update()
 
+        # agent status
+        self.window.controller.agent.update()
+
     def update_font_size(self):
         """Update font size"""
         self.window.controller.theme.nodes.apply_all()

@@ -686,6 +686,15 @@ class Patch:
                     data['agent.iterations'] = 3
                 updated = True
 
+            # < 2.0.135
+            if old < parse_version("2.0.135"):
+                print("Migrating config from < 2.0.135...")
+                if 'agent.mode' not in data:
+                    data['agent.mode'] = "chat"
+                if 'agent.idx' not in data:
+                    data['agent.idx'] = "base"
+                updated = True
+
         # update file
         migrated = False
         if updated:

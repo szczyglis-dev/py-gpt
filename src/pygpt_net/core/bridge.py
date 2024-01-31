@@ -40,9 +40,16 @@ class Bridge:
         mode = kwargs.get("mode", None)
         model = kwargs.get("model", None)  # model instance
 
-        # TODO: get mode from model instance
+        # get mode from config
         if mode == "agent":
             mode = "chat"  # inline switch to chat mode, because agent is a virtual mode only
+            tmp_mode = self.window.core.config.get("agent.mode")
+            if tmp_mode is not None and tmp_mode != "_":
+                mode = tmp_mode
+            if mode == "llama_index":
+                idx = self.window.core.config.get("agent.idx")
+                if idx is not None and idx != "_":
+                    kwargs['idx'] = idx
 
         # inline: mode switch
         kwargs['parent_mode'] = mode  # store current (parent) mode

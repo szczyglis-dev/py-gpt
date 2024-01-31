@@ -23,6 +23,9 @@
     "llama-index": {
         "label": "settings.section.llama_index"
     },
+    "agent": {
+        "label": "settings.section.agent"
+    },
     "developer": {
         "label": "settings.section.developer"
     }

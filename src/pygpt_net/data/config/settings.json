@@ -701,6 +701,34 @@
         "step": null,
         "advanced": true
     },
+    "agent.mode": {
+        "section": "agent",
+        "type": "combo",
+        "use": "agent_modes",
+        "slider": false,
+        "label": "settings.agent.mode",
+        "description": "settings.agent.mode.desc",
+        "value": "chat",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "agent.idx": {
+        "section": "agent",
+        "type": "combo",
+        "use": "idx",
+        "slider": false,
+        "label": "settings.agent.idx",
+        "description": "settings.agent.idx.desc",
+        "value": "base",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "debug": {
         "section": "developer",
         "description": "Tip: Running application with --debug=1 or --debug=2 command line arguments will enable logging to %workdir%/app.log file. Log levels: 1 = INFO, 2 = DEBUG",

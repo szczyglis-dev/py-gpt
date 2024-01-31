@@ -75,6 +75,8 @@ class Agent:
 
         if key == 'agent.iterations':
             self.window.core.config.set(key, value)
+            self.window.core.config.save()
+            self.update()
 
     def on_system_prompt(
             self,
@@ -126,6 +128,7 @@ class Agent:
         self.is_user = True
         if self.stop:
             self.stop = False
+        self.update()  # update status
 
     def on_ctx_end(
             self,
@@ -142,9 +145,11 @@ class Agent:
             self.stop = False
             self.iteration = 0
             self.prev_output = None
+            self.update()  # update status
 
-        if iterations == 0 or self.iteration < iterations:
+        if iterations == 0 or self.iteration < int(iterations):
             self.iteration += 1
+            self.update()  # update status
             if self.prev_output is not None and self.prev_output != "":
                 self.window.controller.chat.input.send(
                     self.prev_output,
@@ -239,6 +244,25 @@ class Agent:
         self.prev_output = None
         self.stop = True
 
+    def on_enable(self):
+        """Event: On enable"""
+        self.show_status()
+
+    def on_disable(self):
+        """Event: On disable"""
+        mode = self.window.core.config.get('mode')
+        if mode == 'agent' or self.window.controller.plugins.is_type_enabled("agent"):
+            return
+        self.hide_status()
+
+    def toggle_status(self):
+        """Toggle agent status"""
+        mode = self.window.core.config.get('mode')
+        if mode == 'agent' or self.window.controller.plugins.is_type_enabled("agent"):
+            self.show_status()
+        else:
+            self.hide_status()
+
     def enable_auto_stop(self):
         """Enable auto stop"""
         self.window.core.config.set('agent.auto_stop', True)
@@ -248,6 +272,34 @@ class Agent:
         """Disable auto stop"""
         self.window.core.config.set('agent.auto_stop', False)
         self.window.core.config.save()
+
+    def update(self):
+        """Update agent status"""
+        iterations = "-"
+        mode = self.window.core.config.get('mode')
+
+        if mode == "agent":
+            iterations = int(self.window.core.config.get("agent.iterations"))
+        elif self.window.controller.plugins.is_type_enabled("agent"):
+            if self.window.controller.plugins.is_enabled("self_loop"):
+                iterations = int(self.window.core.plugins.get_option("self_loop", "iterations"))
+
+        if iterations == 0:
+            iterations_str = "∞"
+        else:
+            iterations_str = str(iterations)
+
+        status = str(self.iteration) + " / " + iterations_str
+        self.window.ui.nodes['status_prepend'].setText(status)
+        self.toggle_status()
+
+    def show_status(self):
+        """Show agent status"""
+        self.window.ui.nodes['status_prepend'].setVisible(True)
+
+    def hide_status(self):
+        """Hide agent status"""
+        self.window.ui.nodes['status_prepend'].setVisible(False)
 
     def toggle_auto_stop(self, state: bool):
         """

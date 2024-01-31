@@ -64,9 +64,6 @@ class Mode:
         self.window.controller.ui.update()
         self.window.ui.status(trans('status.started'))
 
-        # vision camera
-        self.window.controller.ui.vision.update()
-
         # if assistant mode then update ctx label
         if mode == "assistant":
             self.window.controller.ctx.common.update_label_by_current()

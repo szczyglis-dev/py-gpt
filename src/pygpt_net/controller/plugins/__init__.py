@@ -119,7 +119,7 @@ class Plugins:
             event = Event(Event.DISABLE, {
                 'value': id,
             })
-            self.window.core.dispatcher.dispatch(event)
+            self.window.core.dispatcher.dispatch(event, all=True)  # dispatch to all plugins, including disabled now
 
             # update audio menu
             if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):

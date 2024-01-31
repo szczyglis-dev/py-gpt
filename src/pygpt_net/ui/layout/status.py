@@ -10,8 +10,9 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QHBoxLayout
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QSizePolicy
 
+from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
 
@@ -31,8 +32,11 @@ class Status:
         :return: QHBoxLayout
         """
         self.window.ui.nodes['status'] = QLabel(trans('status.started'))
+        self.window.ui.nodes['status_prepend'] = HelpLabel("1/∞")
+        self.window.ui.nodes['status_prepend'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         layout = QHBoxLayout()
+        layout.addWidget(self.window.ui.nodes['status_prepend'])
         layout.addWidget(self.window.ui.nodes['status'])
         layout.setAlignment(Qt.AlignLeft)
 
