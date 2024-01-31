@@ -97,6 +97,18 @@ class Agent:
         self.window.core.config.set('agent.auto_stop', False)
         self.window.core.config.save()
 
+    def enabled(self) -> bool:
+        """
+        Is agent enabled
+
+        :return: True if enabled
+        """
+        return self.window.core.config.get('mode') == 'agent' or self.is_agent_inline()
+
+    def add_run(self):
+        """Increment agent iteration"""
+        self.flow.iteration += 1
+
     def update(self):
         """Update agent status"""
         iterations = "-"
