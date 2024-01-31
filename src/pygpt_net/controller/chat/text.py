@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -90,7 +90,7 @@ class Text:
 
         # agent mode
         if mode == 'agent':
-            self.window.controller.agent.on_ctx_before(ctx)
+            self.window.controller.agent.flow.on_ctx_before(ctx)
 
         # event: context before
         event = Event(Event.CTX_BEFORE)
@@ -109,7 +109,7 @@ class Text:
 
         # agent mode
         if mode == 'agent':
-            sys_prompt = self.window.controller.agent.on_system_prompt(
+            sys_prompt = self.window.controller.agent.flow.on_system_prompt(
                 sys_prompt,
                 append_prompt=None,  # preset is used
                 auto_stop=self.window.core.config.get('agent.auto_stop'),

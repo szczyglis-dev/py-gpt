@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -69,7 +69,7 @@ class Input:
 
         # agent mode
         if mode == 'agent':
-            self.window.controller.agent.on_user_send(text)
+            self.window.controller.agent.flow.on_user_send(text)
 
         # event: user input send (manually)
         event = Event(Event.USER_SEND, {
@@ -152,7 +152,7 @@ class Input:
 
         # agent mode
         if mode == 'agent':
-            text = self.window.controller.agent.on_input_before(text)
+            text = self.window.controller.agent.flow.on_input_before(text)
 
         # event: before input
         event = Event(Event.INPUT_BEFORE, {
@@ -218,7 +218,7 @@ class Input:
 
         # agent mode
         if mode == 'agent':
-            self.window.controller.agent.on_ctx_end(
+            self.window.controller.agent.flow.on_ctx_end(
                 ctx,
                 iterations=int(self.window.core.config.get("agent.iterations")),
             )

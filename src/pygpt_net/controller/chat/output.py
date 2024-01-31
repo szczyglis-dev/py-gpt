@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -40,7 +40,7 @@ class Output:
 
         # agent mode
         if mode == 'agent':
-            self.window.controller.agent.on_ctx_after(ctx)
+            self.window.controller.agent.flow.on_ctx_after(ctx)
 
         # event: context after
         event = Event(Event.CTX_AFTER)
@@ -197,7 +197,7 @@ class Output:
             # agent mode
             if mode == 'agent':
                 commands = self.window.controller.plugins.from_commands(cmds)  # pack to execution list
-                self.window.controller.agent.on_cmd(
+                self.window.controller.agent.flow.on_cmd(
                     ctx,
                     commands,
                 )

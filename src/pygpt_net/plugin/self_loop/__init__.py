@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -241,7 +241,7 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        return self.window.controller.agent.on_system_prompt(
+        return self.window.controller.agent.flow.on_system_prompt(
             prompt,
             append_prompt=self.get_first_active_prompt(),
             auto_stop=self.get_option_value("auto_stop"),
@@ -254,7 +254,7 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        return self.window.controller.agent.on_input_before(prompt)
+        return self.window.controller.agent.flow.on_input_before(prompt)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -263,13 +263,13 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :param cmds: commands dict
         """
-        self.window.controller.agent.cmd(ctx, cmds)  # force execute
+        self.window.controller.agent.flow.cmd(ctx, cmds)  # force execute
 
     def on_stop(self):
         """
         Event: FORCE_STOP
         """
-        self.window.controller.agent.on_stop()  # force stop
+        self.window.controller.agent.flow.on_stop()  # force stop
 
     def on_user_send(self, text: str):
         """
@@ -277,7 +277,7 @@ class Plugin(BasePlugin):
 
         :param text: text
         """
-        self.window.controller.agent.on_user_send(text)
+        self.window.controller.agent.flow.on_user_send(text)
 
     def on_ctx_end(self, ctx: CtxItem):
         """
@@ -285,7 +285,7 @@ class Plugin(BasePlugin):
 
         :param ctx: CtxItem
         """
-        self.window.controller.agent.on_ctx_end(
+        self.window.controller.agent.flow.on_ctx_end(
             ctx,
             iterations=int(self.get_option_value("iterations")),
         )
@@ -296,7 +296,7 @@ class Plugin(BasePlugin):
 
         :param ctx: CtxItem
         """
-        self.window.controller.agent.on_ctx_before(
+        self.window.controller.agent.flow.on_ctx_before(
             ctx,
             reverse_roles=self.get_option_value("reverse_roles"),
         )
@@ -307,7 +307,7 @@ class Plugin(BasePlugin):
 
         :param ctx: CtxItem
         """
-        self.window.controller.agent.on_ctx_after(ctx)
+        self.window.controller.agent.flow.on_ctx_after(ctx)
 
     def get_first_active_prompt(self) -> str:
         """

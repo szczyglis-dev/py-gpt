@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 
 import os
@@ -32,7 +32,7 @@ def test_handle_user_send(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
-    mock_window.controller.agent.on_user_send = MagicMock()
+    mock_window.controller.agent.flow.on_user_send = MagicMock()
     ctx = CtxItem()
     event = Event()
     event.name = "user.send"
@@ -41,14 +41,15 @@ def test_handle_user_send(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    mock_window.controller.agent.on_user_send.assert_called_once()
+    mock_window.controller.agent.flow.on_user_send.assert_called_once()
+
 
 def test_handle_ctx_end(mock_window):
     """Test handle event: ctx.end"""
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
-    mock_window.controller.agent.on_ctx_end = MagicMock()
+    mock_window.controller.agent.flow.on_ctx_end = MagicMock()
     mock_window.controller.chat.input.send = MagicMock()
     ctx = CtxItem()
     event = Event()
@@ -57,7 +58,7 @@ def test_handle_ctx_end(mock_window):
     event.ctx = ctx
     plugin.options["iterations"]["value"] = 1
     plugin.handle(event)
-    mock_window.controller.agent.on_ctx_end.assert_called_once()
+    mock_window.controller.agent.flow.on_ctx_end.assert_called_once()
 
 
 def test_handle_ctx_before(mock_window):
@@ -65,7 +66,7 @@ def test_handle_ctx_before(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     plugin.setup()
-    mock_window.controller.agent.on_ctx_before = MagicMock()
+    mock_window.controller.agent.flow.on_ctx_before = MagicMock()
     mock_window.controller.chat.input.send = MagicMock()
     ctx = CtxItem()
     ctx.input_name = "input name"
@@ -77,7 +78,7 @@ def test_handle_ctx_before(mock_window):
     event.data = {}
     event.ctx = ctx
     plugin.handle(event)
-    mock_window.controller.agent.on_ctx_before.assert_called_once()
+    mock_window.controller.agent.flow.on_ctx_before.assert_called_once()
 
 
 def test_handle_ctx_after(mock_window):
@@ -86,7 +87,7 @@ def test_handle_ctx_after(mock_window):
     plugin.init_options()
     plugin.setup()
     mock_window.controller.chat.input.send = MagicMock()
-    mock_window.controller.agent.on_ctx_after = MagicMock()
+    mock_window.controller.agent.flow.on_ctx_after = MagicMock()
     ctx = CtxItem()
     ctx.output = "output"
     event = Event()
@@ -95,5 +96,5 @@ def test_handle_ctx_after(mock_window):
     event.ctx = ctx
     plugin.prev_output = ""
     plugin.handle(event)
-    mock_window.controller.agent.on_ctx_after.assert_called_once()
+    mock_window.controller.agent.flow.on_ctx_after.assert_called_once()
 

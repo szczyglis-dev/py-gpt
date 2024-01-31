@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 import os
 
@@ -166,7 +166,7 @@ class Common:
         event = Event(Event.AUDIO_INPUT_TOGGLE, {
             "value": False,
         })
-        self.window.controller.agent.on_stop()
+        self.window.controller.agent.flow.on_stop()
         self.window.controller.assistant.threads.stop = True
         self.window.core.dispatcher.dispatch(event)  # stop audio input
         self.window.controller.chat.input.stop = True
