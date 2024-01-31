@@ -619,7 +619,7 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 
 
 System Prompt Extra (append)
----------------------------
+-----------------------------
 
 The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
 You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.

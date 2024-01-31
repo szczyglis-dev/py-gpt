@@ -1,5 +1,5 @@
-Images generation (DALL-E 3)
-============================
+Image generation (DALL-E 3)
+===========================
 
 DALL-E 3
 ---------
@@ -29,8 +29,8 @@ There is an option for switching prompt generation mode.
 If **Raw Mode** is enabled, DALL-E will receive the prompt exactly as you have provided it.
 If **Raw Mode** is disabled, GPT will generate the best prompt for you based on your instructions.
 
-Images storage
----------------
+Image storage
+--------------
 Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
 You also have the options to delete it or view it in full size in your web browser.
 

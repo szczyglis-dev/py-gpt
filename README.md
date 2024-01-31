@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.135** | build: **2024.01.31** | Python: **3.10+**
+Release: **2.0.136** | build: **2024.01.31** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -259,9 +259,11 @@ Your API keys will be available here:
 
 # Chat, completion, assistants and vision (GPT-4, GPT-3.5, Langchain)
 
-## Chat (+ inline Vision and Image generation)
+## Chat
 
-This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo`, `GPT-3.5`, and `GPT-3`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
+**+ inline Vision and Image generation**
+
+This mode in **PyGPT** mirrors `ChatGPT`, allowing you to chat with models such as `GPT-4`, `GPT-4 Turbo` and `GPT-3.5`. It's easy to switch models whenever you want. It works by using the `ChatCompletion API`.
 
 The main part of the interface is a chat window where conversations appear. Right below that is where you type your messages. On the right side of the screen, there's a section to set up or change your system prompts. You can also save these setups as presets to quickly switch between different models or tasks.
 
@@ -285,7 +287,7 @@ Plugin allows you to generate images in Chat mode:
 
 ## Completion
 
-This advanced mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through `Langchain`.
+This mode provides in-depth access to a broader range of capabilities offered by Large Language Models (LLMs). While it maintains a chat-like interface for user interaction, it introduces additional settings and functional richness beyond typical chat exchanges. Users can leverage this mode to prompt models for complex text completions, role-play dialogues between different characters, perform text analysis, and execute a variety of other sophisticated tasks. It supports any model provided by the OpenAI API as well as other models through `Langchain`.
 
 Similar to chat mode, on the right-hand side of the interface, there are convenient presets. These allow you to fine-tune instructions and swiftly transition between varied configurations and pre-made prompt templates.
 
@@ -367,10 +369,20 @@ Detailed instructions for this process are provided in the section titled `Manag
 ##  Chat with files (Llama-index)
 
 This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents. 
-To begin, you must first index the files (or data from DB) you wish to include. 
-Simply copy or upload them into the `data` directory and initiate indexing by clicking the `Index all` button, or right-click on a file and select `Index...`. 
-Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
+It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents.
+
+To start, you need to index (embed) the files you want to use as additional context.
+Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
+
+https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
+
+For a visualization from OpenAI's page, see this picture:
+
+![vectors](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4bbb3860-58a0-410d-b5cb-3fbfadf1a367)
+
+Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
+
+To index your files, simply copy or upload them  into the `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
 
 ![v2_idx1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ddb533b9-afd8-4eea-ae2a-fcd0bde2287e)
 
@@ -383,7 +395,7 @@ You can extend this list in `Settings / Llama-index` by providing list of online
 All loaders included for offline use are also from `LlamaHub`, but they are attached locally with all necessary library dependencies included.
 You can also develop and provide your own custom offline loader and register it within the application.
 
-**From version `2.0.100` Llama-index is also integrated with database - you can use data from database (your history contexts) as additional context in discussion. 
+**From version `2.0.100` Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.**
 
 **WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. 
@@ -494,13 +506,35 @@ The mode activates autonomous mode, where AI begins a conversation with itself.
 You can set this loop to run for any number of iterations. Throughout this sequence, the model will engage
 in self-dialogue, answering his own questions and comments, in order to find the best possible solution, subjecting previously generated steps to criticism.
 
+![v2_agent_toolbox](https://github.com/szczyglis-dev/py-gpt/assets/61396542/a0ae5d13-942e-4a18-9c53-33e7ad1886ff)
+
 **WARNING:** Setting the number of run steps (iterations) to `0` activates an infinite loop which can generate a large number of requests and cause very high token consumption, so use this option with caution! Confirmation will be displayed every time you run the infinite loop.
 
 This mode is similar to `Auto-GPT` - it can be used to create more advanced inferences and to solve problems by breaking them down into subtasks that the model will autonomously perform one after another until the goal is achieved. The plugin is capable of working in cooperation with other plugins, thus it can utilize tools such as web search, access to the file system, or image generation using `DALL-E`.
 
 You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
 
+All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system.
+
 When the `Auto-stop` option is enabled, the agent will attempt to stop once the goal has been reached.
+
+**Options**
+
+The agent is essentially a **virtual** mode that internally sequences the execution of a selected underlying mode. 
+You can choose which internal mode the agent should use in the settings:
+
+```Settings / Agent (autonomous) / Sub-mode to use```
+
+Available choices include: `chat`, `completion`, `langchain`, `vision`, `llama_index` (Chat with files).
+
+Default is: `chat`.
+
+If you want to use the Llama-index mode when running the agent, you can also specify which index `Llama-index` should use with the option:
+
+```Settings / Agent (autonomous) / Index to use```
+
+![v2_agent_settings](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c577d219-eb25-4f0e-9ea5-adf20a6b6b81)
+
 
 # Files and attachments
 
@@ -592,7 +626,7 @@ The system lets you create as many presets as needed and easily switch among the
 The application includes several sample presets that help you become acquainted with the mechanism of their use.
 
 
-# Images generation (DALL-E 3 and DALL-E 2)
+# Image generation (DALL-E 3 and DALL-E 2)
 
 ## DALL-E 3
 
@@ -1938,11 +1972,16 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.136 (2024-01-31)
+
+- Improved integration of Agent mode with llama-index sub-mode
+- Updated documentation and locales
+
 # 2.0.135 (2024-01-31)
 
-- Fixed stopping agent after first run in Agent mode when set iterations > 0
-- Added section `Agent` in settings, with options: sub-mode to use (Chat, completion, langchain, llama_index) and with option to choose index to use
-- Added current run status in Agent mode
+- Fixed issue where the agent would stop after the first run in Agent mode when the number of iterations was set to non-infinity.
+- Added "Agent" section in the settings, with options to select the sub-mode to use (Chat, Completion, Langchain, Llama-index, etc.) and an option to choose the index to use.
+- Implemented a feature to display the current run status in Agent mode.
 
 # 2.0.134 (2024-01-30)
 
@@ -2050,6 +2089,14 @@ The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in th
 **Contact:** <info@pygpt.net>
 
 **License:** MIT License
+
+# Special thanks
+
+GitHub community:
+
+- **kaneda2004**
+
+- **moritz-t-w**
 
 ## Third-party libraries
 
