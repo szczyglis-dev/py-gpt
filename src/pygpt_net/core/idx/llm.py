@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.20 18:00:00                  #
+# Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
 
 import os.path
@@ -30,7 +30,8 @@ class Llm:
 
     def init(self):
         """Init env vars"""
-        os.environ['OPENAI_API_KEY'] = self.window.core.config.get('api_key')
+        os.environ['OPENAI_API_KEY'] = str(self.window.core.config.get('api_key'))
+        os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
 
     def get(self, model: ModelItem = None):
         """
@@ -47,17 +48,26 @@ class Llm:
                     try:
                         # init
                         self.window.core.llm.llms[provider].init(
-                            self.window, model, "llama_index", "")
+                            window=self.window,
+                            model=model,
+                            mode="llama_index",
+                            sub_mode="",
+                        )
                         # get llama llm instance
                         llm = self.window.core.llm.llms[provider].llama(
-                            self.window, model)
+                            window=self.window,
+                            model=model,
+                        )
                     except Exception as e:
                         print(e)
 
         # default
         if llm is None:
-            os.environ['OPENAI_API_KEY'] = self.window.core.config.get('api_key')
-            llm = OpenAI(temperature=0.0, model="gpt-3.5-turbo")
+            self.init()  # init env vars
+            llm = OpenAI(
+                temperature=0.0,
+                model="gpt-3.5-turbo",
+            )
         return llm
 
     def get_service_context(self, model: ModelItem = None) -> ServiceContext:

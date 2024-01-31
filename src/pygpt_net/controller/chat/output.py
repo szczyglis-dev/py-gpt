@@ -202,6 +202,10 @@ class Output:
                     commands,
                 )
 
+                # check if agent flow is not finished
+                if self.window.controller.agent.flow.finished:
+                    return
+
             # plugins
             if self.window.core.config.get('cmd'):
                 self.log("Executing plugin commands...")

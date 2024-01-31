@@ -11,6 +11,8 @@
 
 import json
 
+from PySide6.QtWidgets import QApplication
+
 from pygpt_net.item.ctx import CtxItem
 
 
@@ -184,6 +186,14 @@ class Dispatcher:
 
             self.window.ui.status("")  # clear status
             if ctx.reply:
+
+                # if agent mode is enabled, add +1 run if sending reply
+                if ctx.internal:
+                    if self.window.controller.agent.enabled():
+                        self.window.controller.agent.add_run()
+                        self.window.controller.agent.update()
+                        QApplication.processEvents()
+
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
                 self.window.controller.chat.input.send(

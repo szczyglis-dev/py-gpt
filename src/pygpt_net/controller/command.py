@@ -12,6 +12,7 @@
 import json
 
 from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.core.worker import Worker, WorkerSignals

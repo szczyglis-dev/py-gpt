@@ -25,6 +25,7 @@ class Flow:
         self.prev_output = None
         self.is_user = True
         self.stop = False
+        self.finished = False
         self.allowed_cmds = [
             "goal_update",
         ]
@@ -77,6 +78,7 @@ class Flow:
         self.iteration = 0
         self.prev_output = None
         self.is_user = True
+        self.finished = False  # reset finished flag
         if self.stop:
             self.stop = False
         self.window.controller.agent.update()  # update status
@@ -183,6 +185,7 @@ class Flow:
                     if item["params"]["status"] == "finished":
                         self.on_stop()
                         self.window.ui.status(trans('status.finished'))  # show info
+                        self.finished = True
             except Exception as e:
                 self.window.core.debug.error(e)
                 return
@@ -194,3 +197,4 @@ class Flow:
         self.iteration = 0
         self.prev_output = None
         self.stop = True
+        self.finished = False  # reset finished flag
