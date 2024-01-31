@@ -56,6 +56,7 @@ class Indexer:
         # get stored index name
         if self.tmp_idx is None:
             return
+
         self.index_ctx_meta(
             ctx_idx,
             self.tmp_idx,
@@ -115,7 +116,13 @@ class Indexer:
             from_ts = int(self.window.core.config.get('llama.idx.db.last'))
         if not silent:
             self.window.update_status(trans('idx.status.indexing'))
-        self.index_ctx_from_ts(idx, from_ts, force=force, silent=silent)
+
+        self.index_ctx_from_ts(
+            idx,
+            from_ts,
+            force=force,
+            silent=silent,
+        )
 
     def index_ctx_from_ts_confirm(self, ts: int):
         """
@@ -127,7 +134,12 @@ class Indexer:
         if self.tmp_idx is None:
             return
         self.window.update_status(trans('idx.status.indexing'))
-        self.index_ctx_from_ts(self.tmp_idx, ts, True)
+
+        self.index_ctx_from_ts(
+            self.tmp_idx,
+            ts,
+            True,
+        )
         self.tmp_idx = None
 
     def index_ctx_from_ts(
@@ -255,7 +267,11 @@ class Indexer:
         # get stored index name
         if self.tmp_idx is None:
             return
-        self.window.core.idx.remove_file_from_index(self.tmp_idx, path)
+
+        self.window.core.idx.remove_file_from_index(
+            self.tmp_idx,
+            path,
+        )
         self.window.update_status(trans('status.deleted') + ": " + path)
         self.tmp_idx = None
         self.update_explorer()  # update file status in explorer
