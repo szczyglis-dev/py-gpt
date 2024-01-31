@@ -47,6 +47,7 @@ class Bridge:
             if tmp_mode is not None and tmp_mode != "_":
                 mode = tmp_mode
             if mode == "llama_index":
+                kwargs['idx_raw'] = False
                 idx = self.window.core.config.get("agent.idx")
                 if idx is not None and idx != "_":
                     kwargs['idx'] = idx
