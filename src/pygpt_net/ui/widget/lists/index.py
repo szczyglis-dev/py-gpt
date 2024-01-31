@@ -39,7 +39,7 @@ class IndexList(BaseList):
         :param event: context menu event
         """
         actions = {}
-        actions['edit'] = QAction(QIcon(":/icons/ediit.svg"), trans('action.edit'), self)
+        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('action.edit'), self)
         actions['edit'].triggered.connect(
             lambda: self.action_edit(event))
 
