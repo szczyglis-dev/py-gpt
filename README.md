@@ -1829,7 +1829,13 @@ Config -> Settings...
 
 - `Additional online data loaders`: List of online data loaders from Llama Hub to use.
 
-- `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here
+- `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
+
+**Agent (autonomous)**
+
+- `Sub-mode to use`: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+
+- `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 
 **Developer**
 

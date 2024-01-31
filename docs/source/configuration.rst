@@ -137,6 +137,12 @@ The following basic options can be modified directly within the application:
 
 * ``DB (ALL), DB (UPDATE), FILES (ALL)`` Index the data – batch indexing is available here
 
+**Agent (autonomous)**
+
+* ``Sub-mode to use``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
+
+* ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
+
 **Developer**
 
 * ``Show debug menu`` enables debug (developer) menu

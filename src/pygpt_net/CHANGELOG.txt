@@ -1,8 +1,13 @@
+2.0.136 (2024-01-31)
+
+- Improved integration of Agent mode with llama-index sub-mode
+- Updated documentation and locales
+
 2.0.135 (2024-01-31)
 
-- Fixed stopping agent after first run in Agent mode when set iterations > 0
-- Added section `Agent` in settings, with options: sub-mode to use (Chat, completion, langchain, llama_index) and with option to choose index to use
-- Added current run status in Agent mode
+- Fixed issue where the agent would stop after the first run in Agent mode when the number of iterations was set to non-infinity.
+- Added "Agent" section in the settings, with options to select the sub-mode to use (Chat, Completion, Langchain, Llama-index, etc.) and an option to choose the index to use.
+- Implemented a feature to display the current run status in Agent mode.
 
 2.0.134 (2024-01-30)
 
