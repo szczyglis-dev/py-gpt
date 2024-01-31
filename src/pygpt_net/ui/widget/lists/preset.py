@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -49,6 +49,9 @@ class PresetList(BaseList):
 
         :param event: context menu event
         """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+
         actions = {}
         actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
         actions['edit'].triggered.connect(
@@ -58,18 +61,29 @@ class PresetList(BaseList):
         actions['duplicate'].triggered.connect(
             lambda: self.action_duplicate(event))
 
-        actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
-        actions['delete'].triggered.connect(
-            lambda: self.action_delete(event))
+        if idx == 0:
+            actions['restore'] = QAction(QIcon(":/icons/undo.svg"), trans('dialog.editor.btn.defaults'), self)
+            actions['restore'].triggered.connect(
+                lambda: self.action_restore(event))
+
+        if idx >= 1:
+            actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
+            actions['delete'].triggered.connect(
+                lambda: self.action_delete(event))
 
         menu = QMenu(self)
         menu.addAction(actions['edit'])
         menu.addAction(actions['duplicate'])
-        menu.addAction(actions['delete'])
 
-        item = self.indexAt(event.pos())
-        idx = item.row()
+        if idx == 0:
+            menu.addAction(actions['restore'])
+
         if idx >= 1:
+            menu.addAction(actions['delete'])
+
+        if idx >= 0:
+            self.window.controller.presets.select(idx)
+            self.selection = self.selectionModel().selection()
             # self.window.controller.mode.select(self.id, item.row())
             menu.exec_(event.globalPos())
 
@@ -105,3 +119,11 @@ class PresetList(BaseList):
         idx = item.row()
         if idx >= 0:
             self.window.controller.presets.delete(idx)
+
+    def action_restore(self, event):
+        """
+        Restore action handler
+
+        :param event: mouse event
+        """
+        self.window.controller.presets.restore()

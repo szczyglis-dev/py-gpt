@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 10:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 import re
@@ -290,6 +290,23 @@ class Presets:
                     self.window.core.presets.remove(preset, True)
                     self.refresh()
                     self.window.ui.status(trans('status.preset.deleted'))
+
+    def restore(self, force: bool = False):
+        """
+        Restore preset data
+
+        :param force: force restore data
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='preset_restore',
+                id='',
+                msg=trans('confirm.preset.restore'),
+            )
+            return
+        mode = self.window.core.config.get('mode')
+        self.window.core.presets.restore(mode)
+        self.refresh()
 
     def validate_filename(self, value: str) -> str:
         """

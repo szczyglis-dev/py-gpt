@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -35,6 +35,8 @@ class Confirm:
             self.window.controller.presets.delete(id, True)
         elif type == 'preset_clear':
             self.window.controller.presets.clear(True)
+        elif type == 'preset_restore':
+            self.window.controller.presets.restore(True)
 
         # ctx
         elif type == 'ctx_delete':

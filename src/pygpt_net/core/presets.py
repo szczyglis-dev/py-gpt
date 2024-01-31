@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -290,6 +290,22 @@ class Presets:
         :return: presets dict
         """
         return self.items
+
+    def restore(self, mode: str):
+        """
+        Restore default preset for mode
+
+        :param mode: mode name
+        """
+        base = self.load_base()
+        id = "current." + mode
+        if id in base:
+            self.items[id] = base[id]
+            self.save(id)
+
+    def load_base(self):
+        """Load base presets"""
+        return self.provider.load_base()
 
     def load(self):
         """Load presets templates"""
