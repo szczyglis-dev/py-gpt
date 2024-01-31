@@ -273,9 +273,9 @@ class Ctx:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'ctx_delete',
-                idx,
-                trans('ctx.delete.confirm'),
+                type='ctx_delete',
+                id=idx,
+                msg=trans('ctx.delete.confirm'),
             )
             return
 
@@ -298,9 +298,9 @@ class Ctx:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'ctx_delete_all',
-                '',
-                trans('ctx.delete.all.confirm'),
+                type='ctx_delete_all',
+                id='',
+                msg=trans('ctx.delete.all.confirm'),
             )
             return
 

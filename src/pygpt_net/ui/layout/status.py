@@ -27,16 +27,16 @@ class Status:
 
     def setup(self) -> QHBoxLayout:
         """
-        Setup status
+        Setup status bar
 
         :return: QHBoxLayout
         """
         self.window.ui.nodes['status'] = QLabel(trans('status.started'))
-        self.window.ui.nodes['status_prepend'] = HelpLabel("1/∞")
-        self.window.ui.nodes['status_prepend'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.window.ui.nodes['status.agent'] = HelpLabel("")
+        self.window.ui.nodes['status.agent'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes['status_prepend'])
+        layout.addWidget(self.window.ui.nodes['status.agent'])
         layout.addWidget(self.window.ui.nodes['status'])
         layout.setAlignment(Qt.AlignLeft)
 

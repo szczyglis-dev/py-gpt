@@ -54,9 +54,9 @@ class Input:
 
                 # show alert confirm
                 self.window.ui.dialogs.confirm(
-                    "agent.infinity.run",
-                    0,
-                    trans("agent.infinity.confirm.content"),
+                    type="agent.infinity.run",
+                    id=0,
+                    msg=trans("agent.infinity.confirm.content"),
                 )
                 return
 
@@ -220,7 +220,7 @@ class Input:
         if mode == 'agent':
             self.window.controller.agent.on_ctx_end(
                 ctx,
-                iterations=self.window.core.config.get("agent.iterations"),
+                iterations=int(self.window.core.config.get("agent.iterations")),
             )
 
         # event: context end

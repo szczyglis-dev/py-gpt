@@ -178,9 +178,9 @@ class Assistant:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                'assistant_import',
-                '',
-                trans('confirm.assistant.import'),
+                type='assistant_import',
+                id='',
+                msg=trans('confirm.assistant.import'),
             )
             return
 
@@ -213,9 +213,9 @@ class Assistant:
 
         if not force:
             self.window.ui.dialogs.confirm(
-                'assistant_clear',
-                '',
-                trans('confirm.assistant.clear'),
+                type='assistant_clear',
+                id='',
+                msg=trans('confirm.assistant.clear'),
             )
             return
 
@@ -241,9 +241,9 @@ class Assistant:
                     # if exists then show confirmation dialog
                     if not force:
                         self.window.ui.dialogs.confirm(
-                            'assistant_delete',
-                            idx,
-                            trans('confirm.assistant.delete'),
+                            type='assistant_delete',
+                            id=idx,
+                            msg=trans('confirm.assistant.delete'),
                         )
                         return
 

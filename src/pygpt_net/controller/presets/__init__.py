@@ -237,7 +237,11 @@ class Presets:
         preset = self.window.core.config.get('preset')
 
         if not force:
-            self.window.ui.dialogs.confirm('preset_clear', '', trans('confirm.preset.clear'))
+            self.window.ui.dialogs.confirm(
+                type='preset_clear', 
+                id='', 
+                msg=trans('confirm.preset.clear'),
+            )
             return
 
         self.window.core.config.set('prompt', "")
@@ -274,7 +278,11 @@ class Presets:
                 if preset in self.window.core.presets.items:
                     # if exists then show confirmation dialog
                     if not force:
-                        self.window.ui.dialogs.confirm('preset_delete', idx, trans('confirm.preset.delete'))
+                        self.window.ui.dialogs.confirm(
+                            type='preset_delete', 
+                            id=idx, 
+                            msg=trans('confirm.preset.delete'),
+                        )
                         return
 
                     if preset == self.window.core.config.get('preset'):

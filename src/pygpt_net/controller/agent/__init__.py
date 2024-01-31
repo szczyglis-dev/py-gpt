@@ -54,15 +54,15 @@ class Agent:
 
         # load config
         self.window.controller.config.apply_value(
-            "global",
-            "agent.iterations",
-            self.options["agent.iterations"],
-            self.window.core.config.get('agent.iterations'),
+            parent_id="global",
+            key="agent.iterations",
+            option=self.options["agent.iterations"],
+            value=self.window.core.config.get('agent.iterations'),
         )
 
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
-        Hook: on settings update
+        Hook: on option update
 
         :param key: config key
         :param value: config value
@@ -74,7 +74,7 @@ class Agent:
             return
 
         if key == 'agent.iterations':
-            self.window.core.config.set(key, value)
+            self.window.core.config.set(key, int(value))
             self.window.core.config.save()
             self.update()
 
@@ -248,17 +248,25 @@ class Agent:
         """Event: On enable"""
         self.show_status()
 
+    def is_agent_inline(self) -> bool:
+        """
+        Is agent inline (plugin) enabled
+
+        :return: True if enabled
+        """
+        return self.window.controller.plugins.is_type_enabled("agent")
+
     def on_disable(self):
         """Event: On disable"""
         mode = self.window.core.config.get('mode')
-        if mode == 'agent' or self.window.controller.plugins.is_type_enabled("agent"):
+        if mode == 'agent' or self.is_agent_inline():
             return
         self.hide_status()
 
     def toggle_status(self):
         """Toggle agent status"""
         mode = self.window.core.config.get('mode')
-        if mode == 'agent' or self.window.controller.plugins.is_type_enabled("agent"):
+        if mode == 'agent' or self.is_agent_inline():
             self.show_status()
         else:
             self.hide_status()
@@ -278,28 +286,29 @@ class Agent:
         iterations = "-"
         mode = self.window.core.config.get('mode')
 
+        # get iterations from plugin or from mode
         if mode == "agent":
             iterations = int(self.window.core.config.get("agent.iterations"))
-        elif self.window.controller.plugins.is_type_enabled("agent"):
+        elif self.is_agent_inline():
             if self.window.controller.plugins.is_enabled("self_loop"):
                 iterations = int(self.window.core.plugins.get_option("self_loop", "iterations"))
 
         if iterations == 0:
-            iterations_str = "∞"
+            iterations_str = "∞"  # infinity loop
         else:
             iterations_str = str(iterations)
 
         status = str(self.iteration) + " / " + iterations_str
-        self.window.ui.nodes['status_prepend'].setText(status)
+        self.window.ui.nodes['status.agent'].setText(status)
         self.toggle_status()
 
     def show_status(self):
         """Show agent status"""
-        self.window.ui.nodes['status_prepend'].setVisible(True)
+        self.window.ui.nodes['status.agent'].setVisible(True)
 
     def hide_status(self):
         """Hide agent status"""
-        self.window.ui.nodes['status_prepend'].setVisible(False)
+        self.window.ui.nodes['status.agent'].setVisible(False)
 
     def toggle_auto_stop(self, state: bool):
         """

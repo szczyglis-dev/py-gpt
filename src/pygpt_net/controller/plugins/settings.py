@@ -86,7 +86,11 @@ class Settings:
 
             # update config with new values
             for key in options:
-                value = self.window.controller.config.get_value('plugin.' + id, key, options[key])
+                value = self.window.controller.config.get_value(
+                    parent_id='plugin.' + id, 
+                    key=key, 
+                    option=options[key],
+                )
                 self.window.core.plugins.plugins[id].options[key]['value'] = value
                 self.window.core.config.data['plugins'][id][key] = value
 
@@ -117,8 +121,11 @@ class Settings:
         :param force: force load defaults
         """
         if not force:
-            self.window.ui.dialogs.confirm('plugin.settings.defaults.user', -1,
-                                           trans('dialog.plugin.settings.defaults.user.confirm'))
+            self.window.ui.dialogs.confirm(
+                type='plugin.settings.defaults.user', 
+                id=-1,
+                msg=trans('dialog.plugin.settings.defaults.user.confirm'),
+            )
             return
 
         # reload settings window
@@ -132,8 +139,11 @@ class Settings:
         :param force: force load defaults
         """
         if not force:
-            self.window.ui.dialogs.confirm('plugin.settings.defaults.app', -1,
-                                           trans('dialog.plugin.settings.defaults.app.confirm'))
+            self.window.ui.dialogs.confirm(
+                type='plugin.settings.defaults.app',
+                id=-1,
+                msg=trans('dialog.plugin.settings.defaults.app.confirm'),
+            )
             return
 
         # restore default options
