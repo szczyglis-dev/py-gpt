@@ -1,3 +1,9 @@
+2.0.137 (2024-01-31)
+
+- Improved Agent / Autonomous mode handling
+- Added "Remove file from index" option in file-explorer
+- Other small fixes 
+
 2.0.136 (2024-01-31)
 
 - Improved integration of Agent mode with llama-index sub-mode

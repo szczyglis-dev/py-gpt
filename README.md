@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.136** | build: **2024.01.31** | Python: **3.10+**
+Release: **2.0.137** | build: **2024.01.31** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1977,6 +1977,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.137 (2024-01-31)
+
+- Improved Agent / Autonomous mode handling
+- Added "Remove file from index" option in file-explorer
+- Other small fixes 
 
 # 2.0.136 (2024-01-31)
 
