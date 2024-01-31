@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 23:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -110,6 +110,9 @@ class Editor:
                         preset.temperature = value
                         self.window.core.presets.save(preset_id)
                         self.window.controller.mode.update_temperature(value)  # update current temperature
+
+        if not self.window.core.config.get('layout.tray'):
+            self.window.core.config.set('layout.tray.minimize', False)
 
         self.window.core.config.save()
         self.window.ui.status(trans('info.settings.saved'))

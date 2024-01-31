@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 15:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -60,6 +60,13 @@ class Tray:
             self.window.meta['build']),
         )
 
+        # restore
+        action = QAction(trans("action.open"), self.window)
+        action.setIcon(QIcon(":/icons/apps.svg"))
+        self.window.ui.tray_menu['restore'] = action
+        self.window.ui.tray_menu['restore'].triggered.connect(self.window.restore)
+        self.window.ui.tray_menu['restore'].setVisible(False)
+
         # new context
         action = QAction(trans("menu.file.new"), self.window)
         action.setIcon(QIcon(":/icons/add.svg"))
@@ -100,6 +107,7 @@ class Tray:
         self.window.ui.tray_menu['exit'].triggered.connect(app.quit)
 
         menu = QMenu(self.window)
+        menu.addAction(self.window.ui.tray_menu['restore'])
         menu.addAction(self.window.ui.tray_menu['new'])
         menu.addAction(self.window.ui.tray_menu['scheduled'])
         menu.addAction(self.window.ui.tray_menu['update'])
@@ -111,15 +119,18 @@ class Tray:
 
     def new_ctx(self):
         """Create new context"""
+        self.window.restore()
         self.window.controller.ctx.new()
         self.window.activateWindow()
 
     def open_notepad(self):
         """Open notepad"""
+        self.window.restore()
         self.window.controller.notepad.open()
 
     def open_scheduled_tasks(self):
         """Open scheduled tasks"""
+        self.window.restore()
         self.window.controller.plugins.settings.open_plugin('crontab')
         self.window.activateWindow()
 
@@ -127,12 +138,14 @@ class Tray:
         """Make screenshot"""
         self.window.controller.painter.capture.screenshot()
         self.window.activateWindow()
+        self.window.restore()
         self.window.controller.chat.common.focus_input()
 
     def check_updates(self):
         """Check for updates"""
         self.window.controller.launcher.check_updates()
         self.window.activateWindow()
+        self.window.restore()
 
     def show_notepad_menu(self):
         """Show notepad menu"""

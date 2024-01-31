@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 
@@ -45,6 +45,8 @@ class Layout:
         if self.window.core.config.has('layout.minimized') \
                 and self.window.core.config.get('layout.minimized'):
             self.window.showMinimized()
+            if self.window.ui.tray.is_tray:
+                self.window.ui.tray_menu['restore'].setVisible(True)
 
     def save(self):
         """Save layout state"""

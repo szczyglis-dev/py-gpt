@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool
+from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent
 from PySide6.QtWidgets import QApplication, QMainWindow
 from qt_material import QtStyleTools
 
@@ -181,3 +181,24 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.presets.save_all()
         print("Exiting...")
         event.accept()
+
+    def changeEvent(self, event):
+        """
+        Handle window state change event
+
+        :param event: Event
+        """
+        if not self.core.config.get('layout.tray.minimize'):
+            return
+
+        if event.type() == QEvent.WindowStateChange:
+            if self.isMinimized():
+                self.hide()
+                self.ui.tray_menu['restore'].setVisible(True)
+                event.ignore()
+
+    def restore(self):
+        """Restore window"""
+        self.showNormal()
+        self.activateWindow()
+        self.ui.tray_menu['restore'].setVisible(False)
