@@ -46,7 +46,7 @@ class JsonFileProvider(BaseProvider):
 
     def load(self) -> dict | None:
         """
-        Load presets from JSON file
+        Load presets from JSON files
 
         :return: dict or None
         """
@@ -59,6 +59,33 @@ class JsonFileProvider(BaseProvider):
             for filename in os.listdir(path):
                 if filename.endswith(".json"):
                     path = os.path.join(self.window.core.config.get_user_dir('presets'), filename)
+                    with open(path, 'r', encoding="utf-8") as f:
+                        preset = PresetItem()
+                        self.deserialize(json.load(f), preset)
+                        items[filename[:-5]] = preset
+        except Exception as e:
+            self.window.core.debug.log(e)
+
+        return items
+
+    def load_base(self) -> dict | None:
+        """
+        Load base presets from JSON files
+
+        :return: dict or None
+        """
+        items = {}
+        path = os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets')
+        if not os.path.exists(path):
+            print("FATAL ERROR: {} not found!".format(path))
+            return None
+        try:
+            for filename in os.listdir(path):
+                if filename.endswith(".json"):
+                    path = os.path.join(
+                        os.path.join(self.window.core.config.get_app_path(), 'data', 'config', 'presets'),
+                        filename
+                    )
                     with open(path, 'r', encoding="utf-8") as f:
                         preset = PresetItem()
                         self.deserialize(json.load(f), preset)
