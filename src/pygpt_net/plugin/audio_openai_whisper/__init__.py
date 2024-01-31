@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.01 00:00:00                  #
 # ================================================== #
 
 import os
@@ -57,24 +57,24 @@ class Plugin(BasePlugin):
         self.add_option(
             "timeout",
             type="int",
-            value=2,
+            value=5,
             label="Timeout",
-            description="Speech recognition timeout. Default: 2",
+            description="Speech recognition timeout. Default: 5",
             min=0,
             max=30,
             slider=True,
-            tooltip="Timeout, default: 2",
+            tooltip="Timeout, default: 5",
         )
         self.add_option(
             "phrase_length",
             type="int",
-            value=4,
+            value=10,
             label="Phrase max length",
-            description="Speech recognition phrase length. Default: 4",
+            description="Speech recognition phrase length. Default: 10",
             min=0,
             max=30,
             slider=True,
-            tooltip="Phrase max length, default: 4",
+            tooltip="Phrase max length, default: 10",
         )
         self.add_option(
             "min_energy",
