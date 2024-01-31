@@ -1,11 +1,13 @@
 {
   "__meta__": {
-    "version": "2.0.134",
-    "app.version": "2.0.134",
+    "version": "2.0.135",
+    "app.version": "2.0.135",
     "updated_at": "2024-01-30T00:00:00"
   },
   "agent.auto_stop" : true,
+  "agent.idx": "base",
   "agent.iterations": 3,
+  "agent.mode": "chat",
   "ai_name": "",
   "api_key": "",
   "assistant": "",

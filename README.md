@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.134** | build: **2024.01.30** | Python: **3.10+**
+Release: **2.0.135** | build: **2024.01.30** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1937,6 +1937,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.135 (2024-01-31)
+
+- Fixed stopping agent after first run in Agent mode when set iterations > 0
+- Added section `Agent` in settings, with options: sub-mode to use (Chat, completion, langchain, llama_index) and with option to choose index to use
+- Added current run status in Agent mode
 
 # 2.0.134 (2024-01-30)
 
