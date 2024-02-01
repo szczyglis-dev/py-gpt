@@ -1,3 +1,9 @@
+2.0.142 (2024-02-01)
+
+- Added tray notification on scheduled task run.
+- Added tray notification on Agent goal achieved.
+- Small fixes.
+
 2.0.141 (2024-02-01)
 
 - Improved window hide/restore from tray icon

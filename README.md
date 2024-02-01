@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.141** | build: **2024.02.01** | Python: **3.10+**
+Release: **2.0.142** | build: **2024.02.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1444,6 +1444,10 @@ Number of active tasks is always displayed in tray icon dropdown menu:
 
 If enabled, then a new context will be created on every run of the job. *Default:* `True`
 
+- `Show notification on job run` *show_notify*
+
+If enabled, then a tray notification will be shown on every run of the job. *Default:* `True`
+
 
 ## DALL-E 3: Image Generation (inline)
 
@@ -1829,6 +1833,8 @@ Config -> Settings...
 
 - `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 
+- `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
+
 **Updates**
 
 - `Check for updates on start`: Enables checking for updates on start. Default: True.
@@ -1975,6 +1981,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.142 (2024-02-01)
+
+- Added tray notification on scheduled task run.
+- Added tray notification on Agent goal achieved.
+- Small fixes.
 
 # 2.0.141 (2024-02-01)
 

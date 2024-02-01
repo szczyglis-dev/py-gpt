@@ -137,6 +137,8 @@ The following basic options can be modified directly within the application:
 
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 
+* ``Display a tray notification when the goal is achieved.``: If enabled, a notification will be displayed after goal achieved / finished run.
+
 **Updates**
 
 - ``Check for updates on start``: Enables checking for updates on start. Default: True.

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.01 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -109,7 +109,14 @@ class Flow:
                     force=True,
                     internal=True,
                 )
-                # internal call will not trigger async mode and will hide the message from previous iteration
+            # internal call will not trigger async mode and will hide the message from previous iteration
+        elif self.iteration >= int(iterations):
+            self.on_stop()
+            if self.window.core.config.get("agent.goal.notify"):
+                self.window.ui.tray.show_msg(
+                    trans("notify.agent.stop.title"),
+                    trans("notify.agent.stop.content"),
+                )
 
     def on_ctx_before(
             self,
@@ -186,6 +193,11 @@ class Flow:
                         self.on_stop()
                         self.window.ui.status(trans('status.finished'))  # show info
                         self.finished = True
+                        if self.window.core.config.get("agent.goal.notify"):
+                            self.window.ui.tray.show_msg(
+                                trans("notify.agent.goal.title"),
+                                trans("notify.agent.goal.content"),
+                            )
             except Exception as e:
                 self.window.core.debug.error(e)
                 return

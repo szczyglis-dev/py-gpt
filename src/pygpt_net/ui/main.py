@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 22:00:00                  #
+# Updated Date: 2024.02.01 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -206,15 +206,21 @@ class MainWindow(QMainWindow, QtStyleTools):
         """Toggle tray icon"""
         if self.core.config.get('layout.tray.minimize'):
             if self.isVisible():
-                self.ui.tray_menu['restore'].setVisible(True)
-                self.hide()
+                if not self.isActiveWindow():
+                    self.activateWindow()
+                else:
+                    self.ui.tray_menu['restore'].setVisible(True)
+                    self.hide()
             else:
                 self.restore()
         else:
             if self.isMinimized():
                 self.restore()
             else:
-                self.showMinimized()
+                if not self.isActiveWindow():
+                    self.activateWindow()
+                else:
+                    self.showMinimized()
 
     def restore(self):
         """Restore window"""

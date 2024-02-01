@@ -52,7 +52,7 @@ class Tray:
             return
 
         self.icon.showMessage(
-            title,
+            "PyGPT: " + title,
             msg,
             getattr(QSystemTrayIcon, icon),
         )

@@ -549,6 +549,10 @@ Number of active tasks is always displayed in tray-icon dropdown menu:
 
 If enabled, then a new context will be created on every run of the job." *Default:* ``True``
 
+- ``Show notification on job run`` *show_notify*
+
+If enabled, then a tray notification will be shown on every run of the job. *Default:* ``True``
+
 
 DALL-E 3: Image Generation (inline)
 -----------------------------------
