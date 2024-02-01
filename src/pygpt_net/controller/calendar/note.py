@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -25,9 +25,16 @@ class Note:
 
     def update(self):
         """Update on content change"""
-        year = self.window.ui.calendar['select'].currentYear
-        month = self.window.ui.calendar['select'].currentMonth
-        day = self.window.ui.calendar['select'].currentDay
+        year = self.window.controller.calendar.selected_year
+        month = self.window.controller.calendar.selected_month
+        day = self.window.controller.calendar.selected_day
+
+        if year is None or month is None or day is None:
+            return
+
+        #year = self.window.ui.calendar['select'].currentYear
+        #month = self.window.ui.calendar['select'].currentMonth
+        #day = self.window.ui.calendar['select'].currentDay
         content = self.window.ui.calendar['note'].toPlainText()
         note = self.window.core.calendar.get_by_date(year, month, day)
 

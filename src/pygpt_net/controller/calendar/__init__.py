@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 04:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -33,6 +33,9 @@ class Calendar:
             6: {'label': 'label.color.indigo', 'color': QColor(75, 0, 130), 'font': QColor(255, 255, 255)},
             7: {'label': 'label.color.violet', 'color': QColor(238, 130, 238), 'font': QColor(255, 255, 255)},
         }
+        self.selected_year = None
+        self.selected_month = None
+        self.selected_day = None
 
     def setup(self):
         """Setup calendar"""
@@ -55,8 +58,13 @@ class Calendar:
         year = self.window.ui.calendar['select'].currentYear
         month = self.window.ui.calendar['select'].currentMonth
         day = self.window.ui.calendar['select'].currentDay
+
         self.note.update_content(year, month, day)
         self.note.update_label(year, month, day)
+
+        self.selected_year = year
+        self.selected_month = month
+        self.selected_day = day
 
     def load(self):
         """Load notes from current year and month from database"""
@@ -85,6 +93,9 @@ class Calendar:
         :param month: month
         :param day: day
         """
+        self.selected_year = year
+        self.selected_month = month
+        self.selected_day = day
         self.note.update_content(year, month, day)
         self.note.update_label(year, month, day)
 
