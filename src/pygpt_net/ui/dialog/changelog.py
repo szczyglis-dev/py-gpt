@@ -34,9 +34,8 @@ class Changelog:
         try:
             with open(os.path.join(
                     self.window.core.config.get_app_path(),
-                    "CHANGELOG.txt"), "r") as f:
+                    "CHANGELOG.txt"), "r", encoding="utf-8") as f:
                 txt = f.read()
-                f.close()
         except Exception as e:
             print(e)
 

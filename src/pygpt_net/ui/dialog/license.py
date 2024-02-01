@@ -35,7 +35,7 @@ class License:
         try:
             with open(os.path.join(
                     self.window.core.config.get_app_path(),
-                    "LICENSE"), "r"
+                    "LICENSE"), "r", encoding="utf-8"
             ) as f:
                 txt = f.read()
         except Exception as e:
