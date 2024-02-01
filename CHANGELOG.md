@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.140 (2024-02-01)
+
+- Fixed preset duplicating
+
 # 2.0.139 (2024-02-01)
 
 - Improved the generation of names for preset duplicates.

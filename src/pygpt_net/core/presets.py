@@ -237,10 +237,13 @@ class Presets:
         :return: new ID, new name
         """
         old_name = self.items[id].name
+        new_id = id
+        new_name = old_name
         while True:
-            new_id = id + '_copy'
+            new_id = new_id + '_copy'
+            new_name = new_name + ' copy'
             if new_id not in self.items:
-                return new_id, old_name + ' copy'
+                return new_id, new_name
 
     def duplicate(self, id: str) -> str:
         """

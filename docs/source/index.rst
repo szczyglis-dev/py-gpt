@@ -11,7 +11,7 @@ PyGPT - pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
 | **PyPI:** https://pypi.org/project/pygpt-net
-| **Release:** 2.0.139 (2024-02-01)
+| **Release:** 2.0.140 (2024-02-01)
 
 .. toctree::
    :maxdepth: 3
