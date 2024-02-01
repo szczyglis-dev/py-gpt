@@ -186,6 +186,7 @@ class Mapping:
         nodes['tip.toolbox.indexes'] = 'tip.toolbox.indexes'
         nodes['tip.toolbox.ctx'] = 'tip.toolbox.ctx'
         nodes['tip.toolbox.mode'] = 'tip.toolbox.mode'
+        nodes['plugin.settings.cmd.footer'] = 'cmd.tip'  # plugin settings cmd footer
 
         # menu title
         menu_title = {}
@@ -254,6 +255,7 @@ class Mapping:
         tooltips['input.counter'] = 'tip.tokens.input'
         tooltips['vision.capture.enable'] = 'vision.capture.enable.tooltip'
         tooltips['vision.capture.auto'] = 'vision.capture.auto.tooltip'
+        tooltips['cmd.enabled'] = 'cmd.tip'
 
         # placeholders
         placeholders = {}

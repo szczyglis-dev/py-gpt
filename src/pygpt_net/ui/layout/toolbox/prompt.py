@@ -35,7 +35,9 @@ class Prompt:
         # cmd enable/disable
         self.window.ui.nodes['cmd.enabled'] = QCheckBox(trans('cmd.enabled'))
         self.window.ui.nodes['cmd.enabled'].stateChanged.connect(
-            lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].isChecked()))
+            lambda: self.window.controller.chat.common.toggle_cmd(self.window.ui.nodes['cmd.enabled'].isChecked())
+        )
+        self.window.ui.nodes['cmd.enabled'].setToolTip(trans('cmd.tip'))
 
         # label
         self.window.ui.nodes['toolbox.prompt.label'] = TitleLabel(trans("toolbox.prompt"))

@@ -16,7 +16,7 @@ from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSc
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.ui.widget.dialog.settings_plugin import PluginSettingsDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
-from pygpt_net.ui.widget.element.labels import UrlLabel
+from pygpt_net.ui.widget.element.labels import UrlLabel, HelpLabel
 from pygpt_net.ui.widget.lists.plugin import PluginList
 from pygpt_net.ui.widget.option.checkbox import OptionCheckbox
 from pygpt_net.ui.widget.option.combo import OptionCombo
@@ -180,9 +180,14 @@ class Plugins:
         main_layout.addWidget(self.window.ui.nodes[id])
         main_layout.addWidget(self.window.ui.tabs['plugin.settings'])
 
+        self.window.ui.nodes['plugin.settings.cmd.footer'] = HelpLabel(trans('cmd.tip'))
+        self.window.ui.nodes['plugin.settings.cmd.footer'].setAlignment(Qt.AlignCenter)
+        self.window.ui.nodes['plugin.settings.cmd.footer'].setWordWrap(False)
+
         layout = QVBoxLayout()
         layout.addLayout(main_layout)  # list + plugins tabs
         layout.addLayout(footer)  # bottom buttons (save, defaults)
+        layout.addWidget(self.window.ui.nodes['plugin.settings.cmd.footer'])  # command tip
 
         self.window.ui.dialog[self.dialog_id] = PluginSettingsDialog(self.window, self.dialog_id)
         self.window.ui.dialog[self.dialog_id].setLayout(layout)
