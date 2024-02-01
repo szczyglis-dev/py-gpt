@@ -308,6 +308,21 @@ class Presets:
         self.window.core.presets.restore(mode)
         self.refresh()
 
+    def is_current(self, idx: int = None) -> bool:
+        """
+        Check if preset is current
+
+        :param idx: preset index (row index)
+        :return: True if current
+        """
+        if idx is not None:
+            mode = self.window.core.config.get('mode')
+            preset_id = self.window.core.presets.get_by_idx(idx, mode)
+            if preset_id is not None and preset_id != "":
+                if preset_id == "current." + mode:
+                    return True
+        return False
+
     def validate_filename(self, value: str) -> str:
         """
         Validate filename
@@ -316,7 +331,7 @@ class Presets:
         :return: sanitized filename
         """
         # strip not allowed characters
-        return re.sub(r'[^\w\s-]', '', value)
+        return re.sub(r'[^\w\s\-]', '', value)
 
     def preset_change_locked(self) -> bool:
         """

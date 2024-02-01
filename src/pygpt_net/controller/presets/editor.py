@@ -219,8 +219,9 @@ class Editor:
         )
         mode = self.window.core.config.get("mode")
 
-        # disallow editing current preset cache
-        if id.startswith("current."):
+        # disallow editing default preset
+        if id == "current." + mode:
+            self.window.ui.dialogs.alert("Reserved ID. Please use another ID.")
             return
 
         if id is None or id == "":
