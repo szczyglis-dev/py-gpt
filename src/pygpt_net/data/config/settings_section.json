@@ -26,6 +26,9 @@
     "agent": {
         "label": "settings.section.agent"
     },
+    "updates": {
+        "label": "settings.section.updates"
+    },
     "developer": {
         "label": "settings.section.developer"
     }

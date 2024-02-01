@@ -25,8 +25,6 @@ The following basic options can be modified directly within the application:
 
 * ``Start minimized`` Enables minimized on start. Default: False.
 
-- ``Check for updates on start`` Enables checking for updates on start. Default: True.
-
 **Layout**
 
 * ``Font Size (chat window)`` Adjusts the font size in the chat window.
@@ -142,6 +140,12 @@ The following basic options can be modified directly within the application:
 * ``Sub-mode to use``: Sub-mode to use in Agent mode (chat, completion, langchain, llama_index, etc.). Default: chat.
 
 * ``Index to use``: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
+
+**Updates**
+
+- ``Check for updates on start``: Enables checking for updates on start. Default: True.
+
+- ``Check for updates in background``: Enables checking for updates in background (checking every 5 minutes). Default: True.
 
 **Developer**
 

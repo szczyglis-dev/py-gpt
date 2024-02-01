@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent
@@ -43,10 +43,12 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.args = args
         self.timer = None
         self.post_timer = None
+        self.update_timer = None
         self.threadpool = None
         self.is_closing = False
         self.timer_interval = 30
         self.post_timer_interval = 1000
+        self.update_timer_interval = 300000  # check every 5 minutes
         self.state = self.STATE_IDLE
 
         # load version info
@@ -121,6 +123,9 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.post_timer = QTimer()
         self.post_timer.timeout.connect(self.post_update)
         self.post_timer.start(self.post_timer_interval)
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.core.updater.run_check)
+        self.update_timer.start(self.update_timer_interval)
         self.logger_message.connect(self.controller.debug.handle_log)
         self.ui.post_setup()
 

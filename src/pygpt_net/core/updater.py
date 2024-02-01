@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,8 +14,11 @@ import os
 import shutil
 import json
 import ssl
+import time
 
 from urllib.request import urlopen, Request
+
+from PySide6.QtCore import QObject, Signal, Slot, QRunnable, QTimer
 from packaging.version import parse as parse_version, Version
 
 from pygpt_net.utils import trans
@@ -200,23 +203,33 @@ class Updater:
         """
         return parse_version(self.window.meta['version'])
 
-    def check(self, force: bool = False) -> bool:
+    def get_updater_url(self) -> str:
         """
-        Check for updates
+        Get the app updates info url.
 
-        :param force: force show version dialog
-        :return: True if update is available
+        :return: updater url
         """
-        print("Checking for updates...")
-        url = self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
+        return self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
+
+    def check_silent(self) -> (bool, str, str, str):
+        """
+        Check version in background
+
+        :return: (is_new, newest_version, newest_build, changelog)
+        """
+        url = self.get_updater_url()
+        is_new = False
+        newest_version = ""
+        newest_build = ""
+        changelog = ""
+
         try:
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
-
             req = Request(
                 url=url,
-                headers={'User-Agent': 'Mozilla/5.0'}
+                headers={'User-Agent': 'Mozilla/5.0'},
             )
             response = urlopen(req, context=ctx, timeout=3)
             data_json = json.loads(response.read())
@@ -230,6 +243,54 @@ class Updater:
 
             parsed_newest_version = parse_version(newest_version)
             parsed_current_version = parse_version(self.window.meta['version'])
+            if parsed_newest_version > parsed_current_version:
+                is_new = parsed_newest_version > parsed_current_version
+
+            # save last check time and version
+            self.window.core.config.set("updater.check.bg.last_time", time.time())
+            self.window.core.config.set("updater.check.bg.last_version", newest_version)
+
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Failed to check for updates")
+
+        return is_new, newest_version, newest_build, changelog
+
+    def check(self, force: bool = False) -> bool:
+        """
+        Check for updates
+
+        :param force: force show version dialog
+        :return: True if update is available
+        """
+        print("Checking for updates...")
+        url = self.get_updater_url()
+        try:
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+            req = Request(
+                url=url,
+                headers={'User-Agent': 'Mozilla/5.0'},
+            )
+            response = urlopen(req, context=ctx, timeout=3)
+            data_json = json.loads(response.read())
+            newest_version = data_json["version"]
+            newest_build = data_json["build"]
+
+            # changelog
+            changelog = ""
+            if "changelog" in data_json:
+                changelog = data_json["changelog"]
+
+            parsed_newest_version = parse_version(newest_version)
+            parsed_current_version = parse_version(self.window.meta['version'])
+
+            # save last check time and version
+            self.window.core.config.set("updater.check.bg.last_time", time.time())
+            self.window.core.config.set("updater.check.bg.last_version", newest_version)
+
             if parsed_newest_version > parsed_current_version or force:
                 is_new = parsed_newest_version > parsed_current_version
                 self.show_version_dialog(newest_version, newest_build, changelog, is_new)
@@ -285,3 +346,61 @@ class Updater:
             self.window.core.config.save()
 
         return updated
+
+    @Slot(str, str, str)
+    def handle_new_version(self, version: str, build: str, changelog: str):
+        """
+        Handle new version signal
+
+        :param version: version number
+        :param build: build date
+        :param changelog: changelog
+        """
+        if self.window.ui.tray.is_tray:
+            self.window.ui.tray.show_msg("PyGPT: New version available", version + " (" + build + ")")
+        else:
+            self.show_version_dialog(version, build, changelog, True)
+
+    def run_check(self):
+        """Run check for updates in background"""
+        worker = UpdaterWorker()
+        worker.window = self.window
+        worker.checker = self.check_silent
+        worker.signals.version_changed.connect(self.handle_new_version)
+        self.window.threadpool.start(worker)
+
+
+class UpdaterSignals(QObject):
+    version_changed = Signal(str, str, str)
+
+
+class UpdaterWorker(QRunnable):
+    def __init__(self, *args, **kwargs):
+        super(UpdaterWorker, self).__init__()
+        self.signals = UpdaterSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.last_check_time = None
+        self.window = None
+        self.checker = None
+
+    @Slot()
+    def run(self):
+        # if background check is not enabled, abort
+        if not self.window.core.config.get("updater.check.bg"):
+            return
+        try:
+            # check
+            parsed_prev_checked = None
+            last_checked = self.window.core.config.get("updater.check.bg.last_version")
+            if last_checked is not None and last_checked != "":
+                parsed_prev_checked = parse_version(last_checked)
+
+            # print("Checking for updates...")
+            is_new, version, build, changelog = self.checker()
+            if is_new:
+                if parsed_prev_checked is None or parsed_prev_checked < parse_version(version):
+                    self.signals.version_changed.emit(version, build, changelog)
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Failed to check for updates")

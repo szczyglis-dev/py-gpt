@@ -86,19 +86,7 @@
         "multiplier": 1,
         "step": 1,
         "advanced": false
-    },
-    "updater.check.launch": {
-        "section": "general",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.check_updates",
-        "value": true,
-        "min": 0,
-        "max": 0,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false
-    },
+    },    
     "font_size": {
         "section": "layout",
         "description": "settings.font_size.tip",
@@ -740,6 +728,30 @@
         "max": null,
         "multiplier": null,
         "step": null,
+        "advanced": false
+    },
+    "updater.check.launch": {
+        "section": "updates",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.check_updates",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
+    "updater.check.bg": {
+        "section": "updates",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.check_updates.bg",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
         "advanced": false
     },
     "debug": {

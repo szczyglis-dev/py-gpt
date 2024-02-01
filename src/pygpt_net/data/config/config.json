@@ -70,6 +70,7 @@
   "layout.tray": true,
   "layout.tray.minimize": false,
   "layout.window": {},
+  "license.accepted": false,
   "llama.hub.loaders": [
       {
           "ext": "pptx",
@@ -152,6 +153,8 @@
   "upload.data_dir": false,
   "updater.check.launch": true,
   "updater.check.bg": false,
+  "updater.check.bg.last_time": false,
+  "updater.check.bg.last_version": false,
   "use_context": true,
   "user_name": "",
   "vision.capture.auto": false,

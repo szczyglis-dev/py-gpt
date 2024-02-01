@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -38,6 +38,23 @@ class Tray:
 
         self.icon.setIcon(
             self.window.ui.get_tray_icon(state)
+        )
+
+    def show_msg(self, title: str, msg: str, icon: str = 'Information'):
+        """
+        Show message
+
+        :param title: Message title
+        :param msg: Message
+        :param icon: Icon name
+        """
+        if not self.is_tray:
+            return
+
+        self.icon.showMessage(
+            title,
+            msg,
+            getattr(QSystemTrayIcon, icon),
         )
 
     def setup(self, app=None):
