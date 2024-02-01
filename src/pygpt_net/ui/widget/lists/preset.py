@@ -53,6 +53,10 @@ class PresetList(BaseList):
         idx = item.row()
 
         actions = {}
+        actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
+        actions['edit'].triggered.connect(
+            lambda: self.action_edit(event))
+
         actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('preset.action.duplicate'), self)
         actions['duplicate'].triggered.connect(
             lambda: self.action_duplicate(event))
@@ -62,21 +66,18 @@ class PresetList(BaseList):
             actions['restore'].triggered.connect(
                 lambda: self.action_restore(event))
         else:
-            actions['edit'] = QAction(QIcon(":/icons/edit.svg"), trans('preset.action.edit'), self)
-            actions['edit'].triggered.connect(
-                lambda: self.action_edit(event))
-
             actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('preset.action.delete'), self)
             actions['delete'].triggered.connect(
                 lambda: self.action_delete(event))
 
         menu = QMenu(self)
-        menu.addAction(actions['duplicate'])
-
+        menu.addAction(actions['edit'])
         if self.window.controller.presets.is_current(idx):
+            actions['edit'].setEnabled(False)
             menu.addAction(actions['restore'])
+            menu.addAction(actions['duplicate'])
         else:
-            menu.addAction(actions['edit'])
+            menu.addAction(actions['duplicate'])
             menu.addAction(actions['delete'])
 
         if idx >= 0:
