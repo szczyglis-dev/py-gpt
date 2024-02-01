@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -22,7 +22,7 @@ class Info:
         self.window = window
 
         # prepare info ids
-        self.ids = ['about', 'changelog']
+        self.ids = ['about', 'changelog', 'license']
         self.active = {}
 
         # prepare active
@@ -32,17 +32,23 @@ class Info:
     def setup(self):
         pass
 
-    def toggle(self, id: str):
+    def toggle(self, id: str, width: int = 400, height: int = 400):
         """
-        Toggle info window
+        Toggle info dialog
 
-        :param id: window to toggle
+        :param id: dialog to toggle
+        :param width: dialog width
+        :param height: dialog height
         """
         if id in self.active and self.active[id]:
             self.window.ui.dialogs.close('info.' + id)
             self.active[id] = False
         else:
-            self.window.ui.dialogs.open('info.' + id)
+            self.window.ui.dialogs.open(
+                'info.' + id,
+                width=width,
+                height=height,
+            )
             self.active[id] = True
 
         # update menu

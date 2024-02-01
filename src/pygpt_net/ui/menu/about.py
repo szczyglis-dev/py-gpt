@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -43,6 +43,9 @@ class About:
         self.window.ui.menu['info.github'] = QAction(QIcon(":/icons/public_filled.svg"), trans("menu.info.github"),
                                                      self.window)
 
+        self.window.ui.menu['info.license'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.license"),
+                                                      self.window)
+
         self.window.ui.menu['info.about'].triggered.connect(
             lambda: self.window.controller.dialogs.info.toggle('about'))
         self.window.ui.menu['info.changelog'].triggered.connect(
@@ -59,6 +62,12 @@ class About:
             lambda: self.window.controller.dialogs.info.goto_snap())
         self.window.ui.menu['info.github'].triggered.connect(
             lambda: self.window.controller.dialogs.info.goto_github())
+        self.window.ui.menu['info.license'].triggered.connect(
+            lambda: self.window.controller.dialogs.info.toggle(
+                'license',
+                width=500,
+                height=480,
+            ))
 
         self.window.ui.menu['menu.about'] = self.window.menuBar().addMenu(trans("menu.info"))
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.about'])
@@ -69,3 +78,4 @@ class About:
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.snap'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.website'])
         self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.github'])
+        self.window.ui.menu['menu.about'].addAction(self.window.ui.menu['info.license'])

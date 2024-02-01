@@ -11,32 +11,33 @@
 
 import os
 
-from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QLabel
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QPlainTextEdit, QVBoxLayout, QLabel, QPushButton
 
-from pygpt_net.ui.widget.dialog.info import InfoDialog
+from pygpt_net.ui.widget.dialog.license import LicenseDialog
 from pygpt_net.utils import trans
 
 
-class Changelog:
+class License:
     def __init__(self, window=None):
         """
-        Changelog dialog
+        Liciense dialog
 
         :param window: Window instance
         """
         self.window = window
 
     def setup(self):
-        """Setup change log dialog"""
-        id = 'changelog'
+        """Setup license dialog"""
+        id = 'license'
 
         txt = ''
         try:
             with open(os.path.join(
                     self.window.core.config.get_app_path(),
-                    "CHANGELOG.txt"), "r") as f:
+                    "LICENSE"), "r"
+            ) as f:
                 txt = f.read()
-                f.close()
         except Exception as e:
             print(e)
 
@@ -44,11 +45,22 @@ class Changelog:
         textarea.setReadOnly(True)
         textarea.setPlainText(txt)
 
-        self.window.ui.nodes['dialog.changelog.label'] = QLabel(trans("dialog.changelog.title"))
-        layout = QVBoxLayout()
-        layout.addWidget(self.window.ui.nodes['dialog.changelog.label'])
-        layout.addWidget(textarea)
+        accept_btn = QPushButton(trans("dialog.license.accept"))
+        accept_btn.clicked.connect(self.accept)
 
-        self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
+        self.window.ui.nodes['dialog.license.label'] = QLabel(trans("dialog.license.label"))
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.nodes['dialog.license.label'])
+        layout.addWidget(textarea)
+        layout.addWidget(accept_btn)
+
+        self.window.ui.dialog['info.' + id] = LicenseDialog(self.window, id)
         self.window.ui.dialog['info.' + id].setLayout(layout)
-        self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.changelog.title"))
+        self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.license.title"))
+
+    def accept(self):
+        """Accept license"""
+        self.window.core.config.set('license.accepted', True)
+        self.window.core.config.save()
+        self.window.ui.dialog['info.license'].close()

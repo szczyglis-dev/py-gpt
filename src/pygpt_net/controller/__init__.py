@@ -103,6 +103,15 @@ class Controller:
         self.calendar.setup()  # after everything is loaded
         self.painter.setup()  # load previous image if exists
 
+        # show license terms dialog
+        if not self.window.core.config.get('license.accepted'):
+            self.dialogs.info.toggle(
+                'license',
+                width=500,
+                height=480,
+            )
+            self.window.ui.dialog['info.license'].setFocus()
+
     def on_update(self):
         """On app main loop update"""
         pass
