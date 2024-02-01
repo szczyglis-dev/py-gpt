@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.141 (2024-02-01)
+
+- Improved window hide/restore from tray icon
+- Removed capture disable/enable options and Start minimized from settings dialog
+
 # 2.0.140 (2024-02-01)
 
 - Fixed preset duplicating

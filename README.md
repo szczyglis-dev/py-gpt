@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.140** | build: **2024.02.01** | Python: **3.10+**
+Release: **2.0.141** | build: **2024.02.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1717,9 +1717,7 @@ Config -> Settings...
 
 - `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
-- `Show tray icon`: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
-
-- `Start minimized`: Enables minimized on start. Default: False.
+- `Minimize to tray`: Minimize to tray icon. Tray icon enabled is required for this option to work. Default: False.
 
 **Layout**
 
@@ -1808,10 +1806,6 @@ Config -> Settings...
 - `Vision: Camera IDX (number)`: Video capture camera index (number of camera).
 
 - `Vision: Image capture quality`: Video capture image JPEG quality (%).
-
-- `Vision: Camera`: Enables camera in Vision mode.
-
-- `Vision: Auto capture`: Enables auto-capture on message send in Vision mode.
 
 **Indexes (Llama-index)**
 
@@ -1981,6 +1975,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.141 (2024-02-01)
+
+- Improved window hide/restore from tray icon
+- Removed capture disable/enable options and Start minimized from settings dialog
 
 # 2.0.140 (2024-02-01)
 

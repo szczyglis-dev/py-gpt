@@ -23,7 +23,7 @@ The following basic options can be modified directly within the application:
 
 * ``Show tray icon`` Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
-* ``Start minimized`` Enables minimized on start. Default: False.
+- ``Minimize to tray``: Minimize to tray icon. Tray icon enabled is required for this option to work. Default: False.
 
 **Layout**
 
@@ -112,10 +112,6 @@ The following basic options can be modified directly within the application:
 * ``Vision: Camera IDX (number)`` Video capture camera index (number of camera).
 
 * ``Vision: Image capture quality`` Video capture image JPEG quality (%).
-
-* ``Vision: Camera`` Enables camera in Vision mode
-
-* ``Vision: Auto capture`` Enables auto-capture on message send in Vision mode.
 
 **Indexes (Llama-index)**
 
