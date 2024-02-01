@@ -10,7 +10,6 @@
 # ================================================== #
 
 import datetime
-
 from pygpt_net.item.calendar_note import CalendarNoteItem
 from pygpt_net.utils import trans
 
@@ -95,6 +94,37 @@ class Note:
 
         self.refresh_num(year, month)  # update note cells when note is changed
 
+    def get_counts_around_month(self, year, month) -> dict:
+        """
+        Get counts around month
+
+        :param year: year
+        :param month: month
+        :return: combined counts
+        """
+        current_month_start = datetime.datetime(year, month, 1)
+        last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
+
+        if month == 12:
+            next_month_start = datetime.datetime(year + 1, 1, 1)
+        else:
+            next_month_start = datetime.datetime(year, month + 1, 1)
+
+        current_month_count = self.window.core.ctx.provider.get_ctx_count_by_day(
+            year,
+            month
+        )
+        last_month_count = self.window.core.ctx.provider.get_ctx_count_by_day(
+            last_month_start.year,
+            last_month_start.month
+        )
+        next_month_count = self.window.core.ctx.provider.get_ctx_count_by_day(
+            next_month_start.year,
+            next_month_start.month
+        )
+        combined_counts = {**last_month_count, **current_month_count, **next_month_count}
+        return combined_counts
+
     def refresh_ctx(self, year: int, month: int):
         """
         Update calendar ctx cells
@@ -102,7 +132,7 @@ class Note:
         :param year: year
         :param month: month
         """
-        count = self.window.core.ctx.provider.get_ctx_count_by_day(year, month)
+        count = self.get_counts_around_month(year, month)
         self.window.ui.calendar['select'].update_ctx(count)
 
     def create(self, year: int, month: int, day: int) -> CalendarNoteItem:
@@ -120,6 +150,36 @@ class Note:
         note.day = day
         return note
 
+    def get_notes_existence_around_month(self, year, month) -> dict:
+        """
+        Get notes existence around month
+
+        :param year: year
+        :param month: month
+        :return: combined notes existence
+        """
+        current_month_start = datetime.datetime(year, month, 1)
+        last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
+        if month == 12:
+            next_month_start = datetime.datetime(year + 1, 1, 1)
+        else:
+            next_month_start = datetime.datetime(year, month + 1, 1)
+
+        current_month_notes = self.window.core.calendar.get_notes_existence_by_day(
+            year,
+            month
+        )
+        last_month_notes = self.window.core.calendar.get_notes_existence_by_day(
+            last_month_start.year,
+            last_month_start.month
+        )
+        next_month_notes = self.window.core.calendar.get_notes_existence_by_day(
+            next_month_start.year,
+            next_month_start.month
+        )
+        combined_notes = {**last_month_notes, **current_month_notes, **next_month_notes}
+        return combined_notes
+
     def refresh_num(self, year: int, month: int):
         """
         Update calendar notes cells
@@ -127,7 +187,7 @@ class Note:
         :param year: year
         :param month: month
         """
-        count = self.window.core.calendar.get_notes_existence_by_day(year, month)
+        count = self.get_notes_existence_around_month(year, month)
         self.window.ui.calendar['select'].update_notes(count)
 
     def append_text(self, text: str):

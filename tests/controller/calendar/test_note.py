@@ -73,6 +73,7 @@ def test_refresh_ctx(mock_window):
     mock_window.core.ctx.provider.get_ctx_count_by_day = MagicMock(return_value=1)
     mock_window.ui.calendar['select'].update_ctx = MagicMock()
     note = Note(mock_window)
+    note.get_counts_around_month = MagicMock(return_value=1)
     note.refresh_ctx(2024, 1)
     mock_window.ui.calendar['select'].update_ctx.assert_called_once()
 
@@ -91,9 +92,9 @@ def test_create(mock_window):
 
 def test_refresh_num(mock_window):
     """Test refresh num"""
-    mock_window.core.calendar.get_notes_existence_by_day = MagicMock(return_value=1)
     mock_window.ui.calendar['select'].update_notes = MagicMock()
     note = Note(mock_window)
+    note.get_notes_existence_around_month = MagicMock(return_value=1)
     note.refresh_num(2024, 1)
     mock_window.ui.calendar['select'].update_notes.assert_called_once()
 
