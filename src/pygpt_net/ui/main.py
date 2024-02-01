@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.02.01 22:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent
+from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
 from PySide6.QtWidgets import QApplication, QMainWindow
 from qt_material import QtStyleTools
 
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.post_timer_interval = 1000
         self.update_timer_interval = 300000  # check every 5 minutes
         self.state = self.STATE_IDLE
+        self.prevState = None
 
         # load version info
         self.meta = get_app_meta()
@@ -193,17 +194,33 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param event: Event
         """
-        if not self.core.config.get('layout.tray.minimize'):
-            return
-
         if event.type() == QEvent.WindowStateChange:
-            if self.isMinimized():
-                self.hide()
+            if self.isMinimized() and self.core.config.get('layout.tray.minimize'):
                 self.ui.tray_menu['restore'].setVisible(True)
+                self.hide()
                 event.ignore()
+            else:
+                self.prevState = event.oldState()
+
+    def tray_toggle(self):
+        """Toggle tray icon"""
+        if self.core.config.get('layout.tray.minimize'):
+            if self.isVisible():
+                self.ui.tray_menu['restore'].setVisible(True)
+                self.hide()
+            else:
+                self.restore()
+        else:
+            if self.isMinimized():
+                self.restore()
+            else:
+                self.showMinimized()
 
     def restore(self):
         """Restore window"""
-        self.showNormal()
+        if self.prevState == Qt.WindowMaximized or self.windowState() == Qt.WindowMaximized:
+            self.showMaximized()
+        else:
+            self.showNormal()
         self.activateWindow()
         self.ui.tray_menu['restore'].setVisible(False)

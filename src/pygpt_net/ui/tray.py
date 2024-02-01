@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.02.01 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -131,6 +131,7 @@ class Tray:
         menu.addAction(self.window.ui.tray_menu['open_notepad'])
         menu.addAction(self.window.ui.tray_menu['screenshot'])
         menu.addAction(self.window.ui.tray_menu['exit'])
+        self.icon.activated.connect(self.window.tray_toggle)
         self.icon.setContextMenu(menu)
         self.icon.show()
 
@@ -138,7 +139,6 @@ class Tray:
         """Create new context"""
         self.window.restore()
         self.window.controller.ctx.new()
-        self.window.activateWindow()
 
     def open_notepad(self):
         """Open notepad"""
@@ -149,19 +149,16 @@ class Tray:
         """Open scheduled tasks"""
         self.window.restore()
         self.window.controller.plugins.settings.open_plugin('crontab')
-        self.window.activateWindow()
 
     def make_screenshot(self):
         """Make screenshot"""
         self.window.controller.painter.capture.screenshot()
-        self.window.activateWindow()
         self.window.restore()
         self.window.controller.chat.common.focus_input()
 
     def check_updates(self):
         """Check for updates"""
         self.window.controller.launcher.check_updates()
-        self.window.activateWindow()
         self.window.restore()
 
     def show_notepad_menu(self):

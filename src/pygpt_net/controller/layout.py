@@ -41,13 +41,6 @@ class Layout:
         )
         self.window.controller.ui.update_tokens()  # update tokens
 
-        # minimize window after startup
-        if self.window.core.config.has('layout.minimized') \
-                and self.window.core.config.get('layout.minimized'):
-            self.window.showMinimized()
-            if self.window.ui.tray.is_tray:
-                self.window.ui.tray_menu['restore'].setVisible(True)
-
     def save(self):
         """Save layout state"""
         self.text_nodes_save()
@@ -182,10 +175,8 @@ class Layout:
                 geometry_data = data['geometry']
                 self.window.move(geometry_data['x'], geometry_data['y'])
                 self.window.resize(geometry_data['width'], geometry_data['height'])
-            if not self.window.core.config.has('layout.minimized') \
-                    or not self.window.core.config.get('layout.minimized'):
-                if 'maximized' in data and data['maximized']:
-                    self.window.showMaximized()
+            if 'maximized' in data and data['maximized']:
+                self.window.showMaximized()
         except Exception as e:
             print("Error while restoring window state: " + str(e))
             self.window.core.debug.log(e)
