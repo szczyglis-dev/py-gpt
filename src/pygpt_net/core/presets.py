@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -237,12 +237,10 @@ class Presets:
         :return: new ID, new name
         """
         old_name = self.items[id].name
-        i = 1
         while True:
-            new_id = id + '_' + str(i)
+            new_id = id + '_copy'
             if new_id not in self.items:
-                return new_id, old_name + ' (' + str(i) + ')'
-            i += 1
+                return new_id, old_name + ' copy'
 
     def duplicate(self, id: str) -> str:
         """
