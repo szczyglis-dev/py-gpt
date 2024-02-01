@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.138** | build: **2024.02.01** | Python: **3.10+**
+Release: **2.0.139** | build: **2024.02.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1981,6 +1981,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.139 (2024-02-01)
+
+- Improved the generation of names for preset duplicates.
+- Added background updates check (with an option in settings to disable it).
+- Added dialog to accept license terms at the first launch.
+- Fixed calendar content save on month change.
+- Small UI improvements.
 
 # 2.0.138 (2024-02-01)
 

@@ -29,6 +29,7 @@ a = Analysis(
         ('src\\pygpt_net\\data\\icon_tray_busy.ico', 'data'),
         ('src\\pygpt_net\\data\\icon_tray_error.ico', 'data'),
         ('src\\pygpt_net\\CHANGELOG.txt', '.'),
+        ('src\\pygpt_net\\LICENSE', '.'),
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
         ('venv\\Lib\\site-packages\\llama_index\\VERSION', 'llama_index\\'),  # llama-index hack

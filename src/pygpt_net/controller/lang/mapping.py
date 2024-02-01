@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -173,6 +173,10 @@ class Mapping:
         # dialog: changelog
         nodes['dialog.changelog.label'] = 'dialog.changelog.title'
 
+        # dialog: license
+        nodes['dialog.license.label'] = 'dialog.license.label'
+        nodes['dialog.license.accept'] = 'dialog.license.accept'
+
         # help tips
         nodes['tip.output.tab.files'] = 'tip.output.tab.files'
         nodes['tip.output.tab.draw'] = 'tip.output.tab.draw'
@@ -241,6 +245,7 @@ class Mapping:
         dialog_title = {}
         dialog_title['info.about'] = 'dialog.about.title'
         dialog_title['info.changelog'] = 'dialog.changelog.title'
+        dialog_title['info.license'] = 'dialog.license.title'
         dialog_title['config.editor'] = 'dialog.editor.title'
         dialog_title['config.settings'] = 'dialog.settings'
         dialog_title['editor.assistants'] = 'dialog.assistant'

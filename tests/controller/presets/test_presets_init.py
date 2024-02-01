@@ -260,9 +260,9 @@ def test_validate_filename(mock_window):
     presets = Presets(mock_window)
     assert presets.validate_filename("Test") == "Test"
     assert presets.validate_filename("Test 1") == "Test 1"
-    assert presets.validate_filename("Test 1.2") == "Test 12"
-    assert presets.validate_filename("Test 1.2.3") == "Test 123"
-    assert presets.validate_filename("Test/\\$1.2.3") == "Test123"
+    assert presets.validate_filename("Test 1.2") == "Test 1.2"
+    assert presets.validate_filename("Test 1.2.3") == "Test 1.2.3"
+    assert presets.validate_filename("Test/\\$1.2.3") == "Test1.2.3"
 
 
 def test_preset_change_locked(mock_window):

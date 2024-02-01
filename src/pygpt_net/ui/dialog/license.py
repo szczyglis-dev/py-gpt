@@ -45,15 +45,15 @@ class License:
         textarea.setReadOnly(True)
         textarea.setPlainText(txt)
 
-        accept_btn = QPushButton(trans("dialog.license.accept"))
-        accept_btn.clicked.connect(self.accept)
+        self.window.ui.nodes['dialog.license.accept'] = QPushButton(trans("dialog.license.accept"))
+        self.window.ui.nodes['dialog.license.accept'].clicked.connect(self.accept)
 
         self.window.ui.nodes['dialog.license.label'] = QLabel(trans("dialog.license.label"))
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['dialog.license.label'])
         layout.addWidget(textarea)
-        layout.addWidget(accept_btn)
+        layout.addWidget(self.window.ui.nodes['dialog.license.accept'])
 
         self.window.ui.dialog['info.' + id] = LicenseDialog(self.window, id)
         self.window.ui.dialog['info.' + id].setLayout(layout)

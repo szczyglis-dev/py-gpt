@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.01 18:00:00                  #
 # ================================================== #
 
 import os
@@ -700,6 +700,18 @@ class Patch:
                 print("Migrating config from < 2.0.138...")
                 if 'layout.tray.minimize' not in data:
                     data['layout.tray.minimize'] = False
+                updated = True
+
+            # < 2.0.139
+            if old < parse_version("2.0.139"):
+                print("Migrating config from < 2.0.139...")
+                data['updater.check.bg'] = True
+                if 'license.accepted' not in data:
+                    data['license.accepted'] = False
+                if 'updater.check.bg.last_time' not in data:
+                    data['updater.check.bg.last_time'] = None
+                if 'updater.check.bg.last_version' not in data:
+                    data['updater.check.bg.last_version'] = None
                 updated = True
 
         # update file

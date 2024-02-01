@@ -146,14 +146,14 @@ def test_get_duplicate_name(mock_window):
     presets.items = {
         'test': preset1,
     }
-    assert presets.get_duplicate_name('test') == ('test_1', 'test (1)')
+    assert presets.get_duplicate_name('test') == ('test_copy', 'test copy')
     preset2 = PresetItem()
     preset2.name = 'test (1)'
     presets.items = {
         'test': preset1,
         'test_1': preset2,
     }
-    assert presets.get_duplicate_name('test') == ('test_2', 'test (2)')
+    assert presets.get_duplicate_name('test') == ('test_copy', 'test copy')
     preset3 = PresetItem()
     preset3.name = 'test (2)'
     presets.items = {
@@ -161,7 +161,7 @@ def test_get_duplicate_name(mock_window):
         'test_1': preset2,
         'test_2': preset3,
     }
-    assert presets.get_duplicate_name('test') == ('test_3', 'test (3)')
+    assert presets.get_duplicate_name('test') == ('test_copy', 'test copy')
 
 
 def test_duplicate(mock_window):
