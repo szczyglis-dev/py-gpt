@@ -1984,6 +1984,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added "Restore to default" option to current * (default) presets
 - Added "Minimize to tray" settings option
 - Fixed preset selection when clicked on list with RMB
+- Improved calendar records count on month break
 
 # 2.0.137 (2024-01-31)
 
