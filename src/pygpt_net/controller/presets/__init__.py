@@ -331,7 +331,7 @@ class Presets:
         :return: sanitized filename
         """
         # strip not allowed characters
-        return re.sub(r'[^\w\s\-]', '', value)
+        return re.sub(r'[^\w\s\-\.]', '', value)
 
     def preset_change_locked(self) -> bool:
         """
