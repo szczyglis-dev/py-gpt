@@ -357,7 +357,10 @@ class Updater:
         :param changelog: changelog
         """
         if self.window.ui.tray.is_tray:
-            self.window.ui.tray.show_msg("PyGPT: New version available", version + " (" + build + ")")
+            self.window.ui.tray.show_msg(
+                trans("notify.update.title"),
+                version + " (" + build + ")",
+            )
         else:
             self.show_version_dialog(version, build, changelog, True)
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.02.01 23:00:00                  #
 # ================================================== #
 
 import os
@@ -714,6 +714,13 @@ class Patch:
                     data['updater.check.bg.last_time'] = None
                 if 'updater.check.bg.last_version' not in data:
                     data['updater.check.bg.last_version'] = None
+                updated = True
+
+            # < 2.0.142
+            if old < parse_version("2.0.142"):
+                print("Migrating config from < 2.0.142...")
+                if 'agent.goal.notify' not in data:
+                    data['agent.goal.notify'] = True
                 updated = True
 
         # update file

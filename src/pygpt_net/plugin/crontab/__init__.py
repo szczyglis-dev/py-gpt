@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.01 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -14,6 +14,8 @@ from pygpt_net.core.dispatcher import Event
 
 from datetime import datetime
 from croniter import croniter
+
+from pygpt_net.utils import trans
 
 
 class Plugin(BasePlugin):
@@ -73,6 +75,13 @@ class Plugin(BasePlugin):
             value=True,
             label="Create a new context on job run",
             description="If enabled, then a new context will be created on every run of the job",
+        )
+        self.add_option(
+            "show_notify",
+            type="bool",
+            value=True,
+            label="Show notification on job run",
+            description="If enabled, then a tray notification will be shown on every run of the job",
         )
 
     def setup(self) -> dict:
@@ -143,6 +152,13 @@ class Plugin(BasePlugin):
             return
 
         self.log("Executing task: {}: {}".format(datetime.now(), item["prompt"]))
+
+        # show notification
+        if self.get_option_value("show_notify"):
+            self.window.ui.tray.show_msg(
+                trans("notify.cron.title"),
+                item["prompt"][0:30] + "...",
+            )
 
         # select preset if defined and exists
         if item["preset"] != "_" and item["preset"] is not None:
