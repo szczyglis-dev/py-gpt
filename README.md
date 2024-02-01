@@ -1980,7 +1980,7 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.0.138 (2024-02-01)
 
-- Added ability to editing current * (default) presets
+- Added "Duplicate" option to current * (default) presets
 - Added "Restore to default" option to current * (default) presets
 - Added "Minimize to tray" settings option
 - Fixed preset selection when clicked on list with RMB
