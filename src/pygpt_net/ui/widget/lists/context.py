@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 23:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 import os
 
@@ -59,10 +59,21 @@ class ContextList(BaseList):
         item = self.indexAt(event.pos())
         idx = item.row()
 
+        is_important = self.window.controller.ctx.is_important(idx)
+
         actions = {}
         actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
         actions['rename'].triggered.connect(
             lambda: self.action_rename(event))
+
+        if is_important:
+            actions['important'] = QAction(QIcon(":/icons/star.svg"), trans('action.unpin'), self)
+            actions['important'].triggered.connect(
+                lambda: self.action_unpin(event))
+        else:
+            actions['important'] = QAction(QIcon(":/icons/star.svg"), trans('action.pin'), self)
+            actions['important'].triggered.connect(
+                lambda: self.action_pin(event))
 
         actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
         actions['duplicate'].triggered.connect(
@@ -75,6 +86,7 @@ class ContextList(BaseList):
         menu = QMenu(self)
         menu.addAction(actions['rename'])
         menu.addAction(actions['duplicate'])
+        menu.addAction(actions['important'])
         menu.addAction(actions['delete'])
 
         # set label menu
@@ -131,6 +143,28 @@ class ContextList(BaseList):
         if idx >= 0:
             self.window.controller.ctx.rename(idx)
 
+    def action_pin(self, event):
+        """
+        Pin action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.ctx.set_important(idx, True)
+
+    def action_unpin(self, event):
+        """
+        Unpin action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.ctx.set_important(idx, False)
+
     def action_duplicate(self, event):
         """
         Rename duplicate handler
@@ -171,17 +205,43 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     def paint(self, painter, option, index):
         super(ImportantItemDelegate, self).paint(painter, option, index)
-        if index.data(QtCore.Qt.ItemDataRole.UserRole) > 0:
-            color = self.get_color_for_status(index.data(QtCore.Qt.ItemDataRole.UserRole))
-            square_size = 5
-            square_margin = 0
-            square_rect = QtCore.QRect(option.rect.left() + square_margin, option.rect.center().y() - (square_size / 2)
-                                       + 2, square_size, square_size)
 
+        # pin (>= 10)
+        if index.data(QtCore.Qt.ItemDataRole.UserRole) > 0:
+            label = index.data(QtCore.Qt.ItemDataRole.UserRole)
             painter.save()
-            painter.setBrush(color)
-            painter.setPen(QtCore.Qt.NoPen)
-            painter.drawRect(square_rect)
+
+            if label >= 10:
+                color = self.get_color_for_status(3)
+                square_size = 3
+                square_margin = 0
+                square_rect = QtCore.QRect(
+                    option.rect.left() + square_margin,
+                    option.rect.top() + 2,
+                    square_size,
+                    square_size,
+                )
+                painter.setBrush(color)
+                painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.5, QtCore.Qt.SolidLine))
+                painter.drawRect(square_rect)
+
+                label = label - 10  # remove pin status
+
+            # label (0-9)
+            if label > 0:
+                color = self.get_color_for_status(label)
+                square_size = 5
+                square_margin = 0
+                square_rect = QtCore.QRect(
+                    option.rect.left() + square_margin,
+                    option.rect.center().y() - (square_size / 2) + 2,
+                    square_size,
+                    square_size,
+                )
+                painter.setBrush(color)
+                painter.setPen(QtCore.Qt.NoPen)
+                painter.drawRect(square_rect)
+
             painter.restore()
 
     def get_color_for_status(self, status: int) -> QColor:

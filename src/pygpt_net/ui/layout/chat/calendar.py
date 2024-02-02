@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy, QRadioButton
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
 from pygpt_net.ui.widget.element.labels import HelpLabel
@@ -37,6 +37,42 @@ class Calendar:
         layout = QVBoxLayout()
         layout.addWidget(self.setup_calendar())
         layout.setContentsMargins(0, 0, 0, 0)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
+
+    def setup_filters(self) -> QWidget:
+        """
+        Setup calendar filters
+
+        :return: QWidget
+        """
+        self.window.ui.nodes['filter.ctx.label'] = QLabel(trans("filter.ctx.label"))
+
+        # display: all
+        self.window.ui.nodes['filter.ctx.radio.all'] = QRadioButton(trans("filter.ctx.radio.all"))
+        self.window.ui.nodes['filter.ctx.radio.all'].clicked.connect(
+            lambda: self.window.controller.ctx.common.toggle_display_filter("all"))
+
+        # display: only pinned
+        self.window.ui.nodes['filter.ctx.radio.pinned'] = QRadioButton(trans("filter.ctx.radio.pinned"))
+        self.window.ui.nodes['filter.ctx.radio.pinned'].clicked.connect(
+            lambda: self.window.controller.ctx.common.toggle_display_filter("pinned"))
+
+        # display: only labeled
+        self.window.ui.nodes['filter.ctx.radio.labeled'] = QRadioButton(trans("filter.ctx.radio.labeled"))
+        self.window.ui.nodes['filter.ctx.radio.labeled'].clicked.connect(
+            lambda: self.window.controller.ctx.common.toggle_display_filter("labeled"))
+
+        # layout
+        layout = QHBoxLayout()
+        layout.addWidget(self.window.ui.nodes['filter.ctx.label'])
+        layout.addWidget(self.window.ui.nodes['filter.ctx.radio.all'])
+        layout.addWidget(self.window.ui.nodes['filter.ctx.radio.pinned'])
+        layout.addWidget(self.window.ui.nodes['filter.ctx.radio.labeled'])
+        layout.addStretch()
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -70,6 +106,8 @@ class Calendar:
         widget = QWidget()
         widget.setLayout(layout)
 
+        filters = self.setup_filters()
+
         # layout / splitter
         self.window.ui.splitters['calendar'] = QSplitter(Qt.Horizontal)
         self.window.ui.splitters['calendar'].addWidget(self.window.ui.calendar['select'])
@@ -77,5 +115,15 @@ class Calendar:
         self.window.ui.splitters['calendar'].setStretchFactor(0, 6)  # 60%
         self.window.ui.splitters['calendar'].setStretchFactor(1, 4)  # 40%
 
-        return self.window.ui.splitters['calendar']
+        self.window.ui.splitters['calendar'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        filters.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.window.ui.splitters['calendar'])
+        layout.addWidget(filters)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        return widget
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.06 06:00:00                  #
+# Updated Date: 2024.02.02 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -109,6 +109,46 @@ class Calendar:
         dt_key = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
         self.items[dt_key] = self.provider.load(year, month, day)
 
+    def load_note(self, year: int, month: int, day: int) -> str:
+        """
+        Load note by idx
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :return: note content
+        """
+        note = self.provider.load(year, month, day)
+        if note is not None:
+            return str(note.content)
+        return ""
+
+    def append_to_note(self, year: int, month: int, day: int, text: str) -> bool:
+        """
+        Append to note
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :param text: text
+        :return: True if success
+        """
+        # convert to format: YYYY-MM-DD:
+        current = self.provider.load(year, month, day)
+        if current is None:
+            current = self.build()
+            current.year = year
+            current.month = month
+            current.day = day
+        if current.content is not None and current.content != "":
+            current.content = current.content + "\n"
+        if current.content is None:
+            current.content = ""
+        current.content += text
+        self.provider.save(current)
+        self.load(year, month, day)
+        return True
+
     def load_all(self):
         """Load all notes"""
         self.items = self.provider.load_all()
@@ -129,7 +169,6 @@ class Calendar:
         :param month: month
         :param day: day
         :return: True if saved, False if not
-        :rtype: bool
         """
         # convert to format: YYYY-MM-DD:
         dt_key = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
