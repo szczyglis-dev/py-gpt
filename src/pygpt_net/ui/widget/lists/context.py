@@ -67,11 +67,11 @@ class ContextList(BaseList):
             lambda: self.action_rename(event))
 
         if is_important:
-            actions['important'] = QAction(QIcon(":/icons/star.svg"), trans('action.unpin'), self)
+            actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.unpin'), self)
             actions['important'].triggered.connect(
                 lambda: self.action_unpin(event))
         else:
-            actions['important'] = QAction(QIcon(":/icons/star.svg"), trans('action.pin'), self)
+            actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.pin'), self)
             actions['important'].triggered.connect(
                 lambda: self.action_pin(event))
 

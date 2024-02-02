@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.143 (2024-02-02)
+
+- Added a new plugin: `Command: Context history (calendar)`
+- Added a new feature to context list: `Pin on top`
+- Added `Minimize to tray on exit` option
+
 # 2.0.142 (2024-02-01)
 
 - Added tray notification on scheduled task run.

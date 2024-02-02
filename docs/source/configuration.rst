@@ -23,7 +23,7 @@ The following basic options can be modified directly within the application:
 
 * ``Show tray icon`` Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.
 
-- ``Minimize to tray``: Minimize to tray icon. Tray icon enabled is required for this option to work. Default: False.
+- ``Minimize to tray on exit``: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
 **Layout**
 
