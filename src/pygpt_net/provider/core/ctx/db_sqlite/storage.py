@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 23:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -37,62 +37,77 @@ class Storage:
         """
         self.window = window
 
-    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
-                 limit: int = None, offset: int = None) -> dict:
+    def get_meta(
+            self,
+            search_string: str = None,
+            order_by: str = None,
+            order_direction: str = None,
+            limit: int = None,
+            offset: int = None,
+            filters: dict = None,
+    ) -> dict:
         """
         Return dict with CtxMeta objects, indexed by ID
 
+        :param search_string: str
+        :param order_by: str
+        :param order_direction: str
+        :param limit: int
+        :param offset: int
+        :param filters: dict
         :return: dict of CtxMeta
         """
         limit_suffix = ""
         if limit is not None and limit > 0:
             limit_suffix = " LIMIT {}".format(limit)
 
-        if search_string is None or search_string == "":
-            stmt = text("""
-                SELECT * FROM ctx_meta ORDER BY updated_ts DESC {}
-            """.format(limit_suffix))
-        else:
-            # now we can search by search string or with date ranges
-            # 1) first check if search string contains @date() syntax
+        where_clauses = []
+        bind_params = {}
+
+        # search_string
+        if search_string:
             date_ranges = search_by_date_string(search_string)
-            if len(date_ranges) > 0:
-                # if yes, then remove @date() syntax from search string
-                search_string = re.sub(r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)', '', search_string.strip())
+            search_string = re.sub(
+                r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)',
+                '',
+                search_string.strip(),
+            )
+            if search_string:
+                where_clauses.append("name LIKE :search_string")
+                bind_params['search_string'] = f"%{search_string}%"
 
-                # prepare query
-                date_ranges_query = []
-                bind_params = {}
+            for start_ts, end_ts in date_ranges:
+                if start_ts and end_ts:
+                    where_clauses.append("(updated_ts BETWEEN :start_ts AND :end_ts)")
+                    bind_params['start_ts'] = start_ts
+                    bind_params['end_ts'] = end_ts
+                elif start_ts:
+                    where_clauses.append("(updated_ts >= :start_ts)")
+                    bind_params['start_ts'] = start_ts
+                elif end_ts:
+                    where_clauses.append("(updated_ts <= :end_ts)")
+                    bind_params['end_ts'] = end_ts
 
-                # add string search to date ranges
-                if search_string:
-                    date_ranges_query.append("(name LIKE :search_string)".format(search_string))
-                    bind_params['search_string'] = '%'+search_string+'%'
+        # filters
+        if filters:
+            for key, filter in filters.items():
+                if key == 'date_range':
+                    continue
+                comparison = filter.get('comparison', '=')
+                value = filter.get('value', '')
+                if isinstance(value, int):
+                    where_clauses.append(f"{key} {comparison} :{key}")
+                    bind_params[key] = value
+                elif isinstance(value, str):
+                    where_clauses.append(f"{key} {comparison} :{key}")
+                    bind_params[key] = f"%{value}%"
 
-                # and add date ranges to query
-                for date_range in date_ranges:
-                    start_ts, end_ts = date_range
-                    if start_ts is not None and end_ts is not None:
-                        date_ranges_query.append("(updated_ts BETWEEN :start_ts AND :end_ts)")
-                        bind_params['start_ts'] = start_ts
-                        bind_params['end_ts'] = end_ts
-                    elif start_ts is not None:
-                        date_ranges_query.append("(updated_ts >= :start_ts)")
-                        bind_params['start_ts'] = start_ts
-                    elif end_ts is not None:
-                        date_ranges_query.append("(updated_ts <= :end_ts)")
-                        bind_params['end_ts'] = end_ts
-                    break  # TODO: remove this break when multiple date ranges will be supported
-                date_ranges_query = " AND ".join(date_ranges_query)
-                stmt = text("""
-                    SELECT * FROM ctx_meta WHERE {} ORDER BY updated_ts DESC {}
-                """.format(date_ranges_query, limit_suffix)).bindparams(**bind_params)
-
-            else:
-                # 2) if no, then search by search string only
-                stmt = text("""
-                    SELECT * FROM ctx_meta WHERE name LIKE :search_string ORDER BY updated_ts DESC {}
-                """.format(limit_suffix)).bindparams(search_string=f"%{search_string}%")
+        where_statement = " AND ".join(where_clauses) if where_clauses else "1"
+        stmt_text = f"""
+            SELECT * FROM ctx_meta WHERE {where_statement}
+            ORDER BY updated_ts DESC {limit_suffix}
+        """
+        stmt = text(stmt_text).bindparams(**bind_params)
 
         items = {}
         db = self.window.core.db.get_db()
@@ -102,6 +117,7 @@ class Storage:
                 meta = CtxMeta()
                 unpack_meta(meta, row._asdict())
                 items[meta.id] = meta
+
         return items
 
     def get_items(self, id: int) -> list:

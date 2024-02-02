@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -40,6 +40,7 @@ class Ctx:
         self.last_mode = None
         self.last_model = None
         self.search_string = None
+        self.filters = {}
         self.allowed_modes = {
             'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
             'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
@@ -567,6 +568,14 @@ class Ctx:
         if len(self.items) > 0:
             self.items.pop(0)
 
+    def set_display_filters(self, filters: dict):
+        """
+        Update display filters
+
+        :param filters: filters dict
+        """
+        self.filters = filters
+
     def is_allowed_for_mode(self, mode: str, check_assistant: bool = True) -> bool:
         """
         Check if ctx is allowed for this mode
@@ -621,7 +630,40 @@ class Ctx:
         limit = 0
         if self.window.core.config.has('ctx.records.limit'):
             limit = int(self.window.core.config.get('ctx.records.limit') or 0)
-        self.meta = self.provider.get_meta(self.search_string, 'updated_ts', 'DESC', limit)
+
+        # all items
+        if "is_important" not in self.filters and "label" not in self.filters:
+            meta_pinned = self.provider.get_meta(
+                search_string=self.search_string,
+                order_by='updated_ts',
+                order_direction='DESC',
+                limit=0,  # no limit for pinned
+                filters={
+                    'is_important': {
+                        "comparison": "=",
+                        "value": 1,
+                    }
+                }
+            )
+            meta_unpinned = self.provider.get_meta(
+                search_string=self.search_string,
+                order_by='updated_ts',
+                order_direction='DESC',
+                limit=limit,
+                filters=self.filters,
+            )
+            # join, pinned first
+            self.meta = {**meta_pinned, **meta_unpinned}
+
+        # pinned only
+        else:
+            self.meta = self.provider.get_meta(
+                search_string=self.search_string,
+                order_by='updated_ts',
+                order_direction='DESC',
+                limit=limit,
+                filters=self.filters,
+            )
 
     def load(self, id: int) -> list:
         """
@@ -631,6 +673,39 @@ class Ctx:
         :return: ctx items list
         """
         return self.provider.load(id)
+
+    def get_items_by_id(self, id: int) -> list:
+        """
+        Get ctx items by id
+
+        :param id: ctx id
+        :return: ctx items list
+        """
+        items = self.provider.load(id)
+        data = []
+        for item in items:
+            data.append("Me: " + str(item.input) + "\n" + "You: " + str(item.output) + "\n")
+        return data
+
+    def get_list_in_date_range(self, search_string):
+        """
+        Get ctx list in date range
+
+        :param search_string: search string
+        :return: ctx list
+        """
+        meta = self.provider.get_meta(
+            search_string=search_string,
+            order_by='updated_ts',
+            order_direction='DESC',
+            limit=0,
+            filters={},
+        )
+        data = []
+        for key in meta:
+            item = meta[key]
+            data.append({key: item.name})
+        return data
 
     def save(self, id: int):
         """

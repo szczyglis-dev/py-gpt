@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 23:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 import time
@@ -66,8 +66,15 @@ class DbSqliteProvider(BaseProvider):
             meta.id = self.create_id(meta)  # insert to DB and get ID
         return meta.id
 
-    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
-                 limit: int = None, offset: int = None) -> dict:
+    def get_meta(
+            self,
+            search_string: str = None,
+            order_by: str = None,
+            order_direction: str = None,
+            limit: int = None,
+            offset: int = None,
+            filters: dict = None,
+    ) -> dict:
         """
         Return dict of ctx meta, TODO: add order, limit, offset, etc.
 
@@ -76,12 +83,21 @@ class DbSqliteProvider(BaseProvider):
         :param order_direction: order direction
         :param limit: limit
         :param offset: offset
+        :param filters: filters
         :return: dict of ctx meta
         """
         param_limit = 0
         if limit is not None:
             param_limit = int(limit)
-        return self.storage.get_meta(search_string, order_by, order_direction, param_limit, offset)
+
+        return self.storage.get_meta(
+            search_string=search_string,
+            order_by=order_by,
+            order_direction=order_direction,
+            limit=param_limit,
+            offset=offset,
+            filters=filters,
+        )
 
     def load(self, id: int) -> list:
         """
