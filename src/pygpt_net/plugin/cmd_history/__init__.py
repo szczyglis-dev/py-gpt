@@ -25,6 +25,8 @@ class Plugin(BasePlugin):
             "get_ctx_content_by_id",
             "get_day_note",
             "add_day_note",
+            "update_day_note",
+            "remove_day_note",
         ]
         self.order = 100
         self.use_locale = True
@@ -59,6 +61,20 @@ class Plugin(BasePlugin):
             value=True,
             label="Allow add day note",
             description="When enabled, it allows to add day note for specific date",
+        )
+        self.add_option(
+            "cmd_update_day_note",
+            type="bool",
+            value=True,
+            label="Allow update day note",
+            description="When enabled, it allows to update day note for specific date",
+        )
+        self.add_option(
+            "cmd_remove_day_note",
+            type="bool",
+            value=True,
+            label="Allow remove day note",
+            description="When enabled, it allows to remove day note for specific date",
         )
         self.add_option(
             "model_summarize",
@@ -125,6 +141,24 @@ class Plugin(BasePlugin):
                   'params: "year", "month", "day", "note"',
             label="Syntax: add_day_note",
             description="Syntax for add_day_note command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_update_day_note",
+            type="textarea",
+            value='"update_day_note": update content of day note for specific date, '
+                  'params: "year", "month", "day", "content"',
+            label="Syntax: update_day_note",
+            description="Syntax for update_day_note command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_remove_day_note",
+            type="textarea",
+            value='"remove_day_note": remove day note for specific date, '
+                  'params: "year", "month", "day"',
+            label="Syntax: remove_day_note",
+            description="Syntax for remove_day_note command",
             advanced=True,
         )
 
@@ -268,6 +302,39 @@ class Plugin(BasePlugin):
                     }
                     ctx.results.append(response)
                     ctx.reply = True
+                    self.window.controller.calendar.setup()  # update calendar
+
+                elif item["cmd"] == "update_day_note":
+                    year = int(item["params"]["year"])
+                    month = int(item["params"]["month"])
+                    day = int(item["params"]["day"])
+                    note = item["params"]["content"]
+                    request = {
+                        "cmd": item["cmd"],
+                    }
+                    data = self.update_day_note(year, month, day, note)
+                    response = {
+                        "request": request,
+                        "result": data,
+                    }
+                    ctx.results.append(response)
+                    ctx.reply = True
+                    self.window.controller.calendar.setup()  # update calendar
+
+                elif item["cmd"] == "remove_day_note":
+                    year = int(item["params"]["year"])
+                    month = int(item["params"]["month"])
+                    day = int(item["params"]["day"])
+                    request = {
+                        "cmd": item["cmd"],
+                    }
+                    data = self.remove_day_note(year, month, day)
+                    response = {
+                        "request": request,
+                        "result": data,
+                    }
+                    ctx.results.append(response)
+                    ctx.reply = True
                     self.window.controller.calendar.setup()
             except Exception as e:
                 self.log("Error: " + str(e))
@@ -295,6 +362,29 @@ class Plugin(BasePlugin):
         :return: True if success
         """
         return self.window.core.calendar.append_to_note(year, month, day, note)
+
+    def update_day_note(self, year: int, month: int, day: int, note: str) -> bool:
+        """
+        Update day note
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :param note: note
+        :return: True if success
+        """
+        return self.window.core.calendar.update_note(year, month, day, note)
+
+    def remove_day_note(self, year: int, month: int, day: int) -> bool:
+        """
+        Remove day note
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :return: True if success
+        """
+        return self.window.core.calendar.remove_note(year, month, day)
 
     def get_list(self, range: str) -> list:
         """

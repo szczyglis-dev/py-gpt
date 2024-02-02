@@ -122,6 +122,16 @@ class DbSqliteProvider(BaseProvider):
             self.window.core.debug.log(e)
             print("Error while saving note: {}".format(str(e)))
 
+    def remove(self, year: int, month: int, day: int):
+        """
+        Remove note from DB
+
+        :param year: year
+        :param month: month
+        :param day: day
+        """
+        self.storage.delete_by_date(year, month, day)
+
     def truncate(self) -> bool:
         """
         Truncate all notes

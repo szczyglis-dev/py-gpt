@@ -133,7 +133,6 @@ class Calendar:
         :param text: text
         :return: True if success
         """
-        # convert to format: YYYY-MM-DD:
         current = self.provider.load(year, month, day)
         if current is None:
             current = self.build()
@@ -149,16 +148,64 @@ class Calendar:
         self.load(year, month, day)
         return True
 
+    def update_note(self, year: int, month: int, day: int, text: str) -> bool:
+        """
+        Append to note
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :param text: text
+        :return: True if success
+        """
+        current = self.provider.load(year, month, day)
+        if current is None:
+            current = self.build()
+            current.year = year
+            current.month = month
+            current.day = day
+        current.content = text
+        self.provider.save(current)
+        self.load(year, month, day)
+        return True
+
+    def remove_note(self, year: int, month: int, day: int) -> bool:
+        """
+        Remove note by date
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :return: True if removed
+        """
+        self.provider.remove(year, month, day)
+        # convert to format: YYYY-MM-DD:
+        dt_key = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
+        if dt_key in self.items:
+            del self.items[dt_key]
+        return True
+
     def load_all(self):
         """Load all notes"""
         self.items = self.provider.load_all()
 
     def load_by_month(self, year: int, month: int):
-        """Load notes by month"""
+        """
+        Load notes by month
+
+        :param year: year
+        :param month: month
+        """
         self.items = self.provider.load_by_month(year, month)
 
-    def get_notes_existence_by_day(self, year, month):
-        """Get notes existence by day"""
+    def get_notes_existence_by_day(self, year, month) -> dict:
+        """
+        Get notes existence by day
+
+        :param year: year
+        :param month: month
+        :return: dict
+        """
         return self.provider.get_notes_existence_by_day(year, month)
 
     def save(self, year: int, month: int, day: int) -> bool:
