@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.143** | build: **2024.02.02** | Python: **3.10+**
+Release: **2.0.144** | build: **2024.02.02** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2003,6 +2003,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.144 (2024-02-02)
+
+- Improved Command: Context history plugin prompts
 
 # 2.0.143 (2024-02-02)
 

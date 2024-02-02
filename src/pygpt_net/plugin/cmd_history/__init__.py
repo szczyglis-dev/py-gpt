@@ -109,8 +109,8 @@ class Plugin(BasePlugin):
             value='"get_ctx_list_in_date_range": use to get the list of context history '
                   '(previous conversations between you and me), with corresponding IDs, '
                   'using the special date-range query syntax: "@date(YYYY-MM-DD)" for single day, '
-                  '"@date(YYYY-MM-DD)," for date from, ",@date(YYYY-MM-DD)" for date to, '
-                  'and "@date(YYYY-MM-DD),@date(YYYY-MM-DD)" for range from-to, params: "range_query"',
+                  '"@date(YYYY-MM-DD,)" for date from, "@date(,YYYY-MM-DD)" for date to, '
+                  'and "@date(YYYY-MM-DD,YYYY-MM-DD)" for date range from-to, params: "range_query"',
             label="Syntax: get_ctx_list_in_date_range",
             description="Syntax for get_ctx_list_in_date_range command",
             advanced=True,
@@ -120,8 +120,8 @@ class Plugin(BasePlugin):
             type="textarea",
             value='"get_ctx_content_by_id": use to get summarized content of context with defined ID, prepare summary '
                   'query to ask another model to summarize the content, '
-                  'starting from e.g. "Summarize this discussion for... (additional query)", '
-                  'params: "id", "summary_query"',
+                  'starting from e.g. "You are an expert in content summarization. Summarize our previous discussion '
+                  'answering the query: (query)", params: "id", "summary_query"',
             label="Syntax: get_ctx_content_by_id",
             description="Syntax for get_ctx_content_by_id command",
             advanced=True,

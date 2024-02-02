@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.144 (2024-02-02)
+
+- Improved Command: Context history plugin prompts
+
 # 2.0.143 (2024-02-02)
 
 - Added a new plugin: `Command: Context history (calendar)`

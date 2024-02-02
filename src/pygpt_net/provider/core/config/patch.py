@@ -730,6 +730,19 @@ class Patch:
                     data['ctx.records.filter'] = "all"
                 updated = True
 
+            # < 2.0.144
+            if old < parse_version("2.0.144"):
+                print("Migrating config from < 2.0.144...")
+                if 'cmd_history' in data['plugins'] \
+                        and 'syntax_get_ctx_list_in_date_range' in data['plugins']['cmd_history']:
+                    # remove
+                    del data['plugins']['cmd_history']['syntax_get_ctx_list_in_date_range']
+                if 'cmd_history' in data['plugins'] \
+                        and 'syntax_get_ctx_content_by_id' in data['plugins']['cmd_history']:
+                    # remove
+                    del data['plugins']['cmd_history']['syntax_get_ctx_content_by_id']
+                updated = True
+
         # update file
         migrated = False
         if updated:
