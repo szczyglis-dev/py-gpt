@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.142** | build: **2024.02.01** | Python: **3.10+**
+Release: **2.0.143** | build: **2024.02.02** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -906,6 +906,8 @@ The plugin can also execute system commands, allowing GPT to integrate with your
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
 Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 
+- `Command: Context history (calendar)` - Provides access to context history database, Execute commands enabled is required.
+
 - `Command: Custom Commands` - allows you to create and execute custom commands on your system.
 
 - `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
@@ -1177,6 +1179,26 @@ Execute commands in sandbox (docker container). Docker must be installed and run
 - `Docker image` *sandbox_docker_image*
 
 Docker image to use for sandbox *Default:* `python:3.8-alpine`
+
+## Command: Context history (calendar)
+
+Provides access to context history database, ``Execute commands`` enabled is required.
+Plugin also provides access to reading and creating day notes.
+
+Examples of use, you can ask e.g. for the following:
+
+```Give me today day note```
+
+```Save a new note for today```
+
+```Update my today note with...```
+
+```Get the list of yesterday conversations```
+
+```Get contents of conversation ID 123```
+
+etc...
+
 
 ## Command: Custom Commands
 
@@ -1721,7 +1743,7 @@ Config -> Settings...
 
 - `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
-- `Minimize to tray`: Minimize to tray icon. Tray icon enabled is required for this option to work. Default: False.
+- `Minimize to tray on exit`: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
 
 **Layout**
 
@@ -1981,6 +2003,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.143 (2024-02-02)
+
+- Added a new plugin: `Command: Context history (calendar)`
+- Added a new feature to context list: `Pin on top`
+- Added `Minimize to tray on exit` option
 
 # 2.0.142 (2024-02-01)
 

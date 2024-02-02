@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -91,9 +91,17 @@ class CtxList:
             mode_str = ''
             if data[n].last_mode is not None:
                 mode_str = " ({})".format(trans('mode.' + data[n].last_mode))
-            tooltip_text = "{}: {}{}".format(date_time_str, data[n].name, mode_str)
+            tooltip_text = "{}: {}{} #{}".format(
+                date_time_str,
+                data[n].name,
+                mode_str,
+                n,
+            )
             self.window.ui.models[id].setData(index, tooltip_text, QtCore.Qt.ToolTipRole)
-            self.window.ui.models[id].setData(index, data[n].label, QtCore.Qt.ItemDataRole.UserRole)
+            if data[n].important:
+                self.window.ui.models[id].setData(index, data[n].label + 10, QtCore.Qt.ItemDataRole.UserRole)
+            else:
+                self.window.ui.models[id].setData(index, data[n].label, QtCore.Qt.ItemDataRole.UserRole)
             self.window.ui.models[id].setData(self.window.ui.models[id].index(i, 0), name)
             i += 1
 

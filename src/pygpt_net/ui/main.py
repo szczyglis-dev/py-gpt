@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 23:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -165,6 +165,11 @@ class MainWindow(QMainWindow, QtStyleTools):
 
         :param event: close event
         """
+        if self.core.config.get('layout.tray.minimize') and self.ui.tray.is_tray:
+            event.ignore()
+            self.hide()
+            return
+
         self.is_closing = True
         print("Closing...")
         print("Sending terminate signal to plugins...")

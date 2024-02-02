@@ -262,6 +262,23 @@ Execute commands in sandbox (docker container). Docker must be installed and run
 Docker image to use for sandbox *Default:* ``python:3.8-alpine``
 
 
+Command: Context history (calendar)
+-----------------------------------
+
+Provides access to context history database, ``Execute commands`` enabled is required.
+Plugin also provides access to reading and creating day notes.
+
+Examples of use, you can ask e.g. for the following:
+
+* Give me today day note
+* Save a new note for today
+* Update my today note with...
+* Get the list of yesterday conversations
+* Get contents of conversation ID 123
+
+etc...
+
+
 Command: Custom Commands
 ------------------------
 

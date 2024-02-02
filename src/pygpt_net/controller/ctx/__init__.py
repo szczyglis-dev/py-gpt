@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -30,6 +30,9 @@ class Ctx:
 
     def setup(self):
         """Setup ctx"""
+        # load filters first
+        self.common.restore_display_filter()
+
         # load ctx list
         self.window.core.ctx.load_meta()
 
@@ -324,18 +327,32 @@ class Ctx:
         self.window.ui.dialog['rename'].show()
         self.update()
 
-    def set_important(self, idx: int):
+    def set_important(self, idx: int, value: bool = True):
         """
         Set as important
 
         :param idx: context idx
+        :param value: important value
         """
         id = self.window.core.ctx.get_id_by_idx(idx)
         meta = self.window.core.ctx.get_meta_by_id(id)
         if meta is not None:
-            meta.important = not meta.important
+            meta.important = value
             self.window.core.ctx.save(id)
             self.update()
+
+    def is_important(self, idx: int) -> bool:
+        """
+        Check if ctx is important
+
+        :param idx: context idx
+        :return: True if important
+        """
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is not None:
+            return meta.important
+        return False
 
     def set_label(self, idx: int, label_id: int):
         """

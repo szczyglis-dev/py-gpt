@@ -18,6 +18,7 @@ from pygpt_net.plugin.audio_openai_whisper import Plugin as AudioOpenAIWhisperPl
 from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPlugin
 from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
 from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
+from pygpt_net.plugin.cmd_history import Plugin as CmdHistoryPlugin
 from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
 from pygpt_net.plugin.cmd_web_google import Plugin as CmdWebGooglePlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
@@ -127,6 +128,7 @@ def run(**kwargs):
     launcher.add_plugin(AudioOpenAIWhisperPlugin())
     launcher.add_plugin(CmdWebGooglePlugin())
     launcher.add_plugin(CmdFilesPlugin())
+    launcher.add_plugin(CmdHistoryPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())
     launcher.add_plugin(CmdSerialPlugin())

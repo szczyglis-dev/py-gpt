@@ -723,6 +723,13 @@ class Patch:
                     data['agent.goal.notify'] = True
                 updated = True
 
+            # < 2.0.143
+            if old < parse_version("2.0.143"):
+                print("Migrating config from < 2.0.143...")
+                if 'ctx.records.filter' not in data:
+                    data['ctx.records.filter'] = "all"
+                updated = True
+
         # update file
         migrated = False
         if updated:

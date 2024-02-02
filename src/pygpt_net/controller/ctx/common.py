@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -99,3 +99,45 @@ class Common:
         """Focus chat"""
         if self.window.controller.ui.current_tab != self.window.controller.ui.tab_idx['chat']:
             self.window.ui.tabs['output'].setCurrentIndex(self.window.controller.ui.tab_idx['chat'])
+
+    def restore_display_filter(self):
+        """Restore display filter"""
+        self.window.ui.nodes['filter.ctx.radio.all'].setChecked(False)
+        self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(False)
+        self.window.ui.nodes['filter.ctx.radio.labeled'].setChecked(False)
+
+        if self.window.core.config.has('ctx.records.filter'):
+            filter = self.window.core.config.get('ctx.records.filter')
+            self.toggle_display_filter(filter)
+
+            if filter == 'pinned':
+                self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(True)
+            elif filter == 'labeled':
+                self.window.ui.nodes['filter.ctx.radio.labeled'].setChecked(True)
+            else:
+                self.window.ui.nodes['filter.ctx.radio.all'].setChecked(True)
+        else:
+            self.window.ui.nodes['filter.ctx.radio.all'].setChecked(True)
+            self.toggle_display_filter('all')
+
+    def toggle_display_filter(self, filter: str):
+        """
+        Toggle display filter
+
+        :param filter: Filter
+        """
+        filters = {}
+        if filter == 'labeled':
+            filters['label'] = {
+                "comparison": ">",
+                "value": 0,
+            }
+        elif filter == 'pinned':
+            filters['is_important'] = {
+                "comparison": "=",
+                "value": 1,
+            }
+
+        self.window.core.config.set("ctx.records.filter", filter)
+        self.window.core.ctx.set_display_filters(filters)
+        self.window.controller.ctx.update()

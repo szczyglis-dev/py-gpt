@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.02.02 17:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -50,8 +50,15 @@ class BaseProvider:
     def truncate(self):
         pass
 
-    def get_meta(self, search_string: str = None, order_by: str = None, order_direction: str = None,
-                 limit: int = None, offset: int = None):
+    def get_meta(
+            self,
+            search_string: str = None,
+            order_by: str = None,
+            order_direction: str = None,
+            limit: int = None,
+            offset: int = None,
+            filters: dict = None,
+    ):
         pass
 
     def dump(self, ctx: CtxItem):
