@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 18:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                  #
 # ================================================== #
+from datetime import datetime
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -18,11 +19,13 @@ class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_history"
-        self.name = "Command: Context history (calendar)"
-        self.description = "Provides access to context history database, Execute commands option enabled is required."
+        self.name = "Context history (calendar, inline)"
+        self.type = ["cmd.inline"]
+        self.description = "Provides access to context history database"
         self.allowed_cmds = [
             "get_ctx_list_in_date_range",
             "get_ctx_content_by_id",
+            "count_ctx_in_date",
             "get_day_note",
             "add_day_note",
             "update_day_note",
@@ -47,6 +50,13 @@ class Plugin(BasePlugin):
             value=True,
             label="Allow get context content by ID",
             description="When enabled, it allows to get summarized content of context with defined ID",
+        )
+        self.add_option(
+            "cmd_count_ctx_in_date",
+            type="bool",
+            value=True,
+            label="Allow count contexts in date range",
+            description="When enabled, it allows to count contexts in date range",
         )
         self.add_option(
             "cmd_get_day_note",
@@ -95,6 +105,15 @@ class Plugin(BasePlugin):
             max=None,
         )
         self.add_option(
+            "ctx_items_limit",
+            type="int",
+            value=30,
+            label="Max contexts to retrieve",
+            description="Max items in context history list to retrieve in one query. 0 = no limit",
+            min=0,
+            max=None,
+        )
+        self.add_option(
             "chunk_size",
             type="int",
             value=100000,
@@ -124,6 +143,16 @@ class Plugin(BasePlugin):
                   'answering the query: (query)", params: "id", "summary_query"',
             label="Syntax: get_ctx_content_by_id",
             description="Syntax for get_ctx_content_by_id command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_count_ctx_in_date",
+            type="textarea",
+            value='"count_ctx_in_date": use to count items of context history '
+                  '(previous conversations between you and me) in specified date, by providing year, month, day or a '
+                  'combination of them, params: "year", "month", "day"',
+            label="Syntax: count_ctx_in_date",
+            description="Syntax for count_ctx_in_date command",
             advanced=True,
         )
         self.add_option(
@@ -190,17 +219,36 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
-        if name == Event.CMD_SYNTAX:
+        if name in [
+            Event.CMD_SYNTAX_INLINE,  # inline is allowed
+            Event.CMD_SYNTAX,
+        ]:
             self.cmd_syntax(data)
 
+        # append current time to system prompt if time plugin is not enabled
+        elif name == Event.SYSTEM_PROMPT:
+            if self.window.controller.plugins.is_type_enabled("time"):
+                return
+            data['value'] = self.on_system_prompt(data['value'])
+
         elif name in [
-            # Event.CMD_INLINE,
+            Event.CMD_INLINE,  # inline is allowed
             Event.CMD_EXECUTE,
         ]:
             self.cmd(
                 ctx,
                 data['commands'],
             )
+
+    def on_system_prompt(self, prompt: str) -> str:
+        """
+        Event: SYSTEM_PROMPT
+
+        :param prompt: prompt
+        :return: updated prompt
+        """
+        prompt += "\nCurrent time is: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return prompt
 
     def cmd_syntax(self, data: dict):
         """
@@ -336,6 +384,28 @@ class Plugin(BasePlugin):
                     ctx.results.append(response)
                     ctx.reply = True
                     self.window.controller.calendar.setup()
+
+                elif item["cmd"] == "count_ctx_in_date":
+                    year = None
+                    month = None
+                    day = None
+                    if "year" in item["params"] and item["params"]["year"] != "":
+                        year = int(item["params"]["year"])
+                    if "month" in item["params"] and item["params"]["month"] != "":
+                        month = int(item["params"]["month"])
+                    if "day" in item["params"] and item["params"]["day"] != "":
+                        day = int(item["params"]["day"])
+
+                    request = {
+                        "cmd": item["cmd"],
+                    }
+                    data = self.count_ctx_in_date(year, month, day)
+                    response = {
+                        "request": request,
+                        "result": data,
+                    }
+                    ctx.results.append(response)
+                    ctx.reply = True
             except Exception as e:
                 self.log("Error: " + str(e))
                 return
@@ -393,14 +463,15 @@ class Plugin(BasePlugin):
         :param range: date range
         :return: list of context
         """
-        return self.window.core.ctx.get_list_in_date_range(range)
+        limit = int(self.get_option_value("ctx_items_limit"))
+        return self.window.core.ctx.get_list_in_date_range(range, limit=limit)
 
     def get_summary(self, id: int, prompt: str) -> str:
         """
         Get context content summary by ID
 
         :param id: context ID
-        :param prompt: prompt
+        :param prompt: prompt for summarization
         :return: context content summary
         """
         chunk_size = int(self.get_option_value("chunk_size"))
@@ -411,6 +482,21 @@ class Plugin(BasePlugin):
         chunks = self.to_chunks(content, chunk_size)  # it returns list of chunks
         summary = self.get_summarized_text(chunks, prompt)
         return summary
+
+    def count_ctx_in_date(self, year: int = None, month: int = None, day: int = None) -> dict:
+        """
+        Get context counters
+
+        :param year: year
+        :param month: month
+        :param day: day
+        :return: counters dict
+        """
+        return self.window.core.ctx.provider.get_ctx_count_by_day(
+            year=year,
+            month=month,
+            day=day,
+        )
 
     def to_chunks(
             self,
@@ -434,7 +520,7 @@ class Plugin(BasePlugin):
             sys_prompt: str = None
     ) -> str:
         """
-        Get summarized text from chunks
+        Get summarized text from chunks, TODO: create external method for chunk summarization
 
         :param chunks: chunks of text
         :param sys_prompt: system prompt

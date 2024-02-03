@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                 #
 # ================================================== #
 
 import time
@@ -108,15 +108,16 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_items(id)
 
-    def get_ctx_count_by_day(self, year, month) -> dict:
+    def get_ctx_count_by_day(self, year: int, month: int = None, day: int = None) -> dict:
         """
-        Get ctx count by day
+        Get ctx count by day or by month if only year is provided
 
         :param year: year
         :param month: month
-        :return: dict of ctx counters by day
+        :param day: day
+        :return: dict of ctx counters by day or by month if only year is provided
         """
-        return self.storage.get_ctx_count_by_day(year, month)
+        return self.storage.get_ctx_count_by_day(year, month, day)
 
     def append_item(self, meta: CtxMeta, item: CtxItem) -> bool:
         """

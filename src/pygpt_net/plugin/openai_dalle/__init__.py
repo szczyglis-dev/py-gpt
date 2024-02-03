@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.model import ModelItem
@@ -48,7 +48,7 @@ class Plugin(BasePlugin):
                  'enriching the description with your imaginative details. HOW TO START IMAGE GENERATION: to start ' \
                  'image generation return to me prepared prompt in JSON format, all in one line,  using following ' \
                  'syntax: ~###~{"cmd": "image", "params": {"query": "your query here"}}~###~. Use ONLY this syntax ' \
-                 'and remember to surround JSON string with ~###~.  DO NOT use any other syntax. Use English in the ' \
+                 'and remember to surround JSON string with ~###~. DO NOT use any other syntax. Use English in the ' \
                  'generated JSON command, but conduct all the remaining parts of the discussion with me in the ' \
                  'language in which I am speaking to you. The image will be generated on my machine  immediately ' \
                  'after the command is issued, allowing us to discuss the photo once it has been created.  Please ' \

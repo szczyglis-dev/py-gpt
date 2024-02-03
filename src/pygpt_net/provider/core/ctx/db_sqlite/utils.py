@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 22:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                   #
 # ================================================== #
 
 import json
@@ -77,6 +77,20 @@ def get_month_start_end_timestamps(year: int, month: int) -> (int, int):
         end_date = datetime(year+1, 1, 1) - timedelta(seconds=1)
     else:
         end_date = datetime(year, month+1, 1) - timedelta(seconds=1)
+    end_timestamp = int(end_date.timestamp())
+    return start_timestamp, end_timestamp
+
+
+def get_year_start_end_timestamps(year: int) -> (int, int):
+    """
+    Get start and end timestamps for given year
+
+    :param year: year
+    :return: start and end timestamps
+    """
+    start_date = datetime(year, 1, 1)
+    start_timestamp = int(start_date.timestamp())
+    end_date = datetime(year+1, 1, 1) - timedelta(seconds=1)
     end_timestamp = int(end_date.timestamp())
     return start_timestamp, end_timestamp
 

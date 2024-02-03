@@ -11,11 +11,11 @@ The following plugins are currently available, and model can use them instantly:
 * ``Autonomous Mode (inline)`` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
 * ``Chat with files (Llama-index, inline)`` - plugin integrates Llama-index storage in any chat and provides additional knowledge into context (from indexed files). ``Experimental.``
 * ``Command: Code Interpreter`` - responsible for generating and executing Python code, functioning much like the `Code Interpreter` on `ChatGPT`, but locally. This means GPT can interface with any script, application, or code. The plugin can also execute system commands, allowing GPT to integrate with your operating system. Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
-* ``Command: Context history (calendar)`` - Provides access to context history database, Execute commands enabled is required.
 * ``Command: Custom Commands`` - allows you to create and execute custom commands on your system.
 * ``Command: Files I/O`` - grants access to the local filesystem, enabling GPT to read and write files, as well as list and create directories.
 * ``Command: Google Web Search`` - allows searching the internet via the `Google Custom Search Engine`.
 * ``Command: Serial port / USB`` - plugin provides commands for reading and sending data to USB ports.
+* ``Context history (calendar, inline)`` - Provides access to context history database.
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 * ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``Execute commands`` option to be enabled.
 * ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.

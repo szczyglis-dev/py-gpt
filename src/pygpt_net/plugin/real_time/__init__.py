@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                 #
 # ================================================== #
 
 from datetime import datetime
@@ -20,6 +20,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "real_time"
         self.name = "Real Time"
+        self.type = ["time"]
         self.description = "Appends current time and date to every system prompt."
         self.order = 2
         self.use_locale = True

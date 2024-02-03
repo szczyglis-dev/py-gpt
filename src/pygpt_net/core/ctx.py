@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -687,24 +687,28 @@ class Ctx:
             data.append("Me: " + str(item.input) + "\n" + "You: " + str(item.output) + "\n")
         return data
 
-    def get_list_in_date_range(self, search_string):
+    def get_list_in_date_range(self, search_string, limit: int = 0):
         """
         Get ctx list in date range
 
         :param search_string: search string
+        :param limit: limit
         :return: ctx list
         """
         meta = self.provider.get_meta(
             search_string=search_string,
             order_by='updated_ts',
             order_direction='DESC',
-            limit=0,
+            limit=limit,
             filters={},
         )
         data = []
         for key in meta:
             item = meta[key]
-            data.append({key: item.name})
+            data.append({key: {
+                "subject": item.name,
+                "last_updated": datetime.datetime.fromtimestamp(item.updated).strftime('%Y-%m-%d %H:%M:%S'),
+            }})
         return data
 
     def save(self, id: int):
