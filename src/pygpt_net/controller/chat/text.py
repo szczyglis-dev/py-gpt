@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                 #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -132,17 +132,25 @@ class Text:
         self.window.core.dispatcher.dispatch(event)
         sys_prompt = event.data['value']
 
-        # event: command syntax apply (if commands enabled then append commands prompt)
-        if self.window.core.config.get('cmd'):
+        # event: command syntax apply (if commands enabled or inline plugin then append commands prompt)
+        if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
             sys_prompt += " " + self.window.core.command.get_prompt()
             data = {
                 'mode': mode,
                 'prompt': sys_prompt,
                 'syntax': [],
             }
-            event = Event(Event.CMD_SYNTAX, data)
-            self.window.core.dispatcher.dispatch(event)
-            sys_prompt = self.window.core.command.append_syntax(event.data)
+            # full execute cmd syntax
+            if self.window.core.config.get('cmd'):
+                event = Event(Event.CMD_SYNTAX, data)
+                self.window.core.dispatcher.dispatch(event)
+                sys_prompt = self.window.core.command.append_syntax(event.data)
+
+            # inline cmd syntax only
+            elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
+                event = Event(Event.CMD_SYNTAX_INLINE, data)
+                self.window.core.dispatcher.dispatch(event)
+                sys_prompt = self.window.core.command.append_syntax(event.data)
 
         self.log("Appending input to chat window...")
 

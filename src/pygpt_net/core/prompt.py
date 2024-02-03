@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                   #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -31,7 +31,7 @@ class Prompt:
         self.window.core.dispatcher.dispatch(event)
         prompt = event.data['value']
 
-        if self.window.core.config.get('cmd'):
+        if self.window.core.config.get('cmd') or self.window.controller.plugins.is_type_enabled("cmd.inline"):
             # cmd prompt
             prompt += self.window.core.command.get_prompt()
 
@@ -41,9 +41,18 @@ class Prompt:
                 'silent': True,
                 'syntax': [],
             }
+
             # tmp dispatch event: command syntax apply
-            event = Event(Event.CMD_SYNTAX, data)
-            self.window.core.dispatcher.dispatch(event)
-            prompt = self.window.core.command.append_syntax(event.data)
+            # full execute cmd syntax
+            if self.window.core.config.get('cmd'):
+                event = Event(Event.CMD_SYNTAX, data)
+                self.window.core.dispatcher.dispatch(event)
+                prompt = self.window.core.command.append_syntax(event.data)
+
+            # inline cmd syntax only
+            elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
+                event = Event(Event.CMD_SYNTAX_INLINE, data)
+                self.window.core.dispatcher.dispatch(event)
+                prompt = self.window.core.command.append_syntax(event.data)
 
         return prompt

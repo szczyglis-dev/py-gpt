@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 22:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                    #
 # ================================================== #
 
 import json
@@ -28,6 +28,7 @@ class Event:
     CMD_EXECUTE = "cmd.execute"
     CMD_INLINE = "cmd.inline"
     CMD_SYNTAX = "cmd.syntax"
+    CMD_SYNTAX_INLINE = "cmd.syntax.inline"
     CTX_AFTER = "ctx.after"
     CTX_BEFORE = "ctx.before"
     CTX_BEGIN = "ctx.begin"
