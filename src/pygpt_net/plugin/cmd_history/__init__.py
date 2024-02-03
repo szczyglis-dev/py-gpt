@@ -160,6 +160,7 @@ class Plugin(BasePlugin):
             type="textarea",
             value='"get_day_note": use to get my day notes and plans for a specific date, '
                   'params: "year", "month", "day"',
+            label="Syntax: get_day_note",
             description="Syntax for get_day_note command",
             advanced=True,
         )
