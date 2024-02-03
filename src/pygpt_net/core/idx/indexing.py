@@ -83,6 +83,7 @@ class Indexing:
         else:
             ext = os.path.splitext(path)[1][1:]  # get extension
             online_loader = self.get_online_loader(ext)  # get online loader if available
+            # TODO: in future, add support for online loaders in compiled version
             if online_loader is not None and not self.window.core.config.is_compiled():
                 self.log("Using online loader for: {}".format(ext))
                 loader = download_loader(online_loader)
