@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                    #
 # ================================================== #
 
 from datetime import datetime
@@ -17,7 +17,13 @@ import time
 from sqlalchemy import text
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem
-from .utils import search_by_date_string, pack_item_value, unpack_meta, unpack_item, get_month_start_end_timestamps
+from .utils import \
+    search_by_date_string, \
+    pack_item_value, \
+    unpack_meta, \
+    unpack_item, \
+    get_month_start_end_timestamps,\
+    get_year_start_end_timestamps
 
 
 class Storage:
@@ -532,25 +538,55 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def get_ctx_count_by_day(self, year: int, month: int) -> dict:
+    def get_ctx_count_by_day(self, year: int, month: int = None, day: int = None) -> dict:
         """
         Return ctx count by day for given year and month
 
         :param year: year
         :param month: month
+        :param day: day
         :return: dict with day as key and count as value
         """
         db = self.window.core.db.get_db()
         with db.connect() as conn:
-            start_timestamp, end_timestamp = get_month_start_end_timestamps(year, month)
-            result = conn.execute(text("""
-                SELECT
-                    date(datetime(updated_ts, 'unixepoch')) as day,
-                    COUNT(updated_ts) as count
-                FROM ctx_meta
-                WHERE updated_ts BETWEEN :start_ts AND :end_ts
-                GROUP BY day
-            """), {'start_ts': start_timestamp,
-               'end_ts': end_timestamp})
+            # in day
+            if year and month and day:
+                result = conn.execute(text("""
+                    SELECT
+                        date(datetime(updated_ts, 'unixepoch')) as day,
+                        COUNT(updated_ts) as count
+                    FROM ctx_meta
+                    WHERE updated_ts BETWEEN :start_ts AND :end_ts
+                    GROUP BY day
+                """), {'start_ts': int(datetime(year, month, day, 0, 0, 0).timestamp()),
+                       'end_ts': int(datetime(year, month, day, 23, 59, 59).timestamp())})
+                return {row._mapping['day']: row._mapping['count'] for row in result}
 
-            return {row._mapping['day']: row._mapping['count'] for row in result}
+            # in month
+            elif year and month:
+                start_timestamp, end_timestamp = get_month_start_end_timestamps(year, month)
+                result = conn.execute(text("""
+                    SELECT
+                        date(datetime(updated_ts, 'unixepoch')) as day,
+                        COUNT(updated_ts) as count
+                    FROM ctx_meta
+                    WHERE updated_ts BETWEEN :start_ts AND :end_ts
+                    GROUP BY day
+                """), {'start_ts': start_timestamp,
+                       'end_ts': end_timestamp})
+                return {row._mapping['day']: row._mapping['count'] for row in result}
+
+            # in year (returns months, not days)
+            elif year:
+                start_timestamp, end_timestamp = get_year_start_end_timestamps(year)
+                result = conn.execute(text("""
+                    SELECT
+                        strftime('%m', datetime(updated_ts, 'unixepoch')) as month,
+                        COUNT(updated_ts) as count
+                    FROM ctx_meta
+                    WHERE updated_ts BETWEEN :start_ts AND :end_ts
+                    GROUP BY month
+                """), {'start_ts': start_timestamp,
+                       'end_ts': end_timestamp})
+
+            return {row._mapping['month']: row._mapping['count'] for row in result}
