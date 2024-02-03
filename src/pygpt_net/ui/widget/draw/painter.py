@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                   #
 # ================================================== #
 
 import datetime
@@ -115,6 +115,7 @@ class PainterWidget(QWidget):
 
         :param image: Image
         """
+        self.saveForUndo()
         self.scale_to_fit(image)
         self.originalImage = self.image
         self.update()
@@ -178,6 +179,7 @@ class PainterWidget(QWidget):
 
     def clear_image(self):
         """Clear the image"""
+        self.saveForUndo()
         self.image.fill(Qt.white)
         self.update()
 
