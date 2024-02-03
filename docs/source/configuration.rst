@@ -127,7 +127,7 @@ The following basic options can be modified directly within the application:
 
 * ``Log (console)`` Enables logging to console.
 
-* ``Additional online data loaders`` List of the online data loaders from Llama Hub to use.
+* ``Additional online data loaders`` List of the online data loaders from Llama Hub to use. Only for Python version, will not work in compiled version.
 
 * ``DB (ALL), DB (UPDATE), FILES (ALL)`` Index the data – batch indexing is available here
 

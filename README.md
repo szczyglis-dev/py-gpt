@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.145** | build: **2024.02.03** | Python: **3.10+**
+Release: **2.0.146** | build: **2024.02.03** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -391,7 +391,7 @@ After the file(s) are indexed (embedded in vector store), you can use context fr
 ![v2_idx2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/6ea92bf0-ab20-4306-9e7a-8d35a25ea052)
 
 Built-in file loaders (offline): `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`. 
-You can extend this list in `Settings / Llama-index` by providing list of online loaders (from `LlamaHub`).
+You can extend this list in `Settings / Llama-index` by providing list of online loaders (from `LlamaHub`) - but only for Python version, will not work in compiled version.
 All loaders included for offline use are also from `LlamaHub`, but they are attached locally with all necessary library dependencies included.
 You can also develop and provide your own custom offline loader and register it within the application.
 
@@ -1924,7 +1924,7 @@ Config -> Settings...
 
 - `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
 
-- `Additional online data loaders`: List of online data loaders from Llama Hub to use.
+- `Additional online data loaders`: List of online data loaders from Llama Hub to use. Only for Python version, will not work in compiled version.
 
 - `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
 
@@ -2082,6 +2082,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.146 (2024-02-03)
+
+- Disabled online loaders for Llama-index if compiled version is detected (they work properly only in Python version)
 
 # 2.0.145 (2024-02-03)
 

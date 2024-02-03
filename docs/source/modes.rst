@@ -153,7 +153,7 @@ Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/
 To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with files (Llama-index, inline)`` plugin.
 
 Built-in file loaders (offline): ``text files``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``. 
-You can extend this list in ``Settings / Llama-index`` by providing list of online loaders (from ``LlamaHub``).
+You can extend this list in ``Settings / Llama-index`` by providing list of online loaders (from ``LlamaHub``) - but only for Python version, will not work in compiled version.
 All loaders included for offline use are also from ``LlamaHub``, but they are attached locally with all necessary library dependencies included.
 You can also develop and provide your own custom offline loader and register it within the application.
 

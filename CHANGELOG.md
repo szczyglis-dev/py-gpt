@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.146 (2024-02-03)
+
+- Disabled online loaders for Llama-index if compiled version is detected (they work properly only in Python version)
+
 # 2.0.145 (2024-02-03)
 
 - Enabled the use of the Context history plugin in inline mode (without the need for the Command execution option).
