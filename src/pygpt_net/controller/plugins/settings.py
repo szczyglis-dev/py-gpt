@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 19:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -107,6 +107,7 @@ class Settings:
         # dispatch on update event
         event = Event(Event.PLUGIN_SETTINGS_CHANGED)
         self.window.core.dispatcher.dispatch(event)
+        self.window.controller.ui.update_tokens()  # update tokens (if cmd syntax changed)
 
     def close(self):
         """Close plugin settings dialog"""
