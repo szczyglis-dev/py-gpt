@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 18:00:00                  #
+# Updated Date: 2024.02.03 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -31,18 +31,22 @@ class CtxSearchInput(QLineEdit):
         self.clear_action.setIcon(QIcon(":/icons/close.svg"))
         self.clear_action.triggered.connect(self.clear_search_string)
         self.addAction(self.clear_action, QLineEdit.TrailingPosition)
+        self.clear_action.setVisible(False)
+
+        self.textChanged.connect(self.on_text_changed)
 
     def clear_search_string(self):
         """Clear input"""
+        self.clear()
         self.window.controller.ctx.search_string_clear()
 
-    def keyPressEvent(self, event):
+    def on_text_changed(self, text):
         """
-        Key press event
+        On text changed
 
-        :param event: key event
+        :param text: text
         """
-        super(CtxSearchInput, self).keyPressEvent(event)
-        self.window.controller.ctx.search_string_change(self.text())
+        self.window.controller.ctx.search_string_change(text)
+        self.clear_action.setVisible(bool(text))
 
 
