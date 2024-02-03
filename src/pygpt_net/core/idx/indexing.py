@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.05 18:00:00                  #
 # ================================================== #
 
 import os.path
@@ -69,6 +69,10 @@ class Indexing:
         :return: list of documents
         """
         self.log("Reading documents from path: {}".format(path))
+        if self.window.core.config.is_compiled():
+            self.log("Compiled version detected - online loaders are disabled. "
+                     "Use Python version for using online loaders.")
+
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
                 input_dir=path,
@@ -79,7 +83,7 @@ class Indexing:
         else:
             ext = os.path.splitext(path)[1][1:]  # get extension
             online_loader = self.get_online_loader(ext)  # get online loader if available
-            if online_loader is not None:
+            if online_loader is not None and not self.window.core.config.is_compiled():
                 self.log("Using online loader for: {}".format(ext))
                 loader = download_loader(online_loader)
                 reader = loader()
