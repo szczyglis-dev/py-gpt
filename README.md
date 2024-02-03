@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.144** | build: **2024.02.02** | Python: **3.10+**
+Release: **2.0.145** | build: **2024.02.03** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -906,8 +906,6 @@ The plugin can also execute system commands, allowing GPT to integrate with your
 Plugins can work in conjunction to perform sequential tasks; for example, the `Files` plugin can write generated 
 Python code to a file, which the `Code Interpreter` can execute it and return its result to GPT.
 
-- `Command: Context history (calendar)` - Provides access to context history database, Execute commands enabled is required.
-
 - `Command: Custom Commands` - allows you to create and execute custom commands on your system.
 
 - `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
@@ -916,6 +914,8 @@ as well as list and create directories.
 - `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
 
 - `Command: Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
+
+- `Context history (calendar, inline)` - Provides access to context history database.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
@@ -1180,25 +1180,6 @@ Execute commands in sandbox (docker container). Docker must be installed and run
 
 Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
-## Command: Context history (calendar)
-
-Provides access to context history database, ``Execute commands`` enabled is required.
-Plugin also provides access to reading and creating day notes.
-
-Examples of use, you can ask e.g. for the following:
-
-```Give me today day note```
-
-```Save a new note for today```
-
-```Update my today note with...```
-
-```Get the list of yesterday conversations```
-
-```Get contents of conversation ID 123```
-
-etc...
-
 
 ## Command: Custom Commands
 
@@ -1446,6 +1427,102 @@ Syntax for sending raw bytes to USB port *Default:* `"serial_send_bytes": send r
 
 Syntax for reading data from USB port *Default:* `"serial_read": read data from serial port in seconds duration, params: "duration"`
 
+## Context history (calendar, inline)
+
+Provides access to context history database.
+Plugin also provides access to reading and creating day notes.
+
+Examples of use, you can ask e.g. for the following:
+
+```Give me today day note```
+
+```Save a new note for today```
+
+```Update my today note with...```
+
+```Get the list of yesterday conversations```
+
+```Get contents of conversation ID 123```
+
+etc.
+
+**Options**
+
+- `Allow get date range context list` *cmd_get_ctx_list_in_date_range*
+
+When enabled, it allows to get the list of context history (previous conversations). *Default:* `True`
+
+- `Allow get context content by ID` *cmd_get_ctx_content_by_id*
+
+When enabled, it allows to get summarized content of context with defined ID. *Default:* `True`
+
+- `Allow count contexts in date range` *cmd_count_ctx_in_date*
+
+When enabled, it allows to count contexts in date range. *Default:* `True`
+
+- `Allow get day note` *cmd_get_day_note*
+
+When enabled, it allows to get day note for specific date. *Default:* `True`
+
+- `Allow add day note` *cmd_add_day_note*
+
+When enabled, it allows to add day note for specific date. *Default:* `True`
+
+- `Allow update day note` *cmd_update_day_note*
+
+When enabled, it allows to update day note for specific date. *Default:* `True`
+
+- `Allow remove day note` *cmd_remove_day_note*
+
+When enabled, it allows to remove day note for specific date. *Default:* `True`
+
+- `Model` *model_summarize*
+
+Model used for summarize. *Default:* `gpt-3.5-turbo`
+
+- `Max summary tokens` *summary_max_tokens*
+
+Max tokens in output when generating summary. *Default:* `1500`
+
+- `Max contexts to retrieve` *ctx_items_limit*
+
+Max items in context history list to retrieve in one query. 0 = no limit. *Default:* `30`
+
+- `Per-context items content chunk size` *chunk_size*
+
+Per-context content chunk size (max characters per chunk). *Default:* `100000 chars`
+
+**Options (advanced)**
+
+- `Syntax: get_ctx_list_in_date_range` *syntax_get_ctx_list_in_date_range*
+
+Syntax for get_ctx_list_in_date_range command.
+
+- `Syntax: get_ctx_content_by_id` *syntax_get_ctx_content_by_id*
+
+Syntax for get_ctx_content_by_id command.
+
+- `Syntax: count_ctx_in_date` *syntax_count_ctx_in_date*
+
+Syntax for count_ctx_in_date command
+
+- `Syntax: get_day_note` *syntax_get_day_note*
+
+Syntax for get_day_note command
+
+- `Syntax: add_day_note` *syntax_add_day_note*
+
+Syntax for add_day_note command.
+
+- `Syntax: update_day_note` *syntax_update_day_note*
+
+Syntax for update_day_note command.
+
+- `Syntax: remove_day_note` *syntax_remove_day_note*
+
+Syntax for remove_day_note command.
+
+
 ## Crontab / Task scheduler
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
@@ -1651,6 +1728,8 @@ Syntax: `event name` - triggered on, `event data` *(data type)*:
 - `CMD_INLINE` - when an inline command is executed, `data['commands']` *(list, commands and arguments)*
 
 - `CMD_SYNTAX` - when appending syntax for commands, `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
+
+- `CMD_SYNTAX_INLINE` - when appending syntax for commands (inline mode), `data['prompt'], data['syntax']` *(string, list, prompt and list with commands usage syntax)*
 
 - `CTX_AFTER` - after the context item is sent, `ctx`
 
@@ -2003,6 +2082,14 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.145 (2024-02-03)
+
+- Enabled the use of the Context history plugin in inline mode (without the need for the Command execution option).
+- Added automatic provision of the current date in the Context History plugin if the Real-Time plugin is disabled.
+- Added the ability to count contexts within a specified date range.
+- Added an option to limit the maximum number of contexts retrieved per query.
+- Enabled the "undo" option in the painter when clearing and opening a new image.
 
 # 2.0.144 (2024-02-02)
 

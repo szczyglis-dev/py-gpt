@@ -537,7 +537,83 @@ Examples of use, you can ask e.g. for the following:
 * Get the list of yesterday conversations
 * Get contents of conversation ID 123
 
-etc...
+etc.
+
+**Options**
+
+- ``Allow get date range context list`` *cmd_get_ctx_list_in_date_range*
+
+When enabled, it allows to get the list of context history (previous conversations). *Default:* ``True``
+
+- ``Allow get context content by ID`` *cmd_get_ctx_content_by_id*
+
+When enabled, it allows to get summarized content of context with defined ID. *Default:* ``True``
+
+- ``Allow count contexts in date range`` *cmd_count_ctx_in_date*
+
+When enabled, it allows to count contexts in date range. *Default:* ``True``
+
+- ``Allow get day note`` *cmd_get_day_note*
+
+When enabled, it allows to get day note for specific date. *Default:* ``True``
+
+- ``Allow add day note`` *cmd_add_day_note*
+
+When enabled, it allows to add day note for specific date. *Default:* ``True``
+
+- ``Allow update day note`` *cmd_update_day_note*
+
+When enabled, it allows to update day note for specific date. *Default:* ``True``
+
+- ``Allow remove day note`` *cmd_remove_day_note*
+
+When enabled, it allows to remove day note for specific date. *Default:* ``True``
+
+- ``Model`` *model_summarize*
+
+Model used for summarize. *Default:* ``gpt-3.5-turbo``
+
+- ``Max summary tokens`` *summary_max_tokens*
+
+Max tokens in output when generating summary. *Default:* ``1500``
+
+- ``Max contexts to retrieve`` *ctx_items_limit*
+
+Max items in context history list to retrieve in one query. 0 = no limit. *Default:* ``30``
+
+- ``Per-context items content chunk size`` *chunk_size*
+
+Per-context content chunk size (max characters per chunk). *Default:* ``100000 chars``
+
+**Options (advanced)**
+
+- ``Syntax: get_ctx_list_in_date_range`` *syntax_get_ctx_list_in_date_range*
+
+Syntax for get_ctx_list_in_date_range command.
+
+- ``Syntax: get_ctx_content_by_id`` *syntax_get_ctx_content_by_id*
+
+Syntax for get_ctx_content_by_id command.
+
+- ``Syntax: count_ctx_in_date`` *syntax_count_ctx_in_date*
+
+Syntax for count_ctx_in_date command
+
+- ``Syntax: get_day_note`` *syntax_get_day_note*
+
+Syntax for get_day_note command
+
+- ``Syntax: add_day_note`` *syntax_add_day_note*
+
+Syntax for add_day_note command.
+
+- ``Syntax: update_day_note`` *syntax_update_day_note*
+
+Syntax for update_day_note command.
+
+- ``Syntax: remove_day_note`` *syntax_remove_day_note*
+
+Syntax for remove_day_note command.
 
 Crontab / Task scheduler
 ------------------------

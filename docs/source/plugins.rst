@@ -128,6 +128,8 @@ Syntax: ``event name`` - triggered on, ``event data`` *(data type)*:
 
 - ``CMD_SYNTAX`` - when appending syntax for commands, ``data['prompt'], data['syntax']`` *(string, list, prompt and list with commands usage syntax)*
 
+- ``CMD_SYNTAX_INLINE`` - when appending syntax for commands (inline mode), ``data['prompt'], data['syntax']`` *(string, list, prompt and list with commands usage syntax)*
+
 - ``CTX_AFTER`` - after the context item is sent, ``ctx``
 
 - ``CTX_BEFORE`` - before the context item is sent, ``ctx``

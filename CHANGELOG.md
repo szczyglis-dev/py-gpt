@@ -1,5 +1,13 @@
 # CHANGELOG
 
+# 2.0.145 (2024-02-03)
+
+- Enabled the use of the Context history plugin in inline mode (without the need for the Command execution option).
+- Added automatic provision of the current date in the Context History plugin if the Real-Time plugin is disabled.
+- Added the ability to count contexts within a specified date range.
+- Added an option to limit the maximum number of contexts retrieved per query.
+- Enabled the "undo" option in the painter when clearing and opening a new image.
+
 # 2.0.144 (2024-02-02)
 
 - Improved Command: Context history plugin prompts
