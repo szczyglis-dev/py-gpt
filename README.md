@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.146** | build: **2024.02.03** | Python: **3.10+**
+Release: **2.0.147** | build: **2024.02.04** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2105,6 +2105,11 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.147 (2024-02-04)
+
+- Added `@` tags for quick access to context from previous discussions in the `Context History` plugin (must be enabled in plugin settings, default: disabled).
+- Added automatic passing of the day of the week in the `Context History` and `Real Time` plugins.
+
 # 2.0.146 (2024-02-03)
 
 - Disabled online loaders for Llama-index if compiled version is detected (they work properly only in Python version)
@@ -2126,140 +2131,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added a new plugin: `Command: Context history (calendar)`
 - Added a new feature to context list: `Pin on top`
 - Added `Minimize to tray on exit` option
-
-# 2.0.142 (2024-02-01)
-
-- Added tray notification on scheduled task run.
-- Added tray notification on Agent goal achieved.
-- Small fixes.
-
-# 2.0.141 (2024-02-01)
-
-- Improved window hide/restore from tray icon
-- Removed capture disable/enable options and Start minimized from settings dialog
-
-# 2.0.140 (2024-02-01)
-
-- Fixed preset duplicating
-
-# 2.0.139 (2024-02-01)
-
-- Improved the generation of names for preset duplicates.
-- Added background updates check (with an option in settings to disable it).
-- Added dialog to accept license terms at the first launch.
-- Fixed calendar content save on month change.
-- Small UI improvements.
-
-# 2.0.138 (2024-02-01)
-
-- Added "Duplicate" option to current * (default) presets
-- Added "Restore to default" option to current * (default) presets
-- Added "Minimize to tray" settings option
-- Fixed preset selection when clicked on list with RMB
-- Improved calendar records count on month break
-
-# 2.0.137 (2024-01-31)
-
-- Improved Agent / Autonomous mode handling
-- Added "Remove file from index" option in file-explorer
-- Other small fixes 
-
-# 2.0.136 (2024-01-31)
-
-- Improved integration of Agent mode with llama-index sub-mode
-- Updated documentation and locales
-
-# 2.0.135 (2024-01-31)
-
-- Fixed issue where the agent would stop after the first run in Agent mode when the number of iterations was set to non-infinity.
-- Added "Agent" section in the settings, with options to select the sub-mode to use (Chat, Completion, Langchain, Llama-index, etc.) and an option to choose the index to use.
-- Implemented a feature to display the current run status in Agent mode.
-
-# 2.0.134 (2024-01-30)
-
-- Updated models list
-
-# 2.0.133 (2024-01-30)
-
-- Added the ability for autonomous image generation using the `DALL-E (inline)` plugin in `Agent mode`.
-- Added a `Redo` option to the `Painter/Draw` tool.
-- Enabled Vision in `Agent mode`.
-
-# 2.0.132 (2024-01-30)
-
-- Experimental: Added new working mode: `Agent (autonomous)`, which works similarly to the `Autonomous Mode` plugin but as a separate mode with editable system prompt presets.
-- Renamed `Autonomous Mode` plugin to `Autonomous Mode (inline)`.
-- Fixed real-time system prompt tokens calculation update.
-- Fixed preset saving in editor.
-- Updated icons' fill color.
-
-# 2.0.131 (2024-01-30)
-
-- Fix: set a limited height for list items in editable lists within the options.
-- Added new plugin: `System Prompt Extra`: plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
-- Added a list of prompts for define and use in the `Autonomous Mode` plugin (the previous division into "normal" and "extended" prompts has been replaced with an unlimited, user-editable list).
-- Added textarea stretch on dialog resize in dictionary options editor
-- Introduced a new `duplicate` option in the context list (it copies the selected context to a new one).
-
-# 2.0.130 (2024-01-29)
-
-- Added status indicator in Tray - feature [#12](https://github.com/szczyglis-dev/py-gpt/issues/12)
-- Added icons to tabs, tray and context menus
-- Added "Files and attachments" section in Settings
-
-# 2.0.129 (2024-01-29)
-
-- Added Material Design SVG icons (by Google)
-- Added icon resources compiler script
-- Improved file explorer
-
-# 2.0.128 (2024-01-29)
-
-- Added improvements to RMB context menu handling in Files
-- Improved generation of names for duplicated files
-
-# 2.0.127 (2024-01-28)
-
-- Added ability to auto-store (in the `%workdir%/upload` directory) local copies of attachments uploaded from outside the workdir.
-- Added an option in the general settings dialog: `Store attachments in the workdir upload directory`, default: True
-- Added an option for storing everything in the `data` directory: `Store images, capture and uploads in data directory`, default: False
-
-# 2.0.126 (2024-01-28)
-
-- New features in file explorer (`Files` tab):
-
-- Create empty file
-- Create directory
-- Upload files to selected directory
-- Download file or directory
-- Duplicate file or directory
-- Use as attachment
-- Ask for read this file
-- Copy working/system path to input and clipboard
-
-# 2.0.125 (2024-01-28)
-
-- Fixed chars encoding in save text to file option
-
-# 2.0.124 (2024-01-28)
-
-- Fixed Vision checkbox visibility when switching to plain-text mode
-- Added RMB context menu option "Save as..." to selected text for saving selected text (or whole document) to a text file
-- Added remembering the last used directory for uploading attachments/saving files
-
-# 2.0.123 (2024-01-27)
-
-- Standarized models names
-- Added `Recursive directory indexing` option in `Settings / Indexes (Llama-index)` (default: False)
-
-# 2.0.122 (2024-01-27)
-
-- Added new OpenAI model released on 2024-01-25: `gpt-4-0125-preview`
-- Added ability to add custom offline data loaders for Llama-index
-- Improved debugging and logging, added debug levels, and introduced a new section `Debugging and Logging` in the documentation
-- Moved inline styles to external CSS classes
-- Renamed `pygpt_net.provider.llm` to `pygpt_net.provider.llms`
-
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
 

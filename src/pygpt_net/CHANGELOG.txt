@@ -1,3 +1,8 @@
+2.0.147 (2024-02-04)
+
+- Added `@` tags for quick access to context from previous discussions in the `Context History` plugin (must be enabled in plugin settings, default: disabled).
+- Added automatic passing of the day of the week in the `Context History` and `Real Time` plugins.
+
 2.0.146 (2024-02-03)
 
 - Disabled online loaders for Llama-index if compiled version is detected (they work properly only in Python version)
