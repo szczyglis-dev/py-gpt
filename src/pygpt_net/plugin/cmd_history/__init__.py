@@ -351,7 +351,7 @@ class Plugin(BasePlugin):
         :param text: text
         :return: list of tags
         """
-        return re.findall(r"@(\w+)", text)
+        return re.findall(r"@(\d+)", text)
 
     def on_user_send(self, text: str):
         """
