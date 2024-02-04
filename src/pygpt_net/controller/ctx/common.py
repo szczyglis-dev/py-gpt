@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.04 18:00:00                  #
 # ================================================== #
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.utils import trans
 from .summarizer import Summarizer
@@ -141,3 +142,15 @@ class Common:
         self.window.core.config.set("ctx.records.filter", filter)
         self.window.core.ctx.set_display_filters(filters)
         self.window.controller.ctx.update()
+
+    def copy_id(self, idx: int):
+        """
+        Copy id into clipboard and to iinput
+
+        :param idx: context list idx
+        """
+        id = self.window.core.ctx.get_id_by_idx(idx)
+        if id is not None:
+            value = "@" + str(id)
+            self.window.controller.chat.common.append_to_input(value, separator=" ")
+            QApplication.clipboard().setText(value)

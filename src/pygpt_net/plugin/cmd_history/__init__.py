@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                  #
+# Updated Date: 2024.02.04 18:00:00                  #
 # ================================================== #
+import json
+import re
 from datetime import datetime
 
 from pygpt_net.plugin.base import BasePlugin
@@ -21,7 +23,8 @@ class Plugin(BasePlugin):
         self.id = "cmd_history"
         self.name = "Context history (calendar, inline)"
         self.type = ["cmd.inline"]
-        self.description = "Provides access to context history database"
+        self.description = "Provides real-time access to context history database"
+        self.input_text = None
         self.allowed_cmds = [
             "get_ctx_list_in_date_range",
             "get_ctx_content_by_id",
@@ -36,7 +39,15 @@ class Plugin(BasePlugin):
         self.init_options()
 
     def init_options(self):
-        """Initialize options""" 
+        """Initialize options"""
+        self.add_option(
+            "use_tags",
+            type="bool",
+            value=False,
+            label="Allow to use context @ ID tags",
+            description="When enabled, it allows to automatically retrieve context history using @ tags, "
+                        "e.g. use @123 in question to retrieve summary of context with ID 123",
+        )
         self.add_option(
             "cmd_get_ctx_list_in_date_range",
             type="bool",
@@ -191,6 +202,25 @@ class Plugin(BasePlugin):
             description="Syntax for remove_day_note command",
             advanced=True,
         )
+        self.add_option(
+            "prompt_tag_system",
+            type="textarea",
+            value="ADDITIONAL CONTEXT: Use the following JSON summary of previous discussions as additional context, "
+                  "instead of using commands for retrieve content: {context}",
+            label="Prompt: tag_system",
+            description="Prompt for use @ tag (system)",
+            advanced=True,
+        )
+        self.add_option(
+            "prompt_tag_summary",
+            type="textarea",
+            value="You are an expert in context summarization. "
+                  "Please summarize the given discussion (ID: {id}) by addressing the query and preparing it to serve "
+                  "as additional context for a new discussion or to continue the current one: {query}",
+            label="Prompt: tag_summary",
+            description="Prompt for use @ tag (summary)",
+            advanced=True,
+        )
 
     def setup(self) -> dict:
         """
@@ -228,9 +258,16 @@ class Plugin(BasePlugin):
 
         # append current time to system prompt if time plugin is not enabled
         elif name == Event.SYSTEM_PROMPT:
-            if self.window.controller.plugins.is_type_enabled("time"):
-                return
             data['value'] = self.on_system_prompt(data['value'])
+
+        elif name == Event.POST_PROMPT:
+            data['value'] = self.on_post_prompt(
+                data['value'],
+                ctx,
+            )
+
+        elif name == Event.USER_SEND:
+            self.on_user_send(data['value'])
 
         elif name in [
             Event.CMD_INLINE,  # inline is allowed
@@ -248,8 +285,81 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        prompt += "\nCurrent time is: " + datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # current time
+        if not self.window.controller.plugins.is_type_enabled("time"):
+            prompt += "\nCurrent time is: " + datetime.now().strftime('%A, %Y-%m-%d %H:%M:%S')
         return prompt
+
+    def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
+        """
+        Event: POST_PROMPT
+
+        :param prompt: prompt
+        :param ctx: context
+        :return: updated prompt
+        """
+        # disable if internal context (autonomous mode)
+        if ctx.internal:
+            return prompt
+
+        # hashtags
+        if self.get_option_value("use_tags") and self.input_text:
+            extra = self.handle_tags(self.input_text)
+            if extra:
+                prompt += "\n" + self.get_option_value("prompt_tag_system").format(
+                    context=extra,
+                )
+        self.input_text = None  # reset input text
+        return prompt
+
+    def handle_tags(self, text: str) -> str:
+        """
+        Handle ID tags in input text
+
+        :param text: input text
+        :return: summary of contexts in JSON format
+        """
+        summary = ""
+        contexts = []
+        hashtags = self.extract_tags(text)
+        ids = []
+        for tag in hashtags:
+            if tag.isdigit():
+                id = int(tag)
+                ids.append(id)
+        for id in ids:
+            try:
+                prompt = self.get_option_value("prompt_tag_summary").format(
+                    id=id,
+                    query=self.input_text,
+                )
+            except Exception as e:
+                self.log("Incorrect prompt: " + str(e))
+                return ""
+            summary = self.get_summary(id, prompt)
+            if summary:
+                self.log("@using: " + str(id))
+                contexts.append({id: summary})
+        if contexts:
+            summary = json.dumps(contexts)
+        return summary
+
+    def extract_tags(self, text: str) -> list:
+        """
+        Extract tags from text
+
+        :param text: text
+        :return: list of tags
+        """
+        return re.findall(r"@(\w+)", text)
+
+    def on_user_send(self, text: str):
+        """
+        Event: USER_SEND
+
+        :param text: text
+        """
+        self.input_text = text
 
     def cmd_syntax(self, data: dict):
         """
@@ -559,7 +669,7 @@ class Plugin(BasePlugin):
 
         :param msg: message to log
         """
-        full_msg = '[CTX HISTORY] ' + str(msg)
+        full_msg = '[History] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
         print(full_msg)

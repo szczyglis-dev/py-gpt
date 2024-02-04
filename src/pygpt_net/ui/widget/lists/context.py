@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.04 18:00:00                  #
 # ================================================== #
 import os
 
@@ -60,6 +60,7 @@ class ContextList(BaseList):
         idx = item.row()
 
         is_important = self.window.controller.ctx.is_important(idx)
+        id = self.window.core.ctx.get_id_by_idx(idx)
 
         actions = {}
         actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
@@ -83,11 +84,16 @@ class ContextList(BaseList):
         actions['delete'].triggered.connect(
             lambda: self.action_delete(event))
 
+        actions['copy_id'] = QAction(QIcon(":/icons/copy.svg"), trans('action.ctx_copy_id') + " @" + str(id), self)
+        actions['copy_id'].triggered.connect(
+            lambda: self.action_copy_id(event))
+
         menu = QMenu(self)
         menu.addAction(actions['rename'])
         menu.addAction(actions['duplicate'])
         menu.addAction(actions['important'])
         menu.addAction(actions['delete'])
+
 
         # set label menu
         set_label_menu = menu.addMenu(trans('calendar.day.label'))
@@ -118,6 +124,8 @@ class ContextList(BaseList):
                                          self.action_idx(idx, index))
 
             menu.addMenu(idx_menu)
+
+        menu.addAction(actions['copy_id'])
 
         if idx >= 0:
             self.window.controller.ctx.select_by_idx(item.row())
@@ -197,6 +205,17 @@ class ContextList(BaseList):
         idx = item.row()
         if idx >= 0:
             self.window.controller.ctx.delete(idx)
+
+    def action_copy_id(self, event):
+        """
+        Copy ID tag action handler
+
+        :param event: mouse event
+        """
+        item = self.indexAt(event.pos())
+        idx = item.row()
+        if idx >= 0:
+            self.window.controller.ctx.common.copy_id(idx)
 
 
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):

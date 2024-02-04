@@ -539,7 +539,24 @@ Examples of use, you can ask e.g. for the following:
 
 etc.
 
+From version ``2.0.147`` it is possible to use ``@`` ID tags to automatically use summary of previous contexts in current discussion.
+To use context from previous discussion with specified ID use following syntax in your query:
+
+.. code-block:: ini
+
+   @123
+
+Where ``123`` is the ID of previous context (conversation) in database, example of use:
+
+.. code-block:: ini
+
+   Let's talk about discussion @123
+
 **Options**
+
+- ``Allow to use context @ ID tags`` *use_tags*
+
+When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* ``False``
 
 - ``Allow get date range context list`` *cmd_get_ctx_list_in_date_range*
 
@@ -614,6 +631,15 @@ Syntax for update_day_note command.
 - ``Syntax: remove_day_note`` *syntax_remove_day_note*
 
 Syntax for remove_day_note command.
+
+- ``Prompt: @ tags (system)`` *prompt_tag_system*
+
+Prompt for use @ tag (system).
+
+- ``Prompt: @ tags (summary)`` *prompt_tag_summary*
+
+Prompt for use @ tag (summary).
+
 
 Crontab / Task scheduler
 ------------------------

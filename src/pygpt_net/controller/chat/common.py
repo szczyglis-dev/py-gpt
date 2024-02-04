@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.04 18:00:00                  #
 # ================================================== #
 import os
 
@@ -76,18 +76,19 @@ class Common:
         # set focus to input
         self.window.ui.nodes['input'].setFocus()
 
-    def append_to_input(self, text: str):
+    def append_to_input(self, text: str, separator: str = "\n"):
         """
         Append text to input
 
         :param text: text to append
+        :param separator: text separator
         """
         prev_text = self.window.ui.nodes['input'].toPlainText()
         cur = self.window.ui.nodes['input'].textCursor()
         cur.movePosition(QTextCursor.End)
         text = str(text).strip()
         if prev_text.strip() != "":
-            text = "\n" + text
+            text = separator + text
         s = text
         while s:
             head, sep, s = s.partition("\n")  # Split line at LF
