@@ -101,10 +101,6 @@ images and those found online.
 
 **3) or you can just upload your local images**
 
-.. image:: images/v2_mode_vision_upload.png
-   :width: 800
-
-
 **4) or just use the inline Vision in the standard chat mode.**
 
 

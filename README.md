@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.147** | build: **2024.02.04** | Python: **3.10+**
+Release: **2.0.148** | build: **2024.02.07** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -337,8 +337,6 @@ images and those found online.
 ![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/288a2932-f5fd-4ce3-a43b-0863be05a01a)
 
 **3) or you can just upload your local images**
-
-![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b1e8de3d-e0ae-4612-b6f3-69eaf352b7bf)
 
 **4) or just use the inline Vision in the standard chat mode. Vision model will be activated automatically when you provide an image to analyze.**
 
@@ -2104,6 +2102,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.148 (2024-02-07)
+
+- Fixed input/output timestamps in renderer
+- Added aspect ratio check and fit on image open in Painter tool
 
 # 2.0.147 (2024-02-04)
 

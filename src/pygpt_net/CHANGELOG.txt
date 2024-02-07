@@ -1,3 +1,8 @@
+2.0.148 (2024-02-07)
+
+- Fixed input/output timestamps in renderer
+- Added aspect ratio check and fit on image open in Painter tool
+
 2.0.147 (2024-02-04)
 
 - Added `@` tags for quick access to context from previous discussions in the `Context History` plugin (must be enabled in plugin settings, default: disabled).
