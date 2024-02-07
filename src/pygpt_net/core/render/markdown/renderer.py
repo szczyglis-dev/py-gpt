@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.24 18:00:00                  #
+# Updated Date: 2024.02.07 13:00:00                  #
 # ================================================== #
 
 import re
@@ -262,7 +262,7 @@ class Renderer:
             text = self.append_timestamp(text, item)
             text = self.parser.parse(text)
         else:
-            content = self.append_timestamp(self.format_user_text(text), item)
+            content = self.append_timestamp(self.format_user_text(text), item, type=type)
             text = "<div><p>" + content + "</p></div>"
 
         text = self.post_format_text(text)
@@ -345,20 +345,26 @@ class Renderer:
                 cur.insertHtml("<br>")
         self.get_output_node().setTextCursor(cur)  # Update visible cursor
 
-    def append_timestamp(self, text: str, item: CtxItem) -> str:
+    def append_timestamp(self, text: str, item: CtxItem, type: str = None) -> str:
         """
         Append timestamp to text
 
         :param text: Input text
         :param item: Context item
+        :param type: Type of message
         :return: Text with timestamp (if enabled)
         """
         if item is not None \
                 and self.is_timestamp_enabled() \
                 and item.input_timestamp is not None:
-            ts = datetime.fromtimestamp(item.input_timestamp)
-            hour = ts.strftime("%H:%M:%S")
-            text = '<span class="ts">{}:</span> {}'.format(hour, text)
+            if type == "msg-user":
+                timestamp = item.input_timestamp
+            else:
+                timestamp = item.output_timestamp
+            if timestamp is not None:
+                ts = datetime.fromtimestamp(timestamp)
+                hour = ts.strftime("%H:%M:%S")
+                text = '<span class="ts">{}:</span> {}'.format(hour, text)
         return text
 
     def replace_code_tags(self, text: str) -> str:

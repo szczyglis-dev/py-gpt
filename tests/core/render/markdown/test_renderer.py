@@ -240,7 +240,7 @@ def test_append_timestamp(mock_window):
     text = "test ~###~test~###~ test"
     ctx = CtxItem()
     ctx.input_timestamp = 1234567890
-    assert render.append_timestamp(text, ctx).startswith("<span class=\"ts\">") is True
+    assert render.append_timestamp(text, ctx, "msg-user").startswith("<span class=\"ts\">") is True
 
 
 def test_replace_code_tags(mock_window):

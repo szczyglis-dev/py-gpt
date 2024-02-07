@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 10:00:00                  #
+# Updated Date: 2024.02.07 13:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -97,7 +97,7 @@ class Renderer:
             name = ""
             if item.input_name is not None and item.input_name != "":
                 name = item.input_name + " "
-            ts = datetime.fromtimestamp(item.output_timestamp)
+            ts = datetime.fromtimestamp(item.input_timestamp)
             hour = ts.strftime("%H:%M:%S")
             text = '{}{} > {}'.format(name, hour, item.input)
         else:
