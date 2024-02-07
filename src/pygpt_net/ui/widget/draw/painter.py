@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                   #
+# Updated Date: 2024.02.07 13:00:00                  #
 # ================================================== #
 
 import datetime
@@ -129,8 +129,15 @@ class PainterWidget(QWidget):
         if image.width() == self.width():
             new = image
         else:
-            height = (image.height() * self.width()) / image.width()
-            new = image.scaled(self.width(), int(height), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+            # to fit the width
+            if image.width() > image.height():
+                width = self.width()
+                height = (image.height() * self.width()) / image.width()
+                new = image.scaled(width, int(height), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+            else:
+                height = self.height()
+                width = (image.width() * self.height()) / image.height()
+                new = image.scaled(int(width), height, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
 
         self.image = QImage(self.width(), self.height(), QImage.Format_RGB32)
         self.image.fill(Qt.white)
