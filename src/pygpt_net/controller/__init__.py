@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.agent import Agent
@@ -73,10 +73,10 @@ class Controller:
         self.ui = UI(window)
 
     def setup(self):
-        """Setup controller"""
+        """Setup controller"""        
+        self.debug.setup()  # prepare log level
 
         # setup layout
-        self.debug.setup()  # switch log level
         self.layout.setup()
         self.ui.setup()
 
@@ -112,6 +112,10 @@ class Controller:
                 height=480,
             )
             self.window.ui.dialog['info.license'].setFocus()
+
+    def after_setup(self):
+        """After-setup, after all loaded"""
+        self.plugins.update()
 
     def on_update(self):
         """On app main loop update"""
