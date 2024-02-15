@@ -158,8 +158,12 @@ class Common:
         self.window.ui.nodes['input.send_btn'].setEnabled(True)
         self.window.ui.nodes['input.stop_btn'].setVisible(False)
 
-    def stop(self):
-        """Stop all"""
+    def stop(self, exit: bool = False):
+        """
+        Stop all
+
+        :param exit: True if app exit
+        """
         mode = self.window.core.config.get('mode')
         event = Event(Event.FORCE_STOP, {
             "value": True,
@@ -176,8 +180,11 @@ class Common:
         self.unlock_input()
 
         # remotely stop assistant
-        if mode == "assistant":
-            self.window.controller.assistant.run_stop()
+        if mode == "assistant" and not exit:
+            try:
+                self.window.controller.assistant.run_stop()
+            except Exception as e:
+                self.window.core.debug.log(e)
 
         self.window.controller.chat.input.generating = False
         self.window.ui.status(trans('status.stopped'))
