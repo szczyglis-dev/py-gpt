@@ -69,7 +69,7 @@ class Preset(BaseConfigDialog):
             elif fields[key]["type"] == 'textarea':
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
-                widgets[key].setMaximumHeight(35)
+                widgets[key].setMaximumHeight(38)
                 options[key] = self.add_raw_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
