@@ -122,6 +122,7 @@ class Assistant(BaseConfigDialog):
         widget_prompt.setLayout(options["instructions"])
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        options["instructions"].setContentsMargins(0, 0, 0, 0)
         options["tool.function"].setContentsMargins(0, 0, 0, 0)
 
         widget_tools = QWidget()
