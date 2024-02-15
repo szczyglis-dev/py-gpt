@@ -41,6 +41,7 @@ class Debug:
             format='%(asctime)s - %(levelname)s - %(message)s',
             filename=str(Path(os.path.join(Path.home(), '.config', Config.CONFIG_DIR, 'app.log'))),
             filemode='a',
+            encoding='utf-8',
         )
 
         def handle_exception(exc_type, value, tb):
@@ -66,7 +67,7 @@ class Debug:
         """
         logging.getLogger().setLevel(level)
 
-    def get_log_level(self):
+    def get_log_level(self) -> int:
         """
         Get log level
         """

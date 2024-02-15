@@ -81,8 +81,13 @@ class AppLog:
 
         # load data from log file
         if os.path.exists(path):
-            with open(path, 'r', encoding="utf-8") as file:
-                self.window.ui.editor['app.log'].setPlainText(file.read())
+            try:
+                with open(path, 'rb') as file:
+                    content_bytes = file.read()
+                    content = content_bytes.decode('utf-8', errors='ignore')
+                    self.window.ui.editor['app.log'].setPlainText(content)
+            except Exception as e:
+                print(e)
         self.window.ui.dialog['app.log'].show()
 
         # scroll to the end
