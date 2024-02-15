@@ -69,6 +69,7 @@ class Preset(BaseConfigDialog):
             elif fields[key]["type"] == 'textarea':
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'bool':
+                widgets[key].setMaximumHeight(35)
                 options[key] = self.add_raw_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
@@ -99,6 +100,7 @@ class Preset(BaseConfigDialog):
         # rows_mode.addLayout(options["assistant"])
         rows_mode.addLayout(options["langchain"])
         rows_mode.addLayout(options["llama_index"])
+        rows_mode.addLayout(options["agent"])
 
         rows_mode.addStretch()
         rows_mode.setContentsMargins(0, 0, 0, 0)
@@ -122,9 +124,6 @@ class Preset(BaseConfigDialog):
             options[key].setContentsMargins(0, 0, 0, 0)
             rows.addLayout(options[key])
 
-            if key == "model":
-                rows.addLayout(options["agent"])  # append after model
-
         rows.setContentsMargins(0, 0, 0, 0)
 
         rows.addStretch()
@@ -138,8 +137,9 @@ class Preset(BaseConfigDialog):
 
         main = QHBoxLayout()
         main.addWidget(widget_base)
-        main.addWidget(widget_mode)
+
         main.addWidget(widget_tools)
+        main.addWidget(widget_mode)
         main.setContentsMargins(0, 0, 0, 0)
 
         widget_main = QWidget()
@@ -148,6 +148,8 @@ class Preset(BaseConfigDialog):
         self.window.ui.splitters['editor.presets'] = QSplitter(Qt.Vertical)
         self.window.ui.splitters['editor.presets'].addWidget(widget_main)
         self.window.ui.splitters['editor.presets'].addWidget(widget_prompt)
+        self.window.ui.splitters['editor.presets'].setStretchFactor(0, 1)
+        self.window.ui.splitters['editor.presets'].setStretchFactor(1, 2)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['editor.presets'])

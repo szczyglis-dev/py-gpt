@@ -73,6 +73,12 @@ class Editor:
                 "type": "bool",
                 "label": "preset.llama_index",
             },
+            "model": {
+                "label": "toolbox.model.label",
+                "type": "combo",
+                "use": "models",
+                "keys": [],
+            },
             "temperature": {
                 "type": "float",
                 "slider": True,
@@ -81,12 +87,6 @@ class Editor:
                 "max": 2,
                 "step": 1,
                 "multiplier": 100,
-            },
-            "model": {
-                "label": "toolbox.model.label",
-                "type": "combo",
-                "use": "models",
-                "keys": [],
             },
             "prompt": {
                 "type": "textarea",

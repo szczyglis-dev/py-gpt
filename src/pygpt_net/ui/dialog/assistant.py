@@ -122,6 +122,8 @@ class Assistant(BaseConfigDialog):
         widget_prompt.setLayout(options["instructions"])
         widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        options["tool.function"].setContentsMargins(0, 0, 0, 0)
+
         widget_tools = QWidget()
         widget_tools.setLayout(options["tool.function"])
         widget_tools.setMinimumWidth(400)
@@ -137,6 +139,8 @@ class Assistant(BaseConfigDialog):
         self.window.ui.splitters['editor.assistant'] = QSplitter(Qt.Vertical)
         self.window.ui.splitters['editor.assistant'].addWidget(widget_main)
         self.window.ui.splitters['editor.assistant'].addWidget(widget_prompt)
+        self.window.ui.splitters['editor.assistant'].setStretchFactor(0, 1)
+        self.window.ui.splitters['editor.assistant'].setStretchFactor(1, 2)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['editor.assistant'])
