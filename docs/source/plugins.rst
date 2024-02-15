@@ -19,7 +19,7 @@ The following plugins are currently available, and model can use them instantly:
 * ``Crontab / Task scheduler`` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 * ``DALL-E 3: Image Generation (inline)`` - integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. The plugin does not require the ``Execute commands`` option to be enabled.
 * ``GPT-4 Vision (inline)`` - integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
-* ``Real Time`` - automatically appends the current date and time to prompt, informing the model of the real-time moment.
+* ``Real Time`` - automatically appends the current date and time to the system prompt, informing the model about current time.
 * ``System Prompt Extra (append)`` - the plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 
 

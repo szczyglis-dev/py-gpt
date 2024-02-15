@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.model import ModelItem
@@ -166,4 +166,5 @@ class Plugin(BasePlugin):
         full_msg = '[DALL-E] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
-        print(full_msg)
+        if self.is_log():
+            print(full_msg)

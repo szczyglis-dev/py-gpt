@@ -225,4 +225,5 @@ class Plugin(BasePlugin):
         full_msg = '[CMD] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
-        print(full_msg)
+        if self.is_log():
+            print(full_msg)

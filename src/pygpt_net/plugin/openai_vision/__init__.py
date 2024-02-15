@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -59,16 +59,16 @@ class Plugin(BasePlugin):
             "cmd_capture",
             type="bool",
             value=False,
-            label="Allow command: camera capture",
-            description="Allow to use command: camera capture",
+            label="Enable: camera capture command",
+            description="Allow using command: camera capture",
             tooltip="If enabled, model will be able to capture images from camera",
         )
         self.add_option(
             "cmd_screenshot",
             type="bool",
             value=False,
-            label="Allow command: make screenshot",
-            description="Allow to use command: make screenshot",
+            label="Enable: make screenshot command",
+            description="Allow using command: make screenshot",
             tooltip="If enabled, model will be able to making screenshots",
         )
         self.add_option(
@@ -345,4 +345,5 @@ class Plugin(BasePlugin):
         full_msg = '[Vision] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
-        print(full_msg)
+        if self.is_log():
+            print(full_msg)

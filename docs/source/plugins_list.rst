@@ -354,71 +354,71 @@ If a file being created (with the same name) already exists, a prefix including 
 
 - ``Enable: Get and upload file as attachment`` *cmd_get_file*
 
-Allows `cmd_get_file` command. *Default:* `False`
+Allows `cmd_get_file` command execution. *Default:* `False`
 
 - ``Enable: Read file`` *cmd_read_file*
 
-Allows `read_file` command. *Default:* `True`
+Allows `read_file` command execution. *Default:* `True`
 
 - ``Enable: Append to file`` *cmd_append_file*
 
-Allows `append_file` command. *Default:* `True`
+Allows `append_file` command execution. *Default:* `True`
 
 - ``Enable: Save file`` *cmd_save_file*
 
-Allows `save_file` command. *Default:* `True`
+Allows `save_file` command execution. *Default:* `True`
 
 - ``Enable: Delete file`` *cmd_delete_file*
 
-Allows `delete_file` command. *Default:* `True`
+Allows `delete_file` command execution. *Default:* `True`
 
 - ``Enable: List files in directory (ls)`` *cmd_list_dir*
 
-Allows `list_dirs` command. *Default:* `True`
+Allows `list_dirs` command execution. *Default:* `True`
 
 - ``Enable: Directory creation (mkdir)`` *cmd_mkdir*
 
-Allows `mkdir` command. *Default:* `True`
+Allows `mkdir` command execution. *Default:* `True`
 
 - ``Enable: Downloading files`` *cmd_download_file*
 
-Allows `download_file` command. *Default:* `True`
+Allows `download_file` command execution. *Default:* `True`
 
 - ``Enable: Removing directories`` *cmd_rmdir*
 
-Allows `rmdir` command. *Default:* `True`
+Allows `rmdir` command execution. *Default:* `True`
 
 - ``Enable: Copying files`` *cmd_copy_file*
 
-Allows `copy_file` command. *Default:* `True`
+Allows `copy_file` command execution. *Default:* `True`
 
 - ``Enable: Copying directories (recursive)`` *cmd_copy_dir*
 
-Allows `copy_dir` command. *Default:* `True`
+Allows `copy_dir` command execution. *Default:* `True`
 
 - ``Enable: Move files and directories (rename)`` *cmd_move*
 
-Allows `move` command. *Default:* `True`
+Allows `move` command execution. *Default:* `True`
 
 - ``Enable: Check if path is directory`` *cmd_is_dir*
 
-Allows `is_dir` command. *Default:* `True`
+Allows `is_dir` command execution. *Default:* `True`
 
 - ``Enable: Check if path is file`` *cmd_is_file*
 
-Allows `is_file` command. *Default:* `True`
+Allows `is_file` command execution. *Default:* `True`
 
 - ``Enable: Check if file or directory exists`` *cmd_file_exists*
 
-Allows `file_exists` command. *Default:* `True`
+Allows `file_exists` command execution. *Default:* `True`
 
 - ``Enable: Get file size`` *cmd_file_size*
 
-Allows `file_size` command. *Default:* `True`
+Allows `file_size` command execution. *Default:* `True`
 
 - ``Enable: Get file info`` *cmd_file_info*
 
-Allows `file_info` command. *Default:* `True`
+Allows `file_info` command execution. *Default:* `True`
 
 
 Command: Google Web Search
@@ -554,37 +554,37 @@ Where ``123`` is the ID of previous context (conversation) in database, example 
 
 **Options**
 
-- ``Allow to use context @ ID tags`` *use_tags*
+- ``Enable: using context @ ID tags`` *use_tags*
 
 When enabled, it allows to automatically retrieve context history using @ tags, e.g. use @123 in question to use summary of context with ID 123 as additional context. *Default:* ``False``
 
-- ``Allow get date range context list`` *cmd_get_ctx_list_in_date_range*
+- ``Enable: get date range context list`` *cmd_get_ctx_list_in_date_range*
 
-When enabled, it allows to get the list of context history (previous conversations). *Default:* ``True``
+When enabled, it allows getting the list of context history (previous conversations). *Default:* ``True``
 
-- ``Allow get context content by ID`` *cmd_get_ctx_content_by_id*
+- ``Enable: get context content by ID`` *cmd_get_ctx_content_by_id*
 
-When enabled, it allows to get summarized content of context with defined ID. *Default:* ``True``
+When enabled, it allows getting summarized content of context with defined ID. *Default:* ``True``
 
-- ``Allow count contexts in date range`` *cmd_count_ctx_in_date*
+- ``Enable: count contexts in date range`` *cmd_count_ctx_in_date*
 
-When enabled, it allows to count contexts in date range. *Default:* ``True``
+When enabled, it allows counting contexts in date range. *Default:* ``True``
 
-- ``Allow get day note`` *cmd_get_day_note*
+- ``Enable: get day note`` *cmd_get_day_note*
 
-When enabled, it allows to get day note for specific date. *Default:* ``True``
+When enabled, it allows retrieving day note for specific date. *Default:* ``True``
 
-- ``Allow add day note`` *cmd_add_day_note*
+- ``Enable: add day note`` *cmd_add_day_note*
 
-When enabled, it allows to add day note for specific date. *Default:* ``True``
+When enabled, it allows adding day note for specific date. *Default:* ``True``
 
-- ``Allow update day note`` *cmd_update_day_note*
+- ``Enable: update day note`` *cmd_update_day_note*
 
-When enabled, it allows to update day note for specific date. *Default:* ``True``
+When enabled, it allows updating day note for specific date. *Default:* ``True``
 
-- ``Allow remove day note`` *cmd_remove_day_note*
+- ``Enable: remove day note`` *cmd_remove_day_note*
 
-When enabled, it allows to remove day note for specific date. *Default:* ``True``
+When enabled, it allows removing day note for specific date. *Default:* ``True``
 
 - ``Model`` *model_summarize*
 
@@ -704,14 +704,14 @@ Prompt used for vision mode. It will append or replace current system prompt whe
 
 Replace whole system prompt with vision prompt against appending it to the current prompt.
 
-- ``Allow command: camera capture`` *cmd_capture*
+- ``Enable: "camera capture" command`` *cmd_capture*
 
-Allows use command: camera capture (``Execute commands`` option enabled is required).
+Allows using command: camera capture (``Execute commands`` option enabled is required).
 If enabled, model will be able to capture images from camera itself.
 
-- ``Allow command: make screenshot`` *cmd_screenshot*
+- ``Enable: "make screenshot" command`` *cmd_screenshot*
 
-Allows use command: make screenshot (``Execute commands`` option enabled is required).
+Allows adding command: make screenshot (``Execute commands`` option enabled is required).
 If enabled, model will be able to making screenshots itself.
 
 

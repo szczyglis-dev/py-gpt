@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.04 18:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
+
 import json
 import re
 from datetime import datetime
@@ -44,7 +45,7 @@ class Plugin(BasePlugin):
             "use_tags",
             type="bool",
             value=False,
-            label="Allow to use context @ ID tags",
+            label="Enable: using context @ ID tags",
             description="When enabled, it allows to automatically retrieve context history using @ tags, "
                         "e.g. use @123 in question to retrieve summary of context with ID 123",
         )
@@ -52,50 +53,50 @@ class Plugin(BasePlugin):
             "cmd_get_ctx_list_in_date_range",
             type="bool",
             value=True,
-            label="Allow get date range context list",
-            description="When enabled, it allows to get the list of context history (previous conversations)",
+            label="Enable: get date range context list",
+            description="When enabled, it allows getting the list of context history (previous conversations)",
         )
         self.add_option(
             "cmd_get_ctx_content_by_id",
             type="bool",
             value=True,
-            label="Allow get context content by ID",
-            description="When enabled, it allows to get summarized content of context with defined ID",
+            label="Enable: get context content by ID",
+            description="When enabled, it allows getting summarized content of context with defined ID",
         )
         self.add_option(
             "cmd_count_ctx_in_date",
             type="bool",
             value=True,
-            label="Allow count contexts in date range",
-            description="When enabled, it allows to count contexts in date range",
+            label="Enable: count contexts in date range",
+            description="When enabled, it allows counting contexts in date range",
         )
         self.add_option(
             "cmd_get_day_note",
             type="bool",
             value=True,
-            label="Allow get day note",
-            description="When enabled, it allows to get day note for specific date",
+            label="Enable: get day note",
+            description="When enabled, it allows retrieving day note for specific date",
         )
         self.add_option(
             "cmd_add_day_note",
             type="bool",
             value=True,
-            label="Allow add day note",
-            description="When enabled, it allows to add day note for specific date",
+            label="Enable: add day note",
+            description="When enabled, it allows adding day note for specific date",
         )
         self.add_option(
             "cmd_update_day_note",
             type="bool",
             value=True,
-            label="Allow update day note",
-            description="When enabled, it allows to update day note for specific date",
+            label="Enable: update day note",
+            description="When enabled, it allows updating day note for specific date",
         )
         self.add_option(
             "cmd_remove_day_note",
             type="bool",
             value=True,
-            label="Allow remove day note",
-            description="When enabled, it allows to remove day note for specific date",
+            label="Enable: remove day note",
+            description="When enabled, it allows removing day note for specific date",
         )
         self.add_option(
             "model_summarize",
@@ -672,4 +673,5 @@ class Plugin(BasePlugin):
         full_msg = '[History] ' + str(msg)
         self.debug(full_msg)
         self.window.ui.status(full_msg)
-        print(full_msg)
+        if self.is_log():
+            print(full_msg)
