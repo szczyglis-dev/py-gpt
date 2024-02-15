@@ -46,7 +46,9 @@ class Presets:
 
     def use(self):
         """Copy preset prompt to input"""
-        self.window.controller.chat.common.append_to_input(self.window.ui.nodes['preset.prompt'].toPlainText())
+        self.window.controller.chat.common.append_to_input(
+            self.window.ui.nodes['preset.prompt'].toPlainText()
+        )
 
     def set(self, mode, preset):
         """
@@ -152,6 +154,16 @@ class Presets:
             self.window.core.config.set('prompt', self.window.core.config.get('default_prompt'))
         else:
             self.window.core.config.set('prompt', None)
+
+    def get_current_functions(self):
+        """Get current preset functions"""
+        id = self.window.core.config.get('preset')
+        if id is not None and id != "":
+            if id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[id]
+                if preset.has_functions():
+                    return preset.get_functions()
+        return None
 
     def from_global(self):
         """Update current preset from global prompt"""
