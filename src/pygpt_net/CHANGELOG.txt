@@ -1,3 +1,14 @@
+2.0.149 (2024-02-15)
+
+- Fixed and improved Assistants API (file handling, run handling, token usage, stopping)
+- Added vertical canvas resolutions in Painter
+- Added brush settings restore in Painter
+- Added log file viewer in Debug menu
+- Added log level switch in runtime (Developer settings)
+- Added functions defining and handling in Presets (works in ChatCompletion API)
+- Improved presets and assistants editor dialogs
+- Improved debugger and Developer settings
+
 2.0.148 (2024-02-07)
 
 - Fixed input/output timestamps in renderer

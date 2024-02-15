@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.148** | build: **2024.02.07** | Python: **3.10+**
+Release: **2.0.149** | build: **2024.02.15** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2102,6 +2102,17 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.149 (2024-02-15)
+
+- Fixed and improved Assistants API (file handling, run handling, token usage, stopping)
+- Added vertical canvas resolutions in Painter
+- Added brush settings restore in Painter
+- Added log file viewer in Debug menu
+- Added log level switch in runtime (Developer settings)
+- Added functions defining and handling in Presets (works in ChatCompletion API)
+- Improved presets and assistants editor dialogs
+- Improved debugger and Developer settings
 
 # 2.0.148 (2024-02-07)
 
