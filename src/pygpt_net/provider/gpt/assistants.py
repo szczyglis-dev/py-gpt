@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 21:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import json
 import os
 
 from pygpt_net.item.assistant import AssistantItem
+from pygpt_net.item.ctx import CtxItem
 
 
 class Assistants:
@@ -108,9 +109,10 @@ class Assistants:
         :param path: path to save file
         """
         client = self.window.core.gpt.get_client()
-        content = client.files.retrieve_content(file_id)
+        content = client.files.content(file_id)
+        data = content.read()
         with open(path, 'wb', ) as f:
-            f.write(content.encode())
+            f.write(data)
 
     def run_create(
             self,
@@ -145,22 +147,46 @@ class Assistants:
 
     def run_status(
             self,
-            thread_id: str,
-            run_id: str
+            ctx: CtxItem
     ) -> str:
         """
         Get assistant run status
 
-        :param thread_id: thread ID
-        :param run_id: Run ID
-        :return: Run status
+        :param ctx: context item
+        :return: run status
         """
         client = self.window.core.gpt.get_client()
         run = client.beta.threads.runs.retrieve(
-            thread_id=thread_id,
-            run_id=run_id
+            thread_id=ctx.thread,
+            run_id=ctx.run_id
         )
         if run is not None:
+            if run.usage is not None:
+                ctx.input_tokens = run.usage["prompt_tokens"]
+                ctx.output_tokens = run.usage["completion_tokens"]
+                ctx.total_tokens = run.usage["total_tokens"]
+            return run.status
+
+    def run_stop(
+            self,
+            ctx: CtxItem
+    ) -> str:
+        """
+        Stop assistant run
+
+        :param ctx: context item
+        :return: run status
+        """
+        client = self.window.core.gpt.get_client()
+        run = client.beta.threads.runs.cancel(
+            thread_id=ctx.thread,
+            run_id=ctx.run_id
+        )
+        if run is not None:
+            if run.usage is not None:
+                ctx.input_tokens = run.usage["prompt_tokens"]
+                ctx.output_tokens = run.usage["completion_tokens"]
+                ctx.total_tokens = run.usage["total_tokens"]
             return run.status
 
     def file_upload(

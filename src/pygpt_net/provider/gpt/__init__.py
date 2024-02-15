@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -123,7 +123,7 @@ class Gpt:
                     ctx.run_id = run.id
             return True  # if assistant then return here
 
-        # if async mode (stream)
+        # if stream
         if stream:
             ctx.stream = response
             ctx.set_output("", ai_name)  # set empty output
@@ -143,7 +143,13 @@ class Gpt:
         if mode == "completion":
             output = response.choices[0].text.strip()
         elif mode == "chat" or mode == "vision":
-            output = response.choices[0].message.content.strip()
+            if response.choices[0]:
+                if response.choices[0].message.content:
+                    output = response.choices[0].message.content.strip()
+                elif response.choices[0].message.tool_calls:
+                    ctx.tool_calls = self.window.core.command.unpack_tool_calls(
+                        response.choices[0].message.tool_calls
+                    )
 
         ctx.set_output(output, ai_name)
         ctx.set_tokens(

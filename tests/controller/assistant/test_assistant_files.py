@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 06:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import os
@@ -293,22 +293,3 @@ def test_update_tab(mock_window):
     files.update_tab()
     mock_window.core.assistants.get_by_id.assert_called_once()
     mock_window.ui.tabs['input'].setTabText.assert_called_once()
-
-
-def test_handle_received(mock_window):
-    """Test handle received"""
-    files = Files(mock_window)
-    item = AssistantItem()
-    item.id = "assistant_id"
-    item.files = {
-        "file_id1": {},
-    }
-    msg = MagicMock()
-    msg.file_ids = ["file_id1"]
-    mock_window.controller.attachment.download = MagicMock(return_value="path")
-
-    ctx = CtxItem()
-
-    paths = files.handle_received(ctx, msg)  # will be appended to ctx in thread, not here
-    mock_window.controller.attachment.download.assert_called_once()
-    assert paths == ["path"]

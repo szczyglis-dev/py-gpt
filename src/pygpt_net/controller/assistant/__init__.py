@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -52,6 +52,16 @@ class Assistant:
         """Update assistants list"""
         items = self.window.core.assistants.get_all()
         self.window.ui.toolbox.assistants.update(items)
+
+    def run_stop(self):
+        """Stop assistant run"""
+        ctx = self.window.core.ctx.last_item
+        if ctx is not None:
+            if ctx.run_id is not None and ctx.thread is not None:
+                print("Stopping Run: ", ctx.run_id)
+                status = self.window.core.gpt.assistants.run_stop(ctx)
+                if status == "cancelling":
+                    print("Run has been canceled.")
 
     def prepare(self):
         """Prepare assistants"""

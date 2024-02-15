@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import time
@@ -46,12 +46,16 @@ class Threads:
         :param ctx: CtxItem
         """
         data = self.window.core.gpt.assistants.msg_list(ctx.thread)
+        paths = []
         for msg in data:
             if msg.role == "assistant":
-                ctx.set_output(msg.content[0].text.value)
-                paths = self.window.controller.assistant.files.handle_received(ctx, msg)
+                for content in msg.content:
+                    if content.type == "text":
+                        ctx.set_output(content.text.value)
+
+                # handle files
+                paths += self.window.controller.assistant.files.handle_received_ids(msg.file_ids)
                 if paths:
-                    # append local downloaded files paths list to ctx
                     ctx.files = self.window.core.filesystem.make_local_list(list(paths))
 
                 # update ctx
@@ -69,6 +73,17 @@ class Threads:
                 # update ctx list
                 self.window.controller.ctx.update()
                 break
+
+    def is_log(self) -> bool:
+        """
+        Check if logging is enabled
+
+        :return: bool
+        """
+        if self.window.core.config.has('log.assistants') \
+                and self.window.core.config.get('log.assistants'):
+            return True
+        return False
 
     def handle_run(self, ctx: CtxItem):
         """
@@ -95,12 +110,13 @@ class Threads:
     @Slot(str, object)
     def handle_status(self, status: str, ctx: CtxItem):
         """
-        Insert text to input and send
+        Handle status
 
         :param status: status
         :param ctx: CtxItem
         """
-        print("Run status: {}".format(status))
+        if self.is_log():
+            print("Run status: {}".format(status))
         if status != "queued" and status != "in_progress":
             self.window.controller.chat.common.unlock_input()  # unlock input
         if status == "completed":
@@ -108,6 +124,9 @@ class Threads:
             self.handle_messages(ctx)
             self.window.statusChanged.emit(trans('assistant.run.completed'))
             self.window.stateChanged.emit(self.window.STATE_IDLE)
+
+            # update run tokens
+            self.window.controller.chat.output.show_response_tokens(ctx)
         elif status == "failed":
             self.stop = False
             self.window.controller.chat.common.unlock_input()
@@ -123,7 +142,8 @@ class Threads:
     @Slot()
     def handle_started(self):
         """Handle listening started"""
-        print("Run: assistant is listening status...")
+        if self.is_log():
+            print("Run: assistant is listening status...")
         self.window.statusChanged.emit(trans('assistant.run.listening'))
 
 
@@ -159,10 +179,7 @@ class RunWorker(QRunnable):
             while self.check \
                     and not self.window.is_closing \
                     and not self.window.controller.assistant.threads.stop:
-                status = self.window.core.gpt.assistants.run_status(
-                    self.ctx.thread,
-                    self.ctx.run_id,
-                )
+                status = self.window.core.gpt.assistants.run_status(self.ctx)
                 self.signals.updated.emit(status, self.ctx)
                 # finished or failed
                 if status in self.stop_reasons:

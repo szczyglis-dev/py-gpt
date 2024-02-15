@@ -105,7 +105,7 @@ class Editor:
             id = self.window.core.assistants.get_by_idx(idx)
 
         self.init(id)
-        self.window.ui.dialogs.open_editor('editor.assistants', idx)
+        self.window.ui.dialogs.open_editor('editor.assistants', idx, width=800)
 
     def init(self, id: str = None):
         """

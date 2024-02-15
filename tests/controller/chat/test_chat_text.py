@@ -142,7 +142,7 @@ def test_send_assistant(mock_window):
         mock_window.controller.chat.output.handle_cmd.assert_not_called()  # should NOT handle cmds (if assistant)
 
         mock_window.controller.chat.render.reload.assert_not_called()  # should not reload output (if not stream)
-        mock_window.controller.chat.common.unlock_input.assert_called_once()  # should unlock input
+        mock_window.controller.chat.common.unlock_input.assert_not_called()  # should not unlock input
         mock_window.controller.ctx.prepare_name.assert_called_once()  # should prepare name for ctx
 
         assert ctx.input_name == 'User'  # should have input name

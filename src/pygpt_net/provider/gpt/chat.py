@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
+import json
 
 from pygpt_net.item.ctx import CtxItem
 
@@ -38,6 +39,7 @@ class Chat:
         user_name = ctx.input_name  # from ctx
         ai_name = ctx.output_name  # from ctx
         model = kwargs.get("model", None)
+        functions = kwargs.get("external_functions", None)
         client = self.window.core.gpt.get_client()
 
         # build chat messages
@@ -58,6 +60,29 @@ class Chat:
             if max_tokens < 1:
                 max_tokens = 1
 
+        # extra API kwargs
+        response_kwargs = {}
+
+        # tools / functions
+        tools = []
+        if functions is not None:
+            for function in functions:
+                if str(function['name']).strip() == '' or function['name'] is None:
+                    continue
+                params = json.loads(function['params'])  # unpack JSON from string
+                tools.append(
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": function['name'],
+                            "parameters": params,
+                            "description": function['desc'],
+                        }
+                    }
+                )
+        if len(tools) > 0:
+            response_kwargs['tools'] = tools
+
         response = client.chat.completions.create(
             messages=messages,
             model=model.id,
@@ -67,6 +92,7 @@ class Chat:
             frequency_penalty=self.window.core.config.get('frequency_penalty'),
             presence_penalty=self.window.core.config.get('presence_penalty'),
             stream=stream,
+            **response_kwargs
         )
         return response
 

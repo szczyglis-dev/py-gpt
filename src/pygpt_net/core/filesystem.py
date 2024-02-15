@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import os
@@ -108,7 +108,9 @@ class Filesystem:
         :return: prepared OS-specific path
         """
         parts = PurePath(path).parts
-        return os.path.join(*parts)  # rebuild OS directory separators
+        if len(parts) > 1:
+            return os.path.join(*parts)  # rebuild OS directory separators
+        return path
 
     def to_workdir(self, path) -> str:
         """

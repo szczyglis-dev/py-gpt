@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -33,7 +33,8 @@ class Assistant(BaseConfigDialog):
         """Setups assistant editor dialog"""
         self.window.ui.nodes['assistant.btn.save'] = QPushButton(trans("dialog.assistant.btn.save"))
         self.window.ui.nodes['assistant.btn.save'].clicked.connect(
-            lambda: self.window.controller.assistant.editor.save())
+            lambda: self.window.controller.assistant.editor.save()
+        )
         self.window.ui.nodes['assistant.btn.save'].setAutoDefault(True)
 
         footer = QHBoxLayout()
@@ -60,12 +61,17 @@ class Assistant(BaseConfigDialog):
         self.window.ui.nodes['assistant.api.tip'] = QPushButton(trans('assistant.api.tip'))  # TODO: url btn
         self.window.ui.nodes['assistant.api.tip'].setAutoDefault(False)
         self.window.ui.nodes['assistant.api.tip'].setFlat(True)
-        self.window.ui.nodes['assistant.api.tip'].setStyleSheet("text-align: left; color: #fff; text-decoration: "
-                                                                "underline; text-transform: none;")
+        self.window.ui.nodes['assistant.api.tip'].setStyleSheet(
+            "text-align: left; "
+            "color: #fff; "
+            "text-decoration: underline; "
+            "text-transform: none;"
+        )
         self.window.ui.nodes['assistant.api.tip'].setStyleSheet("text-transform: none;")
         self.window.ui.nodes['assistant.api.tip'].setCursor(Qt.PointingHandCursor)
         self.window.ui.nodes['assistant.api.tip'].clicked.connect(
-            lambda: self.window.controller.assistant.goto_online())
+            lambda: self.window.controller.assistant.goto_online()
+        )
 
         # apply widgets to layouts
         options = {}
@@ -83,37 +89,54 @@ class Assistant(BaseConfigDialog):
             elif fields[key]["type"] == 'combo':
                 options[key] = self.add_option(widgets[key], fields[key])
 
-        rows_up = QVBoxLayout()
-        rows_up.addWidget(self.window.ui.nodes['assistant.id_tip'])
-        rows_up.addLayout(options["id"])
-        rows_up.addLayout(options["name"])
-        rows_up.addLayout(options["description"])
-        rows_up.addLayout(options["model"])
-        rows_up.addLayout(options["instructions"])
-        rows_up.addWidget(self.window.ui.nodes['assistant.api.tip'])
-        rows_up.setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['assistant.tool.function.label'].setVisible(False)  # hide label
+        self.window.ui.nodes['assistant.id_tip'].setAlignment(Qt.AlignCenter)
 
         options["tool.code_interpreter"].setAlignment(Qt.AlignCenter)
         options["tool.retrieval"].setAlignment(Qt.AlignCenter)
+
+        rows = QVBoxLayout()
+        rows.addLayout(options["id"])
+        rows.addLayout(options["name"])
+        rows.addLayout(options["description"])
+        rows.addLayout(options["model"])
+        rows.addWidget(self.window.ui.nodes['assistant.id_tip'])
+        rows.addWidget(self.window.ui.nodes['assistant.api.tip'])
+        rows.setContentsMargins(0, 0, 0, 0)
+
         rows_tools = QHBoxLayout()
         rows_tools.addLayout(options["tool.code_interpreter"])
         rows_tools.addLayout(options["tool.retrieval"])
         rows_tools.setContentsMargins(0, 0, 0, 0)
 
-        tools = QVBoxLayout()
-        tools.addLayout(rows_tools)
-        tools.addLayout(options["tool.function"])
-        tools.setContentsMargins(0, 0, 0, 0)
+        rows.addLayout(rows_tools)
+        rows.addStretch()
 
-        widget_up = QWidget()
-        widget_up.setLayout(rows_up)
+        widget_base = QWidget()
+        widget_base.setLayout(rows)
+
+        widget_base.setMinimumWidth(400)
+        widget_base.setMaximumWidth(450)
+
+        widget_prompt = QWidget()
+        widget_prompt.setLayout(options["instructions"])
+        widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         widget_tools = QWidget()
-        widget_tools.setLayout(tools)
+        widget_tools.setLayout(options["tool.function"])
+        widget_tools.setMinimumWidth(400)
+
+        main = QHBoxLayout()
+        main.addWidget(widget_base)
+        main.addWidget(widget_tools)
+        main.setContentsMargins(0, 0, 0, 0)
+
+        widget_main = QWidget()
+        widget_main.setLayout(main)
 
         self.window.ui.splitters['editor.assistant'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['editor.assistant'].addWidget(widget_up)
-        self.window.ui.splitters['editor.assistant'].addWidget(widget_tools)
+        self.window.ui.splitters['editor.assistant'].addWidget(widget_main)
+        self.window.ui.splitters['editor.assistant'].addWidget(widget_prompt)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['editor.assistant'])

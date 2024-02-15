@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import os
@@ -386,17 +386,32 @@ class Files:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
 
-    def handle_received(self, ctx: CtxItem, msg) -> list:
+    def handle_received(self, ctx: CtxItem, content) -> list:
         """
         Handle (download) received message files
 
         :param ctx: context object
-        :param msg: message object (OpenAI API response)
+        :param content: content object (OpenAI API response)
         :return: downloaded files paths
         """
         num_downloaded = 0
         paths = []
-        for file_id in msg.file_ids:
+        if content.type == "text":
+            if content.text.annotations:
+                for annotation in content.text.annotations:
+                    if self.is_log():
+                        print("Annotation: {}".format(annotation))
+                    if annotation.type == "file_path":
+                        file_id = annotation.file_path.file_id
+                        path = self.window.controller.attachment.download(file_id)
+                        if path is not None:
+                            paths.append(path)
+                            num_downloaded += 1
+
+        elif content.type == "image_file":
+            if self.is_log():
+                print("Downloading image file: {}".format(content.image_file.file_id))
+            file_id = content.image_file.file_id
             path = self.window.controller.attachment.download(file_id)
             if path is not None:
                 paths.append(path)
@@ -409,3 +424,39 @@ class Files:
             # self.window.ui.dialogs.alert(msg)
 
         return paths
+
+    def handle_received_ids(self, ids: list) -> list:
+        """
+        Handle (download) received message files
+
+        :param ids: list of file IDs
+        :return: downloaded files paths
+        """
+        num_downloaded = 0
+        paths = []
+        for file_id in ids:
+            if self.is_log():
+                print("Downloading file: {}".format(file_id))
+            path = self.window.controller.attachment.download(file_id)
+            if path is not None:
+                paths.append(path)
+                num_downloaded += 1
+
+        if num_downloaded > 0:
+            pass
+            # show alert with downloaded files
+            # msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
+            # self.window.ui.dialogs.alert(msg)
+
+        return paths
+
+    def is_log(self) -> bool:
+        """
+        Check if logging is enabled
+
+        :return: bool
+        """
+        if self.window.core.config.has('log.assistants') \
+                and self.window.core.config.get('log.assistants'):
+            return True
+        return False

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.04 18:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 import os
 
@@ -160,6 +160,7 @@ class Common:
 
     def stop(self):
         """Stop all"""
+        mode = self.window.core.config.get('mode')
         event = Event(Event.FORCE_STOP, {
             "value": True,
         })
@@ -173,6 +174,11 @@ class Common:
         self.window.controller.chat.input.stop = True
         self.window.core.gpt.stop()
         self.unlock_input()
+
+        # remotely stop assistant
+        if mode == "assistant":
+            self.window.controller.assistant.run_stop()
+
         self.window.controller.chat.input.generating = False
         self.window.ui.status(trans('status.stopped'))
         self.window.stateChanged.emit(self.window.STATE_IDLE)
