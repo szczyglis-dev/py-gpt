@@ -732,7 +732,6 @@
     },
     "debug": {
         "section": "developer",
-        "description": "Tip: Running application with --debug=1 or --debug=2 command line arguments will enable logging to %workdir%/app.log file. Log levels: 1 = INFO, 2 = DEBUG",
         "type": "bool",
         "slider": false,
         "label": "settings.developer.debug",
@@ -743,16 +742,71 @@
         "step": 1,
         "advanced": false
     },
-    "llama.log": {
+    "log.plugins": {
         "section": "developer",
         "type": "bool",
         "slider": false,
-        "label": "Log llama-index usages to console",
+        "label": "Log plugins usage to console",
         "value": false,
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
         "advanced": false
+    },
+    "log.dalle": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log DALL-E usage to console",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "log.llama": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log Llama-index usage to console",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "log.assistants": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log Assistants usage to console",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "log.level": {
+        "section": "developer",
+        "description": "Tip: Running application with --debug=1 or --debug=2 command line arguments overwrites this settings and force enables logging to %workdir%/app.log file. Log levels: 1 = INFO, 2 = DEBUG",
+        "type": "combo",
+        "slider": false,
+        "label": "Log Level",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "keys": [
+            {"error": "ERROR (default)"},
+            {"warning": "WARNING"},
+            {"info": "INFO"},
+            {"debug": "DEBUG"}
+        ]
     }
 }

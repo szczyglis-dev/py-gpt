@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.02.14 16:00:00                  #
 # ================================================== #
 
 import os
@@ -57,6 +57,46 @@ class Debug:
                 traceback.print_exception(exc_type, value, tb)
 
         sys.excepthook = handle_exception
+
+    def switch_log_level(self, level: int):
+        """
+        Set log level
+
+        :param level: log level
+        """
+        logging.getLogger().setLevel(level)
+
+    def get_log_level(self):
+        """
+        Get log level
+        """
+        return logging.getLogger().getEffectiveLevel()
+
+    def get_log_level_name(self) -> str:
+        """
+        Get current log level name
+
+        :return: log level name
+        """
+        return self.get_log_level_name_by_id(self.get_log_level())
+
+    def get_log_level_name_by_id(self, id: int) -> str:
+        """
+        Get log level name by id
+
+        :param id: log level id
+        :return: log level name
+        """
+        if id == logging.ERROR:
+            return "error"
+        elif id == logging.WARNING:
+            return "warning"
+        elif id == logging.INFO:
+            return "info"
+        elif id == logging.DEBUG:
+            return "debug"
+        else:
+            return "unknown"
 
     def info(self, message=None, console: bool = True):
         """

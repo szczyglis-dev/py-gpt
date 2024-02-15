@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.01.31 20:00:00                  #
 # ================================================== #
+import json
 
 from PySide6.QtWidgets import QApplication
 
@@ -32,11 +33,23 @@ class Output:
 
         :param ctx: CtxItem
         :param mode: mode
-        :param stream_mode: async stream mode
+        :param stream_mode: stream mode
         """
+        append_stream = stream_mode
+
         # if stream mode then append chunk by chunk
-        if stream_mode and mode not in self.not_stream_modes:
+        if append_stream and mode not in self.not_stream_modes:
             self.append_stream(ctx, mode)
+
+        # check if tool calls detected
+        if ctx.tool_calls:
+            print("Tool calls detected")
+            print(ctx.tool_calls)
+            self.window.core.command.append_tool_calls(ctx)  # append tool calls as commands
+            if not isinstance(ctx.extra, dict):
+                ctx.extra = {}
+            ctx.extra["tool_calls"] = ctx.tool_calls
+            append_stream = False  # disable stream mode, show tool calls at the end
 
         # agent mode
         if mode == 'agent':
@@ -49,8 +62,8 @@ class Output:
 
         self.log("Appending output to chat window...")
 
-        # only append output if not in async stream mode, TODO: plugin output add
-        if not stream_mode:
+        # only append output if not in stream mode, TODO: plugin output add
+        if not append_stream:
             self.window.controller.chat.render.append_output(ctx)
             self.window.controller.chat.render.append_extra(ctx)
 
@@ -94,6 +107,9 @@ class Output:
         try:
             if ctx.stream is not None:
                 self.log("Reading stream...")  # log
+
+                tool_calls = []
+
                 for chunk in ctx.stream:
                     # if force stop then break
                     if self.window.controller.chat.input.stop:
@@ -103,8 +119,29 @@ class Output:
 
                     # chat and vision
                     if response_mode == "chat" or response_mode == "vision":
-                        if chunk.choices[0].delta.content is not None:
+                        if chunk.choices[0].delta and chunk.choices[0].delta.content is not None:
                             response = chunk.choices[0].delta.content
+                        elif chunk.choices[0].delta and chunk.choices[0].delta.tool_calls:
+                            tool_chunks = chunk.choices[0].delta.tool_calls
+                            for tool_chunk in tool_chunks:
+                                if len(tool_calls) <= tool_chunk.index:
+                                    tool_calls.append(
+                                        {
+                                            "id": "",
+                                            "type": "function",
+                                            "function": {
+                                                "name": "",
+                                                "arguments": ""
+                                            }
+                                        }
+                                    )
+                                tool_call = tool_calls[tool_chunk.index]
+                                if tool_chunk.id:
+                                    tool_call["id"] += tool_chunk.id
+                                if tool_chunk.function.name:
+                                    tool_call["function"]["name"] += tool_chunk.function.name
+                                if tool_chunk.function.arguments:
+                                    tool_call["function"]["arguments"] += tool_chunk.function.arguments
 
                     # completion
                     elif response_mode == "completion":
@@ -140,6 +177,10 @@ class Output:
                         QApplication.processEvents()  # process events to update UI after each chunk
                         begin = False
 
+                # unpack and store tool calls
+                if tool_calls:
+                    self.window.core.command.unpack_tool_calls_chunks(ctx, tool_calls)
+
         except Exception as e:
             self.window.core.debug.log(e)
 
@@ -155,17 +196,12 @@ class Output:
         ctx.output = output
         ctx.set_tokens(ctx.input_tokens, output_tokens)
 
-    def handle_complete(self, ctx: CtxItem):
+    def show_response_tokens(self, ctx: CtxItem):
         """
-        Handle completed context
+        Update response tokens
 
         :param ctx: CtxItem
         """
-        mode = self.window.core.config.get('mode')
-        self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
-        self.window.core.ctx.store()
-        self.window.controller.ctx.update_ctx()  # update current ctx info
-
         extra_data = ""
         if ctx.is_vision:
             extra_data = " (VISION)"
@@ -177,6 +213,20 @@ class Output:
                 ctx.total_tokens,
                 extra_data,
             ))
+
+    def handle_complete(self, ctx: CtxItem):
+        """
+        Handle completed context
+
+        :param ctx: CtxItem
+        """
+        mode = self.window.core.config.get('mode')
+        self.window.core.ctx.post_update(mode)  # post update context, store last mode, etc.
+        self.window.core.ctx.store()
+        self.window.controller.ctx.update_ctx()  # update current ctx info
+
+        # update response tokens
+        self.show_response_tokens(ctx)
 
         # store to history
         if self.window.core.config.get('store_history'):

@@ -100,6 +100,11 @@
   "llama.idx.storage.args": [],
   "llama.log": false,
   "lock_modes": true,
+  "log.assistants": false,
+  "log.dalle": false,
+  "log.level": "error",
+  "log.llama": false,
+  "log.plugins": false,
   "max_context_history_items": 100,
   "max_output_tokens": 1024,
   "max_tokens_length": 32000,
@@ -109,18 +114,11 @@
   "notepad.num": 1,
   "organization_key": "",
   "output_timestamp": false,
+  "painter.brush.color": "Black",
+  "painter.brush.mode": "brush",
+  "painter.brush.size": 3,
   "painter.canvas.size": "800x600",
-  "plugins": {
-    "real_time": {
-      "date": true,
-      "hour": true,
-      "tpl": " Current time is {time}."
-    },
-    "self_loop": {
-      "iterations": 3,
-      "reverse_roles": true
-    }
-  },
+  "plugins": {},
   "plugins_enabled": {
     "audio_azure": false,
     "audio_openai_tts": false,
@@ -128,6 +126,7 @@
     "cmd_code_interpreter": true,
     "cmd_custom": true,
     "cmd_files": true,
+    "cmd_history": false,
     "cmd_serial": false,
     "cmd_web_google": true,
     "crontab": false,

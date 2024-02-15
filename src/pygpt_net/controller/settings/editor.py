@@ -133,6 +133,11 @@ class Editor:
             self.window.core.filesystem.install()
             self.window.controller.files.update_explorer()
 
+        # switch log level in runtime
+        if 'log.level' in self.before_config \
+                and self.before_config['log.level'] != self.window.core.config.get('log.level'):
+            self.window.controller.debug.set_log_level(self.window.core.config.get('log.level'))
+
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
 

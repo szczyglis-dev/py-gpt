@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 17:00:00                  #
+# Updated Date: 2024.02.14 16:00:00                  #
 # ================================================== #
 
 from datetime import datetime
+from logging import ERROR, WARNING, INFO, DEBUG
 
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QTextCursor
@@ -24,6 +25,8 @@ class Debug:
         """
         self.window = window
         self.is_logger = False  # logger window opened
+        self.is_app_log = False  # app log window opened
+        self.allow_level_change = False  # allow changing log level
 
     def update(self):
         """Update debug"""
@@ -42,6 +45,37 @@ class Debug:
         else:
             self.window.ui.menu['debug.logger'].setChecked(False)
 
+        if self.is_app_log:
+            self.window.ui.menu['debug.app.log'].setChecked(True)
+        else:
+            self.window.ui.menu['debug.app.log'].setChecked(False)
+
+    def set_log_level(self, level: str = 'error'):
+        """
+        Switch logging level in runtime
+
+        :param level: log level (debug, info, warning, error), default: error
+        """
+        if not self.allow_level_change:
+            return
+
+        print("[LOGGER] Changing log level to: " + level)
+
+        if level == 'debug':
+            self.window.core.debug.switch_log_level(DEBUG)
+            print("** DEBUG level enabled")
+        elif level == 'info':
+            self.window.core.debug.switch_log_level(INFO)
+            print("** INFO level enabled")
+        elif level == 'warning':
+            self.window.core.debug.switch_log_level(WARNING)
+            print("** WARNING level enabled")
+        else:
+            self.window.core.debug.switch_log_level(ERROR)
+            print("** ERROR level enabled")
+
+        self.window.ui.dialogs.app_log.update_log_level()
+
     def on_update(self, all: bool = False):
         """
         Update debug windows (only if active)
@@ -54,6 +88,22 @@ class Debug:
             if self.window.controller.dialogs.debug.is_active(id):
                 if all or id not in not_realtime:
                     self.window.controller.dialogs.debug.update_worker(id)
+
+    def setup(self):
+        """Setup debug"""
+        current = self.window.core.debug.get_log_level()
+        if current == ERROR:
+            self.allow_level_change = True
+        else:
+            return
+
+        # switch log level if set in config
+        if self.window.core.config.has('log.level'):
+            level = self.window.core.config.get('log.level')
+            if level != "error":
+                print("[LOGGER] Started with log level: " + self.window.core.debug.get_log_level_name())
+                print("[LOGGER] Switching to: " + level)
+                self.set_log_level(level)
 
     @Slot(object)
     def handle_log(self, data: any):
@@ -131,6 +181,24 @@ class Debug:
         else:
             self.window.controller.dialogs.debug.show(id)
             self.on_update(True)
+
+        self.log('debug.' + id + ' toggled')
+
+        # update menu
+        self.update()
+
+    def toggle_app_log(self):
+        """
+        Toggle app log window
+        """
+        id = 'app.log'
+        if self.is_app_log:
+            self.window.ui.dialogs.close(id)
+            self.is_app_log = False
+        else:
+            self.window.ui.dialogs.open(id, width=800, height=600)
+            self.window.ui.dialogs.app_log.reload()
+            self.is_app_log = True
 
         self.log('debug.' + id + ' toggled')
 

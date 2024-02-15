@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 import copy
@@ -47,6 +47,7 @@ class Editor:
             "mode": {
                 "type": "text",  # list of comma separated values
                 "label": "model.mode",
+                "description": "model.mode.desc",
             },
             "default": {
                 "type": "bool",

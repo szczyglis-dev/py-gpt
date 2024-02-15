@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -165,6 +165,17 @@ class BasePlugin:
         """
         self.window.core.debug.info(data)
 
+    def is_log(self) -> bool:
+        """
+        Check if logging to console is enabled
+
+        :return: True if log is enabled
+        """
+        if self.window.core.config.has("log.plugins") \
+                and self.window.core.config.get("log.plugins"):
+            return True
+        return False
+
     def log(self, msg: str):
         """
         Log message to logger and console
@@ -173,7 +184,8 @@ class BasePlugin:
         """
         self.debug(msg)
         self.window.ui.status(msg)
-        print(msg)
+        if self.is_log():
+            print(msg)
 
     @Slot(object, object)
     def handle_finished(self, response: dict, ctx: CtxItem = None):

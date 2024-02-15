@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 import os
@@ -89,7 +89,10 @@ class Image:
         :param msg: status message
         """
         self.window.ui.status(msg)
-        print(msg)
+
+        if self.window.core.config.has("log.dalle") \
+                and self.window.core.config.get("log.dalle"):
+            print(msg)
 
     @Slot()
     def handle_error(self, msg: any):

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.10 10:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
+
 import copy
 
 from PySide6.QtCore import Qt
@@ -250,9 +251,16 @@ class Models:
         key = option['id']
         label = trans(option['label'])
         label_key = 'model.' + key + '.label'
+        desc = None
+        desc_key = None
+
         if option['type'] != 'bool':
             self.window.ui.nodes[label_key] = QLabel(label)
             self.window.ui.nodes[label_key].setStyleSheet("font-weight: bold;")
+
+        if "description" in option:
+            desc = trans(option['description'])
+            desc_key = 'model.' + key + '.desc'
 
         # 2-columns layout
         if option['type'] not in one_column_types:
@@ -274,6 +282,13 @@ class Models:
             else:
                 widget.box.setText(label)  # set checkbox label
             layout.addWidget(widget)
+
+        if desc:
+            self.window.ui.nodes[desc_key] = QLabel(desc)
+            self.window.ui.nodes[desc_key].setWordWrap(True)
+            self.window.ui.nodes[desc_key].setMaximumHeight(40)
+            self.window.ui.nodes[desc_key].setStyleSheet("font-size: 10px;")
+            layout.addWidget(self.window.ui.nodes[desc_key])
 
         line = self.add_line()  # TODO: change name to separator
         layout.addWidget(line)

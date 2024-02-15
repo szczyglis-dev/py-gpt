@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 23:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import os
@@ -741,6 +741,34 @@ class Patch:
                         and 'syntax_get_ctx_content_by_id' in data['plugins']['cmd_history']:
                     # remove
                     del data['plugins']['cmd_history']['syntax_get_ctx_content_by_id']
+                updated = True
+
+            # < 2.0.149
+            if old < parse_version("2.0.149"):
+                print("Migrating config from < 2.0.149...")
+                # logger
+                if 'log.dalle' not in data:
+                    data['log.dalle'] = False
+                if 'log.level' not in data:
+                    data['log.level'] = "error"
+                if 'log.plugins' not in data:
+                    data['log.plugins'] = False
+                if 'log.assistants' not in data:
+                    data['log.assistants'] = False
+                if 'log.llama' not in data:
+                    if 'llama.log' in data:
+                        data['log.llama'] = data['llama.log']
+                        del data['llama.log']
+                    else:
+                        data['log.llama'] = False
+
+                # painter
+                if 'painter.brush.color' not in data:
+                    data['painter.brush.color'] = 'Black'
+                if 'painter.brush.mode' not in data:
+                    data['painter.brush.mode'] = 'brush'
+                if 'painter.brush.size' not in data:
+                    data['painter.brush.size'] = 3
                 updated = True
 
         # update file

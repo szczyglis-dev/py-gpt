@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.14 16:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -28,8 +28,12 @@ class Confirm:
         """
         self.window.ui.dialog['confirm'].close()
 
+        # app
+        if type == 'app.log.clear':
+            self.window.ui.dialogs.app_log.clear(force=True)
+
         # presets
-        if type == 'preset_exists':
+        elif type == 'preset_exists':
             self.window.controller.presets.editor.save(True)
         elif type == 'preset_delete':
             self.window.controller.presets.delete(id, True)

@@ -530,7 +530,7 @@ class IndexWorker(QRunnable):
             result = {}
             errors = []
             is_log = False
-            if self.window.core.config.has("llama.log") and self.window.core.config.get("llama.log"):
+            if self.window.core.config.has("log.llama") and self.window.core.config.get("log.llama"):
                 is_log = True
 
             # log indexing

@@ -10,6 +10,7 @@
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
+from pygpt_net.ui.dialog.applog import AppLog
 from pygpt_net.ui.dialog.assistant import Assistant
 from pygpt_net.ui.dialog.changelog import Changelog
 from pygpt_net.ui.dialog.create import Create
@@ -40,6 +41,7 @@ class Dialogs:
         self.window = window
         self.about = About(self.window)
         self.assistant = Assistant(self.window)
+        self.app_log = AppLog(self.window)
         self.changelog = Changelog(self.window)
         self.create = Create(self.window)
         self.debug = Debug(self.window)
@@ -59,6 +61,7 @@ class Dialogs:
             self.debug.setup(id)
 
         self.about.setup()
+        self.app_log.setup()
         self.changelog.setup()
         self.create.setup()
         self.preset.setup()
