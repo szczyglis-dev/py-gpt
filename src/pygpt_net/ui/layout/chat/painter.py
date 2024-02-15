@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea
@@ -65,8 +65,6 @@ class Painter:
             self.window.controller.painter.common.change_brush_size)
         self.window.ui.nodes[key].setMinimumContentsLength(10)
         self.window.ui.nodes[key].setSizeAdjustPolicy(QComboBox.AdjustToContents)
-        self.window.ui.nodes[key].setCurrentIndex(
-            self.window.ui.nodes[key].findText('3'))
         top.addWidget(self.window.ui.nodes[key])
 
         key = 'painter.select.brush.color'

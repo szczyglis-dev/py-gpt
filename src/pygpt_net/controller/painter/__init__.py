@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 import os
@@ -33,12 +33,13 @@ class Painter:
         if self.window.core.config.has('painter.canvas.size'):
             size = self.window.core.config.get('painter.canvas.size')
         self.common.change_canvas_size(size)
+        self.common.restore_brush_settings()
 
     def open(self, path: str):
         """
-        Open image
+        Open image from file
 
-        :param path: str
+        :param path: path to image
         """
         self.window.ui.painter.open_image(path)
 

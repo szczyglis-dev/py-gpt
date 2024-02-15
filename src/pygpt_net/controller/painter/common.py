@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.02.14 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
@@ -49,6 +49,8 @@ class Common:
         if enabled:
             self.window.ui.nodes['painter.select.brush.color'].setCurrentText("Black")
             self.window.ui.painter.set_brush_color(Qt.black)
+            self.window.core.config.set('painter.brush.mode', "brush")
+            self.window.core.config.save()
 
     def set_erase_mode(self, enabled: bool):
         """
@@ -59,6 +61,8 @@ class Common:
         if enabled:
             self.window.ui.nodes['painter.select.brush.color'].setCurrentText("White")
             self.window.ui.painter.set_brush_color(Qt.white)
+            self.window.core.config.set('painter.brush.mode', "erase")
+            self.window.core.config.save()
 
     def change_canvas_size(self, selected=None):
         """
@@ -81,12 +85,62 @@ class Common:
 
         :param size: Brush size
         """
-        self.window.ui.painter.set_brush_size(int(size))
+        size = int(size)
+        self.update_brush_size(size)
+        self.window.core.config.set('painter.brush.size', size)
+        self.window.core.config.save()
 
     def change_brush_color(self):
         """Change the brush color"""
         color = self.window.ui.nodes['painter.select.brush.color'].currentData()
+        text_color = self.window.ui.nodes['painter.select.brush.color'].currentText()
+        self.update_brush_color(color)
+        self.window.core.config.set('painter.brush.color', text_color)
+        self.window.core.config.save()
+
+    def update_brush_size(self, size: int):
+        """
+        Update brush size
+
+        :param size: Brush size
+        """
+        self.window.ui.painter.set_brush_size(size)
+
+    def update_brush_color(self, color: QColor):
+        """
+        Update brush color
+
+        :param color: QColor
+        """
         self.window.ui.painter.set_brush_color(color)
+
+    def restore_brush_settings(self):
+        """Restore brush settings"""
+        brush_color = None
+        if self.window.core.config.has('painter.brush.color'):
+            brush_color = self.window.core.config.get('painter.brush.color', "Black")
+
+        # mode
+        if self.window.core.config.has('painter.brush.mode'):
+            mode = self.window.core.config.get('painter.brush.mode', "brush")
+            if mode == "brush":
+                self.window.ui.nodes['painter.btn.brush'].setChecked(True)
+                self.set_brush_mode(True)
+            elif mode == "erase":
+                self.window.ui.nodes['painter.btn.erase'].setChecked(True)
+                self.set_erase_mode(True)
+        # color
+        if brush_color:
+            color = self.get_colors().get(brush_color)
+            self.window.ui.nodes['painter.select.brush.color'].setCurrentText(brush_color)
+            self.update_brush_color(color)
+
+        # size
+        size = 3
+        if self.window.core.config.has('painter.brush.size'):
+            size = int(self.window.core.config.get('painter.brush.size', 3))
+        self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
+                self.window.ui.nodes['painter.select.brush.size'].findText(str(size)))
 
     def get_colors(self) -> dict:
         """
@@ -121,8 +175,12 @@ class Common:
         :return: list of sizes
         """
         return [
+            # horizontal:
             "640x480", "800x600", "1024x768", "1280x720", "1600x900",
-            "1920x1080", "2560x1440", "3840x2160", "4096x2160"
+            "1920x1080", "2560x1440", "3840x2160", "4096x2160",
+            # vertical:
+            "480x640", "600x800", "768x1024", "720x1280", "900x1600",
+            "1080x1920", "1440x2560", "2160x3840", "2160x4096"
         ]
 
     def get_capture_dir(self) -> str:
