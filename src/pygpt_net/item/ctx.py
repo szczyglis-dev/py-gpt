@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 23:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -52,6 +52,7 @@ class CtxItem:
         self.is_vision = False
         self.idx = 0
         self.first = False
+        self.tool_calls = []  # API tool calls
 
     def set_input(self, input: str | None, name: str = None):
         """

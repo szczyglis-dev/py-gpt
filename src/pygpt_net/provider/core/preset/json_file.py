@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 10:00:00                  #
+# Updated Date: 2024.02.14 16:00:00                  #
 # ================================================== #
 
 import json
@@ -180,6 +180,7 @@ class JsonFileProvider(BaseProvider):
             'temperature': item.temperature,
             'filename': item.filename,
             'model': item.model,
+            'tools': item.tools,
         }
 
     @staticmethod
@@ -220,6 +221,10 @@ class JsonFileProvider(BaseProvider):
             item.filename = data['filename']
         if 'model' in data:
             item.model = data['model']
+        if 'tools' in data:
+            item.tools = data['tools']
+
+        # get version
         if '__meta__' in data and 'version' in data['__meta__']:
             item.version = data['__meta__']['version']
 

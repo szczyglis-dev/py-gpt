@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.14 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -92,6 +92,20 @@ class Editor:
                 "type": "textarea",
                 "label": "preset.prompt",
             },
+            "tool.function": {
+                "type": "dict",
+                "label": "preset.tool.function",
+                "keys": {
+                    'name': 'text',
+                    'params': 'textarea',
+                    'desc': 'textarea',
+                },
+                "extra": {
+                    "urls": {
+                        "Help": "https://platform.openai.com/docs/guides/function-calling",
+                    },
+                },
+            },
         }
         self.id = "preset"
 
@@ -119,6 +133,15 @@ class Editor:
         # add hooks for config update in real-time
         self.window.ui.add_hook("update.preset.prompt", self.hook_update)
 
+        # register functions dictionary
+        parent = "preset"
+        key = "tool.function"
+        self.window.ui.dialogs.register_dictionary(
+            key,
+            parent,
+            self.get_option(key),
+        )
+
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
         Hook: on settings update
@@ -143,7 +166,7 @@ class Editor:
             mode = self.window.core.config.get('mode')
             preset = self.window.core.presets.get_by_idx(idx, mode)
         self.init(preset)
-        self.window.ui.dialogs.open_editor('editor.preset.presets', idx)
+        self.window.ui.dialogs.open_editor('editor.preset.presets', idx, width=800)
 
     def init(self, id: str = None):
         """
@@ -202,6 +225,24 @@ class Editor:
             self.id,
             options,
         )
+
+        # restore functions
+        if data.has_functions():
+            functions = data.get_functions()
+            values = []
+            for function in functions:
+                values.append(
+                    {
+                        "name": function['name'],
+                        "params": function['params'],
+                        "desc": function['desc'],
+                    }
+                )
+            self.window.ui.config[self.id]['tool.function'].items = values
+            self.window.ui.config[self.id]['tool.function'].model.updateData(values)
+        else:
+            self.window.ui.config[self.id]['tool.function'].items = []
+            self.window.ui.config[self.id]['tool.function'].model.updateData([])
 
         # set focus to name field
         self.window.ui.config[self.id]['name'].setFocus()
@@ -308,6 +349,10 @@ class Editor:
         """
         data_dict = {}
         for key in self.options:
+            # assigned separately
+            if key == "tool.function":
+                continue
+
             data_dict[key] = self.window.controller.config.get_value(
                 parent_id=self.id,
                 key=key,
@@ -317,7 +362,42 @@ class Editor:
             data_dict['name'] = id + " " + trans('preset.untitled')
         if data_dict['model'] == '_':
             data_dict['model'] = None
-        self.window.core.presets.items[id].from_dict(data_dict)
+
+        preset = self.window.core.presets.items[id]
+        preset.from_dict(data_dict)
+        preset.tools = {
+            'function': [],  # functions are assigned separately (below)
+        }
+
+        # assign functions tool
+        values = self.window.controller.config.get_value(
+            parent_id=self.id,
+            key='tool.function',
+            option=self.options['tool.function'],
+        )
+        functions = []
+        for function in values:
+            name = function['name']
+            params = function['params']
+            desc = function['desc']
+            if name is None or name == "":
+                continue
+            if params is None or params == "":
+                params = '{"type": "object", "properties": {}}'  # default empty JSON params
+            if desc is None:
+                desc = ""
+            functions.append(
+                {
+                    "name": name,
+                    "params": params,
+                    "desc": desc,
+                }
+            )
+
+        if len(functions) > 0:
+            preset.tools['function'] = functions
+        else:
+            preset.tools['function'] = []
 
     def to_current(self, preset: PresetItem):
         """

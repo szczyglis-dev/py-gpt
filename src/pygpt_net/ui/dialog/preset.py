@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.14 12:00:00                  #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget
+from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy
 
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
 from pygpt_net.ui.widget.dialog.editor import EditorDialog
@@ -58,6 +58,9 @@ class Preset(BaseConfigDialog):
         for key in widgets:
             self.window.ui.config[self.id][key] = widgets[key]
 
+        # btn: add function
+        self.window.ui.config[self.id]['tool.function'].add_btn.setText(trans('assistant.func.add'))
+
         # apply widgets to layouts
         options = {}
         for key in widgets:
@@ -70,42 +73,81 @@ class Preset(BaseConfigDialog):
             elif fields[key]["type"] == 'dict':
                 options[key] = self.add_row_option(widgets[key], fields[key])
             elif fields[key]["type"] == 'combo':
-                options[key] = self.add_row_option(widgets[key], fields[key])
+                options[key] = self.add_option(widgets[key], fields[key])
+
+        self.window.ui.nodes['preset.tool.function.label'].setVisible(False)  # hide label
 
         rows = QVBoxLayout()
 
-        ignore_keys = ["chat", "completion", "img", "vision", "llama_index", "langchain", "prompt"]
+        ignore_keys = ["chat", "completion", "img", "vision", "llama_index", "langchain", "agent", "prompt", "tool.function"]
 
-        rows1 = QHBoxLayout()
-        rows1.addLayout(options["chat"])
-        rows1.addLayout(options["completion"])
-        rows1.addLayout(options["img"])
+        options["chat"].setContentsMargins(0, 0, 0, 0)
+        options["completion"].setContentsMargins(0, 0, 0, 0)
+        options["img"].setContentsMargins(0, 0, 0, 0)
+        options["vision"].setContentsMargins(0, 0, 0, 0)
+        options["langchain"].setContentsMargins(0, 0, 0, 0)
+        options["llama_index"].setContentsMargins(0, 0, 0, 0)
+        options["agent"].setContentsMargins(0, 0, 0, 0)
+        options["prompt"].setContentsMargins(0, 0, 0, 0)
+        options["tool.function"].setContentsMargins(0, 0, 0, 0)
 
-        rows2 = QHBoxLayout()
-        rows2.addLayout(options["vision"])
-        # rows2.addLayout(options["assistant"])
-        rows2.addLayout(options["langchain"])
-        rows2.addLayout(options["llama_index"])
+        rows_mode = QVBoxLayout()
+        rows_mode.addLayout(options["chat"])
+        rows_mode.addLayout(options["completion"])
+        rows_mode.addLayout(options["img"])
+        rows_mode.addLayout(options["vision"])
+        # rows_mode.addLayout(options["assistant"])
+        rows_mode.addLayout(options["langchain"])
+        rows_mode.addLayout(options["llama_index"])
 
-        rows_bottom = QWidget()
-        rows_bottom.setLayout(options["prompt"])
+        rows_mode.addStretch()
+        rows_mode.setContentsMargins(0, 0, 0, 0)
+
+        widget_mode = QWidget()
+        widget_mode.setLayout(rows_mode)
+        widget_mode.setContentsMargins(0, 0, 0, 0)
+
+        widget_prompt = QWidget()
+        widget_prompt.setLayout(options["prompt"])
+        widget_prompt.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        widget_tools = QWidget()
+        widget_tools.setLayout(options["tool.function"])
+        widget_tools.setMinimumWidth(400)
 
         # append widgets options layouts to rows
         for key in options:
             if key in ignore_keys:
                 continue
+            options[key].setContentsMargins(0, 0, 0, 0)
             rows.addLayout(options[key])
-            if key == "user_name":
-                 rows.addLayout(rows1)
-                 rows.addLayout(rows2)
+
+            if key == "model":
+                rows.addLayout(options["agent"])  # append after model
+
+        rows.setContentsMargins(0, 0, 0, 0)
 
         rows.addStretch()
-        rows_top = QWidget()
-        rows_top.setLayout(rows)
+        widget_base = QWidget()
+        widget_base.setLayout(rows)
+
+        # set max width to options
+        widget_base.setMinimumWidth(400)
+        widget_base.setMaximumWidth(450)
+        widget_mode.setMaximumWidth(300)
+
+        main = QHBoxLayout()
+        main.addWidget(widget_base)
+        main.addWidget(widget_mode)
+        main.addWidget(widget_tools)
+        main.setContentsMargins(0, 0, 0, 0)
+
+        widget_main = QWidget()
+        widget_main.setLayout(main)
 
         self.window.ui.splitters['editor.presets'] = QSplitter(Qt.Vertical)
-        self.window.ui.splitters['editor.presets'].addWidget(rows_top)
-        self.window.ui.splitters['editor.presets'].addWidget(rows_bottom)
+        self.window.ui.splitters['editor.presets'].addWidget(widget_main)
+        self.window.ui.splitters['editor.presets'].addWidget(widget_prompt)
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.splitters['editor.presets'])

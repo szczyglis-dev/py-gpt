@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                 #
+# Updated Date: 2024.02.15 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -71,6 +71,8 @@ class Text:
         ctx.model = model  # store model list key, not real model id
         ctx.set_input(text, user_name)
         ctx.set_output(None, ai_name)
+
+        self.window.core.ctx.last_item = ctx  # store last item
 
         # upload assistant attachments (only assistant mode here)
         attachments = self.window.controller.chat.files.upload(mode)
@@ -176,6 +178,9 @@ class Text:
         # process events to update UI
         QApplication.processEvents()
 
+        # get external functions (if preset is chosen and functions are defined)
+        functions = self.window.controller.presets.get_current_functions()
+
         try:
             # make API call
             try:
@@ -194,6 +199,7 @@ class Text:
                     assistant_id=self.window.core.config.get('assistant'),
                     idx=self.window.controller.idx.current_idx,
                     idx_raw=self.window.core.config.get('llama.idx.raw'),
+                    external_functions=functions,
                 )
 
                 # update context in DB
@@ -245,7 +251,8 @@ class Text:
         # render: end
         self.window.controller.chat.render.end(stream=stream_mode)
 
-        self.window.controller.chat.common.unlock_input()  # unlock
+        if mode != "assistant":
+            self.window.controller.chat.common.unlock_input()  # unlock input if not assistant mode
 
         # handle ctx name (generate title from summary if not initialized)
         if not reply and not internal:  # don't call if reply or internal mode

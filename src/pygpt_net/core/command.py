@@ -11,6 +11,8 @@
 
 import json
 
+from pygpt_net.item.ctx import CtxItem
+
 
 class Command:
     def __init__(self, window=None):
@@ -120,3 +122,99 @@ class Command:
                 # do nothing
                 pass
         return cmd
+
+    def unpack_tool_calls(self, tool_calls: list) -> list:
+        """
+        Unpack tool calls from OpenAI response
+
+        :param tool_calls: tool calls list
+        :return: parsed tool calls list
+        """
+        parsed = []
+        for tool_call in tool_calls:
+            try:
+                parsed.append(
+                    {
+                        "id": tool_call.id,
+                        "type": "function",
+                        "function": {
+                            "name": tool_call.function.name,
+                            "arguments": json.loads(tool_call.function.arguments)
+                        }
+                    }
+                )
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error parsing tool call: " + str(e))
+        return parsed
+
+    def unpack_tool_calls_chunks(self, ctx: CtxItem, tool_calls: list):
+        """
+        Handle / unpack tool calls
+
+        :param ctx: context
+        :param tool_calls: tool calls
+        """
+        tmp_calls = []
+        for tool_call in tool_calls:
+            try:
+                if "function" not in tool_call:
+                    continue
+                if "arguments" not in tool_call["function"]:
+                    continue
+                tool_call["function"]["arguments"] = json.loads(
+                    tool_call["function"]["arguments"]
+                )
+                tmp_calls.append(tool_call)
+            except Exception as e:
+                self.window.core.debug.log(e)
+                print("Error parsing tool call JSON arguments: ", tool_call["function"]["arguments"])
+        ctx.tool_calls = tmp_calls
+
+    def tool_call_to_cmd(self, tool_call: dict) -> dict:
+        """
+        Convert tool call to command
+
+        :param tool_call: tool call
+        :return: command
+        """
+        return {
+            "cmd": tool_call["function"]["name"],
+            "params": tool_call["function"]["arguments"]
+        }
+
+    def tool_calls_to_cmds(self, tool_calls: list) -> list:
+        """
+        Convert tool calls to commands
+
+        :param tool_calls: tool calls
+        :return: commands
+        """
+        cmds = []
+        for tool_call in tool_calls:
+            cmds.append(self.tool_call_to_cmd(tool_call))
+        return cmds
+
+    def pack_cmds(self, cmds: list) -> str:
+        """
+        Pack commands to string
+
+        :param cmds: commands
+        :return: packed commands string
+        """
+        packed = ""
+        for cmd in cmds:
+            packed += "~###~" + json.dumps(cmd) + "~###~"
+        return packed
+
+    def append_tool_calls(self, ctx: CtxItem):
+        """
+        Append tool calls as CMD to context output
+
+        :param ctx: context item
+        """
+        cmds = self.tool_calls_to_cmds(ctx.tool_calls)
+        cmds_str = self.pack_cmds(cmds)
+        if ctx.output is None:
+            ctx.output = ""
+        ctx.output += cmds_str

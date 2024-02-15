@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.14 16:00:00                  #
 # ================================================== #
 
 import json
@@ -30,6 +30,9 @@ class PresetItem:
         self.filename = None
         self.model = None
         self.version = None
+        self.tools = {
+            "function": [],
+        }
 
     def to_dict(self):
         return {
@@ -48,6 +51,7 @@ class PresetItem:
             "temperature": self.temperature,
             "filename": self.filename,
             "model": self.model,
+            "tool.function": self.tools["function"],
         }
 
     def from_dict(self, data):
@@ -81,7 +85,40 @@ class PresetItem:
             self.filename = data["filename"]
         if "model" in data:
             self.model = data["model"]
+        if "tool.function" in data:
+            self.tools["function"] = data["tool.function"]
         return self
+
+    def add_function(self, name: str, parameters: str, desc: str):
+        """
+        Add function to preset
+
+        :param name: function name
+        :param parameters: function parameters (JSON encoded)
+        :param desc: function description
+        """
+        function = {
+            'name': name,
+            'params': parameters,
+            'desc': desc,
+        }
+        self.tools['function'].append(function)
+
+    def has_functions(self) -> bool:
+        """
+        Check if preset has functions
+
+        :return: bool
+        """
+        return len(self.tools['function']) > 0
+
+    def get_functions(self) -> list:
+        """
+        Return preset functions
+
+        :return: functions
+        """
+        return self.tools['function']
 
     def dump(self):
         """
