@@ -1,5 +1,5 @@
-Chat, completion, assistants, vision, agent
-===========================================
+Modes
+======
 
 Chat
 -----
