@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -23,17 +23,32 @@ class OutputTabs(QTabWidget):
         self.window = window
 
     def mousePressEvent(self, event):
+        """
+        Mouse press event
+        :param event: event
+        """
         if event.button() == Qt.RightButton:
-            start = self.window.controller.notepad.start_tab_idx
             clicked_tab_index = self.tabBar().tabAt(event.pos())
 
+            # notepad
+            start = self.window.controller.notepad.start_tab_idx
             if clicked_tab_index >= start:
                 idx = clicked_tab_index - (start - 1)
-                self.show_context_menu(clicked_tab_index, event.globalPos())
+                self.show_notepad_menu(clicked_tab_index, event.globalPos())
+
+            # files
+            elif clicked_tab_index == 1:
+                self.show_files_menu(clicked_tab_index, event.globalPos())
 
         super(OutputTabs, self).mousePressEvent(event)
 
-    def show_context_menu(self, index, global_pos):
+    def show_notepad_menu(self, index, global_pos):
+        """
+        Show notepad menu
+
+        :param index: index
+        :param global_pos: global position
+        """
         context_menu = QMenu()
         start = self.window.controller.notepad.start_tab_idx
         actions = {}
@@ -44,6 +59,25 @@ class OutputTabs(QTabWidget):
         context_menu.addAction(actions['edit'])
         context_menu.exec(global_pos)
 
+    def show_files_menu(self, index, global_pos):
+        """
+        Show files menu
+
+        :param index: index
+        :param global_pos: global position
+        """
+        context_menu = QMenu()
+        actions = {}
+        actions['refresh'] = QAction(QIcon(":/icons/reload.svg"), trans('action.refresh'), self)
+        actions['refresh'].triggered.connect(
+            lambda: self.window.controller.files.update_explorer())
+        context_menu.addAction(actions['refresh'])
+        context_menu.exec(global_pos)
+
     @Slot()
     def rename_tab(self, index):
+        """
+        Rename tab
+        :param index: index
+        """
         self.window.controller.notepad.rename(index)
