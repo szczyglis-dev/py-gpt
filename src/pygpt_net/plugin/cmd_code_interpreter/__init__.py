@@ -162,8 +162,8 @@ class Plugin(BasePlugin):
                     value = self.get_option_value(key)
                     # append CWD to sys_exec syntax
                     if key == "syntax_sys_exec":
-                        value += "\nVERY IMPORTANT: ALWAYS use an absolute (not relative) paths when passing " \
-                                 "arguments to system commands, the current working directory is: {}".format(cwd)
+                        value += "\nIMPORTANT: ALWAYS use an absolute (not relative) paths when passing " \
+                                 "ANY commands to \"command\" param, the current working directory is: {}".format(cwd)
                     data['syntax'].append(value)
 
     def cmd(self, ctx: CtxItem, cmds: list):
