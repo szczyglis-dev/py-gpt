@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.0.150 (2024-02-16)
+
+- Added a new command for the `Google Web Search` plugin - `get_urls`, which allows retrieving a full list of searched URLs and passing it to the model for further use.
+- Implemented execution of `functions` defined in the API and their full integration with modes: `Chat`, `Vision`, and `Assistant`. For more details, see the new section in the documentation: `Functions and commands`.
+- Fixed the tray icon change while the model is generating a response.
+- Improved stopping of agents using `Stop`.
+
 # 2.0.149 (2024-02-15)
 
 - Fixed and improved Assistants API (file handling, run handling, token usage, stopping)

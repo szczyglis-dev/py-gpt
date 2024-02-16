@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 import os
@@ -28,7 +28,6 @@ def test_options(mock_window):
     assert "num_pages" in options
     assert "max_page_content_length" in options
     assert "chunk_size" in options
-    assert "use_google" in options
     assert "disable_ssl" in options
     assert "max_result_length" in options
     assert "summary_max_tokens" in options
@@ -68,7 +67,7 @@ def test_handle_cmd_syntax(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["syntax"]) == 2  # web_search, web_url_open
+    assert len(event.data["syntax"]) == 3  # web_search, web_url_open
 
 
 def test_handle_cmd_execute_web_search(mock_window):
