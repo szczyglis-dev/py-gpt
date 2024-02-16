@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 import os
@@ -769,6 +769,12 @@ class Patch:
                     data['painter.brush.mode'] = 'brush'
                 if 'painter.brush.size' not in data:
                     data['painter.brush.size'] = 3
+                updated = True
+
+            # < 2.0.152
+            if old < parse_version("2.0.152"):
+                print("Migrating config from < 2.0.152...")
+                data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # bg run fix
                 updated = True
 
         # update file

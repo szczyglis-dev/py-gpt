@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.151** | build: **2024.02.16** | Python: **3.10+**
+Release: **2.0.152** | build: **2024.02.16** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2188,6 +2188,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.152 (2024-02-16)
+
+- Improved updater, added direct links to new releases
+- Improved command execute system prompt
+- Added `cwd` command to `Files I/O` plugin
+- Added automatic current working directory passing to `sys_exec` command prompt in `Code Interpreter`.
+- Added `Refresh` option in File Explorer
+- Added monit about camera connect in Snap version with command to execute
+- Disabled MenuRoles on MacOS-affected menu items - issue #19
 
 # 2.0.151 (2024-02-16)
 

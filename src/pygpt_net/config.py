@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 22:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -316,7 +316,7 @@ class Config:
         """
         self.data_base = self.provider.load_base()
         if self.data_base is not None:
-            self.data_base = dict(sorted(self.data.items(), key=lambda item: item[0]))  # sort by key
+            self.data_base = dict(sorted(self.data_base.items(), key=lambda item: item[0]))  # sort by key
             self.initialized_base = True
 
     def from_base_config(self):
