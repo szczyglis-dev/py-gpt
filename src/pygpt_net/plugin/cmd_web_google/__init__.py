@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -27,6 +27,7 @@ class Plugin(BasePlugin):
         self.input_text = None
         self.allowed_cmds = [
             "web_search",
+            "web_urls",
             "web_url_open",
         ]
         self.order = 100
@@ -94,14 +95,6 @@ class Plugin(BasePlugin):
             max=None,
         )
         self.add_option(
-            "use_google",
-            type="bool",
-            value=True,
-            label="Use Google Custom Search",
-            description="Enable Google Custom Search API (API key required)",
-            tooltip="Google Custom Search",
-        )
-        self.add_option(
             "disable_ssl",
             type="bool",
             value=True,
@@ -165,7 +158,7 @@ class Plugin(BasePlugin):
                   'a default summary will be used. Max pages limit: {max_pages}, params: "query", "page", '
                   '"summarize_prompt"',
             label="Syntax: web_search",
-            description="Syntax for web search command, use {max_pages} as a placeholder for "
+            description="Syntax for web_search command, use {max_pages} as a placeholder for "
                         "`num_pages` value",
             advanced=True,
         )
@@ -176,7 +169,18 @@ class Plugin(BasePlugin):
                   'prompt if necessary, otherwise a default summary will be used. Params: "url", '
                   '"summarize_prompt"',
             label="Syntax: web_url_open",
-            description="Syntax for web URL open command",
+            description="Syntax for web_url_open command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_web_urls",
+            type="textarea",
+            value='"web_urls": use it to search the Web for URLs to use, prepare a search query itself, '
+                  'a list of found links to websites will be returned, 10 links per page max. You can change the page '
+                  'or the number of links per page using the provided parameters. Params: "query", "page", '
+                  '"num_links"',
+            label="Syntax: web_urls",
+            description="Syntax for web_urls command",
             advanced=True,
         )
 
@@ -252,7 +256,7 @@ class Plugin(BasePlugin):
             if item["cmd"] in self.allowed_cmds:
                 my_commands.append(item)
                 is_cmd = True
-                if item["cmd"] == "web_search":
+                if item["cmd"] == "web_search" or item["cmd"] == "web_urls":
                     need_api_key = True
 
         if not is_cmd:

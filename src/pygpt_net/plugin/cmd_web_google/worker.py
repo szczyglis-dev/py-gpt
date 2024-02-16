@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
+import json
 
 from PySide6.QtCore import Slot
 from pygpt_net.plugin.base import BaseWorker, BaseSignals
@@ -88,6 +89,48 @@ class Worker(BaseWorker):
                     }
                     if url:
                         self.ctx.urls.append(url)
+
+                    self.response(
+                        {
+                            "request": request,
+                            "result": data,
+                        }
+                    )
+
+                # cmd: web_urls
+                elif item["cmd"] == "web_urls":
+                    page = 1
+                    num = 10
+                    if "page" in item["params"]:
+                        page = int(item["params"]["page"])
+                    if "num_links" in item["params"]:
+                        num = int(item["params"]["num_links"])
+
+                    if num < 1:
+                        num = 1
+                    if num > 10:
+                        num = 10
+
+                    offset = 1
+                    if page > 1:
+                        offset = (page - 1) * num + 1
+
+                    # search for URLs
+                    urls = self.websearch.google_search(
+                        item["params"]["query"],
+                        num,
+                        offset,
+                    )
+                    msg = "Web search finished: '{}'".format(item["params"]["query"])
+                    data = {
+                        'urls': json.dumps(urls),
+                        'page': page,
+                        'num': num,
+                        'offset': offset,
+                    }
+                    if urls:
+                        for url in urls:
+                            self.ctx.urls.append(url)
 
                     self.response(
                         {

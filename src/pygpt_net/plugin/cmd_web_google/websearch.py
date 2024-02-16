@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 import json
@@ -32,7 +32,7 @@ class WebSearch:
             self,
             q: str,
             num: int,
-            offset: int = 0
+            offset: int = 1
     ) -> list:
         """
         Google search
@@ -45,6 +45,14 @@ class WebSearch:
         key = self.plugin.get_option_value("google_api_key")
         cx = self.plugin.get_option_value("google_api_cx")
 
+        if num < 1:
+            num = 1
+        if num > 10:
+            num = 10
+
+        if num + offset > 100:
+            num = 100 - offset
+
         urls = []
         try:
             url = 'https://www.googleapis.com/customsearch/v1'
@@ -53,6 +61,7 @@ class WebSearch:
             url += '&num=' + str(num)
             url += '&sort=date-sdate:d:s'
             url += '&fields=items(link)'
+            url += '&start=' + str(offset)
             url += '&q=' + quote(q)
             self.debug(
                 "Plugin: cmd_web_google:google_search: calling API: {}".format(url)
