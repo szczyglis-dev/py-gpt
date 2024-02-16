@@ -1178,6 +1178,10 @@ Execute commands in sandbox (docker container). Docker must be installed and run
 
 Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
+- `Auto-append CWD to sys_exec` *auto_cwd*
+
+Automatically append current working directory to sys_exec command. *Default:* `True`
+
 
 ## Command: Custom Commands
 

@@ -79,6 +79,13 @@ class Plugin(BasePlugin):
             label="Docker image",
             description="Docker image to use for sandbox",
         )
+        self.add_option(
+            "auto_cwd",
+            type="bool",
+            value=True,
+            label="Auto-append CWD to sys_exec",
+            description="Automatically append current working directory to sys_exec command",
+        )
 
         # cmd syntax (prompt/instruction)
         self.add_option(
@@ -160,8 +167,7 @@ class Plugin(BasePlugin):
                 key = "syntax_" + item
                 if self.has_option(key):
                     value = self.get_option_value(key)
-                    # append CWD to sys_exec syntax
-                    if key == "syntax_sys_exec":
+                    if self.get_option_value("auto_cwd") and item == "sys_exec":
                         value += "\nIMPORTANT: ALWAYS use an absolute (not relative) paths when passing " \
                                  "ANY commands to \"command\" param, the current working directory is: {}".format(cwd)
                     data['syntax'].append(value)
