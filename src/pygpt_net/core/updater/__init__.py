@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -211,22 +211,23 @@ class Updater:
         """
         return self.window.meta['website'] + "/api/version?v=" + str(self.window.meta['version'])
 
-    def check_silent(self) -> (bool, str, str, str):
+    def check_silent(self) -> (bool, str, str, str, str, str):
         """
         Check version in background
 
-        :return: (is_new, newest_version, newest_build, changelog)
+        :return: (is_new, newest_version, newest_build, changelog, download_windows, download_linux)
         """
         url = self.get_updater_url()
         is_new = False
         newest_version = ""
         newest_build = ""
         changelog = ""
+        download_windows = ""
+        download_linux = ""
 
         try:
             ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
+            ctx.check_hostname = True
             req = Request(
                 url=url,
                 headers={'User-Agent': 'Mozilla/5.0'},
@@ -236,10 +237,16 @@ class Updater:
             newest_version = data_json["version"]
             newest_build = data_json["build"]
 
-            # changelog
+            # changelog, download links
             changelog = ""
+            download_windows = ""
+            download_linux = ""
             if "changelog" in data_json:
                 changelog = data_json["changelog"]
+            if "download_windows" in data_json:
+                download_windows = data_json["download_windows"]
+            if "download_linux" in data_json:
+                download_linux = data_json["download_linux"]
 
             parsed_newest_version = parse_version(newest_version)
             parsed_current_version = parse_version(self.window.meta['version'])
@@ -254,74 +261,58 @@ class Updater:
             self.window.core.debug.log(e)
             print("Failed to check for updates")
 
-        return is_new, newest_version, newest_build, changelog
+        return is_new, newest_version, newest_build, changelog, download_windows, download_linux
 
     def check(self, force: bool = False) -> bool:
         """
         Check for updates
 
         :param force: force show version dialog
-        :return: True if update is available
+        :return: True if force show version dialog
         """
         print("Checking for updates...")
-        url = self.get_updater_url()
-        try:
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-
-            req = Request(
-                url=url,
-                headers={'User-Agent': 'Mozilla/5.0'},
+        is_new, version, build, changelog, download_windows, download_linux = self.check_silent()
+        if is_new or force:
+            self.show_version_dialog(
+                version,
+                build,
+                changelog,
+                download_windows,
+                download_linux,
+                is_new
             )
-            response = urlopen(req, context=ctx, timeout=3)
-            data_json = json.loads(response.read())
-            newest_version = data_json["version"]
-            newest_build = data_json["build"]
-
-            # changelog
-            changelog = ""
-            if "changelog" in data_json:
-                changelog = data_json["changelog"]
-
-            parsed_newest_version = parse_version(newest_version)
-            parsed_current_version = parse_version(self.window.meta['version'])
-
-            # save last check time and version
-            self.window.core.config.set("updater.check.bg.last_time", time.time())
-            self.window.core.config.set("updater.check.bg.last_version", newest_version)
-
-            if parsed_newest_version > parsed_current_version or force:
-                is_new = parsed_newest_version > parsed_current_version
-                self.show_version_dialog(newest_version, newest_build, changelog, is_new)
-                return True
-            else:
-                print("No updates available.")
-            return False
-        except Exception as e:
-            self.window.core.debug.log(e)
-            print("Failed to check for updates")
+            return True
+        print("No updates available.")
         return False
 
-    def show_version_dialog(self, version: str, build: str, changelog: str, is_new: bool = False):
+    def show_version_dialog(
+            self,
+            version: str,
+            build: str,
+            changelog: str,
+            download_windows: str,
+            download_linux: str,
+            is_new: bool = False
+    ):
         """
         Display version dialog
 
         :param version: version number
         :param build: build date
         :param changelog: changelog
-        :param is_new: is new version available
+        :param download_windows: windows download link
+        :param download_linux: linux download link
+        :param is_new: True if is new version available
         """
-        info = trans("update.info")
-        if not is_new:
-            info = trans('update.info.none')
-        txt = trans('update.new_version') + ": " + str(version) + " (" + trans('update.released') + ": " + str(
-            build) + ")"
-        txt += "\n" + trans('update.current_version') + ": " + self.window.meta['version']
-        self.window.ui.dialog['update'].info.setText(info)
-        self.window.ui.dialog['update'].changelog.setPlainText(changelog)
-        self.window.ui.dialog['update'].message.setText(txt)
-        self.window.ui.dialogs.open('update')
+        self.window.ui.dialog['update'].set_data(
+            is_new,
+            version,
+            build,
+            changelog,
+            download_windows,
+            download_linux
+        )
+        self.window.ui.dialogs.open('update', height=600)
 
     def post_check_config(self) -> bool:
         """
@@ -347,22 +338,39 @@ class Updater:
 
         return updated
 
-    @Slot(str, str, str)
-    def handle_new_version(self, version: str, build: str, changelog: str):
+    @Slot(str, str, str, str, str)
+    def handle_new_version(
+            self,
+            version: str,
+            build: str,
+            changelog: str,
+            download_windows: str = "",
+            download_linux: str = ""
+    ):
         """
         Handle new version signal
 
         :param version: version number
         :param build: build date
         :param changelog: changelog
+        :param download_windows: download link for windows
+        :param download_linux: download link for linux
         """
         if self.window.ui.tray.is_tray:
             self.window.ui.tray.show_msg(
                 trans("notify.update.title"),
                 version + " (" + build + ")",
             )
-        else:
-            self.show_version_dialog(version, build, changelog, True)
+
+        # always show dialog
+        self.show_version_dialog(
+            version,
+            build,
+            changelog,
+            download_windows,
+            download_linux,
+            True
+        )
 
     def run_check(self):
         """Run check for updates in background"""
@@ -374,7 +382,7 @@ class Updater:
 
 
 class UpdaterSignals(QObject):
-    version_changed = Signal(str, str, str)
+    version_changed = Signal(str, str, str, str, str)
 
 
 class UpdaterWorker(QRunnable):
@@ -400,10 +408,16 @@ class UpdaterWorker(QRunnable):
                 parsed_prev_checked = parse_version(last_checked)
 
             # print("Checking for updates...")
-            is_new, version, build, changelog = self.checker()
+            is_new, version, build, changelog, download_windows, download_linux = self.checker()
             if is_new:
                 if parsed_prev_checked is None or parsed_prev_checked < parse_version(version):
-                    self.signals.version_changed.emit(version, build, changelog)
+                    self.signals.version_changed.emit(
+                        version,
+                        build,
+                        changelog,
+                        download_windows,
+                        download_linux
+                    )
         except Exception as e:
             self.window.core.debug.log(e)
             print("Failed to check for updates")

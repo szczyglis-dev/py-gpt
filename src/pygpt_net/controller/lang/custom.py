@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.16 06:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -35,7 +35,8 @@ class Custom:
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setText(trans('audio.speak.btn'))
         self.window.ui.config['assistant']['tool.retrieval'].box.setText(trans('assistant.tool.retrieval'))
         self.window.ui.config['assistant']['tool.code_interpreter'].box.setText(
-            trans('assistant.tool.code_interpreter'))
+            trans('assistant.tool.code_interpreter')
+        )
         self.window.ui.config['preset']['chat'].box.setText(trans("preset.chat"))
         self.window.ui.config['preset']['completion'].box.setText(trans("preset.completion"))
         self.window.ui.config['preset']['img'].box.setText(trans("preset.img"))
@@ -65,9 +66,6 @@ class Custom:
         self.window.ui.models['attachments'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
         self.window.ui.models['attachments_uploaded'].setHeaderData(0, Qt.Horizontal, trans('attachments.header.name'))
         self.window.ui.models['attachments_uploaded'].setHeaderData(1, Qt.Horizontal, trans('attachments.header.path'))
-
-        # dialog: updater
-        self.window.ui.dialog['update'].download.setText(trans('update.download'))
 
         # dialog: about
         self.window.ui.nodes['dialog.about.content'].setText(trans(self.window.ui.dialogs.about.prepare_content()))
