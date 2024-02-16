@@ -12,14 +12,12 @@
 import os
 import webbrowser
 
-from PySide6.QtCore import Qt, QTimer, QRect
-from PySide6.QtGui import QPixmap, QAction, QIcon, QCursor
-from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox, \
-    QLineEdit, QToolTip
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
 
-from pygpt_net.ui.widget.element.labels import TitleLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel, CmdLabel
 from pygpt_net.utils import trans
-import pygpt_net.icons_rc
 
 
 class UpdateDialog(QDialog):
@@ -72,7 +70,7 @@ class UpdateDialog(QDialog):
             self.checkbox_startup.setChecked(False)
 
         # update cmd/buttons
-        self.cmd = UpdateCmdLabel(self.window, "")
+        self.cmd = CmdLabel(self.window, "")
         self.download_file = QPushButton("Download")
         self.download_file.setCursor(Qt.PointingHandCursor)
         self.download_file.clicked.connect(
@@ -157,7 +155,7 @@ class UpdateDialog(QDialog):
         if self.window.core.platforms.is_snap():  # snap
             self.cmd.setText("sudo snap refresh pygpt")
             self.cmd.setVisible(True)
-        elif self.window.core.config.is_compiled():  # compiled
+        elif not self.window.core.config.is_compiled():  # compiled
             if self.window.core.platforms.is_windows():
                 self.download_link = download_windows
                 self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
@@ -172,44 +170,3 @@ class UpdateDialog(QDialog):
         # show snap store button
         if self.window.core.platforms.is_linux():
             self.snap_store.setVisible(True)
-
-
-class UpdateCmdLabel(QLineEdit):
-    def __init__(self, window=None, text: str = ""):
-        """
-        Command label
-
-        :param window: main window
-        :param text: text
-        """
-        super(UpdateCmdLabel, self).__init__(window)
-        self.window = window
-        self.setStyleSheet(
-            "font-weight: bold;"
-            "font-size: 14px;"
-            "padding: 5px;"
-            "background: #020202;"
-            "color: #fff;"
-            "text-align: center;"
-        )
-        self.setText(text)
-        self.setAlignment(Qt.AlignCenter)
-        self.setReadOnly(True)
-        self.action = QAction(self)
-        self.action.setIcon(QIcon(":/icons/copy.svg"))
-        self.action.triggered.connect(self.copy_to_clipboard)
-        self.addAction(self.action, QLineEdit.TrailingPosition)
-
-    def copy_to_clipboard(self):
-        """Copy to clipboard"""
-        self.selectAll()
-        self.copy()
-        self.deselect()
-        self.action.setIcon(QIcon(":/icons/check.svg"))
-        QToolTip.showText(QCursor.pos(), trans("clipboard.copied"), self, QRect(), 2000)
-        timer = QTimer()
-        timer.singleShot(2000, self.reset_icon)
-
-    def reset_icon(self):
-        """Reset icon"""
-        self.action.setIcon(QIcon(":/icons/copy.svg"))

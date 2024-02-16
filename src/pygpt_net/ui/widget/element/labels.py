@@ -9,11 +9,13 @@
 # Updated Date: 2024.01.29 17:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor
-from PySide6.QtWidgets import QLabel
+from PySide6.QtCore import Qt, QTimer, QRect
+from PySide6.QtGui import QCursor, QAction, QIcon
+from PySide6.QtWidgets import QLabel, QLineEdit, QToolTip
 import webbrowser
 
+from pygpt_net.utils import trans
+import pygpt_net.icons_rc
 
 class HelpLabel(QLabel):
     def __init__(self, text, window=None):
@@ -58,3 +60,44 @@ class UrlLabel(QLabel):
 
     def mousePressEvent(self, event):
         webbrowser.open(self.url)
+
+
+class CmdLabel(QLineEdit):
+    def __init__(self, window=None, text: str = ""):
+        """
+        Command label
+
+        :param window: main window
+        :param text: text
+        """
+        super(CmdLabel, self).__init__(window)
+        self.window = window
+        self.setStyleSheet(
+            "font-weight: bold;"
+            "font-size: 14px;"
+            "padding: 5px;"
+            "background: #020202;"
+            "color: #fff;"
+            "text-align: center;"
+        )
+        self.setText(text)
+        self.setAlignment(Qt.AlignCenter)
+        self.setReadOnly(True)
+        self.action = QAction(self)
+        self.action.setIcon(QIcon(":/icons/copy.svg"))
+        self.action.triggered.connect(self.copy_to_clipboard)
+        self.addAction(self.action, QLineEdit.TrailingPosition)
+
+    def copy_to_clipboard(self):
+        """Copy to clipboard"""
+        self.selectAll()
+        self.copy()
+        self.deselect()
+        self.action.setIcon(QIcon(":/icons/check.svg"))
+        QToolTip.showText(QCursor.pos(), trans("clipboard.copied"), self, QRect(), 2000)
+        timer = QTimer()
+        timer.singleShot(2000, self.reset_icon)
+
+    def reset_icon(self):
+        """Reset icon"""
+        self.action.setIcon(QIcon(":/icons/copy.svg"))
