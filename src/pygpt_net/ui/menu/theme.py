@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -48,6 +48,8 @@ class Theme:
         # settings
         self.window.ui.menu['theme.settings'] = QAction(QIcon(":/icons/settings_filled.svg"),
                                                         trans("menu.theme.settings"), self.window)
+        self.window.ui.menu['theme.settings'].setMenuRole(QAction.MenuRole.NoRole)
+
         self.window.ui.menu['theme.settings'].triggered.connect(
             lambda: self.window.controller.settings.open_section('layout'))
 

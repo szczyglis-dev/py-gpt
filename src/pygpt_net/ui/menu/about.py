@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 18:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -28,6 +28,7 @@ class About:
         """Setup about menu"""
         self.window.ui.menu['info.about'] = QAction(QIcon(":/icons/info.svg"), trans("menu.info.about"),
                                                     self.window)
+        self.window.ui.menu['info.about'].setMenuRole(QAction.MenuRole.NoRole)
         self.window.ui.menu['info.changelog'] = QAction(QIcon(":/icons/history.svg"), trans("menu.info.changelog"),
                                                         self.window)
         self.window.ui.menu['info.updates'] = QAction(QIcon(":/icons/updater.svg"), trans("menu.info.updates"),

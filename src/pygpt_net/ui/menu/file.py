@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 14:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -28,6 +28,7 @@ class File:
         """Setup file menu"""
         self.window.ui.menu['app.exit'] = QAction(QIcon(":/icons/logout.svg"), trans("menu.file.exit"),
                                                   self.window, shortcut="Ctrl+Q", triggered=self.window.close)
+        self.window.ui.menu['app.exit'].setMenuRole(QAction.MenuRole.NoRole)
 
         self.window.ui.menu['app.clear_history'] = QAction(QIcon(":/icons/delete.svg"),
                                                            trans("menu.file_clear_history"), self.window)
