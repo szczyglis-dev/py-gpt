@@ -43,31 +43,6 @@ class Vision:
         model = kwargs.get("model", None)
         model_id = model.id
         client = self.window.core.gpt.get_client()
-        functions = kwargs.get("external_functions", None)
-
-        # extra API kwargs
-        response_kwargs = {}
-
-        # tools / functions
-        tools = []
-        if functions is not None:
-            for function in functions:
-                if str(function['name']).strip() == '' or function['name'] is None:
-                    continue
-                params = json.loads(function['params'])  # unpack JSON from string
-                tools.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": function['name'],
-                            "parameters": params,
-                            "description": function['desc'],
-                        }
-                    }
-                )
-
-        if len(tools) > 0:
-            response_kwargs['tools'] = tools
 
         # build chat messages
         messages = self.build(
@@ -81,7 +56,6 @@ class Vision:
             model=model_id,
             max_tokens=int(max_tokens),
             stream=stream,
-            **response_kwargs
         )
         return response
 

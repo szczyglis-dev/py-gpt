@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.150** | build: **2024.02.16** | Python: **3.10+**
+Release: **2.0.151** | build: **2024.02.16** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1822,12 +1822,12 @@ https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models
 
 From version **2.0.150**, PyGPT offers compatibility of these functions with commands used in the application. All you need to do is define the appropriate functions using the syntax required by OpenAI, and PyGPT will do the rest, translating such syntax on the fly into its own internal format.
 
-You can define functions for modes: `Chat`, `Vision`, and `Assistants`.
-Note that - in Chat and Vision modes, they should be defined in `Presets`, and for Assistants, in the `Assistant` settings.
+You can define functions for modes: `Chat` and `Assistants`.
+Note that - in Chat mode, they should be defined in `Presets`, and for Assistants, in the `Assistant` settings.
 
 **Example of usage:**
 
-1) Chat and Vision modes
+1) Chat
 
 Create a new Preset, open the Preset edit dialog and add a new function using `+ Function` button with the following content:
 
@@ -2185,10 +2185,14 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.151 (2024-02-16)
+
+- Improved integration between Chat and Vision when functions are provided
+
 # 2.0.150 (2024-02-16)
 
 - Added a new command for the `Google Web Search` plugin - `get_urls`, which allows retrieving a full list of searched URLs and passing it to the model for further use.
-- Implemented execution of `functions` defined in the API and their full integration with modes: `Chat`, `Vision`, and `Assistant`. For more details, see the new section in the documentation: `Functions and commands`.
+- Implemented execution of `functions` defined in the API and their full integration with modes: `Chat` and `Assistant`. For more details, see the new section in the documentation: `Functions and commands`.
 - Fixed the tray icon change while the model is generating a response.
 - Improved stopping of agents using `Stop`.
 

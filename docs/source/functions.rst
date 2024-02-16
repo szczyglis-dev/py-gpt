@@ -21,12 +21,12 @@ https://cookbook.openai.com/examples/how_to_call_functions_with_chat_models
 
 From version **2.0.150**, PyGPT offers compatibility of these functions with commands used in the application. All you need to do is define the appropriate functions using the syntax required by OpenAI, and PyGPT will do the rest, translating such syntax on the fly into its own internal format.
 
-You can define functions for modes: ``Chat``, ``Vision``, and ``Assistants``.
-Note that - in Chat and Vision modes, they should be defined in ``Presets``, and for Assistants, in the ``Assistant`` settings.
+You can define functions for modes: ``Chat`` and ``Assistants``.
+Note that - in Chat mode, they should be defined in ``Presets``, and for Assistants, in the ``Assistant`` settings.
 
 **Example of usage:**
 
-1) Chat and Vision modes
+1) Chat
 
 Create a new Preset, open the Preset edit dialog and add a new function using ``+ Function`` button with the following content:
 
