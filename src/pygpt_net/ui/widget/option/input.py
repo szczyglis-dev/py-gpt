@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 18:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -57,10 +57,21 @@ class OptionInputInline(QLineEdit):
     def handle_value_change(self):
         """Value changed event"""
         if self.slider:
-            self.window.controller.config.slider.on_update(self.parent_id, self.id, self.option, self.text(), "input")
+            self.window.controller.config.slider.on_update(
+                self.parent_id,
+                self.id,
+                self.option,
+                self.text(),
+                "input"
+            )
         if not self.real_time:
             return
-        self.window.controller.config.input.on_update(self.parent_id, self.id, self.option, self.text())
+        self.window.controller.config.input.on_update(
+            self.parent_id,
+            self.id,
+            self.option,
+            self.text()
+        )
 
 
 class OptionInput(QLineEdit):
@@ -101,7 +112,12 @@ class OptionInput(QLineEdit):
         if not self.real_time:
             return
         self.window.controller.ui.update()
-        self.window.controller.config.input.on_update(self.parent_id, self.id, self.option, self.text())
+        self.window.controller.config.input.on_update(
+            self.parent_id,
+            self.id,
+            self.option,
+            self.text()
+        )
 
 
 class PasswordInput(QLineEdit):
@@ -161,4 +177,9 @@ class PasswordInput(QLineEdit):
         if not self.real_time:
             return
         self.window.controller.ui.update()
-        self.window.controller.config.input.on_update(self.parent_id, self.id, self.option, self.text())
+        self.window.controller.config.input.on_update(
+            self.parent_id,
+            self.id,
+            self.option,
+            self.text()
+        )
