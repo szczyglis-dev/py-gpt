@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -40,7 +40,8 @@ class Plugin(BasePlugin):
             "file_exists",
             "file_size",
             "file_info",
-            "get_file",
+            "send_file",
+            "cwd",
         ]
         self.use_locale = True
         self.init_options()
@@ -49,11 +50,11 @@ class Plugin(BasePlugin):
         """Initialize options"""
         # cmd enable/disable
         self.add_option(
-            "cmd_get_file",
+            "cmd_send_file",
             type="bool",
-            value=False,
-            label="Enable: Get and upload file as attachment",
-            description="Allows `get_file` command execution",
+            value=True,
+            label="Enable: Upload file as attachment",
+            description="Allows `send_file` command execution",
         )
         self.add_option(
             "cmd_read_file",
@@ -167,14 +168,21 @@ class Plugin(BasePlugin):
             label="Enable: Get file info",
             description="Allows `file_info` command execution",
         )
+        self.add_option(
+            "cmd_cwd",
+            type="bool",
+            value=True,
+            label="Enable: Get current working directory (cwd)",
+            description="Allows `cwd` command execution",
+        )
 
         # cmd syntax (prompt/instruction)
         self.add_option(
-            "syntax_get_file",
+            "syntax_send_file",
             type="textarea",
-            value='"get_file": get file as attachment and upload to itself, params: "path"',
-            label="Syntax: get_file",
-            description="Syntax for getting files as attachment",
+            value='"send_file": sends file as attachment from my computer to you for analyze, params: "path"',
+            label="Syntax: send_file",
+            description="Syntax for send files as attachment",
             advanced=True,
         )
         self.add_option(
@@ -303,6 +311,14 @@ class Plugin(BasePlugin):
             value='"file_info": get file info, params: "path"',
             label="Syntax: file_info",
             description="Syntax for getting file info",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_cwd",
+            type="textarea",
+            value='"cwd": get current working directory (full system path)',
+            label="Syntax: cwd",
+            description="Syntax for getting current working directory",
             advanced=True,
         )
 

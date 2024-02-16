@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -545,8 +545,26 @@ class Worker(BaseWorker):
                             self.log("Error: {}".format(e))
                         self.response(response)
 
+                    # cwd
+                    elif item["cmd"] == "cwd" and self.plugin.is_cmd_allowed("cwd"):
+                        try:
+                            msg = "Getting CWD: {}".format(self.plugin.window.core.config.get_user_dir('data'))
+                            self.log(msg)
+                            response = {
+                                "request": request,
+                                "result": self.plugin.window.core.config.get_user_dir('data'),
+                            }
+                        except Exception as e:
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
+                            self.error(e)
+                            self.log("Error: {}".format(e))
+                        self.response(response)
+
                     # get file as attachment
-                    elif item["cmd"] == "get_file" and self.plugin.is_cmd_allowed("get_file"):
+                    elif item["cmd"] == "send_file" and self.plugin.is_cmd_allowed("send_file"):
                         try:
                             msg = "Adding attachment: {}".format(item["params"]['path'])
                             self.log(msg)

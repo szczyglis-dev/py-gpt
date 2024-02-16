@@ -1263,9 +1263,9 @@ If a file being created (with the same name) already exists, a prefix including 
 
 **Options:**
 
-- `Enable: Get and upload file as attachment` *cmd_get_file*
+- `Enable: Send (upload) file as attachment` *cmd_send_file*
 
-Allows `cmd_get_file` command execution. *Default:* `False`
+Allows `cmd_send_file` command execution. *Default:* `True`
 
 - `Enable: Read file` *cmd_read_file*
 
@@ -1330,6 +1330,10 @@ Allows `file_size` command execution. *Default:* `True`
 - `Enable: Get file info` *cmd_file_info*
 
 Allows `file_info` command execution. *Default:* `True`
+
+- `Enable: Get current working directory` *cmd_cwd*
+
+Allows `cwd` command execution. *Default:* `True`
 
 ## Command: Google Web Search
 

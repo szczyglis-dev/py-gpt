@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -150,13 +150,21 @@ class Plugin(BasePlugin):
 
         :param data: event data dict
         """
+        # get current working directory
+        cwd = self.window.core.config.get_user_dir('data')
+        if self.get_option_value("sandbox_docker"):
+            cwd = "/data (in docker sandbox)"
+
         for item in self.allowed_cmds:
             if self.is_cmd_allowed(item):
                 key = "syntax_" + item
                 if self.has_option(key):
-                    data['syntax'].append(
-                        str(self.get_option_value(key))
-                    )
+                    value = self.get_option_value(key)
+                    # append CWD to sys_exec syntax
+                    if key == "syntax_sys_exec":
+                        value += "\nVERY IMPORTANT: ALWAYS use an absolute (not relative) paths when passing " \
+                                 "arguments to system commands, the current working directory is: {}".format(cwd)
+                    data['syntax'].append(value)
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
