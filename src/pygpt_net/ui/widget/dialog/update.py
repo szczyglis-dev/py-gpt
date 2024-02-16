@@ -31,6 +31,8 @@ class UpdateDialog(QDialog):
         self.window = window
         self.setParent(window)
         self.setWindowTitle(trans('update.title'))
+        self.cmd_pip = "pip install --upgrade pygpt-net"
+        self.cmd_snap = "sudo snap refresh pygpt"
 
         # www
         self.www = QPushButton(trans('update.download'))
@@ -48,6 +50,7 @@ class UpdateDialog(QDialog):
         self.changelog.setReadOnly(True)
         self.changelog.setMinimumHeight(200)
 
+        # logo
         logo_label = QLabel()
         path = os.path.abspath(
             os.path.join(self.window.core.config.get_app_path(), 'data', 'logo.png'))
@@ -153,18 +156,19 @@ class UpdateDialog(QDialog):
         self.download_file.setVisible(False)
         self.snap_store.setVisible(False)
         if self.window.core.platforms.is_snap():  # snap
-            self.cmd.setText("sudo snap refresh pygpt")
+            self.cmd.setText(self.cmd_snap)
             self.cmd.setVisible(True)
-        elif not self.window.core.config.is_compiled():  # compiled
+        elif self.window.core.config.is_compiled():  # compiled
             if self.window.core.platforms.is_windows():
                 self.download_link = download_windows
                 self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
+                self.download_file.setVisible(True)
             elif self.window.core.platforms.is_linux():
                 self.download_link = download_linux
                 self.download_file.setText("{} .tar.gz ({})".format(trans("action.download"), version))
-            self.download_file.setVisible(True)
+                self.download_file.setVisible(True)
         else:  # pip
-            self.cmd.setText("pip install --upgrade pygpt-net")
+            self.cmd.setText(self.cmd_pip)
             self.cmd.setVisible(True)
 
         # show snap store button
