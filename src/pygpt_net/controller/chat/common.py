@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 import os
 
@@ -174,6 +174,7 @@ class Common:
         })
         self.window.controller.agent.flow.on_stop()
         self.window.controller.assistant.threads.stop = True
+        self.window.controller.assistant.threads.reset()  # reset run and func calls
         self.window.core.dispatcher.dispatch(event)  # stop audio input
         self.window.controller.chat.input.stop = True
         self.window.core.gpt.stop()

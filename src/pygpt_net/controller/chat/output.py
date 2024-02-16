@@ -6,9 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
-import json
 
 from PySide6.QtWidgets import QApplication
 
@@ -36,6 +35,7 @@ class Output:
         :param stream_mode: stream mode
         """
         append_stream = stream_mode
+        self.window.stateChanged.emit(self.window.STATE_BUSY)
 
         # if stream mode then append chunk by chunk
         if append_stream and mode not in self.not_stream_modes:
@@ -43,8 +43,6 @@ class Output:
 
         # check if tool calls detected
         if ctx.tool_calls:
-            print("Tool calls detected")
-            print(ctx.tool_calls)
             self.window.core.command.append_tool_calls(ctx)  # append tool calls as commands
             if not isinstance(ctx.extra, dict):
                 ctx.extra = {}

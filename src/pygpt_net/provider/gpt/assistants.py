@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 import json
@@ -167,6 +167,23 @@ class Assistants:
                 ctx.total_tokens = run.usage["total_tokens"]
             return run.status
 
+    def run_get(
+            self,
+            ctx: CtxItem
+    ) -> str:
+        """
+        Get assistant run status
+
+        :param ctx: context item
+        :return: run
+        """
+        client = self.window.core.gpt.get_client()
+        run = client.beta.threads.runs.retrieve(
+            thread_id=ctx.thread,
+            run_id=ctx.run_id,
+        )
+        return run
+
     def run_stop(
             self,
             ctx: CtxItem
@@ -180,7 +197,7 @@ class Assistants:
         client = self.window.core.gpt.get_client()
         run = client.beta.threads.runs.cancel(
             thread_id=ctx.thread,
-            run_id=ctx.run_id
+            run_id=ctx.run_id,
         )
         if run is not None:
             if run.usage is not None:
@@ -188,6 +205,19 @@ class Assistants:
                 ctx.output_tokens = run.usage["completion_tokens"]
                 ctx.total_tokens = run.usage["total_tokens"]
             return run.status
+
+    def run_submit_tool(
+            self,
+            ctx: CtxItem,
+            outputs: list,
+    ):
+
+        client = self.window.core.gpt.get_client()
+        return client.beta.threads.runs.submit_tool_outputs(
+            thread_id=ctx.thread,
+            run_id=ctx.run_id,
+            tool_outputs=outputs,
+        )
 
     def file_upload(
             self,
@@ -208,7 +238,6 @@ class Assistants:
         if not os.path.exists(path):
             return None
 
-        # upload file
         result = client.files.create(
             file=open(path, "rb"),
             purpose=purpose,
@@ -372,7 +401,9 @@ class Assistants:
                         # pack params to JSON string
                         params = ''
                         try:
-                            params = json.dumps(tool.function.parameters)
+                            params = json.dumps(
+                                tool.function.parameters
+                            )
                         except:
                             pass
                         items[id].add_function(
@@ -402,6 +433,14 @@ class Assistants:
                 if str(function['name']).strip() == '' or function['name'] is None:
                     continue
                 params = json.loads(function['params'])  # unpack JSON from string
-                tools.append({"type": "function", "function": {"name": function['name'], "parameters": params,
-                                                               "description": function['desc']}})
+                tools.append(
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": function['name'],
+                            "parameters": params,
+                            "description": function['desc'],
+                        }
+                    }
+                )
         return tools

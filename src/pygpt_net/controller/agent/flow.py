@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 23:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -206,6 +206,7 @@ class Flow:
         """
         Event: On force stop
         """
+        self.window.controller.chat.common.unlock_input()
         self.iteration = 0
         self.prev_output = None
         self.stop = True

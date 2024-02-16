@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -181,6 +181,16 @@ class Text:
         # get external functions (if preset is chosen and functions are defined)
         functions = self.window.controller.presets.get_current_functions()
 
+        # assistant only
+        tools_outputs = []
+        if mode == 'assistant':
+            if self.window.controller.assistant.threads.is_running():
+                tools_outputs = self.window.controller.assistant.threads.apply_outputs(ctx)
+                self.window.controller.assistant.threads.reset()  # reset outputs
+
+                # clear tool calls to prevent appending cmds to output (otherwise it will call commands again)
+                ctx.tool_calls = []
+
         try:
             # make API call
             try:
@@ -198,8 +208,9 @@ class Text:
                     attachments=self.window.core.attachments.get_all(mode),
                     assistant_id=self.window.core.config.get('assistant'),
                     idx=self.window.controller.idx.current_idx,
-                    idx_raw=self.window.core.config.get('llama.idx.raw'),
-                    external_functions=functions,
+                    idx_raw=self.window.core.config.get('llama.idx.raw'),  # query mode
+                    external_functions=functions,  # chat functions
+                    tools_outputs=tools_outputs,  # if not empty then will submit outputs
                 )
 
                 # update context in DB
@@ -208,7 +219,7 @@ class Text:
 
                 # launch assistants listener in background
                 if mode == 'assistant':
-                    self.window.core.ctx.append_run(ctx.run_id)  # get run ID and save it in ctx
+                    self.window.core.ctx.append_run(ctx.run_id)  # get run ID and store in ctx
                     self.window.controller.assistant.threads.handle_run(ctx)  # handle assistant run
 
                 if result:
@@ -251,7 +262,11 @@ class Text:
         # render: end
         self.window.controller.chat.render.end(stream=stream_mode)
 
-        if mode != "assistant":
+        # don't unlock input and leave stop btn if assistant mode or if agent/autonomous is enabled
+        # send btn will be unlocked in agent mode on stop
+        if mode != "assistant" \
+                and mode != "agent" \
+                and not self.window.controller.plugins.is_type_enabled("agent"):
             self.window.controller.chat.common.unlock_input()  # unlock input if not assistant mode
 
         # handle ctx name (generate title from summary if not initialized)

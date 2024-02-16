@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.02.16 02:00:00                  #
 # ================================================== #
 
 import json
@@ -218,3 +218,41 @@ class Command:
         if ctx.output is None:
             ctx.output = ""
         ctx.output += cmds_str
+
+    def get_tool_calls_outputs(self, ctx: CtxItem) -> list:
+        """
+        Prepare and get tool calls outputs
+
+        :param ctx: context item
+        :return: list of tool calls outputs
+        """
+        outputs = []
+        idx_outputs = {}
+        for tool_call in ctx.tool_calls:
+            call_id = tool_call["id"]
+            idx_outputs[call_id] = ""
+        try:
+            responses = json.loads(ctx.input)  # response is JSON string in input
+            for tool_call in ctx.tool_calls:
+                call_id = tool_call["id"]
+                for response in responses:
+                    if "request" in response:
+                        if "cmd" in response["request"]:
+                            func_name = response["request"]["cmd"]
+                            if tool_call["function"]["name"] == func_name:
+                                idx_outputs[call_id] = response["result"]
+
+        except Exception as e:
+            self.window.core.debug.log(e)
+
+        for id in idx_outputs:
+            data = {
+                "tool_call_id": id,
+                "output": idx_outputs[id],
+            }
+            outputs.append(data)
+
+        if not isinstance(ctx.extra, dict):
+            ctx.extra = {}
+        ctx.extra["tool_calls_outputs"] = outputs
+        return outputs
