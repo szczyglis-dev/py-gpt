@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 import datetime
@@ -120,8 +120,11 @@ class Camera:
     def handle_unfinished(self):
         """On capture unfinished (never started) signal"""
         if self.window.core.platforms.is_snap():
-            self.window.ui.dialogs.alert("Camera not opened!\nDid you connect the camera with:\n\n"
-                                         "sudo snap connect pygpt:camera ?")
+            self.window.ui.dialogs.open(
+                'snap',
+                width=400,
+                height=200
+            )
         self.thread_started = False
         self.disable_capture()
 
@@ -134,11 +137,20 @@ class Camera:
 
         # scale and update frame
         width = self.window.ui.nodes['video.preview'].video.width()
-        image = QImage(self.frame, self.frame.shape[1], self.frame.shape[0],
-                       self.frame.strides[0], QImage.Format_RGB888)
+        image = QImage(
+            self.frame,
+            self.frame.shape[1],
+            self.frame.shape[0],
+            self.frame.strides[0],
+            QImage.Format_RGB888
+        )
         pixmap = QPixmap.fromImage(image)
-        scaled_pixmap = pixmap.scaled(width, pixmap.height(),
-                                      Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        scaled_pixmap = pixmap.scaled(
+            width,
+            pixmap.height(),
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
         self.window.ui.nodes['video.preview'].video.setPixmap(scaled_pixmap)
 
     def manual_capture(self, force: bool = False):
@@ -149,7 +161,9 @@ class Camera:
         """
         if not self.is_auto() or force:
             if not self.capture_frame(True):
-                self.window.statusChanged.emit(trans("vision.capture.manual.captured.error"))
+                self.window.statusChanged.emit(
+                    trans("vision.capture.manual.captured.error")
+                )
         else:
             self.window.statusChanged.emit(trans('vision.capture.auto.click'))
 
@@ -179,10 +193,16 @@ class Camera:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
-            path = os.path.join(self.window.core.config.get_user_dir('capture'), name + '.jpg')
+            path = os.path.join(
+                self.window.core.config.get_user_dir('capture'),
+                name + '.jpg'
+            )
 
             # capture frame
-            compression_params = [cv2.IMWRITE_JPEG_QUALITY, int(self.window.core.config.get('vision.capture.quality'))]
+            compression_params = [
+                cv2.IMWRITE_JPEG_QUALITY,
+                int(self.window.core.config.get('vision.capture.quality'))
+            ]
             frame = self.get_current_frame()
             self.window.controller.painter.capture.camera()  # capture to draw
 
@@ -198,7 +218,9 @@ class Camera:
             self.window.controller.attachment.update()
 
             # show last capture time in status
-            self.window.statusChanged.emit(trans("vision.capture.manual.captured.success") + ' ' + dt_info)
+            self.window.statusChanged.emit(
+                trans("vision.capture.manual.captured.success") + ' ' + dt_info
+            )
 
             # switch to attachments tab if needed (tmp: disabled)
             if switch:
@@ -237,7 +259,11 @@ class Camera:
 
         self.is_capture = True
         self.window.core.config.set('vision.capture.enabled', True)
-        self.window.controller.config.checkbox.apply('config', 'vision.capture.enabled', {'value': True})
+        self.window.controller.config.checkbox.apply(
+            'config',
+            'vision.capture.enabled',
+            {'value': True}
+        )
         self.window.ui.nodes['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
@@ -251,7 +277,11 @@ class Camera:
 
         self.is_capture = False
         self.window.core.config.set('vision.capture.enabled', False)
-        self.window.controller.config.checkbox.apply('config', 'vision.capture.enabled', {'value': False})
+        self.window.controller.config.checkbox.apply(
+            'config',
+            'vision.capture.enabled',
+            {'value': False}
+        )
         self.window.ui.nodes['vision.capture.enable'].setChecked(False)
         self.window.ui.nodes['video.preview'].setVisible(False)
         self.stop_capture()
@@ -279,7 +309,11 @@ class Camera:
 
         self.auto = True
         self.window.core.config.set('vision.capture.auto', True)
-        self.window.controller.config.checkbox.apply('config', 'vision.capture.auto', {'value': True})
+        self.window.controller.config.checkbox.apply(
+            'config',
+            'vision.capture.auto',
+            {'value': True}
+        )
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
         if not self.window.core.config.get('vision.capture.enabled'):
@@ -295,7 +329,11 @@ class Camera:
 
         self.auto = False
         self.window.core.config.set('vision.capture.auto', False)
-        self.window.controller.config.checkbox.apply('config', 'vision.capture.auto', {'value': False})
+        self.window.controller.config.checkbox.apply(
+            'config',
+            'vision.capture.auto',
+            {'value': False}
+        )
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
 
     def toggle_auto(self, state: bool):
