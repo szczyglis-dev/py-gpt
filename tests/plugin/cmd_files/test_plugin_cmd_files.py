@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.02.16 16:00:00                  #
 # ================================================== #
 
 import os
@@ -70,7 +70,7 @@ def test_handle_cmd_syntax(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["syntax"]) == 16  # 16 commands
+    assert len(event.data["syntax"]) == 18  # 16 commands
 
 
 def test_handle_cmd_execute(mock_window):
