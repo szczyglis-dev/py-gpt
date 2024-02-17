@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 21:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 import os
@@ -70,7 +70,12 @@ class Settings:
         tab = self.get_tab_idx(section)
         if tab is not None:
             self.set_by_tab(tab)
-        self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
+
+        self.window.ui.dialogs.open(
+            'config.' + id,
+            width=self.width,
+            height=self.height,
+        )
         self.editor.init(id)
         self.window.core.settings.active[id] = True
         self.window.controller.layout.restore_settings()
@@ -148,7 +153,11 @@ class Settings:
                 self.window.ui.dialog['config.editor'].file = file
         else:
             self.window.core.settings.load_editor(file)  # load file to editor
-            self.window.ui.dialogs.open('config.' + id, width=self.width, height=self.height)
+            self.window.ui.dialogs.open(
+                'config.' + id,
+                width=self.width,
+                height=self.height,
+            )
             self.window.core.settings.active[id] = True
 
         # update menu

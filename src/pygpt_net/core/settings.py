@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 import json
@@ -141,10 +141,10 @@ class Settings:
     def save_editor(self):
         """Save file to disk"""
         file = self.window.ui.dialog['config.editor'].file
-
         path = None
         data = self.window.ui.editor['config'].toPlainText()
-        # check if this is a valid JSON:
+
+        # check if this is a valid JSON
         if file.endswith('.json'):
             try:
                 json.loads(data)
@@ -156,20 +156,22 @@ class Settings:
         elif file.endswith('.css'):
             path = os.path.join(self.window.core.config.path, 'css', file)
 
-        # make backup of current file:
+        # make backup of current file
         backup_file = file + '.backup'
-        backup_path = os.path.join(self.window.core.config.path, backup_file)
+        if file.endswith('.css'):
+            backup_path = os.path.join(self.window.core.config.path, "css", backup_file)
+        else:
+            backup_path = os.path.join(self.window.core.config.path, backup_file)
         if os.path.isfile(path):
             shutil.copyfile(path, backup_path)
             self.window.ui.status("Created backup file: {}".format(backup_file))
 
-        # save changes to current file:
+        # save changes to current file
         try:
             with open(path, 'w', encoding="utf-8") as f:
                 f.write(data)
             self.window.ui.status("Saved file: {}".format(path))
             self.window.ui.dialogs.alert("Saved file: {}".format(path))
-
             if file == "config.json":
                 self.window.core.config.load_config()  # reload config
             elif file == "models.json":
