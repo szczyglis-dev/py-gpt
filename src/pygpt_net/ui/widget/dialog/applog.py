@@ -6,21 +6,21 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 17:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog
+from .base import BaseDialog
 
 
-class AppLogDialog(QDialog):
-    def __init__(self, window=None):
+class AppLogDialog(BaseDialog):
+    def __init__(self, window=None, id="applog"):
         """
         AppLogDialog
 
         :param window: main window
         """
-        super(AppLogDialog, self).__init__(window)
+        super(AppLogDialog, self).__init__(window, id)
         self.window = window
 
     def closeEvent(self, event):
@@ -30,7 +30,7 @@ class AppLogDialog(QDialog):
         :param event: close event
         """
         self.cleanup()
-        event.accept()
+        super(AppLogDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """

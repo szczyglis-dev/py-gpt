@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.25 21:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog
+from .base import BaseDialog
 
 
-class PluginSettingsDialog(QDialog):
+class PluginSettingsDialog(BaseDialog):
     def __init__(self, window=None, id=None):
         """
         Plugin settings dialog
@@ -21,7 +21,7 @@ class PluginSettingsDialog(QDialog):
         :param window: main window
         :param id: settings id
         """
-        super(PluginSettingsDialog, self).__init__(window)
+        super(PluginSettingsDialog, self).__init__(window, id)
         self.window = window
         self.id = id
 
@@ -33,6 +33,7 @@ class PluginSettingsDialog(QDialog):
         """
         self.window.controller.plugins.settings.config_dialog = False
         self.window.controller.plugins.update()
+        super(PluginSettingsDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """

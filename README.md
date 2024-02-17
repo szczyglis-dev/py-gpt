@@ -1952,6 +1952,8 @@ Config -> Settings...
 
 - `Display tips (help descriptions)`: Display help tips, Default: True.
 
+- `Store dialog window positions`: Enable or disable dialogs positions store/restore, Default: True.
+
 - `Use theme colors in chat window`: Use color theme in chat window, Default: True.
 
 - `Disable markdown formatting in output`: Enables plain-text display in output window, Default: False.

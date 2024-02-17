@@ -10,10 +10,10 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog
+from .base import BaseDialog
 
 
-class EditorDialog(QDialog):
+class EditorDialog(BaseDialog):
     def __init__(self, window=None, id=None, data_id=None):
         """
         EditorDialog
@@ -22,7 +22,7 @@ class EditorDialog(QDialog):
         :param id: configurator id
         :param data_id: data id
         """
-        super(EditorDialog, self).__init__(window)
+        super(EditorDialog, self).__init__(window, id)
         self.window = window
         self.id = id  # configurator id
         self.data_id = data_id  # current data id
@@ -37,7 +37,7 @@ class EditorDialog(QDialog):
         :param event: close event
         """
         self.cleanup()
-        event.accept()
+        super(EditorDialog, self).closeEvent(event)
 
     def keyPressEvent(self, event):
         """

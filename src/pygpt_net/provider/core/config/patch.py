@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 import os
@@ -775,6 +775,13 @@ class Patch:
             if old < parse_version("2.0.152"):
                 print("Migrating config from < 2.0.152...")
                 data['cmd.prompt'] = self.window.core.config.get_base('cmd.prompt')  # bg run fix
+                updated = True
+
+            # < 2.0.153
+            if old < parse_version("2.0.153"):
+                print("Migrating config from < 2.0.153...")
+                if 'layout.dialog.geometry.store' not in data:
+                    data['layout.dialog.geometry.store'] = True
                 updated = True
 
         # update file

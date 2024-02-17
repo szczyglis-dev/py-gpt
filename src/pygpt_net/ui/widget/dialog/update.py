@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 import os
@@ -14,20 +14,21 @@ import webbrowser
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
 
 from pygpt_net.ui.widget.element.labels import TitleLabel, CmdLabel
 from pygpt_net.utils import trans
+from .base import BaseDialog
 
 
-class UpdateDialog(QDialog):
-    def __init__(self, window=None):
+class UpdateDialog(BaseDialog):
+    def __init__(self, window=None, id="update"):
         """
         Update dialog
 
         :param window: main window
         """
-        super(UpdateDialog, self).__init__(window)
+        super(UpdateDialog, self).__init__(window, id)
         self.window = window
         self.setParent(window)
         self.setWindowTitle(trans('update.title'))
@@ -38,13 +39,15 @@ class UpdateDialog(QDialog):
         self.www = QPushButton(trans('update.download'))
         self.www.setCursor(Qt.PointingHandCursor)
         self.www.clicked.connect(
-            lambda: self.window.controller.dialogs.info.goto_update())
+            lambda: self.window.controller.dialogs.info.goto_update()
+        )
 
         # snap store
         self.snap_store = QPushButton(trans('update.snap'))
         self.snap_store.setCursor(Qt.PointingHandCursor)
         self.snap_store.clicked.connect(
-            lambda: self.window.controller.dialogs.info.goto_snap())
+            lambda: self.window.controller.dialogs.info.goto_snap()
+        )
 
         self.changelog = QPlainTextEdit()
         self.changelog.setReadOnly(True)
@@ -65,7 +68,8 @@ class UpdateDialog(QDialog):
         self.checkbox_startup = QCheckBox(trans("updater.check.launch"))
         self.checkbox_startup.stateChanged.connect(
             lambda: self.window.controller.launcher.toggle_update_check(
-                self.checkbox_startup.isChecked()))
+                self.checkbox_startup.isChecked())
+        )
 
         if self.window.core.config.get('updater.check.launch'):
             self.checkbox_startup.setChecked(True)
@@ -84,17 +88,26 @@ class UpdateDialog(QDialog):
         self.info_upgrade = QLabel(trans("update.info.upgrade"))
         self.info_upgrade.setWordWrap(True)
         self.info_upgrade.setAlignment(Qt.AlignCenter)
-        self.info_upgrade.setStyleSheet("font-size: 12px; margin: 0px 0px 5px 0px;")
+        self.info_upgrade.setStyleSheet(
+            "font-size: 12px;"
+            "margin: 0px 0px 5px 0px;"
+        )
         self.info_upgrade.setMaximumHeight(40)
 
         # layout
         self.layout = QVBoxLayout()
         self.message = QLabel("")
-        self.message.setStyleSheet("margin: 10px 0px 10px 0px;")
+        self.message.setStyleSheet(
+            "margin: 10px 0px 10px 0px;"
+        )
         self.info = TitleLabel(trans("update.info"))
         self.info.setWordWrap(True)
         self.info.setAlignment(Qt.AlignCenter)
-        self.info.setStyleSheet("font-weight: bold; font-size: 12px; margin: 10px 0px 10px 0px;")
+        self.info.setStyleSheet(
+            "font-weight: bold;"
+            "font-size: 12px;"
+            "margin: 10px 0px 10px 0px;"
+        )
         self.info.setMaximumHeight(60)
         self.layout.addWidget(logo_label)
         self.layout.addWidget(self.info)

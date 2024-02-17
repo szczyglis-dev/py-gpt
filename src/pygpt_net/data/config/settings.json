@@ -175,6 +175,18 @@
         "step": 1,
         "advanced": false
     },
+    "layout.dialog.geometry.store": {
+        "section": "layout",
+        "type": "bool",
+        "slider": true,
+        "label": "settings.layout.dialog.geometry.store",
+        "value": true,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "theme.markdown": {
         "section": "layout",
         "type": "bool",

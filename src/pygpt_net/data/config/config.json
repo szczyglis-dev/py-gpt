@@ -62,6 +62,8 @@
   "img_variants": 1,
   "lang": "en",
   "layout.density": -1,
+  "layout.dialog.geometry.store": true,
+  "layout.dialog.geometry": {},
   "layout.dpi.scaling": true,
   "layout.dpi.factor": 1.0,
   "layout.groups": {},

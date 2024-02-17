@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.17 20:00:00                  #
 # ================================================== #
 
 import copy
@@ -137,6 +137,11 @@ class Editor:
         if 'log.level' in self.before_config \
                 and self.before_config['log.level'] != self.window.core.config.get('log.level'):
             self.window.controller.debug.set_log_level(self.window.core.config.get('log.level'))
+
+        # reset dialog geometry if disabled
+        if not self.window.core.config.get('layout.dialog.geometry.store'):
+            self.window.core.config.set('layout.dialog.geometry', {})
+            self.window.core.config.save()
 
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
