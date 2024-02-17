@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.02.17 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -29,6 +29,7 @@ class Plugin(BasePlugin):
             "web_search",
             "web_urls",
             "web_url_open",
+            "web_url_raw",
         ]
         self.order = 100
         self.use_locale = True
@@ -121,6 +122,38 @@ class Plugin(BasePlugin):
             max=None,
         )
         self.add_option(
+            "cmd_web_search",
+            type="bool",
+            value=True,
+            label="Enable: \"web_search\" command",
+            description="Allow using command: web_search",
+            tooltip="If enabled, model will be able to search the Web",
+        )
+        self.add_option(
+            "cmd_web_url_open",
+            type="bool",
+            value=True,
+            label="Enable: \"web_url_open\" command",
+            description="Allow using command: web_url_open",
+            tooltip="If enabled, model will be able to open specified URL and summarize content",
+        )
+        self.add_option(
+            "cmd_web_url_raw",
+            type="bool",
+            value=True,
+            label="Enable: \"web_url_raw\" command",
+            description="Allow using command: web_url_raw",
+            tooltip="If enabled, model will be able to open specified URL and get raw content",
+        )
+        self.add_option(
+            "cmd_web_urls",
+            type="bool",
+            value=True,
+            label="Enable: \"web_urls\" command",
+            description="Allow using command: web_urls",
+            tooltip="If enabled, model will be able to search the Web and get founded URLs list",
+        )
+        self.add_option(
             "summary_model",
             type="text",
             value="gpt-3.5-turbo-1106",
@@ -170,6 +203,15 @@ class Plugin(BasePlugin):
                   '"summarize_prompt"',
             label="Syntax: web_url_open",
             description="Syntax for web_url_open command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_web_url_raw",
+            type="textarea",
+            value='"web_url_raw": use it to get RAW text/html content (not summarized) from a specific Web page. '
+                  'Params: "url"',
+            label="Syntax: web_url_raw",
+            description="Syntax for web_url_raw command",
             advanced=True,
         )
         self.add_option(
@@ -236,6 +278,8 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         for option in self.allowed_cmds:
+            if not self.get_option_value("cmd_" + option):
+                continue
             key = "syntax_" + option
             if self.has_option(key):
                 data['syntax'].append(
@@ -253,7 +297,7 @@ class Plugin(BasePlugin):
         need_api_key = False
         my_commands = []
         for item in cmds:
-            if item["cmd"] in self.allowed_cmds:
+            if item["cmd"] in self.allowed_cmds and self.get_option_value("cmd_" + item["cmd"]):
                 my_commands.append(item)
                 is_cmd = True
                 if item["cmd"] == "web_search" or item["cmd"] == "web_urls":

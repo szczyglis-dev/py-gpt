@@ -456,6 +456,84 @@ These data must be configured in the appropriate fields in the ``Plugins / Setti
 .. image:: images/v2_plugin_google.png
    :width: 600
 
+**Options**
+
+- ``Google Custom Search API KEY`` *google_api_key*
+
+You can obtain your own API key at https://developers.google.com/custom-search/v1/overview
+
+- ``Google Custom Search CX ID`` *google_api_cx*
+
+You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all - remember to enable "Search on ALL internet pages" option in project settings.
+
+- ``Number of pages to search`` *num_pages*
+
+Number of max pages to search per query
+
+- `` Max content characters`` *max_page_content_length*
+
+Max characters of page content to get (0 = unlimited)
+
+- ``Per-page content chunk size`` *chunk_size*
+
+Per-page content chunk size (max characters per chunk)
+
+- ``Disable SSL verify`` *disable_ssl*
+
+Disables SSL verification when crawling web pages
+
+- ``Max result length`` *max_result_length*
+
+Max length of summarized result (characters)
+
+- ``Max summary tokens`` *summary_max_tokens*
+
+Max tokens in output when generating summary
+
+- ``Enable: "web_search" command`` *cmd_web_search*
+
+If enabled, model will be able to search the Web
+
+- ``Enable: "web_url_open" command`` *cmd_web_url_open*
+
+If enabled, model will be able to open specified URL and summarize content
+
+- ``Enable: "web_url_raw" command`` *cmd_web_url_raw*
+
+If enabled, model will be able to open specified URL and get raw content
+
+- ``Enable: "web_urls" command`` *cmd_web_urls*
+
+If enabled, model will be able to search the Web and get founded URLs list
+
+- ``Model used for web page summarize`` *summary_model*
+
+Model used for web page summarize, default: gpt-3.5-turbo-1106
+
+- ``Summarize prompt`` *prompt_summarize*
+
+Prompt used for web search results summarize, use {query} as a placeholder for search query
+
+- ``Summarize prompt (URL open)`` *prompt_summarize_url*
+
+Prompt used for specified URL page summarize
+
+- ``Syntax: web_search`` *syntax_web_search*
+
+Syntax for web_search command
+
+- ``Syntax: web_url_open`` *syntax_web_url_open*
+
+Syntax for web_url_open command
+
+- ``Syntax: web_url_raw`` *syntax_web_url_raw*
+
+Syntax for web_url_raw command
+
+- ``Syntax: web_urls`` *syntax_web_urls*
+
+Syntax for web_urls command
+
 
 Command: Serial port / USB
 ---------------------------

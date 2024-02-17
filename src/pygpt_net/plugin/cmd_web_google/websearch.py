@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.02.17 22:00:00                  #
 # ================================================== #
 
 import json
@@ -322,7 +322,6 @@ class WebSearch:
         :param url: URL to visit
         :param summarize_prompt: custom prompt
         :return: result, url
-        :rtype: (result, url)
         """
         self.log("Using URL: " + url)
 
@@ -345,7 +344,6 @@ class WebSearch:
 
         result = self.get_summarized_text(chunks, "", summarize_prompt)
 
-        # if result then stop
         if result is not None and result != "":
             self.log("Summary generated (chars: {})".format(len(result)))
 
@@ -356,6 +354,32 @@ class WebSearch:
             )
 
         if len(result) > max_result_size:
+            result = result[:max_result_size]
+
+        self.debug(
+            "Plugin: cmd_web_google: result length: {}".format(len(result))
+        )
+
+        return result, url
+
+    def open_url_raw(self, url: str) -> (str, str):
+        """
+        Get raw content from specified URL
+
+        :param url: URL to visit
+        :return: result, url
+        """
+        self.log("Using URL: " + url)
+
+        # get options
+        max_result_size = int(self.plugin.get_option_value("max_page_content_length"))
+
+        self.log("URL: " + url)
+        result = self.query_url(url)
+        self.log("Content found (chars: {}). Please wait...".format(len(result)))
+
+        # strip if too long
+        if 0 < max_result_size < len(result):
             result = result[:max_result_size]
 
         self.debug(

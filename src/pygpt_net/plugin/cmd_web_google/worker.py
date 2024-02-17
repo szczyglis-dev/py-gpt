@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.02.17 22:00:00                  #
 # ================================================== #
+
 import json
 
 from PySide6.QtCore import Slot
@@ -82,6 +83,29 @@ class Worker(BaseWorker):
                     result, url = self.websearch.open_url(
                         url,
                         prompt,
+                    )
+                    data = {
+                        'content': result,
+                        'url': url,
+                    }
+                    if url:
+                        self.ctx.urls.append(url)
+
+                    self.response(
+                        {
+                            "request": request,
+                            "result": data,
+                        }
+                    )
+
+                # cmd: web_url_raw
+                elif item["cmd"] == "web_url_raw":
+                    url = item["params"]["url"]
+                    msg = "Opening Web URL: '{}'".format(item["params"]["url"])
+
+                    # open url (raw)
+                    result, url = self.websearch.open_url_raw(
+                        url,
                     )
                     data = {
                         'content': result,
