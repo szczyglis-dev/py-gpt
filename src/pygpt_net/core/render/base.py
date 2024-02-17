@@ -9,81 +9,53 @@
 # Updated Date: 2024.02.17 17:00:00                  #
 # ================================================== #
 
-from pygpt_net.core.render.base import BaseRenderer
-from pygpt_net.core.render.markdown.renderer import Renderer as MarkdownRenderer
-from pygpt_net.core.render.plain.renderer import Renderer as PlainTextRenderer
 from pygpt_net.item.ctx import CtxItem
 
 
-class Render:
+class BaseRenderer:
     def __init__(self, window=None):
         """
-        Render controller
+        Base renderer
 
         :param window: Window instance
         """
         self.window = window
-        self.markdown_renderer = MarkdownRenderer(window)
-        self.plaintext_renderer = PlainTextRenderer(window)
-
-    def get_renderer(self) -> BaseRenderer:
-        """
-        Get current renderer instance
-
-        :return: Renderer instance
-        """
-        if self.window.core.config.get('render.plain'):
-            return self.plaintext_renderer
-        else:
-            return self.markdown_renderer
 
     def begin(self, stream: bool = False):
-        """
-        Render begin
-
-        :param stream: True if it is a stream
-        """
-        self.get_renderer().begin(stream)
+        """Render begin"""
+        pass
 
     def end(self, stream: bool = False):
-        """
-        Render end
-
-        :param stream: True if it is a stream
-        """
-        self.get_renderer().end(stream)
+        """Render end"""
+        pass
 
     def end_extra(self, stream: bool = False):
-        """
-        Render end extra
-
-        :param stream: True if it is a stream
-        """
-        self.get_renderer().end_extra(stream)
+        """Render end extra"""
+        pass
 
     def stream_begin(self):
         """Render stream begin"""
-        self.get_renderer().stream_begin()
+        pass  # do nothing
 
     def stream_end(self):
         """Render stream end"""
-        self.get_renderer().stream_end()
+        pass  # do nothing    
 
     def clear_output(self):
         """Clear output"""
-        self.get_renderer().clear_output()
+        pass
 
     def clear_input(self):
         """Clear input"""
-        self.get_renderer().clear_input()
+        pass
 
     def reset(self):
         """Reset"""
-        self.get_renderer().reset()
+        pass
 
     def reload(self):
-        """Reload output"""
-        self.get_renderer().reload()
+        """Reload output, called externally only on theme change to redraw content"""
+        pass
 
     def append_context(self, items: list, clear: bool = True):
         """
@@ -92,7 +64,7 @@ class Render:
         :param items: Context items
         :param clear: True if clear all output before append
         """
-        self.get_renderer().append_context(items, clear)
+        pass
 
     def append_input(self, item: CtxItem):
         """
@@ -100,7 +72,7 @@ class Render:
 
         :param item: context item
         """
-        self.get_renderer().append_input(item)
+        pass
 
     def append_output(self, item: CtxItem):
         """
@@ -108,7 +80,7 @@ class Render:
 
         :param item: context item
         """
-        self.get_renderer().append_output(item)
+        pass
 
     def append_extra(self, item: CtxItem):
         """
@@ -116,14 +88,14 @@ class Render:
 
         :param item: context item
         """
-        self.get_renderer().append_extra(item)
+        pass
 
     def append_chunk(self, item: CtxItem, text_chunk: str, begin: bool = False):
         """
-        Append output stream chunk to output
+        Append output chunk to output
 
         :param item: context item
         :param text_chunk: text chunk
-        :param begin: if it is the beginning of the stream
+        :param begin: if it is the beginning of the text
         """
-        self.get_renderer().append_chunk(item, text_chunk, begin)
+        pass

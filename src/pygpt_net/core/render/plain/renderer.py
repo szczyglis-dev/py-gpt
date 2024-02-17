@@ -6,22 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.07 13:00:00                  #
+# Updated Date: 2024.02.17 17:00:00                  #
 # ================================================== #
 
 from datetime import datetime
 from PySide6.QtGui import QTextCursor, QTextBlockFormat
 
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.render.base import BaseRenderer
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
+from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class Renderer:
+class Renderer(BaseRenderer):
     def __init__(self, window=None):
+        super(Renderer, self).__init__(window)
         """
-        Markdown renderer
+        Plain text renderer
 
         :param window: Window instance
         """
@@ -32,11 +34,27 @@ class Renderer:
         self.is_cmd = False
 
     def begin(self, stream: bool = False):
-        """Render begin"""
+        """
+        Render begin
+
+        :param stream: True if it is a stream
+        """
         self.to_end()
 
     def end(self, stream: bool = False):
-        """Render end"""
+        """
+        Render end
+
+        :param stream: True if it is a stream
+        """
+        self.to_end()
+
+    def end_extra(self, stream: bool = False):
+        """
+        Render end extra
+
+        :param stream: True if it is a stream
+        """
         self.to_end()
 
     def stream_begin(self):
@@ -46,10 +64,6 @@ class Renderer:
     def stream_end(self):
         """Render stream end"""
         pass  # do nothing
-
-    def end_extra(self, stream: bool = False):
-        """Render end extra"""
-        self.to_end()
 
     def clear_output(self):
         """Clear output"""
