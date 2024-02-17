@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.17 18:00:00                  #
 # ================================================== #
 
 import os
@@ -85,6 +85,20 @@ class Filesystem:
         :return: local paths with working dir placeholder
         """
         return [self.make_local(path) for path in paths]
+
+    def make_local_list_img(self, paths: list) -> list:
+        """
+        Make local placeholder paths for images
+
+        :param paths: list with paths to prepare
+        :return: local paths with working dir placeholder
+        """
+        img_ext = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp']
+        result = []
+        for path in paths:
+            if path.endswith(tuple(img_ext)):
+                result.append(self.make_local(path))
+        return result
 
     def get_url(self, url) -> QUrl:
         """

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.02.17 18:00:00                  #
 # ================================================== #
 
 import json
@@ -60,6 +60,7 @@ class Threads:
                 paths += self.window.controller.assistant.files.handle_received_ids(msg.file_ids)
                 if paths:
                     ctx.files = self.window.core.filesystem.make_local_list(list(paths))
+                    ctx.images = self.window.core.filesystem.make_local_list_img(list(paths))
 
                 # update ctx
                 self.window.core.ctx.update_item(ctx)
