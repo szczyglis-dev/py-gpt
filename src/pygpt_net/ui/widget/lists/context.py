@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.04 18:00:00                  #
+# Updated Date: 2024.02.17 15:00:00                  #
 # ================================================== #
-import os
 
 from PySide6 import QtWidgets, QtCore, QtGui
-from PySide6.QtGui import QAction, QIcon, QColor
+from PySide6.QtGui import QAction, QIcon, QColor, QPixmap
 from PySide6.QtWidgets import QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
@@ -65,28 +64,34 @@ class ContextList(BaseList):
         actions = {}
         actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
         actions['rename'].triggered.connect(
-            lambda: self.action_rename(event))
+            lambda: self.action_rename(event)
+        )
 
         if is_important:
             actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.unpin'), self)
             actions['important'].triggered.connect(
-                lambda: self.action_unpin(event))
+                lambda: self.action_unpin(event)
+            )
         else:
             actions['important'] = QAction(QIcon(":/icons/pin.svg"), trans('action.pin'), self)
             actions['important'].triggered.connect(
-                lambda: self.action_pin(event))
+                lambda: self.action_pin(event)
+            )
 
         actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
         actions['duplicate'].triggered.connect(
-            lambda: self.action_duplicate(event))
+            lambda: self.action_duplicate(event)
+        )
 
         actions['delete'] = QAction(QIcon(":/icons/delete.svg"), trans('action.delete'), self)
         actions['delete'].triggered.connect(
-            lambda: self.action_delete(event))
+            lambda: self.action_delete(event)
+        )
 
         actions['copy_id'] = QAction(QIcon(":/icons/copy.svg"), trans('action.ctx_copy_id') + " @" + str(id), self)
         actions['copy_id'].triggered.connect(
-            lambda: self.action_copy_id(event))
+            lambda: self.action_copy_id(event)
+        )
 
         menu = QMenu(self)
         menu.addAction(actions['rename'])
@@ -94,20 +99,20 @@ class ContextList(BaseList):
         menu.addAction(actions['important'])
         menu.addAction(actions['delete'])
 
-
         # set label menu
         set_label_menu = menu.addMenu(trans('calendar.day.label'))
         for status_id, status_info in self.window.controller.calendar.statuses.items():
             name = trans('calendar.day.' + status_info['label'])
             if status_id == 0:
                 name = '-'
-            status_action = QAction(name, self)
-            if status_id == 0:
-                status_action.setIcon(QIcon(":/icons/close.svg"))
-            else:
-                status_action.setIcon(QIcon(":/icons/edit.svg"))
+            color = status_info['color']
+            pixmap = QPixmap(16, 16)
+            pixmap.fill(color)
+            icon = QIcon(pixmap)
+            status_action = QAction(icon, name, self)
             status_action.triggered.connect(
-                lambda checked=False, s_id=status_id: self.window.controller.ctx.set_label(idx, s_id))
+                lambda checked=False, s_id=status_id: self.window.controller.ctx.set_label(idx, s_id)
+            )
             set_label_menu.addAction(status_action)
 
         idx_menu = QMenu(trans('action.idx'), self)
@@ -120,8 +125,9 @@ class ContextList(BaseList):
                 name = index['name'] + " (" + index['id'] + ")"
                 action = idx_menu.addAction("IDX: " + name)
                 action.setIcon(QIcon(":/icons/search.svg"))
-                action.triggered.connect(lambda checked=False, idx=idx, index=id:
-                                         self.action_idx(idx, index))
+                action.triggered.connect(
+                    lambda checked=False, idx=idx, index=id: self.action_idx(idx, index)
+                )
 
             menu.addMenu(idx_menu)
 
@@ -221,6 +227,8 @@ class ContextList(BaseList):
 class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
     """
     Label color delegate
+
+    :param QtWidgets.QStyledItemDelegate: parent class
     """
     def paint(self, painter, option, index):
         super(ImportantItemDelegate, self).paint(painter, option, index)
@@ -241,7 +249,13 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                     square_size,
                 )
                 painter.setBrush(color)
-                painter.setPen(QtGui.QPen(QtCore.Qt.black, 0.5, QtCore.Qt.SolidLine))
+                painter.setPen(
+                    QtGui.QPen(
+                        QtCore.Qt.black,
+                        0.5,
+                        QtCore.Qt.SolidLine,
+                    )
+                )
                 painter.drawRect(square_rect)
 
                 label = label - 10  # remove pin status

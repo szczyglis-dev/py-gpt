@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.17 15:00:00                  #
 # ================================================== #
 
+from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QPushButton, QComboBox, QScrollArea
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
@@ -71,7 +72,10 @@ class Painter:
         self.window.ui.nodes[key] = QComboBox()
         colors = self.window.controller.painter.common.get_colors()
         for color_name, color_value in colors.items():
-            self.window.ui.nodes[key].addItem(color_name, color_value)
+            pixmap = QPixmap(100, 100)
+            pixmap.fill(color_value)
+            icon = QIcon(pixmap)
+            self.window.ui.nodes[key].addItem(icon, color_name, color_value)
         self.window.ui.nodes[key].currentTextChanged.connect(
             self.window.controller.painter.common.change_brush_color)
         self.window.ui.nodes[key].setMinimumContentsLength(10)

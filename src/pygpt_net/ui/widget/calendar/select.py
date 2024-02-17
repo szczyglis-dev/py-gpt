@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 18:00:00                  #
+# Updated Date: 2024.02.17 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
-from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon
+from PySide6.QtGui import QColor, QBrush, QFont, Qt, QAction, QContextMenuEvent, QIcon, QPixmap, QPen
 from PySide6.QtWidgets import QCalendarWidget, QMenu
 
 from pygpt_net.utils import trans
@@ -62,33 +62,70 @@ class CalendarSelect(QCalendarWidget):
         :param rect: Rectangle
         :param date: Date
         """
+
         super().paintCell(painter, rect, date)
+
+        # current date
+        if date == QDate.currentDate():
+            painter.save()
+            pen = QPen(QColor(0, 0, 0))
+            pen.setWidth(2)
+            painter.setPen(pen)
+            painter.drawRect(rect)
+            painter.restore()
+
+        # ctx counter
         if date in self.counters['ctx']:
             padding = 2
-            task_rect = QRect(rect.right() - padding - 20, rect.top() + padding, 20, 20)
+            task_rect = QRect(
+                rect.right() - padding - 20,
+                rect.top() + padding,
+                20,
+                20,
+            )
             painter.save()
             painter.setBrush(QBrush(QColor(0, 0, 0)))
             painter.drawRect(task_rect)
             painter.setPen(QColor(255, 255, 255))
             painter.setFont(QFont('Lato', self.font_size))
-            painter.drawText(task_rect, Qt.AlignCenter, str(self.counters['ctx'][date]))
+            painter.drawText(
+                task_rect,
+                Qt.AlignCenter,
+                str(self.counters['ctx'][date]),
+            )
             painter.restore()
 
+        # notes counter
         if date in self.counters['notes']:
             day_notes = self.counters['notes'][date]
             for status, count in day_notes.items():
                 padding = 2
-                task_rect = QRect(rect.left() + padding, rect.bottom() - padding - 20, 20, 20)
+                task_rect = QRect(
+                    rect.left() + padding,
+                    rect.bottom() - padding - 20,
+                    20,
+                    20,
+                )
                 painter.save()
                 bg_color, font_color = self.get_color_for_status(status)
                 painter.setBrush(QBrush(bg_color))
                 painter.drawRect(task_rect)
                 painter.setPen(font_color)
                 painter.setFont(QFont('Lato', self.font_size))
-                painter.drawText(task_rect, Qt.AlignCenter, "!")  # str(count)
+                painter.drawText(
+                    task_rect,
+                    Qt.AlignCenter,
+                    "!",
+                )  # str(count)
                 painter.restore()
 
-    def get_color_for_status(self, status):
+    def get_color_for_status(self, status: int) -> (QColor, QColor):
+        """
+        Get color for status
+
+        :param status: status
+        :return: color, font color
+        """
         if status in self.window.controller.calendar.statuses:
             return self.window.controller.calendar.statuses[status]['color'], \
                    self.window.controller.calendar.statuses[status]['font']
@@ -115,10 +152,10 @@ class CalendarSelect(QCalendarWidget):
 
     def add_ctx(self, date: QDate, num: int):
         """
-        Add ctx counter to counters list
+        Add ctx counter to counter list
 
-        :param date: Date
-        :param num: Number of ctx
+        :param date: date
+        :param num: number of ctx
         """
         self.counters['ctx'][date] = str(num)
         self.updateCell(date)
@@ -129,7 +166,9 @@ class CalendarSelect(QCalendarWidget):
 
         :param counters: counters dict
         """
-        self.counters['ctx'] = {QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()}
+        self.counters['ctx'] = {
+            QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()
+        }
         self.updateCells()
 
     def update_notes(self, counters: dict):
@@ -138,10 +177,17 @@ class CalendarSelect(QCalendarWidget):
 
         :param counters: counters dict
         """
-        self.counters['notes'] = {QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()}
+        self.counters['notes'] = {
+            QDate.fromString(date_str, 'yyyy-MM-dd'): count for date_str, count in counters.items()
+        }
         self.updateCells()
 
     def open_context_menu(self, position):
+        """
+        Open context menu
+
+        :param position: position
+        """
         selected_date = self.selectedDate()
         context_menu = QMenu(self)
         action_text = trans('calendar.day.search') + ': ' + selected_date.toString()
@@ -153,25 +199,55 @@ class CalendarSelect(QCalendarWidget):
         # set label menu
         set_label_menu = context_menu.addMenu(trans('calendar.day.label'))
         for status_id, status_info in self.window.controller.calendar.statuses.items():
-            status_action = QAction(trans('calendar.day.' + status_info['label']), self)
+            name = trans('calendar.day.' + status_info['label'])
             if status_id == 0:
-                status_action.setIcon(QIcon(":/icons/close.svg"))
-            else:
-                status_action.setIcon(QIcon(":/icons/edit.svg"))
-            status_action.triggered.connect(lambda checked=False, s_id=status_id: self.set_label_for_day(selected_date, s_id))
+                name = '-'
+            color = status_info['color']
+            pixmap = QPixmap(16, 16)
+            pixmap.fill(color)
+            icon = QIcon(pixmap)
+            status_action = QAction(icon, name, self)
+            status_action.triggered.connect(
+                lambda checked=False, s_id=status_id: self.set_label_for_day(selected_date, s_id)
+            )
             set_label_menu.addAction(status_action)
 
         context_menu.exec(self.mapToGlobal(position))
 
     def execute_action(self, date):
+        """
+        On select date from context menu
+
+        :param date: QDate
+        """
         year = date.year()
         month = date.month()
         day = date.day()
-        self.window.controller.calendar.on_ctx_select(year, month, day)
+        self.window.controller.calendar.on_ctx_select(
+            year,
+            month,
+            day,
+        )
 
     def contextMenuEvent(self, event: QContextMenuEvent):
+        """
+        On context menu event
+
+        :param event: context menu event
+        """
         self.open_context_menu(event.pos())
 
     def set_label_for_day(self, date: QDate, status_id: int):
-        self.window.controller.calendar.note.update_status(status_id, date.year(), date.month(), date.day())
+        """
+        Set label for day
+
+        :param date: date
+        :param status_id: status id
+        """
+        self.window.controller.calendar.note.update_status(
+            status_id,
+            date.year(),
+            date.month(),
+            date.day(),
+        )
 

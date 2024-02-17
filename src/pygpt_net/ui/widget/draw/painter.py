@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.07 13:00:00                  #
+# Updated Date: 2024.02.17 15:00:00                  #
 # ================================================== #
 
 import datetime
@@ -73,7 +73,12 @@ class PainterWidget(QWidget):
 
     def action_open(self):
         """Open the image"""
-        path, _ = QFileDialog.getOpenFileName(self, "Open Image", "", "Images (*.png *.jpg *.jpeg)")
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Image",
+            "",
+            "Images (*.png *.jpg *.jpeg)",
+        )
         if path:
             self.open_image(path)
 
@@ -85,8 +90,12 @@ class PainterWidget(QWidget):
     def action_save(self):
         """Save image to file"""
         name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
-        path, _ = QFileDialog.getSaveFileName(self, "Save Image", name,
-                                              "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ")
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Image",
+            name,
+            "PNG(*.png);;JPEG(*.jpg *.jpeg);;All Files(*.*) ",
+        )
         if path:
             self.image.save(path)
 
@@ -133,13 +142,27 @@ class PainterWidget(QWidget):
             if image.width() > image.height():
                 width = self.width()
                 height = (image.height() * self.width()) / image.width()
-                new = image.scaled(width, int(height), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+                new = image.scaled(
+                    width,
+                    int(height),
+                    Qt.KeepAspectRatioByExpanding,
+                    Qt.SmoothTransformation,
+                )
             else:
                 height = self.height()
                 width = (image.width() * self.height()) / image.height()
-                new = image.scaled(int(width), height, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+                new = image.scaled(
+                    int(width),
+                    height,
+                    Qt.KeepAspectRatioByExpanding,
+                    Qt.SmoothTransformation,
+                )
 
-        self.image = QImage(self.width(), self.height(), QImage.Format_RGB32)
+        self.image = QImage(
+            self.width(),
+            self.height(),
+            QImage.Format_RGB32,
+        )
         self.image.fill(Qt.white)
         painter = QPainter(self.image)
         painter.drawImage(0, 0, new)
@@ -209,7 +232,15 @@ class PainterWidget(QWidget):
         """
         if (event.buttons() & Qt.LeftButton) and self.drawing:
             painter = QPainter(self.image)
-            painter.setPen(QPen(self.brushColor, self.brushSize, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.setPen(
+                QPen(
+                    self.brushColor,
+                    self.brushSize,
+                    Qt.SolidLine,
+                    Qt.RoundCap,
+                    Qt.RoundJoin,
+                )
+            )
             painter.drawLine(self.lastPoint, event.pos())
             self.lastPoint = event.pos()
             self.update()

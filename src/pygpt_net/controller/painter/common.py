@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.17 15:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
@@ -140,7 +140,8 @@ class Common:
         if self.window.core.config.has('painter.brush.size'):
             size = int(self.window.core.config.get('painter.brush.size', 3))
         self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
-                self.window.ui.nodes['painter.select.brush.size'].findText(str(size)))
+                self.window.ui.nodes['painter.select.brush.size'].findText(str(size))
+        )
 
     def get_colors(self) -> dict:
         """
@@ -175,10 +176,10 @@ class Common:
         :return: list of sizes
         """
         return [
-            # horizontal:
+            # horizontal
             "640x480", "800x600", "1024x768", "1280x720", "1600x900",
             "1920x1080", "2560x1440", "3840x2160", "4096x2160",
-            # vertical:
+            # vertical
             "480x640", "600x800", "768x1024", "720x1280", "900x1600",
             "1080x1920", "1440x2560", "2160x3840", "2160x4096"
         ]
