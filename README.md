@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.152** | build: **2024.02.16** | Python: **3.10+**
+Release: **2.0.153** | build: **2024.02.17** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2274,6 +2274,15 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.153 (2024-02-17)
+
+- Added image display in the chat window when a file received from the Assistant is an image
+- Added color labels in color select combo boxes
+- Added dialog window position save and restore (+ option in Settings to enable/disable this feature)
+- Added command "web_url_raw" to the Google Search Plugin which allows you to get the raw HTML/txt content from web pages (without summary)
+- Fixed CSS backup path
+- Updated documentation
 
 # 2.0.152 (2024-02-16)
 
