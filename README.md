@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.153** | build: **2024.02.17** | Python: **3.10+**
+Release: **2.0.154** | build: **2024.02.18** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -24,7 +24,7 @@ Multiple operation modes are included, such as chat, text completion, assistant,
 
 **Video** (mp4, version `2.0.153`, build `2024-02-18`):
 
-https://github.com/szczyglis-dev/py-gpt/assets/61396542/510fb86d-1a35-41a4-902c-4c39bfe97ec0
+https://github.com/szczyglis-dev/py-gpt/assets/61396542/996db435-fea3-4836-85b5-4f93505df6c4
 
 **Screenshot** (version `2.0.153` build `2024-02-18`):
 
@@ -2277,6 +2277,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.154 (2024-02-18)
+
+- Fixed hidden user input in Assistants mode
+- Fixed system prompt change when switching to Assistants mode without selected Assistant
 
 # 2.0.153 (2024-02-17)
 

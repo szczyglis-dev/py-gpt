@@ -48,13 +48,14 @@ class Mode:
         """
         # if ctx loaded with assistant then switch to this assistant
         if mode == "assistant":
+            self.window.controller.presets.select_default()
             if self.window.core.ctx.current is not None \
                     and self.window.core.ctx.assistant is not None:
                 self.window.controller.assistant.select_by_id(
                     self.window.core.ctx.assistant
                 )
-        else:
-            self.window.controller.assistant.update()
+            else:
+                self.window.controller.assistant.select_current()
 
         self.window.core.config.set('mode', mode)
         self.window.core.config.set('model', "")

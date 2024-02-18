@@ -1,3 +1,8 @@
+2.0.154 (2024-02-18)
+
+- Fixed hidden user input in Assistants mode
+- Fixed system prompt change when switching to Assistants mode without selected Assistant
+
 2.0.153 (2024-02-17)
 
 - Added image display in the chat window when a file received from the Assistant is an image

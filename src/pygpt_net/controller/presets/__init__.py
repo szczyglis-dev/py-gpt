@@ -192,6 +192,9 @@ class Presets:
 
     def refresh(self):
         """Refresh presets"""
+        mode = self.window.core.config.get('mode')
+        if mode == 'assistant':
+            return
         self.select_default()
         self.update_current()
         self.update_data()
@@ -353,4 +356,7 @@ class Presets:
         """
         # if self.window.controller.chat.input.generating:
         # return True
+        mode = self.window.core.config.get('mode')
+        if mode == "assistant":
+            return True
         return False
