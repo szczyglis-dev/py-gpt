@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -158,7 +158,7 @@ class Assistant:
 
     def create(self) -> AssistantItem:
         """
-        Create assistant
+        Create assistant in API
 
         :return: AssistantItem
         """
@@ -193,23 +193,28 @@ class Assistant:
             )
             return
 
-        try:
-            # import assistants
-            items = self.window.core.assistants.get_all()
-            self.window.core.gpt.assistants.import_api(items)
-            self.window.core.assistants.items = items
-            self.window.core.assistants.save()
+        # run asynchronous
+        self.window.ui.status("Importing assistants...please wait...")
+        self.window.core.assistants.importer.import_assistants()
 
-            # import uploaded files
-            for id in self.window.core.assistants.items:
-                assistant = self.window.core.assistants.get_by_id(id)
-                self.files.import_files(assistant)
-            # status
-            self.window.ui.status("Imported assistants: " + str(len(items)))
-        except Exception as e:
-            self.window.core.debug.log(e)
-            print("Error importing assistants")
-            self.window.ui.dialogs.alert(str(e))
+    def handle_imported_assistants(self, num: int):
+        """
+        Handle imported assistants
+
+        :param num: number of imported assistants
+        """
+        self.window.ui.status("OK. Imported assistants: " + str(num) + ".")
+        self.update()
+
+    def handle_imported_assistants_failed(self, error: any):
+        """
+        Handle error on importing assistants
+
+        :param error: error message
+        """
+        self.window.core.debug.log(error)
+        print("Error importing assistants")
+        self.window.ui.dialogs.alert(str(error))
         self.update()
 
     def clear(self, force: bool = False):

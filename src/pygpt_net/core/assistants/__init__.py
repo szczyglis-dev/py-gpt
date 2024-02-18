@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 16:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.provider.core.assistant.json_file import JsonFileProvider
+from .importer import Importer
 
 
 class Assistants:
@@ -23,6 +24,7 @@ class Assistants:
         """
         self.window = window
         self.provider = JsonFileProvider(window)  # json file provider
+        self.importer = Importer(window)  # async importer
         self.current_file = None
         self.items = {}
 

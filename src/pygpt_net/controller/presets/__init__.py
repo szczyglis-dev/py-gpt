@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 import re
@@ -39,7 +39,7 @@ class Presets:
         if self.preset_change_locked():
             return
         mode = self.window.core.config.get('mode')
-        self.set_by_idx(mode, idx)
+        self.set_by_idx(mode, idx)  # set global and current dict
 
         # update all layout
         self.window.controller.ui.update()
@@ -50,19 +50,19 @@ class Presets:
             self.window.ui.nodes['preset.prompt'].toPlainText()
         )
 
-    def set(self, mode, preset):
+    def set(self, mode: str, preset_id: str):
         """
         Set preset
 
         :param mode: mode name
-        :param preset: preset name
+        :param preset_id: preset ID
         """
-        if not self.window.core.presets.has(mode, preset):
+        if not self.window.core.presets.has(mode, preset_id):
             return False
-        self.window.core.config.data['preset'] = preset
+        self.window.core.config.data['preset'] = preset_id
         if 'current_preset' not in self.window.core.config.data:
             self.window.core.config.data['current_preset'] = {}
-        self.window.core.config.data['current_preset'][mode] = preset
+        self.window.core.config.data['current_preset'][mode] = preset_id
 
     def set_by_idx(self, mode: str, idx: int):
         """
@@ -71,11 +71,13 @@ class Presets:
         :param mode: mode name
         :param idx: preset index
         """
-        preset = self.window.core.presets.get_by_idx(idx, mode)
-        self.window.core.config.data['preset'] = preset
+        preset_id = self.window.core.presets.get_by_idx(idx, mode)
+
+        # set preset
+        self.window.core.config.set("preset", preset_id)
         if 'current_preset' not in self.window.core.config.data:
             self.window.core.config.data['current_preset'] = {}
-        self.window.core.config.data['current_preset'][mode] = preset
+        self.window.core.config.data['current_preset'][mode] = preset_id
 
         # select model
         self.select_model()
@@ -83,21 +85,23 @@ class Presets:
     def select_current(self):
         """Select preset by current"""
         mode = self.window.core.config.get('mode')
-        preset = self.window.core.config.get('preset')
+        preset_id = self.window.core.config.get('preset')
         items = self.window.core.presets.get_by_mode(mode)
-        if preset in items:
-            idx = list(items.keys()).index(preset)
+        if preset_id in items:
+            idx = list(items.keys()).index(preset_id)
             current = self.window.ui.models['preset.presets'].index(idx, 0)
             self.window.ui.nodes['preset.presets'].setCurrentIndex(current)
 
     def select_default(self):
         """Set default preset"""
-        preset = self.window.core.config.get('preset')
-        if preset is None or preset == "":
+        preset_id = self.window.core.config.get('preset')
+
+        # if preset is not set, set default
+        if preset_id is None or preset_id == "":
             mode = self.window.core.config.get('mode')
 
-            # set previous selected preset
-            current = self.window.core.config.get('current_preset')  # dict of modes, one preset per mode
+            # set previously selected preset
+            current = self.window.core.config.get('current_preset')  # dict of modes, preset per mode
             if mode in current and \
                     current[mode] is not None and \
                     current[mode] != "" and \
@@ -109,36 +113,38 @@ class Presets:
 
     def update_data(self):
         """Update preset data"""
-        id = self.window.core.config.get('preset')
-        if id is None or id == "":
+        preset_id = self.window.core.config.get('preset')
+        if preset_id is None or preset_id == "":
             self.reset()  # clear preset fields
             self.window.controller.mode.reset_current()
             return
 
-        if id not in self.window.core.presets.items:
+        if preset_id not in self.window.core.presets.items:
             self.window.core.config.set('preset', "")  # clear preset if not found
             self.reset()  # clear preset fields
             self.window.controller.mode.reset_current()
             return
 
         # update preset fields
-        data = self.window.core.presets.items[id]
-        self.window.ui.nodes['preset.prompt'].setPlainText(data.prompt)
-        # self.window.ui.nodes['preset.ai_name'].setText(data.ai_name)
-        # self.window.ui.nodes['preset.user_name'].setText(data.user_name)
+        preset = self.window.core.presets.items[preset_id]
+        self.window.ui.nodes['preset.prompt'].setPlainText(preset.prompt)
+        # self.window.ui.nodes['preset.ai_name'].setText(preset.ai_name)
+        # self.window.ui.nodes['preset.user_name'].setText(preset.user_name)
 
         # update current data
-        self.window.core.config.set('prompt', data.prompt)
-        self.window.core.config.set('ai_name', data.ai_name)
-        self.window.core.config.set('user_name', data.user_name)
+        self.window.core.config.set('prompt', preset.prompt)
+        self.window.core.config.set('ai_name', preset.ai_name)
+        self.window.core.config.set('user_name', preset.user_name)
 
     def update_current(self):
         """Update current mode, model and preset"""
         mode = self.window.core.config.get('mode')
-        id = self.window.core.config.get('preset')
-        if id is not None and id != "":
-            if id in self.window.core.presets.items:
-                preset = self.window.core.presets.items[id]
+
+        # if preset chosen, update current config
+        preset_id = self.window.core.config.get('preset')
+        if preset_id is not None and preset_id != "":
+            if preset_id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[preset_id]
                 self.window.core.config.set('user_name', preset.user_name)
                 self.window.core.config.set('ai_name', preset.ai_name)
                 self.window.core.config.set('prompt', preset.prompt)
@@ -155,32 +161,36 @@ class Presets:
         else:
             self.window.core.config.set('prompt', None)
 
-    def get_current_functions(self):
-        """Get current preset functions"""
-        id = self.window.core.config.get('preset')
-        if id is not None and id != "":
-            if id in self.window.core.presets.items:
-                preset = self.window.core.presets.items[id]
+    def get_current_functions(self) -> list or None:
+        """
+        Get current preset functions
+
+        :return: list of functions
+        """
+        preset_id = self.window.core.config.get('preset')
+        if preset_id is not None and preset_id != "":
+            if preset_id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[preset_id]
                 if preset.has_functions():
                     return preset.get_functions()
         return None
 
     def from_global(self):
         """Update current preset from global prompt"""
-        id = self.window.core.config.get('preset')
-        if id is not None and id != "":
-            if id in self.window.core.presets.items:
-                preset = self.window.core.presets.items[id]
+        preset_id = self.window.core.config.get('preset')
+        if preset_id is not None and preset_id != "":
+            if preset_id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[preset_id]
                 preset.prompt = self.window.core.config.get('prompt')
                 self.window.core.presets.save(preset)
 
     def select_model(self):
         """Select model by current preset"""
         mode = self.window.core.config.get('mode')
-        id = self.window.core.config.get('preset')
-        if id is not None and id != "":
-            if id in self.window.core.presets.items:
-                preset = self.window.core.presets.items[id]
+        preset_id = self.window.core.config.get('preset')
+        if preset_id is not None and preset_id != "":
+            if preset_id in self.window.core.presets.items:
+                preset = self.window.core.presets.items[preset_id]
                 if preset.model is not None and preset.model != "" and preset.model != "_":
                     if preset.model in self.window.core.models.items:
                         if self.window.core.models.has(preset.model) \
@@ -195,12 +205,13 @@ class Presets:
         mode = self.window.core.config.get('mode')
         if mode == 'assistant':
             return
-        self.select_default()
-        self.update_current()
-        self.update_data()
+
+        self.select_default()  # if no preset then select previous from current presets
+        self.update_current()  # apply preset data to current config
+        self.update_data()  # update config and prompt from preset data
         self.window.controller.mode.update_temperature()
-        self.update_list()
-        self.select_current()
+        self.update_list()  # update presets list only
+        self.select_current()  # select current preset on list
 
     def update_list(self):
         """Update presets list"""
@@ -288,10 +299,10 @@ class Presets:
         """
         if idx is not None:
             mode = self.window.core.config.get('mode')
-            preset = self.window.core.presets.get_by_idx(idx, mode)
-            if preset is not None and preset != "":
-                if preset in self.window.core.presets.items:
-                    # if exists then show confirmation dialog
+            preset_id = self.window.core.presets.get_by_idx(idx, mode)
+            if preset_id is not None and preset_id != "":
+                if preset_id in self.window.core.presets.items:
+                    # if exists show confirmation dialog
                     if not force:
                         self.window.ui.dialogs.confirm(
                             type='preset_delete', 
@@ -300,9 +311,10 @@ class Presets:
                         )
                         return
 
-                    if preset == self.window.core.config.get('preset'):
+                    if preset_id == self.window.core.config.get('preset'):
                         self.window.core.config.set('preset', None)
-                    self.window.core.presets.remove(preset, True)
+                        self.window.ui.nodes['preset.prompt'].setPlainText("")
+                    self.window.core.presets.remove(preset_id, True)
                     self.refresh()
                     self.window.ui.status(trans('status.preset.deleted'))
 

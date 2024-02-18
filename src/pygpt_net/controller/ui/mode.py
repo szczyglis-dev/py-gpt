@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -33,7 +33,7 @@ class Mode:
             self.window.ui.nodes['presets.widget'].setVisible(False)
 
         # presets: clear
-        if mode in ["img", "llama_index"]:
+        if mode in ["img", "llama_index", "assistant"]:
             self.window.ui.nodes['preset.clear'].setVisible(False)
         else:
             self.window.ui.nodes['preset.clear'].setVisible(True)

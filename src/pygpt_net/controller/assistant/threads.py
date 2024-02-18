@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 import json
@@ -42,6 +42,27 @@ class Threads:
         self.window.core.ctx.append_thread(thread_id)
         return thread_id
 
+    def handle_output_message(self, ctx: CtxItem):
+        """
+        Handle output message
+
+        :param ctx: CtxItem
+        """
+        # update ctx
+        self.window.core.ctx.update_item(ctx)
+
+        self.window.controller.chat.output.handle(ctx, 'assistant', False)
+        self.window.controller.chat.output.handle_cmd(ctx)
+
+        # update ctx
+        self.window.core.ctx.update_item(ctx)
+
+        # index ctx (llama-index)
+        self.window.controller.idx.on_ctx_end(ctx)
+
+        # update ctx list
+        self.window.controller.ctx.update()
+
     def handle_messages(self, ctx: CtxItem):
         """
         Handle run messages
@@ -61,22 +82,10 @@ class Threads:
                 if paths:
                     ctx.files = self.window.core.filesystem.make_local_list(list(paths))
                     ctx.images = self.window.core.filesystem.make_local_list_img(list(paths))
-
-                # update ctx
-                self.window.core.ctx.update_item(ctx)
-
-                self.window.controller.chat.output.handle(ctx, 'assistant', False)
-                self.window.controller.chat.output.handle_cmd(ctx)
-
-                # update ctx
-                self.window.core.ctx.update_item(ctx)
-
-                # index ctx (llama-index)
-                self.window.controller.idx.on_ctx_end(ctx)
-
-                # update ctx list
-                self.window.controller.ctx.update()
                 break
+
+        # send to chat
+        self.handle_output_message(ctx)
 
     def handle_tool_calls(self, ctx: CtxItem):
         """
@@ -94,7 +103,7 @@ class Threads:
         # update ctx
         self.window.core.ctx.update_item(ctx)
 
-        ctx.internal = True
+        ctx.internal = True  # hide in chat
 
         self.window.controller.chat.output.handle(ctx, 'assistant', False)
         self.window.controller.chat.output.handle_cmd(ctx)
@@ -289,10 +298,14 @@ class RunWorker(QRunnable):
                 # finished or failed
                 if status in self.stop_reasons:
                     self.check = False
-                    self.signals.destroyed.emit()
-                    break
+                    if self.signals.destroyed is not None:
+                        self.signals.destroyed.emit()
+                    return
                 time.sleep(1)
-            self.signals.destroyed.emit()
+
+            if self.signals.destroyed is not None:
+                self.signals.destroyed.emit()
         except Exception as e:
             self.window.core.debug.log(e)
-            self.signals.destroyed.emit()
+            if self.signals.destroyed is not None:
+                self.signals.destroyed.emit()

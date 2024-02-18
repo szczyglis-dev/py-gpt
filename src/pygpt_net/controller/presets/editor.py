@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -109,7 +109,7 @@ class Editor:
         }
         self.id = "preset"
 
-    def get_options(self):
+    def get_options(self) -> dict:
         """
         Get preset options
 
@@ -117,7 +117,7 @@ class Editor:
         """
         return self.options
 
-    def get_option(self, id: str):
+    def get_option(self, id: str) -> dict:
         """
         Get preset option
 
@@ -144,15 +144,15 @@ class Editor:
 
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
-        Hook: on settings update
+        Hook: on settings update in real-time (prompt)
         """
         mode = self.window.core.config.get('mode')
         if key == "prompt":
             self.window.core.config.set('prompt', value)
             if mode == 'assistant':
-                self.window.controller.assistant.from_global()
+                self.window.controller.assistant.from_global()  # update current assistant
             else:
-                self.window.controller.presets.from_global()
+                self.window.controller.presets.from_global()  # update current preset
 
     def edit(self, idx: int = None):
         """

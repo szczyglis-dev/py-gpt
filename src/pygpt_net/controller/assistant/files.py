@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 import os
@@ -65,16 +65,29 @@ class Files:
 
         :param assistant: assistant
         """
-        try:
-            files = self.window.core.gpt.assistants.file_list(assistant.id)
-            self.window.core.assistants.import_files(assistant, files)
-            self.window.core.assistants.save()
-            self.update()
-            self.window.ui.status("Imported files: " + str(len(files)))
-        except Exception as e:
-            print("Error importing assistant files")
-            self.window.core.debug.log(e)
-            self.window.ui.dialogs.alert(str(e))
+        # run asynchronous
+        self.window.ui.status("Importing files...please wait...")
+        self.window.core.assistants.importer.import_files(assistant)
+
+    def handle_imported_files(self, num: int):
+        """
+        Handle imported files
+
+        :param num: number of imported files
+        """
+        self.window.ui.status("OK. Imported files: " + str(num) + ".")
+        self.update()
+
+    def handle_imported_files_failed(self, error: any):
+        """
+        Handle error on importing files
+
+        :param error: error message
+        """
+        self.window.core.debug.log(error)
+        print("Error importing files")
+        self.window.ui.dialogs.alert(str(error))
+        self.update()
 
     def download(self, idx: int):
         """
@@ -365,6 +378,9 @@ class Files:
         if assistant_id is None or assistant_id == "":
             return
         assistant = self.window.core.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            return
+
         items = assistant.files
         self.window.ui.chat.input.attachments_uploaded.update(items)
         self.update_tab()
@@ -377,6 +393,9 @@ class Files:
             return
 
         assistant = self.window.core.assistants.get_by_id(assistant_id)
+        if assistant is None:
+            return # no assistant
+
         items = assistant.files
         num_files = len(items)
         suffix = ''

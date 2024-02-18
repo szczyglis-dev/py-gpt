@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 06:00:00                  #
+# Updated Date: 2024.02.18 18:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -155,26 +155,9 @@ def test_update_data(mock_window):
 def test_import_api(mock_window):
     """Test import assistants from API"""
     assistant = Assistant(mock_window)
-    item = AssistantItem()
-    item.id = 'assistant_id'
-    items = {'assistant_id': item}
-    mock_window.core.assistants.get_all = MagicMock(return_value=items)
-    mock_window.core.assistants.save = MagicMock()
-    mock_window.core.assistants.get_by_id = MagicMock(return_value=item)
-    assistant.update = MagicMock()
-
-    assistant.files.import_files = MagicMock()
-    mock_window.ui.status = MagicMock()
-
-    mock_window.core.assistants.items = items
-    mock_window.core.gpt.assistants.import_api = MagicMock()
+    mock_window.core.assistants.importer.import_assistants = MagicMock()
     assistant.import_api(force=True)
-
-    mock_window.core.assistants.get_all.assert_called_once()
-    mock_window.core.assistants.save.assert_called_once()
-    mock_window.core.gpt.assistants.import_api.assert_called_once_with(items)
-    assistant.files.import_files.assert_called_once_with(item)
-    assistant.update.assert_called_once()
+    mock_window.core.assistants.importer.import_assistants.assert_called_once()
 
 
 def test_clear(mock_window):
