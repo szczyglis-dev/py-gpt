@@ -2280,7 +2280,7 @@ may consume additional tokens that are not displayed in the main window.
 # 2.0.155 (2024-02-18)
 
 - Importing assistants and assistant files (from API) has been moved to an asynchronous thread.
-- Small fixes.
+- Upgraded OpenAI API to 1.12.0.
 
 # 2.0.154 (2024-02-18)
 

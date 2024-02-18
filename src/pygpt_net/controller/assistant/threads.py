@@ -289,9 +289,9 @@ class RunWorker(QRunnable):
                 if run is not None:
                     status = run.status
                     if run.usage is not None:
-                        self.ctx.input_tokens = run.usage["prompt_tokens"]
-                        self.ctx.output_tokens = run.usage["completion_tokens"]
-                        self.ctx.total_tokens = run.usage["total_tokens"]
+                        self.ctx.input_tokens = run.usage.prompt_tokens
+                        self.ctx.output_tokens = run.usage.completion_tokens
+                        self.ctx.total_tokens = run.usage.total_tokens
 
                 self.signals.updated.emit(run, self.ctx)  # handle status update
 
