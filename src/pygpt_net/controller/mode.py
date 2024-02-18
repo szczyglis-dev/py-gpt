@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.18 05:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -53,6 +53,8 @@ class Mode:
                 self.window.controller.assistant.select_by_id(
                     self.window.core.ctx.assistant
                 )
+        else:
+            self.window.controller.assistant.update()
 
         self.window.core.config.set('mode', mode)
         self.window.core.config.set('model', "")

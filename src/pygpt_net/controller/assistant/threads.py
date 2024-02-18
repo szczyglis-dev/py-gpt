@@ -94,6 +94,8 @@ class Threads:
         # update ctx
         self.window.core.ctx.update_item(ctx)
 
+        ctx.internal = True
+
         self.window.controller.chat.output.handle(ctx, 'assistant', False)
         self.window.controller.chat.output.handle_cmd(ctx)
 
@@ -114,7 +116,7 @@ class Threads:
                 json.dumps(results),
                 force=True,
                 reply=True,
-                internal=False,
+                internal=True,
             )
 
     def apply_outputs(self, ctx: CtxItem) -> list:

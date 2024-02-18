@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.18 05:00:00                  #
 # ================================================== #
 
 import webbrowser
@@ -120,9 +120,9 @@ class Assistant:
                     self.window.controller.model.set(mode, model)
                     self.window.controller.model.update_list()
                     self.window.controller.model.select_current()
-                    self.window.ui.nodes['preset.prompt'].setPlainText(assistant.instructions)
-                    self.window.controller.presets.from_global()
-                    self.refresh()
+            self.window.ui.nodes['preset.prompt'].setPlainText(assistant.instructions)
+            self.window.controller.presets.from_global()
+            self.refresh()
 
         self.window.controller.ctx.update_ctx()  # update current ctx info
 
