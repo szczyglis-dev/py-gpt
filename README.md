@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.154** | build: **2024.02.18** | Python: **3.10+**
+Release: **2.0.155** | build: **2024.02.18** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -14,13 +14,13 @@ Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://
 
 **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
 
 For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
 **PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, commands execution and image generation, making **PyGPT** a comprehensive tool for many AI-driven tasks.
+Multiple operation modes are included, such as chat, text completion, assistant, vision, Langchain, Chat with files (via Llama-index), commands execution and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
 **Video** (mp4, version `2.0.153`, build `2024-02-18`):
 
@@ -133,8 +133,7 @@ pygpt
 
 ## Source Code
 
-An alternative method is to download the source code from `GitHub` and execute the application using 
-the Python interpreter (version `3.10` or higher). 
+An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (version `3.10` or higher). 
 
 ### Running from GitHub source code
 
@@ -339,9 +338,9 @@ images and those found online.
 
 ![v2_mode_vision](https://github.com/szczyglis-dev/py-gpt/assets/61396542/6c8bbec7-6f67-46d9-bb5f-e833c015b39c)
 
-**3) or you can just upload your local images**
+**3) or you can just upload your local images or use the inline Vision in the standard chat mode:**
 
-**4) or just use the inline Vision in the standard chat mode. Vision model will be activated automatically when you provide an image to analyze.**
+![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/68d26c32-9c7e-4068-b7d2-6c00e27a1d80)
 
 ## Langchain
 
@@ -385,7 +384,7 @@ Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/
 
 To index your files, simply copy or upload them  into the `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Index...`. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `Chat with files (Llama-index, inline)` plugin.
 
-![v2_idx1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/e88ca8c2-7d69-430f-9fb6-47f246e91f91)
+![v2_idx1](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c3dfbc89-cbfe-4ae3-b7e7-821401d755cd)
 
 After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode:
 
@@ -1042,7 +1041,7 @@ Region in the settings.
 
 This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
 
-![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d4ecf699-2d57-4389-b914-51e62c374194)
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ecf95282-e2ba-4028-b393-0d9d64c2d6ef)
 
 **Options:**
 
@@ -1190,7 +1189,7 @@ Automatically append current working directory to sys_exec command. *Default:* `
 
 With the `Custom Commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct GPT on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
 
-![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/a554a543-13d4-45d2-ba01-156093139773)
+![v2_custom_cmd](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b30b8724-9ca1-44b1-abc7-78241588e1f6)
 
 To add a new custom command, click the **ADD** button and then:
 
@@ -1365,7 +1364,7 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8688ce74-ce07-4f62-b391-aa68997e560d)
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d536fc48-ad24-4b40-ab55-4b57b169e438)
 
 **Options**
 
@@ -1638,7 +1637,7 @@ Prompt for use @ tag (summary).
 
 Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
-![v2_crontab](https://github.com/szczyglis-dev/py-gpt/assets/61396542/b8fa3226-f637-473d-bd16-8ec3ab772710)
+![v2_crontab](https://github.com/szczyglis-dev/py-gpt/assets/61396542/9fe8b25e-bbd2-4f03-9e5b-438e6f04d784)
 
 - `Your tasks` *crontab*
 
@@ -1646,7 +1645,7 @@ Add your cron-style tasks here.
 They will be executed automatically at the times you specify in the cron-based job format. 
 If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
 
-Number of active tasks is always displayed in tray icon dropdown menu:
+Number of active tasks is always displayed in a tray dropdown menu:
 
 ![v2_crontab_tray](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f9d1825f-4511-4b7f-bdce-45ee18408021)
 
@@ -1661,17 +1660,17 @@ If enabled, then a tray notification will be shown on every run of the job. *Def
 
 ## DALL-E 3: Image Generation (inline)
 
-Integrates `DALL-E 3` image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like `GPT-4`. The plugin does not require the "Execute commands" option to be enabled.
+The plugin integrates `DALL-E 3` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as `GPT-4`. The plugin does not require the `Execute commands` option to be enabled.
 
 **Options**
 
 - `Prompt` *prompt*
 
-Prompt used for generating a query for `DALL-E` in background.
+The prompt is used to generate a query for the `DALL-E` image generation model, which runs in the background.
 
 ## GPT-4 Vision (inline)
 
-Plugin integrates vision capabilities with any chat mode, not just Vision mode. When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
 
 **Options**
 
@@ -1682,12 +1681,12 @@ The model used to temporarily provide vision capabilities; default is `gpt-4-vis
 
 - `Prompt` *prompt*
 
-Prompt used for vision mode. It will append or replace current system prompt when using vision model.
+The prompt used for vision mode. It will append or replace current system prompt when using vision model.
 
 
 - `Replace prompt` *replace_prompt*
 
-replace_prompt.description = Replace whole system prompt with vision prompt against appending it to the current prompt.
+Replace whole system prompt with vision prompt against appending it to the current prompt.
 
 
 - `Enable: "camera capture" command` *cmd_capture*
@@ -2277,6 +2276,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.155 (2024-02-18)
+
+- Importing assistants and assistant files (from API) has been moved to an asynchronous thread.
+- Small fixes.
 
 # 2.0.154 (2024-02-18)
 

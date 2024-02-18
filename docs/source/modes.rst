@@ -99,9 +99,10 @@ images and those found online.
 .. image:: images/v2_mode_vision.png
    :width: 800
 
-**3) or you can just upload your local images**
+**3) or you can just upload your local images or use the inline Vision in the standard chat mode:**
 
-**4) or just use the inline Vision in the standard chat mode.**
+.. image:: images/v2_mode_vision_upload.png
+   :width: 800
 
 
 Langchain

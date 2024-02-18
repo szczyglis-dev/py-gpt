@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.155 (2024-02-18)
+
+- Importing assistants and assistant files (from API) has been moved to an asynchronous thread.
+- Small fixes.
+
 # 2.0.154 (2024-02-18)
 
 - Fixed hidden user input in Assistants mode

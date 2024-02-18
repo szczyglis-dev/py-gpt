@@ -743,7 +743,7 @@ Add your cron-style tasks here.
 They will be executed automatically at the times you specify in the cron-based job format. 
 If you are unfamiliar with Cron, consider visiting the Cron Guru page for assistance: https://crontab.guru
 
-Number of active tasks is always displayed in tray-icon dropdown menu:
+Number of active tasks is always displayed in a tray dropdown menu:
 
 .. image:: images/v2_crontab_tray.png
    :width: 400
@@ -760,21 +760,19 @@ If enabled, then a tray notification will be shown on every run of the job. *Def
 DALL-E 3: Image Generation (inline)
 -----------------------------------
 
-Integrates DALL-E 3 image generation with any chat and mode. Just enable and ask for image in Chat mode, using standard model like GPT-4. 
-The plugin does not require the ``Execute commands`` option to be enabled.
+The plugin integrates ``DALL-E 3`` image generation with any chat mode. Simply enable it and request an image in Chat mode, using a standard model such as ``GPT-4``. The plugin does not require the ``Execute commands`` option to be enabled.
 
 **Options**
 
 - ``Prompt`` *prompt*
 
-Prompt used for generating a query for DALL-E in background.
+The prompt is used to generate a query for the ``DALL-E`` image generation model, which runs in the background.
 
 
 GPT-4 Vision (inline)
 ---------------------
 
-Plugin integrates vision capabilities with any chat mode, not just Vision mode. 
-When the plugin is enabled, the model temporarily switches to vision in the background when an image attachment or vision capture is provided.
+The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
 
 **Options**
 
@@ -784,7 +782,7 @@ The model used to temporarily provide vision capabilities; default is `gpt-4-vis
 
 - ``Prompt`` *prompt*
 
-Prompt used for vision mode. It will append or replace current system prompt when using vision model.
+The prompt used for vision mode. It will append or replace current system prompt when using vision model.
 
 - ``Replace prompt`` *replace_prompt*
 
@@ -828,8 +826,7 @@ current date and time in real-time. *Default:* `Current time is {time}.`
 System Prompt Extra (append)
 -----------------------------
 
-The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
-You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+The plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 
 **Options**
 
