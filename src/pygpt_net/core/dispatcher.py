@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                    #
+# Updated Date: 2024.02.18 05:00:00                  #
 # ================================================== #
 
 import json
@@ -120,6 +120,20 @@ class Dispatcher:
             return False
         data = event.data
         if data is not None and "silent" in data and data["silent"]:
+            return False
+        return True
+
+    def async_allowed(self, ctx: CtxItem) -> bool:
+        """
+        Check if async execution are allowed
+
+        :param ctx: context item
+        :return: True if async commands are allowed
+        """
+        disallowed_modes = ["assistant", "agent"]
+        if ctx.internal:
+            return False
+        if self.window.core.config.get("mode") in disallowed_modes:
             return False
         return True
 

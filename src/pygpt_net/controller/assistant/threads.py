@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 18:00:00                  #
+# Updated Date: 2024.02.18 05:00:00                  #
 # ================================================== #
 
 import json
@@ -114,7 +114,7 @@ class Threads:
                 json.dumps(results),
                 force=True,
                 reply=True,
-                internal=True,
+                internal=False,
             )
 
     def apply_outputs(self, ctx: CtxItem) -> list:
@@ -141,9 +141,6 @@ class Threads:
         worker = RunWorker()
         worker.window = self.window
         worker.ctx = ctx
-
-        # always force sync mode in assistants
-        ctx.internal = True
 
         self.reset()  # clear previous run
 

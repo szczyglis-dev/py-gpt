@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.18 05:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -198,9 +198,8 @@ class Plugin(BasePlugin):
             worker.signals.status.connect(self.handle_status)
             worker.signals.error.connect(self.handle_error)
 
-            # INTERNAL MODE (sync)
-            # if internal (autonomous) call then use synchronous call
-            if ctx.internal:
+            # check if async allowed
+            if not self.window.core.dispatcher.async_allowed(ctx):
                 worker.run()
                 return
 

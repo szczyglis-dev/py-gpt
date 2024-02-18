@@ -69,9 +69,8 @@ class Image:
         worker.signals.status.connect(self.window.core.image.handle_status)
         worker.signals.error.connect(self.window.core.image.handle_error)
 
-        # INTERNAL MODE (sync)
-        # if internal (autonomous) call then use synchronous call
-        if ctx.internal:
+        # check if async allowed
+        if not self.window.core.dispatcher.async_allowed(ctx):
             worker.run()
             return
 
