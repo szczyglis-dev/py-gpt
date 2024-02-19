@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 16:00:00                  #
+# Updated Date: 2024.02.19 23:00:00                  #
 # ================================================== #
 
 from langchain_community.llms import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
@@ -39,7 +39,7 @@ class ExampleLlm(BaseLLM):
         Instance returned by this method must provide methods for completion mode:
 
             - `invoke(message)` - method for completion
-            - `stream(message)` - method for streaming completion
+            - `stream(message)` - method for completion in stream mode
 
         See: `pygpt_net.core.chain.completion` for more details how it is handled internally.
 
@@ -72,7 +72,7 @@ class ExampleLlm(BaseLLM):
         Instance returned by this method must provide methods for chat mode:
 
             - `invoke(messages)` - method for chat
-            - `stream(messages)` - method for streaming chat
+            - `stream(messages)` - method for chat in stream mode
 
         See: `pygpt_net.core.chain.chat` for more details how it is handled internally.
 
@@ -121,7 +121,7 @@ class ExampleLlm(BaseLLM):
         print("Model config:", model)
 
         # arguments parser is provided by BaseLLM class
-        args = self.parse_args(model.llama_index)  # <--- config for Langchain is stored in `model.llama_index` dict
+        args = self.parse_args(model.llama_index)  # <--- config for Llama-index is stored in `model.llama_index` dict
         print("Keyword arguments for the example provider:", args)
 
         # return OpenAI provider instance

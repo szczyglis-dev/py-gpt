@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 16:00:00                  #
+# Updated Date: 2024.02.19 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin  # <-- every plugin must inherit from BasePlugin
@@ -78,7 +78,6 @@ class Plugin(BasePlugin):
 
             # example of handling options: you can modify the system prompt based on the plugin options
             if self.get_option_value("example_bool_option"):  # bool
-
                 # modify the system prompt only if the option is enabled
                 data['value'] = self.on_system_prompt(data['value'])
 
