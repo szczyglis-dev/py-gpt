@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 22:00:00                  #
+# Updated Date: 2024.02.19 19:00:00                  #
 # ================================================== #
 
 import json
@@ -27,6 +27,33 @@ class WebSearch:
         """
         self.plugin = plugin
         self.signals = None
+
+    def url_get(self, url: str) -> str:
+        """
+        Get URL content
+
+        :param url: URL
+        :return: data
+        """
+        req = Request(
+            url=url,
+            headers={'User-Agent': 'Mozilla/5.0'},
+        )
+        if self.plugin.get_option_value('disable_ssl'):
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            data = urlopen(
+                req,
+                context=context,
+                timeout=4,
+            ).read()
+        else:
+            data = urlopen(
+                req,
+                timeout=4,
+            ).read()
+        return data
 
     def google_search(
             self,
@@ -66,7 +93,7 @@ class WebSearch:
             self.debug(
                 "Plugin: cmd_web_google:google_search: calling API: {}".format(url)
             )
-            data = urlopen(url, timeout=4).read()
+            data = self.url_get(url)
             res = json.loads(data)
             self.debug(
                 "Plugin: cmd_web_google:google_search: received response: {}".format(res)
@@ -112,26 +139,7 @@ class WebSearch:
         text = ''
         html = ''
         try:
-            req = Request(
-                url=url,
-                headers={'User-Agent': 'Mozilla/5.0'},
-            )
-            # get data from URL
-            if self.plugin.get_option_value('disable_ssl'):
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                data = urlopen(
-                    req,
-                    context=context,
-                    timeout=4,
-                ).read()
-            else:
-                data = urlopen(
-                    req,
-                    timeout=4,
-                ).read()
-
+            data = self.url_get(url)
             # try to decode
             try:
                 html = data.decode("utf-8")
