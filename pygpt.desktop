@@ -2,6 +2,6 @@
 [Desktop Entry]
 Type=Application
 Name=PyGPT - Desktop AI Assistant
-Icon=/path/to/repo/snap/gui/pygpt.png
+Icon=/path/to/repo/icon.png
 Exec=/path/to/repo/shortcut.sh
 Categories=Utility;
