@@ -1,3 +1,10 @@
+2.0.156 (2024-02-19)
+
+- Added disable SSL verify option for search engine calls (not only for search results) in "Google Search plugin" - issue #20.
+- Updated certifi to 2024.2.2.
+- Added custom launcher, custom plugin, custom vector store, custom LLM provider and custom data loader code examples in "examples" directory in repository.
+- Updated documentation.
+
 2.0.155 (2024-02-18)
 
 - Importing assistants and assistant files (from API) has been moved to an asynchronous thread.

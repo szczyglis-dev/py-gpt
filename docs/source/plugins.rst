@@ -28,6 +28,18 @@ Creating Your Own Plugins
 
 You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the ``plugin`` directory - you can use them as coding examples for your own plugins.
 
+**Examples (tutorial files)** 
+
+See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
+
+* ``examples/custom_launcher.py``
+* ``examples/example_data_loader.py``
+* ``examples/example_llm.py``
+* ``examples/example_plugin.py``
+* ``examples/example_vector_store.py``
+
+These example files can be used as a starting point for creating your own extensions for **PyGPT**.
+
 Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
 
 - You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.

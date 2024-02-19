@@ -150,8 +150,19 @@ To register custom LLM wrappers:
         vector_stores=vector_stores
     )
 
+**Examples (tutorial files)** 
 
-To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the ``pygpt_net.provider.llms``. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
+See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
+
+* ``examples/custom_launcher.py``
+* ``examples/example_data_loader.py``
+* ``examples/example_llm.py``
+* ``examples/example_plugin.py``
+* ``examples/example_vector_store.py``
+
+These example files can be used as a starting point for creating your own extensions for **PyGPT**.
+
+To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the ``pygpt_net.provider.llms``. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: ``chat`` and ``completion``. These methods should return the respective objects required for the model to operate in ``chat`` and ``completion`` modes.
 
 
 Adding custom Vector Store providers

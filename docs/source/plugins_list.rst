@@ -235,6 +235,9 @@ The plugin operates similarly to the ``Code Interpreter`` in ``ChatGPT``, with t
 
 Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
 
+**Tip:** always remember to enable the ``Execute commands`` option to allow execute commands from the plugins.
+
+
 **Options**
 
 - ``Python command template`` *python_cmd_tpl*
@@ -773,6 +776,8 @@ GPT-4 Vision (inline)
 ---------------------
 
 The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
+
+**Tip:** When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
 
 **Options**
 

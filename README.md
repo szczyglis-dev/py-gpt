@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.155** | build: **2024.02.18** | Python: **3.10+**
+Release: **2.0.156** | build: **2024.02.19** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -322,7 +322,7 @@ This mode enables image analysis using the `GPT-4 Vision` model. Functioning muc
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online. 
 
-**From version 2.0.68** - Vision is integrated into any chat mode via plugin `GPT-4 Vision (inline)`. Just enable plugin and use Vision in standard modes.
+**From version 2.0.68** - Vision is integrated into any chat mode via plugin `GPT-4 Vision (inline)`. Just enable the plugin and use Vision in standard modes.
 
 **From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option `Camera` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable `Auto capture` - image will be captured and appended to chat message every time you send message.
 
@@ -341,6 +341,8 @@ images and those found online.
 **3) or you can just upload your local images or use the inline Vision in the standard chat mode:**
 
 ![v2_mode_vision_upload](https://github.com/szczyglis-dev/py-gpt/assets/61396542/68d26c32-9c7e-4068-b7d2-6c00e27a1d80)
+
+**Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
 
 ## Langchain
 
@@ -514,7 +516,7 @@ This mode is similar to `Auto-GPT` - it can be used to create more advanced infe
 
 You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
 
-All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system.
+All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system. All currently enabled plugins are automatically available to the Agent.
 
 When the `Auto-stop` option is enabled, the agent will attempt to stop once the goal has been reached.
 
@@ -820,7 +822,23 @@ run(
 )
 ```
 
-To integrate your own model or provider into **PyGPT**, you can reference the sample classes located in the `pygpt_net.provider.llms`. These samples can act as an example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
+**Examples (tutorial files)** 
+
+See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
+
+- `examples/custom_launcher.py`
+
+- `examples/example_data_loader.py`
+
+- `examples/example_llm.py`  <-- use it as an example
+
+- `examples/example_plugin.py`
+
+- `examples/example_vector_store.py`
+
+These example files can be used as a starting point for creating your own extensions for **PyGPT**.
+
+To integrate your own model or provider into **PyGPT**, you can also reference the classes located in the `pygpt_net.provider.llms`. These samples can act as an more complex example for your custom class. Ensure that your custom wrapper class includes two essential methods: `chat` and `completion`. These methods should return the respective objects required for the model to operate in `chat` and `completion` modes.
 
 
 ## Adding custom Vector Store providers
@@ -1153,6 +1171,9 @@ The plugin operates similarly to the `Code Interpreter` in `ChatGPT`, with the k
 ### Executing system commands
 
 Another feature is the ability to execute system commands and return their results. With this functionality, the plugin can run any system command, retrieve the output, and then feed the result back to the model. When used with other features, this provides extensive integration capabilities with the system.
+
+**Tip:** always remember to enable the `Execute commands` option to allow execute commands from the plugins.
+
 
 **Options:**
 
@@ -1672,6 +1693,8 @@ The prompt is used to generate a query for the `DALL-E` image generation model, 
 
 The plugin integrates vision capabilities across all chat modes, not just Vision mode. Once enabled, it allows the model to seamlessly switch to vision processing in the background whenever an image attachment or vision capture is detected.
 
+**Tip:** When using `Vision (inline)` by utilizing a plugin in standard mode, such as `Chat` (not `Vision` mode), the `+ Vision` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
+
 **Options**
 
 - `Model` *model*
@@ -1738,6 +1761,23 @@ All active extra prompts defined on list will be appended to the system prompt i
 # Creating Your Own Plugins
 
 You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
+
+
+**Examples (tutorial files)** 
+
+See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
+
+- `examples/custom_launcher.py`
+
+- `examples/example_data_loader.py`
+
+- `examples/example_llm.py`
+
+- `examples/example_plugin.py`
+
+- `examples/example_vector_store.py`
+
+These example files can be used as a starting point for creating your own extensions for **PyGPT**.
 
 Extending PyGPT with custom plugins, LLMs wrappers and vector stores:
 
@@ -1892,13 +1932,17 @@ You can stop the propagation of a received event at any time by setting `stop` t
 event.stop = True
 ```
 
-# Functions and commands
+# Functions and commands execute
 
 **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
 ```~###~{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}~###~```
 
 It is JSON wrapped between `~###~`. The application extracts the JSON object from such formatted text and executes the appropriate function based on the provided parameters and command name. Many of these types of commands are defined in plugins (e.g., those used for file operations or internet searches). You can also define your own commands using the `Custom Commands` plugin, or simply by creating your own plugin and adding it to the application.
+
+**Tip:** The `Execute commands` option checkbox must be enabled to allow the execution of commands from plugins. Disable the option if you do not want to use commands, to prevent additional token usage (as the command execution system prompt consumes additional tokens).
+
+![v2_code_execute](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d5181eeb-6ab4-426f-93f0-037d256cb078)
 
 A special system prompt responsible for invoking commands is added to the main system prompt if the `Execute commands` option is active.
 
@@ -1990,7 +2034,7 @@ the system prompt, any additional data, and those used within the context (the m
 
 ## Total tokens
 
-After receiving a response from the model, the application displays the actual total number of tokens used for the query.
+After receiving a response from the model, the application displays the actual total number of tokens used for the query (received from the API).
 
 ![v2_tokens2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c81e95b5-7c33-41a6-8910-21d674db37e5)
 
@@ -2252,7 +2296,7 @@ The value `2` enables the `DEBUG` logging level (most information).
 
 **PyGPT** comes with an integrated update notification system. When a new version with additional features is released, you'll receive an alert within the app. 
 
-To update, just download the latest release and begin using it instead of the old version. Rest assured, all your personalized settings such as saved contexts and conversation history will be retained and instantly available in the new version.
+To get the new version, simply download it and start using it in place of the old one. All your custom settings like configuration, presets, indexes, and past conversations will be kept and ready to use right away in the new version.
 
 
 ## Coming soon
@@ -2276,6 +2320,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.156 (2024-02-19)
+
+- Added disable SSL verify option for search engine calls (not only for search results) in `Google Search plugin` - issue #20.
+- Updated certifi to 2024.2.2.
+- Added custom launcher, custom plugin, custom vector store, custom LLM provider and custom data loader code examples in `examples` directory in repository.
+- Updated documentation.
 
 # 2.0.155 (2024-02-18)
 

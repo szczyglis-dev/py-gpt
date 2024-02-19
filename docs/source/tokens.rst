@@ -15,7 +15,7 @@ the system prompt, any additional data, and those used within the context (the m
 
 Total tokens
 -------------
-After receiving a response from the model, the application displays the actual total number of tokens used for the query.
+After receiving a response from the model, the application displays the actual total number of tokens used for the query (received from the API).
 
 .. image:: images/v2_tokens2.png
    :width: 400

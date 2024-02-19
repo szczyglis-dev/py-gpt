@@ -79,7 +79,7 @@ This mode enables image analysis using the ``GPT-4 Vision`` model. Functioning m
 it also allows you to upload images or provide URLs to images. The vision feature can analyze both local 
 images and those found online.
 
-**From version 2.0.68** - Vision is integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable plugin and use Vision in standard modes.
+**From version 2.0.68** - Vision is integrated into any chat mode via plugin ``GPT-4 Vision (inline)``. Just enable the plugin and use Vision in standard modes.
 
 **From version 2.0.14** - Vision mode also includes real-time video capture from camera. To enable capture check the option ``Camera`` on the right-bottom corner. It will enable real-time capturing from your camera. To capture image from camera and append it to chat just click on video at left side. You can also enable ``Auto capture`` - image will be captured and appended to chat message every time you send message.
 
@@ -103,6 +103,9 @@ images and those found online.
 
 .. image:: images/v2_mode_vision_upload.png
    :width: 800
+
+
+**Tip:** When using ``Vision (inline)`` by utilizing a plugin in standard mode, such as ``Chat`` (not ``Vision`` mode), the ``+ Vision`` special checkbox will appear at the bottom of the Chat window. It will be automatically enabled any time you provide content for analysis (like an uploaded photo). When the checkbox is enabled, the vision model is used. If you wish to exit the vision model after image analysis, simply uncheck the checkbox. It will activate again automatically when the next image content for analysis is provided.
 
 
 Langchain
@@ -281,7 +284,7 @@ subtasks that the model will autonomously perform one after another until the go
 You can create presets with custom instructions for multiple agents, incorporating various workflows, instructions, and goals to achieve.
 
 All plugins are available for agents, so you can enable features such as file access, command execution, web searching, image generation, 
-vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system.
+vision analysis, etc., for your agents. Connecting agents with plugins can create a fully autonomous, self-sufficient system. All currently enabled plugins are automatically available to the Agent.
 
 When the ``Auto-stop`` option is enabled, the agent will attempt to stop once the goal has been reached.
 

@@ -10,11 +10,11 @@ We want to make contributing to this project as easy and transparent as possible
 - Proposing new features
 - Proposing new code to codebase
 
-## We Develop with Github
+## We Develop with GitHub
 
 We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
 
-## Report bugs using Github's [issues](https://github.com/szczyglis-dev/py-gpt/issues)
+## Report bugs using GitHub's [issues](https://github.com/szczyglis-dev/py-gpt/issues)
 
 We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/szczyglis-dev/py-gpt/issues/new); it's that easy!
 
@@ -22,13 +22,14 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 
 - A quick summary and/or background
 - Environment details (OS, Python version, installed packages versions from `pip list`)
-- Version of application (e.g. 0.1.0)
+- Version of the application (e.g. 0.1.0), type (compiled version, Snap, Python)
 - Steps to reproduce
   - Be specific!
   - Give step-by-step instructions on how to reproduce the issue.
 - What you expected would happen
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+- If possible, change the log level to `DEBUG` in the `Settings / Developer / Log level` option and attach the full debug log (**without OpenAI API requests details!**) produced by the app in the terminal or in the `%workdir%/app.log` file.
 
 ## Proposing code changes
 
