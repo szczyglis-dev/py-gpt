@@ -62,13 +62,13 @@ class Plugin(BasePlugin):
         data = event.data  # event data (dict) - additional data, e.g. {'value': 'Some value here'}
         ctx = event.ctx  # event context (CtxItem) - current context item (input/output)
 
-        # Tip: set debug level to DEBUG to see all events in the console output and in app.log file
+        # Tip:
+        # Set Log level (in Settings / Developer) to DEBUG to see all events in the console output and in app.log file.
 
-        # You can handle all the events here, for example:
+        # HANDLING EVENTS: you can handle all the events here, for example:
 
         # 1) event called when system prompt is prepared
         if name == Event.SYSTEM_PROMPT:
-
             # Tip:
             # when calculating system prompt tokens on input change (e.g. typing), this event is called multiple times.
             # silent param is provided in this event to avoid multiple logs when handling the same event multiple times.
@@ -76,7 +76,7 @@ class Plugin(BasePlugin):
                 print("Handling example SYSTEM_PROMPT event...")
                 self.log("Handling example SYSTEM_PROMPT event...")  # use self.log() to log messages
 
-            # example of handling options: you can modify the system prompt based on the plugin options
+            # example of handling plugin options: let's modify the system prompt based on the plugin option
             if self.get_option_value("example_bool_option"):  # bool
                 # modify the system prompt only if the option is enabled
                 data['value'] = self.on_system_prompt(data['value'])
@@ -144,7 +144,7 @@ class Plugin(BasePlugin):
         E.g. add instruction for model to always append 'END OF RESPONSE.' message to the end of every text response.
 
         :param prompt: current system prompt
-        :return: updated system prompt
+        :return: updated system prompt with additional instructions
         """
         prompt += "\n" + "ALWAYS append the \"END OF RESPONSE.\" message to the end of every response."
         return prompt
