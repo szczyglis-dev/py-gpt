@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.19 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -32,17 +32,8 @@ class SimpleProvider(BaseStore):
         """
         self.window = kwargs.get('window', None)
         self.id = "SimpleVectorStore"
+        self.prefix = ""  # prefix for index directory
         self.indexes = {}
-
-    def exists(self, id: str = None) -> bool:
-        """
-        Check if index with id exists
-
-        :param id: index name
-        :return: True if exists
-        """
-        path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
-        return os.path.exists(path)
 
     def create(self, id: str):
         """
@@ -50,7 +41,7 @@ class SimpleProvider(BaseStore):
 
         :param id: index name
         """
-        path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
+        path = self.get_path(id)
         if not os.path.exists(path):
             index = VectorStoreIndex([])  # create empty index
             self.store(
@@ -68,7 +59,7 @@ class SimpleProvider(BaseStore):
         """
         if not self.exists(id):
             self.create(id)
-        path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
+        path = self.get_path(id)
         storage_context = StorageContext.from_defaults(
             persist_dir=path,
         )
@@ -87,48 +78,8 @@ class SimpleProvider(BaseStore):
         """
         if index is None:
             index = self.indexes[id]
-        path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
+        path = self.get_path(id)
         index.storage_context.persist(
             persist_dir=path,
         )
         self.indexes[id] = index
-
-    def remove(self, id: str) -> bool:
-        """
-        Clear index
-
-        :param id: index name
-        :return: True if success
-        """
-        self.indexes[id] = None
-        path = os.path.join(self.window.core.config.get_user_dir('idx'), id)
-        if os.path.exists(path):
-            for f in os.listdir(path):
-                os.remove(os.path.join(path, f))
-            os.rmdir(path)
-        return True
-
-    def truncate(self, id: str) -> bool:
-        """
-        Truncate index
-
-        :param id: index name
-        :return: True if success
-        """
-        return self.remove(id)
-
-    def remove_document(self, id: str, doc_id: str) -> bool:
-        """
-        Remove document from index
-
-        :param id: index name
-        :param doc_id: document ID
-        :return: True if success
-        """
-        index = self.get(id)
-        index.delete(doc_id)
-        self.store(
-            id=id,
-            index=index,
-        )
-        return True

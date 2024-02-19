@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.19 19:00:00                  #
 # ================================================== #
+import os
 
 from llama_index.indices.base import BaseIndex
 from llama_index import (
@@ -25,6 +26,8 @@ class BaseStore:
         """
         self.window = kwargs.get('window', None)
         self.id = None
+        self.prefix = ""  # prefix for index directory
+        self.indexes = {}
 
     def attach(self, window=None):
         """
@@ -34,6 +37,18 @@ class BaseStore:
         """
         self.window = window
 
+    def get_path(self, id: str) -> str:
+        """
+        Get database path
+
+        :param id: index name
+        :return: database path
+        """
+        return os.path.join(
+            self.window.core.config.get_user_dir('idx'),
+            self.prefix + id,
+        )
+
     def exists(self, id: str = None) -> bool:
         """
         Check if index with id exists
@@ -41,7 +56,8 @@ class BaseStore:
         :param id: index name
         :return: True if exists
         """
-        pass
+        path = self.get_path(id)
+        return os.path.exists(path)
 
     def create(self, id: str):
         """
@@ -77,7 +93,14 @@ class BaseStore:
         :param id: index name
         :return: True if success
         """
-        pass
+        if id in self.indexes:
+            self.indexes[id] = None
+        path = self.get_path(id)
+        if os.path.exists(path):
+            for f in os.listdir(path):
+                os.remove(os.path.join(path, f))
+            os.rmdir(path)
+        return True
 
     def truncate(self, id: str) -> bool:
         """
@@ -86,7 +109,7 @@ class BaseStore:
         :param id: index name
         :return: True if success
         """
-        pass
+        return self.remove(id)
 
     def remove_document(self, id: str, doc_id: str) -> bool:
         """
@@ -96,4 +119,10 @@ class BaseStore:
         :param doc_id: document ID
         :return: True if success
         """
-        pass
+        index = self.get(id)
+        index.delete(doc_id)
+        self.store(
+            id=id,
+            index=index,
+        )
+        return True

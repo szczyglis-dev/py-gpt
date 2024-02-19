@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.19 19:00:00                  #
 # ================================================== #
 
 import datetime
@@ -35,29 +35,8 @@ class ElasticsearchProvider(BaseStore):
         """
         self.window = kwargs.get('window', None)
         self.id = "ElasticsearchStore"
+        self.prefix = "elastic_"  # prefix for index directory
         self.indexes = {}
-
-    def get_path(self, id: str) -> str:
-        """
-        Get database placeholder path
-
-        :param id: index name
-        :return: database path
-        """
-        return os.path.join(
-            self.window.core.config.get_user_dir('idx'),
-            'elastic_' + id,
-        )
-
-    def exists(self, id: str = None) -> bool:
-        """
-        Check if index with id exists
-
-        :param id: index name
-        :return: True if exists
-        """
-        path = self.get_path(id)
-        return os.path.exists(path)
 
     def create(self, id: str):
         """
@@ -120,43 +99,3 @@ class ElasticsearchProvider(BaseStore):
         with open(lock_file, 'w') as f:
             f.write(id + ': ' + str(datetime.datetime.now()))
         self.indexes[id] = index
-
-    def remove(self, id: str) -> bool:
-        """
-        Clear index
-
-        :param id: index name
-        :return: True if success
-        """
-        self.indexes[id] = None
-        path = self.get_path(id)
-        if os.path.exists(path):
-            for f in os.listdir(path):
-                os.remove(os.path.join(path, f))
-            os.rmdir(path)
-        return True
-
-    def truncate(self, id: str) -> bool:
-        """
-        Truncate index
-
-        :param id: index name
-        :return: True if success
-        """
-        return self.remove(id)
-
-    def remove_document(self, id: str, doc_id: str) -> bool:
-        """
-        Remove document from index
-
-        :param id: index name
-        :param doc_id: document ID
-        :return: True if success
-        """
-        index = self.get(id)
-        index.delete(doc_id)
-        self.store(
-            id=id,
-            index=index,
-        )
-        return True
