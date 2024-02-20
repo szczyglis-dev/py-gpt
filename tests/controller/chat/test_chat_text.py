@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.02.20 18:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
@@ -135,10 +135,6 @@ def test_send_assistant(mock_window):
         mock_window.core.bridge.call.assert_called_once()  # should call gpt
 
         mock_window.core.ctx.update_item.assert_called()  # should update ctx item
-
-        # if assistant
-        mock_window.core.ctx.append_run.assert_called_once()  # should append run ID to ctx
-        mock_window.controller.assistant.threads.handle_run.assert_called_once()  # should handle run
 
         mock_window.controller.chat.output.handle.assert_not_called()  # should NOT handle output (if assistant)
         mock_window.controller.chat.output.handle_cmd.assert_not_called()  # should NOT handle cmds (if assistant)

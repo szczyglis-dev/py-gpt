@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.02.20 18:00:00                  #
 # ================================================== #
 
 import json
@@ -141,6 +141,31 @@ class Threads:
         ctx.run_id = self.run_id
         ctx.tool_calls = self.tool_calls  # set previous tool calls
         return self.window.core.command.get_tool_calls_outputs(ctx)
+
+    def handle_run_created(self, ctx: CtxItem, run):
+        """
+        Handle run created
+
+        :param ctx: context item
+        :param run
+        """
+        ctx.run_id = run.id
+        ctx.current = False
+        self.window.core.ctx.update_item(ctx)
+        self.window.core.ctx.append_run(ctx.run_id)  # get run ID and store in ctx
+        self.handle_run(ctx)  # handle assistant run
+
+    def handle_run_error(self, ctx: CtxItem, err):
+        """
+        Handle run created
+
+        :param ctx: context item
+        :param err
+        """
+        ctx.current = False  # reset current state
+        self.window.core.ctx.update_item(ctx)
+        self.window.core.debug.log(err)
+        self.window.ui.dialogs.alert(str(err))
 
     def handle_run(self, ctx: CtxItem):
         """

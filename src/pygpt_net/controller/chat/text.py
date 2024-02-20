@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.02.20 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -209,18 +209,13 @@ class Text:
                     assistant_id=self.window.core.config.get('assistant'),
                     idx=self.window.controller.idx.current_idx,
                     idx_raw=self.window.core.config.get('llama.idx.raw'),  # query mode
-                    external_functions=functions,  # chat functions
+                    external_functions=functions,  # external functions
                     tools_outputs=tools_outputs,  # if not empty then will submit outputs
                 )
 
                 # update context in DB
                 ctx.current = False  # reset current state
                 self.window.core.ctx.update_item(ctx)
-
-                # launch assistants listener in background
-                if mode == 'assistant':
-                    self.window.core.ctx.append_run(ctx.run_id)  # get run ID and store in ctx
-                    self.window.controller.assistant.threads.handle_run(ctx)  # handle assistant run
 
                 if result:
                     self.log("Context: OUTPUT: {}".format(ctx.dump()))  # log
