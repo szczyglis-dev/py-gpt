@@ -6,10 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 02:00:00                  #
+# Updated Date: 2024.02.20 05:00:00                  #
 # ================================================== #
 
 # PyGPT custom launcher example.
+
+# Uncomment these three lines below if you want to run the launcher directly from the source code,
+# without installing the `pygpt_net` package:
+
+# import sys
+# from pathlib import Path
+# sys.path.insert(0, str((Path(__file__).parent / '../src').resolve()))
+
 
 from pygpt_net.app import run  # <-- import the "run" function from the app
 
