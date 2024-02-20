@@ -70,28 +70,32 @@ class Plugin(BasePlugin):
         # 1) event called when system prompt is prepared
         if name == Event.SYSTEM_PROMPT:
             # Tip:
-            # when calculating system prompt tokens on input change (e.g. typing), this event is called multiple times.
-            # silent param is provided in this event to avoid multiple logs when handling the same event multiple times.
+            # When the system prompt tokens are recalculated due to an input change (for example, while typing),
+            # this event is triggered multiple times. The silent parameter is provided in this event to avoid multiple
+            # executions of the same code. Here, we are preventing from generating lots of logs when typing.
             if "silent" not in data or not data["silent"]:
                 print("Handling example SYSTEM_PROMPT event...")
                 self.log("Handling example SYSTEM_PROMPT event...")  # use self.log() to log messages
+            else:
+                # event called in silent mode, tokens calculation here, do not handle the event
+                pass
 
-            # example of handling plugin options: let's modify the system prompt based on the plugin option
+            # example of handling plugin options: let's modify the system prompt, based on the plugin option value
             if self.get_option_value("example_bool_option"):  # bool
                 # modify the system prompt only if the option is enabled
                 data['value'] = self.on_system_prompt(data['value'])
 
-        # 2) event called when command syntax is prepared
+        # 2) event called when command syntax is prepared (before input is sent to the model)
         elif name == Event.CMD_SYNTAX:
             # Event.CMD_SYNTAX_INLINE is also available and do not require "Execute commands" to be enabled
             print("Handling example CMD_SYNTAX event...")
-            self.cmd_syntax(data)
+            self.cmd_syntax(data)  # list of syntax items is available in data['syntax']
 
-        # 3) event called when commands are executed
+        # 3) event called when commands are executed (after model output is received)
         elif name == Event.CMD_EXECUTE:
             # Event.CMD_INLINE is also available and do not require "Execute commands" to be enabled
             print("Handling example CMD_EXECUTE event...")
-            self.cmd(ctx, data['commands'])
+            self.cmd(ctx, data['commands'])  # list of commands is available in data['commands']
 
         # etc...
         # See the plugins in `pygpt_net.plugin` for a more examples how to handle rest of events.
@@ -140,7 +144,7 @@ class Plugin(BasePlugin):
         """
         Example of handling SYSTEM_PROMPT event
 
-        Method is called when SYSTEM_PROMPT event is dispatched and can be used to modify system prompt.
+        Method will call when SYSTEM_PROMPT event is dispatched and will be used to modify system prompt.
         E.g. add instruction for model to always append 'END OF RESPONSE.' message to the end of every text response.
 
         :param prompt: current system prompt
@@ -153,26 +157,28 @@ class Plugin(BasePlugin):
         """
         Example of handling CMD_SYNTAX event (commands syntax)
 
-        Method is called when CMD_SYNTAX event is dispatched and can be used to add custom commands syntax.
-        Syntax is a list of strings with commands syntax description.
+        Method will call when CMD_SYNTAX event is dispatched and will be used to add custom commands syntax.
+        Syntax is a list of strings with command syntax descriptions.
 
-        To call this command in the app just ask the model for: "Execute a funny command with a random funny query"
+        To call this command in the app just ask the model for: "Execute a funny command with a random funny query".
+        Model will generate the command in JSON format, and after the response with command will be received,
+        the Event.CMD_EXECUTE event will be dispatched with the command to be executed and its params.
 
         :param data: event data dictionary
         """
         data['syntax'].append(
             '"funny_cmd": use it to show funny command response for a specified query. Params: "query"'
         )
-        # you can register as many commands as you want, use the same syntax as above:
+        # You can register as many commands as you want, use the same syntax as above:
         # data['syntax'].append('"command_name": description. Params: "param1", "param2", "param3"')
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
         Example of handling CMD_EXECUTE event (commands execution)
 
-        Method is called when CMD_EXECUTE event is dispatched and can be used to handle commands execution.
+        Method will call when CMD_EXECUTE event is dispatched and will be used to handle commands execution.
         List of commands called by model and its params is passed as cmds list.
-        Every command is a dict with keys: "cmd" and "params".
+        Every command item is a dict with keys: "cmd" and "params".
         "cmd" is a command name, and "params" is a dict with command params.
 
         :param ctx: CtxItem object - context item with current input
@@ -194,22 +200,24 @@ class Plugin(BasePlugin):
                     # get command params (provided by model)
                     query = item["params"]["query"]
 
-                    # prepare request to instruct model for which command is current response
+                    # prepare request object to instruct the model for which command is current response
                     request = {
                         "cmd": item["cmd"],
                     }
 
-                    # prepare response data
+                    # prepare example response data
                     data = "My example response for a funny query: " + query
 
-                    # prepare response object
+                    # create response object
                     response = {
                         "request": request,  # request, must be provided in the "request" key
                         "result": data,  # response, must be provided in the "result" key
                     }
 
-                    # append response object to results list
+                    # append response object to result list in the context item
                     ctx.results.append(response)
 
-                    # set reply flag to True to force sending response to the model
+                    # Set the reply flag to True to force sending a response to the model.
+                    # If the ctx.reply flag is set to True,
+                    # then the response will be resent to the model as new input.
                     ctx.reply = True
