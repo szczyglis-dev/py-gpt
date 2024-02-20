@@ -345,11 +345,12 @@ class Attachment:
         """
         return self.window.core.attachments.has(mode)
 
-    def download(self, file_id: str) -> str or None:
+    def download(self, file_id: str, ext: str = None) -> str or None:
         """
         Download file
 
         :param file_id: file id to download (id in OpenAI API)
+        :param ext: file extension to add (optional)
         :return: path to downloaded file
         """
         try:
@@ -360,6 +361,8 @@ class Attachment:
 
             # prepare path to download file
             data.filename = os.path.basename(data.filename)
+            if ext is not None:
+                data.filename = data.filename + ext
             path = os.path.join(
                 self.window.core.config.get_user_dir('data'),
                 data.filename,

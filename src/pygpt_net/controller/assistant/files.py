@@ -444,11 +444,12 @@ class Files:
 
         return paths
 
-    def handle_received_ids(self, ids: list) -> list:
+    def handle_received_ids(self, ids: list, ext: str = None) -> list:
         """
         Handle (download) received message files
 
         :param ids: list of file IDs
+        :param ext: file extension to add (optional)
         :return: downloaded files paths
         """
         num_downloaded = 0
@@ -456,7 +457,7 @@ class Files:
         for file_id in ids:
             if self.is_log():
                 print("Downloading file: {}".format(file_id))
-            path = self.window.controller.attachment.download(file_id)
+            path = self.window.controller.attachment.download(file_id, ext=ext)
             if path is not None:
                 paths.append(path)
                 num_downloaded += 1

@@ -71,17 +71,35 @@ class Threads:
         """
         data = self.window.core.gpt.assistants.msg_list(ctx.thread)
         paths = []
+        file_ids = []
+        images_ids = []
+        img_ext = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']
         for msg in data:
             if msg.role == "assistant":
                 for content in msg.content:
                     if content.type == "text":
                         ctx.set_output(content.text.value)
-
-                # handle files
-                paths += self.window.controller.assistant.files.handle_received_ids(msg.file_ids)
+                    elif content.type == "image_file":
+                        images_ids.append(content.image_file.file_id)
+                # handle msg files
+                for file_id in msg.file_ids:
+                    if file_id not in images_ids:
+                        file_ids.append(file_id)
+                # handle content images
+                if images_ids:
+                    images_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
+                    ctx.images = list(images_paths)
+                # download msg files
+                paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
                 if paths:
                     ctx.files = self.window.core.filesystem.make_local_list(list(paths))
-                    ctx.images = self.window.core.filesystem.make_local_list_img(list(paths))
+                    if len(images_ids) == 0:
+                        img_files = []
+                        for path in paths:
+                            if path.split('.')[-1].lower() in img_ext:
+                                img_files.append(path)
+                        if img_files:
+                            ctx.images = img_files
                 break
 
         # send to chat
