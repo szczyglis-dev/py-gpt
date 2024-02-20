@@ -1,3 +1,9 @@
+2.0.157 (2024-02-20)
+
+- Added webpage (URL) indexing using Llama-Index; new options were added to the Google Search plugin: the command "web_index" for indexing a specified page (just ask to index any URL) and "Auto-index", which enables automatic indexing of URLs used by the plugin (disabled by default).
+- Decreased the default chunk size in the Google Search plugin.
+- Assistant run creation and message sending moved to an async thread.
+
 2.0.156 (2024-02-19)
 
 - Added disable SSL verify option for search engine calls (not only for search results) in "Google Search plugin" - issue #20.

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.156** | build: **2024.02.19** | Python: **3.10+**
+Release: **2.0.157** | build: **2024.02.20** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2341,6 +2341,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.0.157 (2024-02-20)
+
+- Added webpage (URL) indexing using Llama-Index; new options were added to the Google Search plugin: the command "web_index" for indexing a specified page (just ask to index any URL) and "Auto-index", which enables automatic indexing of URLs used by the plugin (disabled by default).
+- Decreased the default chunk size in the Google Search plugin.
+- Assistant run creation and message sending moved to an async thread.
+
 # 2.0.156 (2024-02-19)
 
 - Added disable SSL verify option for search engine calls (not only for search results) in `Google Search plugin` - issue #20.
@@ -2376,60 +2382,6 @@ may consume additional tokens that are not displayed in the main window.
 - Added `Refresh` option in File Explorer
 - Added monit about camera connect in Snap version with command to execute
 - Disabled MenuRoles on MacOS-affected menu items - issue #19
-
-# 2.0.151 (2024-02-16)
-
-- Improved integration between Chat and Vision when functions are provided
-
-# 2.0.150 (2024-02-16)
-
-- Added a new command for the `Google Web Search` plugin - `get_urls`, which allows retrieving a full list of searched URLs and passing it to the model for further use.
-- Implemented execution of `functions` defined in the API and their full integration with modes: `Chat` and `Assistant`. For more details, see the new section in the documentation: `Functions and commands`.
-- Fixed the tray icon change while the model is generating a response.
-- Improved stopping of agents using `Stop`.
-
-# 2.0.149 (2024-02-15)
-
-- Fixed and improved Assistants API (file handling, run handling, token usage, stopping)
-- Added vertical canvas resolutions in Painter
-- Added brush settings restore in Painter
-- Added log file viewer in Debug menu
-- Added log level switch in runtime (Developer settings)
-- Added functions defining and handling in Presets (works in ChatCompletion API)
-- Improved presets and assistants editor dialogs
-- Improved debugger and Developer settings
-
-# 2.0.148 (2024-02-07)
-
-- Fixed input/output timestamps in renderer
-- Added aspect ratio check and fit on image open in Painter tool
-
-# 2.0.147 (2024-02-04)
-
-- Added `@` tags for quick access to context from previous discussions in the `Context History` plugin (must be enabled in plugin settings, default: disabled).
-- Added automatic passing of the day of the week in the `Context History` and `Real Time` plugins.
-
-# 2.0.146 (2024-02-03)
-
-- Disabled online loaders for Llama-index if compiled version is detected (they work properly only in Python version)
-
-# 2.0.145 (2024-02-03)
-
-- Enabled the use of the Context history plugin in inline mode (without the need for the Command execution option).
-- Added automatic provision of the current date in the Context History plugin if the Real-Time plugin is disabled.
-- Added the ability to count contexts within a specified date range.
-- Added an option to limit the maximum number of contexts retrieved per query.
-- Enabled the "undo" option in the painter when clearing and opening a new image.
-
-# 2.0.144 (2024-02-02)
-
-- Improved Command: Context history plugin prompts
-
-# 2.0.143 (2024-02-02)
-
-- Added a new plugin: `Command: Context history (calendar)`
-- Added a new feature to context list: `Pin on top`
-- Added `Minimize to tray on exit` option
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
 

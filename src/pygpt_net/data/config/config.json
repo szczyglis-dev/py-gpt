@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.156",
-    "app.version": "2.0.156",
-    "updated_at": "2024-02-19T00:00:00"
+    "version": "2.0.157",
+    "app.version": "2.0.157",
+    "updated_at": "2024-02-20T00:00:00"
   },
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
