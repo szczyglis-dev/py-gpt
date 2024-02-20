@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 23:00:00                  #
+# Updated Date: 2024.02.20 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin  # <-- every plugin must inherit from BasePlugin
@@ -102,39 +102,50 @@ class Plugin(BasePlugin):
 
         """
         All available events are defined in 'pygpt_net.core.dispatcher.Event' class:
-        
-        AI_NAME = "ai.name"
-        AUDIO_INPUT_STOP = "audio.input.stop"
-        AUDIO_INPUT_TOGGLE = "audio.input.toggle"
-        AUDIO_OUTPUT_STOP = "audio.output.stop"
-        AUDIO_OUTPUT_TOGGLE = "audio.output.toggle"
-        AUDIO_READ_TEXT = "audio.read_text"
-        CMD_EXECUTE = "cmd.execute"
-        CMD_INLINE = "cmd.inline"
-        CMD_SYNTAX = "cmd.syntax"
-        CMD_SYNTAX_INLINE = "cmd.syntax.inline"
-        CTX_AFTER = "ctx.after"
-        CTX_BEFORE = "ctx.before"
-        CTX_BEGIN = "ctx.begin"
-        CTX_END = "ctx.end"
-        CTX_SELECT = "ctx.select"
-        DISABLE = "disable"
-        ENABLE = "enable"
-        FORCE_STOP = "force.stop"
-        INPUT_BEFORE = "input.before"
-        MODE_BEFORE = "mode.before"
-        MODE_SELECT = "mode.select"
-        MODEL_BEFORE = "model.before"
-        MODEL_SELECT = "model.select"
-        PLUGIN_SETTINGS_CHANGED = "plugin.settings.changed"
-        PLUGIN_OPTION_GET = "plugin.option.get"
-        POST_PROMPT = "post.prompt"
-        PRE_PROMPT = "pre.prompt"
-        SYSTEM_PROMPT = "system.prompt"
-        UI_ATTACHMENTS = "ui.attachments"
-        UI_VISION = "ui.vision"
-        USER_NAME = "user.name"
-        USER_SEND = "user.send"
+
+        Syntax: `event name` - triggered on, `event data` (data type):
+
+        AI_NAME = "ai.name" - when preparing an AI name, `data['value']` (string, name of the AI assistant)
+        AUDIO_INPUT_STOP = "audio.input.stop" - force stop audio input
+        AUDIO_INPUT_TOGGLE = "audio.input.toggle" - when speech input is enabled or disabled, `data['value']` 
+                             (bool, True/False)
+        AUDIO_OUTPUT_STOP = "audio.output.stop" - force stop audio output
+        AUDIO_OUTPUT_TOGGLE = "audio.output.toggle" - when speech output is enabled or disabled, `data['value']` 
+                             (bool, True/False)
+        AUDIO_READ_TEXT = "audio.read_text" - on text read with speech synthesis, `data['value']` (string)
+        CMD_EXECUTE = "cmd.execute" - when a command is executed, `data['commands']` (list, commands and arguments)
+        CMD_INLINE = "cmd.inline" - when an inline command is executed, `data['commands']` 
+                     (list, commands and arguments)
+        CMD_SYNTAX = "cmd.syntax" - when appending syntax for commands, `data['prompt'], data['syntax']` 
+                     (string, list, prompt and list with commands usage syntax)
+        CMD_SYNTAX_INLINE = "cmd.syntax.inline" - when appending syntax for commands (inline mode), `data['prompt'], 
+                             data['syntax']` (string, list, prompt and list with commands usage syntax)
+        CTX_AFTER = "ctx.after" - after the context item is sent, `ctx`
+        CTX_BEFORE = "ctx.before" - before the context item is sent, `ctx`
+        CTX_BEGIN = "ctx.begin" - when context item create, `ctx`
+        CTX_END = "ctx.end" - when context item handling is finished, `ctx`
+        CTX_SELECT = "ctx.select" - when context is selected on list, `data['value']` (int, ctx meta ID)
+        DISABLE = "disable" - when the plugin is disabled, `data['value']` (string, plugin ID)
+        ENABLE = "enable" - when the plugin is enabled, `data['value']` (string, plugin ID)
+        FORCE_STOP = "force.stop" - on force stop plugins
+        INPUT_BEFORE = "input.before" - upon receiving input from the textarea, `data['value']` 
+                       (string, text to be sent)
+        MODE_BEFORE = "mode.before" - before the mode is selected `data['value'], data['prompt']` 
+                      (string, string, mode ID)
+        MODE_SELECT = "mode.select" - on mode select `data['value']` (string, mode ID)
+        MODEL_BEFORE = "model.before" - before the model is selected `data['value']` (string, model ID)
+        MODEL_SELECT = "model.select" - on model select `data['value']` (string, model ID)
+        PLUGIN_SETTINGS_CHANGED = "plugin.settings.changed" - on plugin settings update
+        PLUGIN_OPTION_GET = "plugin.option.get" - on request for plugin option value `data['name'], data['value']` 
+                            (string, any, name of requested option, value)
+        POST_PROMPT = "post.prompt" - after preparing a system prompt, `data['value']` (string, system prompt)
+        PRE_PROMPT = "pre.prompt" - before preparing a system prompt, `data['value']` (string, system prompt)
+        SYSTEM_PROMPT = "system.prompt" - when preparing a system prompt, `data['value']` (string, system prompt)
+        UI_ATTACHMENTS = "ui.attachments" - when the attachment upload elements are rendered, `data['value']` 
+                         (bool, show True/False)
+        UI_VISION = "ui.vision" - when the vision elements are rendered, `data['value']` (bool, show True/False)
+        USER_NAME = "user.name" - when preparing a user's name, `data['value']` (string, name of the user)
+        USER_SEND = "user.send" - just before the input text is sent, `data['value']` (string, input text)
         """
 
         # If you want to stop event propagation, you can use:
@@ -196,7 +207,6 @@ class Plugin(BasePlugin):
 
                 # handle specific command by its name
                 if item["cmd"] == "funny_cmd":
-
                     # get command params (provided by model)
                     query = item["params"]["query"]
 
