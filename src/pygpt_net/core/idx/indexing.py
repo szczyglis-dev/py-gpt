@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 18:00:00                  #
+# Updated Date: 2024.02.20 19:00:00                  #
 # ================================================== #
 
 import os.path
@@ -18,6 +18,7 @@ from llama_index import (
     download_loader,
 )
 from llama_index.readers.schema.base import Document
+from llama_index.readers import BeautifulSoupWebReader
 
 from pygpt_net.provider.loaders.base import BaseLoader
 
@@ -269,6 +270,29 @@ class Indexing:
             for d in documents:
                 index.insert(document=d)
                 self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
+                n += 1
+        except Exception as e:
+            errors.append(str(e))
+            print(e)
+            self.window.core.debug.log(e)
+        return n, errors
+
+    def index_urls(self, index: BaseIndex, urls: list) -> (int, list):
+        """
+        Index data from URLs
+
+        :param index: index instance
+        :param urls: list of urls
+        :return: number of indexed documents, errors
+        """
+        errors = []
+        n = 0
+        try:
+            self.log("Indexing URLs: {}".format(", ".join(urls)))
+            documents = BeautifulSoupWebReader().load_data(urls)
+            for d in documents:
+                index.insert(document=d)
+                self.log("Inserted webpage document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
             errors.append(str(e))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.20 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -30,6 +30,7 @@ class Plugin(BasePlugin):
             "web_urls",
             "web_url_open",
             "web_url_raw",
+            "web_index",
         ]
         self.order = 100
         self.use_locale = True
@@ -89,7 +90,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "chunk_size",
             type="int",
-            value=100000,
+            value=20000,
             label="Per-page content chunk size",
             description="Per-page content chunk size (max characters per chunk)",
             min=1,
@@ -152,6 +153,30 @@ class Plugin(BasePlugin):
             label="Enable: \"web_urls\" command",
             description="Allow using command: web_urls",
             tooltip="If enabled, model will be able to search the Web and get founded URLs list",
+        )
+        self.add_option(
+            "cmd_web_index",
+            type="bool",
+            value=True,
+            label="Enable: \"web_index\" command",
+            description="If enabled, model will be able to index web pages using Llama-index",
+            tooltip="If enabled, model will be able to index web pages using Llama-index",
+        )
+        self.add_option(
+            "auto_index",
+            type="bool",
+            value=False,
+            label="Auto-index all used URLs using Llama-index",
+            description="If enabled, every URL used by the model will be automatically indexed using Llama-index",
+            tooltip="If enabled, every URL used by the model will be automatically indexed using Llama-index",
+        )
+        self.add_option(
+            "idx",
+            type="text",
+            value="base",
+            label="Index to use",
+            description="ID of index to use for web page indexing",
+            tooltip="Index name",
         )
         self.add_option(
             "summary_model",
@@ -223,6 +248,15 @@ class Plugin(BasePlugin):
                   '"num_links"',
             label="Syntax: web_urls",
             description="Syntax for web_urls command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_web_index",
+            type="textarea",
+            value='"web_index": use it to index (embed in Vector Store) provided webpage URL for future use. '
+                  'Params: "url"',
+            label="Syntax: web_index",
+            description="Syntax for web_index command",
             advanced=True,
         )
 

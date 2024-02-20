@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 20:00:00                  #
+# Updated Date: 2024.02.20 19:00:00                  #
 # ================================================== #
 
 import os
@@ -782,6 +782,16 @@ class Patch:
                 print("Migrating config from < 2.0.153...")
                 if 'layout.dialog.geometry.store' not in data:
                     data['layout.dialog.geometry.store'] = True
+                updated = True
+
+            # < 2.0.157
+            if old < parse_version("2.0.157"):
+                # decrease chunk size
+                print("Migrating config from < 2.0.157...")
+                if 'cmd_web_google' in data['plugins'] \
+                        and 'chunk_size' in data['plugins']['cmd_web_google']:
+                    if data['plugins']['cmd_web_google']['chunk_size'] > 20000:
+                        data['plugins']['cmd_web_google']['chunk_size'] = 20000
                 updated = True
 
         # update file

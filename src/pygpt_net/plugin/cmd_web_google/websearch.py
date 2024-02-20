@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 19:00:00                  #
+# Updated Date: 2024.02.20 19:00:00                  #
 # ================================================== #
 
 import json
@@ -27,8 +27,9 @@ class WebSearch:
         """
         self.plugin = plugin
         self.signals = None
+        self.timeout = 4
 
-    def url_get(self, url: str) -> str:
+    def url_get(self, url: str) -> bytes:
         """
         Get URL content
 
@@ -46,12 +47,12 @@ class WebSearch:
             data = urlopen(
                 req,
                 context=context,
-                timeout=4,
+                timeout=self.timeout,
             ).read()
         else:
             data = urlopen(
                 req,
-                timeout=4,
+                timeout=self.timeout,
             ).read()
         return data
 
@@ -299,6 +300,9 @@ class WebSearch:
             # if result then stop
             if result is not None and result != "":
                 self.log("Summary generated (chars: {})".format(len(result)))
+
+                # index webpage if auto-index is enabled
+                self.index_url(url)
                 break
             i += 1
 
@@ -341,6 +345,11 @@ class WebSearch:
         self.log("URL: " + url)
         content = self.query_url(url)
         self.log("Content found (chars: {}). Please wait...".format(len(content)))
+
+        # index webpage if auto-index is enabled
+        if content:
+            self.index_url(url)
+
         if 0 < max_per_page < len(content):
             content = content[:max_per_page]
         chunks = self.to_chunks(
@@ -386,6 +395,10 @@ class WebSearch:
         result = self.query_url(url)
         self.log("Content found (chars: {}). Please wait...".format(len(result)))
 
+        # index webpage if auto-index is enabled
+        if result:
+            self.index_url(url)
+
         # strip if too long
         if 0 < max_result_size < len(result):
             result = result[:max_result_size]
@@ -395,6 +408,30 @@ class WebSearch:
         )
 
         return result, url
+
+    def index_url(self, url: str):
+        """
+        Index URL if auto-index is enabled
+
+        :param url: URL to index
+        """
+        if not self.plugin.get_option_value("auto_index"):
+            return
+
+        self.log("Indexing URL: " + url)
+        try:
+            num, errors = self.plugin.window.core.idx.index_urls(
+                self.plugin.get_option_value("idx"),
+                [url],
+            )
+            if errors:
+                self.error(str(errors))
+            elif num > 0:
+                self.log("Indexed URL: " + url + " to index: " + self.plugin.get_option_value("idx"))
+            else:
+                self.error("Failed to index URL: " + url)
+        except Exception as e:
+            self.error(e)
 
     def error(self, err: any):
         """

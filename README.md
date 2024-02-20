@@ -406,6 +406,8 @@ Always control the number of tokens used on the OpenAI page.
 **Tip:** when using `Chat with files` you are using additional context from db data and files indexed from `data` directory, not the files sending via `Attachments` tab. 
 Attachments tab in `Chat with files` mode can be used to provide images to `Vision (inline)` plugin only.
 
+**Token limit:** When you use `Chat with files` in non-query mode, Llama-index adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the "Execute commands" option to reduce the number of tokens used by the system prompt.
+
 **Available vector stores** (provided by `Llama-index`):
 
 ```
@@ -1437,6 +1439,20 @@ If enabled, model will be able to open specified URL and get raw content
 
 If enabled, model will be able to search the Web and get founded URLs list
 
+If enabled, model will be able to search the Web and get founded URLs list
+
+- `Enable: "web_index" command` *cmd_web_index*
+
+If enabled, model will be able to index web pages using Llama-index
+
+- `Auto-index all used URLs using Llama-index` *auto_index*
+
+If enabled, every URL used by the model will be automatically indexed using Llama-index
+
+- `Index to use` *idx*
+
+ID of index to use for web page indexing
+
 - `Model used for web page summarize` *summary_model*
 
 Model used for web page summarize, default: gpt-3.5-turbo-1106
@@ -1464,6 +1480,10 @@ Syntax for web_url_raw command
 - `Syntax: web_urls` *syntax_web_urls*
 
 Syntax for web_urls command
+
+- `Syntax: web_index` *syntax_web_index*
+
+Syntax for web_index command
 
 ## Command: Serial port / USB
 

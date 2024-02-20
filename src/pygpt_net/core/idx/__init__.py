@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.20 19:00:00                  #
 # ================================================== #
 
 import copy
@@ -151,6 +151,34 @@ class Idx:
                 index=index,
             )  # store index
         return num, errors
+
+    def index_urls(
+            self,
+            idx: str = "base",
+            urls: list = None,
+    ) -> (dict, list):
+        """
+        Index URLs
+
+        :param idx: index name
+        :param urls: list of urls
+        :return: num of indexed, list with errors
+        """
+        context = self.llm.get_service_context()
+        index = self.storage.get(
+            idx,
+            service_context=context,
+        )  # get or create index
+        n, errors = self.indexing.index_urls(
+            index,
+            urls,
+        )  # index urls
+        if n > 0:
+            self.storage.store(
+                id=idx,
+                index=index,
+            )  # store index
+        return n, errors
 
     def sync_items(self):
         """Sync from config"""
