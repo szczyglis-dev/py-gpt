@@ -54,6 +54,8 @@ class Plugin(BasePlugin):
         """
         Handle dispatched event here
 
+        This method is called externally by event dispatcher every time when the event is dispatched.
+
         :param event: event object
         :param args: event args
         :param kwargs: event kwargs
