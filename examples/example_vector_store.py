@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 18:00:00                  #
+# Updated Date: 2024.02.20 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -27,24 +27,26 @@ class ExampleVectorStore(BaseStore):
         """
         Example vector store provider.
         
-        Base on the `SimpleProvider` (SimpleVectorStore) from the `pygpt_net.provider.vector_stores.simple`.
+        This example is based on the `SimpleProvider` (SimpleVectorStore) from the `pygpt_net.provider.vector_stores.simple`.
         See `pygpt_net.provider.vector_stores` for more examples.
+
+        The rest of the shared methods (like `exists`, `delete`, `truncate`, etc.) are declared in the base class: `BaseStore`.
 
         :param args: args
         :param kwargs: kwargs
         """
         self.window = kwargs.get('window', None)
         self.id = "example_store"  # identifier must be unique
-        self.prefix = "example_"  # prefix for index config files subdirectory in "idx" directory
+        self.prefix = "example_"  # prefix for index config files subdirectory in "idx" directory in %workdir%
         self.indexes = {}  # indexes cache dictionary (in-memory)
 
     def create(self, id: str):
         """
-        Create the empty index with the provided `id`
+        Create the empty index with the provided `id` (`base` is default)
 
         In this example, we create an empty index with the name `id` and store it in the `self.indexes` dictionary.
         Example is a simple copy of the `SimpleVectorStore` provider.
-        Method 'create' is called when the index does not exist.
+        The `create` method is called when the index does not exist.
 
         See `pygpt_net.core.idx` for more details how it is handled internally.
 
@@ -52,11 +54,11 @@ class ExampleVectorStore(BaseStore):
         """
         path = self.get_path(id)  # get path for the index configuration, declared in the `BaseStore` class
 
-        # check if index does not exist on disk and create it if not
+        # check if index does not exist on disk and create it if not exists
         if not os.path.exists(path):
             index = VectorStoreIndex([])  # create empty index
 
-            # store the index
+            # store the index on disk
             self.store(
                 id=id,
                 index=index,
@@ -64,11 +66,11 @@ class ExampleVectorStore(BaseStore):
 
     def get(self, id: str, service_context: ServiceContext = None) -> BaseIndex:
         """
-        Get the index instance with the provided `id`
+        Get the index instance with the provided `id` (`base` is default)
 
         In this example, we get the index with the name `id` from the `self.indexes` dictionary.
-        Method get is called when getting the index.
-        It must return the index instance.
+        The `get` method is called when getting the index instance.
+        It must return the `BaseIndex` index instance.
 
         See `pygpt_net.core.idx` for more details how it is handled internally.
 
@@ -79,13 +81,13 @@ class ExampleVectorStore(BaseStore):
 
         # check if index exists on disk and load it
         if not self.exists(id):
-            # if index does not exist, create it
+            # if index does not exist, then create it
             self.create(id)
 
-        # get path for the index configuration on disk
+        # get path for the index configuration on disk (in "%workdir%/idx" directory)
         path = self.get_path(id)
 
-        # get storage context
+        # get the storage context
         storage_context = StorageContext.from_defaults(
             persist_dir=path,
         )
@@ -101,10 +103,10 @@ class ExampleVectorStore(BaseStore):
 
     def store(self, id: str, index: BaseIndex = None):
         """
-        Store (persist) the index instance with the provided `id`
+        Store (persist) the index instance with the provided `id` (`base` is default)
 
         In this example, we store the index with the name `id` in the `self.indexes` dictionary.
-        Method store is called when storing (persisting) the index.
+        The `store` method is called when storing (persisting) index to disk/db.
         It must provide logic to store the index in the storage.
 
         See `pygpt_net.core.idx` for more details how it is handled internally.
@@ -117,7 +119,7 @@ class ExampleVectorStore(BaseStore):
         if index is None:
             index = self.indexes[id]
 
-        # get path for the index configuration on disk
+        # get a path for the index configuration on disk (in "%workdir%/idx" directory)
         path = self.get_path(id)
 
         # persist the index on disk
