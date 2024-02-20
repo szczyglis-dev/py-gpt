@@ -21,7 +21,7 @@ class Plugin(BasePlugin):
         self.name = "Example Plugin"
         self.description = "Example description"
         self.allowed_cmds = [
-            "funny_cmd",  # list of allowed commands to handle in this plugin
+            "funny_cmd",  # list of allowed commands to be handled by this plugin
         ]
         self.init_options()  # initialize plugin options
 
@@ -29,7 +29,7 @@ class Plugin(BasePlugin):
         """
         Initialize options
 
-        See other plugins from `pygpt_net.plugin` for more examples how to define options with different types.
+        See other plugins from `pygpt_net.plugin` for more examples of how to define options with different types.
 
         You can define options here, for example:
         """
@@ -45,7 +45,7 @@ class Plugin(BasePlugin):
             "example_bool_option",  # option name (key)
             type="bool",  # option type (text, textarea, bool, int, float, dict, combo)
             value=True,  # default value
-            label="Example boolean option",
+            label="Example boolean option",  # option label
             description="Example description #2",  # option description
             tooltip="Example tooltip #2",  # option tooltip
         )
@@ -54,7 +54,7 @@ class Plugin(BasePlugin):
         """
         Handle dispatched event here
 
-        This method is called externally by event dispatcher every time when the event is dispatched.
+        This method is called externally by Event dispatcher every time when the event is dispatched.
 
         :param event: event object
         :param args: event args
@@ -65,7 +65,8 @@ class Plugin(BasePlugin):
         ctx = event.ctx  # event context (CtxItem) - current context item (input/output)
 
         # Tip:
-        # Set Log level (in Settings / Developer) to DEBUG to see all events in the console output and in app.log file.
+        # Set the Log level (in Settings / Developer) to DEBUG to enable logging of debug data from all events
+        # to the console and to the %workdir%/app.log file.
 
         # HANDLING EVENTS: you can handle all the events here, for example:
 
@@ -100,7 +101,7 @@ class Plugin(BasePlugin):
             self.cmd(ctx, data['commands'])  # list of commands is available in data['commands']
 
         # etc...
-        # See the plugins in `pygpt_net.plugin` for a more examples how to handle rest of events.
+        # See the plugins in `pygpt_net.plugin` for a more examples of how to handle rest of events.
 
         """
         All available events are defined in 'pygpt_net.core.dispatcher.Event' class:
@@ -168,7 +169,7 @@ class Plugin(BasePlugin):
 
     def cmd_syntax(self, data: dict):
         """
-        Example of handling CMD_SYNTAX event (commands syntax)
+        Example of handling CMD_SYNTAX event (command syntax)
 
         Method will call when CMD_SYNTAX event is dispatched and will be used to add custom commands syntax.
         Syntax is a list of strings with command syntax descriptions.
@@ -187,7 +188,7 @@ class Plugin(BasePlugin):
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
-        Example of handling CMD_EXECUTE event (commands execution)
+        Example of handling CMD_EXECUTE event (command execution)
 
         Method will call when CMD_EXECUTE event is dispatched and will be used to handle commands execution.
         List of commands called by model and its params is passed as cmds list.

@@ -119,7 +119,7 @@ class ExampleVectorStore(BaseStore):
         if index is None:
             index = self.indexes[id]
 
-        # get a path for the index configuration on disk (in "%workdir%/idx" directory)
+        # get path for the index configuration on disk (in "%workdir%/idx" directory)
         path = self.get_path(id)
 
         # persist the index on disk
