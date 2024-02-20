@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 23:00:00                  #
+# Updated Date: 2024.02.20 02:00:00                  #
 # ================================================== #
 
 from langchain_community.llms import OpenAI  # <--- Import OpenAI provider for Langchain (completion)
@@ -43,9 +43,9 @@ class ExampleLlm(BaseLLM):
 
         See: `pygpt_net.core.chain.completion` for more details how it is handled internally.
 
-        In this example method returns OpenAI provider instance.
-        Keyword arguments for the Langchain provider are parsed from the model instance config and can be
-        configured in 'Models' settings dialog (or manually in 'models.json' config file).
+        In this example, the method returns OpenAI provider instance.
+        Keyword arguments for the Langchain provider are parsed from the model config instance and can be
+        configured in 'Models' settings dialog (or manually, in '%workdir%/models.json' config file).
 
         :param window: window instance
         :param model: model instance - current model
@@ -76,9 +76,9 @@ class ExampleLlm(BaseLLM):
 
         See: `pygpt_net.core.chain.chat` for more details how it is handled internally.
 
-        In this example method returns ChatOpenAI provider instance.
-        Keyword arguments for the Langchain provider are parsed from the model instance config and can be
-        configured in 'Models' settings dialog (or manually in 'models.json' config file).
+        In this example, the method returns ChatOpenAI provider instance.
+        Keyword arguments for the Langchain provider are parsed from the model config instance and can be
+        configured in 'Models' settings dialog (or manually, in '%workdir%/models.json' config file).
 
         :param window: window instance
         :param model: model instance - current model
@@ -107,9 +107,9 @@ class ExampleLlm(BaseLLM):
             - `pygpt_net.core.idx.llm.get`
             - `pygpt_net.core.idx.llm.get_service_context`
 
-        In this example method returns LlamaOpenAI provider instance.
-        Keyword arguments for the Llama-Index provider are parsed from the model instance config and can be
-        configured in 'Models' settings dialog (or manually in 'models.json' config file).
+        In this example, the method returns LlamaOpenAI provider instance.
+        Keyword arguments for the Llama-Index provider are parsed from the model config instance and can be
+        configured in 'Models' settings dialog (or manually, in '%workdir%/models.json' config file).
 
         :param window: window instance
         :param model: model instance - current model
