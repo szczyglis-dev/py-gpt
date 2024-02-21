@@ -408,7 +408,12 @@ class Renderer(BaseRenderer):
 
         # replace %workdir% with current workdir
         local_prefix = self.window.core.filesystem.get_workdir_prefix()
-        text = re.sub(r'\(%workdir%([^)]+)\)', f'({local_prefix}\\1)', text)
+        safe_local_prefix = local_prefix.replace('\\', '\\\\').replace('\\.', '\\\\.')  # windows fix
+        replacement = f'({safe_local_prefix}\\1)'
+        try:
+            text = re.sub(r'\(%workdir%([^)]+)\)', replacement, text)
+        except Exception as e:
+            pass
         return text
 
     def post_format_text(self, text: str) -> str:
