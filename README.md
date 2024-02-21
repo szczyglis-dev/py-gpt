@@ -2390,7 +2390,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added auto-replacement of sandbox download links in Assistants with links to downloaded local files.
 - Added setup for Poetry.
-- Added connectin timeout config option to Google Search plugin.
+- Added connection timeout config option to Google Search plugin.
 - Fixed recursion error on app exit.
 - Updated dependencies.
 
