@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.21 18:00:00                  #
 # ================================================== #
 
 import sys
@@ -67,7 +67,6 @@ class Launcher:
         Platforms.prepare()  # setup platform specific options
         self.app = QApplication(sys.argv)
         self.window = MainWindow(self.app, args=args)
-        self.app.aboutToQuit.connect(self.app.quit)
 
     def add_plugin(self, plugin: BasePlugin):
         """
