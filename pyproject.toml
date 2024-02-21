@@ -60,7 +60,7 @@ SQLAlchemy = "^2.0.23"
 tiktoken = "^0.5.2"
 
 [tool.poetry.group.dev.dependencies]
-pyinstaller = "5.9.0"
+pyinstaller = "5.13.2"
 pytest = "^7.4.3"
 
 [tool.poetry.scripts]

@@ -58,7 +58,7 @@ setup(
         'pinecone-client>=3.0.1, <4.0.0',
         'PyAudio>=0.2.14, <0.3.0',
         'pygame>=2.5.2, <3.0.0',
-        'pyinstaller>=5.9.0',
+        'pyinstaller==5.13.2',
         'pypdf>=3.17.4, <4.0.0',
         'pyserial>=3.5, <4.0.0',
         'PySide6>=6.4.2, <7.0.0',
