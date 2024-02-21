@@ -86,6 +86,8 @@ python3 run.py
 
 **Install with Poetry**
 
+1. Clone git repository or download .zip file:
+
 ```commandline
 git clone https://github.com/szczyglis-dev/py-gpt.git
 cd py-gpt
