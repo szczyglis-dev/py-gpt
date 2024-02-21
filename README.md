@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.158** | build: **2024.02.21** | Python: **3.10+**
+Release: **2.0.159** | build: **2024.02.21** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2340,6 +2340,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.159 (2024-02-21)
+
+- Added workdir placeholders to images stored from Assistants.
+- Added tooltips on model list.
+- Added force synchronous command call if more than one command to execute.
 
 # 2.0.158 (2024-02-21)
 

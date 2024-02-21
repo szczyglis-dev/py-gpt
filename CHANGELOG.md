@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.159 (2024-02-21)
+
+- Added workdir placeholders to images stored from Assistants.
+- Added tooltips on model list.
+- Added force synchronous command call if more than one command to execute.
+
 # 2.0.158 (2024-02-21)
 
 - Improved Assistants: added annotations handling, added async function outputs submit
