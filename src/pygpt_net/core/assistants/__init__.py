@@ -6,13 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.02.21 14:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.provider.core.assistant.json_file import JsonFileProvider
-from .importer import Importer
 
 
 class Assistants:
@@ -24,7 +23,6 @@ class Assistants:
         """
         self.window = window
         self.provider = JsonFileProvider(window)  # json file provider
-        self.importer = Importer(window)  # async importer
         self.current_file = None
         self.items = {}
 
@@ -111,7 +109,12 @@ class Assistants:
             self.items.pop(id)
         self.save()
 
-    def rename_file(self, assistant: AssistantItem, file_id: str, name: str):
+    def rename_file(
+            self,
+            assistant: AssistantItem,
+            file_id: str,
+            name: str
+    ):
         """
         Rename uploaded remote file name
 
@@ -138,7 +141,13 @@ class Assistants:
         if need_save:
             self.save()
 
-    def replace_attachment(self, assistant: AssistantItem, attachment: AttachmentItem, old_id: str, new_id: str):
+    def replace_attachment(
+            self,
+            assistant: AssistantItem,
+            attachment: AttachmentItem,
+            old_id: str,
+            new_id: str
+    ):
         """
         Replace temporary attachment with uploaded one
 
@@ -164,7 +173,11 @@ class Assistants:
             return None
         return list(assistants.keys())[0]
 
-    def get_file_id_by_idx(self, assistant: AssistantItem, idx: int) -> str | None:
+    def get_file_id_by_idx(
+            self,
+            assistant: AssistantItem,
+            idx: int
+    ) -> str | None:
         """
         Return file ID by index
 
@@ -177,7 +190,11 @@ class Assistants:
             return None
         return list(files.keys())[idx]
 
-    def get_file_by_id(self, assistant: AssistantItem, id: str) -> dict | None:
+    def get_file_by_id(
+            self,
+            assistant: AssistantItem,
+            id: str
+    ) -> dict | None:
         """
         Return file by ID
 
@@ -191,7 +208,12 @@ class Assistants:
             return None
         return files[id]
 
-    def import_files(self, assistant: AssistantItem, data: list, import_data: bool = True):
+    def import_files(
+            self,
+            assistant: AssistantItem,
+            data: list,
+            import_data: bool = True
+    ):
         """
         Import files from remote API
 

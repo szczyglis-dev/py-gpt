@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.02.21 14:00:00                  #
 # ================================================== #
 
 import os
@@ -57,12 +57,12 @@ def test_count_upload(mock_window):
 
 def test_import_files(mock_window):
     """Test import files"""
-    mock_window.core.assistants.importer.import_files = MagicMock()
+    mock_window.core.gpt.assistants.importer.import_files = MagicMock()
     files = Files(mock_window)
     item = AssistantItem()
     item.id = "assistant_id"
     files.import_files(item)
-    mock_window.core.assistants.importer.import_files.assert_called_once_with(item)
+    mock_window.core.gpt.assistants.importer.import_files.assert_called_once_with(item)
 
 
 def test_download(mock_window):

@@ -67,7 +67,7 @@ class Files:
         """
         # run asynchronous
         self.window.ui.status("Importing files...please wait...")
-        self.window.core.assistants.importer.import_files(assistant)
+        self.window.core.gpt.assistants.importer.import_files(assistant)
 
     def handle_imported_files(self, num: int):
         """

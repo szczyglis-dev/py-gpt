@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 01:00:00                  #
+# Updated Date: 2024.02.21 14:00:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +15,7 @@ import os
 from pygpt_net.item.assistant import AssistantItem
 from pygpt_net.item.ctx import CtxItem
 from .worker.assistants import AssistantsWorker
+from .worker.importer import Importer
 
 
 class Assistants:
@@ -26,6 +27,7 @@ class Assistants:
         """
         self.window = window
         self.worker = AssistantsWorker(window)
+        self.importer = Importer(window)
         self.file_ids = []  # file ids
 
     def thread_create(self):

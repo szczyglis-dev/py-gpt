@@ -195,7 +195,7 @@ class Assistant:
 
         # run asynchronous
         self.window.ui.status("Importing assistants...please wait...")
-        self.window.core.assistants.importer.import_assistants()
+        self.window.core.gpt.assistants.importer.import_assistants()
 
     def handle_imported_assistants(self, num: int):
         """

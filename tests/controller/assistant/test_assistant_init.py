@@ -155,9 +155,9 @@ def test_update_data(mock_window):
 def test_import_api(mock_window):
     """Test import assistants from API"""
     assistant = Assistant(mock_window)
-    mock_window.core.assistants.importer.import_assistants = MagicMock()
+    mock_window.core.gpt.assistants.importer.import_assistants = MagicMock()
     assistant.import_api(force=True)
-    mock_window.core.assistants.importer.import_assistants.assert_called_once()
+    mock_window.core.gpt.assistants.importer.import_assistants.assert_called_once()
 
 
 def test_clear(mock_window):
