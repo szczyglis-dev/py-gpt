@@ -195,6 +195,7 @@ class Worker(QRunnable):
             if run is not None:
                 self.ctx.run_id = run.id  # update run id
                 self.signals.finished.emit(self.ctx, run)  # continue status check
+                return True
         except Exception as e:
             self.signals.error.emit(self.ctx, e)
         return False

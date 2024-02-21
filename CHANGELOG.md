@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.158 (2024-02-21)
+
+- Improved Assistants: added annotations handling, added async function outputs submit
+- Fixed creating function duplicates on re-import existing Assistant
+
 # 2.0.157 (2024-02-20)
 
 - Added webpage (URL) indexing using Llama-Index; new options were added to the Google Search plugin: the command "web_index" for indexing a specified page (just ask to index any URL) and "Auto-index", which enables automatic indexing of URLs used by the plugin (disabled by default).

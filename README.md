@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.157** | build: **2024.02.20** | Python: **3.10+**
+Release: **2.0.158** | build: **2024.02.21** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2340,6 +2340,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.158 (2024-02-21)
+
+- Improved Assistants: added annotations handling, added async function outputs submit
+- Fixed creating function duplicates on re-import existing Assistant
 
 # 2.0.157 (2024-02-20)
 
