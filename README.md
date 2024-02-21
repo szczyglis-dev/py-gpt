@@ -2344,7 +2344,7 @@ may consume additional tokens that are not displayed in the main window.
 # 2.0.159 (2024-02-21)
 
 - Added workdir placeholders to images stored from Assistants.
-- Added tooltips on model list.
+- Added tooltips on modes list.
 - Added force synchronous command call if more than one command to execute.
 
 # 2.0.158 (2024-02-21)
