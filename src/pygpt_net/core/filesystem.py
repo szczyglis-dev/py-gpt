@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 18:00:00                  #
+# Updated Date: 2024.02.21 14:00:00                  #
 # ================================================== #
 
 import os
@@ -177,6 +177,19 @@ class Filesystem:
         url = prefix + path
         return url, path
 
+    def get_workdir_prefix(self) -> str:
+        """
+        Get workdir prefix
+
+        :return: workdir prefix
+        """
+        prefix = ''
+        if self.window.core.platforms.is_windows():
+            prefix = 'file:///'
+        else:
+            prefix = 'file://'
+        return prefix + self.window.core.config.get_user_path()
+
     def in_work_dir(self, path: str) -> bool:
         """
         Check if path is in work directory
@@ -219,7 +232,7 @@ class Filesystem:
         Check if path has schema prefix (http, https, file)
 
         :param path: path to check
-        :return: True if path is schema
+        :return: True if path has schema prefix
         """
         return path.startswith('file://') or path.startswith('http://') or path.startswith('https://')
 

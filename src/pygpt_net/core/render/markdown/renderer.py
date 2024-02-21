@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 17:00:00                  #
+# Updated Date: 2024.02.21 14:00:00                  #
 # ================================================== #
 
 import re
@@ -394,7 +394,7 @@ class Renderer(BaseRenderer):
 
     def pre_format_text(self, text: str) -> str:
         """
-        Post-format text
+        Pre-format text
 
         :param text: text to format
         :return: formatted text
@@ -402,7 +402,13 @@ class Renderer(BaseRenderer):
         text = text.strip()
         text = text.replace("#~###~", "~###~")  # fix for #~###~ in text (previous versions)
         text = text.replace("# ~###~", "~###~")  # fix for # ~###~ in text (previous versions)
+
+        # replace cmd tags
         text = self.replace_code_tags(text)
+
+        # replace %workdir% with current workdir
+        local_prefix = self.window.core.filesystem.get_workdir_prefix()
+        text = re.sub(r'\(%workdir%([^)]+)\)', f'({local_prefix}\\1)', text)
         return text
 
     def post_format_text(self, text: str) -> str:

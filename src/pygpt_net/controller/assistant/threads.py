@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 05:00:00                  #
+# Updated Date: 2024.02.21 14:00:00                  #
 # ================================================== #
 
 import json
@@ -64,6 +64,73 @@ class Threads:
         # update ctx list
         self.window.controller.ctx.update()
 
+    def handle_message_data(self, ctx: CtxItem, msg):
+        """
+        Handle message data
+
+        :param ctx: CtxItem
+        :param msg: Message
+        """
+        paths = []
+        file_ids = []
+        images_ids = []
+        mappings = {}  # file_id: path to sandbox
+
+        for content in msg.content:
+            if content.type == "text":
+                ctx.set_output(content.text.value)
+
+                # annotations
+                if content.text.annotations:
+                    if self.is_log():
+                        print("Run: received annotations: {}".format(len(content.text.annotations)))
+                    for item in content.text.annotations:
+                        if item.type == "file_path":
+                            file_id = item.file_path.file_id
+                            file_ids.append(file_id)
+                            mappings[file_id] = item.text
+
+            # image file
+            elif content.type == "image_file":
+                if self.is_log():
+                    print("Run: received image file")
+                images_ids.append(content.image_file.file_id)
+
+        # handle msg files
+        for file_id in msg.file_ids:
+            if file_id not in images_ids and file_id not in file_ids:
+                file_ids.append(file_id)
+
+        # handle content images
+        if images_ids:
+            image_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
+            ctx.images = self.window.core.filesystem.make_local_list(list(image_paths))
+
+        # download msg files
+        paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
+        if paths:
+            # convert to local paths
+            local_paths = self.window.core.filesystem.make_local_list(list(paths))
+            text_msg = ctx.output
+            if text_msg:
+                # map file ids to local paths
+                for file_id in mappings:
+                    path_sandbox = mappings[file_id]
+                    k = file_ids.index(file_id)
+                    if len(local_paths) > k:
+                        text_msg = text_msg.replace(path_sandbox, local_paths[k])  # replace sandbox path
+                ctx.set_output(text_msg)
+            ctx.files = local_paths
+
+            # append images from msg files
+            if len(images_ids) == 0:
+                img_files = []
+                for path in paths:
+                    if path.split('.')[-1].lower() in self.img_ext:
+                        img_files.append(path)
+                if img_files:
+                    ctx.images = self.window.core.filesystem.make_local_list(list(img_files))
+
     def handle_messages(self, ctx: CtxItem):
         """
         Handle run messages
@@ -71,45 +138,17 @@ class Threads:
         :param ctx: CtxItem
         """
         data = self.window.core.gpt.assistants.msg_list(ctx.thread)
-        paths = []
-        file_ids = []
-        images_ids = []
-
         for msg in data:
             if msg.role == "assistant":
-                for content in msg.content:
-                    if content.type == "text":
-                        ctx.set_output(content.text.value)
-                        # handle annotations
-                        if content.text.annotations:
-                            for item in content.text.annotations:
-                                if item.type == "file_path":
-                                    file_ids.append(item.file_path.file_id)
-                    elif content.type == "image_file":
-                        images_ids.append(content.image_file.file_id)
-                # handle msg files
-                for file_id in msg.file_ids:
-                    if file_id not in images_ids and file_id not in file_ids:
-                        file_ids.append(file_id)
-                # handle content images
-                if images_ids:
-                    images_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
-                    ctx.images = self.window.core.filesystem.make_local_list(list(images_paths))
-                # download msg files
-                paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
-                if paths:
-                    ctx.files = self.window.core.filesystem.make_local_list(list(paths))
-                    if len(images_ids) == 0:
-                        img_files = []
-                        for path in paths:
-                            if path.split('.')[-1].lower() in self.img_ext:
-                                img_files.append(path)
-                        if img_files:
-                            ctx.images = self.window.core.filesystem.make_local_list(list(img_files))
+                try:
+                    if self.is_log():
+                        print("Run: handling message...")
+                    self.handle_message_data(ctx, msg)
+                except Exception as e:
+                    self.window.core.debug.log(e)
+                    print("Run: handle message error:", e)
                 break
-
-        # send to chat
-        self.handle_output_message(ctx)
+        self.handle_output_message(ctx)  # send to chat
 
     def handle_tool_calls(self, ctx: CtxItem):
         """
@@ -127,7 +166,7 @@ class Threads:
         # update ctx
         self.window.core.ctx.update_item(ctx)
 
-        ctx.internal = True  # hide in chat
+        ctx.internal = True  # hide in chat input + handle synchronously
 
         self.window.controller.chat.output.handle(ctx, 'assistant', False)
         self.window.controller.chat.output.handle_cmd(ctx)
@@ -140,7 +179,7 @@ class Threads:
         # index ctx (llama-index)
         self.window.controller.idx.on_ctx_end(ctx)
 
-        # check if there are any response
+        # check if there are any response, if not send empty response
         if not ctx.reply:
             results = {
                 "response": "",
@@ -184,7 +223,7 @@ class Threads:
         Handle run created
 
         :param ctx: context item
-        :param err
+        :param err: error message
         """
         ctx.current = False  # reset current state
         self.window.core.ctx.update_item(ctx)
@@ -244,7 +283,7 @@ class Threads:
             self.window.stateChanged.emit(self.window.STATE_IDLE)
             self.window.controller.chat.output.show_response_tokens(ctx)  # update tokens
 
-        # func call
+        # function call
         elif status == "requires_action":
             self.stop = False
             ctx.tool_calls = self.window.core.command.unpack_tool_calls(
