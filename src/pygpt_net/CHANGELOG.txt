@@ -1,3 +1,10 @@
+2.0.160 (2024-02-21)
+
+- Added auto-replacement of sandbox download links in Assistants with links to downloaded local files.
+- Added setup for Poetry.
+- Fixed recursion error on app exit.
+- Updated dependencies.
+
 2.0.159 (2024-02-21)
 
 - Added workdir placeholders to images stored from Assistants.

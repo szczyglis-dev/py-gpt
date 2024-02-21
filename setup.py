@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.0.159'
+VERSION = '2.0.160'
 DESCRIPTION = 'Desktop AI Assistant powered by GPT-4, GPT-4V, GPT-3.5, DALL-E 3, Langchain LLMs, Llama-index, ' \
               'Whisper and more with chatbot, assistant, text completion, vision and image generation, ' \
               'internet access, chat with files, commands and code execution, file upload and download and more'
@@ -37,7 +37,6 @@ setup(
              'chatgpt, dall-e, chat, chatbot, assistant, text completion, image generation, ai, api, openai, api key, '
              'langchain, llama-index, presets, ui, qt, pyside',
     install_requires=[
-        'azure-cognitiveservices-speech>=1.27.0',
         'beautifulsoup4>=4.12.2, <5.0.0',
         'chromadb>=0.4.22, <1.0.0',
         'croniter>=2.0.1, <3.0.0',
@@ -70,6 +69,5 @@ setup(
         'SQLAlchemy>=2.0.23, <3.0.0',
         'show-in-file-manager>=1.1.4',
         'tiktoken>=0.5.2, <1.0.0',
-        'wikipedia>=1.4.0',
     ],
 )

@@ -59,7 +59,7 @@ PyPi (pip)
 
 .. code-block:: console
 
-    python -m venv venv
+    python3 -m venv venv
     source venv/bin/activate
 
 2. Install from PyPi:
@@ -103,13 +103,55 @@ Running from GitHub source code
 
     python3 run.py
 
+**Install with Poetry**
+
+.. code-block:: console
+
+    git clone https://github.com/szczyglis-dev/py-gpt.git
+    cd py-gpt
+
+2. Create virtual environment:
+
+.. code-block:: console
+
+    poetry shell
+
+3. Install requirements:
+
+.. code-block:: console
+
+    poetry install
+
+4. Run the application:
+
+.. code-block:: console
+
+    poetry run python3 run.py
+
+
 **Tip**: you can use ``PyInstaller`` to create a compiled version of
 the application for your system.
 
 Troubleshooting
 ---------------
 
-If you have problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
+**PyGPT** requires Python ``>=3.10`` and ``<3.12``, so if you are using Python ``3.12`` then you must downgrade your Python version, e.g.:
+
+1. Install pyenv: https://github.com/pyenv/pyenv#installation
+
+2. Install a compatible Python version. For example, Python 3.11:
+
+.. code-block:: console
+
+    pyenv install 3.11.0
+
+3. Set the installed Python version as the global version:
+
+.. code-block:: console
+
+    pyenv global 3.11.0
+
+If you have a problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
 
 .. code-block:: console
 

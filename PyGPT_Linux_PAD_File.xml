@@ -2,13 +2,13 @@
 <PAD>
 <PAD_Version>4.0</PAD_Version>
 <Program_Name>PyGPT - Desktop AI Assistant</Program_Name>
-<Program_Version>2.0.159</Program_Version>
+<Program_Version>2.0.160</Program_Version>
 <Program_Release_Month>02</Program_Release_Month>
 <Program_Release_Day>21</Program_Release_Day>
 <Program_Release_Year>2024</Program_Release_Year>
 <Program_Cost_Dollars>0</Program_Cost_Dollars>
 <Program_Type>Open Source</Program_Type>
-<Download_URL>https://pygpt.net/download/2.0.159/pygpt-2.0.159.tar.gz</Download_URL>
+<Download_URL>https://pygpt.net/download/2.0.160/pygpt-2.0.160.tar.gz</Download_URL>
 <Application_OS_Support>Linux 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
@@ -17,7 +17,7 @@
 
 Features
 - Desktop AI Assistant for Windows and Linux, written in Python.
-- 7 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain and Chat with files.
+- 8 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files and Autonomous Agents.
 - Supports multiple models: GPT-4, GPT-3.5, and GPT-3, including any model accessible through Langchain.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode

@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.159** | build: **2024.02.21** | Python: **3.10+**
+Release: **2.0.160** | build: **2024.02.21** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -115,7 +115,7 @@ The application can also be installed from `PyPi` using `pip install`:
 1. Create virtual environment:
 
 ```commandline
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -163,10 +163,51 @@ pip install -r requirements.txt
 python3 run.py
 ```
 
+**Install with Poetry**
+
+```commandline
+git clone https://github.com/szczyglis-dev/py-gpt.git
+cd py-gpt
+```
+
+2. Create virtual environment:
+
+```commandline
+poetry shell
+```
+
+3. Install requirements:
+
+```commandline
+poetry install
+```
+
+4. Run the application:
+
+```commandline
+poetry run python3 run.py
+```
+
 **Tip**: you can use `PyInstaller` to create a compiled version of
 the application for your system (version < `6.x`, e.g. `5.13.2`).
 
 ### Troubleshooting
+
+**PyGPT** requires Python `>=3.10` and `<3.12`, so if you are using Python `3.12` then you must downgrade your Python version, e.g.:
+
+1. Install pyenv: https://github.com/pyenv/pyenv#installation
+
+2. Install a compatible Python version. For example, Python 3.11:
+
+```commandline
+pyenv install 3.11.0
+```
+
+3. Set the installed Python version as the global version:
+
+```commandline
+pyenv global 3.11.0
+```
 
 If you have a problems with `xcb` plugin with newer versions of PySide on Linux, e.g. like this:
 
@@ -2330,7 +2371,7 @@ To get the new version, simply download it and start using it in place of the ol
 This application is not officially associated with OpenAI. The author shall not be held liable for any damages 
 resulting from the use of this application. It is provided "as is," without any form of warranty. 
 Users are reminded to be mindful of token usage - always verify the number of tokens utilized by the model on 
-the OpenAI website and engage with the application responsibly. Activating plugins, such as Web Search, 
+the OpenAI website and engage with the application responsibly. Activating plugins, such as Web Search,
 may consume additional tokens that are not displayed in the main window. 
 
 **Always monitor your actual token usage on the OpenAI website.**
@@ -2340,6 +2381,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.160 (2024-02-21)
+
+- Added auto-replacement of sandbox download links in Assistants with links to downloaded local files.
+- Added setup for Poetry.
+- Fixed recursion error on app exit.
+- Updated dependencies.
 
 # 2.0.159 (2024-02-21)
 
