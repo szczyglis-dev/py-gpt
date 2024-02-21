@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 18:00:00                  #
+# Updated Date: 2024.02.21 01:00:00                  #
 # ================================================== #
 
 import os
@@ -394,7 +394,7 @@ class Files:
 
         assistant = self.window.core.assistants.get_by_id(assistant_id)
         if assistant is None:
-            return # no assistant
+            return  # no assistant
 
         items = assistant.files
         num_files = len(items)

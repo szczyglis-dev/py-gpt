@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 18:00:00                  #
+# Updated Date: 2024.02.21 01:00:00                  #
 # ================================================== #
 
 import json
@@ -390,14 +390,15 @@ class Assistants:
                 items[id].model = remote.model
                 items[id].meta = remote.metadata
 
-                # check if assistant tool is bool
-                if isinstance(items[id].tools['function'], bool):
-                    items[id].tools['function'] = []
+                # reset tools
+                items[id].clear_tools()
 
                 # append files
                 for file_id in remote.file_ids:
                     if not items[id].has_file(file_id):
                         items[id].add_file(file_id)
+
+                # append tools
                 for tool in remote.tools:
                     if tool.type == "function":
                         # pack params to JSON string
@@ -414,7 +415,8 @@ class Assistants:
                             tool.function.description
                         )
                     else:
-                        items[id].tools[tool.type] = True
+                        if tool.type in items[id].tools:
+                            items[id].tools[tool.type] = True
         return items
 
     def get_tools(self, assistant: AssistantItem) -> list:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 18:00:00                  #
+# Updated Date: 2024.02.21 01:00:00                  #
 # ================================================== #
 
 import json
@@ -30,6 +30,7 @@ class Threads:
         self.stop = False
         self.run_id = None
         self.tool_calls = []  # list of previous tool calls
+        self.img_ext = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']
 
     def create_thread(self) -> str:
         """
@@ -73,17 +74,22 @@ class Threads:
         paths = []
         file_ids = []
         images_ids = []
-        img_ext = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp']
+
         for msg in data:
             if msg.role == "assistant":
                 for content in msg.content:
                     if content.type == "text":
                         ctx.set_output(content.text.value)
+                        # handle annotations
+                        if content.text.annotations:
+                            for item in content.text.annotations:
+                                if item.type == "file_path":
+                                    file_ids.append(item.file_path.file_id)
                     elif content.type == "image_file":
                         images_ids.append(content.image_file.file_id)
                 # handle msg files
                 for file_id in msg.file_ids:
-                    if file_id not in images_ids:
+                    if file_id not in images_ids and file_id not in file_ids:
                         file_ids.append(file_id)
                 # handle content images
                 if images_ids:
@@ -96,7 +102,7 @@ class Threads:
                     if len(images_ids) == 0:
                         img_files = []
                         for path in paths:
-                            if path.split('.')[-1].lower() in img_ext:
+                            if path.split('.')[-1].lower() in self.img_ext:
                                 img_files.append(path)
                         if img_files:
                             ctx.images = img_files

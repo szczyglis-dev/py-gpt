@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 18:00:00                  #
+# Updated Date: 2024.02.21 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -50,7 +50,14 @@ class AssistantsWorker:
             assistant_id: str,
             system_prompt: str
     ):
-        """Create assistant run"""
+        """
+        Create assistant run
+
+        :param ctx: context item
+        :param thread_id: thread id
+        :param assistant_id: assistant id
+        :param system_prompt: system prompt
+        """
         worker = Worker()
         worker.window = self.window
         worker.mode = "run_create"
@@ -70,7 +77,15 @@ class AssistantsWorker:
             prompt: str,
             system_prompt: str
     ):
-        """Send message to assistant thread"""
+        """
+        Send message to assistant thread
+
+        :param ctx: context item
+        :param thread_id: thread id
+        :param assistant_id: assistant id
+        :param prompt: prompt
+        :param system_prompt: system prompt
+        """
         worker = Worker()
         worker.window = self.window
         worker.mode = "msg_send"
@@ -79,6 +94,26 @@ class AssistantsWorker:
         worker.assistant_id = assistant_id
         worker.prompt = prompt
         worker.system_prompt = system_prompt
+        worker.signals.finished.connect(self.handle_run_created)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
+
+    def tools_submit(
+            self,
+            ctx: CtxItem,
+            tools_outputs: list,
+    ):
+        """
+        Send tools outputs to assistant thread
+
+        :param ctx: context item
+        :param tools_outputs: list of tools outputs
+        """
+        worker = Worker()
+        worker.window = self.window
+        worker.mode = "tools_submit"
+        worker.ctx = ctx
+        worker.tools_outputs = tools_outputs
         worker.signals.finished.connect(self.handle_run_created)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
@@ -99,6 +134,7 @@ class Worker(QRunnable):
         self.assistant_id = None
         self.prompt = None
         self.system_prompt = None
+        self.tools_outputs = None
         self.ctx = None
 
     @Slot()
@@ -108,6 +144,8 @@ class Worker(QRunnable):
             self.run_create()
         elif self.mode == "msg_send":
             self.msg_send()
+        elif self.mode == "tools_submit":
+            self.tools_submit()
 
     def run_create(self) -> bool:
         """
@@ -130,7 +168,7 @@ class Worker(QRunnable):
 
     def msg_send(self) -> bool:
         """
-        Send message to assistant thread
+        Send message to assistant
 
         :return: result
         """
@@ -142,6 +180,21 @@ class Worker(QRunnable):
             if response is not None:
                 self.ctx.msg_id = response.id
                 return self.run_create()
+        except Exception as e:
+            self.signals.error.emit(self.ctx, e)
+        return False
+
+    def tools_submit(self) -> bool:
+        """
+        Submit tools outputs to assistant
+
+        :return: result
+        """
+        try:
+            run = self.window.core.gpt.assistants.run_submit_tool(self.ctx, self.tools_outputs)
+            if run is not None:
+                self.ctx.run_id = run.id  # update run id
+                self.signals.finished.emit(self.ctx, run)  # continue status check
         except Exception as e:
             self.signals.error.emit(self.ctx, e)
         return False

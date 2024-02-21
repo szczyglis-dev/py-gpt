@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 18:00:00                  #
+# Updated Date: 2024.02.21 01:00:00                  #
 # ================================================== #
 
 from openai import OpenAI
@@ -109,11 +109,12 @@ class Gpt:
                 ctx.urls = urls
 
         elif mode == "assistant":
-            # check if assistant is already running and has tools outputs
+            # check if assistant is already running and has tools outputs, then submit them, async handled
             if ctx.run_id is not None and len(tools_outputs) > 0:
-                run = self.window.core.gpt.assistants.run_submit_tool(ctx, tools_outputs)
-                if run is not None:
-                    ctx.run_id = run.id  # update run id
+                self.assistants.worker.tools_submit(
+                    ctx,
+                    tools_outputs,  # list of tools outputs
+                )
             else:
                 # if not running, then send msg and create new assistant run, async handled
                 self.assistants.worker.msg_send(

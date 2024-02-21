@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.02.21 01:00:00                  #
 # ================================================== #
 
 import json
@@ -64,6 +64,22 @@ class AssistantItem:
             "tool.code_interpreter": self.tools["code_interpreter"],
             "tool.retrieval": self.tools["retrieval"],
             "tool.function": self.tools["function"],
+        }
+
+    def clear_functions(self):
+        """
+        Clear functions
+        """
+        self.tools['function'] = []
+
+    def clear_tools(self):
+        """
+        Clear tools
+        """
+        self.tools = {
+            "code_interpreter": False,
+            "retrieval": False,
+            "function": [],
         }
 
     def add_function(self, name: str, parameters: str, desc: str):
