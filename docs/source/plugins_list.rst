@@ -485,6 +485,10 @@ Per-page content chunk size (max characters per chunk)
 
 Disables SSL verification when crawling web pages
 
+- ``Timeout`` *timeout*
+
+Connection timeout (seconds)
+
 - ``Max result length`` *max_result_length*
 
 Max length of summarized result (characters)

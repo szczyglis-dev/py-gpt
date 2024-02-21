@@ -105,6 +105,14 @@ class Plugin(BasePlugin):
             tooltip="Disable SSL verify",
         )
         self.add_option(
+            "timeout",
+            type="int",
+            value=5,
+            label="Timeout",
+            description="Connection timeout (seconds)",
+            tooltip="Connection timeout (seconds)",
+        )
+        self.add_option(
             "max_result_length",
             type="int",
             value=1500,

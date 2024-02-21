@@ -1456,6 +1456,10 @@ Per-page content chunk size (max characters per chunk)
 
 Disables SSL verification when crawling web pages
 
+- `Timeout` *timeout*
+
+Connection timeout (seconds)
+
 - `Max result length` *max_result_length*
 
 Max length of summarized result (characters)
@@ -2386,6 +2390,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added auto-replacement of sandbox download links in Assistants with links to downloaded local files.
 - Added setup for Poetry.
+- Added connectin timeout config option to Google Search plugin.
 - Fixed recursion error on app exit.
 - Updated dependencies.
 

@@ -27,7 +27,6 @@ class WebSearch:
         """
         self.plugin = plugin
         self.signals = None
-        self.timeout = 4
 
     def url_get(self, url: str) -> bytes:
         """
@@ -47,12 +46,12 @@ class WebSearch:
             data = urlopen(
                 req,
                 context=context,
-                timeout=self.timeout,
+                timeout=self.plugin.get_option_value('timeout'),
             ).read()
         else:
             data = urlopen(
                 req,
-                timeout=self.timeout,
+                timeout=self.plugin.get_option_value('timeout'),
             ).read()
         return data
 

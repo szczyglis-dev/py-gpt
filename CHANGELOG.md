@@ -4,6 +4,7 @@
 
 - Added auto-replacement of sandbox download links in Assistants with links to downloaded local files.
 - Added setup for Poetry.
+- Added connectin timeout config option to Google Search plugin.
 - Fixed recursion error on app exit.
 - Updated dependencies.
 
