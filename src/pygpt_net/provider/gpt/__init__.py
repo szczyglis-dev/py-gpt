@@ -101,9 +101,7 @@ class Gpt:
 
             # store sent images in ctx
             if len(images) > 0:
-                img_list = list(images.values())
-                local_urls = self.window.core.filesystem.make_local_list(img_list)
-                ctx.images = local_urls
+                ctx.images = self.window.core.filesystem.make_local_list(list(images.values()))
             if len(urls) > 0:
                 ctx.images = urls
                 ctx.urls = urls

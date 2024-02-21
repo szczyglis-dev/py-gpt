@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 01:00:00                  #
+# Updated Date: 2024.02.21 05:00:00                  #
 # ================================================== #
 
 import json
@@ -94,7 +94,7 @@ class Threads:
                 # handle content images
                 if images_ids:
                     images_paths = self.window.controller.assistant.files.handle_received_ids(images_ids, ".png")
-                    ctx.images = list(images_paths)
+                    ctx.images = self.window.core.filesystem.make_local_list(list(images_paths))
                 # download msg files
                 paths += self.window.controller.assistant.files.handle_received_ids(file_ids)
                 if paths:
@@ -105,7 +105,7 @@ class Threads:
                             if path.split('.')[-1].lower() in self.img_ext:
                                 img_files.append(path)
                         if img_files:
-                            ctx.images = img_files
+                            ctx.images = self.window.core.filesystem.make_local_list(list(img_files))
                 break
 
         # send to chat
