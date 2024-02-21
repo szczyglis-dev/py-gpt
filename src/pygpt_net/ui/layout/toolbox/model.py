@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.02.21 05:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -89,7 +89,7 @@ class Model:
             name = data[n].name
             index = self.window.ui.models[self.id].index(i, 0)
             self.window.ui.models[self.id].setData(index, data[n].id, QtCore.Qt.ToolTipRole)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
+            self.window.ui.models[self.id].setData(index, name)
             i += 1
 
         # restore previous selection

@@ -6,9 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.02.21 05:00:00                  #
 # ================================================== #
-
+from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
@@ -87,7 +87,10 @@ class Mode:
             self.window.ui.models[self.id].insertRow(i)
             name = data[n].label
             name = trans(name)
-            self.window.ui.models[self.id].setData(self.window.ui.models[self.id].index(i, 0), name)
+            tooltip = trans(data[n].label + '.tooltip')
+            index = self.window.ui.models[self.id].index(i, 0)
+            self.window.ui.models[self.id].setData(index, name)
+            self.window.ui.models[self.id].setData(index, tooltip, QtCore.Qt.ToolTipRole)
             i += 1
 
         # restore previous selection
