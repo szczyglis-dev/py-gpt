@@ -22,9 +22,11 @@ parts:
       - portaudio19-dev
       - ffmpeg
       - docker
+      - libxcb-cursor0
     build-packages:
       - execstack
       - portaudio19-dev
+      - libxcb-cursor0
     override-build: |
       snapcraftctl build
       find $SNAPCRAFT_PART_INSTALL -name 'onnxruntime_pybind11_state.cpython-310-x86_64-linux-gnu.so' -exec execstack --clear-execstack {} \;
