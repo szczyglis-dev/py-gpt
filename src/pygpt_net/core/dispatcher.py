@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.21 05:00:00                  #
 # ================================================== #
 
 import json
@@ -134,6 +134,8 @@ class Dispatcher:
         if ctx.internal:
             return False
         if self.window.core.config.get("mode") in disallowed_modes:
+            return False
+        if len(ctx.cmds) > 1:  # if multiple commands then run synchronously
             return False
         return True
 
