@@ -105,6 +105,8 @@ Running from GitHub source code
 
 **Install with Poetry**
 
+1. Clone git repository or download .zip file:
+
 .. code-block:: console
 
     git clone https://github.com/szczyglis-dev/py-gpt.git
