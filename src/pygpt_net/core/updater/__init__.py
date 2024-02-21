@@ -232,7 +232,7 @@ class Updater:
                 url=url,
                 headers={'User-Agent': 'Mozilla/5.0'},
             )
-            response = urlopen(req, context=ctx, timeout=3)
+            response = urlopen(req, context=ctx, timeout=5)
             data_json = json.loads(response.read())
             newest_version = data_json["version"]
             newest_build = data_json["build"]

@@ -272,7 +272,7 @@ class Worker(BaseWorker):
                                 with urlopen(
                                         req,
                                         context=context,
-                                        timeout=4) as response, \
+                                        timeout=5) as response, \
                                         open(dst, 'wb') as out_file:
                                     shutil.copyfileobj(response, out_file)
                             else:
