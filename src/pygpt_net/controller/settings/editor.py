@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 20:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -142,6 +142,11 @@ class Editor:
         if not self.window.core.config.get('layout.dialog.geometry.store'):
             self.window.core.config.set('layout.dialog.geometry', {})
             self.window.core.config.save()
+
+        # update search result if needed
+        if 'ctx.search_content' in self.before_config \
+                and self.before_config['ctx.search_content'] != self.window.core.config.get('ctx.search_content'):
+            self.window.controller.ctx.update()
 
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()

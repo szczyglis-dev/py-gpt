@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -40,8 +40,8 @@ class Ctx:
         self.thread = None
         self.last_mode = None
         self.last_model = None
-        self.search_string = None
-        self.filters = {}
+        self.search_string = None  # search string
+        self.filters = {}  # search filters
         self.allowed_modes = {
             'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
             'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
@@ -644,7 +644,8 @@ class Ctx:
                         "comparison": "=",
                         "value": 1,
                     }
-                }
+                },
+                search_content=self.is_search_content(),
             )
             meta_unpinned = self.provider.get_meta(
                 search_string=self.search_string,
@@ -652,6 +653,7 @@ class Ctx:
                 order_direction='DESC',
                 limit=limit,
                 filters=self.filters,
+                search_content=self.is_search_content(),
             )
             # join, pinned first
             self.meta = {**meta_pinned, **meta_unpinned}
@@ -664,6 +666,7 @@ class Ctx:
                 order_direction='DESC',
                 limit=limit,
                 filters=self.filters,
+                search_content=self.is_search_content(),
             )
 
     def load(self, id: int) -> list:
@@ -702,6 +705,7 @@ class Ctx:
             order_direction='DESC',
             limit=limit,
             filters={},
+            search_content=self.is_search_content(),
         )
         data = []
         for key in meta:
@@ -711,6 +715,16 @@ class Ctx:
                 "last_updated": datetime.datetime.fromtimestamp(item.updated).strftime('%Y-%m-%d %H:%M:%S'),
             }})
         return data
+
+    def is_search_content(self) -> bool:
+        """
+        Check if search in content is enabled
+
+        :return: True if enabled
+        """
+        if self.window.core.config.get('ctx.search_content'):
+            return True
+        return False
 
     def save(self, id: int):
         """

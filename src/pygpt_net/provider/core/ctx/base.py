@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -58,6 +58,7 @@ class BaseProvider:
             limit: int = None,
             offset: int = None,
             filters: dict = None,
+            search_content: bool = False
     ):
         pass
 

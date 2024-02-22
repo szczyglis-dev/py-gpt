@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 19:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import os
@@ -792,6 +792,13 @@ class Patch:
                         and 'chunk_size' in data['plugins']['cmd_web_google']:
                     if data['plugins']['cmd_web_google']['chunk_size'] > 20000:
                         data['plugins']['cmd_web_google']['chunk_size'] = 20000
+                updated = True
+
+            # < 2.0.161
+            if old < parse_version("2.0.161"):
+                print("Migrating config from < 2.0.161...")
+                if 'ctx.search_content' not in data:
+                    data['ctx.search_content'] = False
                 updated = True
 
         # update file

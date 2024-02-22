@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                 #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import time
@@ -74,16 +74,18 @@ class DbSqliteProvider(BaseProvider):
             limit: int = None,
             offset: int = None,
             filters: dict = None,
+            search_content: bool = False,
     ) -> dict:
         """
         Return dict of ctx meta, TODO: add order, limit, offset, etc.
 
         :param search_string: search string
         :param order_by: order by column
-        :param order_direction: order direction
+        :param order_direction: order direction (asc, desc)
         :param limit: limit
         :param offset: offset
         :param filters: filters
+        :param search_content: search in content (not only in meta)
         :return: dict of ctx meta
         """
         param_limit = 0
@@ -97,6 +99,7 @@ class DbSqliteProvider(BaseProvider):
             limit=param_limit,
             offset=offset,
             filters=filters,
+            search_content=search_content,
         )
 
     def load(self, id: int) -> list:

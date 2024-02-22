@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                    #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 from datetime import datetime
-import json
 import re
 import time
 
@@ -51,16 +50,18 @@ class Storage:
             limit: int = None,
             offset: int = None,
             filters: dict = None,
+            search_content: bool = False,
     ) -> dict:
         """
         Return dict with CtxMeta objects, indexed by ID
 
-        :param search_string: str
-        :param order_by: str
-        :param order_direction: str
-        :param limit: int
-        :param offset: int
-        :param filters: dict
+        :param search_string: search string
+        :param order_by: order by
+        :param order_direction: order direction (asc, desc)
+        :param limit: result limit
+        :param offset: result offset
+        :param filters: dict of filters
+        :param search_content: search in content (input, output)
         :return: dict of CtxMeta
         """
         limit_suffix = ""
@@ -68,6 +69,7 @@ class Storage:
             limit_suffix = " LIMIT {}".format(limit)
 
         where_clauses = []
+        join_clauses = []
         bind_params = {}
 
         # search_string
@@ -79,19 +81,25 @@ class Storage:
                 search_string.strip(),
             )
             if search_string:
-                where_clauses.append("name LIKE :search_string")
+                if search_content:
+                    where_clauses.append(
+                        "m.name LIKE :search_string OR i.input LIKE :search_string OR i.output LIKE :search_string"
+                    )
+                    join_clauses.append("JOIN ctx_item i ON m.id = i.meta_id")
+                else:
+                    where_clauses.append("m.name LIKE :search_string")
                 bind_params['search_string'] = f"%{search_string}%"
 
             for start_ts, end_ts in date_ranges:
                 if start_ts and end_ts:
-                    where_clauses.append("(updated_ts BETWEEN :start_ts AND :end_ts)")
+                    where_clauses.append("(m.updated_ts BETWEEN :start_ts AND :end_ts)")
                     bind_params['start_ts'] = start_ts
                     bind_params['end_ts'] = end_ts
                 elif start_ts:
-                    where_clauses.append("(updated_ts >= :start_ts)")
+                    where_clauses.append("(m.updated_ts >= :start_ts)")
                     bind_params['start_ts'] = start_ts
                 elif end_ts:
-                    where_clauses.append("(updated_ts <= :end_ts)")
+                    where_clauses.append("(m.updated_ts <= :end_ts)")
                     bind_params['end_ts'] = end_ts
 
         # filters
@@ -109,9 +117,10 @@ class Storage:
                     bind_params[key] = f"%{value}%"
 
         where_statement = " AND ".join(where_clauses) if where_clauses else "1"
+        join_statement = " ".join(join_clauses) if join_clauses else ""
         stmt_text = f"""
-            SELECT * FROM ctx_meta WHERE {where_statement}
-            ORDER BY updated_ts DESC {limit_suffix}
+            SELECT * FROM ctx_meta m {join_statement} WHERE {where_statement}
+            ORDER BY m.updated_ts DESC {limit_suffix}
         """
         stmt = text(stmt_text).bindparams(**bind_params)
 
