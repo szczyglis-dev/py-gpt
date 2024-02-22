@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -39,10 +39,12 @@ class Editor:
             "ctx": {
                 "type": "int",
                 "label": "model.ctx",
+                "description": "model.ctx.desc",
             },
             "tokens": {
                 "type": "int",
                 "label": "model.tokens",
+                "description": "model.tokens.desc",
             },
             "mode": {
                 "type": "text",  # list of comma separated values
@@ -57,10 +59,12 @@ class Editor:
                 "type": "combo",
                 "use": "langchain_providers",
                 "label": "model.langchain.provider",
+                "description": "model.langchain.provider.desc",
             },
             "langchain.mode": {
                 "type": "text",  # list of comma separated values
                 "label": "model.langchain.mode",
+                "description": "model.langchain.mode.desc",
             },
             "langchain.args": {
                 "type": "dict",
@@ -73,6 +77,7 @@ class Editor:
                     },
                 },
                 "label": "model.langchain.args",
+                "description": "model.langchain.args.desc",
                 "advanced": True,
             },
             "langchain.env": {
@@ -82,16 +87,19 @@ class Editor:
                     'value': 'text',
                 },
                 "label": "model.langchain.env",
+                "description": "model.langchain.env.desc",
                 "advanced": True,
             },
             "llama_index.provider": {
                 "type": "combo",
                 "use": "llama_index_providers",
                 "label": "model.llama_index.provider",
+                "description": "model.llama_index.provider.desc",
             },
             "llama_index.mode": {
                 "type": "text",  # list of comma separated values
                 "label": "model.llama_index.mode",
+                "description": "model.llama_index.mode.desc",
             },
             "llama_index.args": {
                 "type": "dict",
@@ -104,6 +112,7 @@ class Editor:
                     },
                 },
                 "label": "model.llama_index.args",
+                "description": "model.llama_index.args.desc",
                 "advanced": True,
             },
             "llama_index.env": {
@@ -113,6 +122,7 @@ class Editor:
                     'value': 'text',
                 },
                 "label": "model.llama_index.env",
+                "description": "model.llama_index.env.desc",
                 "advanced": True,
             },
         }
