@@ -120,7 +120,7 @@ class Debug:
         self.log(
             message,
             logging.INFO,
-            console=console
+            console=console,
         )
 
     def debug(self, message: any = None, console: bool = True):
@@ -133,7 +133,7 @@ class Debug:
         self.log(
             message,
             logging.DEBUG,
-            console=console
+            console=console,
         )
 
     def warning(self, message: any = None, console: bool = True):
@@ -146,7 +146,7 @@ class Debug:
         self.log(
             message,
             logging.WARNING,
-            console=console
+            console=console,
         )
 
     def error(self, message: any = None, console: bool = True):
@@ -159,7 +159,7 @@ class Debug:
         self.log(
             message,
             logging.ERROR,
-            console=console
+            console=console,
         )
 
     def log(self, message: any = None, level: int = logging.ERROR, console: bool = True):
