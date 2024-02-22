@@ -350,7 +350,8 @@ class Attachment:
         Get file download path
 
         :param file_name: file name
-        :return: download directory"""
+        :return: download directory
+        """
         if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
             path = os.path.join(
                 self.window.core.config.get_user_dir('data'),

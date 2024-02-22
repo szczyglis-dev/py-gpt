@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import os
@@ -22,16 +22,18 @@ from pygpt_net.config import Config
 class Debug:
     def __init__(self, window=None):
         """
-        Debugging core
+        Debug core
 
         :param window: Window instance
         """
         self.window = window
 
     @staticmethod
-    def init(level=logging.ERROR):
+    def init(level: int = logging.ERROR):
         """
         Initialize error handler
+
+        :param level: log level
         """
         if not os.path.exists(os.path.join(Path.home(), '.config', Config.CONFIG_DIR)):
             os.makedirs(os.path.join(Path.home(), '.config', Config.CONFIG_DIR))
@@ -47,6 +49,10 @@ class Debug:
         def handle_exception(exc_type, value, tb):
             """
             Handle uncaught exception
+
+            :param exc_type: exception type
+            :param value: exception value
+            :param tb: traceback
             """
             logger = logging.getLogger()
             if not hasattr(logging, '_is_handling_exception'):
@@ -70,6 +76,8 @@ class Debug:
     def get_log_level(self) -> int:
         """
         Get log level
+
+        :return: log level
         """
         return logging.getLogger().getEffectiveLevel()
 
@@ -79,7 +87,9 @@ class Debug:
 
         :return: log level name
         """
-        return self.get_log_level_name_by_id(self.get_log_level())
+        return self.get_log_level_name_by_id(
+            self.get_log_level()
+        )
 
     def get_log_level_name_by_id(self, id: int) -> str:
         """
@@ -99,50 +109,66 @@ class Debug:
         else:
             return "unknown"
 
-    def info(self, message=None, console: bool = True):
+    def info(self, message: any = None, console: bool = True):
         """
-        Handle info
+        Handle info message
 
         :param message: message to log
         :param console: print to console
 
         """
-        self.log(message, logging.INFO, console=console)
+        self.log(
+            message,
+            logging.INFO,
+            console=console
+        )
 
-    def debug(self, message=None, console: bool = True):
+    def debug(self, message: any = None, console: bool = True):
         """
-        Handle debug
+        Handle debug message
 
         :param message: message to log
         :param console: print to console
         """
-        self.log(message, logging.DEBUG, console=console)
+        self.log(
+            message,
+            logging.DEBUG,
+            console=console
+        )
 
-    def warning(self, message=None, console: bool = True):
+    def warning(self, message: any = None, console: bool = True):
         """
-        Handle warning
+        Handle warning message
 
         :param message: message to log
         :param console: print to console
         """
-        self.log(message, logging.WARNING, console=console)
+        self.log(
+            message,
+            logging.WARNING,
+            console=console
+        )
 
-    def error(self, message=None, console: bool = True):
+    def error(self, message: any = None, console: bool = True):
         """
-        Handle error
+        Handle error message
 
         :param message: message to log
         :param console: print to console
         """
-        self.log(message, logging.ERROR, console=console)
+        self.log(
+            message,
+            logging.ERROR,
+            console=console
+        )
 
-    def log(self, message=None, level=logging.ERROR, console: bool = True):
+    def log(self, message: any = None, level: int = logging.ERROR, console: bool = True):
         """
-        Handle logging
+        Handle logger message (by level), default level is ERROR
 
         :param message: message to log
-        :param level: logging level
-        :param console: print to console
+        :param level: logging level (default: ERROR)
+        :param console: print to console if True
         """
         if message is None:
             return
@@ -184,7 +210,7 @@ class Debug:
         Parse exception traceback
 
         :param limit: limit of traceback
-        :return: parsed exception
+        :return: parsed exception as string
         """
         etype, value, tb = sys.exc_info()
         traceback_details = traceback.extract_tb(tb)
