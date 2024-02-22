@@ -55,6 +55,8 @@ The following basic options can be modified directly within the application:
 
 * ``Store images, capture and uploads in data directory``: Enable to store everything in single data directory. Default: False
 
+* ``Directory for file downloads``: Subdirectory for downloaded files, e.g. in Assistants mode, inside "data". Default: "download"
+
 **Context**
 
 * ``Context Threshold`` Sets the number of tokens reserved for the model to respond to the next prompt.

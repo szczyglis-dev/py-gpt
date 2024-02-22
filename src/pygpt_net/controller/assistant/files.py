@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 01:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import os
@@ -404,45 +404,6 @@ class Files:
         if num_files > 0:
             suffix = f' ({num_files})'
         self.window.ui.tabs['input'].setTabText(2, trans('attachments_uploaded.tab') + suffix)
-
-    def handle_received(self, ctx: CtxItem, content) -> list:
-        """
-        Handle (download) received message files
-
-        :param ctx: context object
-        :param content: content object (OpenAI API response)
-        :return: downloaded files paths
-        """
-        num_downloaded = 0
-        paths = []
-        if content.type == "text":
-            if content.text.annotations:
-                for annotation in content.text.annotations:
-                    if self.is_log():
-                        print("Annotation: {}".format(annotation))
-                    if annotation.type == "file_path":
-                        file_id = annotation.file_path.file_id
-                        path = self.window.controller.attachment.download(file_id)
-                        if path is not None:
-                            paths.append(path)
-                            num_downloaded += 1
-
-        elif content.type == "image_file":
-            if self.is_log():
-                print("Downloading image file: {}".format(content.image_file.file_id))
-            file_id = content.image_file.file_id
-            path = self.window.controller.attachment.download(file_id)
-            if path is not None:
-                paths.append(path)
-                num_downloaded += 1
-
-        if num_downloaded > 0:
-            pass
-            # show alert with downloaded files
-            # msg = "Downloaded {} file(s): {}".format(num_downloaded, ", ".join(paths))
-            # self.window.ui.dialogs.alert(msg)
-
-        return paths
 
     def handle_received_ids(self, ids: list, ext: str = None) -> list:
         """

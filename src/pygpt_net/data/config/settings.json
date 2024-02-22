@@ -237,6 +237,19 @@
         "step": null,
         "advanced": false
     },
+    "download.dir": {
+        "section": "files",
+        "type": "text",
+        "slider": false,
+        "label": "settings.download.dir",
+        "description": "settings.download.dir.desc",
+        "value": "download",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.records.limit": {
         "section": "ctx",
         "type": "int",

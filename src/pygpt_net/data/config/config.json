@@ -25,6 +25,7 @@
   "ctx.auto_summary.model": "gpt-3.5-turbo-1106",
   "ctx.records.limit": 0,
   "ctx.records.filter": "all",
+  "ctx.search_content": false,
   "ctx.search.string": "",
   "current_model": {
     "assistant": "gpt-3.5-turbo",
@@ -48,6 +49,7 @@
   },
   "debug": false,
   "default_prompt": "You are a helpful assistant.",
+  "download.dir": "download",
   "font_size": 12,
   "font_size.input": 12,
   "font_size.ctx": 12,

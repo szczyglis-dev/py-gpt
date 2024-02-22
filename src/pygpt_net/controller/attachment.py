@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.22 02:00:00                  #
 # ================================================== #
 
 import os
@@ -345,6 +345,25 @@ class Attachment:
         """
         return self.window.core.attachments.has(mode)
 
+    def get_download_path(self, file_name: str) -> str:
+        """
+        Get file download path
+
+        :param file_name: file name
+        :return: download directory"""
+        if self.window.core.config.has("download.dir") and self.window.core.config.get("download.dir") != "":
+            path = os.path.join(
+                self.window.core.config.get_user_dir('data'),
+                self.window.core.config.get("download.dir"),
+                file_name,
+            )
+        else:
+            path = os.path.join(
+                self.window.core.config.get_user_dir('data'),
+                file_name,
+            )
+        return path
+
     def download(self, file_id: str, ext: str = None) -> str or None:
         """
         Download file
@@ -361,21 +380,24 @@ class Attachment:
 
             # prepare path to download file
             data.filename = os.path.basename(data.filename)
+
+            # add extension if provided
             if ext is not None:
                 data.filename = data.filename + ext
-            path = os.path.join(
-                self.window.core.config.get_user_dir('data'),
-                data.filename,
-            )
+
+            # prepare path to downloaded file
+            path = self.get_download_path(data.filename)
+
+            # create download directory if not exists
+            directory = os.path.dirname(path)
+            if not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
 
             # check if file exists, if yes, append timestamp prefix
             if os.path.exists(path):
                 # append timestamp prefix to filename
                 filename = f'{datetime.now().strftime("%Y%m%d%H%M%S")}_{data.filename}'
-                path = os.path.join(
-                    self.window.core.config.get_user_dir('data'),
-                    filename,
-                )
+                path = self.get_download_path(filename)
 
             # download file
             self.window.core.gpt.assistants.file_download(

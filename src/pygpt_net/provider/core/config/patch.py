@@ -799,6 +799,8 @@ class Patch:
                 print("Migrating config from < 2.0.161...")
                 if 'ctx.search_content' not in data:
                     data['ctx.search_content'] = False
+                if 'download.dir' not in data:
+                    data['download.dir'] = "download"
                 updated = True
 
         # update file
