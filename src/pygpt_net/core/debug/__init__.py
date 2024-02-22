@@ -33,7 +33,7 @@ class Debug:
         """
         Initialize error handler
 
-        :param level: log level
+        :param level: log level (default: ERROR)
         """
         if not os.path.exists(os.path.join(Path.home(), '.config', Config.CONFIG_DIR)):
             os.makedirs(os.path.join(Path.home(), '.config', Config.CONFIG_DIR))
