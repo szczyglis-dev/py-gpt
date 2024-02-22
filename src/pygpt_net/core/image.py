@@ -90,8 +90,12 @@ class Image:
         """
         self.window.ui.status(msg)
 
+        is_log = False
         if self.window.core.config.has("log.dalle") \
                 and self.window.core.config.get("log.dalle"):
+            is_log = True
+        self.window.core.debug.info(msg, not is_log)
+        if is_log:
             print(msg)
 
     @Slot()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 14:00:00                  #
+# Updated Date: 2024.02.22 04:00:00                  #
 # ================================================== #
 
 import json
@@ -82,8 +82,7 @@ class Threads:
 
                 # annotations
                 if content.text.annotations:
-                    if self.is_log():
-                        print("Run: received annotations: {}".format(len(content.text.annotations)))
+                    self.log("Run: received annotations: {}".format(len(content.text.annotations)))
                     for item in content.text.annotations:
                         if item.type == "file_path":
                             file_id = item.file_path.file_id
@@ -92,8 +91,7 @@ class Threads:
 
             # image file
             elif content.type == "image_file":
-                if self.is_log():
-                    print("Run: received image file")
+                self.log("Run: received image file")
                 images_ids.append(content.image_file.file_id)
 
         # handle msg files
@@ -141,8 +139,7 @@ class Threads:
         for msg in data:
             if msg.role == "assistant":
                 try:
-                    if self.is_log():
-                        print("Run: handling message...")
+                    self.log("Run: handling message...")
                     self.handle_message_data(ctx, msg)
                 except Exception as e:
                     self.window.core.debug.log(e)
@@ -156,8 +153,7 @@ class Threads:
 
         :param ctx: CtxItem
         """
-        if self.is_log():
-            print("Run: handling tool calls...")
+        self.log("Run: handling tool calls...")
 
         # store for submit
         self.run_id = ctx.run_id
@@ -198,8 +194,7 @@ class Threads:
         :param ctx: CtxItem
         :return: list of tool calls outputs
         """
-        if self.is_log():
-            print("Run: preparing tool calls outputs...")
+        self.log("Run: preparing tool calls outputs...")
 
         ctx.run_id = self.run_id
         ctx.tool_calls = self.tool_calls  # set previous tool calls
@@ -250,8 +245,7 @@ class Threads:
 
         self.window.stateChanged.emit(self.window.STATE_BUSY)
 
-        if self.is_log():
-            print("Run: starting run worker...")
+        self.log("Run: starting run worker...")
 
         # start
         self.window.threadpool.start(worker)
@@ -269,8 +263,7 @@ class Threads:
         if run:
             status = run.status
 
-        if self.is_log():
-            print("Run status: {}".format(status))
+        self.log("Run status: {}".format(status))
 
         if status != "queued" and status != "in_progress":
             self.window.controller.chat.common.unlock_input()  # unlock input
@@ -309,8 +302,7 @@ class Threads:
     @Slot()
     def handle_started(self):
         """Handle listening started"""
-        if self.is_log():
-            print("Run: assistant is listening status...")
+        self.log("Run: assistant is listening status...")
         self.window.statusChanged.emit(trans('assistant.run.listening'))
 
     def is_log(self) -> bool:
@@ -323,6 +315,15 @@ class Threads:
                 and self.window.core.config.get('log.assistants'):
             return True
         return False
+
+    def log(self, msg: str):
+        """
+        Log message
+
+        :param msg: message
+        """
+        if self.is_log():
+            self.window.core.debug.info(msg, True)
 
     def reset(self):
         """

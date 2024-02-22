@@ -310,7 +310,9 @@ class Files:
 
             # check if not already uploaded (ignore already uploaded files)
             if not attachment.send:
-                print("Uploading file: {}".format(attachment.path))
+                msg = "Uploading file: {}".format(attachment.path)
+                self.window.core.debug.info(msg, False)
+                print(msg)
                 # check if file exists
                 if not os.path.exists(attachment.path):
                     continue
@@ -416,8 +418,7 @@ class Files:
         num_downloaded = 0
         paths = []
         for file_id in ids:
-            if self.is_log():
-                print("Downloading file: {}".format(file_id))
+            self.log("Downloading file: {}".format(file_id))
             path = self.window.controller.attachment.download(file_id, ext=ext)
             if path is not None:
                 paths.append(path)
@@ -441,3 +442,12 @@ class Files:
                 and self.window.core.config.get('log.assistants'):
             return True
         return False
+
+    def log(self, msg: str):
+        """
+        Log message
+
+        :param msg: message
+        """
+        if self.is_log():
+            self.window.core.debug.info(msg, True)
