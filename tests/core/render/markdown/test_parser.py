@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 11:00:00                  #
+# Updated Date: 2024.02.22 05:00:00                  #
 # ================================================== #
 
 from tests.mocks import mock_window
@@ -110,6 +110,6 @@ def test_parse_images():
     parser.init()
 
     markdown_input = "![Alt text](/path/to/img.jpg)"
-    expected_html_output = '<p><img alt="Alt text" src="/path/to/img.jpg"/></p>'
+    expected_html_output = '<p><img alt="Alt text" src="/path/to/img.jpg" width="400"/></p>'
     actual_html_output = parser.parse(markdown_input).replace("\n", "")
     assert actual_html_output == expected_html_output

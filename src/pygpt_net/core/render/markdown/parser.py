@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 12:00:00                  #
+# Updated Date: 2024.02.22 05:00:00                  #
 # ================================================== #
 
 import markdown
@@ -44,6 +44,7 @@ class Parser:
             soup = BeautifulSoup(html, 'html.parser')
             self.convert_lists_to_paragraphs(soup)  # convert lists to paragraphs
             self.strip_whitespace_codeblocks(soup)  # strip whitespace from codeblocks
+            self.format_images(soup)  # add width to img tags
             text = str(soup)
         except Exception as e:
             pass
@@ -87,3 +88,13 @@ class Parser:
             prefix = f"{index}. " if ordered else "- "
             p.string = f"{prefix}{li.get_text().strip()}"
             list_element.insert_before(p)
+
+    def format_images(self, soup):
+        """
+        Add width to img tags
+
+        :param soup: BeautifulSoup instance
+        """
+        images = soup.find_all('img')
+        for index, img in enumerate(images):
+            img['width'] = "400"
