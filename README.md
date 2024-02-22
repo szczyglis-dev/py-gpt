@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.160** | build: **2024.02.21** | Python: **>=3.10, <3.12**
+Release: **2.0.161** | build: **2024.02.22** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2391,6 +2391,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.161 (2024-02-22)
+
+- Added the option to search within conversation content, not just by titles (disabled by default, can be enabled in: "Settings -> Context -> Search also in conversation content, not only in titles").
+- Added a "download" subdirectory for files downloaded in Assistants mode and an option to configure the directory in: "Settings -> Files and attachments -> Directory for file downloads")
+- Added logging of options available in: "Config -> Debug" to the logger window, not just to the console.
+- Added descriptions in the models editor.
 
 # 2.0.160 (2024-02-21)
 
