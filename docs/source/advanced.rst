@@ -12,7 +12,6 @@ You can manually edit the configuration files in this directory (this is your wo
 * ``assistants.json`` - stores the list of assistants.
 * ``attachments.json`` - stores the list of current attachments.
 * ``config.json`` - stores the main configuration settings.
-* ``indexes.json`` - stores information about ``Llama-index`` indexes
 * ``models.json`` - stores models configurations.
 * ``capture`` - a directory for captured images from camera and screenshots
 * ``css`` - a directory for CSS stylesheets (user override)
