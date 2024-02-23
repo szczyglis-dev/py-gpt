@@ -146,7 +146,7 @@ class ContextList(BaseList):
                     if store in ctx.indexes:
                         store_indexes = ctx.indexes[store]
                         for store_index in store_indexes:
-                            action = idx_menu.addAction("Remove from: " + store_index)
+                            action = idx_menu.addAction(trans("action.idx.remove") + ": " + store_index)
                             action.setIcon(QIcon(":/icons/delete.svg"))
                             action.triggered.connect(
                                 lambda checked=False,

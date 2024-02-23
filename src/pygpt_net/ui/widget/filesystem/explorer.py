@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -301,7 +301,7 @@ class FileExplorer(QWidget):
             for idx in self.index_data:
                 items = self.index_data[idx]
                 if file_id in items:
-                    action = QAction(QIcon(":/icons/delete.svg"), "Remove from: " + idx, self)
+                    action = QAction(QIcon(":/icons/delete.svg"), trans("action.idx.remove") + ": " + idx, self)
                     action.triggered.connect(
                         lambda checked=False,
                                idx=idx,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -70,6 +70,13 @@ class Mapping:
         nodes['painter.btn.capture'] = 'painter.btn.capture'
         nodes['painter.btn.camera.capture'] = 'painter.btn.camera.capture'
         nodes['painter.btn.clear'] = 'painter.btn.clear'
+
+        # calendar
+        nodes['filter.ctx.label'] = 'filter.ctx.label'
+        nodes['filter.ctx.radio.all'] = 'filter.ctx.radio.all'
+        nodes['filter.ctx.radio.pinned'] = 'filter.ctx.radio.pinned'
+        nodes['filter.ctx.radio.labeled'] = 'filter.ctx.radio.labeled'
+        nodes['filter.ctx.radio.indexed'] = 'filter.ctx.radio.indexed'
 
         # context
         nodes['ctx.label'] = 'ctx.list.label'
@@ -241,7 +248,7 @@ class Mapping:
             menu_text['debug.assistants'] = 'menu.debug.assistants'
             menu_text['debug.ui'] = 'menu.debug.ui'
 
-         # dialog titles
+        # dialog titles
         dialog_title = {}
         dialog_title['info.about'] = 'dialog.about.title'
         dialog_title['info.changelog'] = 'dialog.changelog.title'
