@@ -131,6 +131,7 @@ def test_on_ctx_end(mock_window):
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.auto", True)
     mock_window.core.config.set("llama.idx.auto.index", "base")
+    mock_window.controller.chat.input.stop = False
     idx.indexer.index_ctx_realtime = MagicMock()
     idx.on_ctx_end()
     idx.indexer.index_ctx_realtime.assert_called_once()
