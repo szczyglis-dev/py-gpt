@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -74,6 +74,17 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.insert_ctx_meta(store_id, idx, meta_id, doc_id)
 
+    def append_external(self, store_id: str, idx: str, data: dict) -> int:
+        """
+        Append external data to index
+
+        :param: store_id: store ID
+        :param: idx: index
+        :param: data: dict of external data
+        :return: ID of inserted external
+        """
+        return self.storage.insert_external(store_id, idx, data)
+
     def is_meta_indexed(self, store_id: str, idx: str, meta_id: int) -> bool:
         """
         Check if context meta is indexed
@@ -95,6 +106,18 @@ class DbSqliteProvider(BaseProvider):
         :return: True if indexed
         """
         return self.storage.is_file_indexed(store_id, idx, file_id)
+
+    def is_external_indexed(self, store_id: str, idx: str, content: str, type: str) -> bool:
+        """
+        Check if external data is indexed
+
+        :param: store_id: store ID
+        :param: idx: index
+        :param: content: external content
+        :param: type: external type
+        :return: True if indexed
+        """
+        return self.storage.is_external_indexed(store_id, idx, content, type)
 
     def get_meta_doc_id(self, store_id: str, idx: str, meta_id: int) -> str:
         """
@@ -118,6 +141,18 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_file_doc_id(store_id, idx, file_id)
 
+    def get_external_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
+        """
+        Get indexed document id by file id
+
+        :param store_id: store id
+        :param idx: index name
+        :param content: external content
+        :param type: external type
+        :return: document id
+        """
+        return self.storage.get_external_doc_id(store_id, idx, content, type)
+
     def update_file(self, id: int, doc_id: str, ts: int) -> bool:
         """
         Update indexed timestamp of indexed file
@@ -136,6 +171,17 @@ class DbSqliteProvider(BaseProvider):
         :param: doc_id: document ID
         """
         return self.storage.update_ctx_meta(meta_id, doc_id)
+
+    def update_external(self, content: str, type: str, doc_id: str, ts: int) -> bool:
+        """
+        Update indexed timestamp of indexed external
+
+        :param: content: external content
+        :param: type: external type
+        :param: doc_id: document ID
+        :param: ts: timestamp
+        """
+        return self.storage.update_external(content, type, doc_id, ts)
 
     def remove_file(self, store_id: str, idx: str, doc_id: str):
         """
@@ -157,6 +203,16 @@ class DbSqliteProvider(BaseProvider):
         """
         self.storage.remove_ctx_meta(store_id, idx, meta_id)
 
+    def remove_external(self, store_id: str, idx: str, doc_id: str):
+        """
+        Remove external from index
+
+        :param store_id: store ID
+        :param idx: index
+        :param doc_id: document ID
+        """
+        self.storage.remove_external(store_id, idx, doc_id)
+
     def truncate(self, store_id: str, idx: str) -> bool:
         """
         Truncate idx (remove all items)
@@ -167,7 +223,7 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.truncate_all(store_id, idx)
 
-    def truncate_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_all(self, store_id: str = None, idx: str = None) -> bool:
         """
         Truncate idx (remove all items) - all store and indexes
 
@@ -175,9 +231,9 @@ class DbSqliteProvider(BaseProvider):
         :param idx: index
         :return: True if truncated
         """
-        return self.storage.truncate_db(store_id, idx)
+        return self.storage.truncate_all(store_id, idx)
 
-    def truncate_files_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_files(self, store_id: str = None, idx: str = None) -> bool:
         """
         Truncate files idx (remove all items) - all store and indexes
 
@@ -185,9 +241,9 @@ class DbSqliteProvider(BaseProvider):
         :param idx: index
         :return: True if truncated
         """
-        return self.storage.truncate_files_db(store_id, idx)
+        return self.storage.truncate_files(store_id, idx)
 
-    def truncate_ctx_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_ctx(self, store_id: str = None, idx: str = None) -> bool:
         """
         Truncate context meta idx (remove all items) - all store and indexes
 
@@ -195,4 +251,14 @@ class DbSqliteProvider(BaseProvider):
         :param idx: index
         :return: True if truncated
         """
-        return self.storage.truncate_ctx_db(store_id, idx)
+        return self.storage.truncate_ctx(store_id, idx)
+
+    def truncate_external(self, store_id: str = None, idx: str = None) -> bool:
+        """
+        Truncate external idx (remove all items) - all store and indexes
+
+        :param store_id: store ID
+        :param idx: index
+        :return: True if truncated
+        """
+        return self.storage.truncate_external(store_id, idx)

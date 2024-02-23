@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -35,7 +35,19 @@ class BaseProvider:
     def append_file(self, store_id: str, idx: str, data: dict) -> int:
         pass
 
+    def append_ctx_meta(self, store_id: str, idx: str, meta_id: int, doc_id: str) -> int:
+        pass
+
+    def append_external(self, store_id: str, idx: str, data: dict) -> int:
+        pass
+
     def update_file(self, id: int, doc_id: str, ts: int) -> bool:
+        pass
+
+    def update_ctx_meta(self, id: int, doc_id: str) -> bool:
+        pass
+
+    def update_external(self, content: str, type: str, doc_id: str, ts: int) -> bool:
         pass
 
     def is_meta_indexed(self, store_id: str, idx: str, meta_id: int) -> bool:
@@ -44,19 +56,22 @@ class BaseProvider:
     def is_file_indexed(self, store_id: str, idx: str, file_id: str) -> bool:
         pass
 
+    def is_external_indexed(self, store_id: str, idx: str, content: str, type: str) -> bool:
+        pass
+
     def get_meta_doc_id(self, store_id: str, idx: str, meta_id: int) -> str:
         pass
 
     def get_file_doc_id(self, store_id: str, idx: str, file_id: str) -> str:
         pass
 
-    def append_ctx_meta(self, store_id: str, idx: str, meta_id: int, doc_id: str) -> int:
-        pass
-
-    def update_ctx_meta(self, id: int, doc_id: str) -> bool:
+    def get_external_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
         pass
 
     def remove_file(self, store_id: str, idx: str, doc_id: str):
+        pass
+
+    def remove_external(self, store_id: str, idx: str, doc_id: str):
         pass
 
     def remove_ctx_meta(self, store_id: str, idx: str, meta_id: str):
@@ -65,13 +80,16 @@ class BaseProvider:
     def truncate(self, store_id: str, idx: str):
         pass
 
-    def truncate_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_all(self, store_id: str = None, idx: str = None) -> bool:
         pass
 
-    def truncate_files_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_files(self, store_id: str = None, idx: str = None) -> bool:
         pass
 
-    def truncate_ctx_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_ctx(self, store_id: str = None, idx: str = None) -> bool:
+        pass
+
+    def truncate_external(self, store_id: str = None, idx: str = None) -> bool:
         pass
 
     def dump(self, index: IndexItem) -> str:

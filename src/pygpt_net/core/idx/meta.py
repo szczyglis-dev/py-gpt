@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 class Meta:
@@ -107,7 +107,7 @@ class Meta:
         :param store_id: store id
         :param idx: index name
         """
-        self.provider.truncate_ctx_db(
+        self.provider.truncate_ctx(
             store_id,
             idx,
         )

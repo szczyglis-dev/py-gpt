@@ -10,13 +10,13 @@
 # ================================================== #
 
 import datetime
-import os.path
+import time
 
 
-class Files:
+class External:
     def __init__(self, window=None, provider=None):
         """
-        Indexed files core
+        External data core
 
         :param window: Window instance
         :param provider: provider name
@@ -28,8 +28,8 @@ class Files:
             self,
             store_id: str,
             idx: str,
-            file_id: str,
-            path: str,
+            content: str,
+            type: str,
             doc_id: str
     ) -> int:
         """
@@ -37,77 +37,70 @@ class Files:
 
         :param store_id: store id
         :param idx: index name
-        :param file_id: file id
-        :param path: file path
+        :param content: content
+        :param type: content type
         :param doc_id: document id
         :return: ID of appended file
         """
         data = {
-            "name": file_id,  # use file id as name
-            "path": path,
+            "content": content,
+            "type": type,
             "indexed_ts": datetime.datetime.now().timestamp(),
             "id": doc_id,
         }
-        return self.provider.append_file(
+        return self.provider.append_external(
             store_id,
             idx,
             data,
         )
 
-    def get_id(self, path: str) -> str:
-        """
-        Prepare file id
-
-        :param path: file path
-        :return: file id
-        """
-        path = os.path.normpath(path)
-        root_path = os.path.normpath(self.window.core.config.get_user_dir('data'))
-        path = path.replace(root_path, '')
-        path = path.replace("\\", "/").strip(r'\/')
-        return path
-
-    def get_doc_id(self, store_id: str, idx: str, file_id: str) -> str:
+    def get_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
         """
         Get indexed document id by file
 
         :param store_id: store id
         :param idx: index name
-        :param file_id: file id
+        :param content: content
+        :param type: content type
         :return: document id
         """
-        return self.provider.get_file_doc_id(
+        return self.provider.get_external_doc_id(
             store_id,
             idx,
-            file_id,
+            content,
+            type,
         )
 
-    def exists(self, store_id: str, idx: str, file_id: str) -> bool:
+    def exists(self, store_id: str, idx: str, content: str, type: str) -> bool:
         """
         Check if file is indexed
 
         :param store_id: store id
         :param idx: index name
-        :param file_id: file id
+        :param content: content
+        :param type: content type
         :return: True if ctx meta is indexed
         """
-        return self.provider.is_file_indexed(
+        return self.provider.is_external_indexed(
             store_id,
             idx,
-            file_id,
+            content,
+            type,
         )
 
-    def update(self, id: int, doc_id: str, ts: int) -> bool:
+    def update(self, content: str, type: str, doc_id: str, ts: int) -> bool:
         """
         Update timestamp of indexed file
 
-        :param id: record ID
+        :param content: content
+        :param type: content type
         :param doc_id: document ID
         :param ts: timestamp
         :return: True if file was updated
         """
-        return self.provider.update_file(
-            id,
+        return self.provider.update_external(
+            content,
+            type,
             doc_id,
             ts,
         )
@@ -120,7 +113,7 @@ class Files:
         :param idx: index name
         :param doc_id: document id
         """
-        self.provider.remove_file(
+        self.provider.remove_external(
             store_id,
             idx,
             doc_id,
@@ -133,7 +126,39 @@ class Files:
         :param store_id: store id
         :param idx: index name
         """
-        self.provider.truncate_files(
+        self.provider.truncate_external(
             store_id,
             idx,
         )
+
+    def set_indexed(self, content: str, type: str, idx: str, doc_id: str) -> bool:
+        """
+        Set ctx meta as indexed
+
+        :param content: content
+        :param type: content type
+        :param idx: index name
+        :param doc_id: document ID
+        :return: True if updated
+        """
+        ts = int(time.time())
+        store = self.window.core.idx.get_current_store()
+
+        # add to index db
+        if not self.exists(store, idx, content, type):
+            self.append(
+                store,  # current store
+                idx,  # index name
+                content,  # content (url, e.g.)
+                type,  # content type
+                doc_id  # document id,
+            )
+        else:
+            # update document id in index db if already indexed
+            self.update(
+                content,  # content (url, e.g.)
+                type,  # content type
+                doc_id,  # document id
+                ts,  # timestamp
+            )
+        return True

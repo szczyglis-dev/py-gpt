@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 import uuid
@@ -162,6 +162,55 @@ class Storage:
 
         return id
 
+    def insert_external(self, store_id: str, idx: str, data: dict) -> int:
+        """
+        Insert external data to index
+
+        :param store_id: store ID
+        :param idx: index
+        :param data: dictionary with external data
+        """
+        id = None
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            INSERT INTO idx_external
+            (
+                uuid,
+                doc_id,
+                created_ts,
+                updated_ts,
+                content,
+                type,
+                store,
+                idx
+            )
+            VALUES 
+            (
+                :uuid,
+                :doc_id,
+                :created_ts,
+                :updated_ts,
+                :content,
+                :type,
+                :store,
+                :idx
+            )
+        """).bindparams(
+            uuid=str(uuid.uuid4()),
+            doc_id=data['id'],
+            created_ts=int(data["indexed_ts"]),
+            updated_ts=int(data["indexed_ts"]),
+            content=data['content'],
+            type=data['type'],
+            store=store_id,
+            idx=idx,
+        )
+        with db.begin() as conn:
+            result = conn.execute(stmt)
+            id = result.lastrowid
+
+        return id
+
     def is_meta_indexed(self, store_id: str, idx: str, meta_id: int) -> bool:
         """
         Check if context meta is indexed
@@ -209,6 +258,36 @@ class Storage:
             store_id=store_id,
             idx=idx,
             file_id=file_id,
+        )
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            row = result.fetchone()
+            data = row._asdict()
+            return int(data['count']) > 0
+
+    def is_external_indexed(self, store_id: str, idx: str, content: str, type: str) -> bool:
+        """
+        Check if external is indexed
+
+        :param: store_id: store ID
+        :param: idx: index
+        :param: content: content
+        :param: type: type
+        :return: True if indexed
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            SELECT COUNT(*) as count
+            FROM idx_external
+            WHERE store = :store_id
+            AND idx = :idx
+            AND content = :content
+            AND type = :type
+        """).bindparams(
+            store_id=store_id,
+            idx=idx,
+            content=content,
+            type=type,
         )
         with db.connect() as conn:
             result = conn.execute(stmt)
@@ -270,6 +349,36 @@ class Storage:
             data = row._asdict()
             return data['doc_id']
 
+    def get_external_doc_id(self, store_id: str, idx: str, content: str, type: str) -> str:
+        """
+        Get indexed document id by external
+
+        :param store_id: store id
+        :param idx: index name
+        :param content: content
+        :param type: type
+        :return: document id
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            SELECT doc_id
+            FROM idx_external
+            WHERE store = :store_id
+            AND idx = :idx
+            AND content = :content
+            AND type = :type
+        """).bindparams(
+            store_id=store_id,
+            idx=idx,
+            content=content,
+            type=type,
+        )
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            row = result.fetchone()
+            data = row._asdict()
+            return data['doc_id']
+
     def update_file(self, id: int, doc_id: str, ts: int) -> bool:
         """
         Update timestamp of file in index
@@ -318,6 +427,33 @@ class Storage:
             conn.execute(stmt)
         return True
 
+    def update_external(self, content: str, type: str, doc_id: str, ts: int) -> bool:
+        """
+        Update timestamp of external data in index
+
+        :param content: content
+        :param type: type
+        :param doc_id: document ID
+        :param ts: timestamp
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE idx_external
+            SET 
+            updated_ts = :updated_ts,
+            doc_id = :doc_id
+            WHERE 
+            content = :content AND type = :type
+        """).bindparams(
+            content=content,
+            type=type,
+            doc_id=doc_id,
+            updated_ts=ts,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+        return True
+
     def remove_file(self, store_id: str, idx: str, doc_id: str):
         """
         Remove file from index
@@ -352,53 +488,24 @@ class Storage:
                     meta_id=meta_id,
                 ))
 
-    def truncate_all(self, store_id: str, idx: str) -> bool:
+    def remove_external(self, store_id: str, idx: str, doc_id: str):
         """
-        Truncate all idx tables
+        Remove file from index
 
         :param store_id: store ID
-        :param idx: index ID
-        :return: True if truncated
-        """
-        self.truncate_files(store_id, idx)
-        self.truncate_ctx(store_id, idx)
-        return True
-
-    def truncate_files(self, store_id: str, idx: str) -> bool:
-        """
-        Truncate all idx tables
-
-        :param store_id: store ID
-        :param idx: index ID
-        :return: True if truncated
+        :param idx: index
+        :param doc_id: document ID
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(
-                text("DELETE FROM idx_file WHERE store = :store_id AND idx = :idx").bindparams(
+                text("DELETE FROM idx_external WHERE store = :store_id AND idx = :idx AND doc_id = :doc_id").bindparams(
                     store_id=store_id,
                     idx=idx,
+                    doc_id=doc_id,
                 ))
-        return True
 
-    def truncate_ctx(self, store_id: str, idx: str) -> bool:
-        """
-        Truncate all idx tables
-
-        :param store_id: store ID
-        :param idx: index ID
-        :return: True if truncated
-        """
-        db = self.window.core.db.get_db()
-        with db.begin() as conn:
-            conn.execute(
-                text("DELETE FROM idx_ctx WHERE store = :store_id AND idx = :idx").bindparams(
-                    store_id=store_id,
-                    idx=idx,
-                ))
-        return True
-
-    def truncate_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_all(self, store_id: str = None, idx: str = None) -> bool:
         """
         Truncate all idx tables in database (all stores)
 
@@ -406,11 +513,12 @@ class Storage:
         :param idx: index ID
         :return: True if truncated
         """
-        self.truncate_files_db(store_id, idx)
-        self.truncate_ctx_db(store_id, idx)
+        self.truncate_files(store_id, idx)
+        self.truncate_ctx(store_id, idx)
+        self.truncate_external(store_id, idx)
         return True
 
-    def truncate_files_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_files(self, store_id: str = None, idx: str = None) -> bool:
         """
         Truncate files table in database
 
@@ -418,24 +526,9 @@ class Storage:
         :param idx: index ID
         :return: True if truncated
         """
-        db = self.window.core.db.get_db()
-        query = "DELETE FROM idx_file"
-        params = {}
-        if store_id and idx:
-            query += " WHERE store = :store_id AND idx = :idx"
-            params = {"store_id": store_id, "idx": idx}
-        elif store_id:
-            query += " WHERE store = :store_id"
-            params = {"store_id": store_id}
-        elif idx:
-            query += " WHERE idx = :idx"
-            params = {"idx": idx}
-        with db.begin() as conn:
-            conn.execute(
-                text(query).bindparams(**params))
-        return True
+        return self.truncate_by_db_table("idx_file", store_id, idx)
 
-    def truncate_ctx_db(self, store_id: str = None, idx: str = None) -> bool:
+    def truncate_ctx(self, store_id: str = None, idx: str = None) -> bool:
         """
         Truncate context table in database
 
@@ -443,7 +536,29 @@ class Storage:
         :param idx: index ID
         :return: True if truncated
         """
-        query = "DELETE FROM idx_ctx"
+        return self.truncate_by_db_table("idx_ctx", store_id, idx)
+
+    def truncate_external(self, store_id: str = None, idx: str = None) -> bool:
+        """
+        Truncate external table in database
+
+        :param store_id: store ID
+        :param idx: index ID
+        :return: True if truncated
+        """
+        return self.truncate_by_db_table("idx_external", store_id, idx)
+
+    def truncate_by_db_table(self, tbl: str, store_id: str = None, idx: str = None) -> bool:
+        """
+        Truncate external table in database
+
+        :param tbl: table name
+        :param store_id: store ID
+        :param idx: index ID
+        :return: True if truncated
+        """
+        db = self.window.core.db.get_db()
+        query = "DELETE FROM " + tbl
         params = {}
         if store_id and idx:
             query += " WHERE store = :store_id AND idx = :idx"
@@ -454,7 +569,6 @@ class Storage:
         elif idx:
             query += " WHERE idx = :idx"
             params = {"idx": idx}
-        db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(
                 text(query).bindparams(**params))

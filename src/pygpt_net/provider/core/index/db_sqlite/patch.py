@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 import os
@@ -32,7 +32,7 @@ class Patch:
         # if old version is < 2.0.162 and if json file exists
         path = os.path.join(self.window.core.config.path, 'indexes.json')
         if os.path.exists(path):
-            self.provider.truncate_db()
+            self.provider.truncate_all()
             self.import_from_json()
             os.rename(path, path + ".old")  # rename to "indexes.json.old"
             print("BACKUP: indexes.json file has been renamed to indexes.json.old")

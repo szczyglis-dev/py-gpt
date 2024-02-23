@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -23,6 +23,7 @@ from .llm import Llm
 from .chat import Chat
 from .files import Files
 from .meta import Meta
+from .external import External
 
 
 class Idx:
@@ -44,6 +45,7 @@ class Idx:
         self.provider = "db_sqlite"
         self.files = Files(window, self.get_provider())
         self.meta = Meta(window, self.get_provider())
+        self.external = External(window, self.get_provider())
         self.items = {}
         self.initialized = False
 
@@ -222,6 +224,7 @@ class Idx:
             service_context=context,
         )  # get or create index
         n, errors = self.indexing.index_urls(
+            idx,
             index,
             urls,
         )  # index urls

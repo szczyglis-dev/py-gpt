@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 import os.path
-import time
 from pathlib import Path
 from sqlalchemy import text
 from llama_index.indices.base import BaseIndex
@@ -21,7 +20,6 @@ from llama_index import (
 from llama_index.readers.schema.base import Document
 from llama_index.readers import BeautifulSoupWebReader
 
-from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.provider.loaders.base import BaseLoader
 
 
@@ -332,6 +330,52 @@ class Indexing:
             errors.extend(errs)
         return n, errors
 
+    def index_url(self, idx: str, index: BaseIndex, url: str) -> (int, list):
+        """
+        Index data from URL
+
+        :param idx: index name
+        :param index: index instance
+        :param url: url to index
+        :return: number of indexed documents, errors
+        """
+        errors = []
+        n = 0
+        try:
+            # remove old content from index if exists
+            self.remove_old_external(idx, url, "url")
+
+            # get data from URL
+            documents = BeautifulSoupWebReader().load_data([url])
+            for d in documents:
+                index.insert(document=d)
+                doc_id = d.id_  # URL is used as document ID
+                self.window.core.idx.external.set_indexed(url, "url", idx, doc_id)  # update external index
+                self.log("Inserted webpage document: {} / {}".format(n+1, len(documents)))
+                n += 1
+        except Exception as e:
+            errors.append(str(e))
+            print(e)
+            self.window.core.debug.log(e)
+        return n, errors
+
+    def index_urls(self, idx: str, index: BaseIndex, urls: list) -> (int, list):
+        """
+        Index data from URLs
+
+        :param idx: index name
+        :param index: index instance
+        :param urls: list of urls
+        :return: number of indexed documents, errors
+        """
+        errors = []
+        n = 0
+        for url in urls:
+            indexed, errs = self.index_url(idx, index, url)
+            n += indexed
+            errors.extend(errs)
+        return n, errors
+
     def remove_old_meta_id(self, idx: str, id: int = 0) -> bool:
         """
         Remove old meta id from index
@@ -380,28 +424,30 @@ class Indexing:
                 return True
         return False
 
-    def index_urls(self, index: BaseIndex, urls: list) -> (int, list):
+    def remove_old_external(self, idx: str, content: str, type: str):
         """
-        Index data from URLs
+        Remove old file from index
 
-        :param index: index instance
-        :param urls: list of urls
-        :return: number of indexed documents, errors
+        :param idx: index name
+        :param content: content
+        :param type: type
+        :return: True if removed, False if not
         """
-        errors = []
-        n = 0
-        try:
-            self.log("Indexing URLs: {}".format(", ".join(urls)))
-            documents = BeautifulSoupWebReader().load_data(urls)
-            for d in documents:
-                index.insert(document=d)
-                self.log("Inserted webpage document: {} / {}".format(n+1, len(documents)))
-                n += 1
-        except Exception as e:
-            errors.append(str(e))
-            print(e)
-            self.window.core.debug.log(e)
-        return n, errors
+        # abort if not configured to replace old documents
+        if not self.window.core.config.get("llama.idx.replace_old"):
+            return False
+
+        store = self.window.core.idx.get_current_store()
+        if self.window.core.idx.external.exists(store, idx, content, type):
+            doc_id = self.window.core.idx.external.get_doc_id(store, idx, content, type)
+            if doc_id:
+                self.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.storage.remove_document(
+                    id=idx,
+                    doc_id=doc_id,
+                )
+                return True
+        return False
 
     def log(self, msg: str):
         """
