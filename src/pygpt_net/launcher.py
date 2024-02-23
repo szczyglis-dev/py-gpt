@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 18:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 import sys
@@ -23,6 +23,9 @@ from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.provider.vector_stores.base import BaseStore
+from pygpt_net.provider.audio_input.base import BaseProvider as BaseAudioInput
+from pygpt_net.provider.audio_output.base import BaseProvider as BaseAudioOutput
+from pygpt_net.provider.web.base import BaseProvider as BaseWeb
 
 
 class Launcher:
@@ -127,6 +130,51 @@ class Launcher:
         self.window.add_loader(loader)
         if self.debug:
             print("Loaded data loader: {} ({})".format(loader.id, loader.__class__.__name__))
+
+    def add_audio_input(self, audio: BaseAudioInput):
+        """
+        Register audio input provider
+
+        :param audio: Audio input provider instance
+        """
+        if not isinstance(audio, BaseAudioInput):
+            raise TypeError(
+                "Audio input provider must be instance of: "
+                "pygpt_net.provider.audio_input.base.BaseProvider"
+            )
+        self.window.add_audio_input(audio)
+        if self.debug:
+            print("Loaded audio input: {} ({})".format(audio.id, audio.__class__.__name__))
+
+    def add_audio_output(self, audio: BaseAudioOutput):
+        """
+        Register audio output provider
+
+        :param audio: Audio output provider instance
+        """
+        if not isinstance(audio, BaseAudioOutput):
+            raise TypeError(
+                "Audio output provider must be instance of: "
+                "pygpt_net.provider.audio_output.base.BaseProvider"
+            )
+        self.window.add_audio_output(audio)
+        if self.debug:
+            print("Loaded audio output: {} ({})".format(audio.id, audio.__class__.__name__))
+
+    def add_web(self, provider: BaseWeb):
+        """
+        Register web provider
+
+        :param provider: Web provider instance
+        """
+        if not isinstance(provider, BaseWeb):
+            raise TypeError(
+                "Web provider must be instance of: "
+                "pygpt_net.provider.web.base.BaseProvider"
+            )
+        self.window.add_web(provider)
+        if self.debug:
+            print("Loaded web provider: {} ({})".format(provider.id, provider.__class__.__name__))
 
     def run(self):
         """Run app"""

@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2024.02.23 19:00:00                  #
+# ================================================== #
+
+from pygpt_net.plugin.base import BasePlugin
+
+
+class BaseProvider:
+    def __init__(self, plugin=None):
+        """
+        Web search base provider
+
+        :param plugin: plugin
+        """
+        self.plugin = plugin
+        self.id = ""
+        self.name = ""
+        self.type = []
+
+    def init(self, plugin: BasePlugin):
+        """
+        Initialize provider
+        """
+        self.attach(plugin)
+        self.init_options()
+
+    def attach(self, plugin: BasePlugin):
+        """
+        Attach plugin instance
+
+        :param plugin: plugin instance
+        """
+        self.plugin = plugin
+
+    def init_options(self):
+        """
+        Initialize provider options
+        """
+        pass
+
+    def search(self, query, limit: int = 10, offset: int = 0):
+        """
+        Execute search query and return list of urls
+
+        :param query: search query
+        :param limit: limit
+        :param offset: offset
+        :return: list of urls
+        """
+        pass
+
+    def is_configured(self, cmds: list) -> bool:
+        """
+        Check if provider is configured
+
+        :param cmds: executed commands list
+        :return: True if configured, False otherwise
+        """
+        pass
+
+    def get_config_message(self) -> str:
+        """
+        Return message to display when provider is not configured
+
+        :return: message
+        """
+        return ""

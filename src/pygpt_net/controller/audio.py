@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 02:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -41,25 +41,20 @@ class Audio:
 
     def toggle_output(self):
         """Toggle audio output"""
-        if self.window.controller.plugins.is_enabled('audio_azure'):
+        if self.window.controller.plugins.is_enabled('audio_output'):
             self.disable_output()
         else:
             self.enable_output()
 
     def enable_output(self):
         """Enable audio output"""
-        self.window.controller.plugins.enable('audio_azure')
-        if self.window.controller.plugins.is_enabled('audio_azure') \
-                and (self.window.core.plugins.plugins['audio_azure'].options['azure_api_key'] is None
-                     or self.window.core.plugins.plugins['audio_azure'].options['azure_api_key'] == ''):
-            self.window.ui.dialogs.alert("Azure API KEY is not set. Please set it in plugins settings.")
-            self.window.controller.plugins.disable('audio_azure')
+        self.window.controller.plugins.enable('audio_output')
         self.window.core.config.save()
         self.update()
 
     def disable_output(self):
         """Disable audio output"""
-        self.window.controller.plugins.disable('audio_azure')
+        self.window.controller.plugins.disable('audio_output')
         self.window.core.config.save()
         self.update()
 
@@ -69,7 +64,7 @@ class Audio:
 
         :param update: True to update menu and listeners
         """
-        self.window.controller.plugins.disable('audio_openai_whisper')
+        self.window.controller.plugins.disable('audio_input')
         self.window.core.config.save()
         if update:
             self.update()
@@ -99,22 +94,19 @@ class Audio:
 
         :return: True if enabled
         """
-        if self.window.controller.plugins.is_enabled('audio_azure') \
-                or self.window.controller.plugins.is_enabled('audio_openai_tts'):
+        if self.window.controller.plugins.is_enabled('audio_output'):
             return True
         return False
 
     def update_listeners(self):
         """Update audio listeners"""
         is_output = False
-        if self.window.controller.plugins.is_enabled('audio_azure'):
-            is_output = True
-        if self.window.controller.plugins.is_enabled('audio_openai_tts'):
+        if self.window.controller.plugins.is_enabled('audio_output'):
             is_output = True
         if not is_output:
             self.stop_output()
 
-        if not self.window.controller.plugins.is_enabled('audio_openai_whisper'):
+        if not self.window.controller.plugins.is_enabled('audio_input'):
             self.toggle_input(False)
             self.stop_input()
             if self.window.ui.plugin_addon['audio.input'].btn_toggle.isChecked():
@@ -122,20 +114,15 @@ class Audio:
 
     def update_menu(self):
         """Update audio menu"""
-        if self.window.controller.plugins.is_enabled('audio_azure'):
-            self.window.ui.menu['audio.output.azure'].setChecked(True)
+        if self.window.controller.plugins.is_enabled('audio_output'):
+            self.window.ui.menu['audio.output'].setChecked(True)
         else:
-            self.window.ui.menu['audio.output.azure'].setChecked(False)
+            self.window.ui.menu['audio.output'].setChecked(False)
 
-        if self.window.controller.plugins.is_enabled('audio_openai_tts'):
-            self.window.ui.menu['audio.output.tts'].setChecked(True)
+        if self.window.controller.plugins.is_enabled('audio_input'):
+            self.window.ui.menu['audio.input'].setChecked(True)
         else:
-            self.window.ui.menu['audio.output.tts'].setChecked(False)
-
-        if self.window.controller.plugins.is_enabled('audio_openai_whisper'):
-            self.window.ui.menu['audio.input.whisper'].setChecked(True)
-        else:
-            self.window.ui.menu['audio.input.whisper'].setChecked(False)
+            self.window.ui.menu['audio.input'].setChecked(False)
 
     def read_text(self, text: str):
         """

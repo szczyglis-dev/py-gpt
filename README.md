@@ -40,9 +40,9 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode
-- Internet access via `Google Custom Search API`.
-- Speech synthesis via `Microsoft Azure TTS` and `OpenAI TTS`.
-- Speech recognition via `OpenAI Whisper`.
+- Internet access via `Google Custom Search API` (by default, extendable with other providers).
+- Speech synthesis via `Microsoft Azure TTS` and `OpenAI TTS` (by default, extendable with other providers).
+- Speech recognition via `OpenAI Whisper` (by default, extendable with other providers).
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
@@ -508,26 +508,26 @@ To register your custom vector store provider or data loader, simply register it
 
 ```python
 
-# my_launcher.py
+# custom_launcher.py
 
 from pygpt_net.app import run
-from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-from my_llms import MyCustomLLM
-from my_vector_stores import MyCustomVectorStore
-from my_loaders import MyCustomLoader
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+from vector_stores import CustomVectorStore
+from loaders import CustomLoader
 
 plugins = [
-    MyCustomPlugin(),
-    MyOtherCustomPlugin(),
+    CustomPlugin(),
+    OtherCustomPlugin(),
 ]
 llms = [
-    MyCustomLLM(),
+    CustomLLM(),
 ]
 vector_stores = [
-    MyCustomVectorStore(),
+    CustomVectorStore(),
 ]
 loaders = [
-    MyCustomLoader(),
+    CustomLoader(),
 ]
 
 run(
@@ -845,18 +845,18 @@ To register custom LLM wrappers:
 
 
 ```python
-# my_launcher.py
+# launcher.py
 
 from pygpt_net.app import run
-from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-from my_llms import MyCustomLLM
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
 
 plugins = [
-    MyCustomPlugin(),
-    MyOtherCustomPlugin(),
+    CustomPlugin(),
+    OtherCustomPlugin(),
 ]
 llms = [
-    MyCustomLLM(),
+    CustomLLM(),
 ]
 vector_stores = []
 
@@ -873,6 +873,10 @@ See the `examples` directory in this repository with examples of custom launcher
 
 - `examples/custom_launcher.py`
 
+- `examples/example_audio_input.py`
+
+- `examples/example_audio_output.py`
+
 - `examples/example_data_loader.py`
 
 - `examples/example_llm.py`  <-- use it as an example
@@ -880,6 +884,8 @@ See the `examples` directory in this repository with examples of custom launcher
 - `examples/example_plugin.py`
 
 - `examples/example_vector_store.py`
+
+- `examples/example_web_search.py`
 
 These example files can be used as a starting point for creating your own extensions for **PyGPT**.
 
@@ -922,22 +928,22 @@ To register your custom vector store provider just register it by passing provid
 
 ```python
 
-# my_launcher.py
+# custom_launcher.py
 
 from pygpt_net.app import run
-from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-from my_llms import MyCustomLLM
-from my_vector_stores import MyCustomVectorStore
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+from vector_stores import CustomVectorStore
 
 plugins = [
-    MyCustomPlugin(),
-    MyOtherCustomPlugin(),
+    CustomPlugin(),
+    OtherCustomPlugin(),
 ]
 llms = [
-    MyCustomLLM(),
+    CustomLLM(),
 ]
 vector_stores = [
-    MyCustomVectorStore(),
+    CustomVectorStore(),
 ]
 
 run(
@@ -953,15 +959,13 @@ run(
 
 The following plugins are currently available, and model can use them instantly:
 
-- `Audio Input (OpenAI Whisper)` - offers speech recognition through the OpenAI Whisper API.
+- `Audio Input` - provides speech recognition.
 
-- `Audio Output (Microsoft Azure)` - provides voice synthesis using the Microsoft Azure Text To Speech API.
+- `Audio Output` - provides voice synthesis.
 
-- `Audio Output (OpenAI TTS)` - provides voice synthesis using the OpenAI Text To Speech API.
+- `Autonomous Mode (inline)` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
 
-- `Autonomous Mode (inline)` - Enables autonomous conversation (AI to AI), manages loop, and connects output back to input.
-
-- `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database). `Experimental`.
+- `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
 
 - `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
 the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
@@ -971,14 +975,14 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 
 - `Command: Custom Commands` - allows you to create and execute custom commands on your system.
 
-- `Command: Files I/O` - grants access to the local filesystem, enabling GPT to read and write files, 
+- `Command: Files I/O` - provides access to the local filesystem, enabling GPT to read and write files, 
 as well as list and create directories.
 
-- `Command: Google Web Search` - allows searching the internet via the Google Custom Search Engine.
+- `Command: Web Search` - allows searching the internet and reading web pages.
 
 - `Command: Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
 
-- `Context history (calendar, inline)` - Provides access to context history database.
+- `Context history (calendar, inline)` - provides access to context history database.
 
 - `Crontab / Task scheduler` - plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
 
@@ -988,16 +992,18 @@ as well as list and create directories.
 
 - `Real Time` - automatically appends the current date and time to the system prompt, informing the model about current time.
 
-- `System Prompt Extra (append)` - the plugin appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+- `System Prompt Extra (append)` - appends additional system prompts (extra data) from a list to every current system prompt. You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
 
 
-## Audio Input (OpenAI Whisper)
+## Audio Input
 
-The plugin facilitates speech recognition using the `Whisper` model by OpenAI. It allows for voice commands to be relayed to the AI using your own voice. The plugin doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition (by default using the `Whisper` model by OpenAI). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+
+The plugin can be extended with other speech recognition providers.
 
 Configuration options:
 
-- `Model` *model*
+- `Model` *whisper_model*
 
 Choose the model. *Default:* `whisper-1`
 
@@ -1089,50 +1095,22 @@ for before returning. *Default:* `1`
 
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
-## Audio Output (Microsoft Azure)
+## Audio Output
 
-**PyGPT** implements voice synthesis using the `Microsoft Azure Text-To-Speech` API.
-This feature requires to have an `Microsoft Azure` API Key. 
-You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+The plugin enables voice synthesis using the `TTS` model developed by OpenAI or using `Microsoft Azure Text-To-Speech`. It can be extended with other providers. 
+`OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via `Microsoft Azure`, you must configure the audio plugin with your Azure API key and the correct 
+Region in the settings. You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/42693d24-c761-48df-8007-3a62f21bde24)
 
-To enable voice synthesis, activate the `Audio Output (Microsoft Azure)` plugin in the `Plugins` menu or 
-turn on the `Voice` option in the `Audio / Voice` menu (both options in the menu achieve the same outcome).
+Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
-Before using speech synthesis, you must configure the audio plugin with your Azure API key and the correct 
-Region in the settings.
+To enable voice synthesis, activate the `Audio Output` plugin in the `Plugins` menu or turn on the `Audio Output` option in the `Audio / Voice` menu (both options in the menu achieve the same outcome).
 
-This is done through the `Plugins / Settings...` menu by selecting the `Audio (Azure)` tab:
+**OpenAI Text-To-Speech**
 
-![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/ecf95282-e2ba-4028-b393-0d9d64c2d6ef)
-
-**Options:**
-
-- `Azure API Key` *azure_api_key*
-
-Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
-
-- `Azure Region` *azure_region*
-
-You must also provide the appropriate region for Azure here. *Default:* `eastus`
-
-- `Voice (EN)` *voice_en*
-
-Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
-
-- `Voice (non-English)` *voice_pl*
-
-Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
-
-If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
-
-Both `OpenAI TTS` and `OpenAI Whisper` use the same single API key provided for the OpenAI API, with no additional keys required.
-
-## Audio Output (OpenAI TTS)
-
-The plugin enables voice synthesis using the TTS model developed by OpenAI. Using this plugin does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. Through the available options, you can select the voice that you want the model to use.
-
-- `Model` *model*
+- `Model` *openai_model*
 
 Choose the model. Available options:
 
@@ -1142,7 +1120,7 @@ Choose the model. Available options:
 ```
 *Default:* `tts-1`
 
-- `Voice` *voice*
+- `Voice` *openai_voice*
 
 Choose the voice. Available voices to choose from:
 
@@ -1156,6 +1134,28 @@ Choose the voice. Available voices to choose from:
 ```
 
 *Default:* `alloy`
+
+**Microsoft Azure Text-To-Speech**
+
+- `Azure API Key` *azure_api_key*
+
+Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+
+- `Azure Region` *azure_region*
+
+You must also provide the appropriate region for Azure here. *Default:* `eastus`
+
+- `Voice (EN)` *azure_voice_en*
+
+Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
+
+- `Voice (non-English)` *azure_voice_pl*
+
+Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
+
+If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
+
+Both `OpenAI TTS` and `OpenAI Whisper` use the same single API key provided for the OpenAI API, with no additional keys required.
 
 ## Autonomous Mode (inline)
 
@@ -1177,7 +1177,7 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 
 - `Prompts` *prompts*
 
-Editable liist of prompts used to instruct how to handle autonomous mode, you can create as many prompts as you want. 
+Editable list of prompts used to instruct how to handle autonomous mode, you can create as many prompts as you want. 
 First active prompt on list will be used to handle autonomous mode.
 
 - `Auto-stop after goal is reached` *auto_stop*
@@ -1407,14 +1407,14 @@ Allows `file_info` command execution. *Default:* `True`
 
 Allows `cwd` command execution. *Default:* `True`
 
-## Command: Google Web Search
+## Command: Web Search
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the `Command: Google Web Search` plugin found in the `Plugins` menu.
+To activate this feature, turn on the `Command: Web Search` plugin found in the `Plugins` menu.
 
-Web searches are automated through the `Google Custom Search Engine` API. 
-To use this feature, you need an API key, which you can obtain by registering an account at:
+Web searches are provided by `Google Custom Search Engine` API and can be extended with other search engine providers (like e.g. Bing). 
+To use this provider, you need an API key, which you can obtain by registering an account at:
 
 https://developers.google.com/custom-search/v1/overview
 
@@ -1430,8 +1430,7 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/d536fc48-ad24-4b40-ab55-4b57b169e438)
-
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c42981e5-ae04-4585-b5d8-27f53acc7a7d)
 **Options**
 
 - `Google Custom Search API KEY` *google_api_key*
@@ -1829,12 +1828,32 @@ All active extra prompts defined on list will be appended to the system prompt i
 
 You can create your own plugin for **PyGPT** at any time. The plugin can be written in Python and then registered with the application just before launching it. All plugins included with the app are stored in the `plugin` directory - you can use them as coding examples for your own plugins.
 
+PyGPT can be extended with:
+
+- Custom plugins
+
+- Custom LLMs wrappers
+
+- Custom vector store providers
+
+- Custom data loaders
+
+- Custom audio input providers
+
+- Custom audio output providers
+
+- Custom web search engine providers
+
 
 **Examples (tutorial files)** 
 
 See the `examples` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
 
 - `examples/custom_launcher.py`
+
+- `examples/example_audio_input.py`
+
+- `examples/example_audio_output.py`
 
 - `examples/example_data_loader.py`
 
@@ -1843,6 +1862,8 @@ See the `examples` directory in this repository with examples of custom launcher
 - `examples/example_plugin.py`
 
 - `examples/example_vector_store.py`
+
+- `examples/example_web_search.py`
 
 These example files can be used as a starting point for creating your own extensions for **PyGPT**.
 
@@ -1864,26 +1885,42 @@ To register custom vector store providers:
 
 - Pass a list with the vector store provider instances as `vector_stores` keyword argument.
 
+To register custom data loaders:
+
+- Pass a list with the data loader instances as `loaders` keyword argument.
+
+To register custom audio input providers:
+
+- Pass a list with the audio input provider instances as `audio_input` keyword argument.
+
+To register custom audio output providers:
+
+- Pass a list with the audio output provider instances as `audio_output` keyword argument.
+
+To register custom web providers:
+
+- Pass a list with the web provider instances as `web` keyword argument.
+
 **Example:**
 
 
 ```python
-# my_launcher.py
+# custom_launcher.py
 
 from pygpt_net.app import run
-from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-from my_llms import MyCustomLLM
-from my_vector_stores import MyCustomVectorStore
+from plugins import CustomPlugin, OtherCustomPlugin
+from llms import CustomLLM
+from vector_stores import CustomVectorStore
 
 plugins = [
-    MyCustomPlugin(),
-    MyOtherCustomPlugin(),
+    CustomPlugin(),
+    OtherCustomPlugin(),
 ]
 llms = [
-    MyCustomLLM(),
+    CustomLLM(),
 ]
 vector_stores = [
-    MyCustomVectorStore(),
+    CustomVectorStore(),
 ]
 
 run(
@@ -1899,7 +1936,7 @@ In the plugin, you can receive and modify dispatched events.
 To do this, create a method named `handle(self, event, *args, **kwargs)` and handle the received events like here:
 
 ```python
-# my_plugin.py
+# custom_plugin.py
 
 from pygpt_net.core.dispatcher import Event
 
@@ -2298,7 +2335,7 @@ You can manually edit the configuration files in this directory (this is your wo
 - `data` - a directory for data files and files downloaded/generated by GPT.
 - `presets` - a directory for presets stored as `.json` files.
 - `upload` - a directory for local copies of attachments coming from outside the workdir
-- `db.sqlite` - a database with context and notepad data records
+- `db.sqlite` - a database with contexts, notepads and indexes data records
 - `app.log` - a file with error and debug log
 
 ---
@@ -2392,6 +2429,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.164 (2024-02-24)
+
+- Refactored the Audio Input, Audio Output, and Google Web Search plugins to support multiple audio and search engine providers.
+- Introduced the option to add your own audio input, output, and web search providers.
 
 # 2.0.163 (2024-02-23)
 

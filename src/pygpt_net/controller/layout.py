@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.01 00:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 
@@ -74,7 +74,8 @@ class Layout:
         """Save tabs state"""
         data = {}
         for tab in self.window.ui.tabs:
-            data[tab] = self.window.ui.tabs[tab].currentIndex()
+            if not isinstance(self.window.ui.tabs[tab], dict):
+                data[tab] = self.window.ui.tabs[tab].currentIndex()
         self.window.core.config.set('layout.tabs', data)
 
     def groups_save(self):

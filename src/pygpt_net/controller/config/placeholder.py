@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 class Placeholder:
@@ -30,10 +30,10 @@ class Placeholder:
                 if type(item) is dict:
                     if "type" in item:
                         if item["type"] == "combo":
-                            if "use" in item:
+                            if "use" in item and item["use"] is not None:
                                 item["keys"] = self.apply_by_id(item["use"])
         elif option['type'] == 'combo':
-            if "use" in option:
+            if "use" in option and option["use"] is not None:
                 option["keys"] = self.apply_by_id(option["use"])
 
     def apply_by_id(self, id: str) -> list:

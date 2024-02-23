@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.163",
-    "app.version": "2.0.163",
-    "updated_at": "2024-02-23T00:00:00"
+    "version": "2.0.164",
+    "app.version": "2.0.164",
+    "updated_at": "2024-02-24T00:00:00"
   },
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
@@ -125,15 +125,14 @@
   "painter.canvas.size": "800x600",
   "plugins": {},
   "plugins_enabled": {
-    "audio_azure": false,
-    "audio_openai_tts": false,
-    "audio_openai_whisper": false,
+    "audio_input": false,
+    "audio_output": false,
     "cmd_code_interpreter": true,
     "cmd_custom": true,
     "cmd_files": true,
     "cmd_history": false,
     "cmd_serial": false,
-    "cmd_web_google": true,
+    "cmd_web": true,
     "crontab": false,
     "idx_llama_index": false,
     "openai_dalle": true,

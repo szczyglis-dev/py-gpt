@@ -6,6 +6,10 @@ There are example files here that can serve as tutorial and starting points for 
 
 - `custom_launcher.py` - custom application launcher
 
+- `example_audio_input.py`  - example audio input provider (voice recognition)
+
+- `example_audio_output.py`  - example audio output provider (speech synthesis)
+
 - `example_data_loader.py`  - example data loader for Llama-index
 
 - `example_llm.py`  - example LLM wrapper for Langchain and Llama-index
@@ -14,10 +18,24 @@ There are example files here that can serve as tutorial and starting points for 
 
 - `example_vector_store.py`  - example vector store provider for Llama-index
 
+- `example_web_search.py`  - example web search engine
+
 
 ## More examples
 
 To see more examples, look through the files that make up the application:
+
+**Audio input providers:**
+
+`pygpt_net.provider.audio_input.*`
+
+in: `./src/pygpt_net/provider/audio_input/`
+
+**Audio output providers:**
+
+`pygpt_net.provider.audio_output.*`
+
+in: `./src/pygpt_net/provider/audio_output/`
 
 **Data loaders:**
 
@@ -42,4 +60,10 @@ in: `./src/pygpt_net/plugin/`
 `pygpt_net.provider.vector_stores.*`
 
 in: `./src/pygpt_net/provider/vector_stores/`
+
+**Web search engines:**
+
+`pygpt_net.provider.web.*`
+
+in: `./src/pygpt_net/provider/web/`
 

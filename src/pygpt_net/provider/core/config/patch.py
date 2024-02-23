@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 import os
@@ -809,6 +809,73 @@ class Patch:
                 if 'llama.idx.replace_old' not in data:
                     data['llama.idx.replace_old'] = True
                 self.window.core.idx.patch(old)
+                updated = True
+
+            # < 2.0.164 - migrate indexes into db
+            if old < parse_version("2.0.164"):
+                print("Migrating config from < 2.0.164...")
+
+                # Migrate plugins to provider-based versions
+
+                # rename cmd_web_google to cmd_web
+                if 'cmd_web_google' in data["plugins"]:
+                    data["plugins"]["cmd_web"] = data["plugins"]["cmd_web_google"]
+                    del data["plugins"]["cmd_web_google"]
+                if 'cmd_web_google' in data["plugins_enabled"]:
+                    data["plugins_enabled"]["cmd_web"] = data["plugins_enabled"]["cmd_web_google"]
+                    del data["plugins_enabled"]["cmd_web_google"]
+
+                # rename audio_openai_whisper to audio_input
+                if 'audio_openai_whisper' in data["plugins"]:
+                    data["plugins"]["audio_input"] = data["plugins"]["audio_openai_whisper"]
+                    del data["plugins"]["audio_openai_whisper"]
+                if 'audio_openai_whisper' in data["plugins_enabled"]:
+                    data["plugins_enabled"]["audio_input"] = data["plugins_enabled"]["audio_openai_whisper"]
+                    del data["plugins_enabled"]["audio_openai_whisper"]
+
+                # migrate model to whisper_model
+                if 'audio_input' in data["plugins"] and "model" in data["plugins"]["audio_input"]:
+                    data["plugins"]["audio_input"]["whisper_model"] = data["plugins"]["audio_input"]["model"]
+                    del data["plugins"]["audio_input"]["model"]
+
+                # rename audio_openai_tts to audio_output
+                if 'audio_openai_tts' in data["plugins"]:
+                    data["plugins"]["audio_output"] = data["plugins"]["audio_openai_tts"]
+                    del data["plugins"]["audio_openai_tts"]
+                if 'audio_openai_tts' in data["plugins_enabled"]:
+                    data["plugins_enabled"]["audio_output"] = data["plugins_enabled"]["audio_openai_tts"]
+                    del data["plugins_enabled"]["audio_openai_tts"]
+
+                # migrate model and voice to openai_model and openai_voice
+                if 'audio_output' in data["plugins"] and "model" in data["plugins"]["audio_output"]:
+                    data["plugins"]["audio_output"]["openai_model"] = data["plugins"]["audio_output"]["model"]
+                    del data["plugins"]["audio_output"]["model"]
+                if 'audio_output' in data["plugins"] and "voice" in data["plugins"]["audio_output"]:
+                    data["plugins"]["audio_output"]["openai_voice"] = data["plugins"]["audio_output"]["voice"]
+                    del data["plugins"]["audio_output"]["voice"]
+
+                # migrate azure settings
+                if 'audio_azure' in data["plugins"] and "azure_api_key" in data["plugins"]["audio_azure"]:
+                    data["plugins"]["audio_output"]["azure_api_key"] = data["plugins"]["audio_azure"]["azure_api_key"]
+                if 'audio_azure' in data["plugins"] and "azure_region" in data["plugins"]["audio_azure"]:
+                    data["plugins"]["audio_output"]["azure_region"] = data["plugins"]["audio_azure"]["azure_region"]
+                if 'audio_azure' in data["plugins"] and "voice_en" in data["plugins"]["audio_azure"]:
+                    data["plugins"]["audio_output"]["azure_voice_en"] = data["plugins"]["audio_azure"]["voice_en"]
+                if 'audio_azure' in data["plugins"] and "voice_pl" in data["plugins"]["audio_azure"]:
+                    data["plugins"]["audio_output"]["azure_voice_pl"] = data["plugins"]["audio_azure"]["voice_pl"]
+
+                # remove audio voice
+                if 'audio_output' in data["plugins"] and "voice_en" in data["plugins"]["audio_output"]:
+                    del data["plugins"]["audio_output"]["voice_en"]
+                if 'audio_output' in data["plugins"] and "voice_pl" in data["plugins"]["audio_output"]:
+                    del data["plugins"]["audio_output"]["voice_pl"]
+
+                # remove audio_azure
+                if 'audio_azure' in data["plugins"]:
+                    del data["plugins"]["audio_azure"]
+                if 'audio_azure' in data["plugins_enabled"]:
+                    del data["plugins_enabled"]["audio_azure"]
+
                 updated = True
 
         # update file

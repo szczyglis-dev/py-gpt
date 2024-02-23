@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 19:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QTimer, Signal, Slot, QThreadPool, QEvent, Qt
@@ -108,6 +108,30 @@ class MainWindow(QMainWindow, QtStyleTools):
         :param loader: data loader instance
         """
         self.core.idx.indexing.register_loader(loader)
+
+    def add_audio_input(self, provider):
+        """
+        Add audio input provider to app
+
+        :param provider: audio input provider instance
+        """
+        self.core.audio.register(provider, "input")
+
+    def add_audio_output(self, provider):
+        """
+        Add audio output provider to app
+
+        :param provider: audio output provider instance
+        """
+        self.core.audio.register(provider, "output")
+
+    def add_web(self, provider):
+        """
+        Add web provider to app
+
+        :param provider: web provider instance
+        """
+        self.core.web.register(provider)
 
     def setup(self):
         """Setup app"""

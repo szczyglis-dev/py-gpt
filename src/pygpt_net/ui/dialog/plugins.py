@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 18:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -71,22 +71,34 @@ class Plugins:
 
         # plugins tabs
         self.window.ui.tabs['plugin.settings'] = QTabWidget()
+        self.window.ui.tabs['plugin.settings.tabs'] = {}
 
         # build plugin settings tabs
         for id in self.window.core.plugins.plugins:
+            use_tabs = False
+            content_tabs = {}
+            scroll_tabs = {}
+            option_tabs = {}
+
             plugin = self.window.core.plugins.plugins[id]
             parent_id = "plugin." + id
-
-            scroll = QScrollArea()
-            scroll.setWidgetResizable(True)
-            content = QVBoxLayout()
-
             # create plugin options entry if not exists
             if parent_id not in self.window.ui.config:
                 self.window.ui.config[parent_id] = {}
 
             # get plugin options
             options = plugin.setup()
+
+            tab_ids = self.extract_option_tabs(options)  # extract tab ids, general is default
+            for tab_id in tab_ids:
+                content_tabs[tab_id] = QVBoxLayout()
+                scroll_tabs[tab_id] = QScrollArea()
+                scroll_tabs[tab_id].setWidgetResizable(True)
+
+            if plugin.tabs:
+                use_tabs = True
+                option_tabs[id] = plugin.tabs
+
             widgets = self.build_widgets(plugin, options)
             advanced_keys = []
             for key in options:
@@ -99,35 +111,49 @@ class Plugins:
 
             # append URLs at the beginning
             if len(plugin.urls) > 0:
+                tab_id = "general"
                 urls_widget = self.add_urls(plugin.urls)
-                content.addWidget(urls_widget)
+                content_tabs[tab_id].addWidget(urls_widget)
 
             for key in widgets:
                 if key in advanced_keys:  # hide advanced options
                     continue
-                content.addLayout(self.add_option(plugin, widgets[key], options[key]))  # add to scroll
+
+                tab_id = "general"
+                if 'tab' in options[key]:
+                    tab = options[key]['tab']
+                    if tab is not None and tab != "":
+                        tab_id = tab
+                content_tabs[tab_id].addLayout(self.add_option(plugin, widgets[key], options[key]))  # add to scroll
 
             # append advanced options at the end
             if len(advanced_keys) > 0:
+                groups = {}
                 group_id = 'plugin.settings.advanced' + '.' + id
-                self.window.ui.groups[group_id] = CollapsedGroup(self.window, group_id, None, False, None)
-                self.window.ui.groups[group_id].box.setText(trans('settings.advanced.collapse'))
                 for key in widgets:
                     if key not in advanced_keys:  # ignore non-advanced options
                         continue
-                    
+
+                    tab_id = "general"
+                    if 'tab' in options[key]:
+                        tab = options[key]['tab']
+                        if tab is not None and tab != "":
+                            tab_id = tab
+                    if tab_id not in groups:
+                        groups[tab_id] = CollapsedGroup(self.window, group_id, None, False, None)
+                        groups[tab_id].box.setText(trans('settings.advanced.collapse'))
+
                     option = self.add_option(plugin, widgets[key], options[key])  # build option
-                    self.window.ui.groups[group_id].add_layout(option)  # add option to group
+                    groups[tab_id].add_layout(option)  # add option to group
 
-                # add advanced options group to scroll
-                content.addWidget(self.window.ui.groups[group_id])
+                # add advanced options group to scrolls
+                for tab_id in groups:
+                    content_tabs[tab_id].addWidget(groups[tab_id])
+                    self.window.ui.groups[group_id] = groups[tab_id]
 
-            content.addStretch()
-
-            # scroll widget
-            scroll_widget = QWidget()
-            scroll_widget.setLayout(content)
-            scroll.setWidget(scroll_widget)
+            # add stretch to the end of every option tab
+            for tab_id in content_tabs:
+                content_tabs[tab_id].addStretch()
 
             # set description, translate if localization is enabled
             name_txt = plugin.name
@@ -144,10 +170,38 @@ class Plugins:
 
             line = self.add_line()
 
-            area = QVBoxLayout()
-            area.addWidget(self.window.ui.nodes[desc_key])
-            area.addWidget(line)
-            area.addWidget(scroll)
+            # tabs or no tabs
+            if len(content_tabs) > 1:
+                # add tabs
+                tab_widget = QTabWidget()
+
+                # sort to make general tab first if exists
+                if "general" in content_tabs:
+                    content_tabs = {"general": content_tabs.pop("general")} | content_tabs
+
+                for tab_id in content_tabs:
+                    tab_name = tab_id
+                    if tab_id in plugin.tabs:
+                        tab_name = plugin.tabs[tab_id]
+                    scroll_widget = QWidget()
+                    scroll_widget.setLayout(content_tabs[tab_id])
+                    scroll_tabs[tab_id].setWidget(scroll_widget)
+                    tab_widget.addTab(scroll_tabs[tab_id], tab_name)
+
+                area = QVBoxLayout()
+                area.addWidget(self.window.ui.nodes[desc_key])
+                area.addWidget(line)
+                area.addWidget(tab_widget)
+            else:
+                # scroll widget
+                scroll_widget = QWidget()
+                scroll_widget.setLayout(content_tabs["general"])
+                scroll_tabs["general"].setWidget(scroll_widget)
+
+                area = QVBoxLayout()
+                area.addWidget(self.window.ui.nodes[desc_key])
+                area.addWidget(line)
+                area.addWidget(scroll_tabs["general"])
 
             area_widget = QWidget()
             area_widget.setLayout(area)
@@ -202,6 +256,31 @@ class Plugins:
                 print('Failed restore plugin settings tab: {}'.format(idx))
         else:
             self.window.controller.plugins.set_by_tab(0)
+
+    def extract_option_tabs(self, options: dict) -> list:
+        """
+        Get keys for option tabs
+
+        :param options: plugin options
+        :return: dict of keys
+        """
+        keys = []
+        is_default = False
+        for key in options:
+            option = options[key]
+            if 'tab' in option:
+                tab = option['tab']
+                if tab == "" or tab is None:
+                    is_default = True
+                if tab not in keys:
+                    keys.append(tab)
+            else:
+                is_default = True
+
+        # add default general tab if not exists
+        if len(keys) == 0 or (is_default and "general" not in keys):
+            keys.append("general")
+        return keys
 
     def build_widgets(self, plugin: BasePlugin, options: dict) -> dict:
         """

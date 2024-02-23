@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -27,6 +27,7 @@ class BasePlugin:
         self.urls = {}
         self.options = {}
         self.initial_options = {}
+        self.tabs = {}
         self.parent = None
         self.enabled = False
         self.use_locale = False

@@ -25,9 +25,9 @@ Features
 * Supports multiple models: ``GPT-4``, ``GPT-3.5``, and any model accessible through ``Langchain``.
 * Handles and stores the full context of conversations (short-term memory).
 * Real-time video camera capture in Vision mode
-* Internet access via ``Google Custom Search API``.
-* Speech synthesis via ``Microsoft Azure TTS`` and ``OpenAI TTS``.
-* Speech recognition through ``OpenAI Whisper``.
+* Internet access via ``Google Custom Search API`` (by default, extendable with other providers).
+* Speech synthesis via ``Microsoft Azure TTS`` and ``OpenAI TTS`` (by default, extendable with other providers).
+* Speech recognition through ``OpenAI Whisper`` (by default, extendable with other providers).
 * Image analysis via ``GPT-4 Vision``.
 * Crontab / Task scheduler included
 * Integrated ``Langchain`` support (you can connect to any LLM, e.g., on ``HuggingFace``).

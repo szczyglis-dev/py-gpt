@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 18:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -85,7 +85,7 @@ class Plugins:
                 return self.plugins[id].options[key]['value']
         return None
 
-    def register(self, plugin: any):
+    def register(self, plugin: BasePlugin):
         """
         Register plugin
 

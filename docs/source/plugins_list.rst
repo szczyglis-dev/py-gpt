@@ -1,14 +1,16 @@
 Plugins reference
 =================
 
-Audio Input (OpenAI Whisper)
+Audio Input
 ----------------------------
 
-The plugin facilitates speech recognition using the ``Whisper`` model by OpenAI. It allows for voice commands to be relayed to the AI using your own voice. The plugin doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition (by default using the ``Whisper`` model by OpenAI). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new ``Speak`` option will appear at the bottom near the ``Send`` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+
+The plugin can be extended with other speech recognition providers.
 
 **Options**
 
-- ``Model`` *model*
+- ``Model`` *whisper_model*
 
 Choose the model. *Default:* `whisper-1`
 
@@ -94,64 +96,33 @@ The duration parameter is the maximum number of seconds that it will dynamically
 
 Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
+Audio Output
+-------------------------
 
-Audio Output (Microsoft Azure)
-------------------------------
-
-**PyGPT** implements voice synthesis using the ``Microsoft Azure Text-To-Speech`` API.
-This feature requires to have an ``Microsoft Azure`` API Key. 
-You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
-
-To enable voice synthesis, activate the ``Audio Output (Microsoft Azure)`` plugin in the ``Plugins`` menu or turn on the ``Voice`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
-
-Before using speech synthesis, you must configure the audio plugin with your Azure API key and the correct 
-Region in the settings.
-
-This is done through the ``Plugins / Settings...`` menu by selecting the `Audio (Azure)` tab:
+The plugin enables voice synthesis using the ``TTS`` model developed by OpenAI or using ``Microsoft Azure Text-To-Speech``. It can be extended with other providers. 
+``OpenAI TTS`` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via ``Microsoft Azure``, you must configure the audio plugin with your Azure API key and the correct 
+Region in the settings. You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
 
 .. image:: images/v2_azure.png
    :width: 600
 
-**Options**
+Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
-- ``Azure API Key`` *azure_api_key*
+To enable voice synthesis, activate the ``Audio Output`` plugin in the ``Plugins`` menu or turn on the ``Audio Output`` option in the ``Audio / Voice`` menu (both options in the menu achieve the same outcome).
 
-Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+**OpenAI Text-To-Speech**
 
-- ``Azure Region`` *azure_region*
-
-You must also provide the appropriate region for Azure here. *Default:* `eastus`
-
-- ``Voice (EN)`` *voice_en*
-
-Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
-
-- ``Voice (non-English)`` *voice_pl*
-
-Here you can specify the name of the voice used for speech synthesis for other non-english language. *Default:* `pl-PL-AgnieszkaNeural`
-
-If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
-
-Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
-
-
-Audio Output (OpenAI TTS)
--------------------------
-
-The plugin enables voice synthesis using the TTS model developed by OpenAI. Using this plugin does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. Through the available options, you can select the voice that you want the model to use.
-
-**Options**
-
-- ``Model`` *model*
+- ``Model`` *openai_model*
 
 Choose the model. Available options:
 
 * tts-1
 * tts-1-hd
 
-*Default:* `tts-1`
+*Default:* ``tts-1``
 
-- ``Voice`` *voice*
+- ``Voice`` *openai_voice*
 
 Choose the voice. Available voices to choose from:
 
@@ -162,7 +133,29 @@ Choose the voice. Available voices to choose from:
 * nova
 * shimmer
 
-*Default:* `alloy`
+*Default:* ``alloy``
+
+**Microsoft Azure Text-To-Speech**
+
+- ``Azure API Key`` *azure_api_key*
+
+Here, you should enter the API key, which can be obtained by registering for free on the following website: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+
+- ``Azure Region`` *azure_region*
+
+You must also provide the appropriate region for Azure here. *Default:* `eastus`
+
+- ``Voice (EN)`` *azure_voice_en*
+
+Here you can specify the name of the voice used for speech synthesis for English. *Default:* `en-US-AriaNeural`
+
+- ``Voice (non-English)`` *azure_voice_pl*
+
+Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
+
+If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
+
+Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
 
 
 Autonomous Mode (inline)
@@ -432,15 +425,15 @@ Allows `file_info` command execution. *Default:* `True`
 Allows `cwd` command execution. *Default:* `True`
 
 
-Command: Google Web Search
+Command: Web Search
 --------------------------
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.
 
-To activate this feature, turn on the ``Command: Google Web Search`` plugin found in the ``Plugins`` menu.
+To activate this feature, turn on the ``Command: Web Search`` plugin found in the ``Plugins`` menu.
 
-Web searches are automated through the ``Google Custom Search Engine`` API. 
-To use this feature, you need an API key, which you can obtain by registering an account at:
+Web searches are provided by ``Google Custom Search Engine`` API and can be extended with other search engine providers (like e.g. Bing). 
+To use this provider, you need an API key, which you can obtain by registering an account at:
 
 https://developers.google.com/custom-search/v1/overview
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -233,9 +233,8 @@ class Mapping:
         menu_text['info.snap'] = 'menu.info.snap'
         menu_text['info.website'] = 'menu.info.website'
         menu_text['info.github'] = 'menu.info.github'
-        menu_text['audio.output.azure'] = 'menu.audio.output.azure'
-        menu_text['audio.output.tts'] = 'menu.audio.output.tts'
-        menu_text['audio.input.whisper'] = 'menu.audio.input.whisper'
+        menu_text['audio.output'] = 'menu.audio.output'
+        menu_text['audio.input'] = 'menu.audio.input'
 
         # debug menu
         if 'menu.debug' in self.window.ui.menu:

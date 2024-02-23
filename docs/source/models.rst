@@ -129,18 +129,18 @@ To register custom LLM wrappers:
 
 .. code-block:: python
 
-    # my_launcher.py
+    # custom_launcher.py
 
     from pygpt_net.app import run
-    from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-    from my_llms import MyCustomLLM
+    from plugins import CustomPlugin, OtherCustomPlugin
+    from llms import CustomLLM
 
     plugins = [
-        MyCustomPlugin(),
-        MyOtherCustomPlugin(),
+        CustomPlugin(),
+        OtherCustomPlugin(),
     ]
     llms = [
-        MyCustomLLM(),
+        CustomLLM(),
     ]
     vector_stores = []
 
@@ -155,10 +155,13 @@ To register custom LLM wrappers:
 See the ``examples`` directory in this repository with examples of custom launcher, plugin, vector store, LLM (Langchain and Llama-index) provider and data loader:
 
 * ``examples/custom_launcher.py``
+* ``examples/example_audio_input.py``
+* ``examples/example_audio_output.py``
 * ``examples/example_data_loader.py``
 * ``examples/example_llm.py``
 * ``examples/example_plugin.py``
 * ``examples/example_vector_store.py``
+* ``examples/example_web_search.py``
 
 These example files can be used as a starting point for creating your own extensions for **PyGPT**.
 
@@ -202,22 +205,22 @@ To register your custom vector store provider just register it by passing provid
 
 .. code-block:: python
 
-    # my_launcher.py
+    # custom_launcher.py
 
     from pygpt_net.app import run
-    from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-    from my_llms import MyCustomLLM
-    from my_vector_stores import MyCustomVectorStore
+    from plugins import CustomPlugin, OtherCustomPlugin
+    from llms import CustomLLM
+    from vector_stores import CustomVectorStore
 
     plugins = [
-        MyCustomPlugin(),
-        MyOtherCustomPlugin(),
+        CustomPlugin(),
+        OtherCustomPlugin(),
     ]
     llms = [
-        MyCustomLLM(),
+        CustomLLM(),
     ]
     vector_stores = [
-        MyCustomVectorStore(),
+        CustomVectorStore(),
     ]
 
     run(

@@ -6,21 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                  #
+# Updated Date: 2024.02.24 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
 
 # plugins
-from pygpt_net.plugin.audio_azure import Plugin as AudioAzurePlugin
-from pygpt_net.plugin.audio_openai_tts import Plugin as AudioOpenAITTSPlugin
-from pygpt_net.plugin.audio_openai_whisper import Plugin as AudioOpenAIWhisperPlugin
+from pygpt_net.plugin.audio_output import Plugin as AudioOutputPlugin
+from pygpt_net.plugin.audio_input import Plugin as AudioInputPlugin
 from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPlugin
 from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
 from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
 from pygpt_net.plugin.cmd_history import Plugin as CtxHistoryPlugin
 from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
-from pygpt_net.plugin.cmd_web_google import Plugin as CmdWebGooglePlugin
+from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
 from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
 from pygpt_net.plugin.extra_prompt import Plugin as ExtraPromptPlugin
 from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
@@ -53,6 +52,14 @@ from pygpt_net.provider.loaders.file_json import Loader as JsonLoader
 from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader
 from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader
 
+# audio providers
+from pygpt_net.provider.audio_input.openai_whisper import OpenAIWhisper
+from pygpt_net.provider.audio_output.openai_tts import OpenAITextToSpeech
+from pygpt_net.provider.audio_output.ms_azure_tts import MSAzureTextToSpeech
+
+# web search providers
+from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
+
 
 def run(**kwargs):
     """
@@ -60,12 +67,22 @@ def run(**kwargs):
 
     :param kwargs: keyword arguments for launcher
 
-    Extending PyGPT with custom plugins, LLMs wrappers, vector stores and data loaders
+    PyGPT can be extended with:
 
-    - You can pass custom plugin instances, LLMs wrappers and vector store providers to the launcher.
-    - This is useful if you want to extend PyGPT with your own plugins, vectors storage and LLMs.
+    - Custom plugins
+    - Custom LLMs wrappers
+    - Custom vector store providers
+    - Custom data loaders
+    - Custom audio input providers
+    - Custom audio output providers
+    - Custom web search engine providers
 
-    To register custom plugins create custom launcher, e.g. "my_launcher.py" and:
+    - You can pass custom plugin instances, LLMs wrappers, vector store providers and more to the launcher.
+    - This is useful if you want to extend PyGPT with your own plugins, vectors storage, LLMs or other data providers.
+
+    First, create a custom launcher file, for example, "custom_launcher.py," and register your extensions in it.
+
+    To register custom plugins create custom launcher, e.g. "custom_launcher.py" and:
 
     - Pass a list with the plugin instances as 'plugins' keyword argument.
 
@@ -81,37 +98,64 @@ def run(**kwargs):
 
     - Pass a list with the data loader instances as 'loaders' keyword argument.
 
+    To register custom audio input providers:
+
+    - Pass a list with the audio input provider instances as 'audio_input' keyword argument.
+
+    To register custom audio output providers:
+
+    - Pass a list with the audio output provider instances as 'audio_output' keyword argument.
+
+    To register custom web providers:
+
+    - Pass a list with the web provider instances as 'web' keyword argument.
+
     Example:
     --------
     ::
 
-        # my_launcher.py
+        # custom_launcher.py
 
         from pygpt_net.app import run
-        from my_plugins import MyCustomPlugin, MyOtherCustomPlugin
-        from my_llms import MyCustomLLM
-        from my_vector_stores import MyCustomVectorStore
-        from my_loaders import MyCustomLoader
+        from plugins import CustomPlugin, OtherCustomPlugin
+        from llms import CustomLLM
+        from vector_stores import CustomVectorStore
+        from loaders import CustomLoader
+        from audio_input import CustomAudioInput
+        from audio_output import CustomAudioOutput
+        from web import CustomWebSearch
 
         plugins = [
-            MyCustomPlugin(),
-            MyOtherCustomPlugin(),
+            CustomPlugin(),
+            OtherCustomPlugin(),
         ]
         llms = [
-            MyCustomLLM(),
+            CustomLLM(),
         ]
         vector_stores = [
-            MyCustomVectorStore(),
+            CustomVectorStore(),
         ]
         loaders = [
-            MyCustomLoader(),
+            CustomLoader(),
+        ]
+        audio_input = [
+            CustomAudioInput(),
+        ]
+        audio_output = [
+            CustomAudioOutput(),
+        ]
+        web = [
+            CustomWebSearch(),
         ]
 
         run(
             plugins=plugins,
             llms=llms,
             vector_stores=vector_stores,
-            loaders=loaders
+            loaders=loaders,
+            audio_input=audio_input,
+            audio_output=audio_output,
+            web=web
         )
 
     """
@@ -119,14 +163,38 @@ def run(**kwargs):
     launcher = Launcher()
     launcher.init()
 
+    # register audio providers
+    launcher.add_audio_input(OpenAIWhisper())
+    launcher.add_audio_output(OpenAITextToSpeech())
+    launcher.add_audio_output(MSAzureTextToSpeech())
+
+    # register custom audio providers
+    plugins = kwargs.get('audio_input', None)
+    if isinstance(plugins, list):
+        for plugin in plugins:
+            launcher.add_audio_input(plugin)
+
+    plugins = kwargs.get('audio_output', None)
+    if isinstance(plugins, list):
+        for plugin in plugins:
+            launcher.add_audio_output(plugin)
+
+    # register web providers
+    launcher.add_web(GoogleCustomSearch())
+
+    # register custom web providers
+    plugins = kwargs.get('web', None)
+    if isinstance(plugins, list):
+        for plugin in plugins:
+            launcher.add_web(plugin)
+
     # register base plugins
     launcher.add_plugin(SelfLoopPlugin())
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(ExtraPromptPlugin())
-    launcher.add_plugin(AudioAzurePlugin())
-    launcher.add_plugin(AudioOpenAITTSPlugin())
-    launcher.add_plugin(AudioOpenAIWhisperPlugin())
-    launcher.add_plugin(CmdWebGooglePlugin())
+    launcher.add_plugin(AudioInputPlugin())
+    launcher.add_plugin(AudioOutputPlugin())
+    launcher.add_plugin(CmdWebPlugin())
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())

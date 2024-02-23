@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.164 (2024-02-24)
+
+- Refactored the Audio Input, Audio Output, and Google Web Search plugins to support multiple audio and search engine providers.
+- Introduced the option to add your own audio input, output, and web search providers.
+
 # 2.0.163 (2024-02-23)
 
 - Added storage of indexed urls
