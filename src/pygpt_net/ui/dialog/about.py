@@ -6,13 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.19 18:00:00                  #
+# Updated Date: 2024.02.23 06:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QPlainTextEdit
+
+from llama_index import __version__ as llama_index_version
+from langchain import __version__ as langchain_version
+from openai.version import VERSION as openai_version
 
 from pygpt_net.ui.widget.dialog.info import InfoDialog
 from pygpt_net.utils import trans
@@ -41,30 +45,53 @@ class About:
     def prepare_content(self) -> str:
         """
         Get info text
+
         :return: info text
         """
+        lib_versions = "OpenAI API: {}, Langchain: {}, Llama-index: {}".format(
+            openai_version,
+            langchain_version,
+            llama_index_version,
+        )
+
         platform = self.window.core.platforms.get_as_string()
-        data = "{}: {}, {}\n" \
-               "{}: {}\n" \
-               "{}: {}\n" \
-               "{}: {}\n" \
-               "{}: {}\n\n" \
-               "(c) 2024 {}\n" \
-               "{}\n".format(trans("dialog.about.version"),
-                             self.window.meta['version'],
-                             platform,
-                             trans("dialog.about.build"),
-                             self.window.meta['build'],
+        version = self.window.meta['version']
+        build = self.window.meta['build']
+        website = self.window.meta['website']
+        github = self.window.meta['github']
+        docs = self.window.meta['docs']
+        author = self.window.meta['author']
+        email = self.window.meta['email']
 
-                             trans("dialog.about.website"),
-                             self.window.meta['website'],
-                             trans("dialog.about.github"),
-                             self.window.meta['github'],
-                             trans("dialog.about.docs"),
-                             self.window.meta['docs'],
-                             self.window.meta['author'],
-                             self.window.meta['email'])
+        label_version = trans("dialog.about.version")
+        label_build = trans("dialog.about.build")
+        label_website = trans("dialog.about.website")
+        label_github = trans("dialog.about.github")
+        label_docs = trans("dialog.about.docs")
 
+        data = "{label_version}: {version}, {platform}\n" \
+               "{label_build}: {build}\n" \
+               "{lib_versions}\n\n" \
+               "{label_website}: {website}\n" \
+               "{label_github}: {github}\n" \
+               "{label_docs}: {docs}\n\n" \
+               "(c) 2024 {author}\n" \
+               "{email}\n".format(
+                label_version=label_version,
+                version=version,
+                platform=platform,
+                label_build=label_build,
+                build=build,
+                label_website=label_website,
+                website=website,
+                label_github=label_github,
+                github=github,
+                label_docs=label_docs,
+                docs=docs,
+                author=author,
+                email=email,
+                lib_versions=lib_versions,
+            )
         return data
 
     def setup(self):
