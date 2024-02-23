@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.0.163 (2024-02-23)
+
+- Added storage of indexed urls
+- Added info about used library versions in About dialog
+
 # 2.0.162 (2024-02-23)
 
 - Index data storage migrated from JSON to DB.
