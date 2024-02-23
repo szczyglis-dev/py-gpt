@@ -119,7 +119,7 @@ class Editor:
         self.window.controller.ui.update_font_size()
         self.window.controller.ui.update()
 
-        self.window.core.idx.sync_items()
+        self.window.core.idx.sync()
         self.window.controller.idx.update()
 
         # update layout if needed

@@ -10,7 +10,6 @@
 # ================================================== #
 
 import datetime
-import os.path
 from packaging.version import Version
 
 from pygpt_net.item.index import IndexItem
@@ -22,6 +21,8 @@ from pygpt_net.provider.vector_stores import Storage
 from .indexing import Indexing
 from .llm import Llm
 from .chat import Chat
+from .files import Files
+from .meta import Meta
 
 
 class Idx:
@@ -41,8 +42,29 @@ class Idx:
             "db_sqlite": DbSqliteProvider(window),
         }
         self.provider = "db_sqlite"
+        self.files = Files(window, self.get_provider())
+        self.meta = Meta(window, self.get_provider())
         self.items = {}
         self.initialized = False
+
+    def install(self):
+        """Install provider data"""
+        self.get_provider().install()
+
+    def patch(self, app_version: Version) -> bool:
+        """
+        Patch provider data
+
+        :param app_version: app version
+        :return: True if success
+        """
+        return self.get_provider().patch(app_version)
+
+    def init(self):
+        """Initialize indexes"""
+        if not self.initialized:
+            self.load()
+            self.initialized = True
 
     def get_current_store(self) -> str:
         """
@@ -80,8 +102,8 @@ class Idx:
         store = self.get_current_store()
 
         # clear db data
-        self.truncate_ctx_db(store, idx)
-        self.truncate_files_db(store, idx)
+        self.meta.truncate(store, idx)
+        self.files.truncate(store, idx)
 
         # clear ctx data indexed status
         self.window.core.ctx.truncate_indexed(store, idx)
@@ -210,24 +232,6 @@ class Idx:
             )  # store index
         return n, errors
 
-    def sync_items(self):
-        """Sync from config"""
-        items = self.window.core.config.get('llama.idx.list')
-        store_id = self.get_current_store()
-        if items is not None:
-            if store_id not in self.items:
-                self.items[store_id] = {}
-            for item in items:
-                idx = item['id']
-                if idx not in self.items[store_id]:
-                    self.items[store_id][idx] = IndexItem()
-                    self.items[store_id][idx].id = idx
-                    self.items[store_id][idx].name = idx
-                    self.items[store_id][idx].store = store_id
-                else:
-                    self.items[store_id][idx].id = idx
-                    self.items[store_id][idx].name = idx
-
     def get_idx_data(self, idx: str = None) -> dict:
         """
         Get indexed files data
@@ -281,24 +285,17 @@ class Idx:
         if len(self.items) > 0:
             return self.get_by_idx(0)
 
-    def install(self):
-        """Install provider data"""
-        self.get_provider().install()
-
-    def patch(self, app_version: Version) -> bool:
+    def has(self, idx: str) -> bool:
         """
-        Patch provider data
+        Check if index exists
 
-        :param app_version: app version
-        :return: True if success
+        :param idx: index name
+        :return: True if index exists
         """
-        return self.get_provider().patch(app_version)
-
-    def init(self):
-        """Initialize indexes"""
-        if not self.initialized:
-            self.load()
-            self.initialized = True
+        store_id = self.get_current_store()
+        if store_id in self.items:
+            return idx in self.items[store_id]
+        return False
 
     def get(self, idx: str) -> IndexItem:
         """
@@ -322,89 +319,6 @@ class Idx:
             return self.items[store_id]
         return {}
 
-    def get_idx_config(self, idx: str) -> dict:
-        """
-        Return index config
-
-        :param idx: index name
-        :return: index config
-        """
-        indexes = self.window.core.config.get('llama.idx.list')
-        if indexes is not None:
-            for item in indexes:
-                if item['id'] == idx:
-                    return item
-
-    def has(self, idx: str) -> bool:
-        """
-        Check if index exists
-
-        :param idx: index name
-        :return: True if index exists
-        """
-        store_id = self.get_current_store()
-        if store_id in self.items:
-            return idx in self.items[store_id]
-        return False
-
-    def is_indexed(self, idx: str, file: str) -> bool:
-        """
-        Check if file is indexed
-
-        :param idx: index name
-        :param file: file path
-        :return: True if file is indexed
-        """
-        store_id = self.get_current_store()
-        if store_id in self.items and idx in self.items[store_id]:
-            return file in self.items[store_id][idx].items
-        return False
-
-    def remove_file_from_index(self, idx: str, file: str):
-        """
-        Remove file from index
-
-        :param idx: index name
-        :param file: file ID
-        """
-        self.llm.get_service_context()  # init environment only (API keys, etc.)
-        store_id = self.get_current_store()
-        if store_id in self.items and idx in self.items[store_id]:
-            if file in self.items[store_id][idx].items:
-                # remove from storage
-                doc_id = self.items[store_id][idx].items[file]["id"]
-                self.storage.remove_document(
-                    id=idx,
-                    doc_id=doc_id,
-                )
-                # remove from index data and db
-                del self.items[store_id][idx].items[file]
-                self.remove_file(store_id, idx, doc_id)
-
-    def remove_doc_from_index(self, idx: str, doc_id: str):
-        """
-        Remove file from index
-
-        :param idx: index name
-        :param doc_id: file ID
-        """
-        self.llm.get_service_context()  # init environment only (API keys, etc.)
-        if self.storage.remove_document(idx, doc_id):
-            self.indexing.log("Removed document from index: " + idx + " - " + doc_id)
-
-    def to_file_id(self, path: str) -> str:
-        """
-        Prepare file id
-
-        :param path: file path
-        :return: file id
-        """
-        path = os.path.normpath(path)
-        root_path = os.path.normpath(self.window.core.config.get_user_dir('data'))
-        path = path.replace(root_path, '')
-        path = path.replace("\\", "/").strip(r'\/')
-        return path
-
     def append(self, idx: str, files: dict):
         """
         Append indexed files to index
@@ -426,10 +340,10 @@ class Idx:
         # append indexed files
         for path in files:
             doc_id = files[path]
-            file_id = self.to_file_id(path)
+            file_id = self.files.get_id(path)
             ts = int(datetime.datetime.now().timestamp())
             if file_id not in self.items[store_id][idx].items:
-                id = self.append_file(
+                id = self.files.append(
                     store_id=store_id,
                     idx=idx,
                     file_id=file_id,
@@ -445,7 +359,7 @@ class Idx:
                     }
             else:
                 # update indexed timestamp only
-                self.update_file(
+                self.files.update(
                     self.items[store_id][idx].items[file_id]["db_id"],
                     doc_id,
                     ts,
@@ -453,19 +367,40 @@ class Idx:
                 self.items[store_id][idx].items[file_id]["id"] = doc_id
                 self.items[store_id][idx].items[file_id]["indexed_ts"] = ts
 
-    def clear(self, idx: str):
+    def remove_doc(self, idx: str, doc_id: str):
         """
-        Clear index items
+        Remove document from index
+
+        :param idx: index name (id)
+        :param doc_id: document ID (in storage)
+        """
+        self.llm.get_service_context()  # init environment only (API keys, etc.)
+        if self.storage.remove_document(idx, doc_id):
+            self.indexing.log("Removed document from index: " + idx + " - " + doc_id)
+
+    def remove_file(self, idx: str, file: str):
+        """
+        Remove file from index
 
         :param idx: index name
+        :param file: file ID
         """
+        self.llm.get_service_context()  # init environment only (API keys, etc.)
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
-            self.items[store_id][idx].items = {}
-        self.get_provider().truncate(store_id, idx)
+            if file in self.items[store_id][idx].items:
+                # remove from storage
+                doc_id = self.items[store_id][idx].items[file]["id"]
+                self.storage.remove_document(
+                    id=idx,
+                    doc_id=doc_id,
+                )
+                # remove from index data and db
+                del self.items[store_id][idx].items[file]
+                self.files.remove(store_id, idx, doc_id)
 
     def load(self):
-        """Load indexes"""
+        """Load indexes and indexed items"""
         store_ids = self.storage.get_ids()
         for store_id in store_ids:
             self.items[store_id] = self.get_provider().load(store_id)
@@ -477,152 +412,34 @@ class Idx:
                         self.items[store_id][idx].items[id]['path'] = \
                             self.window.core.filesystem.to_workdir(file['path'])
 
-    def append_file(
-            self,
-            store_id: str,
-            idx: str,
-            file_id: str,
-            path: str,
-            doc_id: str
-    ) -> int:
-        """
-        Append file to index
+    def sync(self):
+        """Sync idx items from config"""
+        items = self.window.core.config.get('llama.idx.list')
+        store_id = self.get_current_store()
+        if items is not None:
+            if store_id not in self.items:
+                self.items[store_id] = {}
+            for item in items:
+                idx = item['id']
+                if idx not in self.items[store_id]:
+                    self.items[store_id][idx] = IndexItem()
+                    self.items[store_id][idx].id = idx
+                    self.items[store_id][idx].name = idx
+                    self.items[store_id][idx].store = store_id
+                else:
+                    self.items[store_id][idx].id = idx
+                    self.items[store_id][idx].name = idx
 
-        :param store_id: store id
-        :param idx: index name
-        :param file_id: file id
-        :param path: file path
-        :param doc_id: document id
-        :return: ID of appended file
+    def clear(self, idx: str):
         """
-        data = {
-            "name": file_id,  # use file id as name
-            "path": path,
-            "indexed_ts": datetime.datetime.now().timestamp(),
-            "id": doc_id,
-        }
-        return self.get_provider().append_file(store_id, idx, data)
+        Clear index items
 
-    def update_file(self, id: int, doc_id: str, ts: int) -> bool:
-        """
-        Update timestamp of indexed file
-
-        :param id: record ID
-        :param doc_id: document ID
-        :param ts: timestamp
-        :return: True if file was updated
-        """
-        return self.get_provider().update_file(id, doc_id, ts)
-
-    def remove_file(self, store_id: str, idx: str, doc_id: str):
-        """
-        Remove document from index
-
-        :param store_id: store id
-        :param idx: index name
-        :param doc_id: document id
-        """
-        self.get_provider().remove_file(store_id, idx, doc_id)
-
-    def is_file_indexed(self, store_id: str, idx: str, file_id: str) -> bool:
-        """
-        Check if file is indexed
-
-        :param store_id: store id
-        :param idx: index name
-        :param file_id: file id
-        :return: True if ctx meta is indexed
-        """
-        return self.get_provider().is_file_indexed(store_id, idx, file_id)
-
-    def is_meta_indexed(self, store_id: str, idx: str, meta_id: int) -> bool:
-        """
-        Check if ctx meta is indexed
-
-        :param store_id: store id
-        :param idx: index name
-        :param meta_id: meta id
-        :return: True if ctx meta is indexed
-        """
-        return self.get_provider().is_meta_indexed(store_id, idx, meta_id)
-
-    def get_meta_doc_id(self, store_id: str, idx: str, meta_id: int) -> str:
-        """
-        Get indexed document id by meta id
-
-        :param store_id: store id
-        :param idx: index name
-        :param meta_id: meta id
-        :return: document id
-        """
-        return self.get_provider().get_meta_doc_id(store_id, idx, meta_id)
-
-    def get_file_doc_id(self, store_id: str, idx: str, file_id: str) -> str:
-        """
-        Get indexed document id by file
-
-        :param store_id: store id
-        :param idx: index name
-        :param file_id: file id
-        :return: document id
-        """
-        return self.get_provider().get_file_doc_id(store_id, idx, file_id)
-
-    def append_ctx_meta(
-            self,
-            store_id: str,
-            idx: str,
-            meta_id: int,
-            doc_id: str
-    ) -> int:
-        """
-        Append ctx meta to index
-
-        :param store_id: store id
-        :param idx: index name
-        :param meta_id: meta id
-        :param doc_id: document id
-        :return: ID of appended ctx meta
-        """
-        return self.get_provider().append_ctx_meta(store_id, idx, meta_id, doc_id)
-
-    def update_ctx_meta(self, meta_id: int, doc_id: str) -> bool:
-        """
-        Update timestamp of indexed ctx meta
-
-        :param meta_id: ctx meta id
-        :param doc_id: document id
-        :return: True if file was updated
-        """
-        return self.get_provider().update_ctx_meta(meta_id, doc_id)
-
-    def remove_ctx_meta(self, store_id: str, idx: str, meta_id: str):
-        """
-        Remove document from index
-
-        :param store_id: store id
-        :param idx: index name
-        :param meta_id: ctx meta id
-        """
-        self.get_provider().remove_ctx_meta(store_id, idx, meta_id)
-
-    def truncate_ctx_db(self, store_id: str = None, idx: str = None):
-        """
-        Truncate ctx meta from index
-
-        :param store_id: store id
         :param idx: index name
         """
-        self.get_provider().truncate_ctx_db(store_id, idx)
-
-    def truncate_files_db(self, store_id: str = None, idx: str = None):
-        """
-        Truncate files from index
-
-        :param store_id: store id
-        :param idx: index name
-        """
-        self.get_provider().truncate_files_db(store_id, idx)
+        store_id = self.get_current_store()
+        if store_id in self.items and idx in self.items[store_id]:
+            self.items[store_id][idx].items = {}
+        self.get_provider().truncate(store_id, idx)
 
     def get_version(self) -> str:
         """

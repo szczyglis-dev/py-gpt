@@ -19,6 +19,7 @@ from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.item.index import IndexItem
 from tests.mocks import mock_window
 from pygpt_net.core.idx import Idx
+from pygpt_net.core.idx.files import Files
 
 
 def test_get_current_store(mock_window):
@@ -113,25 +114,6 @@ def test_index_db_from_updated_ts(mock_window):
     idx.storage.store.assert_called_once_with(id="base", index=index)
     assert n == num
     assert e == errors
-
-
-def test_sync_items(mock_window):
-    """
-    Test sync items
-    """
-    idx = Idx(mock_window)
-    mock_window.core.config.set("llama.idx.storage", "test_store")
-    idx_items = [
-        {
-            "id": "base",
-            "name": "Base"
-        }
-    ]
-    mock_window.core.config.set("llama.idx.list", idx_items)
-    idx.sync_items()
-    assert idx.items["test_store"]["base"].id == "base"
-    assert idx.items["test_store"]["base"].name == "base"
-    assert idx.items["test_store"]["base"].store == "test_store"
 
 
 def test_get_idx_data(mock_window):
@@ -316,32 +298,6 @@ def test_get_all(mock_window):
     }
 
 
-def test_get_idx_config(mock_window):
-    """
-    Test get idx config
-    """
-    idx = Idx(mock_window)
-    mock_window.core.config.set("llama.idx.storage", "test_store")
-    items = [
-        {
-            "id": "base",
-            "name": "Base"
-        },
-    ]
-    item = IndexItem()
-    mock_window.core.config.set("llama.idx.list", items)
-    idx.items = {
-        "test_store": {
-            "base": item,
-        }
-    }
-    res = idx.get_idx_config(idx="base")
-    assert res == {
-        "id": "base",
-        "name": "Base"
-    }
-
-
 def test_has(mock_window):
     """
     Test has idx
@@ -365,49 +321,19 @@ def test_has(mock_window):
     assert res is True
 
 
-def test_is_indexed(mock_window):
-    """
-    Test is indexed
-    """
-    idx = Idx(mock_window)
-    mock_window.core.config.set("llama.idx.storage", "test_store")
-    items = [
-        {
-            "id": "base",
-            "name": "Base"
-        },
-    ]
-    item = IndexItem()
-    item.idx = "base"
-    item.items = {
-        "file.txt": {
-            "path": "%workdir%/data/file.txt",
-            "indexed_ts": 1705822595.323048,
-            "id": "61f210f3-5635-49b8-95f4-ebc998d53c2f"
-        }
-    }
-    mock_window.core.config.set("llama.idx.list", items)
-    idx.items = {
-        "test_store": {
-            "base": item,
-        }
-    }
-    res = idx.is_indexed(idx="base", file="file.txt")
-    assert res is True
-
-
 def test_to_file_id(mock_window):
     """
     Test to file id
     """
-    idx = Idx(mock_window)
+    provider = MagicMock()
+    files = Files(mock_window, provider)
     root_dir = os.path.normpath(mock_window.core.config.get_user_dir('data'))
 
     if platform.system() == 'Windows':
-        res = idx.to_file_id(path=root_dir + "\\dir\\file.txt")
+        res = files.get_id(path=root_dir + "\\dir\\file.txt")
         assert res == "dir/file.txt"
     else:
-        res = idx.to_file_id(path=root_dir + "/dir/file.txt")
+        res = files.get_id(path=root_dir + "/dir/file.txt")
         assert res == "dir/file.txt"
 
 

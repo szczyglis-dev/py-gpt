@@ -296,7 +296,7 @@ class FileExplorer(QWidget):
             menu.addMenu(use_menu)
 
             # remove from index
-            file_id = self.window.core.idx.to_file_id(path)
+            file_id = self.window.core.idx.files.get_id(path)
             remove_actions = []
             for idx in self.index_data:
                 items = self.index_data[idx]
@@ -496,7 +496,7 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param file_path: file path
         :return: file index status
         """
-        file_id = self.window.core.idx.to_file_id(file_path)
+        file_id = self.window.core.idx.files.get_id(file_path)
         indexed_in = []
         indexed_timestamps = {}
         last_index_at = 0

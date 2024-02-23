@@ -129,7 +129,7 @@ class Indexing:
         for file in files:   # per file to allow use of multiple loaders
             try:
                 # remove old file from index if exists
-                file_id = self.window.core.idx.to_file_id(file)
+                file_id = self.window.core.idx.files.get_id(file)
                 self.remove_old_file(idx, file_id)
 
                 # index new version of file
@@ -165,7 +165,7 @@ class Indexing:
                     file_path = os.path.join(root, file)
                     try:
                         # remove old file from index if exists
-                        file_id = self.window.core.idx.to_file_id(path)
+                        file_id = self.window.core.idx.files.get_id(path)
                         self.remove_old_file(idx, file_id)
 
                         # index new version of file
@@ -183,7 +183,7 @@ class Indexing:
         elif os.path.isfile(path):
             try:
                 # remove old file from index if exists
-                file_id = self.window.core.idx.to_file_id(path)
+                file_id = self.window.core.idx.files.get_id(path)
                 self.remove_old_file(idx, file_id)
 
                 # index new version of file
@@ -345,8 +345,8 @@ class Indexing:
             return False
 
         store = self.window.core.idx.get_current_store()
-        if self.window.core.idx.is_meta_indexed(store, idx, id):
-            doc_id = self.window.core.idx.get_meta_doc_id(store, idx, id)
+        if self.window.core.idx.meta.exists(store, idx, id):
+            doc_id = self.window.core.idx.meta.get_doc_id(store, idx, id)
             if doc_id:
                 self.log("Removing old document id: {}".format(doc_id))
                 self.window.core.idx.storage.remove_document(
@@ -369,8 +369,8 @@ class Indexing:
             return False
 
         store = self.window.core.idx.get_current_store()
-        if self.window.core.idx.is_file_indexed(store, idx, file_id):
-            doc_id = self.window.core.idx.get_file_doc_id(store, idx, file_id)
+        if self.window.core.idx.files.exists(store, idx, file_id):
+            doc_id = self.window.core.idx.files.get_doc_id(store, idx, file_id)
             if doc_id:
                 self.log("Removing old document id: {}".format(doc_id))
                 self.window.core.idx.storage.remove_document(

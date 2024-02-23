@@ -334,7 +334,7 @@ class Ctx:
 
         # truncate index db if exists
         try:
-            self.window.core.idx.truncate_ctx_db()
+            self.window.core.idx.meta.truncate()
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error truncating ctx index db", e)

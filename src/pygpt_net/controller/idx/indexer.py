@@ -295,7 +295,7 @@ class Indexer:
         if self.tmp_idx is None:
             return
 
-        self.window.core.idx.remove_file_from_index(
+        self.window.core.idx.remove_file(
             self.tmp_idx,
             path,
         )

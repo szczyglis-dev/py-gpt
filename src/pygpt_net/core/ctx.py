@@ -814,13 +814,13 @@ class Ctx:
             return False
 
         # remove from ctx index db
-        self.window.core.idx.remove_ctx_meta(store, idx, id)
+        self.window.core.idx.meta.remove(store, idx, id)
 
         # remove document from idx storage
         if store in meta.indexes:
             if idx in list(meta.indexes[store]):
                 for doc_id in meta.indexes[store][idx]:
-                    self.window.core.idx.remove_doc_from_index(idx, doc_id)
+                    self.window.core.idx.remove_doc(idx, doc_id)
 
         # remove index data from meta indexes
         self.remove_idx_data_from_meta(meta, store, idx)
@@ -851,8 +851,8 @@ class Ctx:
         store = self.window.core.idx.get_current_store()
 
         # add to index db
-        if not self.window.core.idx.is_meta_indexed(store, idx, id):
-            self.window.core.idx.append_ctx_meta(
+        if not self.window.core.idx.meta.exists(store, idx, id):
+            self.window.core.idx.meta.append(
                 store,  # current store
                 idx,  # index name
                 id,  # ctx meta id
@@ -860,7 +860,7 @@ class Ctx:
             )
         else:
             # update document id in index db if already indexed
-            self.window.core.idx.update_ctx_meta(
+            self.window.core.idx.meta.update(
                 id,  # ctx meta id
                 doc_id  # document id
             )
