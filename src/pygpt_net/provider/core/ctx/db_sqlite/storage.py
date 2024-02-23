@@ -85,7 +85,7 @@ class Storage:
                     where_clauses.append(
                         "m.name LIKE :search_string OR i.input LIKE :search_string OR i.output LIKE :search_string"
                     )
-                    join_clauses.append("JOIN ctx_item i ON m.id = i.meta_id")
+                    join_clauses.append("LEFT JOIN ctx_item i ON m.id = i.meta_id")
                 else:
                     where_clauses.append("m.name LIKE :search_string")
                 bind_params['search_string'] = f"%{search_string}%"
@@ -119,7 +119,7 @@ class Storage:
         where_statement = " AND ".join(where_clauses) if where_clauses else "1"
         join_statement = " ".join(join_clauses) if join_clauses else ""
         stmt_text = f"""
-            SELECT * FROM ctx_meta m {join_statement} WHERE {where_statement}
+            SELECT m.* FROM ctx_meta m {join_statement} WHERE {where_statement}
             ORDER BY m.updated_ts DESC {limit_suffix}
         """
         stmt = text(stmt_text).bindparams(**bind_params)

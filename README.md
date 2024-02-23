@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.161** | build: **2024.02.22** | Python: **>=3.10, <3.12**
+Release: **2.0.162** | build: **2024.02.23** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2393,6 +2393,15 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.162 (2024-02-23)
+
+- Index data storage migrated from JSON to DB.
+- Added add/remove to index context menu on ctx list.
+- Added last indexed info on ctx list.
+- Added option "Replace old document versions in the index during re-indexing" in "Settings -> Llama-index".
+- Refactored, optimized and improved file and context indexing.
+- Fixed context search SQL query.
 
 # 2.0.161 (2024-02-22)
 

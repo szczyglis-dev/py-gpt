@@ -1,5 +1,14 @@
 # CHANGELOG
 
+# 2.0.162 (2024-02-23)
+
+- Index data storage migrated from JSON to DB.
+- Added add/remove to index context menu on ctx list.
+- Added last indexed info on ctx list.
+- Added option "Replace old document versions in the index during re-indexing" in "Settings -> Llama-index".
+- Refactored, optimized and improved file and context indexing.
+- Fixed context search SQL query.
+
 # 2.0.161 (2024-02-22)
 
 - Added the option to search within conversation content, not just by titles (disabled by default, can be enabled in: "Settings -> Context -> Search also in conversation content, not only in titles").

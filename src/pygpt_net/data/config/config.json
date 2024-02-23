@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.0.161",
-    "app.version": "2.0.161",
-    "updated_at": "2024-02-22T00:00:00"
+    "version": "2.0.162",
+    "app.version": "2.0.162",
+    "updated_at": "2024-02-23T00:00:00"
   },
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
@@ -101,7 +101,7 @@
   "llama.idx.recursive": false,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},
-  "llama.idx.storage": "SimpleVectorStore",
+  "llama.idx.storage": "ChromaVectorStore",
   "llama.idx.storage.args": [],
   "llama.log": false,
   "lock_modes": true,

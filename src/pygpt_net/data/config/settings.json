@@ -670,7 +670,7 @@
         "urls": {
             "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
         },
-        "value": "SimpleVectorStore",
+        "value": "ChromaVectorStore",
         "min": null,
         "max": null,
         "multiplier": null,

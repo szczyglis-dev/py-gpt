@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -147,6 +147,10 @@ class Idx:
 
         :param ctx: Context item instance
         """
+        # ignore if manually stopped
+        if self.window.controller.chat.input.stop:
+            return
+
         idx = "base"
         if self.window.core.config.has('llama.idx.auto') and self.window.core.config.get('llama.idx.auto'):
             if self.window.core.config.has('llama.idx.auto.index'):
