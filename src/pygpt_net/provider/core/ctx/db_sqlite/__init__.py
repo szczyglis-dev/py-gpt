@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import time
@@ -102,6 +102,14 @@ class DbSqliteProvider(BaseProvider):
             search_content=search_content,
         )
 
+    def get_meta_indexed(self):
+        """
+        Return dict of ctx meta indexed by ID
+
+        :return: dict of ctx meta indexed by ID
+        """
+        return self.storage.get_meta_indexed()
+
     def load(self, id: int) -> list:
         """
         Load items for ctx ID
@@ -183,3 +191,58 @@ class DbSqliteProvider(BaseProvider):
         :return: True if truncated
         """
         return self.storage.truncate_all()
+
+    def set_meta_indexed_by_id(self, id: int, ts: int) -> bool:
+        """
+        Set meta indexed by ID
+
+        :param id: ctx ID
+        :param ts: timestamp
+        :return: True if set
+        """
+        return self.storage.set_meta_indexed_by_id(id, ts)
+
+    def update_meta_indexes_by_id(self, id: int, meta: CtxMeta) -> bool:
+        """
+        Update meta indexes by ID
+
+        :param id: ctx ID
+        :param meta: CtxMeta
+        :return: True if updated
+        """
+        return self.storage.update_meta_indexes_by_id(id, meta)
+
+    def update_meta_indexed_by_id(self, id: int) -> bool:
+        """
+        Update meta indexed timestamp by ID
+
+        :param id: ctx ID
+        :return: True if updated
+        """
+        return self.storage.update_meta_indexed_by_id(id)
+
+    def update_meta_indexed_to_ts(self, ts: int) -> bool:
+        """
+        Update meta indexed to timestamp
+
+        :param ts: timestamp
+        :return: True if updated
+        """
+        return self.storage.update_meta_indexed_to_ts(ts)
+
+    def clear_meta_indexed_by_id(self, id: int) -> bool:
+        """
+        Clear meta indexed timestamp by ID
+
+        :param id: ctx ID
+        :return: True if cleared
+        """
+        return self.storage.clear_meta_indexed_by_id(id)
+
+    def clear_meta_indexed_all(self) -> bool:
+        """
+        Clear all meta indexed timestamps
+
+        :return: True if cleared
+        """
+        return self.storage.clear_meta_indexed_all()

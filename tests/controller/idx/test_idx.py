@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.23 19:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -131,9 +131,9 @@ def test_on_ctx_end(mock_window):
     idx = Idx(mock_window)
     mock_window.core.config.set("llama.idx.auto", True)
     mock_window.core.config.set("llama.idx.auto.index", "base")
-    idx.indexer.index_ctx_current = MagicMock()
+    idx.indexer.index_ctx_realtime = MagicMock()
     idx.on_ctx_end()
-    idx.indexer.index_ctx_current.assert_called_once_with("base", force=True, silent=True)
+    idx.indexer.index_ctx_realtime.assert_called_once()
 
 
 def test_after_index(mock_window):

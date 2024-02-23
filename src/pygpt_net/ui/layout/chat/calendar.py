@@ -66,12 +66,18 @@ class Calendar:
         self.window.ui.nodes['filter.ctx.radio.labeled'].clicked.connect(
             lambda: self.window.controller.ctx.common.toggle_display_filter("labeled"))
 
+        # display: only indexed
+        self.window.ui.nodes['filter.ctx.radio.indexed'] = QRadioButton(trans("filter.ctx.radio.indexed"))
+        self.window.ui.nodes['filter.ctx.radio.indexed'].clicked.connect(
+            lambda: self.window.controller.ctx.common.toggle_display_filter("indexed"))
+
         # layout
         layout = QHBoxLayout()
         layout.addWidget(self.window.ui.nodes['filter.ctx.label'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.all'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.pinned'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.labeled'])
+        layout.addWidget(self.window.ui.nodes['filter.ctx.radio.indexed'])
         layout.addStretch()
 
         widget = QWidget()

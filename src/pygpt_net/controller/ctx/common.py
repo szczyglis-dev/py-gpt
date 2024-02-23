@@ -8,6 +8,7 @@
 # Created By  : Marcin Szczygliński                  #
 # Updated Date: 2024.02.04 18:00:00                  #
 # ================================================== #
+
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.utils import trans
@@ -106,6 +107,7 @@ class Common:
         self.window.ui.nodes['filter.ctx.radio.all'].setChecked(False)
         self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(False)
         self.window.ui.nodes['filter.ctx.radio.labeled'].setChecked(False)
+        self.window.ui.nodes['filter.ctx.radio.indexed'].setChecked(False)
 
         if self.window.core.config.has('ctx.records.filter'):
             filter = self.window.core.config.get('ctx.records.filter')
@@ -115,6 +117,8 @@ class Common:
                 self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(True)
             elif filter == 'labeled':
                 self.window.ui.nodes['filter.ctx.radio.labeled'].setChecked(True)
+            elif filter == 'indexed':
+                self.window.ui.nodes['filter.ctx.radio.indexed'].setChecked(True)
             else:
                 self.window.ui.nodes['filter.ctx.radio.all'].setChecked(True)
         else:
@@ -130,13 +134,18 @@ class Common:
         filters = {}
         if filter == 'labeled':
             filters['label'] = {
-                "comparison": ">",
+                "mode": ">",
                 "value": 0,
             }
         elif filter == 'pinned':
             filters['is_important'] = {
-                "comparison": "=",
+                "mode": "=",
                 "value": 1,
+            }
+        elif filter == 'indexed':
+            filters['indexed_ts'] = {
+                "mode": ">",
+                "value": 0,
             }
 
         self.window.core.config.set("ctx.records.filter", filter)

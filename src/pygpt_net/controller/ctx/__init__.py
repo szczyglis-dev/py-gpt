@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -283,6 +283,15 @@ class Ctx:
             return
 
         id = self.window.core.ctx.get_id_by_idx(idx)
+
+        # delete data from indexes if exists
+        try:
+            self.delete_meta_from_idx(id)
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Error deleting ctx data from indexes", e)
+
+        # delete ctx items from db
         items = self.window.core.ctx.all()
         self.window.core.history.remove_items(items)  # remove txt history items
         self.window.core.ctx.remove(id)  # remove ctx from db
@@ -292,6 +301,22 @@ class Ctx:
             self.window.core.ctx.current = None
             self.window.controller.chat.render.clear_output()
         self.update()
+
+    def delete_meta_from_idx(self, id: int):
+        """
+        Delete meta from indexes
+
+        :param id: ctx meta id
+        """
+        meta = self.window.core.ctx.get_meta_by_id(id)
+        if meta is None:
+            return
+
+        # check if ctx is indexed
+        if meta.indexed is not None and meta.indexed > 0:
+            for store_id in list(meta.indexes):
+                for idx in list(meta.indexes[store_id]):
+                    self.window.core.ctx.remove_meta_from_indexed(store_id, id, idx)
 
     def delete_history(self, force: bool = False):
         """
@@ -306,6 +331,13 @@ class Ctx:
                 msg=trans('ctx.delete.all.confirm'),
             )
             return
+
+        # truncate index db if exists
+        try:
+            self.window.core.idx.truncate_ctx_db()
+        except Exception as e:
+            self.window.core.debug.log(e)
+            print("Error truncating ctx index db", e)
 
         # truncate ctx and history
         self.window.core.ctx.truncate()

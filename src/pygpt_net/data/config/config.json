@@ -99,6 +99,7 @@
   ],
   "llama.idx.raw": false,
   "llama.idx.recursive": false,
+  "llama.idx.replace_old": true,
   "llama.idx.status": {},
   "llama.idx.storage": "SimpleVectorStore",
   "llama.idx.storage.args": [],

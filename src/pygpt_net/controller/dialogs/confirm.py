@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -109,6 +109,8 @@ class Confirm:
             self.window.controller.idx.indexer.index_all_files(id, True)
         elif type == 'idx.index.file.remove':
             self.window.controller.idx.indexer.index_file_remove_confirm(id)  # id = path
+        elif type == 'idx.index.ctx.remove':
+            self.window.controller.idx.indexer.index_ctx_meta_remove(idx="", meta_id=id, force=True)  # id = ctx meta id
         elif type == 'idx.index.db':
             self.window.controller.idx.indexer.index_ctx_meta_confirm(id)  # id = ctx_id
         elif type == 'idx.index.db.all':

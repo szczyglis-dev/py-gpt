@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import os
@@ -801,6 +801,14 @@ class Patch:
                     data['ctx.search_content'] = False
                 if 'download.dir' not in data:
                     data['download.dir'] = "download"
+                updated = True
+
+            # < 2.0.162 - migrate indexes into db
+            if old < parse_version("2.0.162"):
+                print("Migrating indexes from < 2.0.162...")
+                if 'llama.idx.replace_old' not in data:
+                    data['llama.idx.replace_old'] = True
+                self.window.core.idx.patch(old)
                 updated = True
 
         # update file

@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 19:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import os.path
+import time
 from pathlib import Path
 from sqlalchemy import text
 from llama_index.indices.base import BaseIndex
@@ -20,6 +21,7 @@ from llama_index import (
 from llama_index.readers.schema.base import Document
 from llama_index.readers import BeautifulSoupWebReader
 
+from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.provider.loaders.base import BaseLoader
 
 
@@ -103,16 +105,17 @@ class Indexing:
                     documents = reader.load_data()
         return documents
 
-    def index_files(self, index: BaseIndex, path: str = None) -> tuple:
+    def index_files(self, idx: str, index: BaseIndex, path: str = None) -> tuple:
         """
         Index all files in directory
 
+        :param idx: index name
         :param index: index instance
         :param path: path to file or directory
         :return: dict with indexed files, errors
         """
         if self.window.core.config.get("llama.idx.recursive"):
-            return self.index_files_recursive(index, path)
+            return self.index_files_recursive(idx, index, path)
 
         indexed = {}
         errors = []
@@ -125,6 +128,11 @@ class Indexing:
 
         for file in files:   # per file to allow use of multiple loaders
             try:
+                # remove old file from index if exists
+                file_id = self.window.core.idx.to_file_id(file)
+                self.remove_old_file(idx, file_id)
+
+                # index new version of file
                 documents = self.get_documents(file)
                 for d in documents:
                     index.insert(document=d)
@@ -139,10 +147,11 @@ class Indexing:
 
         return indexed, errors
 
-    def index_files_recursive(self, index: BaseIndex, path: str = None) -> tuple:
+    def index_files_recursive(self, idx: str, index: BaseIndex, path: str = None) -> tuple:
         """
         Index all files in directory and subdirectories recursively.
 
+        :param idx: index name
         :param index: index instance
         :param path: path to file or directory
         :return: dict with indexed files, errors
@@ -155,6 +164,11 @@ class Indexing:
                 for file in files:
                     file_path = os.path.join(root, file)
                     try:
+                        # remove old file from index if exists
+                        file_id = self.window.core.idx.to_file_id(path)
+                        self.remove_old_file(idx, file_id)
+
+                        # index new version of file
                         documents = self.get_documents(file_path)
                         for d in documents:
                             index.insert(document=d)
@@ -168,6 +182,11 @@ class Indexing:
                         continue
         elif os.path.isfile(path):
             try:
+                # remove old file from index if exists
+                file_id = self.window.core.idx.to_file_id(path)
+                self.remove_old_file(idx, file_id)
+
+                # index new version of file
                 documents = self.get_documents(path)
                 for d in documents:
                     index.insert(document=d)
@@ -209,11 +228,36 @@ class Indexing:
                 documents.append(Document(text=doc_str))
         return documents
 
-    def get_db_data_by_id(self, id: int = 0) -> list:
+    def get_db_meta_ids_from_ts(self, updated_ts: int = 0) -> list:
+        """
+        Get IDs of meta from database from timestamp
+
+        :param updated_ts: timestamp
+        :return: list of IDs
+        """
+        db = self.window.core.db.get_db()
+        ids = []
+        query = f"""
+        SELECT
+            id
+        FROM 
+            ctx_meta
+        WHERE
+            ctx_meta.updated_ts > {updated_ts}
+        """
+        with db.connect() as connection:
+            result = connection.execute(text(query))
+            for row in result.fetchall():
+                data = row._asdict()
+                ids.append(data["id"])
+        return ids
+
+    def get_db_data_by_id(self, id: int = 0, updated_ts: int = 0) -> list:
         """
         Get data from database by meta id
 
-        :param id: meta id
+        :param id: ctx meta id
+        :param updated_ts: timestamp from which to get data
         :return: list of documents
         """
         db = self.window.core.db.get_db()
@@ -224,6 +268,10 @@ class Indexing:
         FROM ctx_item
         WHERE meta_id = {id}
         """
+        # restrict to updated data if from timestamp is given
+        if updated_ts > 0:
+            query += f" AND (input_ts > {updated_ts} OR output_ts > {updated_ts})"
+
         with db.connect() as connection:
             result = connection.execute(text(query))
             for item in result.fetchall():
@@ -231,22 +279,33 @@ class Indexing:
                 documents.append(Document(text=doc_str))
         return documents
 
-    def index_db_by_meta_id(self, index: BaseIndex, id: int = 0) -> (int, list):
+    def index_db_by_meta_id(self, idx: str, index: BaseIndex, id: int = 0, from_ts: int = 0) -> (int, list):
         """
         Index data from database by meta id
 
+        :param idx: index name
         :param index: index instance
-        :param id: meta id
+        :param id: ctx meta id
+        :param from_ts: timestamp from which to index
         :return: number of indexed documents, errors
         """
         errors = []
         n = 0
         try:
-            self.log("Indexing documents from database by meta id: {}".format(id))
-            documents = self.get_db_data_by_id(id)
+            # remove old document from index if indexing by ID only and not from timestamp
+            if from_ts == 0:
+                self.log("Indexing documents from database by meta id: {}".format(id))
+                self.remove_old_meta_id(idx, id)
+            elif from_ts > 0:
+                self.log("Indexing documents from database by meta id: {} from timestamp: {}".format(id, from_ts))
+
+            # get items from database
+            documents = self.get_db_data_by_id(id, from_ts)
             for d in documents:
                 index.insert(document=d)
+                doc_id = d.id_
                 self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
+                self.window.core.ctx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -254,28 +313,72 @@ class Indexing:
             self.window.core.debug.log(e)
         return n, errors
 
-    def index_db_from_updated_ts(self, index: BaseIndex, updated_ts: int = 0) -> (int, list):
+    def index_db_from_updated_ts(self, idx: str, index: BaseIndex, from_ts: int = 0) -> (int, list):
         """
         Index data from database from timestamp
 
+        :param idx: index name
         :param index: index instance
-        :param updated_ts: timestamp
+        :param from_ts: timestamp
         :return: number of indexed documents, errors
         """
+        self.log("Indexing documents from database from timestamp: {}".format(from_ts))
         errors = []
         n = 0
-        try:
-            self.log("Indexing documents from database from timestamp: {}".format(updated_ts))
-            documents = self.get_db_data_from_ts(updated_ts)
-            for d in documents:
-                index.insert(document=d)
-                self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
-                n += 1
-        except Exception as e:
-            errors.append(str(e))
-            print(e)
-            self.window.core.debug.log(e)
+        ids = self.get_db_meta_ids_from_ts(from_ts)
+        for id in ids:
+            indexed, errs = self.index_db_by_meta_id(idx, index, id, from_ts)
+            n += indexed
+            errors.extend(errs)
         return n, errors
+
+    def remove_old_meta_id(self, idx: str, id: int = 0) -> bool:
+        """
+        Remove old meta id from index
+
+        :param idx: index name
+        :param id: ctx meta id
+        :return: True if removed, False if not
+        """
+        # abort if not configured to replace old documents
+        if not self.window.core.config.get("llama.idx.replace_old"):
+            return False
+
+        store = self.window.core.idx.get_current_store()
+        if self.window.core.idx.is_meta_indexed(store, idx, id):
+            doc_id = self.window.core.idx.get_meta_doc_id(store, idx, id)
+            if doc_id:
+                self.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.storage.remove_document(
+                    id=idx,
+                    doc_id=doc_id,
+                )
+                return True
+        return False
+
+    def remove_old_file(self, idx: str, file_id: str):
+        """
+        Remove old file from index
+
+        :param idx: index name
+        :param file_id: file id
+        :return: True if removed, False if not
+        """
+        # abort if not configured to replace old documents
+        if not self.window.core.config.get("llama.idx.replace_old"):
+            return False
+
+        store = self.window.core.idx.get_current_store()
+        if self.window.core.idx.is_file_indexed(store, idx, file_id):
+            doc_id = self.window.core.idx.get_file_doc_id(store, idx, file_id)
+            if doc_id:
+                self.log("Removing old document id: {}".format(doc_id))
+                self.window.core.idx.storage.remove_document(
+                    id=idx,
+                    doc_id=doc_id,
+                )
+                return True
+        return False
 
     def index_urls(self, index: BaseIndex, urls: list) -> (int, list):
         """

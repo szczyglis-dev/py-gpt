@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 11:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import os
@@ -64,7 +64,7 @@ def test_index_files_single_file(mock_window):
         mock_isdir.return_value = False
         with patch("os.path.isfile") as mock_isfile:
             mock_isfile.return_value = True
-            indexed, errors = idx.index_files(index, path)
+            indexed, errors = idx.index_files("base", index, path)
     assert indexed == {"file.pdf": "test_id"}
     assert errors == []
 
@@ -86,7 +86,7 @@ def test_index_files_in_directory(mock_window):
         mock_isdir.return_value = True
         mock_listdir.return_value = fake_files
         mock_isfile.side_effect = lambda x: x in (os.path.join(fake_path, f) for f in fake_files)
-        indexed, errors = idx.index_files(index, fake_path)
+        indexed, errors = idx.index_files("base", index, fake_path)
 
     if platform.system() == 'Windows':
         assert indexed == {
@@ -152,7 +152,7 @@ def test_index_db_by_meta_id(mock_window):
     idx.get_db_data_by_id = MagicMock(return_value=docs)
     idx.index_documents = MagicMock()
     index = MagicMock()
-    indexed, errors = idx.index_db_by_meta_id(index, 123)
+    indexed, errors = idx.index_db_by_meta_id("base", index, 123)
     assert indexed == 1
     assert errors == []
 
@@ -160,12 +160,11 @@ def test_index_db_by_meta_id(mock_window):
 def test_index_db_from_updated_ts(mock_window):
     """Test index db from updated ts"""
     idx = Indexing(mock_window)
+    idx.index_db_by_meta_id = MagicMock(return_value=(1, []))
+    idx.get_db_meta_ids_from_ts = MagicMock(return_value=[123])
     doc = Document()
-    doc.id_ = "test_id"
-    docs = [doc]
-    idx.get_db_data_from_ts = MagicMock(return_value=docs)
     idx.index_documents = MagicMock()
     index = MagicMock()
-    indexed, errors = idx.index_db_from_updated_ts(index, 123)
+    indexed, errors = idx.index_db_from_updated_ts("base", index, 123)
     assert indexed == 1
     assert errors == []

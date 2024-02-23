@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 11:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import os
@@ -120,7 +120,6 @@ def test_sync_items(mock_window):
     Test sync items
     """
     idx = Idx(mock_window)
-    idx.save = MagicMock()
     mock_window.core.config.set("llama.idx.storage", "test_store")
     idx_items = [
         {
@@ -133,7 +132,6 @@ def test_sync_items(mock_window):
     assert idx.items["test_store"]["base"].id == "base"
     assert idx.items["test_store"]["base"].name == "base"
     assert idx.items["test_store"]["base"].store == "test_store"
-    idx.save.assert_called_once()
 
 
 def test_get_idx_data(mock_window):
@@ -244,9 +242,9 @@ def test_install(mock_window):
     Test install
     """
     idx = Idx(mock_window)
-    idx.provider.install = MagicMock()
+    idx.get_provider().install = MagicMock()
     idx.install()
-    idx.provider.install.assert_called_once()
+    idx.get_provider().install.assert_called_once()
 
 
 def test_patch(mock_window):
@@ -254,10 +252,10 @@ def test_patch(mock_window):
     Test patch
     """
     idx = Idx(mock_window)
-    idx.provider.patch = MagicMock()
+    idx.get_provider().patch = MagicMock()
     version = Version("1.0.0")
     idx.patch(version)
-    idx.provider.patch.assert_called_once_with(version)
+    idx.get_provider().patch.assert_called_once_with(version)
 
 
 def test_init(mock_window):
@@ -467,6 +465,8 @@ def test_load(mock_window):
     """
     Test load
     """
+    ids = ["test_store"]
+
     item = IndexItem()
     item.id = "base"
     item.items = {
@@ -477,11 +477,11 @@ def test_load(mock_window):
         }
     }
     items = {}
-    items["test_store"] = {}
-    items["test_store"]["base"] = item
+    items["base"] = item
     idx = Idx(mock_window)
+    idx.storage.get_ids = MagicMock(return_value=ids)
     mock_window.core.filesystem = Filesystem(mock_window)
-    idx.provider.load = MagicMock(return_value=items)
+    idx.get_provider().load = MagicMock(return_value=items)
     idx.load()
     data_dir = mock_window.core.config.get_user_dir('data')
     assert idx.items["test_store"]["base"].id == "base"
@@ -493,63 +493,11 @@ def test_load(mock_window):
         assert idx.items["test_store"]["base"].items["file.txt"]["path"] == data_dir + "/file.txt"
 
 
-def test_make_save_data(mock_window):
-    """
-    Test make_save_data
-    """
-    idx = Idx(mock_window)
-    mock_window.core.filesystem = Filesystem(mock_window)
-    idx.provider.save = MagicMock()
-    mock_window.core.config.set("llama.idx.storage", "test_store")
-    items = [
-        {
-            "id": "base",
-            "name": "Base"
-        },
-    ]
-    data_dir = mock_window.core.config.get_user_dir('data')
-    file_path = data_dir + "/file.txt"
-    item = IndexItem()
-    item.id = "base"
-    item.items = {
-        "file.txt": {
-            "path": file_path,
-            "indexed_ts": 1705822595.323048,
-            "id": "61f210f3-5635-49b8-95f4-ebc998d53c2f"
-        }
-    }
-    mock_window.core.config.set("llama.idx.list", items)
-    idx.items = {
-        "test_store": {
-            "base": item,
-        }
-    }
-    res = idx.make_save_data(idx.items)
-    assert res["test_store"]["base"].id == "base"
-    assert res["test_store"]["base"].items["file.txt"]["id"] == "61f210f3-5635-49b8-95f4-ebc998d53c2f"
-
-    if platform.system() == 'Windows':
-        assert res["test_store"]["base"].items["file.txt"]["path"] == "%workdir%\\data/file.txt"
-    else:
-        assert res["test_store"]["base"].items["file.txt"]["path"] == "%workdir%/data/file.txt"
-
-
-def test_save(mock_window):
-    """
-    Test save
-    """
-    idx = Idx(mock_window)
-    idx.make_save_data = MagicMock()
-    idx.provider.save = MagicMock()
-    idx.save()
-    assert idx.provider.save.called
-
-
 def test_get_version(mock_window):
     """
     Test get_version
     """
     idx = Idx(mock_window)
-    idx.provider.get_version = MagicMock(return_value="0.1.0")
+    idx.get_provider().get_version = MagicMock(return_value="0.1.0")
     res = idx.get_version()
     assert res == "0.1.0"

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.05 03:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock, patch, mock_open, Mock
@@ -42,6 +42,8 @@ def test_get_meta(mock_window):
         'is_important': 0,
         'is_archived': 0,
         'label': 0,
+        'indexed_ts': 0,
+        'indexes_json': {},
     }
     conn = Mock()
     conn.execute.return_value = [fake_row]
@@ -279,6 +281,8 @@ def test_unpack_meta(mock_window):
         'is_important': 1,
         'is_archived': 1,
         'label': 0,
+        'indexed_ts': 0,
+        'indexes_json': {},
     }
     meta = CtxMeta()
     unpack_meta(meta, row)

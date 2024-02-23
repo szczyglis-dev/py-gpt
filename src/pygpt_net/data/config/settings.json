@@ -648,6 +648,19 @@
         "step": null,
         "advanced": false
     },
+    "llama.idx.replace_old": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.replace_old",
+        "description": "settings.llama.idx.replace_old.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "llama.idx.storage": {
         "section": "llama-index",
         "type": "combo",

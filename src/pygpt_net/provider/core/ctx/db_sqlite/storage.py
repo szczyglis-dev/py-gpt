@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -102,18 +102,18 @@ class Storage:
                     where_clauses.append("(m.updated_ts <= :end_ts)")
                     bind_params['end_ts'] = end_ts
 
-        # filters
+        # display filters
         if filters:
             for key, filter in filters.items():
                 if key == 'date_range':
                     continue
-                comparison = filter.get('comparison', '=')
+                mode = filter.get('mode', '=')
                 value = filter.get('value', '')
                 if isinstance(value, int):
-                    where_clauses.append(f"{key} {comparison} :{key}")
+                    where_clauses.append(f"{key} {mode} :{key}")
                     bind_params[key] = value
                 elif isinstance(value, str):
-                    where_clauses.append(f"{key} {comparison} :{key}")
+                    where_clauses.append(f"{key} {mode} :{key}")
                     bind_params[key] = f"%{value}%"
 
         where_statement = " AND ".join(where_clauses) if where_clauses else "1"
@@ -133,6 +133,26 @@ class Storage:
                 unpack_meta(meta, row._asdict())
                 items[meta.id] = meta
 
+        return items
+
+    def get_meta_indexed(self) -> dict:
+        """
+        Return dict with indexed CtxMeta objects, indexed by ID
+
+        :return: dict of CtxMeta
+        """
+        stmt_text = f"""
+            SELECT * FROM ctx_meta WHERE indexed_ts > 0
+        """
+        stmt = text(stmt_text)
+        items = {}
+        db = self.window.core.db.get_db()
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            for row in result:
+                meta = CtxMeta()
+                unpack_meta(meta, row._asdict())
+                items[meta.id] = meta
         return items
 
     def get_items(self, id: int) -> list:
@@ -279,7 +299,51 @@ class Storage:
             WHERE id = :id
         """).bindparams(
             id=id,
-            updated_ts=ts
+            updated_ts=ts,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def set_meta_indexed_by_id(self, id: int, ts: int) -> bool:
+        """
+        Update ctx meta indexed timestamp
+
+        :param id: ctx meta ID
+        :param ts: timestamp
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                indexed_ts = :indexed_ts
+            WHERE id = :id
+        """).bindparams(
+            id=id,
+            indexed_ts=ts,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def update_meta_indexes_by_id(self, id: int, meta: CtxMeta) -> bool:
+        """
+        Update ctx meta indexed timestamp
+
+        :param id: ctx meta ID
+        :param meta: CtxMeta
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                indexes_json = :indexes_json
+            WHERE id = :id
+        """).bindparams(
+            id=id,
+            indexes_json=pack_item_value(meta.indexes),
         )
         with db.begin() as conn:
             conn.execute(stmt)
@@ -301,8 +365,85 @@ class Storage:
             WHERE id = :id
         """).bindparams(
             id=id,
-            updated_ts=ts
+            updated_ts=ts,
         )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def update_meta_indexed_by_id(self, id: int) -> bool:
+        """
+        Update ctx meta indexed timestamp
+
+        :param id: ctx meta ID
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        ts = int(time.time())
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                indexed_ts = indexed_ts
+            WHERE id = :id
+        """).bindparams(
+            id=id,
+            indexed_ts=ts,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def update_meta_indexed_to_ts(self, ts: int) -> bool:
+        """
+        Update ctx meta updated timestamp
+
+        :param ts: timestamp to update to
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                indexed_ts = :ts
+            WHERE updated_ts <= :ts
+        """).bindparams(
+            ts=ts,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def clear_meta_indexed_by_id(self, id: int) -> bool:
+        """
+        Clear ctx meta indexed timestamp
+
+        :param id: ctx meta ID
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET
+                indexed_ts = 0
+            WHERE id = :id
+        """).bindparams(
+            id=id,
+        )
+        with db.begin() as conn:
+            conn.execute(stmt)
+            return True
+
+    def clear_meta_indexed_all(self) -> bool:
+        """
+        Clear all ctx meta indexed timestamps
+
+        :return: True if updated
+        """
+        db = self.window.core.db.get_db()
+        stmt = text("""
+            UPDATE ctx_meta 
+            SET indexed_ts = 0
+        """)
         with db.begin() as conn:
             conn.execute(stmt)
             return True
@@ -382,7 +523,7 @@ class Storage:
             is_deleted=int(meta.deleted),
             is_important=int(meta.important),
             is_archived=int(meta.archived),
-            label=int(meta.label)
+            label=int(meta.label),
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -477,7 +618,7 @@ class Storage:
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
-            is_internal=int(item.internal)
+            is_internal=int(item.internal),
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -541,7 +682,7 @@ class Storage:
             input_tokens=int(item.input_tokens or 0),
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
-            is_internal=int(item.internal or 0)
+            is_internal=int(item.internal or 0),
         )
         with db.begin() as conn:
             conn.execute(stmt)

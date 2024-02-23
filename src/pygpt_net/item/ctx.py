@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.15 01:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -190,6 +190,7 @@ class CtxMeta:
         self.date = datetime.datetime.now().strftime("%Y-%m-%d")
         self.created = int(time.time())
         self.updated = int(time.time())
+        self.indexed = None
         self.mode = None
         self.model = None
         self.last_mode = None
@@ -205,6 +206,7 @@ class CtxMeta:
         self.important = False
         self.archived = False
         self.label = 0  # label color
+        self.indexes = {}  # indexes data
 
     def to_dict(self) -> dict:
         """
@@ -220,6 +222,7 @@ class CtxMeta:
             "date": self.date,
             "created": self.created,
             "updated": self.updated,
+            "indexed": self.indexed,
             "mode": self.mode,
             "model": self.model,
             "last_mode": self.last_mode,
@@ -235,6 +238,7 @@ class CtxMeta:
             "important": self.important,
             "archived": self.archived,
             "label": self.label,
+            "indexes": self.indexes,
         }
 
     def from_dict(self, data: dict):
@@ -250,6 +254,7 @@ class CtxMeta:
         self.date = data.get("date", None)
         self.created = data.get("created", None)
         self.updated = data.get("updated", None)
+        self.indexed = data.get("indexed", None)
         self.mode = data.get("mode", None)
         self.model = data.get("model", None)
         self.last_mode = data.get("last_mode", None)
@@ -265,3 +270,4 @@ class CtxMeta:
         self.important = data.get("important", False)
         self.archived = data.get("archived", False)
         self.label = data.get("label", 0)
+        self.indexes = data.get("indexes", {})

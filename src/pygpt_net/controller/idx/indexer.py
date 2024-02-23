@@ -6,15 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import datetime
 import os
 
-from PySide6.QtCore import QObject, Signal, QRunnable, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QApplication
 
+from pygpt_net.core.idx.worker import IndexWorker
+from pygpt_net.item.ctx import CtxMeta
 from pygpt_net.utils import trans
 
 
@@ -60,7 +62,7 @@ class Indexer:
         self.index_ctx_meta(
             ctx_idx,
             self.tmp_idx,
-            True
+            True,
         )
 
     def index_ctx_meta(
@@ -87,6 +89,8 @@ class Indexer:
             return
 
         meta_id = self.window.core.ctx.get_id_by_idx(ctx_idx)
+        meta = self.window.core.ctx.get_meta_by_id(meta_id)
+        from_ts = meta.indexed
         self.window.update_status(trans('idx.status.indexing'))
 
         worker = IndexWorker()
@@ -94,6 +98,7 @@ class Indexer:
         worker.content = meta_id
         worker.idx = idx
         worker.type = "db_meta"
+        worker.from_ts = from_ts
         worker.signals.finished.connect(self.handle_finished_db_meta)
         worker.signals.error.connect(self.handle_error)
         self.window.threadpool.start(worker)
@@ -123,6 +128,28 @@ class Indexer:
             force=force,
             silent=silent,
         )
+
+    def index_ctx_realtime(
+            self,
+            meta: CtxMeta,
+            idx: str
+    ):
+        """
+        Index current appended context (threaded) - realtime
+
+        :param meta: context meta
+        :param idx: index name
+        """
+        worker = IndexWorker()
+        worker.window = self.window
+        worker.content = meta.id
+        worker.idx = idx
+        worker.type = "db_meta"
+        worker.from_ts = meta.indexed
+        worker.silent = True
+        worker.signals.finished.connect(self.handle_finished_db_meta)
+        worker.signals.error.connect(self.handle_error)
+        self.window.threadpool.start(worker)
 
     def index_ctx_from_ts_confirm(self, ts: int):
         """
@@ -300,6 +327,34 @@ class Indexer:
             return
         self.index_file_remove_confirm(path)
 
+    def index_ctx_meta_remove(
+            self,
+            idx: str,
+            meta_id: int,
+            force: bool = False
+    ):
+        """
+        Remove ctx meta from index
+
+        :param idx: index name
+        :param meta_id: meta id
+        :param force: force index
+        """
+        if not force:
+            self.tmp_idx = idx  # store tmp index name (for confirmation)
+            content = "Remove context data from index?"
+            self.window.ui.dialogs.confirm(
+                type='idx.index.ctx.remove',
+                id=meta_id,
+                msg=content,
+            )
+            return
+
+        store = self.window.core.idx.get_current_store()
+        if self.window.core.ctx.remove_meta_from_indexed(store, meta_id, self.tmp_idx):
+            self.window.update_status(trans('status.deleted') + ": " + str(meta_id))
+            self.window.controller.ctx.update()  # update ctx list
+
     def clear_by_idx(self, idx: int):
         """
         Clear index by list idx
@@ -408,6 +463,7 @@ class Indexer:
         """
         self.window.ui.dialogs.alert(str(err))
         self.window.update_status(str(err))
+        self.window.core.debug.log(err)
         print(err)
 
     @Slot(str, object, object)
@@ -506,67 +562,3 @@ class Indexer:
 
         if len(errors) > 0:
             self.window.ui.dialogs.alert("\n".join(errors))
-
-
-class IndexWorkerSignals(QObject):
-    finished = Signal(str, object, object, bool)  # idx, result, errors, silent mode
-    error = Signal(object)
-
-
-class IndexWorker(QRunnable):
-    def __init__(self, *args, **kwargs):
-        super(IndexWorker, self).__init__()
-        self.signals = IndexWorkerSignals()
-        self.window = None
-        self.content = None
-        self.idx = None
-        self.type = None
-        self.silent = False
-
-    @Slot()
-    def run(self):
-        """Indexer thread"""
-        try:
-            result = {}
-            errors = []
-            is_log = False
-            if self.window.core.config.has("log.llama") and self.window.core.config.get("log.llama"):
-                is_log = True
-
-            # log indexing
-            if is_log:
-                print("[LLAMA-INDEX] Indexing data...")
-                print("[LLAMA-INDEX] Idx: {}, type: {}, content: {}".format(
-                    self.idx,
-                    self.type,
-                    self.content,
-                ))
-
-            # execute indexing
-            if self.type == "file":
-                result, errors = self.window.core.idx.index_files(
-                    self.idx,
-                    self.content,
-                )
-            elif self.type == "db_meta":
-                result, errors = self.window.core.idx.index_db_by_meta_id(
-                    self.idx,
-                    self.content,
-                )
-            elif self.type == "db_current":
-                result, errors = self.window.core.idx.index_db_from_updated_ts(
-                    self.idx,
-                    self.content,
-                )
-
-            if is_log:
-                print("[LLAMA-INDEX] Finished indexing.")
-
-            self.signals.finished.emit(
-                self.idx,
-                result,
-                errors,
-                self.silent,
-            )
-        except Exception as e:
-            self.signals.error.emit(e)

@@ -65,7 +65,7 @@ class Idx:
 
     def idx_db_update_by_idx(self, idx: int):
         """
-        Index records in database
+        Index new records in database (update)
 
         :param idx: idx of the list (row idx)
         """
@@ -151,7 +151,13 @@ class Idx:
         if self.window.core.config.has('llama.idx.auto') and self.window.core.config.get('llama.idx.auto'):
             if self.window.core.config.has('llama.idx.auto.index'):
                 idx = self.window.core.config.get('llama.idx.auto.index')
-            self.indexer.index_ctx_current(idx, force=True, silent=True)
+
+            # index items from previously indexed only
+            current_ctx = self.window.core.ctx.current
+            if current_ctx is not None:
+                meta = self.window.core.ctx.get_meta_by_id(current_ctx)
+                if meta is not None:
+                    self.indexer.index_ctx_realtime(meta, idx)
 
     def after_index(self, idx: str = None):
         """

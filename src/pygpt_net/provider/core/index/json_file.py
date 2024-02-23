@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
+
 import copy
 import json
 import os
@@ -48,10 +49,11 @@ class JsonFileProvider(BaseProvider):
             index.id = self.create_id()
         return index.id
 
-    def load(self) -> dict:
+    def load(self, store_id: str = None) -> dict:
         """
         Load indexes from file
 
+        :param store_id: store ID
         :return: dict
         """
         path = os.path.join(self.window.core.config.path, self.config_file)
@@ -130,8 +132,13 @@ class JsonFileProvider(BaseProvider):
         """
         pass
 
-    def truncate(self, mode: str):
-        """Delete all"""
+    def truncate(self, store_id: str, idx: str):
+        """
+        Delete all
+
+        :param store_id: store ID
+        :param idx: index ID
+        """
         path = os.path.join(self.window.core.config.path, self.config_file)
         data = {'__meta__': self.window.core.config.append_meta(), 'items': {}}
         try:
@@ -144,6 +151,7 @@ class JsonFileProvider(BaseProvider):
     def install(self) -> bool:
         """
         Install provider
+
         :return: True if success
         """
         path = os.path.join(self.window.core.config.path, self.config_file)
@@ -195,6 +203,10 @@ class JsonFileProvider(BaseProvider):
             index.store = data['store']
         if 'items' in data:
             index.items = data['items']
+
+        # append name key from file id
+        for item_id in index.items:
+             index.items[item_id]["name"] = item_id
 
     def dump(self, item: IndexItem) -> str:
         """

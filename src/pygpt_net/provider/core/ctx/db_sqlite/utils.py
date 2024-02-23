@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                   #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 
 import json
@@ -124,7 +124,7 @@ def unpack_item_value(value: any) -> any:
 
 def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     """
-    Unpack item from DB row
+    Unpack context item from DB row
 
     :param item: Context item (CtxItem)
     :param row: DB row
@@ -160,7 +160,7 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
 
 def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     """
-    Unpack meta from DB row
+    Unpack context meta data from DB row
 
     :param meta: Context meta (CtxMeta)
     :param row: DB row
@@ -171,6 +171,7 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     meta.uuid = row['uuid']
     meta.created = int(row['created_ts'])
     meta.updated = int(row['updated_ts'])
+    meta.indexed = int(row['indexed_ts'])
     meta.name = row['name']
     meta.mode = row['mode']
     meta.model = row['model']
@@ -187,4 +188,5 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     meta.important = bool(row['is_important'])
     meta.archived = bool(row['is_archived'])
     meta.label = int(row['label'] or 0)
+    meta.indexes = unpack_item_value(row['indexes_json'])
     return meta

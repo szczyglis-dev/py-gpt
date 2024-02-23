@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 19:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
 import os
+import shutil
 
 from llama_index.indices.base import BaseIndex
 from llama_index import (
@@ -97,9 +98,7 @@ class BaseStore:
             self.indexes[id] = None
         path = self.get_path(id)
         if os.path.exists(path):
-            for f in os.listdir(path):
-                os.remove(os.path.join(path, f))
-            os.rmdir(path)
+            shutil.rmtree(path)
         return True
 
     def truncate(self, id: str) -> bool:

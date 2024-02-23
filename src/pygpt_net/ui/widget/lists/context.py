@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 15:00:00                  #
+# Updated Date: 2024.02.23 01:00:00                  #
 # ================================================== #
+import datetime
 
 from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6.QtGui import QAction, QIcon, QColor, QPixmap
@@ -57,9 +58,13 @@ class ContextList(BaseList):
         """
         item = self.indexAt(event.pos())
         idx = item.row()
-
-        is_important = self.window.controller.ctx.is_important(idx)
         id = self.window.core.ctx.get_id_by_idx(idx)
+        ctx_id = id
+        ctx = self.window.core.ctx.get_meta_by_id(id)
+        if ctx is None:
+            return
+
+        is_important = ctx.important
 
         actions = {}
         actions['rename'] = QAction(QIcon(":/icons/edit.svg"), trans('action.rename'), self)
@@ -119,32 +124,70 @@ class ContextList(BaseList):
 
         # indexes list
         idxs = self.window.core.config.get('llama.idx.list')
+        store = self.window.core.idx.get_current_store()  # get current idx store provider
         if len(idxs) > 0:
             for index in idxs:
                 id = index['id']
                 name = index['name'] + " (" + index['id'] + ")"
+
+                # add to index
                 action = idx_menu.addAction("IDX: " + name)
                 action.setIcon(QIcon(":/icons/search.svg"))
                 action.triggered.connect(
-                    lambda checked=False, idx=idx, index=id: self.action_idx(idx, index)
+                    lambda checked=False,
+                           idx=idx,
+                           index=id: self.action_idx(idx, index)
                 )
+
+                # remove from index
+                if ctx.indexed is not None and ctx.indexed > 0:
+
+                    # get list of indexes in which context is indexed
+                    if store in ctx.indexes:
+                        store_indexes = ctx.indexes[store]
+                        for store_index in store_indexes:
+                            action = idx_menu.addAction("Remove from: " + store_index)
+                            action.setIcon(QIcon(":/icons/delete.svg"))
+                            action.triggered.connect(
+                                lambda checked=False,
+                                       store_index=store_index,
+                                       ctx_id=ctx_id: self.action_idx_remove(store_index, ctx_id)  # by context meta id
+                            )
 
             menu.addMenu(idx_menu)
 
         menu.addAction(actions['copy_id'])
 
+        # show last indexed date if available
+        if ctx.indexed is not None and ctx.indexed > 0:
+            suffix = ""
+            if ctx.updated > ctx.indexed:
+                suffix = " *"
+            dt = datetime.datetime.fromtimestamp(ctx.indexed).strftime("%Y-%m-%d %H:%M")
+            action = QAction(QIcon(":/icons/clock.svg"), trans('action.ctx.indexed') + ": " + dt + suffix, self)
+            menu.addAction(action)
+
         if idx >= 0:
             self.window.controller.ctx.select_by_idx(item.row())
             menu.exec_(event.globalPos())
 
-    def action_idx(self, ctx_idx, idx):
+    def action_idx(self, ctx_idx: int, idx: int):
         """
         Index with llama context action handler
 
         :param ctx_idx: row idx in context list
-        :param idx: index id
+        :param idx: index name
         """
         self.window.controller.idx.indexer.index_ctx_meta(ctx_idx, idx)
+
+    def action_idx_remove(self, idx: str, meta_id: int):
+        """
+        Remove from index action handler
+
+        :param idx: index id
+        :param meta_id: meta id
+        """
+        self.window.controller.idx.indexer.index_ctx_meta_remove(idx, meta_id)
 
     def action_rename(self, event):
         """

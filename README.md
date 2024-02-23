@@ -2229,6 +2229,8 @@ Config -> Settings...
 
 - `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 
+- `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
+
 - `Vector Store`: Vector store in use (vector database provided by Llama-index).
 
 - `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
