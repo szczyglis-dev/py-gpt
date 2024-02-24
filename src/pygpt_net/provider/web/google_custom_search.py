@@ -43,7 +43,7 @@ class GoogleCustomSearch(BaseProvider):
             label="Google Custom Search API KEY",
             description="You can obtain your own API key at "
                         "https://developers.google.com/custom-search/v1/overview",
-            tooltip="Google Custom Search CX ID",
+            tooltip="Google Custom Search API KEY",
             secret=True,
             persist=True,
             tab="google_custom_search",
