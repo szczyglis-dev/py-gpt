@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 import os.path
@@ -62,6 +62,53 @@ class Indexing:
             if ext in extensions:
                 return loader["loader"]
 
+    def get_excluded_extensions(self) -> list[str]:
+        """
+        Get excluded extensions if no loader is available
+
+        :return: list of excluded extensions
+        """
+        # images
+        excluded = ["jpg", "jpeg", "png", "psd", "gif", "bmp", "tiff",
+                    "webp", "svg", "ico", "heic", "heif", "avif", "apng"]
+
+        # audio
+        excluded += ["mp3", "wav", "flac", "ogg", "m4a", "wma",
+                     "aac", "aiff", "alac", "dsd", "pcm", "mpc"]
+
+        # video
+        excluded += ["mp4", "mkv", "avi", "mov", "wmv", "flv",
+                     "webm", "vob", "ogv", "3gp", "3g2", "m4v", "m2v"]
+
+        # archives
+        excluded += ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lz", "lz4",
+                     "zst", "ar", "iso", "nrg", "dmg", "vhd", "vmdk", "vhdx", "vdi",
+                     "img", "wim", "swm", "esd", "cab", "rpm", "deb", "pkg", "apk"]
+
+        # binary
+        excluded += ["exe", "dll", "so", "dylib", "app", "msi", "dmg", "pkg", "deb", "rpm", "apk", "jar",
+                     "war", "ear", "class", "pyc", "whl", "egg", "so", "dylib", "a", "o", "lib", "bin",
+                     "elf", "ko", "sys", "drv"]
+
+        # sort and save
+        excluded = sorted(excluded)
+
+        return excluded
+
+    def is_excluded(self, ext: str) -> bool:
+        """
+        Check if extension is excluded
+
+        :param ext: file extension
+        :return: True if excluded
+        """
+        excluded = self.window.core.config.get("llama.idx.excluded_ext")
+        if excluded is not None and excluded != "":
+            excluded = excluded.replace(" ", "").split(",")
+            if ext.lower() in excluded:
+                return True
+        return False
+
     def get_documents(self, path: str) -> list[Document]:
         """
         Get documents from path
@@ -98,6 +145,9 @@ class Indexing:
                     reader = self.loaders[ext]
                     documents = reader.load_data(file=Path(path))
                 else:
+                    if self.is_excluded(ext):
+                        self.log("Ignoring excluded extension: {}".format(ext))
+                        return []
                     self.log("Using default loader for: {}".format(ext))
                     reader = SimpleDirectoryReader(input_files=[path])
                     documents = reader.load_data()
