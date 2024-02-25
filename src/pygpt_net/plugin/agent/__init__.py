@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -17,10 +17,11 @@ from pygpt_net.item.ctx import CtxItem
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
-        self.id = "self_loop"
-        self.name = "Autonomous Mode (inline)"
-        self.description = "Enables autonomous conversation (AI to AI), manages loop, " \
-                           "and connects output back to input."
+        self.id = "agent"
+        self.name = "Autonomous Agent (inline)"
+        self.description = "Enables inline autonomous mode (Agent) in current mode. " \
+                           "WARNING: Please use with caution - this mode, when connected with other plugins, " \
+                           "may produce unexpected results!"
         self.type = [
             "agent",
         ]
