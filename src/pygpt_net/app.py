@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -27,7 +27,7 @@ from pygpt_net.plugin.idx_llama_index import Plugin as IdxLlamaIndexPlugin
 from pygpt_net.plugin.openai_dalle import Plugin as OpenAIDallePlugin
 from pygpt_net.plugin.openai_vision import Plugin as OpenAIVisionPlugin
 from pygpt_net.plugin.real_time import Plugin as RealTimePlugin
-from pygpt_net.plugin.self_loop import Plugin as SelfLoopPlugin
+from pygpt_net.plugin.agent import Plugin as AgentPlugin
 
 # LLMs wrappers providers (langchain, llama-index)
 from pygpt_net.provider.llms.anthropic import AnthropicLLM
@@ -202,7 +202,7 @@ def run(**kwargs):
             launcher.add_web(provider)
 
     # register base plugins
-    launcher.add_plugin(SelfLoopPlugin())
+    launcher.add_plugin(AgentPlugin())
     launcher.add_plugin(RealTimePlugin())
     launcher.add_plugin(ExtraPromptPlugin())
     launcher.add_plugin(AudioInputPlugin())
