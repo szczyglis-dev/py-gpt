@@ -2598,7 +2598,7 @@ may consume additional tokens that are not displayed in the main window.
 # 2.0.165 (2024-02-25)
 
 - Added search provider: `Bing`.
-- Added audio output providers: `Google`, `Bing`, and `Eleven Labs`.
+- Added audio output providers: `Google` and `Eleven Labs`.
 - Added audio input providers: `Google`, `Google Cloud`, and `Bing`.
 - Added a new plugin: `Command: API calls` which allows defining commands for API calls to external services.
 - Added an `Excluded file extensions` configuration option in `Settings -> Llama-index`.
