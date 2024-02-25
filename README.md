@@ -14,9 +14,9 @@ Compiled version for Linux (`tar.gz`) and Windows 10/11 (`msi`) 64-bit: https://
 
 **PyGPT** is **all-in-one** Desktop AI Assistant that provides direct interaction with OpenAI language models, including `GPT-4`, `GPT-4 Vision`, and `GPT-3.5`, through the `OpenAI API`. The application also integrates with alternative LLMs, like those available on `HuggingFace`, by utilizing `Langchain`.
 
-This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google Custom Search API`.
+This assistant offers multiple modes of operation such as chat, assistants, completions, and image-related tasks using `DALL-E 3` for generation and `GPT-4 Vision` for image analysis. **PyGPT** has filesystem capabilities for file I/O, can generate and run Python code, execute system commands, execute custom commands and manage file transfers. It also allows models to perform web searches with the `Google` and `Microsoft Bing`.
 
-For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft Azure Text-to-Speech API` and `OpenAI's TTS API`. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
+For audio interactions, **PyGPT** includes speech synthesis using the `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services. Additionally, it features speech recognition capabilities provided by `OpenAI Whisper`, enabling the application to understand spoken commands and transcribe audio inputs into text. It features context memory with save and load functionality, enabling users to resume interactions from predefined points in the conversation. Prompt creation and management are streamlined through an intuitive preset system.
 
 **PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
@@ -40,9 +40,9 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode
-- Internet access via `Google Custom Search API` (by default, extendable with other providers).
-- Speech synthesis via `Microsoft Azure TTS` and `OpenAI TTS` (by default, extendable with other providers).
-- Speech recognition via `OpenAI Whisper` (by default, extendable with other providers).
+- Internet access via `Google` and `Microsoft Bing`
+- Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
+- Speech recognition via `OpenAI Whisper`, `Google`, `Google Cloud` and `Microsoft Bing`.
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
@@ -967,6 +967,8 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
 
+- `Command: API calls` - plugin lets you connect the model to the external services using custom defined API calls.
+
 - `Command: Code Interpreter` - responsible for generating and executing Python code, functioning much like 
 the Code Interpreter on ChatGPT, but locally. This means GPT can interface with any script, application, or code. 
 The plugin can also execute system commands, allowing GPT to integrate with your operating system. 
@@ -997,15 +999,49 @@ as well as list and create directories.
 
 ## Audio Input
 
-The plugin facilitates speech recognition (by default using the `Whisper` model by OpenAI). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
+The plugin facilitates speech recognition (by default using the `Whisper` model from OpenAI, `Google` and `Bing` are also available). It allows for voice commands to be relayed to the AI using your own voice. Whisper doesn't require any extra API keys or additional configurations; it uses the main OpenAI key. In the plugin's configuration options, you should adjust the volume level (min energy) at which the plugin will respond to your microphone. Once the plugin is activated, a new `Speak` option will appear at the bottom near the `Send` button  -  when this is enabled, the application will respond to the voice received from the microphone.
 
 The plugin can be extended with other speech recognition providers.
 
-Configuration options:
+Options:
+
+- `Provider` *provider*
+
+Choose the provider. *Default:* `Whisper`
+
+Available providers:
+
+* Whisper (via `OpenAI API`)
+* Google (via `SpeechRecognition` library)
+* Google Cloud (via `SpeechRecognition` library)
+* Microsoft Bing (via `SpeechRecognition` library)
+
+**Whisper**
 
 - `Model` *whisper_model*
 
 Choose the model. *Default:* `whisper-1`
+
+**Google**
+
+- `Additional keywords arguments` *google_args*
+
+Additional keywords arguments for r.recognize_google(audio, **kwargs)
+
+**Google Cloud**
+
+- `Additional keywords arguments` *google_cloud_args*
+
+Additional keywords arguments for r.recognize_google_cloud(audio, **kwargs)
+
+**Bing**
+
+- `Additional keywords arguments` *bing_args*
+
+Additional keywords arguments for r.recognize_bing(audio, **kwargs)
+
+
+**General options**
 
 - `Timeout` *timeout*
 
@@ -1097,16 +1133,27 @@ Options reference: https://pypi.org/project/SpeechRecognition/1.3.1/
 
 ## Audio Output
 
-The plugin enables voice synthesis using the `TTS` model developed by OpenAI or using `Microsoft Azure Text-To-Speech`. It can be extended with other providers. 
-`OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
-Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via `Microsoft Azure`, you must configure the audio plugin with your Azure API key and the correct 
-Region in the settings. You can get API KEY for free from here: https://azure.microsoft.com/en-us/services/cognitive-services/text-to-speech
+The plugin lets you turn text into speech using the TTS model from OpenAI or other services like ``Microsoft Azure``, ``Google``, and ``Eleven Labs``. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
+Microsoft Azure requires to have an Azure API Key. Before using speech synthesis via `Microsoft Azure`, `Google` or `Eleven Labs`, you must configure the audio plugin with your API keys, regions and voices if required.
 
-![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/42693d24-c761-48df-8007-3a62f21bde24)
+![v2_azure](https://github.com/szczyglis-dev/py-gpt/assets/61396542/8035e9a5-5a01-44a1-85da-6e44c52459e4)
 
 Through the available options, you can select the voice that you want the model to use. More voice synthesis providers coming soon.
 
 To enable voice synthesis, activate the `Audio Output` plugin in the `Plugins` menu or turn on the `Audio Output` option in the `Audio / Voice` menu (both options in the menu achieve the same outcome).
+
+**Options**
+
+- `Provider` *provider*
+
+Choose the provider. *Default:* `OpenAI TTS`
+
+Available providers:
+
+- OpenAI TTS
+- Microsoft Azure TTS
+- Google TTS
+- Eleven Labs TTS
 
 **OpenAI Text-To-Speech**
 
@@ -1152,6 +1199,35 @@ Here you can specify the name of the voice used for speech synthesis for English
 - `Voice (non-English)` *azure_voice_pl*
 
 Here you can specify the name of the voice used for speech synthesis for other non-english languages. *Default:* `pl-PL-AgnieszkaNeural`
+
+**Google Text-To-Speech**
+
+- `Google Cloud Text-to-speech API Key` *google_api_key*
+
+You can obtain your own API key at: https://console.cloud.google.com/apis/library/texttospeech.googleapis.com
+
+- `Voice` *google_voice*
+
+Specify voice. Voices: https://cloud.google.com/text-to-speech/docs/voices
+
+- `Language code` *google_api_key*
+
+Language code. Language codes: https://cloud.google.com/speech-to-text/docs/speech-to-text-supported-languages
+
+**Eleven Labs Text-To-Speech**
+
+- `Eleven Labs API Key` *eleven_labs_api_key*
+
+You can obtain your own API key at: https://elevenlabs.io/speech-synthesis
+
+- `Voice ID` *eleven_labs_voice*
+
+Voice ID. Voices: https://elevenlabs.io/voice-library
+
+- `Model` *eleven_labs_model*
+
+Specify model. Models: https://elevenlabs.io/docs/speech-synthesis/models
+
 
 If speech synthesis is enabled, a voice will be additionally generated in the background while generating a response via GPT.
 
@@ -1206,6 +1282,64 @@ Model used for querying `Llama-index`, default: `gpt-3.5-turbo`
 - `Indexes IDs` *idx*
 
 Indexes to use, default: base, if you want to use multiple indexes at once then separate them by comma.
+
+
+## Command: API calls
+
+**PyGPT** lets you connect the model to the external services using custom defined API calls.
+
+To activate this feature, turn on the `Command: API calls` plugin found in the `Plugins` menu.
+
+In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
+
+- `Your custom API calls` *cmds*
+
+You can provide custom API calls on the list here.
+
+Params to specify for API call:
+
+- **Enabled** (True / False)
+- **Name:** unique API call name (ID)
+- **Instruction:** description for model when and how to use this API call
+- **GET params:** list, separated by comma, GET params to append to endpoint URL
+- **POST params:** list, separated by comma, POST params to send in POST request
+- **POST JSON:** provide the JSON object, template to send in POST JSON request, use `%param%` as POST param placeholders
+- **Headers:** provide the JSON object with dictionary of extra request headers, like Authorization, API keys, etc.
+- **Request type:** use GET for basic GET request, POST to send encoded POST params or POST_JSON to send JSON-encoded object as body
+- **Endpoint:** API endpoint URL, use `{param}` as GET param placeholders
+
+An example API call is provided with plugin by default, it calls the Wikipedia API:
+
+- Name: `search_wiki`
+- Instructiom: `send API call to Wikipedia to search pages by query`
+- GET params: `query, limit`
+- Type: `GET`
+- API endpoint: https://en.wikipedia.org/w/api.php?action=opensearch&limit={limit}&format=json&search={query}
+
+In the above example, every time you ask the model for query Wiki for provided query (e.g. `Call the Wikipedia for query 'Nicola Tesla'`) it will replace placeholders in provided API endpoint URL with a generated query and it will call prepared API endpoint URL, like below:
+
+https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&format=json&search=Nicola%20Tesla
+
+You can specify type of request: `GET`, `POST` and `POST JSON`.
+
+In the `POST` request you can provide POST params, they will be encoded and send as POST data.
+
+In the `POST JSON` request you must provide JSON object template to be send, using `%param%` placeholders in the JSON object to be replaced with the model.
+
+You can also provide any required credentials, like Authorization headers, API keys, tokens, etc. using the `headers` field - you can provide a JSON object here with a dictionary `key => value` - provided JSON object will be converted to headers dictonary and send with the request.
+
+- `Disable SSL verify` *disable_ssl*
+
+Disables SSL verification when making requests
+
+- `Timeout` *timeout*
+
+Connection timeout (seconds)
+
+- `User agent` *user_agent*
+
+User agent to use when making requests, default: `Mozilla/5.0`
+
 
 ## Command: Code Interpreter
 
@@ -1413,7 +1547,21 @@ Allows `cwd` command execution. *Default:* `True`
 
 To activate this feature, turn on the `Command: Web Search` plugin found in the `Plugins` menu.
 
-Web searches are provided by `Google Custom Search Engine` API and can be extended with other search engine providers (like e.g. Bing). 
+Web searches are provided by `Google Custom Search Engine` and `Microsoft Bing` APIs and can be extended with other search engine providers. 
+
+**Options**
+
+- `Provider` *provider*
+
+Choose the provider. *Default:* `OpenAI TTS`
+
+Available providers:
+
+- Google
+- Microsoft Bing
+
+**Google**
+
 To use this provider, you need an API key, which you can obtain by registering an account at:
 
 https://developers.google.com/custom-search/v1/overview
@@ -1430,8 +1578,7 @@ Then, copy the following two items into **PyGPT**:
 
 These data must be configured in the appropriate fields in the `Plugins / Settings...` menu:
 
-![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/c42981e5-ae04-4585-b5d8-27f53acc7a7d)
-**Options**
+![v2_plugin_google](https://github.com/szczyglis-dev/py-gpt/assets/61396542/f2e0df62-caaa-40ef-9b1e-239b2f912ec8)
 
 - `Google Custom Search API KEY` *google_api_key*
 
@@ -1440,6 +1587,18 @@ You can obtain your own API key at https://developers.google.com/custom-search/v
 - `Google Custom Search CX ID` *google_api_cx*
 
 You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all - remember to enable "Search on ALL internet pages" option in project settings.
+
+**Microsoft Bing**
+
+- `Bing Search API KEY` *bing_api_key*
+
+You can obtain your own API key at https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
+
+- `Bing Search API endpoint` *bing_endpoint*
+
+API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/search
+
+**General options**
 
 - `Number of pages to search` *num_pages*
 
@@ -1460,6 +1619,10 @@ Disables SSL verification when crawling web pages
 - `Timeout` *timeout*
 
 Connection timeout (seconds)
+
+- `User agent` *user_agent*
+
+User agent to use when making requests, default: Mozilla/5.0
 
 - `Max result length` *max_result_length*
 
@@ -2269,6 +2432,8 @@ Config -> Settings...
 - `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
 
 - `Vector Store`: Vector store in use (vector database provided by Llama-index).
+
+- `Excluded file extensions`: File extensions to exclude if no data loader for this extension, separated by comma.
 
 - `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
 

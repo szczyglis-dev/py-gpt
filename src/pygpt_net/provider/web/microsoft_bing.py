@@ -11,10 +11,13 @@
 
 import json
 from urllib.parse import quote
+
+import requests
+
 from .base import BaseProvider
 
 
-class GoogleCustomSearch(BaseProvider):
+class MicrosoftBingSearch(BaseProvider):
     def __init__(self, *args, **kwargs):
         """
         Google Custom Search provider
@@ -22,45 +25,39 @@ class GoogleCustomSearch(BaseProvider):
         :param args: args
         :param kwargs: kwargs
         """
-        super(GoogleCustomSearch, self).__init__(*args, **kwargs)
+        super(MicrosoftBingSearch, self).__init__(*args, **kwargs)
         self.plugin = kwargs.get("plugin")
-        self.id = "google_custom_search"
-        self.name = "Google"
+        self.id = "microsoft_bing"
+        self.name = "Bing"
         self.type = ["search_engine"]
 
     def init_options(self):
         """Initialize options"""
         url_api = {
-            "API Key": "https://developers.google.com/custom-search/v1/overview",
-        }
-        url_cx = {
-            "CX ID": "https://programmablesearchengine.google.com/controlpanel/all",
+            "API Key": "https://www.microsoft.com/en-us/bing/apis/bing-web-search-api",
         }
         self.plugin.add_option(
-            "google_api_key",
+            "bing_api_key",
             type="text",
             value="",
-            label="Google Custom Search API KEY",
+            label="Bing Search API KEY",
             description="You can obtain your own API key at "
-                        "https://developers.google.com/custom-search/v1/overview",
-            tooltip="Google Custom Search API KEY",
+                        "https://www.microsoft.com/en-us/bing/apis/bing-web-search-api",
+            tooltip="Bing Search API KEY",
             secret=True,
             persist=True,
-            tab="google_custom_search",
+            tab="microsoft_bing",
             urls=url_api,
         )
         self.plugin.add_option(
-            "google_api_cx",
+            "bing_endpoint",
             type="text",
-            value="",
-            label="Google Custom Search CX ID",
-            description="You will find your CX ID at https://programmablesearchengine.google.com/controlpanel/all\n"
-                        "Remember to enable \"Search on ALL internet pages\" option in project settings.",
-            tooltip="Google Custom Search CX ID",
-            secret=True,
-            persist=True,
-            tab="google_custom_search",
-            urls=url_cx,
+            value="https://api.bing.microsoft.com/v7.0/search",
+            label="Bing Search API endpoint",
+            description="API endpoint for Bing Search API",
+            tooltip="Bing Search API endpoint",
+            persist=False,
+            tab="microsoft_bing",
         )
 
     def search(self, query: str, limit: int = 10, offset: int = 0) -> list:
@@ -73,7 +70,7 @@ class GoogleCustomSearch(BaseProvider):
         :return: list of urls
         """
         key = self.get_key()
-        cx = self.get_cx()
+        urls = []
 
         if limit < 1:
             limit = 1
@@ -83,24 +80,21 @@ class GoogleCustomSearch(BaseProvider):
         if limit + offset > 100:
             limit = 100 - offset
 
-        urls = []
-        url = 'https://www.googleapis.com/customsearch/v1'
-        url += '?key=' + str(key)
-        url += '&cx=' + str(cx)
-        url += '&num=' + str(limit)
-        url += '&sort=date-sdate:d:s'
-        url += '&fields=items(link)'
-        url += '&start=' + str(offset)
-        url += '&q=' + quote(query)
-
-        data = self.plugin.get_url(url)
-        res = json.loads(data)
-
-        if 'items' not in res:
-            return []
-        for item in res['items']:
-            urls.append(item['link'])
-
+        headers = {
+            'Ocp-Apim-Subscription-Key': key,
+        }
+        endpoint = self.plugin.get_option_value("bing_endpoint")
+        url = f"{endpoint}?q={quote(query)}&count={limit}&offset={offset}&mkt=en-US"
+        response = requests.get(
+            url,
+            headers=headers,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            for result in data['webPages']['value']:
+                urls.append(result['url'])
+        else:
+            print('Error:', response.status_code, response.text)
         return urls
 
     def is_configured(self, cmds: list) -> bool:
@@ -112,14 +106,12 @@ class GoogleCustomSearch(BaseProvider):
         """
         required = ["web_search", "web_urls"]
         key = self.get_key()
-        cx = self.get_cx()
         need_api_key = False
         for item in cmds:
             if item["cmd"] in required:
                 need_api_key = True
                 break
-        if need_api_key and \
-                (key is None or cx is None or key == "" or cx == ""):
+        if need_api_key and (key is None or key == ""):
             return False
         return True
 
@@ -129,7 +121,7 @@ class GoogleCustomSearch(BaseProvider):
 
         :return: message
         """
-        return "Google Custom Search API key or Google Search CX is not set. Please set credentials in plugin settings."
+        return "Microsoft Bing Search API key is not set. Please set credentials in plugin settings."
 
     def get_key(self) -> str:
         """
@@ -137,14 +129,6 @@ class GoogleCustomSearch(BaseProvider):
 
         :return: Google API key
         """
-        return str(self.plugin.get_option_value("google_api_key"))
-
-    def get_cx(self) -> str:
-        """
-        Return Google API CX
-
-        :return: Google API CX
-        """
-        return str(self.plugin.get_option_value("google_api_cx"))
+        return str(self.plugin.get_option_value("bing_api_key"))
 
 

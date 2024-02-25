@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 import datetime
 
@@ -165,6 +165,7 @@ class ContextList(BaseList):
                 suffix = " *"
             dt = datetime.datetime.fromtimestamp(ctx.indexed).strftime("%Y-%m-%d %H:%M")
             action = QAction(QIcon(":/icons/clock.svg"), trans('action.ctx.indexed') + ": " + dt + suffix, self)
+            action.setEnabled(False)  # disable action, only for info
             menu.addAction(action)
 
         if idx >= 0:
