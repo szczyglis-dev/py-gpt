@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.167 (2024-02-25)
+
+- Fixed empty API key dialog.
+
 # 2.0.166 (2024-02-25)
 
 - Enabled the use of data loaders from Llama-index in the `Files I/O` plugin for reading files, which allows for reading not only text files using the plugin's `read_file` command.
