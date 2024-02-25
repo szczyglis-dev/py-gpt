@@ -17,6 +17,7 @@ import webbrowser
 from pygpt_net.utils import trans
 import pygpt_net.icons_rc
 
+
 class HelpLabel(QLabel):
     def __init__(self, text, window=None):
         super().__init__(text, window)
@@ -50,6 +51,7 @@ class UrlLabel(QLabel):
         self.update_url()
         self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setToolTip(url)
+        self.setWordWrap(True)
 
     def update_url(self):
         text = self.text
