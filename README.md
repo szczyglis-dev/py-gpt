@@ -56,7 +56,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Provides an intuitive operation and interface.
 - Includes a notepad.
 - Includes simple painter / drawing tool
-- Includes optional Autonomous Mode
+- Includes optional Autonomous Mode (Agents)
 - Supports multiple languages.
 - Enables the use of all the powerful features of `GPT-4`, `GPT-4V`, and `GPT-3.5`.
 - Requires no previous knowledge of using AI models.
@@ -963,7 +963,7 @@ The following plugins are currently available, and model can use them instantly:
 
 - `Audio Output` - provides voice synthesis.
 
-- `Autonomous Mode (inline)` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
+- `Autonomous Agent (inline)` - enables autonomous conversation (AI to AI), manages loop, and connects output back to input. This is the inline Agent mode.
 
 - `Chat with files (Llama-index, inline)` - plugin integrates `Llama-index` storage in any chat and provides additional knowledge into context (from indexed files and previous context from database).
 
@@ -1233,7 +1233,7 @@ If speech synthesis is enabled, a voice will be additionally generated in the ba
 
 Both `OpenAI TTS` and `OpenAI Whisper` use the same single API key provided for the OpenAI API, with no additional keys required.
 
-## Autonomous Mode (inline)
+## Autonomous Agent (inline)
 
 **WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
@@ -1464,6 +1464,7 @@ Plugin capabilities include:
 - Copying files and directories
 - Moving (renaming) files and directories
 - Reading file info
+- Indexing files and directories using Llama-index
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -1540,6 +1541,18 @@ Allows `file_info` command execution. *Default:* `True`
 - `Enable: Get current working directory` *cmd_cwd*
 
 Allows `cwd` command execution. *Default:* `True`
+
+- `Enable: indexing files` *cmd_file_index*
+
+If enabled, model will be able to index file or directory using Llama-index (`file_index` command). *Default:* `True`
+
+- `Index to use when indexing files` *idx*
+
+ID of index to use for files indexing. *Default:* `base`
+
+- `Use data loaders` *use_loaders*
+
+Use data loaders from Llama-index for file reading (`read_file` command). *Default:* `True`
 
 ## Command: Web Search
 
@@ -2594,6 +2607,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.166 (2024-02-25)
+
+- Enabled the use of data loaders from Llama-index in the `Files I/O` plugin for reading files, which allows for reading not only text files using the plugin's `read_file` command.
+- Added a command for indexing files to the `Files I/O` plugin.
+- The `self_loop` plugin has been internally renamed to the `agent` plugin.
+- Fixed the display of pinned contexts when the indexed filter is enabled.
 
 # 2.0.165 (2024-02-25)
 

@@ -1,3 +1,10 @@
+2.0.166 (2024-02-25)
+
+- Enabled the use of data loaders from Llama-index in the "Files I/O" plugin for reading files, which allows for reading not only text files using the plugin's "read_file" command.
+- Added a command for indexing files to the "Files I/O" plugin.
+- The "self_loop" plugin has been internally renamed to the "agent" plugin.
+- Fixed the display of pinned contexts when the indexed filter is enabled.
+
 2.0.165 (2024-02-25)
 
 - Added search provider: Bing.

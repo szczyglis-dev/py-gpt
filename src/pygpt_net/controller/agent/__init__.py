@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 from .flow import Flow
@@ -118,8 +118,8 @@ class Agent:
         if mode == "agent":
             iterations = int(self.window.core.config.get("agent.iterations"))
         elif self.is_agent_inline():
-            if self.window.controller.plugins.is_enabled("self_loop"):
-                iterations = int(self.window.core.plugins.get_option("self_loop", "iterations"))
+            if self.window.controller.plugins.is_enabled("agent"):
+                iterations = int(self.window.core.plugins.get_option("agent", "iterations"))
 
         if iterations == 0:
             iterations_str = "∞"  # infinity loop

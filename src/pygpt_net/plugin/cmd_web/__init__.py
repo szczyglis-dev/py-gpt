@@ -81,7 +81,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "disable_ssl",
             type="bool",
-            value=False,
+            value=True,
             label="Disable SSL verify",
             description="Disables SSL verification when crawling web pages",
             tooltip="Disable SSL verify",

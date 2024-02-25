@@ -231,8 +231,8 @@ If speech synthesis is enabled, a voice will be additionally generated in the ba
 Both ``OpenAI TTS`` and ``OpenAI Whisper`` use the same single API key provided for the OpenAI API, with no additional keys required.
 
 
-Autonomous Mode (inline)
-------------------------
+Autonomous Agent (inline)
+-------------------------
 
 **WARNING: Please use autonomous mode with caution!** - this mode, when connected with other plugins, may produce unexpected results!
 
@@ -477,6 +477,8 @@ Plugin capabilities include:
 * Downloading files
 * Copying files and directories
 * Moving (renaming) files and directories
+* Reading file info
+* Indexing files and directories using Llama-index
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -553,6 +555,18 @@ Allows `file_info` command execution. *Default:* `True`
 - ``Enable: Get current working directory`` *cmd_cwd*
 
 Allows `cwd` command execution. *Default:* `True`
+
+- ``Enable: indexing files`` *cmd_file_index*
+
+ If enabled, model will be able to index file or directory using Llama-index (``file_index`` command). *Default:* `True`
+
+- ``Index to use when indexing files`` *idx*
+
+ID of index to use for files indexing. *Default:* `base`
+
+- ``Use data loaders`` *use_loaders*
+
+Use data loaders from Llama-index for file reading (``read_file`` command). *Default:* `True`
 
 
 Command: Web Search

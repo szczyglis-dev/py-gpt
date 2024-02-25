@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -49,8 +49,8 @@ class Input:
         # if agent mode: iterations check
         if not force:
             if (mode == "agent" and self.window.core.config.get('agent.iterations') == 0) \
-                    or (self.window.controller.plugins.is_enabled("self_loop")
-                        and self.window.core.plugins.get_option("self_loop", "iterations") == 0):
+                    or (self.window.controller.plugins.is_enabled("agent")
+                        and self.window.core.plugins.get_option("agent", "iterations") == 0):
 
                 # show alert confirm
                 self.window.ui.dialogs.confirm(

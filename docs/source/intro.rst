@@ -41,7 +41,7 @@ Features
 * Provides an intuitive operation and interface.
 * Includes a notepad.
 * Includes simple painter / drawing tool
-* Includes optional Autonomous Mode
+* Includes optional Autonomous Mode (Agents)
 * Supports multiple languages.
 * Enables the use of all the powerful features of ``GPT-4``, ``GPT-4V``, and ``GPT-3.5``.
 * Requires no previous knowledge of using AI models.

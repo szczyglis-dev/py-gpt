@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 import os
@@ -894,6 +894,17 @@ class Patch:
                         for i, cmd in enumerate(data["plugins"]["cmd_custom"]["cmds"]):
                             if "enabled" not in cmd:
                                 data["plugins"]["cmd_custom"]["cmds"][i]["enabled"] = True
+                updated = True
+
+            # < 2.0.166 - migrate self_loop plugin to agent
+            if old < parse_version("2.0.166"):
+                print("Migrating config from < 2.0.166...")
+                if 'self_loop' in data["plugins"]:
+                    data["plugins"]["agent"] = data["plugins"]["self_loop"]
+                    del data["plugins"]["self_loop"]
+                if 'self_loop' in data["plugins_enabled"]:
+                    data["plugins_enabled"]["agent"] = data["plugins_enabled"]["self_loop"]
+                    del data["plugins_enabled"]["self_loop"]
                 updated = True
 
         # update file
