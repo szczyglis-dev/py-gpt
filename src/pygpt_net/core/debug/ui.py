@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.08 17:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 
@@ -20,32 +20,41 @@ class UIDebug:
         self.window = window
         self.id = 'ui'
 
-    def update_section(self, items, name):
-        """Update debug items"""
-        self.window.core.debug.add(self.id, 'ui.' + name, '')
+    def map_structure(self, d, show_value: bool = False):
+        """
+        Map dict structure
 
-        keys = list(items)
-        try:
-            for key in sorted(keys):
-                has_children = False
-                if type(items[key]) is dict:
-                    has_children = True
-                prefix = " -- "
-                label = key
-                if has_children:
-                    prefix = " + "
-                    label = '[' + key + ']'
-                self.window.core.debug.add(self.id, prefix, label)
-                if has_children:
-                    for sub_key in sorted(list(items[key])):
-                        sub_prefix = " ---- "
-                        self.window.core.debug.add(self.id, sub_prefix, '  ' + sub_key)
-        except Exception as e:
-            pass
+        :param d: data to map
+        :param show_value: show value
+        :return: mapped structure
+        """
+        if isinstance(d, dict):
+            return {k: self.map_structure(v, show_value) for k, v in d.items()}
+        elif isinstance(d, list):
+            return [self.map_structure(item, show_value) for item in d]
+        else:
+            if show_value:
+                return d
+            else:
+                return type(d).__name__
+
+    def update_section(self, items: dict, name: str):
+        """
+        Update debug items
+
+        :param items: items
+        :param name: name
+        """
+        self.window.core.debug.add(self.id, 'ui.' + name, str(self.map_structure(items)))
 
     def update(self):
         """Update debug window"""
         self.window.core.debug.begin(self.id)
+
+        self.window.core.debug.add(
+            self.id, '*lang_mapping',
+            str(self.map_structure(self.window.controller.lang.mapping.get_mapping(), True))
+        )
 
         self.update_section(self.window.ui.config, 'config')
         self.update_section(self.window.ui.debug, 'debug')

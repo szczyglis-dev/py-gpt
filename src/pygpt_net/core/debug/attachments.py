@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 
@@ -24,20 +24,21 @@ class AttachmentsDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
-        modes = ['chat', 'completion', 'img', 'vision', 'langchain', 'assistant']
+        modes = ['chat', 'completion', 'img', 'vision', 'langchain', 'assistant', 'llama_index', 'agent']
         for mode in modes:
-            self.window.core.debug.add(self.id, '[mode]', mode)
+            self.window.core.debug.add(self.id, '[' + mode + ']', '')
             attachments = self.window.core.attachments.get_all(mode)
             for key in list(attachments):
-                prefix = "[{}] ".format(key)
                 attachment = attachments[key]
-                self.window.core.debug.add(self.id, '----', '')
-                self.window.core.debug.add(self.id, str(key), '')
-                self.window.core.debug.add(self.id, prefix + 'ID', str(key))
-                self.window.core.debug.add(self.id, 'id', str(attachment.id))
-                self.window.core.debug.add(self.id, 'name', str(attachment.name))
-                self.window.core.debug.add(self.id, 'path', str(attachment.path))
-                self.window.core.debug.add(self.id, 'remote', str(attachment.remote))
-                self.window.core.debug.add(self.id, 'send', str(attachment.send))
+                data = {
+                    'path': attachment.path,
+                    'id': attachment.id,
+                    'name': attachment.name,
+                    'remote': attachment.remote,
+                    'send': attachment.send,
+                    'key': key,
+                    'mode': mode,
+                }
+                self.window.core.debug.add(self.id, attachment.name, str(data))
 
         self.window.core.debug.end(self.id)

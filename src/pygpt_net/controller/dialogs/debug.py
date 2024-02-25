@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 17:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -71,11 +71,12 @@ class Debug:
         :param id: debug id
         """
         self.window.ui.debug[id].setModel(self.models[id])
+        self.models[id].dataChanged.connect(self.window.ui.debug[id].on_data_begin)
 
         # set header
-        self.window.ui.debug[id].header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.window.ui.debug[id].header().setStretchLastSection(True)
+        #self.window.ui.debug[id].header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        #self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        #self.window.ui.debug[id].header().setStretchLastSection(True)
 
         if id not in self.counters or self.counters[id] != self.models[id].rowCount():
             self.models[id].removeRows(0, self.models[id].rowCount())
@@ -90,6 +91,7 @@ class Debug:
         """
         self.counters[id] = self.idx[id]
         self.initialized[id] = True
+        self.window.ui.debug[id].on_data_end()
 
     def add(self, id: str, k: str, v: any):
         """

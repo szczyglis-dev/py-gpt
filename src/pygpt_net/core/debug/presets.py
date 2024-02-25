@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 17:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 import os
@@ -26,28 +26,33 @@ class PresetsDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
+        self.window.core.debug.add(
+            self.id, 'Options',
+            str(self.window.controller.presets.editor.get_options())
+        )
+
         # presets
         for key in list(dict(self.window.core.presets.items)):
-            prefix = "[{}] ".format(key)
             preset = self.window.core.presets.items[key]
             path = os.path.join(self.window.core.config.path, 'presets', key + '.json')
-            self.window.core.debug.add(self.id, '----', '')
-            self.window.core.debug.add(self.id, str(key), '')
-            self.window.core.debug.add(self.id, prefix + 'ID', str(key))
-            self.window.core.debug.add(self.id, prefix + 'File', str(path))
-            self.window.core.debug.add(self.id, prefix + 'name', str(preset.name))
-            self.window.core.debug.add(self.id, prefix + 'ai_name', str(preset.ai_name))
-            self.window.core.debug.add(self.id, prefix + 'user_name', str(preset.user_name))
-            self.window.core.debug.add(self.id, prefix + 'prompt', str(preset.prompt))
-            self.window.core.debug.add(self.id, prefix + 'chat', str(preset.chat))
-            self.window.core.debug.add(self.id, prefix + 'completion', str(preset.completion))
-            self.window.core.debug.add(self.id, prefix + 'img', str(preset.img))
-            self.window.core.debug.add(self.id, prefix + 'vision', str(preset.vision))
-            self.window.core.debug.add(self.id, prefix + 'langchain', str(preset.langchain))
-            self.window.core.debug.add(self.id, prefix + 'assistant', str(preset.assistant))
-            self.window.core.debug.add(self.id, prefix + 'version', str(preset.version))
-            self.window.core.debug.add(self.id, prefix + 'llama_index', str(preset.llama_index))
-            self.window.core.debug.add(self.id, prefix + 'agent', str(preset.agent))
-            self.window.core.debug.add(self.id, prefix + 'temperature', str(preset.temperature))
+            data = {
+                'id': key,
+                'file': path,
+                'name': preset.name,
+                'ai_name': preset.ai_name,
+                'user_name': preset.user_name,
+                'prompt': preset.prompt,
+                'chat': preset.chat,
+                'completion': preset.completion,
+                'img': preset.img,
+                'vision': preset.vision,
+                'langchain': preset.langchain,
+                'assistant': preset.assistant,
+                'llama_index': preset.llama_index,
+                'agent': preset.agent,
+                'temperature': preset.temperature,
+                'version': preset.version,
+            }
+            self.window.core.debug.add(self.id, str(key), str(data))
 
         self.window.core.debug.end(self.id)

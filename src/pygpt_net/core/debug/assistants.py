@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 
@@ -24,21 +24,34 @@ class AssistantsDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
+        self.window.core.debug.add(self.id, '(thread) started', str(self.window.controller.assistant.threads.started))
+        self.window.core.debug.add(self.id, '(thread) stop', str(self.window.controller.assistant.threads.stop))
+        self.window.core.debug.add(self.id, '(thread) run_id', str(self.window.controller.assistant.threads.run_id))
+        self.window.core.debug.add(self.id, '(thread) tool_calls', str(self.window.controller.assistant.threads.tool_calls))
+
+        self.window.core.debug.add(
+            self.id, 'Options',
+            str(self.window.controller.assistant.editor.get_options())
+        )
+
+        self.window.core.debug.add(self.id, '----', '')
+
         # assistants
         assistants = self.window.core.assistants.get_all()
         for key in list(assistants):
             prefix = "[{}] ".format(key)
             assistant = assistants[key]
-            self.window.core.debug.add(self.id, '----', '')
-            self.window.core.debug.add(self.id, str(key), '')
-            self.window.core.debug.add(self.id, 'id', str(assistant.id))
-            self.window.core.debug.add(self.id, 'name', str(assistant.name))
-            self.window.core.debug.add(self.id, 'description', str(assistant.description))
-            self.window.core.debug.add(self.id, 'model', str(assistant.model))
-            self.window.core.debug.add(self.id, 'instructions', str(assistant.instructions))
-            self.window.core.debug.add(self.id, 'meta', str(assistant.meta))
-            self.window.core.debug.add(self.id, 'tools', str(assistant.tools))
-            self.window.core.debug.add(self.id, 'files', str(assistant.files))
-            self.window.core.debug.add(self.id, 'tools[function]', str(assistant.tools['function']))
+            data = {
+                'id': assistant.id,
+                'name': assistant.name,
+                'description': assistant.description,
+                'model': assistant.model,
+                'instructions': assistant.instructions,
+                'meta': assistant.meta,
+                'tools': assistant.tools,
+                'files': assistant.files,
+                'tools[function]': assistant.tools['function']
+            }
+            self.window.core.debug.add(self.id, str(assistant.name), str(data))
 
         self.window.core.debug.end(self.id)

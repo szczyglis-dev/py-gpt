@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 17:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 import os
@@ -29,23 +29,27 @@ class ModelsDebug:
         path = os.path.join(self.window.core.config.path, '', 'models.json')
         self.window.core.debug.add(self.id, 'Models File', str(path))
 
+        self.window.core.debug.add(
+            self.id, 'Options',
+            str(self.window.controller.model.editor.get_options())
+        )
+
         # models
         for key in self.window.core.models.items:
             if key == '__meta__':
                 self.window.core.debug.add(self.id, '__meta__', str(self.window.core.models.items[key]))
                 continue
-            prefix = "[{}] ".format(key)
             model = self.window.core.models.items[key]
-            self.window.core.debug.add(self.id, '----', '')
-            self.window.core.debug.add(self.id, str(key), '')
-            self.window.core.debug.add(self.id, prefix + 'Key', str(key))
-            self.window.core.debug.add(self.id, prefix + 'id', str(model.id))
-            self.window.core.debug.add(self.id, prefix + 'name', str(model.name))
-            self.window.core.debug.add(self.id, prefix + 'mode', str(model.mode))
-            self.window.core.debug.add(self.id, prefix + 'langchain', str(model.langchain))
-            self.window.core.debug.add(self.id, prefix + 'llama_index', str(model.llama_index))
-            self.window.core.debug.add(self.id, prefix + 'tokens', str(model.tokens))
-            self.window.core.debug.add(self.id, prefix + 'ctx', str(model.ctx))
-            self.window.core.debug.add(self.id, prefix + 'default', str(model.default))
+            data = {
+                'id': model.id,
+                'name': model.name,
+                'mode': model.mode,
+                'langchain': model.langchain,
+                'llama_index': model.llama_index,
+                'tokens': model.tokens,
+                'ctx': model.ctx,
+                'default': model.default,
+            }
+            self.window.core.debug.add(self.id, str(key), str(data))
 
         self.window.core.debug.end(self.id)

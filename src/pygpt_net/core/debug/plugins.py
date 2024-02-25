@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.02.25 22:00:00                  #
 # ================================================== #
 
 
@@ -24,23 +24,18 @@ class PluginsDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
-        # presets
+        # plugins
         for key in self.window.core.plugins.plugins:
-            prefix = "[{}] ".format(key)
             plugin = self.window.core.plugins.plugins[key]
-            self.window.core.debug.add(self.id, '----', '')
-            self.window.core.debug.add(self.id, str(key), '')
-            self.window.core.debug.add(self.id, prefix + 'ID', str(key))
-
+            data = {
+                'id': plugin.id,
+            }
             if plugin.name is not None:
-                self.window.core.debug.add(self.id, prefix + 'name', str(plugin.name))
-
+                data['name'] = plugin.name
             if plugin.description is not None:
-                self.window.core.debug.add(self.id, prefix + 'description', str(plugin.description))
-
+                data['description'] = plugin.description
             if plugin.options is not None:
-                for key in plugin.options:
-                    opt_prefix = prefix + '[options]' + "[{}] ".format(key)
-                    self.window.core.debug.add(self.id, opt_prefix, str(plugin.options[key]))
+                data['options'] = plugin.options
+            self.window.core.debug.add(self.id, str(key), str(data))
 
         self.window.core.debug.end(self.id)
