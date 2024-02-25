@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -14,6 +14,7 @@ from pygpt_net.launcher import Launcher
 # plugins
 from pygpt_net.plugin.audio_output import Plugin as AudioOutputPlugin
 from pygpt_net.plugin.audio_input import Plugin as AudioInputPlugin
+from pygpt_net.plugin.cmd_api import Plugin as CmdApiPlugin
 from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPlugin
 from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
 from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
@@ -54,11 +55,17 @@ from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader
 
 # audio providers
 from pygpt_net.provider.audio_input.openai_whisper import OpenAIWhisper
+from pygpt_net.provider.audio_input.google_speech_recognition import GoogleSpeechRecognition
+from pygpt_net.provider.audio_input.google_cloud_speech_recognition import GoogleCloudSpeechRecognition
+from pygpt_net.provider.audio_input.bing_speech_recognition import BingSpeechRecognition
 from pygpt_net.provider.audio_output.openai_tts import OpenAITextToSpeech
 from pygpt_net.provider.audio_output.ms_azure_tts import MSAzureTextToSpeech
+from pygpt_net.provider.audio_output.google_tts import GoogleTextToSpeech
+from pygpt_net.provider.audio_output.eleven_labs import ElevenLabsTextToSpeech
 
 # web search providers
 from pygpt_net.provider.web.google_custom_search import GoogleCustomSearch
+from pygpt_net.provider.web.microsoft_bing import MicrosoftBingSearch
 
 
 def run(**kwargs):
@@ -165,28 +172,34 @@ def run(**kwargs):
 
     # register audio providers
     launcher.add_audio_input(OpenAIWhisper())
+    launcher.add_audio_input(GoogleSpeechRecognition())
+    launcher.add_audio_input(GoogleCloudSpeechRecognition())
+    launcher.add_audio_input(BingSpeechRecognition())
     launcher.add_audio_output(OpenAITextToSpeech())
     launcher.add_audio_output(MSAzureTextToSpeech())
+    launcher.add_audio_output(GoogleTextToSpeech())
+    launcher.add_audio_output(ElevenLabsTextToSpeech())
 
     # register custom audio providers
-    plugins = kwargs.get('audio_input', None)
-    if isinstance(plugins, list):
-        for plugin in plugins:
-            launcher.add_audio_input(plugin)
+    providers = kwargs.get('audio_input', None)
+    if isinstance(providers, list):
+        for provider in providers:
+            launcher.add_audio_input(provider)
 
-    plugins = kwargs.get('audio_output', None)
-    if isinstance(plugins, list):
-        for plugin in plugins:
-            launcher.add_audio_output(plugin)
+    providers = kwargs.get('audio_output', None)
+    if isinstance(providers, list):
+        for provider in providers:
+            launcher.add_audio_output(provider)
 
     # register web providers
     launcher.add_web(GoogleCustomSearch())
+    launcher.add_web(MicrosoftBingSearch())
 
     # register custom web providers
-    plugins = kwargs.get('web', None)
-    if isinstance(plugins, list):
-        for plugin in plugins:
-            launcher.add_web(plugin)
+    providers = kwargs.get('web', None)
+    if isinstance(providers, list):
+        for provider in providers:
+            launcher.add_web(provider)
 
     # register base plugins
     launcher.add_plugin(SelfLoopPlugin())
@@ -198,6 +211,7 @@ def run(**kwargs):
     launcher.add_plugin(CmdFilesPlugin())
     launcher.add_plugin(CmdCodeInterpreterPlugin())
     launcher.add_plugin(CmdCustomCommandPlugin())
+    launcher.add_plugin(CmdApiPlugin())
     launcher.add_plugin(CmdSerialPlugin())
     launcher.add_plugin(CtxHistoryPlugin())
     launcher.add_plugin(OpenAIDallePlugin())

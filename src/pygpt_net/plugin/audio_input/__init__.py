@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 import os
@@ -424,6 +424,7 @@ class Plugin(BasePlugin):
         self.stop = True
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(False)
         self.set_status('')
+        self.window.ui.status("")
 
     def on_stop(self):
         """Event: AUDIO_INPUT_STOP"""
@@ -431,6 +432,7 @@ class Plugin(BasePlugin):
         self.listening = False
         self.speech_enabled = False
         self.set_status('')
+        self.window.ui.status("")
 
     def on_input_before(self, text: str):
         """
@@ -471,7 +473,6 @@ class Plugin(BasePlugin):
 
             # start
             self.window.threadpool.start(worker)
-            self.thread_started = True
 
         except Exception as e:
             self.error(e)
@@ -582,11 +583,12 @@ class Plugin(BasePlugin):
         """Handle listener destroyed"""
         self.thread_started = False
         self.set_status('')
+        self.window.ui.status("")
 
     @Slot()
     def handle_started(self):
         """Handle listening started"""
-        pass
+        self.thread_started = True
         # print("Whisper is listening...")
 
     @Slot()

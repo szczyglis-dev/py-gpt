@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 import os
@@ -876,6 +876,24 @@ class Patch:
                 if 'audio_azure' in data["plugins_enabled"]:
                     del data["plugins_enabled"]["audio_azure"]
 
+                updated = True
+
+            # < 2.0.165
+            if old < parse_version("2.0.165"):
+                print("Migrating config from < 2.0.165...")
+                if 'llama.idx.excluded_ext' not in data:
+                    data['llama.idx.excluded_ext'] = "3g2,3gp,7z,a,aac,aiff,alac,apk,apk,apng,app,ar,avi,avif," \
+                                                     "bin,bmp,bz2,cab,class,deb,deb,dll,dmg,dmg,drv,dsd,dylib," \
+                                                     "dylib,ear,egg,elf,esd,exe,flac,flv,gif,gz,heic,heif,ico," \
+                                                     "img,iso,jar,jpeg,jpg,ko,lib,lz,lz4,m2v,m4a,m4v,mkv,mov,mp3," \
+                                                     "mp4,mpc,msi,nrg,o,ogg,ogv,pcm,pkg,pkg,png,psd,pyc,rar,rpm,rpm," \
+                                                     "so,so,svg,swm,sys,tar,tiff,vdi,vhd,vhdx,vmdk,vob,war,wav," \
+                                                     "webm,webp,whl,wim,wma,wmv,xz,zip,zst"
+                if 'cmd_custom' in data["plugins"]:
+                    if 'cmds' in data["plugins"]["cmd_custom"]:
+                        for i, cmd in enumerate(data["plugins"]["cmd_custom"]["cmds"]):
+                            if "enabled" not in cmd:
+                                data["plugins"]["cmd_custom"]["cmds"][i]["enabled"] = True
                 updated = True
 
         # update file

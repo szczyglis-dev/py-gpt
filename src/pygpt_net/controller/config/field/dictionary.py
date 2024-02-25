@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -156,7 +156,10 @@ class Dictionary:
         sub_options = self.to_options(id, option)
         for key in sub_options:
             sub_option = sub_options[key]
-            sub_option["value"] = data[key]
+            if key in data:
+                sub_option["value"] = data[key]
+            else:
+                sub_option["value"] = ""
             self.window.controller.config.apply(
                 parent_id=parent_id,
                 key=key,

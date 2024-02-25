@@ -677,6 +677,19 @@
         "step": null,
         "advanced": false
     },
+    "llama.idx.excluded_ext": {
+        "section": "llama-index",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.llama.idx.excluded_ext",
+        "description": "settings.llama.idx.excluded_ext.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "llama.idx.storage.args": {
         "section": "llama-index",
         "type": "dict",

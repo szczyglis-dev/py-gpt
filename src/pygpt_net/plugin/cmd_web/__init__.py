@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 import ssl
@@ -93,6 +93,14 @@ class Plugin(BasePlugin):
             label="Timeout",
             description="Connection timeout (seconds)",
             tooltip="Connection timeout (seconds)",
+        )
+        self.add_option(
+            "user_agent",
+            type="text",
+            value="Mozilla/5.0",
+            label="User agent",
+            description="User agent to use when making requests, default: Mozilla/5.0",
+            tooltip="User agent to use when making requests",
         )
         self.add_option(
             "max_result_length",
@@ -440,16 +448,23 @@ class Plugin(BasePlugin):
             ctx.reply = True
             return
 
-    def get_url(self, url: str) -> bytes:
+    def get_url(self, url: str, extra_headers: dict = None) -> bytes:
         """
         Get URL content
 
         :param url: URL
-        :return: data
+        :param extra_headers: extra headers
+        :return: response data (bytes)
         """
+        headers = {
+            'User-Agent': self.get_option_value("user_agent"),
+        }
+        if extra_headers is not None:
+            headers.update(extra_headers)
+
         req = Request(
             url=url,
-            headers={'User-Agent': 'Mozilla/5.0'},
+            headers=headers,
         )
         if self.get_option_value('disable_ssl'):
             context = ssl.create_default_context()

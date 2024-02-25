@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -264,6 +264,7 @@ class Mapping:
         tooltips = {}
         tooltips['prompt.context'] = 'tip.tokens.ctx'
         tooltips['input.counter'] = 'tip.tokens.input'
+        tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['vision.capture.enable'] = 'vision.capture.enable.tooltip'
         tooltips['vision.capture.auto'] = 'vision.capture.auto.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'

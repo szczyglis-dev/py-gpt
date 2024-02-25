@@ -131,6 +131,8 @@ The following basic options can be modified directly within the application:
 
 * ``Vector Store`` Vector store in use (vector database provided by Llama-index).
 
+* ``Excluded file extensions`` File extensions to exclude if no data loader for this extension, separated by comma.
+
 * ``Vector Store (**kwargs)`` Arguments for vector store (api_key, index_name, etc.).
 
 * ``Log (console)`` Enables logging to console.
