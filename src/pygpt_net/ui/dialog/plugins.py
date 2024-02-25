@@ -183,6 +183,8 @@ class Plugins:
                     tab_name = tab_id
                     if tab_id in plugin.tabs:
                         tab_name = plugin.tabs[tab_id]
+                        if tab_id == "general":
+                            tab_name = trans("plugin.tab.general")
                     scroll_widget = QWidget()
                     scroll_widget.setLayout(content_tabs[tab_id])
                     scroll_tabs[tab_id].setWidget(scroll_widget)
