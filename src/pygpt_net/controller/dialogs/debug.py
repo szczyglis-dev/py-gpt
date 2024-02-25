@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.31 04:00:00                  #
+# Updated Date: 2024.02.25 17:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
 from PySide6.QtWidgets import QHeaderView
 
+from pygpt_net.core.debug.agent import AgentDebug
 from pygpt_net.core.debug.assistants import AssistantsDebug
 from pygpt_net.core.debug.attachments import AttachmentsDebug
 from pygpt_net.core.debug.config import ConfigDebug
@@ -37,6 +38,7 @@ class Debug:
 
         # setup workers
         self.workers = {}
+        self.workers['agent'] = AgentDebug(self.window)
         self.workers['assistants'] = AssistantsDebug(self.window)
         self.workers['attachments'] = AttachmentsDebug(self.window)
         self.workers['config'] = ConfigDebug(self.window)
@@ -72,8 +74,8 @@ class Debug:
 
         # set header
         self.window.ui.debug[id].header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.window.ui.debug[id].header().setStretchLastSection(False)
+        self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.window.ui.debug[id].header().setStretchLastSection(True)
 
         if id not in self.counters or self.counters[id] != self.models[id].rowCount():
             self.models[id].removeRows(0, self.models[id].rowCount())
