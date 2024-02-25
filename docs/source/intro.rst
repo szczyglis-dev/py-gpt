@@ -12,7 +12,7 @@ For audio interactions, **PyGPT** includes speech synthesis using the ``Microsof
 
 **PyGPT**'s functionality extends through plugin support, allowing for custom enhancements. Its multi-modal capabilities make it an adaptable tool for a range of AI-assisted operations, such as text-based interactions, system automation, daily assisting, vision applications, natural language processing, code generation and image creation.
 
-Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, Chat with files (via Llama-index), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
+Multiple operation modes are included, such as chatbot, text completion, assistant, vision, Langchain, Chat with files (via ``Llama-index``), commands execution, external API calls and image generation, making **PyGPT** a multi-tool for many AI-driven tasks.
 
 .. image:: images/v2_main.png
    :width: 800
