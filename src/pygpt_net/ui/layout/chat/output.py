@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 11:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 import os
@@ -140,6 +140,7 @@ class Output:
                 self.window.ui.nodes['inline.vision'].isChecked()))
         self.window.ui.nodes['inline.vision'].setVisible(False)
         self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
+        self.window.ui.nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
 
         # tokens info
         self.window.ui.nodes['prompt.context'] = ChatStatusLabel("")
