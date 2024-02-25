@@ -36,8 +36,16 @@ class Worker(BaseWorker):
         msg = None
         for item in self.cmds:
             for my_cmd in self.plugin.get_option_value("cmds"):
-                request = {"cmd": item["cmd"]}  # prepare request item for result
+                request = {
+                    "cmd": item["cmd"],
+                }  # prepare request item for result
+
                 if my_cmd["name"] == item["cmd"]:
+                    request = {
+                        "cmd": my_cmd["name"],
+                        "type": my_cmd["type"],
+                        "url": my_cmd["endpoint"],
+                    }
                     try:
                         post_params = {}
                         post_json = str(my_cmd["post_json"])  # POST JSON, as string
@@ -91,6 +99,10 @@ class Worker(BaseWorker):
                             self.log(msg)
                             continue
 
+                        # check if type is not empty
+                        if my_cmd["type"] not in ["POST", "POST_JSON", "GET"]:
+                            my_cmd["type"] = "GET"
+
                         # POST
                         if my_cmd["type"] == "POST":
                             msg = "[POST] Calling API endpoint: {}".format(endpoint)
@@ -102,8 +114,10 @@ class Worker(BaseWorker):
                             msg = "[POST JSON] Calling API endpoint: {}".format(endpoint)
                             self.log(msg)
                             try:
-                                json_object = json.loads(post_json)
-                                result = self.plugin.call_post(endpoint, json_object, headers)
+                                json_object = {}
+                                if post_json is not None and post_json.strip() != "":
+                                    json_object = json.loads(post_json)
+                                result = self.plugin.call_post_json(endpoint, json_object, headers)
                             except Exception as e:
                                 msg = "Error: {}".format(e)
                                 self.error(e)
@@ -121,6 +135,8 @@ class Worker(BaseWorker):
                         else:
                             # encode bytes result to utf-8
                             result = result.decode("utf-8")
+
+                        request["url"] = endpoint
 
                         response = {
                             "request": request,
