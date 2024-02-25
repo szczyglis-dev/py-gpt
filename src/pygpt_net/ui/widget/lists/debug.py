@@ -30,8 +30,8 @@ class DebugList(QTreeView):
         self.setRootIsDecorated(False)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setWordWrap(True)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setItemDelegate(ExpandingDelegate(self))
+        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setItemDelegate(ExpandingDelegate(self, self))
         self.clicked.connect(self.onItemClicked)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.header().setStretchLastSection(False)
@@ -91,13 +91,14 @@ class DebugList(QTreeView):
 
 
 class ExpandingDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, treeView=None):
         """
         Expanding delegate
 
         :param parent: Parent
         """
         super().__init__(parent)
+        self.treeView = treeView
         self.expandedRows = {}
 
     def paint(self, painter, option, index):
@@ -118,9 +119,10 @@ class ExpandingDelegate(QStyledItemDelegate):
         :param index: Index
         """
         if index.row() in self.expandedRows:
+            columnWidth = self.treeView.columnWidth(index.column())
             textDocument = QTextDocument()
             textDocument.setPlainText(str(index.data()))
-            textDocument.setTextWidth(option.rect.width())
+            textDocument.setTextWidth(columnWidth)
             return QSize(option.rect.width(), textDocument.size().height())
         else:
             return super().sizeHint(option, index)
