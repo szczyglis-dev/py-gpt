@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.27 15:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 from llama_index.llms import ChatMessage, MessageRole
@@ -60,7 +60,7 @@ class Chat:
 
     def query(self, **kwargs) -> bool:
         """
-        Query index
+        Query index mode (no chat, only single query)
 
         :param kwargs: keyword arguments
         :return: True if success
@@ -72,28 +72,15 @@ class Chat:
         stream = kwargs.get("stream", False)
         query = ctx.input
 
-        # log query
-        is_log = False
-        if self.window.core.config.has("log.llama") \
-                and self.window.core.config.get("log.llama"):
-            is_log = True
-
         if model is None:
             raise Exception("Model config not provided")
 
-        log_msg = "[LLAMA-INDEX] Query index..."
-        self.window.core.debug.info(log_msg, not is_log)
-        if is_log:
-            print(log_msg)
-
-        log_msg = "[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
+        self.log("Query index...")
+        self.log("Idx: {}, query: {}, model: {}".format(
             idx,
             query,
             model.id,
-        )
-        self.window.core.debug.info(log_msg, not is_log)
-        if is_log:
-            print(log_msg)
+        ))
 
         # check if index exists
         if not self.storage.exists(idx):
@@ -109,10 +96,7 @@ class Chat:
         # query index
         tpl = self.get_custom_prompt(system_prompt)
         if tpl is not None:
-            log_msg = "[LLAMA-INDEX] Query index with custom prompt: {}...".format(system_prompt)
-            self.window.core.debug.info(log_msg, not is_log)
-            if is_log:
-                print(log_msg)
+            self.log("Query index with custom prompt: {}...".format(system_prompt))
             response = index.as_query_engine(
                 streaming=stream,
                 text_qa_template=tpl,
@@ -139,7 +123,7 @@ class Chat:
 
     def chat(self, **kwargs) -> bool:
         """
-        Chat using index
+        Chat mode (conversation, using context from index)
 
         :param kwargs: keyword arguments
         :return: True if success
@@ -151,28 +135,15 @@ class Chat:
         stream = kwargs.get("stream", False)
         query = ctx.input
 
-        # log query
-        is_log = False
-        if self.window.core.config.has("log.llama") \
-                and self.window.core.config.get("log.llama"):
-            is_log = True
-
         if model is None:
             raise Exception("Model config not provided")
 
-        log_msg = "[LLAMA-INDEX] Chat with index..."
-        self.window.core.debug.info(log_msg, not is_log)
-        if is_log:
-            print(log_msg)
-
-        log_msg = "[LLAMA-INDEX] Idx: {}, query: {}, model: {}".format(
+        self.log("Chat with index...")
+        self.log("Idx: {}, query: {}, model: {}".format(
             idx,
             query,
             model.id,
-        )
-        self.window.core.debug.info(log_msg, not is_log)
-        if is_log:
-            print(log_msg)
+        ))
 
         # check if index exists
         if not self.storage.exists(idx):
@@ -249,3 +220,17 @@ class Chat:
             ),
         ]
         return ChatPromptTemplate(qa_msgs)
+
+    def log(self, msg: str):
+        """
+        Log info message
+
+        :param msg: message
+        """
+        is_log = False
+        if self.window.core.config.has("log.llama") \
+                and self.window.core.config.get("log.llama"):
+            is_log = True
+        self.window.core.debug.info(msg, not is_log)
+        if is_log:
+            print("[LLAMA-INDEX] {}".format(msg))
