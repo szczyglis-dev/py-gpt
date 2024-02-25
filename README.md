@@ -1316,9 +1316,9 @@ An example API call is provided with plugin by default, it calls the Wikipedia A
 - Type: `GET`
 - API endpoint: https://en.wikipedia.org/w/api.php?action=opensearch&limit={limit}&format=json&search={query}
 
-In the above example, every time you ask the model for query Wiki for provided query (e.g. `Call the Wikipedia for query 'Nicola Tesla'`) it will replace placeholders in provided API endpoint URL with a generated query and it will call prepared API endpoint URL, like below:
+In the above example, every time you ask the model for query Wiki for provided query (e.g. `Call the Wikipedia API for query: Nikola Tesla`) it will replace placeholders in provided API endpoint URL with a generated query and it will call prepared API endpoint URL, like below:
 
-https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&format=json&search=Nicola%20Tesla
+https://en.wikipedia.org/w/api.php?action=opensearch&limit=5&format=json&search=Nikola%20Tesla
 
 You can specify type of request: `GET`, `POST` and `POST JSON`.
 
