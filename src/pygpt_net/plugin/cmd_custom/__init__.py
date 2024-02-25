@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.25 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -29,6 +29,7 @@ class Plugin(BasePlugin):
     def init_options(self):
         """Initialize options"""
         keys = {
+            "enabled": "bool",
             "name": "text",
             "instruction": "textarea",
             "params": "textarea",
@@ -36,6 +37,7 @@ class Plugin(BasePlugin):
         }
         items = [
             {
+                "enabled": True,
                 "name": "example_cmd",
                 "instruction": "execute tutorial test command by replacing 'hello' and 'world' params with some funny "
                                "words",
@@ -100,6 +102,8 @@ class Plugin(BasePlugin):
         :param data: event data dict
         """
         for item in self.get_option_value("cmds"):
+            if not item["enabled"]:
+                continue
             cmd = {
                 "cmd": item["name"],
                 "instruction": item["instruction"],
@@ -123,6 +127,8 @@ class Plugin(BasePlugin):
         my_commands = []
         for item in cmds:
             for my_cmd in self.get_option_value("cmds"):
+                if not my_cmd["enabled"]:
+                    continue
                 if my_cmd["name"] == item["cmd"]:
                     is_cmd = True
                     my_commands.append(item)
