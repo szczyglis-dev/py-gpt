@@ -51,7 +51,7 @@ class UrlLabel(QLabel):
         self.update_url()
         self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setToolTip(url)
-        self.setWordWrap(True)
+        # self.setWordWrap(True)
 
     def update_url(self):
         text = self.text

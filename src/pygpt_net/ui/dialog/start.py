@@ -44,7 +44,6 @@ class Start:
 
         self.window.ui.nodes['start.title'] = QLabel(trans('dialog.start.title.text'))
         link = UrlLabel('', trans('dialog.start.link'))
-        link.setWordWrap(False)
         self.window.ui.nodes['start.settings'] = QLabel(trans('dialog.start.settings.text'))
         self.window.ui.nodes['start.settings'].setAlignment(Qt.AlignCenter)
 

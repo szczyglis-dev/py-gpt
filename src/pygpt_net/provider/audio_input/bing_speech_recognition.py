@@ -31,7 +31,7 @@ class BingSpeechRecognition(BaseProvider):
     def init_options(self):
         """Initialize options"""
         url_docs = {
-            "Reference": "https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst",
+            "Help": "https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst",
         }
         self.plugin.add_option(
             "bing_args",
