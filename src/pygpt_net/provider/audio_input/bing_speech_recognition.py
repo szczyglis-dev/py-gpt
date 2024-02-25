@@ -68,7 +68,7 @@ class BingSpeechRecognition(BaseProvider):
         file = sr.AudioFile(path)
         with file as source:
             audio = r.record(source)
-        return r.recognize_google(audio, **args)
+        return r.recognize_bing(audio, **args)
 
     def is_configured(self) -> bool:
         """
