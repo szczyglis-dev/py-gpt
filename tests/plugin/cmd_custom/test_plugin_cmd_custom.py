@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.04 05:00:00                  #
+# Updated Date: 2024.02.25 02:00:00                  #
 # ================================================== #
 
 import os
@@ -40,6 +40,7 @@ def test_handle_cmd_syntax(mock_window):
     event.ctx = ctx
     cmds = [
         {
+            "enabled": True,
             "name": "example_cmd",
             "instruction": "execute tutorial test command",
             "params": "hello, world",
@@ -72,6 +73,7 @@ def test_handle_cmd_execute(mock_window):
     event.ctx = ctx
     cmds = [
         {
+            "enabled": True,
             "name": "example_cmd",
             "instruction": "execute tutorial test command",
             "params": "hello, world",
