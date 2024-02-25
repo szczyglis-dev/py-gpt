@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.164** | build: **2024.02.24** | Python: **>=3.10, <3.12**
+Release: **2.0.165** | build: **2024.02.25** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2594,6 +2594,15 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.165 (2024-02-25)
+
+- Added search provider: `Bing`.
+- Added audio output providers: `Google`, `Bing`, and `Eleven Labs`.
+- Added audio input providers: `Google`, `Google Cloud`, and `Bing`.
+- Added a new plugin: `Command: API calls` which allows defining commands for API calls to external services.
+- Added an `Excluded file extensions` configuration option in `Settings -> Llama-index`.
+- Fixed audio input listener initialization in the Audio Input plugin.
 
 # 2.0.164 (2024-02-24)
 
