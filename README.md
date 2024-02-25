@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.167** | build: **2024.02.25** | Python: **>=3.10, <3.12**
+Release: **2.0.168** | build: **2024.02.25** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2615,6 +2615,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.168 (2024-02-25)
+
+- Added auto index file on read option in the `Files I/O` plugin
+- Improved debugger
+- Fixed Bing speech recognition
 
 # 2.0.167 (2024-02-25)
 

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.0.168 (2024-02-25)
+
+- Added auto index file on read option in the `Files I/O` plugin
+- Improved debugger
+- Fixed Bing speech recognition
+
 # 2.0.167 (2024-02-25)
 
 - Fixed empty API key dialog.
