@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 import datetime
@@ -633,8 +633,8 @@ class Ctx:
         if self.window.core.config.has('ctx.records.limit'):
             limit = int(self.window.core.config.get('ctx.records.limit') or 0)
 
-        # all items
-        if "is_important" not in self.filters and "label" not in self.filters:
+        # all items (pinned first)
+        if "is_important" not in self.filters and "label" not in self.filters and "indexed_ts" not in self.filters:
             meta_pinned = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
