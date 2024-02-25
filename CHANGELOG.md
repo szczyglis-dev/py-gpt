@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.0.169 (2024-02-25)
+
+- Improved and refactored debugging
+
 # 2.0.168 (2024-02-25)
 
 - Added auto index file on read option in the `Files I/O` plugin
