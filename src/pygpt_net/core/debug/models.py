@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.02.25 17:00:00                  #
 # ================================================== #
 
 import os
@@ -43,6 +43,7 @@ class ModelsDebug:
             self.window.core.debug.add(self.id, prefix + 'name', str(model.name))
             self.window.core.debug.add(self.id, prefix + 'mode', str(model.mode))
             self.window.core.debug.add(self.id, prefix + 'langchain', str(model.langchain))
+            self.window.core.debug.add(self.id, prefix + 'llama_index', str(model.llama_index))
             self.window.core.debug.add(self.id, prefix + 'tokens', str(model.tokens))
             self.window.core.debug.add(self.id, prefix + 'ctx', str(model.ctx))
             self.window.core.debug.add(self.id, prefix + 'default', str(model.default))

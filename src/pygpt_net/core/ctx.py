@@ -53,6 +53,7 @@ class Ctx:
             'llama_index': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
             'agent': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
         }
+        self.current_sys_prompt = ""
 
     def install(self):
         """Install provider data"""

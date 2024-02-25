@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2023.12.28 21:00:00                  #
+# Updated Date: 2024.02.25 17:00:00                  #
 # ================================================== #
 
 class ContextDebug:
@@ -35,6 +35,8 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'last_mode', str(self.window.core.ctx.last_mode))
         self.window.core.debug.add(self.id, 'last_model', str(self.window.core.ctx.last_model))
         self.window.core.debug.add(self.id, 'search_string', str(self.window.core.ctx.search_string))
+        self.window.core.debug.add(self.id, 'filters', str(self.window.core.ctx.filters))
+        self.window.core.debug.add(self.id, 'sys_prompt (tmp)', str(self.window.core.ctx.current_sys_prompt))
 
         current = None
         if self.window.core.ctx.current is not None:
@@ -49,6 +51,8 @@ class ContextDebug:
                 self.window.core.debug.add(self.id, '*** (current) date', str(current.date))
                 self.window.core.debug.add(self.id, '*** (current) created', str(current.created))
                 self.window.core.debug.add(self.id, '*** (current) updated', str(current.updated))
+                self.window.core.debug.add(self.id, '*** (current) indexed', str(current.indexed))
+                self.window.core.debug.add(self.id, '*** (current) indexes', str(current.indexes))
                 self.window.core.debug.add(self.id, '*** (current) mode', str(current.mode))
                 self.window.core.debug.add(self.id, '*** (current) model', str(current.model))
                 self.window.core.debug.add(self.id, '*** (current) last_mode', str(current.last_mode))
@@ -58,11 +62,12 @@ class ContextDebug:
                 self.window.core.debug.add(self.id, '*** (current) preset', str(current.preset))
                 self.window.core.debug.add(self.id, '*** (current) run', str(current.run))
                 self.window.core.debug.add(self.id, '*** (current) status', str(current.status))
-                self.window.core.debug.add(self.id, '*** (current) extra', str(current.extra))
+                self.window.core.debug.add(self.id, '*** (current) label', str(current.label))
                 self.window.core.debug.add(self.id, '*** (current) initialized', str(current.initialized))
                 self.window.core.debug.add(self.id, '*** (current) deleted', str(current.deleted))
                 self.window.core.debug.add(self.id, '*** (current) important', str(current.important))
                 self.window.core.debug.add(self.id, '*** (current) archived', str(current.archived))
+                self.window.core.debug.add(self.id, '*** (current) extra', str(current.extra))
 
         i = 0
         self.window.core.debug.add(self.id, 'items[]:', '')
@@ -94,6 +99,10 @@ class ContextDebug:
             self.window.core.debug.add(self.id, prefix + 'output_tokens', str(item.output_tokens))
             self.window.core.debug.add(self.id, prefix + 'total_tokens', str(item.total_tokens))
             self.window.core.debug.add(self.id, prefix + 'extra', str(item.extra))
+            self.window.core.debug.add(self.id, prefix + 'is_vision', str(item.is_vision))
+            self.window.core.debug.add(self.id, prefix + 'idx', str(item.idx))
+            self.window.core.debug.add(self.id, prefix + 'first', str(item.first))
+            self.window.core.debug.add(self.id, prefix + 'tool_calls', str(item.tool_calls))
             self.window.core.debug.add(self.id, '------', '')
             i += 1
 

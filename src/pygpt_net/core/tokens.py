@@ -264,6 +264,7 @@ class Tokens:
         user_name = self.window.core.config.get('user_name')
         ai_name = self.window.core.config.get('ai_name')
 
+        system_prompt = ""
         system_tokens = 0
         input_tokens = 0
         max_total_tokens = self.window.core.config.get('max_total_tokens')
@@ -301,6 +302,9 @@ class Tokens:
                     message += "\n" + str(input_prompt)
                 input_tokens = self.from_text(message, model_id)
                 extra_tokens = 0  # no extra tokens in completion mode
+
+        # tmp system prompt
+        self.window.core.ctx.current_sys_prompt = system_prompt
 
         # used tokens
         used_tokens = system_tokens + input_tokens
