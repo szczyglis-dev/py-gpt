@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -103,14 +103,17 @@ class Worker(BaseWorker):
                                 self.plugin.window.core.config.get_user_dir('data'),
                                 item["params"]['filename'],
                             )
+                            use_loaders = self.plugin.get_option_value("use_loaders")
                             if os.path.exists(path):
-                                with open(path, 'r', encoding="utf-8") as file:
-                                    data = file.read()
-                                    response = {
-                                        "request": request,
-                                        "result": data,
-                                    }
-                                    self.log("File read: {}".format(path))
+                                data = self.plugin.read_as_text(
+                                    path,
+                                    use_loaders=use_loaders,
+                                )
+                                response = {
+                                    "request": request,
+                                    "result": data,
+                                }
+                                self.log("File read: {}".format(path))
                             else:
                                 response = {
                                     "request": request,
@@ -589,6 +592,47 @@ class Worker(BaseWorker):
                                 response = {
                                     "request": request,
                                     "result": "File not found",
+                                }
+                                self.log("File not found: {}".format(path))
+                        except Exception as e:
+                            response = {
+                                "request": request,
+                                "result": "Error: {}".format(e),
+                            }
+                            self.error(e)
+                            self.log("Error: {}".format(e))
+                        self.response(response)
+
+                    # index file or directory
+                    elif item["cmd"] == "file_index" and self.plugin.is_cmd_allowed("file_index"):
+                        try:
+                            msg = "Indexing path: {}".format(item["params"]['path'])
+                            self.log(msg)
+                            path = os.path.join(
+                                self.plugin.window.core.config.get_user_dir('data'),
+                                item["params"]['path'],
+                            )
+                            if os.path.exists(path):
+                                idx_name = self.plugin.get_option_value("idx")
+                                # index path using Llama-index
+                                files, errors = self.plugin.window.core.idx.index_files(
+                                    idx_name,
+                                    path,
+                                )
+                                data = {
+                                    'num_indexed': len(files),
+                                    'index_name': idx_name,
+                                    'errors': errors,
+                                    'path': path,
+                                }
+                                response = {
+                                    "request": request,
+                                    "result": data,
+                                }
+                            else:
+                                response = {
+                                    "request": request,
+                                    "result": "File or directory not found",
                                 }
                                 self.log("File not found: {}".format(path))
                         except Exception as e:

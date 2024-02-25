@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
+
 import json
 import ssl
 from urllib.parse import urlencode
@@ -25,7 +26,7 @@ class Plugin(BasePlugin):
         super(Plugin, self).__init__(*args, **kwargs)
         self.id = "cmd_api"
         self.name = "Command: API calls"
-        self.description = "Provides availability to sending external API calls"
+        self.description = "Provides the ability to make external API calls"
         self.order = 100
         self.use_locale = True
         self.init_options()
@@ -77,9 +78,9 @@ class Plugin(BasePlugin):
         self.add_option(
             "disable_ssl",
             type="bool",
-            value=True,
+            value=False,
             label="Disable SSL verify",
-            description="Disables SSL verification when calling API",
+            description="Disables SSL verification when making calls to API",
             tooltip="Disable SSL verify",
         )
         self.add_option(

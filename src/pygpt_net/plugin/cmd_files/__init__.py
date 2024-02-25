@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.18 05:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
+
+import os
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -42,6 +44,7 @@ class Plugin(BasePlugin):
             "file_info",
             "send_file",
             "cwd",
+            "file_index",
         ]
         self.use_locale = True
         self.init_options()
@@ -174,6 +177,29 @@ class Plugin(BasePlugin):
             value=True,
             label="Enable: Get current working directory (cwd)",
             description="Allows `cwd` command execution",
+        )
+        self.add_option(
+            "cmd_file_index",
+            type="bool",
+            value=True,
+            label="Enable: \"file_index\" command",
+            description="If enabled, model will be able to index file or directory using Llama-index",
+            tooltip="If enabled, model will be able to index file or directory using Llama-index",
+        )
+        self.add_option(
+            "idx",
+            type="text",
+            value="base",
+            label="Index to use when indexing files",
+            description="ID of index to use for files indexing",
+            tooltip="Index name",
+        )
+        self.add_option(
+            "use_loaders",
+            type="bool",
+            value=True,
+            label="Use data loaders",
+            description="Use data loaders from Llama-index for file reading (read_file command)",
         )
 
         # cmd syntax (prompt/instruction)
@@ -321,6 +347,15 @@ class Plugin(BasePlugin):
             description="Syntax for getting current working directory",
             advanced=True,
         )
+        self.add_option(
+            "syntax_file_index",
+            type="textarea",
+            value='"file_index": use it to index (embed in Vector Store) a file or directory for future use. '
+                  'Params: "path"',
+            label="Syntax: file_index",
+            description="Syntax for file_index command",
+            advanced=True,
+        )
 
     def setup(self) -> dict:
         """
@@ -426,6 +461,21 @@ class Plugin(BasePlugin):
         if self.has_option(key) and self.get_option_value(key) is True:
             return True
         return False
+
+    def read_as_text(self, path: str, use_loaders: bool = True) -> str:
+        """
+        Read file and return content as text
+
+        :param path: file path
+        :param use_loaders: use Llama-index loader to read file
+        :return: text content
+        """
+        if use_loaders:
+            return str(self.window.core.idx.indexing.read_text_content(path))
+        else:
+            with open(path, 'r', encoding="utf-8") as file:
+                data = file.read()
+            return data
 
     def log(self, msg: str):
         """

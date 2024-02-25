@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 import os.path
@@ -152,6 +152,19 @@ class Indexing:
                     reader = SimpleDirectoryReader(input_files=[path])
                     documents = reader.load_data()
         return documents
+
+    def read_text_content(self, path: str) -> str:
+        """
+        Get content from file using loaders
+
+        :param path: path to file
+        :return: file content
+        """
+        docs = self.get_documents(path)
+        data = []
+        for doc in docs:
+            data.append(doc.text)
+        return "\n".join(data)
 
     def index_files(self, idx: str, index: BaseIndex, path: str = None) -> tuple:
         """

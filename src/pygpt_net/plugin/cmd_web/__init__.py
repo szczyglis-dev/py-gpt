@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.25 06:00:00                  #
 # ================================================== #
 
 import ssl
@@ -81,7 +81,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "disable_ssl",
             type="bool",
-            value=True,
+            value=False,
             label="Disable SSL verify",
             description="Disables SSL verification when crawling web pages",
             tooltip="Disable SSL verify",

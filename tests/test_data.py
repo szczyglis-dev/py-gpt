@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.25 05:00:00                  #
 # ================================================== #
 
 import json
@@ -105,18 +105,20 @@ def test_locale():
     path = os.path.join(config.get_app_path(), "data", "locale")
     files = [
         "locale.en.ini",
+        "plugin.agent.en.ini",
         "plugin.audio_output.en.ini",
         "plugin.audio_input.en.ini",
+        "plugin.cmd_api.en.ini",
         "plugin.cmd_code_interpreter.en.ini",
         "plugin.cmd_custom.en.ini",
         "plugin.cmd_files.en.ini",
+        "plugin.cmd_serial.en.ini",
         "plugin.cmd_web.en.ini",
         "plugin.crontab.en.ini",
         "plugin.idx_llama_index.en.ini",
         "plugin.openai_dalle.en.ini",
         "plugin.openai_vision.en.ini",
         "plugin.real_time.en.ini",
-        "plugin.self_loop.en.ini",
     ]
     for file in files:
         assert os.path.exists(os.path.join(path, file))
