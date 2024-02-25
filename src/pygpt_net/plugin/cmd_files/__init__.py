@@ -201,6 +201,20 @@ class Plugin(BasePlugin):
             label="Use data loaders",
             description="Use data loaders from Llama-index for file reading (read_file command)",
         )
+        self.add_option(
+            "auto_index",
+            type="bool",
+            value=False,
+            label="Auto index reading files",
+            description="If enabled, every time file is read, it will be automatically indexed",
+        )
+        self.add_option(
+            "only_index",
+            type="bool",
+            value=False,
+            label="Only index reading files",
+            description="If enabled, file will be indexed without reading it",
+        )
 
         # cmd syntax (prompt/instruction)
         self.add_option(

@@ -1554,6 +1554,14 @@ ID of index to use for files indexing. *Default:* `base`
 
 Use data loaders from Llama-index for file reading (`read_file` command). *Default:* `True`
 
+- `Auto index reading files` *auto_index*
+
+If enabled, every time file is read, it will be automatically indexed. *Default:* `False`
+
+- `Only index reading files` *only_index*
+
+If enabled, file will be indexed without return its content on file read. *Default:* `False`
+
 ## Command: Web Search
 
 **PyGPT** lets you connect GPT to the internet and carry out web searches in real time as you make queries.

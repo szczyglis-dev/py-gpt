@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.25 17:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -103,11 +103,39 @@ class Worker(BaseWorker):
                                 self.plugin.window.core.config.get_user_dir('data'),
                                 item["params"]['filename'],
                             )
-                            use_loaders = self.plugin.get_option_value("use_loaders")
+
+                            # check if file exists
                             if os.path.exists(path):
+
+                                # auto-index file using Llama-index
+                                if self.plugin.get_option_value("auto_index") \
+                                        or self.plugin.get_option_value("only_index"):
+                                    idx_name = self.plugin.get_option_value("idx")
+                                    files, errors = self.plugin.window.core.idx.index_files(
+                                        idx_name,
+                                        path,
+                                    )
+
+                                    # if only index, return response and continue
+                                    if self.plugin.get_option_value("only_index"):
+                                        data = {
+                                            'num_indexed': len(files),
+                                            'index_name': idx_name,
+                                            'errors': errors,
+                                            'path': path,
+                                        }
+                                        response = {
+                                            "request": request,
+                                            "result": data,
+                                        }
+                                        self.log("File read (index only): {}".format(path))
+                                        self.response(response)
+                                        continue
+
+                                # read file as text
                                 data = self.plugin.read_as_text(
                                     path,
-                                    use_loaders=use_loaders,
+                                    use_loaders=self.plugin.get_option_value("use_loaders"),
                                 )
                                 response = {
                                     "request": request,
