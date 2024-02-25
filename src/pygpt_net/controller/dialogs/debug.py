@@ -73,11 +73,6 @@ class Debug:
         self.window.ui.debug[id].setModel(self.models[id])
         self.models[id].dataChanged.connect(self.window.ui.debug[id].on_data_begin)
 
-        # set header
-        #self.window.ui.debug[id].header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        #self.window.ui.debug[id].header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        #self.window.ui.debug[id].header().setStretchLastSection(True)
-
         if id not in self.counters or self.counters[id] != self.models[id].rowCount():
             self.models[id].removeRows(0, self.models[id].rowCount())
             self.initialized[id] = False
@@ -159,7 +154,7 @@ class Debug:
         if id not in self.active:
             return
         self.active[id] = True
-        self.window.ui.dialogs.open('debug.' + id)
+        self.window.ui.dialogs.open('debug.' + id, width=800, height=600)
 
     def hide(self, id: str):
         """

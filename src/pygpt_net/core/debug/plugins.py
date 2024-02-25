@@ -24,18 +24,15 @@ class PluginsDebug:
         """Update debug window."""
         self.window.core.debug.begin(self.id)
 
-        # plugins
-        for key in self.window.core.plugins.plugins:
+        plugins = list(self.window.core.plugins.plugins.keys())
+        for key in plugins:
             plugin = self.window.core.plugins.plugins[key]
             data = {
                 'id': plugin.id,
+                'name': plugin.name,
+                'description': plugin.description,
+                'options': plugin.options
             }
-            if plugin.name is not None:
-                data['name'] = plugin.name
-            if plugin.description is not None:
-                data['description'] = plugin.description
-            if plugin.options is not None:
-                data['options'] = plugin.options
             self.window.core.debug.add(self.id, str(key), str(data))
 
         self.window.core.debug.end(self.id)
