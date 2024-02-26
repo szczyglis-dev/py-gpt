@@ -108,6 +108,12 @@ sudo snap refresh pygpt
 sudo snap connect pygpt:camera
 ```
 
+**Using microphone:** to use microphone in Snap version you must connect the microphone with:
+
+```commandline
+sudo snap connect pygpt:audio-record :audio-record
+```
+
 ## PyPi (pip)
 
 The application can also be installed from `PyPi` using `pip install`:
@@ -244,12 +250,20 @@ sudo apt install libasound2-data
 sudo apt install libasound2-plugins
 ```
 
-**Camera access in Snap version:**
+**Access to camera in Snap version:**
 
 To use camera in Vision mode in Snap version you must connect the camera with:
 
 ```commandline
 sudo snap connect pygpt:camera
+```
+
+**Access to microphone in Snap version:**
+
+To use microphone in Snap version you must connect the microphone with:
+
+```commandline
+sudo snap connect pygpt:audio-record :audio-record
 ```
 
 **Windows and VC++ Redistributable**

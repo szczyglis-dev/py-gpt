@@ -37,11 +37,18 @@ To manage future updates just use:
     sudo snap refresh pygpt
 
 
-**Info:** to use camera in Snap version you must connect the camera with interface:
+**Using camera:** to use camera in Snap version you must connect the camera with interface:
 
 .. code-block:: console
 
     snap connect pygpt:camera
+
+
+**Using microphone:** to use microphone in Snap version you must connect the microphone with:
+
+.. code-block:: console
+
+    sudo snap connect pygpt:audio-record :audio-record
 
 
 **Snap Store:** https://snapcraft.io/pygpt
@@ -187,13 +194,21 @@ If you have a problems with audio on Linux, then try to install ``portaudio19-de
     sudo apt install libasound2-plugins
 
 
-**Camera access in Snap version:**
+**Access to camera in Snap version:**
 
 To use camera in Vision mode in Snap version you must connect the camera with:
 
 .. code-block:: console
 
     sudo snap connect pygpt:camera
+
+**Access to microphone in Snap version:**
+
+To use microphone in Snap version you must connect the microphone with:
+
+.. code-block:: console
+
+    sudo snap connect pygpt:audio-record :audio-record
 
 
 **Windows and VC++ Redistributable**

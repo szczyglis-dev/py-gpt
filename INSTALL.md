@@ -28,6 +28,12 @@ sudo snap refresh pygpt
 sudo snap connect pygpt:camera
 ```
 
+**Using microphone:** to use microphone in Snap version you must connect the microphone with:
+
+```commandline
+sudo snap connect pygpt:audio-record :audio-record
+```
+
 ## PyPi (pip)
 
 The application can also be installed from `PyPI` using `pip install`:
