@@ -26,6 +26,7 @@ class Simple:
         self.plugin = plugin
         self.is_recording = False
         self.frames = []
+        self.p = None
         self.stream = None
 
     def toggle_recording(self):
@@ -35,12 +36,20 @@ class Simple:
         else:
             self.start_recording()
 
+    def switch_btn_stop(self):
+        """Switch button stop"""
+        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn.stop'))
+        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(
+            trans('audio.speak.btn.stop.tooltip'))
+
+    def switch_btn_start(self):
+        """Switch button start"""
+        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
+        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(trans('audio.speak.btn.tooltip'))
+
     def start_recording(self):
         """Start recording"""
-        self.is_recording = True
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn.stop'))
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(trans('audio.speak.btn.stop.tooltip'))
-        self.p = pyaudio.PyAudio()
+        self.frames = []  # clear audio frames
 
         def callback(in_data, frame_count, time_info, status):
             self.frames.append(in_data)
@@ -49,21 +58,34 @@ class Simple:
             else:
                 return (in_data, pyaudio.paComplete)
 
-        self.stream = self.p.open(format=pyaudio.paInt16,
-                                  channels=1,
-                                  rate=44100,
-                                  input=True,
-                                  frames_per_buffer=1024,
-                                  stream_callback=callback)
+        try:
+            self.is_recording = True
+            self.switch_btn_stop()
+            self.p = pyaudio.PyAudio()
+            self.stream = self.p.open(format=pyaudio.paInt16,
+                                      channels=1,
+                                      rate=44100,
+                                      input=True,
+                                      frames_per_buffer=1024,
+                                      stream_callback=callback)
 
-        self.plugin.window.ui.status(trans('audio.speak.now'))
-        self.stream.start_stream()
+            self.plugin.window.ui.status(trans('audio.speak.now'))
+            self.stream.start_stream()
+        except Exception as e:
+            self.is_recording = False
+            self.plugin.window.ui.dialogs.alert(str(e))
+            if self.plugin.window.core.platforms.is_snap():
+                self.plugin.window.ui.dialogs.open(
+                    'snap_audio_input',
+                    width=400,
+                    height=200
+                )
+            self.switch_btn_start()  # switch button to start
 
     def stop_recording(self):
         """Stop recording"""
         self.is_recording = False
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
-        self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(trans('audio.speak.btn.tooltip'))
+        self.switch_btn_start()
         path = os.path.join(self.plugin.window.core.config.path, self.plugin.input_file)
 
         if self.stream is not None:

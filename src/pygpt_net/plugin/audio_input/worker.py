@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 import os.path
@@ -43,7 +43,6 @@ class Worker(BaseWorker):
 
     def handle_simple(self):
         """Handle simple mode."""
-        print("Handling simple mode....")
         try:
             # do transcribe
             if os.path.exists(self.path):
@@ -67,7 +66,7 @@ class Worker(BaseWorker):
             if not self.plugin.listening:
                 return
 
-            print("Starting audio listener....")
+            # print("Starting audio listener....")
 
             self.started()
             self.status('')

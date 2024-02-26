@@ -121,7 +121,7 @@ class Camera:
         """On capture unfinished (never started) signal"""
         if self.window.core.platforms.is_snap():
             self.window.ui.dialogs.open(
-                'snap',
+                'snap_camera',
                 width=400,
                 height=200
             )
