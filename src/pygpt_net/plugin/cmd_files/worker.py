@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 17:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -306,6 +306,8 @@ class Worker(BaseWorker):
                                         timeout=5) as response, \
                                         open(dst, 'wb') as out_file:
                                     shutil.copyfileobj(response, out_file)
+
+                                size = os.path.getsize(dst)
                             else:
                                 # Handle local file paths
                                 src = os.path.join(
@@ -316,11 +318,16 @@ class Worker(BaseWorker):
                                 # Copy local file
                                 with open(src, 'rb') as in_file, open(dst, 'wb') as out_file:
                                     shutil.copyfileobj(in_file, out_file)
+                                size = os.path.getsize(dst)
 
                             # handle result
                             response = {
                                 "request": request,
-                                "result": "OK",
+                                "result": {
+                                    "result": "OK",
+                                    "size_bytes": size,
+                                    "size_human": self.get_human_readable_size(size),
+                                }
                             }
                             self.log("File downloaded: {} into {}".format(src, dst))
                         except Exception as e:
@@ -514,11 +521,15 @@ class Worker(BaseWorker):
                                 item["params"]['path'],
                             )
                             if os.path.exists(path):
+                                size = os.path.getsize(path)
                                 response = {
                                     "request": request,
-                                    "result": os.path.getsize(path),
+                                    "result": {
+                                        'size_bytes': size,
+                                        'size_human': self.plugin.human_readable_size(size),
+                                    },
                                 }
-                                self.log("File size: {}".format(os.path.getsize(path)))
+                                self.log("File size: {}".format(size))
                             else:
                                 response = {
                                     "request": request,
@@ -544,8 +555,10 @@ class Worker(BaseWorker):
                                 item["params"]['path'],
                             )
                             if os.path.exists(path):
+                                size = os.path.getsize(path)
                                 data = {
-                                    "size": os.path.getsize(path),
+                                    "size": size,
+                                    "size_human": self.get_human_readable_size(size),
                                     'mime_type': mimetypes.guess_type(path)[0] or 'application/octet-stream',
                                     "last_access": os.path.getatime(path),
                                     "last_modification": os.path.getmtime(path),
@@ -684,3 +697,20 @@ class Worker(BaseWorker):
 
         if msg is not None:
             self.status(msg)
+
+        # update explorer view after file operations
+        self.plugin.window.controller.files.update_explorer()
+
+    def get_human_readable_size(self, size, decimal_places=2):
+        """
+        Return a human-readable file size.
+
+        :param size: file size in bytes
+        :param decimal_places: number of decimal places
+        :return: human-readable file size
+        """
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if size < 1024.0:
+                break
+            size /= 1024.0
+        return f"{size:.{decimal_places}f} {unit}"

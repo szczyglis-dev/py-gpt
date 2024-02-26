@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -309,22 +309,23 @@ class FileExplorer(QWidget):
                     )
                     remove_actions.append(action)
 
-            # add to index
-            idx_menu = QMenu(trans('action.idx'), self)
-            idx_list = self.window.core.config.get('llama.idx.list')
-            if len(idx_list) > 0 or len(remove_actions) > 0:
-                # add
-                if len(idx_list) > 0:
-                    for idx in idx_list:
-                        id = idx['id']
-                        name = idx['name'] + " (" + idx['id'] + ")"
-                        action = QAction(QIcon(":/icons/search.svg"), "IDX: " + name, self)
-                        action.triggered.connect(
-                            lambda checked=False,
-                                   id=id,
-                                   path=path: self.action_idx(path, id)
-                        )
-                        idx_menu.addAction(action)
+            # add to index if allowed
+            if self.window.core.idx.indexing.is_allowed(path):
+                idx_menu = QMenu(trans('action.idx'), self)
+                idx_list = self.window.core.config.get('llama.idx.list')
+                if len(idx_list) > 0 or len(remove_actions) > 0:
+                    # add
+                    if len(idx_list) > 0:
+                        for idx in idx_list:
+                            id = idx['id']
+                            name = idx['name'] + " (" + idx['id'] + ")"
+                            action = QAction(QIcon(":/icons/search.svg"), "IDX: " + name, self)
+                            action.triggered.connect(
+                                lambda checked=False,
+                                       id=id,
+                                       path=path: self.action_idx(path, id)
+                            )
+                            idx_menu.addAction(action)
 
                 # remove
                 if len(remove_actions) > 0:
@@ -444,6 +445,12 @@ class IndexedFileSystemModel(QFileSystemModel):
         super().__init__(*args, **kwargs)
         self.window = window
         self.index_dict = index_dict
+        self.directoryLoaded.connect(self.refresh_path)
+
+    def refresh_path(self, path):
+        index = self.index(path)
+        if index.isValid():
+            self.dataChanged.emit(index, index)
 
     def columnCount(self, parent=QModelIndex()) -> int:
         """
@@ -556,5 +563,8 @@ class IndexedFileSystemModel(QFileSystemModel):
         self.index_dict = idx_data
         top_left_index = self.index(0, 0)
         bottom_right_index = self.index(self.rowCount() - 1, self.columnCount() - 1)
+        path = self.rootPath()
         self.dataChanged.emit(top_left_index, bottom_right_index, [Qt.DisplayRole])
+        self.setRootPath("")
+        self.setRootPath(path)
         self.layoutChanged.emit()
