@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 class ContextDebug:
@@ -79,7 +79,6 @@ class ContextDebug:
                 "id": item.id,
                 "meta_id": item.meta_id,
                 "external_id": item.external_id,
-                "stream": item.stream,
                 "cmds": item.cmds,
                 "results": item.results,
                 "urls": item.urls,
