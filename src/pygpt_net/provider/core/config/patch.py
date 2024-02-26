@@ -920,7 +920,8 @@ class Patch:
                                 is_lang = True
                                 break
                     if not is_lang:
-                        if not isinstance(data["plugins"]["audio_input"]["google_args"], list):
+                        if "google_args" not in data["plugins"]["audio_input"] or \
+                                not isinstance(data["plugins"]["audio_input"]["google_args"], list):
                             data["plugins"]["audio_input"]["google_args"] = []
                         data["plugins"]["audio_input"]["google_args"].append({
                             "name": "language",
@@ -937,7 +938,8 @@ class Patch:
                                 is_lang = True
                                 break
                     if not is_lang:
-                        if not isinstance(data["plugins"]["audio_input"]["google_cloud_args"], list):
+                        if "google_cloud_args" not in data["plugins"]["audio_input"] or \
+                                not isinstance(data["plugins"]["audio_input"]["google_cloud_args"], list):
                             data["plugins"]["audio_input"]["google_cloud_args"] = []
                         data["plugins"]["audio_input"]["google_cloud_args"].append({
                             "name": "language",
@@ -954,7 +956,8 @@ class Patch:
                                 is_lang = True
                                 break
                     if not is_lang:
-                        if not isinstance(data["plugins"]["audio_input"]["bing_args"], list):
+                        if "bing_args" not in data["plugins"]["audio_input"] or \
+                                not isinstance(data["plugins"]["audio_input"]["bing_args"], list):
                             data["plugins"]["audio_input"]["bing_args"] = []
                         data["plugins"]["audio_input"]["bing_args"].append({
                             "name": "language",
