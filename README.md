@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.169** | build: **2024.02.25** | Python: **>=3.10, <3.12**
+Release: **2.0.170** | build: **2024.02.26** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2621,6 +2621,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.170 (2024-02-26)
+
+- Added "simplified" mode to the "Audio Input" plugin, now set as default, allowing for faster and simpler speech recognition without requiring any configuration. Meanwhile, all current options have been moved to "advanced" mode.
+- Improved file browser update after performing file operations.
+- Added check for file availability for indexing in the file browser.
 
 # 2.0.169 (2024-02-25)
 
