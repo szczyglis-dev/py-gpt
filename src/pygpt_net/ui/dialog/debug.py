@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -43,10 +43,10 @@ class Debug:
         self.window.ui.debug[id].viewer = viewer
 
         splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(viewer)
         splitter.addWidget(scroll)
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 3)
+        splitter.addWidget(viewer)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 1)
 
         layout = QGridLayout()
         layout.addWidget(splitter, 1, 0)
