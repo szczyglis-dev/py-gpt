@@ -36,7 +36,13 @@ class GoogleSpeechRecognition(BaseProvider):
         self.plugin.add_option(
             "google_args",
             type="dict",
-            value="",
+            value=[
+                {
+                    "name": "language",
+                    "value": "en-US",
+                    "type": "str",
+                }
+            ],
             keys={
                 'name': 'text',
                 'value': 'text',

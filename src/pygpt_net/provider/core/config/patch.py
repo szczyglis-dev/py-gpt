@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 import os
@@ -905,6 +905,62 @@ class Patch:
                 if 'self_loop' in data["plugins_enabled"]:
                     data["plugins_enabled"]["agent"] = data["plugins_enabled"]["self_loop"]
                     del data["plugins_enabled"]["self_loop"]
+                updated = True
+
+            # < 2.0.170 - add audio input language
+            if old < parse_version("2.0.170"):
+                print("Migrating config from < 2.0.170...")
+                if 'audio_input' in data["plugins"]:
+                    # add language to google_args if not present
+                    is_lang = False
+                    if "google_args" in data["plugins"]["audio_input"] \
+                            and isinstance(data["plugins"]["audio_input"]["google_args"], list):
+                        for option in data["plugins"]["audio_input"]["google_args"]:
+                            if option["name"] == "language":
+                                is_lang = True
+                                break
+                    if not is_lang:
+                        if not isinstance(data["plugins"]["audio_input"]["google_args"], list):
+                            data["plugins"]["audio_input"]["google_args"] = []
+                        data["plugins"]["audio_input"]["google_args"].append({
+                            "name": "language",
+                            "value": "en-US",
+                            "type": "str",
+                        })
+
+                    # add language to google_cloud_args if not present
+                    is_lang = False
+                    if "google_cloud_args" in data["plugins"]["audio_input"] \
+                            and isinstance(data["plugins"]["audio_input"]["google_cloud_args"], list):
+                        for option in data["plugins"]["audio_input"]["google_cloud_args"]:
+                            if option["name"] == "language":
+                                is_lang = True
+                                break
+                    if not is_lang:
+                        if not isinstance(data["plugins"]["audio_input"]["google_cloud_args"], list):
+                            data["plugins"]["audio_input"]["google_cloud_args"] = []
+                        data["plugins"]["audio_input"]["google_cloud_args"].append({
+                            "name": "language",
+                            "value": "en-US",
+                            "type": "str",
+                        })
+
+                    # add language to bing_args if not present
+                    is_lang = False
+                    if "bing_args" in data["plugins"]["audio_input"] \
+                            and isinstance(data["plugins"]["audio_input"]["bing_args"], list):
+                        for option in data["plugins"]["audio_input"]["bing_args"]:
+                            if option["name"] == "language":
+                                is_lang = True
+                                break
+                    if not is_lang:
+                        if not isinstance(data["plugins"]["audio_input"]["bing_args"], list):
+                            data["plugins"]["audio_input"]["bing_args"] = []
+                        data["plugins"]["audio_input"]["bing_args"].append({
+                            "name": "language",
+                            "value": "en-US",
+                            "type": "str",
+                        })
                 updated = True
 
         # update file

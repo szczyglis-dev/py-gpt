@@ -36,7 +36,13 @@ class BingSpeechRecognition(BaseProvider):
         self.plugin.add_option(
             "bing_args",
             type="dict",
-            value="",
+            value=[
+                {
+                    "name": "language",
+                    "value": "en-US",
+                    "type": "str",
+                }
+            ],
             keys={
                 'name': 'text',
                 'value': 'text',
