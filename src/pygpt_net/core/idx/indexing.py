@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.26 22:00:00                  #
 # ================================================== #
 
 import os.path
@@ -108,6 +108,26 @@ class Indexing:
             if ext.lower() in excluded:
                 return True
         return False
+
+    def is_allowed(self, path: str) -> bool:
+        """
+        Check if path is allowed for indexing
+
+        :param path: file path
+        :return: True if allowed
+        """
+        if os.path.isdir(path):
+            return True
+        ext = os.path.splitext(path)[1][1:]  # get extension
+        # check offline loaders
+        if ext in self.loaders:
+            return True
+        # check online loaders
+        if not self.window.core.config.is_compiled() and self.get_online_loader(ext) is not None:
+            return True
+        if self.is_excluded(ext):
+            return False
+        return True
 
     def get_documents(self, path: str) -> list[Document]:
         """
