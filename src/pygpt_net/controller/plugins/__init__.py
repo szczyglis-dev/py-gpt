@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.26 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -244,11 +244,30 @@ class Plugins:
     def handle_types(self):
         """Handle plugin type"""
         for type in self.window.core.plugins.allowed_types:
+
+            # get advanced audio input option
+            is_advanced = False
+            data = {
+                'name': 'audio.input.advanced',
+                'value': is_advanced,
+            }
+            event = Event(Event.PLUGIN_OPTION_GET, data)
+            self.window.core.dispatcher.dispatch(event)
+            if 'value' in event.data:
+                is_advanced = event.data['value']
+
             if type == 'audio.input':
                 if self.is_type_enabled(type):
-                    self.window.ui.plugin_addon['audio.input'].setVisible(True)
+                    if is_advanced:
+                        self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)
+                        self.window.ui.plugin_addon['audio.input'].setVisible(True)
+                    else:
+                        self.window.ui.plugin_addon['audio.input.btn'].setVisible(True)  # simple recording
+                        self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
                 else:
-                    self.window.ui.plugin_addon['audio.input'].setVisible(False)
+                    self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)  # simple recording
+                    self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
+
             elif type == 'audio.output':
                 if self.is_type_enabled(type):
                     pass

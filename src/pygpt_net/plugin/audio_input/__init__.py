@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.26 20:00:00                  #
 # ================================================== #
 
 import os
@@ -20,11 +20,13 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 from .worker import Worker
+from. simple import Simple
 
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
+        self.handler_simple = Simple(self)
         self.id = "audio_input"
         self.name = "Audio Input"
         self.type = [
@@ -58,6 +60,21 @@ class Plugin(BasePlugin):
             keys=self.get_provider_options(),
         )
         self.add_option(
+            "auto_send",
+            type="bool",
+            value=True,
+            label="Auto send",
+            description="Automatically send input when voice is detected. Default: True",
+        )
+        self.add_option(
+            "advanced",
+            type="bool",
+            value=False,
+            label="Enable advanced mode",
+            description="Enable only if you want to use advanced mode and settings below, "
+                        "do not enable this option if you just want to use simple mode (default)",
+        )
+        self.add_option(
             "timeout",
             type="int",
             value=5,
@@ -67,6 +84,7 @@ class Plugin(BasePlugin):
             max=30,
             slider=True,
             tooltip="Timeout, default: 5",
+            advanced=True,
         )
         self.add_option(
             "phrase_length",
@@ -78,6 +96,7 @@ class Plugin(BasePlugin):
             max=30,
             slider=True,
             tooltip="Phrase max length, default: 10",
+            advanced=True,
         )
         self.add_option(
             "min_energy",
@@ -91,6 +110,7 @@ class Plugin(BasePlugin):
             slider=True,
             tooltip="Min. energy, default: 1.3, 1 = disabled, adjust for your microphone",
             multiplier=10,
+            advanced=True,
         )
         self.add_option(
             "adjust_noise",
@@ -98,6 +118,7 @@ class Plugin(BasePlugin):
             value=True,
             label="Adjust ambient noise",
             description="Adjust for ambient noise. Default: True",
+            advanced=True,
         )
         self.add_option(
             "continuous_listen",
@@ -106,13 +127,8 @@ class Plugin(BasePlugin):
             label="Continuous listening",
             description="EXPERIMENTAL: continuous listening - do not stop listening after a single input.\n"
                         "Warning: This feature may lead to unexpected results and requires fine-tuning "
-                        "with the rest of the options!")
-        self.add_option(
-            "auto_send",
-            type="bool",
-            value=True,
-            label="Auto send",
-            description="Automatically send input when voice is detected. Default: True",
+                        "with the rest of the options!",
+            advanced=True,
         )
         self.add_option(
             "wait_response",
@@ -120,6 +136,7 @@ class Plugin(BasePlugin):
             value=True,
             label="Wait for response",
             description="Wait for a response before listening for the next input. Default: True",
+            advanced=True,
         )
         self.add_option(
             "magic_word",
@@ -128,6 +145,7 @@ class Plugin(BasePlugin):
             label="Magic word",
             description="Activate listening only after the magic word is provided, "
                         "like 'Hey GPT' or 'OK GPT'. Default: False",
+            advanced=True,
         )
         self.add_option(
             "magic_word_reset",
@@ -136,6 +154,7 @@ class Plugin(BasePlugin):
             label="Reset Magic word",
             description="Reset the magic word status after it is received "
                         "(the magic word will need to be provided again). Default: True",
+            advanced=True,
         )
         self.add_option(
             "magic_words",
@@ -145,6 +164,7 @@ class Plugin(BasePlugin):
             description="Specify magic words for 'Magic word' option: if received this word then "
                         "start listening, put words separated by comma. Magic word option must be enabled, "
                         "examples: \"Hey GPT, OK GPT\"",
+            advanced=True,
         )
         self.add_option(
             "magic_word_timeout",
@@ -156,6 +176,7 @@ class Plugin(BasePlugin):
             max=30,
             slider=True,
             tooltip="Timeout, default: 1",
+            advanced=True,
         )
         self.add_option(
             "magic_word_phrase_length",
@@ -167,6 +188,7 @@ class Plugin(BasePlugin):
             max=30,
             slider=True,
             tooltip="Phrase length, default: 2",
+            advanced=True,
         )
         self.add_option(
             "prefix_words",
@@ -176,6 +198,7 @@ class Plugin(BasePlugin):
             description="Specify prefix words: if defined, only phrases starting with these words "
                         "will be transmitted, and the remainder will be ignored. Separate the words with "
                         "a comma., eg. 'OK, Okay, GPT'. Leave empty to disable",
+            advanced=True,
         )
         self.add_option(
             "stop_words",
@@ -185,6 +208,7 @@ class Plugin(BasePlugin):
             description="Specify stop words: if any of these words are received, then stop listening. "
                         "Separate the words with a comma, or leave it empty to disable the feature, "
                         "default: stop, exit, quit, end, finish, close, terminate, kill, halt, abort",
+            advanced=True,
         )
 
         # advanced options
@@ -267,7 +291,11 @@ class Plugin(BasePlugin):
         return self.window.core.audio.get_providers("input")
 
     def get_provider_options(self) -> list:
-        """Get provider options"""
+        """
+        Get provider options
+
+        :return: list of provider options
+        """
         options = []
         providers = self.get_providers()
         for id in providers:
@@ -301,6 +329,14 @@ class Plugin(BasePlugin):
         """
         pass
 
+    def is_advanced(self) -> bool:
+        """
+        Check if advanced options are enabled
+
+        :return: True if advanced options are enabled
+        """
+        return self.get_option_value("advanced")
+
     def get_words(self, key: str) -> list:
         """
         Get and parse words from option string
@@ -315,6 +351,14 @@ class Plugin(BasePlugin):
             words = [x.strip() for x in words]  # remove white-spaces
         return words
 
+    def toggle_recording_simple(self):
+        """
+        Event: AUDIO_INPUT_RECORD_TOGGLE
+
+        Toggle recording
+        """
+        self.handler_simple.toggle_recording()
+
     def toggle_speech(self, state: bool):
         """
         Event: AUDIO_INPUT_TOGGLE
@@ -323,6 +367,9 @@ class Plugin(BasePlugin):
 
         :param state: state to set
         """
+        if not self.is_advanced():
+            return
+
         self.speech_enabled = state
         self.window.ui.plugin_addon['audio.input'].btn_toggle.setChecked(state)
 
@@ -393,8 +440,15 @@ class Plugin(BasePlugin):
         elif name == Event.AUDIO_INPUT_TOGGLE:
             self.toggle_speech(data['value'])
 
+        elif name == Event.AUDIO_INPUT_RECORD_TOGGLE:
+            self.toggle_recording_simple()
+
         elif name == Event.AUDIO_INPUT_STOP:
             self.on_stop()
+
+        elif name == Event.PLUGIN_OPTION_GET:
+            if "name" in data and data["name"] == "audio.input.advanced":
+                data["value"] = self.is_advanced()
 
     def on_ctx_begin(self, ctx: CtxItem):
         """
@@ -414,6 +468,9 @@ class Plugin(BasePlugin):
 
     def on_enable(self):
         """Event: ENABLE"""
+        if not self.is_advanced():
+            return
+
         self.speech_enabled = True
         self.handle_thread()
 
@@ -428,6 +485,9 @@ class Plugin(BasePlugin):
 
     def on_stop(self):
         """Event: AUDIO_INPUT_STOP"""
+        if not self.is_advanced():
+            return
+
         self.stop = True
         self.listening = False
         self.speech_enabled = False
@@ -449,9 +509,13 @@ class Plugin(BasePlugin):
         self.thread_started = False
         self.set_status('')
 
-    def handle_thread(self):
-        """Handle listener thread"""
-        if self.thread_started:
+    def handle_thread(self, force: bool = False):
+        """
+        Handle listener thread
+
+        :param force: force start
+        """
+        if self.thread_started and not force:
             return
 
         try:
@@ -462,6 +526,7 @@ class Plugin(BasePlugin):
                 self.window.core.config.path,
                 self.input_file,
             )
+            worker.advanced = self.is_advanced()  # advanced mode
 
             # signals
             worker.signals.finished.connect(self.handle_input)
@@ -510,53 +575,55 @@ class Plugin(BasePlugin):
         if text is None or text.strip() == '':
             return
 
-        if not self.can_listen():
-            return
-
-        # check prefix words
-        prefix_words = self.get_words('prefix_words')
-        if len(prefix_words) > 0:
-            for word in prefix_words:
-                check_text = text.lower().strip()
-                check_word = word.lower().strip()
-                if not check_text.startswith(check_word):
-                    self.window.ui.status(trans('audio.speak.ignoring'))
-                    self.set_status(trans('audio.speak.ignoring'))
-                    return
-
-        # previous magic word detected state
-        magic_prev_detected = self.magic_word_detected
-        # save the magic word detected state before checking for magic word
-
-        # check for magic word
-        is_magic_word = False
-        if self.get_option_value('magic_word'):
-            for word in self.get_words('magic_words'):
-                # prepare magic word
-                check_word = word.lower().replace('.', '')
-                check_text = text.lower()
-                if check_text.startswith(check_word):
-                    is_magic_word = True
-                    self.set_status(trans('audio.magic_word.detected'))
-                    self.window.ui.status(trans('audio.magic_word.detected'))
-                    break
-
-        # if magic word enabled
-        if self.get_option_value('magic_word'):
-            if not is_magic_word:
-                if self.get_option_value('magic_word_reset'):
-                    self.magic_word_detected = False
-            else:
-                self.magic_word_detected = True
-
-            # if not previously detected, then abort now
-            if not magic_prev_detected:
-                if not is_magic_word:
-                    self.window.ui.status(trans('audio.magic_word.invalid'))
-                self.window.ui.nodes['input'].setText(text)
+        # only advanced mode
+        if self.is_advanced():
+            if not self.can_listen():
                 return
-            else:
-                self.window.ui.status("")
+
+            # check prefix words
+            prefix_words = self.get_words('prefix_words')
+            if len(prefix_words) > 0:
+                for word in prefix_words:
+                    check_text = text.lower().strip()
+                    check_word = word.lower().strip()
+                    if not check_text.startswith(check_word):
+                        self.window.ui.status(trans('audio.speak.ignoring'))
+                        self.set_status(trans('audio.speak.ignoring'))
+                        return
+
+            # previous magic word detected state
+            magic_prev_detected = self.magic_word_detected
+            # save the magic word detected state before checking for magic word
+
+            # check for magic word
+            is_magic_word = False
+            if self.get_option_value('magic_word'):
+                for word in self.get_words('magic_words'):
+                    # prepare magic word
+                    check_word = word.lower().replace('.', '')
+                    check_text = text.lower()
+                    if check_text.startswith(check_word):
+                        is_magic_word = True
+                        self.set_status(trans('audio.magic_word.detected'))
+                        self.window.ui.status(trans('audio.magic_word.detected'))
+                        break
+
+            # if magic word enabled
+            if self.get_option_value('magic_word'):
+                if not is_magic_word:
+                    if self.get_option_value('magic_word_reset'):
+                        self.magic_word_detected = False
+                else:
+                    self.magic_word_detected = True
+
+                # if not previously detected, then abort now
+                if not magic_prev_detected:
+                    if not is_magic_word:
+                        self.window.ui.status(trans('audio.magic_word.invalid'))
+                    self.window.ui.nodes['input'].setText(text)
+                    return
+                else:
+                    self.window.ui.status("")
 
         # update input text
         self.window.ui.nodes['input'].setText(text)
@@ -599,5 +666,4 @@ class Plugin(BasePlugin):
         self.stop = False
         self.window.ui.status("")
         self.set_status('')
-        # print("Whisper stopped listening...")
         self.toggle_speech(False)

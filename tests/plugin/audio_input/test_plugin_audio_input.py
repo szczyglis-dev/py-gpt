@@ -97,6 +97,7 @@ def test_handle_enable(mock_window):
     plugin.init_options()
     plugin.setup()
     plugin.handle_thread = MagicMock()
+    plugin.options["advanced"]["value"] = True
     ctx = CtxItem()
     ctx.output = "output text"
     event = Event()
@@ -137,6 +138,7 @@ def test_handle_toggle_on(mock_window):
     plugin.init_options()
     plugin.setup()
     plugin.handle_thread = MagicMock()
+    plugin.options["advanced"]["value"] = True
     ctx = CtxItem()
     ctx.output = "output text"
     event = Event()

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.02.26 20:00:00                  #
 # ================================================== #
+
 import os.path
 import time
 import speech_recognition as sr
@@ -31,9 +32,37 @@ class Worker(BaseWorker):
         self.kwargs = kwargs
         self.plugin = None
         self.path = None
+        self.advanced = False
 
     @Slot()
     def run(self):
+        if self.advanced:
+            self.handle_advanced()
+        else:
+            self.handle_simple()
+
+    def handle_simple(self):
+        """Handle simple mode."""
+        print("Handling simple mode....")
+        try:
+            # do transcribe
+            if os.path.exists(self.path):
+                # set status
+                self.status(trans('audio.speak.wait'))
+                # transcribe audio
+                transcript = self.plugin.get_provider().transcribe(self.path)
+
+                # handle transcript
+                if transcript is not None and transcript.strip() != '':
+                    self.response(transcript)
+
+        except Exception as e:
+            self.error(e)
+            self.stopped()
+            self.status('Error: {}'.format(e))
+
+    def handle_advanced(self):
+        """Handle advanced mode."""
         try:
             if not self.plugin.listening:
                 return

@@ -1043,6 +1043,17 @@ Additional keywords arguments for r.recognize_bing(audio, **kwargs)
 
 **General options**
 
+- `Auto send` *auto_send*
+
+Automatically send recognized speech as input text after recognition. *Default:* `True`
+
+- `Advanced mode` *advanced*
+
+Enable only if you want to use advanced mode and the settings below. Do not enable this option if you just want to use the simplified mode (default). *Default:* `False`
+
+
+**Advanced mode options**
+
 - `Timeout` *timeout*
 
 The duration in seconds that the application waits for voice input from the microphone. *Default:* `5`
@@ -1066,9 +1077,6 @@ Warning: This feature may lead to unexpected results and requires fine-tuning wi
 the rest of the options! If disabled, listening must be started manually 
 by enabling the `Speak` option. *Default:* `False`
 
-- `Auto send` *auto_send*
-
-Automatically send recognized speech as input text after recognition. *Default:* `True`
 
 - `Wait for response` *wait_response*
 
@@ -1101,8 +1109,6 @@ List of words that must initiate each phrase to be processed. For example, you c
 - `Stop words` *stop_words*
 
 List of words that will stop the listening process. *Default:* `stop, exit, quit, end, finish, close, terminate, kill, halt, abort`
-
-**Advanced options**
 
 Options related to Speech Recognition internals:
 

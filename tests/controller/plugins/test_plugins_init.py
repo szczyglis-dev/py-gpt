@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.02.26 20:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -227,7 +227,10 @@ def test_handle_types(mock_window):
     plugins = Plugins(mock_window)
     mock_window.core.plugins.allowed_types = ['audio.input']
     plugins.is_type_enabled = MagicMock(return_value=True)
-    mock_window.ui.plugin_addon = {'audio.input': MagicMock()}
+    mock_window.ui.plugin_addon = {
+        'audio.input': MagicMock(),
+        'audio.input.btn': MagicMock()
+    }
     plugins.handle_types()
     plugins.is_type_enabled.assert_called_once_with('audio.input')
 
