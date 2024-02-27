@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.27 19:00:00                  #
 # ================================================== #
 
 from pygpt_net.ui.dialog.about import About
@@ -184,9 +184,9 @@ class Dialogs:
             height: int = 400
     ):
         """
-        Open debug/config dialog
+        Open dialog
 
-        :param id: debug dialog id
+        :param id: dialog id
         :param width: dialog width
         :param height: dialog height
         """
@@ -201,9 +201,9 @@ class Dialogs:
 
     def close(self, id: str):
         """
-        Close debug/config dialog
+        Close dialog
 
-        :param id: debug dialog id
+        :param id: dialog id
         """
         if id not in self.window.ui.dialog:
             return
