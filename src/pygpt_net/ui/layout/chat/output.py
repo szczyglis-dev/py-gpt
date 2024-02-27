@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
-
-import os
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -19,7 +17,7 @@ from pygpt_net.ui.layout.chat.input import Input
 from pygpt_net.ui.layout.chat.calendar import Calendar
 from pygpt_net.ui.layout.chat.painter import Painter
 from pygpt_net.ui.widget.audio.output import AudioOutput
-from pygpt_net.ui.widget.element.labels import ChatStatusLabel
+from pygpt_net.ui.widget.element.labels import ChatStatusLabel, IconLabel
 from pygpt_net.ui.widget.tabs.output import OutputTabs
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.ui.widget.textarea.notepad import NotepadWidget
@@ -57,7 +55,7 @@ class Output:
         path = self.window.core.config.get_user_dir('data')
         self.window.ui.nodes['output_files'] = FileExplorer(self.window, path, index_data)
 
-        # notepads
+        # notepad
         num_notepads = self.window.controller.notepad.get_num_notepads()
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
@@ -77,7 +75,7 @@ class Output:
         painter = self.painter.setup()
         self.window.ui.tabs['output'].addTab(painter, trans('output.tab.painter'))
 
-        # append notepads
+        # append notepad
         if num_notepads > 0:
             for i in range(1, num_notepads + 1):
                 tab = i + (self.window.controller.notepad.start_tab_idx - 1)
@@ -105,50 +103,70 @@ class Output:
 
     def setup_bottom(self) -> QHBoxLayout:
         """
-        Setup bottom bar
+        Setup bottom status bar
 
         :return: QHBoxLayout
         :rtype: QHBoxLayout
         """
+        # audio output icon
+        self.window.ui.nodes['icon.audio.output'] = IconLabel(":/icons/volume.svg")
+        self.window.ui.nodes['icon.audio.output'].clicked.connect(
+            lambda: self.window.controller.plugins.toggle('audio_output')
+        )
+
+        # audio input icon
+        self.window.ui.nodes['icon.audio.input'] = IconLabel(":/icons/mic.svg")
+        self.window.ui.nodes['icon.audio.input'].clicked.connect(
+            lambda: self.window.controller.plugins.toggle('audio_input')
+        )
+
+        # mode
         self.window.ui.nodes['chat.label'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.label'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.window.ui.nodes['chat.label'].setWordWrap(False)
 
+        # model
         self.window.ui.nodes['chat.model'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.model'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.window.ui.nodes['chat.model'].setWordWrap(False)
 
+        # plugins
         self.window.ui.nodes['chat.plugins'] = ChatStatusLabel("")
         self.window.ui.nodes['chat.plugins'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        # add timestamp checkbox
+        # timestamp
         self.window.ui.nodes['output.timestamp'] = QCheckBox(trans('output.timestamp'))
         self.window.ui.nodes['output.timestamp'].stateChanged.connect(
             lambda: self.window.controller.chat.common.toggle_timestamp(
-                self.window.ui.nodes['output.timestamp'].isChecked()))
+                self.window.ui.nodes['output.timestamp'].isChecked())
+        )
 
-        # raw plain text checkbox
+        # plain text
         self.window.ui.nodes['output.raw'] = QCheckBox(trans('output.raw'))
         self.window.ui.nodes['output.raw'].clicked.connect(
             lambda: self.window.controller.chat.common.toggle_raw(
-                self.window.ui.nodes['output.raw'].isChecked()))
+                self.window.ui.nodes['output.raw'].isChecked())
+        )
 
-        # add inline vision checkbox
+        # inline vision
         self.window.ui.nodes['inline.vision'] = QCheckBox(trans('inline.vision'))
         self.window.ui.nodes['inline.vision'].clicked.connect(
             lambda: self.window.controller.chat.vision.toggle(
-                self.window.ui.nodes['inline.vision'].isChecked()))
+                self.window.ui.nodes['inline.vision'].isChecked())
+        )
         self.window.ui.nodes['inline.vision'].setVisible(False)
         self.window.ui.nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
         self.window.ui.nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
 
-        # tokens info
+        # tokens
         self.window.ui.nodes['prompt.context'] = ChatStatusLabel("")
         self.window.ui.nodes['prompt.context'].setToolTip(trans('tip.tokens.ctx'))
         self.window.ui.nodes['prompt.context'].setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # plugin audio output addon
         self.window.ui.plugin_addon['audio.output'] = AudioOutput(self.window)
+
+        # schedule
         self.window.ui.plugin_addon['schedule'] = ChatStatusLabel("")
 
         opts_layout = QHBoxLayout()
@@ -163,6 +181,8 @@ class Output:
         layout.addLayout(opts_layout)
         # layout.addWidget(self.window.ui.plugin_addon['audio.output'])
         layout.addStretch(1)
+        layout.addWidget(self.window.ui.nodes['icon.audio.input'])
+        layout.addWidget(self.window.ui.nodes['icon.audio.output'])
         layout.addWidget(self.window.ui.plugin_addon['schedule'])
         layout.addWidget(QLabel(" "))
         layout.addWidget(self.window.ui.nodes['chat.plugins'])

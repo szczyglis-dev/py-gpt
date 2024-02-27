@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.dispatcher import Event
@@ -48,12 +48,14 @@ class Audio:
 
     def enable_output(self):
         """Enable audio output"""
+        self.toggle_output_icon(True)
         self.window.controller.plugins.enable('audio_output')
         self.window.core.config.save()
         self.update()
 
     def disable_output(self):
         """Disable audio output"""
+        self.toggle_output_icon(False)
         self.window.controller.plugins.disable('audio_output')
         self.window.core.config.save()
         self.update()
@@ -140,3 +142,25 @@ class Audio:
             event = Event(Event.AUDIO_READ_TEXT)
         event.ctx = ctx
         self.window.core.dispatcher.dispatch(event, all=all)
+
+    def toggle_output_icon(self, state: bool):
+        """
+        Toggle input icon
+
+        :param state: True to enable, False to disable
+        """
+        if state:
+            self.window.ui.nodes['icon.audio.output'].set_icon(":/icons/volume.svg")
+        else:
+            self.window.ui.nodes['icon.audio.output'].set_icon(":/icons/mute.svg")
+
+    def toggle_input_icon(self, state: bool):
+        """
+        Toggle input icon
+
+        :param state: True to enable, False to disable
+        """
+        if state:
+            self.window.ui.nodes['icon.audio.input'].set_icon(":/icons/mic.svg")
+        else:
+            self.window.ui.nodes['icon.audio.input'].set_icon(":/icons/mic_off.svg")

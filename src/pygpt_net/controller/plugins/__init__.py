@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -264,16 +264,20 @@ class Plugins:
                     else:
                         self.window.ui.plugin_addon['audio.input.btn'].setVisible(True)  # simple recording
                         self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
+                    self.window.controller.audio.toggle_input_icon(True)
                 else:
                     self.window.ui.plugin_addon['audio.input.btn'].setVisible(False)  # simple recording
                     self.window.ui.plugin_addon['audio.input'].setVisible(False)  # advanced recording
+                    self.window.controller.audio.toggle_input_icon(False)
 
             elif type == 'audio.output':
                 if self.is_type_enabled(type):
-                    pass
+                    self.window.controller.audio.toggle_output_icon(True)
                     # self.window.ui.plugin_addon['audio.output'].setVisible(True)
                 else:
                     self.window.ui.plugin_addon['audio.output'].setVisible(False)
+                    self.window.controller.audio.toggle_output_icon(False)
+
             elif type == 'schedule':
                 if self.is_type_enabled(type):
                     self.window.ui.plugin_addon['schedule'].setVisible(True)

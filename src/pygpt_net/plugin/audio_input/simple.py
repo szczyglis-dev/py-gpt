@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 import pyaudio
@@ -37,13 +37,13 @@ class Simple:
             self.start_recording()
 
     def switch_btn_stop(self):
-        """Switch button stop"""
+        """Switch button to stop"""
         self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn.stop'))
         self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(
             trans('audio.speak.btn.stop.tooltip'))
 
     def switch_btn_start(self):
-        """Switch button start"""
+        """Switch button to start"""
         self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setText(trans('audio.speak.btn'))
         self.plugin.window.ui.plugin_addon['audio.input.btn'].btn_toggle.setToolTip(trans('audio.speak.btn.tooltip'))
 
@@ -73,6 +73,7 @@ class Simple:
             self.stream.start_stream()
         except Exception as e:
             self.is_recording = False
+            self.plugin.window.core.debug.log(e)
             self.plugin.window.ui.dialogs.alert(str(e))
             if self.plugin.window.core.platforms.is_snap():
                 self.plugin.window.ui.dialogs.open(

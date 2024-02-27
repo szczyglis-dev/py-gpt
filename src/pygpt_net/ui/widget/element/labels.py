@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.29 17:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QTimer, QRect
+from PySide6.QtCore import Qt, QTimer, QRect, Signal
 from PySide6.QtGui import QCursor, QAction, QIcon
 from PySide6.QtWidgets import QLabel, QLineEdit, QToolTip
 import webbrowser
@@ -103,3 +103,22 @@ class CmdLabel(QLineEdit):
     def reset_icon(self):
         """Reset icon"""
         self.action.setIcon(QIcon(":/icons/copy.svg"))
+
+
+class IconLabel(QLabel):
+    clicked = Signal()
+
+    def __init__(self, icon: str, window=None):
+        super().__init__("", window)
+        self.window = window
+        self.setWordWrap(True)
+        self.setAlignment(Qt.AlignRight)
+        self.setProperty('class', 'label-chat-status')
+        self.setContentsMargins(0, 0, 0, 0)
+        self.set_icon(icon)
+
+    def set_icon(self, icon: str):
+        self.setPixmap(QIcon(icon).pixmap(16, 16))
+
+    def mousePressEvent(self, event):
+        self.clicked.emit()
