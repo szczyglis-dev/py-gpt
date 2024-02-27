@@ -810,7 +810,7 @@
         "section": "developer",
         "type": "bool",
         "slider": false,
-        "label": "Log plugins usage to console",
+        "label": "Log plugin usage to console",
         "value": false,
         "min": null,
         "max": null,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 import datetime
@@ -21,7 +21,7 @@ from pygpt_net.utils import trans
 class Settings:
     def __init__(self, window=None):
         """
-        Indexes settings controller
+        Index settings controller
 
         :param window: Window instance
         """
@@ -59,7 +59,6 @@ class Settings:
         self.window.ui.nodes['idx.db.settings.loaders'] = QLabel("")
         self.update_text_loaders()
         self.window.ui.nodes['idx.db.settings.loaders'].setWordWrap(True)
-        # add to layout
         self.window.ui.nodes['idx.db.settings.legend.head'] = TitleLabel(trans('settings.llama.extra.btn.idx_head'))
         self.window.ui.nodes['idx.db.settings.legend'] = HelpLabel(trans('settings.llama.extra.legend'), self.window)
         self.window.ui.nodes['idx.db.settings.legend'].setWordWrap(True)
@@ -88,10 +87,10 @@ class Settings:
         """
         Update text loaders list
         """
-        str = trans('settings.llama.extra.loaders') + ", " + ", Files: ".join(
-                self.window.core.idx.indexing.loaders["file"].keys()) + ", Web: ".join(
-                self.window.core.idx.indexing.loaders["web"].keys())
-        self.window.ui.nodes['idx.db.settings.loaders'].setText(str)
+        files_str = "txt, " + ", ".join(self.window.core.idx.indexing.loaders["file"].keys())
+        web_str = ", ".join(self.window.core.idx.indexing.loaders["web"].keys())
+        info = trans('settings.llama.extra.loaders') + ":\nFiles: " + files_str + "\nWeb: " + web_str
+        self.window.ui.nodes['idx.db.settings.loaders'].setText(info)
 
     def idx_db_all_context_menu(self, parent, pos):
         """

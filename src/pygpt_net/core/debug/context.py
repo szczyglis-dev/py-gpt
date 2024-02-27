@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 class ContextDebug:
@@ -36,7 +36,7 @@ class ContextDebug:
         self.window.core.debug.add(self.id, 'last_model', str(self.window.core.ctx.last_model))
         self.window.core.debug.add(self.id, 'search_string', str(self.window.core.ctx.search_string))
         self.window.core.debug.add(self.id, 'filters', str(self.window.core.ctx.filters))
-        self.window.core.debug.add(self.id, 'sys_prompt (tmp)', str(self.window.core.ctx.current_sys_prompt))
+        self.window.core.debug.add(self.id, 'sys_prompt (current)', str(self.window.core.ctx.current_sys_prompt))
         self.window.core.debug.add(self.id, 'allowed_modes', str(self.window.core.ctx.allowed_modes))
 
         current = None
