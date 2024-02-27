@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 import ssl
@@ -222,7 +222,7 @@ class Plugin(BasePlugin):
             "syntax_web_url_open",
             type="textarea",
             value='"web_url_open": use it to get contents from a specific Web page. Use a custom summary '
-                  'prompt if necessary, otherwise a default summary will be used. Params: "url", '
+                  'prompt if necessary, otherwise a default summary will be used, params: "url", '
                   '"summarize_prompt"',
             label="Syntax: web_url_open",
             description="Syntax for web_url_open command",
@@ -231,8 +231,8 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_web_url_raw",
             type="textarea",
-            value='"web_url_raw": use it to get RAW text/html content (not summarized) from a specific Web page. '
-                  'Params: "url"',
+            value='"web_url_raw": use it to get RAW text/html content (not summarized) from a specific Web page, '
+                  'params: "url"',
             label="Syntax: web_url_raw",
             description="Syntax for web_url_raw command",
             advanced=True,
@@ -242,7 +242,7 @@ class Plugin(BasePlugin):
             type="textarea",
             value='"web_urls": use it to search the Web for URLs to use, prepare a search query itself, '
                   'a list of found links to websites will be returned, 10 links per page max. You can change the page '
-                  'or the number of links per page using the provided parameters. Params: "query", "page", '
+                  'or the number of links per page using the provided parameters, params: "query", "page", '
                   '"num_links"',
             label="Syntax: web_urls",
             description="Syntax for web_urls command",
@@ -253,8 +253,8 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_web_index",
             type="textarea",
-            value='"web_index": use it to index (embed in Vector Store) provided webpage URL for future use. '
-                  'Params: "url"',
+            value='"web_index": use it to index (embed in Vector Store) provided webpage URL for future use, '
+                  'params: "url"',
             label="Syntax: web_index",
             description="Syntax for web_index command",
             advanced=True,
@@ -377,8 +377,8 @@ class Plugin(BasePlugin):
                'remote resource, like YT video. Provide type of resource in the "type" ' \
                'param. If there is no allowed type for a specified resource then use the default "webpage" type. ' \
                'If selected type requires additional args then pass them into "extra_args" param.\n' \
-               'Allowed types:{allowed_types}.\n ' \
-               'Params: "url", "type", "extra_args"'.format(allowed_types=allowed_types)
+               'Allowed types:{allowed_types},\n ' \
+               'params: "url", "type", "extra_args"'.format(allowed_types=allowed_types)
 
     def cmd_syntax(self, data: dict):
         """

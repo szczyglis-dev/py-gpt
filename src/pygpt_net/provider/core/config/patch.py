@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 import os
@@ -964,6 +964,30 @@ class Patch:
                             "value": "en-US",
                             "type": "str",
                         })
+                updated = True
+
+            # < 2.0.172 - fix cmd syntax
+            if old < parse_version("2.0.172"):
+                print("Migrating config from < 2.0.172...")
+                if 'cmd_files' in data["plugins"] and 'syntax_file_index' in data["plugins"]["cmd_files"]:
+                    syntax = '"file_index": use it to index (embed in Vector Store) a file or directory for ' \
+                             'future use, params: "path"'
+                    data["plugins"]["cmd_files"]["syntax_file_index"] = syntax
+                if 'cmd_web' in data["plugins"] and 'syntax_web_url_open' in data["plugins"]["cmd_web"]:
+                    syntax = '"web_url_open": use it to get contents from a specific Web page. ' \
+                             'Use a custom summary prompt if necessary, otherwise a default summary will be used, ' \
+                             'params: "url", "summarize_prompt"'
+                    data["plugins"]["cmd_web"]["syntax_web_url_open"] = syntax
+                if 'cmd_web' in data["plugins"] and 'syntax_web_url_raw' in data["plugins"]["cmd_web"]:
+                    syntax = '"web_url_raw": use it to get RAW text/html content (not summarized) from ' \
+                             'a specific Web page, params: "url"'
+                    data["plugins"]["cmd_web"]["syntax_web_url_raw"] = syntax
+                if 'cmd_web' in data["plugins"] and 'syntax_web_urls' in data["plugins"]["cmd_web"]:
+                    syntax = '"web_urls": use it to search the Web for URLs to use, prepare a search query itself, ' \
+                             'a list of found links to websites will be returned, 10 links per page max. ' \
+                             'You can change the page or the number of links per page using the provided parameters, ' \
+                             'params: "query", "page", "num_links"'
+                    data["plugins"]["cmd_web"]["syntax_web_urls"] = syntax
                 updated = True
 
         # update file

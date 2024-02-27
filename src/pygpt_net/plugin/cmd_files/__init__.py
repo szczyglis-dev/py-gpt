@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
-
-import os
 
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.core.dispatcher import Event
@@ -364,8 +362,8 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_file_index",
             type="textarea",
-            value='"file_index": use it to index (embed in Vector Store) a file or directory for future use. '
-                  'Params: "path"',
+            value='"file_index": use it to index (embed in Vector Store) a file or directory for future use, '
+                  'params: "path"',
             label="Syntax: file_index",
             description="Syntax for file_index command",
             advanced=True,
