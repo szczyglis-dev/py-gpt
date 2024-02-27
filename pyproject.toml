@@ -58,6 +58,7 @@ SpeechRecognition = "^3.10.0"
 show-in-file-manager = "^1.1.4"
 SQLAlchemy = "^2.0.23"
 tiktoken = "^0.5.2"
+youtube-transcript-api = "^0.6.2"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "5.13.2"

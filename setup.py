@@ -69,5 +69,6 @@ setup(
         'SQLAlchemy>=2.0.23, <3.0.0',
         'show-in-file-manager>=1.1.4',
         'tiktoken>=0.5.2, <1.0.0',
+        'youtube-transcript-api>=0.6.2, <0.7.0',
     ],
 )
