@@ -221,6 +221,8 @@ class Idx:
 
         :param idx: index name
         :param urls: list of urls
+        :param type: type of url
+        :param extra_args: extra args
         :return: num of indexed, list with errors
         """
         context = self.llm.get_service_context()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 18:00:00                  #
+# Updated Date: 2024.02.27 05:00:00                  #
 # ================================================== #
 
 from pathlib import Path
@@ -24,6 +24,7 @@ class ExampleDataLoader(BaseLoader):
         self.id = "example_csv"  # identifier for the loader, must be unique
         self.name = "CSV files"  # name of the loader
         self.extensions = ["csv"]  # file extensions that the data loader can handle
+        self.type = ["file"]  # allowed types: file, web
 
     def get(self) -> BaseReader:
         """

@@ -1,3 +1,10 @@
+2.0.171 (2024-02-27)
+
+- Added core for loading web resources (not only webpages) to Llama-index.
+- Added a data loader for transcriptions of YouTube videos (simply ask for index a YouTube video URL using the "Command: Web Search" plugin - the "web_index" command must be enabled).
+- Fixed the "Initial token count exceeds token limit" error in Chat with files mode.
+- Added missing translations for dictionary items in settings dialogs.
+
 2.0.170 (2024-02-26)
 
 - Added "simplified" mode to the "Audio Input" plugin, now set as default, allowing for faster and simpler speech recognition without requiring any configuration. Meanwhile, all current options have been moved to "advanced" mode.

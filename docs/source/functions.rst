@@ -1,6 +1,8 @@
 Functions and commands execute
 ==============================
 
+**Tip:** ``gpt-4-1106-preview`` is the best model to use for command handling, The ``gpt-4-turbo-preview`` model can sometimes refuse to execute commands.
+
 **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
 .. code-block:: json

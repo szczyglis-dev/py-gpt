@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.170** | build: **2024.02.26** | Python: **>=3.10, <3.12**
+Release: **2.0.171** | build: **2024.02.27** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2242,6 +2242,8 @@ event.stop = True
 
 # Functions and commands execute
 
+**Tip:** `gpt-4-1106-preview` is the best model to use for command handling, The `gpt-4-turbo-preview` model can sometimes refuse to execute commands.
+
 **PyGPT** uses an internal syntax to define commands and their parameters, which can then be used by the model and executed on the application side or even directly in the system. This syntax looks as follows (example command below):
 
 ```~###~{"cmd": "send_email", "params": {"quote": "Why don't skeletons fight each other? They don't have the guts!"}}~###~```
@@ -2635,6 +2637,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.0.171 (2024-02-27)
+
+- Added core for loading web resources (not only webpages) to Llama-index.
+- Added a data loader for transcriptions of YouTube videos (simply ask for index a YouTube video URL using the `Command: Web Search` plugin - the `web_index` command must be enabled).
+- Fixed the "Initial token count exceeds token limit" error in Chat with files mode.
+- Added missing translations for dictionary items in settings dialogs.
 
 # 2.0.170 (2024-02-26)
 
