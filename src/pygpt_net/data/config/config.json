@@ -111,7 +111,6 @@
   "log.level": "error",
   "log.llama": false,
   "log.plugins": false,
-  "max_context_history_items": 100,
   "max_output_tokens": 1024,
   "max_tokens_length": 32000,
   "max_total_tokens": 128000,
