@@ -6,17 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import datetime
-import time
 
 from packaging.version import Version
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.provider.core.ctx.base import BaseProvider
 from pygpt_net.provider.core.ctx.db_sqlite import DbSqliteProvider
 from pygpt_net.utils import trans
+
+from .idx import Idx
 
 
 class Ctx:
@@ -28,6 +30,7 @@ class Ctx:
         """
         self.window = window
         self.provider = DbSqliteProvider(window)
+        self.idx = Idx(window)  # context indexing core
         self.meta = {}
         self.items = []
         self.current = None
@@ -68,11 +71,19 @@ class Ctx:
         """
         return self.provider.patch(app_version)
 
+    def get_provider(self) -> BaseProvider:
+        """
+        Get provider instance
+
+        :return: provider instance
+        """
+        return self.provider
+
     def select(self, id: int):
         """
-        Select ctx
+        Select ctx meta by ID and load ctx items
 
-        :param id: context id
+        :param id: context meta id
         """
         if id in self.meta:
             ctx = self.meta[id]
@@ -172,6 +183,16 @@ class Ctx:
         """
         self.provider.update_item(item)
 
+    def update_indexed_ts_by_id(self, id: int, ts: int):
+        """
+        Update indexed timestamp by ID
+
+        :param id: context id
+        :param ts: timestamp
+        """
+        if id in self.meta:
+            self.meta[id].indexed = ts
+
     def is_empty(self) -> bool:
         """
         Check if ctx is empty
@@ -234,9 +255,7 @@ class Ctx:
             return self.meta[self.current].initialized
 
     def set_initialized(self):
-        """
-        Set ctx as initialized (name assigned)
-        """
+        """Set ctx as initialized (name assigned)"""
         if self.current is None:
             return
         if self.current in self.meta:
@@ -379,7 +398,7 @@ class Ctx:
         """Clear ctx items"""
         self.items = []
 
-    def append_thread(self, thread):
+    def append_thread(self, thread: str):
         """
         Append thread ID to ctx
 
@@ -405,9 +424,9 @@ class Ctx:
             self.meta[self.current].run = self.run
             self.save(self.current)
 
-    def append_status(self, status):
+    def append_status(self, status: int):
         """
-        Append status to ctx
+        Append status (label color) to ctx
 
         :param status: status
         """
@@ -432,8 +451,7 @@ class Ctx:
         :param mode: mode
         :param used_tokens: used tokens
         :param max_tokens: max tokens
-        :return: context items count, ctx tokens count
-        :rtype: (int, int)
+        :return: ctx items count, ctx tokens count
         """
         i = 0
         # loop on items from end to start
@@ -465,7 +483,7 @@ class Ctx:
         :param used_tokens: used tokens
         :param max_tokens: max tokens
         :param ignore_first: ignore current item (provided by user)
-        :return: context items list
+        :return: ctx items list
         """
         items = []
         # loop on items from end to start
@@ -551,7 +569,7 @@ class Ctx:
 
     def duplicate(self, id: int) -> int:
         """
-        Duplicate ctx
+        Duplicate ctx and return new ctx id
 
         :param id: ctx id
         :return: new ctx id
@@ -573,7 +591,7 @@ class Ctx:
 
     def set_display_filters(self, filters: dict):
         """
-        Update display filters
+        Update current display filters
 
         :param filters: filters dict
         """
@@ -690,10 +708,11 @@ class Ctx:
         items = self.provider.load(id)
         data = []
         for item in items:
-            data.append("Me: " + str(item.input) + "\n" + "You: " + str(item.output) + "\n")
+            # data.append("Me: " + str(item.input) + "\n" + "You: " + str(item.output) + "\n")
+            data.append("User: " + str(item.input) + "\n" + "Assistant: " + str(item.output) + "\n")
         return data
 
-    def get_list_in_date_range(self, search_string, limit: int = 0):
+    def get_list_in_date_range(self, search_string, limit: int = 0) -> list:
         """
         Get ctx list in date range
 
@@ -751,205 +770,3 @@ class Ctx:
         :param ctx: CtxItem instance
         """
         return self.provider.dump(ctx)
-
-    def set_meta_indexed_by_id(self, id: int, doc_id: str, ts: int) -> bool:
-        """
-        Update ctx meta indexed timestamp
-
-        :param id: ctx meta ID
-        :param doc_id: document ID
-        :param ts: timestamp
-        :return: True if updated
-        """
-        return self.provider.set_meta_indexed_by_id(id, ts)
-
-    def update_meta_indexed_by_id(self, id: int, doc_id: str) -> bool:
-        """
-        Update ctx meta indexed timestamp
-
-        :param id: ctx meta ID
-        :param doc_id: document ID
-        :return: True if updated
-        """
-        return self.provider.update_meta_indexed_by_id(id)
-
-    def update_meta_indexed_to_ts(self, ts: int) -> bool:
-        """
-        Update ctx meta updated timestamp
-
-        :param ts: timestamp to update to
-        :return: True if updated
-        """
-        return self.provider.update_meta_indexed_to_ts(ts)
-
-    def clear_meta_indexed_by_id(self, id: int) -> bool:
-        """
-        Clear ctx meta indexed timestamp
-
-        :param id: ctx meta ID
-        :return: True if updated
-        """
-        return self.provider.clear_meta_indexed_by_id(id)
-
-    def clear_meta_indexed_all(self) -> bool:
-        """
-        Clear all ctx meta indexed timestamps
-
-        :return: True if updated
-        """
-        return self.provider.clear_meta_indexed_all()
-
-    def remove_meta_from_indexed(self, store: str, id: int, idx: str, doc_id: str = None) -> bool:
-        """
-        Remove ctx meta from indexed
-
-        :param store: store name
-        :param id: ctx meta ID
-        :param idx: index name
-        :param doc_id: document ID (optional)
-        :return: True if updated
-        """
-        # get meta
-        meta = self.get_meta_by_id(id)
-        if meta is None:
-            return False
-
-        # remove from ctx index db
-        self.window.core.idx.meta.remove(store, idx, id)
-
-        # remove document from idx storage
-        if store in meta.indexes:
-            if idx in list(meta.indexes[store]):
-                for doc_id in meta.indexes[store][idx]:
-                    self.window.core.idx.remove_doc(idx, doc_id)
-
-        # remove index data from meta indexes
-        self.remove_idx_data_from_meta(meta, store, idx)
-
-        # update indexes in db
-        self.provider.update_meta_indexes_by_id(id, meta)
-
-        # clear indexed timestamp if no indexes left
-        if not meta.indexes:
-            self.clear_meta_indexed_by_id(id)
-        return True
-
-    def set_meta_as_indexed(self, id: int, idx: str, doc_id: str) -> bool:
-        """
-        Set ctx meta as indexed
-
-        :param id: ctx meta ID
-        :param idx: index name
-        :param doc_id: document ID
-        :return: True if updated
-        """
-        # get meta
-        meta = self.get_meta_by_id(id)
-        if meta is None:
-            return False
-
-        ts = int(time.time())
-        store = self.window.core.idx.get_current_store()
-
-        # add to index db
-        if not self.window.core.idx.meta.exists(store, idx, id):
-            self.window.core.idx.meta.append(
-                store,  # current store
-                idx,  # index name
-                id,  # ctx meta id
-                doc_id  # document id
-            )
-        else:
-            # update document id in index db if already indexed
-            self.window.core.idx.meta.update(
-                id,  # ctx meta id
-                doc_id  # document id
-            )
-
-        # update ctx meta indexed timestamp
-        self.provider.set_meta_indexed_by_id(id, ts)
-        if id in self.meta:
-            self.meta[id].indexed = ts
-
-        # append index data to ctx meta object
-        self.store_idx_data_in_meta(meta, store, idx, doc_id)
-
-        # update ctx meta indexes data in db
-        self.provider.update_meta_indexes_by_id(id, meta)
-        return True
-
-    def store_idx_data_in_meta(self, ctx: CtxMeta, store_id: str, idx: str, doc_id: str):
-        """
-        Append index data to ctx meta object
-
-        :param ctx: ctx meta
-        :param store_id: store id
-        :param idx: index name
-        :param doc_id: document id
-        """
-        current = ctx.indexes
-        if not isinstance(current, dict):
-            current = {}
-        if store_id not in current:
-            current[store_id] = {}
-        if idx not in current[store_id]:
-            current[store_id][idx] = {}
-        current[store_id][idx][doc_id] = int(time.time())  # indexed by doc_id
-        ctx.indexes = current
-
-    def remove_idx_data_from_meta(self, ctx: CtxMeta, store_id: str, idx: str, doc_id: str = None):
-        """
-        Remove index data from ctx meta object
-
-        :param ctx: ctx meta
-        :param store_id: store id
-        :param idx: index name
-        :param doc_id: document id
-        """
-        current = ctx.indexes
-        if not isinstance(current, dict):
-            current = {}
-        if store_id not in current:
-            current[store_id] = {}
-        if idx not in current[store_id]:
-            current[store_id][idx] = {}
-
-        # remove doc_id from index or all docs if doc_id is None
-        if doc_id is None:
-            del current[store_id][idx]
-        else:
-            if doc_id in current[store_id][idx]:
-                current[store_id][idx].remove(doc_id)
-            # remove empty index
-            if not current[store_id][idx]:
-                del current[store_id][idx]
-
-        # remove empty store
-        if not current[store_id]:
-            del current[store_id]
-
-        ctx.indexes = current
-
-    def truncate_indexed(self, store_id: str = None, idx: str = None) -> bool:
-        """
-        Truncate ctx meta indexed timestamps and statuses
-
-        :param store_id: store id (optional)
-        :param idx: index name (optional)
-        :return: True if truncated
-        """
-        metas = self.provider.get_meta_indexed()
-        for meta_id in metas:
-            meta = metas[meta_id]
-            if store_id and idx:
-                if store_id in meta.indexes and idx in meta.indexes[store_id]:
-                    # remove index data from meta indexes
-                    self.remove_idx_data_from_meta(meta, store_id, idx)
-
-                    # update indexes in db
-                    self.provider.update_meta_indexes_by_id(meta.id, meta)
-
-                    # clear indexed timestamp if no indexes left
-                    if not meta.indexes:
-                        self.clear_meta_indexed_by_id(meta.id)
-        return True

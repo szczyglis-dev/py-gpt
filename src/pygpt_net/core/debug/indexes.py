@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -37,9 +37,18 @@ class IndexesDebug:
             if len(indexes_data) > 0:
                 self.window.core.debug.add(self.id, name, str(indexes_data))
 
-        self.window.core.debug.add(self.id, 'Storage (idx):', str(list(self.window.core.idx.storage.indexes.keys())))
-        self.window.core.debug.add(self.id, 'Storage (storage):', str(list(self.window.core.idx.storage.storages.keys())))
-        self.window.core.debug.add(self.id, 'Offline loaders:', str(list(self.window.core.idx.indexing.loaders.keys())))
+        self.window.core.debug.add(self.id, 'Storage (idx):',
+                                   str(list(self.window.core.idx.storage.indexes.keys())))
+        self.window.core.debug.add(self.id, 'Storage (storage):',
+                                   str(list(self.window.core.idx.storage.storages.keys())))
+
+        # loaders
+        self.window.core.debug.add(self.id, 'Offline loaders [files]:',
+                                   str(list(self.window.core.idx.indexing.loaders["file"].keys())))
+        self.window.core.debug.add(self.id, 'Offline loaders [web]:',
+                                   str(list(self.window.core.idx.indexing.loaders["web"].keys())))
+        self.window.core.debug.add(self.id, 'External instructions [web]:',
+                                   str(self.window.core.idx.indexing.external_instructions))
 
         # indexes
         indexes = self.window.core.idx.get_all()

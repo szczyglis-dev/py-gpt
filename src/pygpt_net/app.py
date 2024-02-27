@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -45,13 +45,15 @@ from pygpt_net.provider.vector_stores.redis import RedisProvider
 from pygpt_net.provider.vector_stores.simple import SimpleProvider
 
 # data loaders providers (llama-index)
-from pygpt_net.provider.loaders.file_csv import Loader as CsvLoader
-from pygpt_net.provider.loaders.file_docx import Loader as DocxLoader
-from pygpt_net.provider.loaders.file_epub import Loader as EpubLoader
-from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader
-from pygpt_net.provider.loaders.file_json import Loader as JsonLoader
-from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader
-from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader
+from pygpt_net.provider.loaders.file_csv import Loader as CsvLoader  # file: CSV
+from pygpt_net.provider.loaders.file_docx import Loader as DocxLoader  # file: DOCX
+from pygpt_net.provider.loaders.file_epub import Loader as EpubLoader  # file: EPUB
+from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader  # file: Excel
+from pygpt_net.provider.loaders.file_json import Loader as JsonLoader  # file: JSON
+from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader  # file: Markdown
+from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader  # file: PDF
+from pygpt_net.provider.loaders.web_page import Loader as WebPageLoader  # web: Webpages
+from pygpt_net.provider.loaders.web_yt import Loader as YouTubeLoader  # web: YouTube
 
 # audio providers
 from pygpt_net.provider.audio_input.openai_whisper import OpenAIWhisper
@@ -260,6 +262,8 @@ def run(**kwargs):
     launcher.add_loader(JsonLoader())
     launcher.add_loader(MarkdownLoader())
     launcher.add_loader(PdfLoader())
+    launcher.add_loader(WebPageLoader())
+    launcher.add_loader(YouTubeLoader())
 
     # register custom data loaders (llama-index)
     loaders = kwargs.get('loaders', None)

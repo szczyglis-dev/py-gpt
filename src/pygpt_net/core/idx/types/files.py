@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -49,9 +49,9 @@ class Files:
             "id": doc_id,
         }
         return self.provider.append_file(
-            store_id,
-            idx,
-            data,
+            store_id=store_id,
+            idx=idx,
+            data=data,
         )
 
     def get_id(self, path: str) -> str:
@@ -77,9 +77,9 @@ class Files:
         :return: document id
         """
         return self.provider.get_file_doc_id(
-            store_id,
-            idx,
-            file_id,
+            store_id=store_id,
+            idx=idx,
+            file_id=file_id,
         )
 
     def exists(self, store_id: str, idx: str, file_id: str) -> bool:
@@ -89,27 +89,27 @@ class Files:
         :param store_id: store id
         :param idx: index name
         :param file_id: file id
-        :return: True if ctx meta is indexed
+        :return: True if file is indexed
         """
         return self.provider.is_file_indexed(
-            store_id,
-            idx,
-            file_id,
+            store_id=store_id,
+            idx=idx,
+            file_id=file_id,
         )
 
     def update(self, id: int, doc_id: str, ts: int) -> bool:
         """
         Update timestamp of indexed file
 
-        :param id: record ID
+        :param id: database record ID
         :param doc_id: document ID
         :param ts: timestamp
         :return: True if file was updated
         """
         return self.provider.update_file(
-            id,
-            doc_id,
-            ts,
+            id=id,
+            doc_id=doc_id,
+            ts=ts,
         )
 
     def remove(self, store_id: str, idx: str, doc_id: str):
@@ -121,9 +121,9 @@ class Files:
         :param doc_id: document id
         """
         self.provider.remove_file(
-            store_id,
-            idx,
-            doc_id,
+            store_id=store_id,
+            idx=idx,
+            doc_id=doc_id,
         )
 
     def truncate(self, store_id: str = None, idx: str = None):
@@ -134,6 +134,6 @@ class Files:
         :param idx: index name
         """
         self.provider.truncate_files(
-            store_id,
-            idx,
+            store_id=store_id,
+            idx=idx,
         )

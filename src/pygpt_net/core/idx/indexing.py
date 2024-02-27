@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 22:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import os.path
@@ -31,7 +31,12 @@ class Indexing:
         :param window: Window instance
         """
         self.window = window
-        self.loaders = {}  # offline loaders
+        self.loaders = {
+            "file": {},  # file loaders
+            "web": {},   # web loaders
+        }  # offline loaders
+        self.loader_providers = {}
+        self.external_instructions = {}
 
     def register_loader(self, loader: BaseLoader):
         """
@@ -39,9 +44,26 @@ class Indexing:
 
         :param loader: loader instance
         """
+        self.loader_providers[loader.id] = loader
         extensions = loader.extensions  # available extensions
-        for ext in extensions:
-            self.loaders[ext] = loader.get()  # get reader instance
+        types = loader.type  # available types
+        if "file" in types:
+            for ext in extensions:
+                self.loaders["file"][ext] = loader.get()  # get reader instance, by extension
+        if "web" in types:
+            self.loaders["web"][loader.id] = loader.get()  # get reader instance, by id
+            if loader.instructions:
+                for item in loader.instructions:
+                    cmd = list(item.keys())[0]
+                    self.external_instructions[cmd] = item[cmd]
+
+    def get_external_instructions(self):
+        """
+        Get external instructions
+
+        :return: dict of external instructions
+        """
+        return self.external_instructions
 
     def get_online_loader(self, ext: str):
         """
@@ -158,11 +180,11 @@ class Indexing:
                 reader = loader()
                 documents = reader.load_data(file=Path(path))
             else:  # try offline loaders
-                if ext in self.loaders:
+                if ext in self.loaders["file"]:
                     self.log("Using offline loader for: {}".format(ext))
                     # download_loader cause problems in compiled version
                     # use offline versions instead
-                    reader = self.loaders[ext]
+                    reader = self.loaders["file"][ext]
                     documents = reader.load_data(file=Path(path))
                 else:
                     if self.is_excluded(ext):
@@ -386,7 +408,7 @@ class Indexing:
                 index.insert(document=d)
                 doc_id = d.id_
                 self.log("Inserted DB document: {} / {}".format(n+1, len(documents)))
-                self.window.core.ctx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
+                self.window.core.ctx.idx.set_meta_as_indexed(id, idx, doc_id)  # update ctx
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -413,28 +435,57 @@ class Indexing:
             errors.extend(errs)
         return n, errors
 
-    def index_url(self, idx: str, index: BaseIndex, url: str) -> (int, list):
+    def index_url(
+            self,
+            idx: str,
+            index: BaseIndex,
+            url: str,
+            type="webpage",
+            extra_args: dict = None
+    ) -> (int, list):
         """
-        Index data from URL
+        Index data from external (remote) resource
 
         :param idx: index name
         :param index: index instance
-        :param url: url to index
+        :param url: external url to index
+        :param type: type of URL (webpage, feed, etc.)
+        :param extra_args: extra arguments for loader
         :return: number of indexed documents, errors
         """
         errors = []
         n = 0
-        try:
-            # remove old content from index if exists
-            self.remove_old_external(idx, url, "url")
 
-            # get data from URL
-            documents = BeautifulSoupWebReader().load_data([url])
+        # check if web loader for defined type exists
+        if type not in self.loaders["web"]:
+            raise ValueError("No web loader for type: {}".format(type))
+
+        try:
+            # remove old content from index if already indexed
+            self.remove_old_external(idx, url, type)
+            loader = self.loaders["web"][type]
+
+            # additional keyword arguments for data loader
+            if extra_args is None:
+                extra_args = {}
+
+            extra_args["url"] = url
+            loader_args = self.loader_providers[type].prepare_args(**extra_args)
+
+            # get documents from external resource
+            documents = loader.load_data(
+                **loader_args
+            )
             for d in documents:
                 index.insert(document=d)
                 doc_id = d.id_  # URL is used as document ID
-                self.window.core.idx.external.set_indexed(url, "url", idx, doc_id)  # update external index
-                self.log("Inserted webpage document: {} / {}".format(n+1, len(documents)))
+                self.window.core.idx.external.set_indexed(
+                    content=url,
+                    type=type,
+                    idx=idx,
+                    doc_id=doc_id,
+                )  # update external index
+                self.log("Inserted web document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
             errors.append(str(e))
@@ -442,19 +493,43 @@ class Indexing:
             self.window.core.debug.log(e)
         return n, errors
 
-    def index_urls(self, idx: str, index: BaseIndex, urls: list) -> (int, list):
+    def index_urls(
+            self,
+            idx: str,
+            index: BaseIndex,
+            urls: list,
+            type="webpage",
+            extra_args: dict = None
+    ) -> (int, list):
         """
         Index data from URLs
 
         :param idx: index name
         :param index: index instance
         :param urls: list of urls
+        :param type: type of URL (webpage, feed, etc.)
+        :param extra_args: extra arguments for loader
         :return: number of indexed documents, errors
         """
         errors = []
         n = 0
+
+        # check if web loader for defined type exists
+        if type not in self.loaders["web"]:
+            msg = "No web loader for type: {}".format(type)
+            errors.append(msg)
+            print(msg)
+            self.window.core.debug.log(msg)
+            return n, errors
+
         for url in urls:
-            indexed, errs = self.index_url(idx, index, url)
+            indexed, errs = self.index_url(
+                idx=idx,
+                index=index,
+                url=url,
+                type=type,
+                extra_args=extra_args,
+            )
             n += indexed
             errors.extend(errs)
         return n, errors
@@ -472,8 +547,8 @@ class Indexing:
             return False
 
         store = self.window.core.idx.get_current_store()
-        if self.window.core.idx.meta.exists(store, idx, id):
-            doc_id = self.window.core.idx.meta.get_doc_id(store, idx, id)
+        if self.window.core.idx.ctx.exists(store, idx, id):
+            doc_id = self.window.core.idx.ctx.get_doc_id(store, idx, id)
             if doc_id:
                 self.log("Removing old document id: {}".format(doc_id))
                 self.window.core.idx.storage.remove_document(

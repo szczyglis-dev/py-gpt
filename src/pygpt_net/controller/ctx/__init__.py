@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -316,7 +316,7 @@ class Ctx:
         if meta.indexed is not None and meta.indexed > 0:
             for store_id in list(meta.indexes):
                 for idx in list(meta.indexes[store_id]):
-                    self.window.core.ctx.remove_meta_from_indexed(store_id, id, idx)
+                    self.window.core.ctx.idx.remove_meta_from_indexed(store_id, id, idx)
 
     def delete_history(self, force: bool = False):
         """
@@ -334,7 +334,7 @@ class Ctx:
 
         # truncate index db if exists
         try:
-            self.window.core.idx.meta.truncate()
+            self.window.core.idx.ctx.truncate()
         except Exception as e:
             self.window.core.debug.log(e)
             print("Error truncating ctx index db", e)

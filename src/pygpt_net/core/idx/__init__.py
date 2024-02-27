@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -21,9 +21,10 @@ from pygpt_net.provider.vector_stores import Storage
 from .indexing import Indexing
 from .llm import Llm
 from .chat import Chat
-from .files import Files
-from .meta import Meta
-from .external import External
+
+from .types.ctx import Ctx
+from .types.external import External
+from .types.files import Files
 
 
 class Idx:
@@ -43,11 +44,13 @@ class Idx:
             "db_sqlite": DbSqliteProvider(window),
         }
         self.provider = "db_sqlite"
-        self.files = Files(window, self.get_provider())
-        self.meta = Meta(window, self.get_provider())
-        self.external = External(window, self.get_provider())
         self.items = {}
         self.initialized = False
+
+        # internal types
+        self.ctx = Ctx(window, self.get_provider())
+        self.external = External(window, self.get_provider())
+        self.files = Files(window, self.get_provider())
 
     def install(self):
         """Install provider data"""
@@ -86,9 +89,9 @@ class Idx:
 
     def store_index(self, idx: str = "base"):
         """
-        Store index
+        Store (persist) index data
 
-        :param idx: index name
+        :param idx: index name/ID
         """
         self.storage.store(idx)
 
@@ -97,18 +100,18 @@ class Idx:
         Truncate index
 
         :param idx: index name
-        :param truncate: truncate index
+        :param truncate: truncate index (remove all data)
         :return: True if success
         """
         # get current store
         store = self.get_current_store()
 
         # clear db data
-        self.meta.truncate(store, idx)
+        self.ctx.truncate(store, idx)
         self.files.truncate(store, idx)
 
         # clear ctx data indexed status
-        self.window.core.ctx.truncate_indexed(store, idx)
+        self.window.core.ctx.idx.truncate_indexed(store, idx)
 
         # clear storage, remove index
         if truncate:
@@ -130,13 +133,13 @@ class Idx:
         """
         context = self.llm.get_service_context()
         index = self.storage.get(
-            idx,
+            id=idx,
             service_context=context,
         )  # get or create index
         files, errors = self.indexing.index_files(
-            idx,
-            index,
-            path,
+            idx=idx,
+            index=index,
+            path=path,
         )  # index files
         if len(files) > 0:
             self.storage.store(
@@ -161,14 +164,14 @@ class Idx:
         """
         context = self.llm.get_service_context()
         index = self.storage.get(
-            idx,
+            id=idx,
             service_context=context,
         )  # get or create index
         num, errors = self.indexing.index_db_by_meta_id(
-            idx,
-            index,
-            id,
-            from_ts,
+            idx=idx,
+            index=index,
+            id=id,
+            from_ts=from_ts,
         )  # index db records
         if num > 0:
             self.storage.store(
@@ -191,13 +194,13 @@ class Idx:
         """
         context = self.llm.get_service_context()
         index = self.storage.get(
-            idx,
+            id=idx,
             service_context=context,
         )  # get or create index
         num, errors = self.indexing.index_db_from_updated_ts(
-            idx,
-            index,
-            from_ts,
+            idx=idx,
+            index=index,
+            from_ts=from_ts,
         )  # index db records
         if num > 0:
             self.storage.store(
@@ -210,6 +213,8 @@ class Idx:
             self,
             idx: str = "base",
             urls: list = None,
+            type: str = "webpage",
+            extra_args: dict = None
     ) -> (dict, list):
         """
         Index URLs
@@ -220,13 +225,15 @@ class Idx:
         """
         context = self.llm.get_service_context()
         index = self.storage.get(
-            idx,
+            id=idx,
             service_context=context,
         )  # get or create index
         n, errors = self.indexing.index_urls(
-            idx,
-            index,
-            urls,
+            idx=idx,
+            index=index,
+            urls=urls,
+            type=type,
+            extra_args=extra_args,
         )  # index urls
         if n > 0:
             self.storage.store(
@@ -356,16 +363,16 @@ class Idx:
                 if id is not None:
                     self.items[store_id][idx].items[file_id] = {
                         "id": doc_id,
-                        "db_id": id,
+                        "db_id": id,  # DB id
                         "path": path,
                         "indexed_ts": ts,
                     }
             else:
                 # update indexed timestamp only
                 self.files.update(
-                    self.items[store_id][idx].items[file_id]["db_id"],
-                    doc_id,
-                    ts,
+                    id=self.items[store_id][idx].items[file_id]["db_id"],  # DB id
+                    doc_id=doc_id,
+                    ts=ts,
                 )
                 self.items[store_id][idx].items[file_id]["id"] = doc_id
                 self.items[store_id][idx].items[file_id]["indexed_ts"] = ts
@@ -377,7 +384,7 @@ class Idx:
         :param idx: index name (id)
         :param doc_id: document ID (in storage)
         """
-        self.llm.get_service_context()  # init environment only (API keys, etc.)
+        self.llm.get_service_context()  # init environment only (ENV API keys, etc.)
         if self.storage.remove_document(idx, doc_id):
             self.indexing.log("Removed document from index: " + idx + " - " + doc_id)
 
@@ -388,7 +395,7 @@ class Idx:
         :param idx: index name
         :param file: file ID
         """
-        self.llm.get_service_context()  # init environment only (API keys, etc.)
+        self.llm.get_service_context()  # init environment only (ENV API keys, etc.)
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
             if file in self.items[store_id][idx].items:
@@ -437,7 +444,7 @@ class Idx:
         """
         Clear index items
 
-        :param idx: index name
+        :param idx: index name/id
         """
         store_id = self.get_current_store()
         if store_id in self.items and idx in self.items[store_id]:
@@ -446,8 +453,8 @@ class Idx:
 
     def get_version(self) -> str:
         """
-        Get config version
+        Get provider config version
 
-        :return: config version
+        :return: provider config version
         """
         return self.get_provider().get_version()
