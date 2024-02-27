@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -340,9 +340,17 @@ class Plugins:
         :return: QWidget
         """
         layout = QVBoxLayout()
-        for name in urls:
-            url = urls[name]
-            label = UrlLabel(name, url)
+        if isinstance(urls, dict):
+            for name in urls:
+                url = urls[name]
+                label = UrlLabel(name, url)
+                layout.addWidget(label)
+        elif isinstance(urls, list):
+            for url in urls:
+                label = UrlLabel("", url)
+                layout.addWidget(label)
+        elif isinstance(urls, str):
+            label = UrlLabel("", urls)
             layout.addWidget(label)
 
         widget = QWidget()
