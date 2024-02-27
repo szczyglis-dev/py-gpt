@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 19:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -15,18 +15,20 @@ from pygpt_net.plugin.base import BasePlugin
 class BaseProvider:
     def __init__(self, plugin=None):
         """
-        Web search base provider
+        Web access base provider
 
-        :param plugin: plugin
+        :param plugin: plugin instance
         """
         self.plugin = plugin
-        self.id = ""
-        self.name = ""
-        self.type = []
+        self.id = ""  # unique provider id
+        self.name = ""  # name to display
+        self.type = []  # allowed: search_engine
 
     def init(self, plugin: BasePlugin):
         """
         Initialize provider
+
+        :param plugin: plugin instance
         """
         self.attach(plugin)
         self.init_options()
@@ -40,9 +42,7 @@ class BaseProvider:
         self.plugin = plugin
 
     def init_options(self):
-        """
-        Initialize provider options
-        """
+        """Initialize provider options (for plugin settings)"""
         pass
 
     def search(self, query, limit: int = 10, offset: int = 0):
