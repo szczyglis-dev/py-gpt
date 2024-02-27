@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import speech_recognition as sr
@@ -30,9 +30,6 @@ class GoogleSpeechRecognition(BaseProvider):
 
     def init_options(self):
         """Initialize options"""
-        url_docs = {
-            "Help": "https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst",
-        }
         self.plugin.add_option(
             "google_args",
             type="dict",
@@ -55,7 +52,7 @@ class GoogleSpeechRecognition(BaseProvider):
             description="Additional keywords arguments for r.recognize_google(audio, **kwargs)",
             tooltip="Provide additional keywords arguments for recognize_google()",
             tab="google_speech_recognition",
-            urls=url_docs,
+            urls=["https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst"],
         )
 
     def transcribe(self, path: str) -> str:

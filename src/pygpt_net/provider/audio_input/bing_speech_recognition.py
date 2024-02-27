@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import speech_recognition as sr
@@ -30,9 +30,6 @@ class BingSpeechRecognition(BaseProvider):
 
     def init_options(self):
         """Initialize options"""
-        url_docs = {
-            "Help": "https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst",
-        }
         self.plugin.add_option(
             "bing_args",
             type="dict",
@@ -55,7 +52,7 @@ class BingSpeechRecognition(BaseProvider):
             description="Additional keywords arguments for r.recognize_bing(audio, **kwargs)",
             tooltip="Provide additional keywords arguments for recognize_bing()",
             tab="bing_speech_recognition",
-            urls=url_docs,
+            urls=["https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst"],
         )
 
     def transcribe(self, path: str) -> str:

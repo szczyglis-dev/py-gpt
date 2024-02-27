@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 19:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 from .base import BaseProvider
@@ -15,7 +15,7 @@ from .base import BaseProvider
 class OpenAIWhisper(BaseProvider):
     def __init__(self, *args, **kwargs):
         """
-        OpenAI Whisper provider
+        OpenAI Whisper provider (via API, not local model)
 
         :param args: args
         :param kwargs: kwargs
@@ -57,7 +57,8 @@ class OpenAIWhisper(BaseProvider):
 
         :return: True if configured, False otherwise
         """
-        return True
+        api_key = self.plugin.window.core.config.get("api_key")
+        return api_key is not None and api_key != ""
 
     def get_config_message(self) -> str:
         """
@@ -65,4 +66,4 @@ class OpenAIWhisper(BaseProvider):
 
         :return: message
         """
-        return ""
+        return "OpenAI API key is not set yet. Please configure it in settings."
