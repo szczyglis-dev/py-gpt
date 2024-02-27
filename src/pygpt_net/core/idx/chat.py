@@ -154,7 +154,7 @@ class Chat:
 
         # append context from DB
         history = self.context.get_messages(ctx.input, system_prompt)
-        memory = self.get_memory_buffer(history)
+        memory = self.get_memory_buffer(history, context.llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
             query,
             history,
@@ -184,13 +184,17 @@ class Chat:
 
         return True
 
-    def get_memory_buffer(self, history: list) -> ChatMemoryBuffer:
+    def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:
         """
         Get memory buffer
 
         :param history: Memory with chat history
+        :param llm: LLM model
         """
-        return ChatMemoryBuffer.from_defaults(chat_history=history)
+        return ChatMemoryBuffer.from_defaults(
+            chat_history=history,
+            llm=llm,
+        )
 
     def get_custom_prompt(self, prompt: str = None) -> ChatPromptTemplate or None:
         """

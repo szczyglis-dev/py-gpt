@@ -469,6 +469,9 @@ class Indexing:
             if extra_args is None:
                 extra_args = {}
 
+            self.log("Loading web documents from: {}".format(url))
+            self.log("Using web loader for type: {}".format(type))
+
             extra_args["url"] = url
             loader_args = self.loader_providers[type].prepare_args(**extra_args)
 
@@ -485,7 +488,7 @@ class Indexing:
                     idx=idx,
                     doc_id=doc_id,
                 )  # update external index
-                self.log("Inserted web document: {} / {}".format(n+1, len(documents)))
+                self.log("Inserted (web) document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
             errors.append(str(e))
