@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 import copy
@@ -38,8 +38,9 @@ class Config:
         self.initialized = False
         self.initialized_base = False
         self.db_echo = False
-        self.data = {}
-        self.data_base = {}
+        self.data = {}  # user config
+        self.data_base = {}  # base config
+        self.data_session = {}  # temporary config (session only)
         self.version = self.get_version()
         self.dirs = {
             "capture": "capture",
@@ -199,6 +200,18 @@ class Config:
             return self.data[key]
         return default
 
+    def get_session(self, key: str, default: any = None) -> any:
+        """
+        Return session config value by key
+
+        :param key: key
+        :param default: default value
+        :return: value
+        """
+        if key in self.data_session:
+            return self.data_session[key]
+        return default
+
     def get_lang(self) -> str:
         """
         Return language code
@@ -219,6 +232,15 @@ class Config:
         """
         self.data[key] = value
 
+    def set_session(self, key: str, value: any):
+        """
+        Set session config value
+
+        :param key: key
+        :param value: value
+        """
+        self.data_session[key] = value
+
     def has(self, key: str) -> bool:
         """
         Check if key exists in config
@@ -230,6 +252,17 @@ class Config:
             return True
         return False
 
+    def has_session(self, key: str) -> bool:
+        """
+        Check if key exists in session config
+
+        :param key: key
+        :return: True if exists
+        """
+        if key in self.data_session:
+            return True
+        return False
+
     def all(self) -> dict:
         """
         Return all config values
@@ -237,6 +270,14 @@ class Config:
         :return: dict with all config values
         """
         return self.data
+
+    def all_session(self) -> dict:
+        """
+        Return all session config values
+
+        :return: dict with all config values
+        """
+        return self.data_session
 
     def get_available_langs(self) -> list:
         """
@@ -333,7 +374,7 @@ class Config:
 
         :return: last used directory
         """
-        last_dir = self.get_user_dir('data')
+        last_dir = self.get_user_dir("data")
         if self.has("dialog.last_dir"):
             tmp_dir = self.get("dialog.last_dir")
             if os.path.isdir(tmp_dir):
@@ -363,7 +404,7 @@ class Config:
         elif option in self.data_base:
             return self.data_base[option]
 
-    def save(self, filename: str = 'config.json'):
+    def save(self, filename: str = "config.json"):
         """
         Save config
 

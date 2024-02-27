@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 20:00:00                  #
+# Updated Date: 2024.02.27 18:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QEvent, QSize, QPoint
@@ -61,26 +61,30 @@ class BaseDialog(QDialog):
 
     def save_geometry(self):
         """Save dialog geometry"""
-        if not self.store_geometry_enabled():
-            return
-
         item = {
             "size": [self.size().width(), self.size().height()],
             "pos": [self.pos().x(), self.pos().y()]
         }
-        data = self.window.core.config.get("layout.dialog.geometry", {})
+        if self.store_geometry_enabled():
+            data = self.window.core.config.get("layout.dialog.geometry", {})
+        else:
+            data = self.window.core.config.get_session("layout.dialog.geometry", {})
+
         if not isinstance(data, dict):
             data = {}
         data[self.id] = item
-        self.window.core.config.set("layout.dialog.geometry", data)
-        self.stored_geometry = True
+
+        if self.store_geometry_enabled():
+            self.window.core.config.set("layout.dialog.geometry", data)
+        else:
+            self.window.core.config.set_session("layout.dialog.geometry", data)
 
     def restore_geometry(self):
         """Restore dialog geometry"""
-        if not self.store_geometry_enabled():
-            return
-
-        data = self.window.core.config.get("layout.dialog.geometry", {})
+        if self.store_geometry_enabled():
+            data = self.window.core.config.get("layout.dialog.geometry", {})
+        else:
+            data = self.window.core.config.get_session("layout.dialog.geometry", {})
         if not isinstance(data, dict):
             data = {}
         item = data.get(self.id, {})
