@@ -94,10 +94,11 @@ class Simple:
             self.stream.close()
             self.p.terminate()
 
-            wf = wave.open(path, 'wb')
-            wf.setnchannels(1)
-            wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
-            wf.setframerate(44100)
-            wf.writeframes(b''.join(self.frames))
-            wf.close()
-            self.plugin.handle_thread(True)  # handle transcription in simple mode
+            if self.frames:
+                wf = wave.open(path, 'wb')
+                wf.setnchannels(1)
+                wf.setsampwidth(self.p.get_sample_size(pyaudio.paInt16))
+                wf.setframerate(44100)
+                wf.writeframes(b''.join(self.frames))
+                wf.close()
+                self.plugin.handle_thread(True)  # handle transcription in simple mode

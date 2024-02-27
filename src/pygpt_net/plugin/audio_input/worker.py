@@ -36,6 +36,7 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        """Run worker."""
         if self.advanced:
             self.handle_advanced()
         else:
