@@ -575,7 +575,15 @@ class Plugin(BasePlugin):
         if text is None or text.strip() == '':
             return
 
-        # only advanced mode
+        # simple mode
+        if not self.is_advanced():
+            check = text.strip().lower()
+            for phrase in self.empty_phrases:
+                phrase_check = phrase.strip().lower()
+                if phrase_check in check:
+                    return
+
+        # advanced mode
         if self.is_advanced():
             if not self.can_listen():
                 return
