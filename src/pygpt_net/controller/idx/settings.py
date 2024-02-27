@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -88,8 +88,9 @@ class Settings:
         """
         Update text loaders list
         """
-        str = trans('settings.llama.extra.loaders') + ", " + ", ".join(
-                self.window.core.idx.indexing.loaders.keys())
+        str = trans('settings.llama.extra.loaders') + ", " + ", Files: ".join(
+                self.window.core.idx.indexing.loaders["file"].keys()) + ", Web: ".join(
+                self.window.core.idx.indexing.loaders["web"].keys())
         self.window.ui.nodes['idx.db.settings.loaders'].setText(str)
 
     def idx_db_all_context_menu(self, parent, pos):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import ssl
@@ -248,6 +248,8 @@ class Plugin(BasePlugin):
             description="Syntax for web_urls command",
             advanced=True,
         )
+        """
+        # handled by code
         self.add_option(
             "syntax_web_index",
             type="textarea",
@@ -257,6 +259,7 @@ class Plugin(BasePlugin):
             description="Syntax for web_index command",
             advanced=True,
         )
+        """
 
         # register provider options
         self.init_provider()
@@ -359,6 +362,24 @@ class Plugin(BasePlugin):
         """
         self.input_text = text
 
+    def prepare_idx_syntax(self) -> str:
+        """
+        Prepare web_index command syntax
+
+        :return: syntax string
+        """
+        types = self.window.core.idx.indexing.get_external_instructions()
+        allowed_types = ""
+        for key in types:
+            allowed_types += "\n- `{}`: {}".format(key, types[key])
+        return '"web_index": with this command YOU CAN READ AND INDEX CONTENT FROM EXTERNAL SOURCES. ' \
+               'Use it to read and index (embed in a Vector Store) the provided URL for webpage or any other ' \
+               'remote resource, like YT video. Provide type of resource in the "type" ' \
+               'param. If there is no allowed type for a specified resource then use the default "webpage" type. ' \
+               'If selected type requires additional args then pass them into "extra_args" param.\n' \
+               'Allowed types:{allowed_types}.\n ' \
+               'Params: "url", "type", "extra_args"'.format(allowed_types=allowed_types)
+
     def cmd_syntax(self, data: dict):
         """
         Event: CMD_SYNTAX
@@ -368,6 +389,14 @@ class Plugin(BasePlugin):
         for option in self.allowed_cmds:
             if not self.get_option_value("cmd_" + option):
                 continue
+
+            # special case for web_index
+            if option == "web_index":
+                data['syntax'].append(
+                    self.prepare_idx_syntax(),
+                )
+                continue
+
             key = "syntax_" + option
             if self.has_option(key):
                 data['syntax'].append(

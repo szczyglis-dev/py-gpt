@@ -41,7 +41,9 @@ def test_get_documents(mock_window):
     reader = MagicMock()
     reader.load_data = MagicMock(return_value=docs)
     loaders = {
-        "pdf": reader,
+        "file": {
+            "pdf": reader,
+        }
     }
     idx.loaders = loaders
     with patch("os.path.isdir") as mock_isdir:

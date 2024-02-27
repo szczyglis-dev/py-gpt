@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import os
@@ -19,7 +19,7 @@ from pygpt_net.core.filesystem import Filesystem
 from pygpt_net.item.index import IndexItem
 from tests.mocks import mock_window
 from pygpt_net.core.idx import Idx
-from pygpt_net.core.idx.files import Files
+from pygpt_net.core.idx.types.files import Files
 
 
 def test_get_current_store(mock_window):

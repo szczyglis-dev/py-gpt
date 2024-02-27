@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import datetime
@@ -351,7 +351,7 @@ class Indexer:
             return
 
         store = self.window.core.idx.get_current_store()
-        if self.window.core.ctx.remove_meta_from_indexed(store, meta_id, self.tmp_idx):
+        if self.window.core.ctx.idx.remove_meta_from_indexed(store, meta_id, self.tmp_idx):
             self.window.update_status(trans('status.deleted') + ": " + str(meta_id))
             self.window.controller.ctx.update()  # update ctx list
 

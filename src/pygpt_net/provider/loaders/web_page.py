@@ -11,17 +11,21 @@
 
 from llama_index.readers.base import BaseReader
 
-from .hub.pdf.base import PDFReader
+from .hub.web_page.base import WebPage
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "pdf"
-        self.name = "PDF documents"
-        self.extensions = ["pdf"]
-        self.type = ["file"]
+        self.id = "webpage"
+        self.name = "Webpages"
+        self.type = ["web"]
+        self.instructions = [
+            {
+                "webpage": "use it to index a provided standard webpage URL",
+            }
+        ]
 
     def get(self) -> BaseReader:
         """
@@ -29,4 +33,15 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
-        return PDFReader()
+        return WebPage()
+
+    def prepare_args(self, **kwargs) -> dict:
+        """
+        Prepare arguments for reader
+
+        :param kwargs: keyword arguments
+        :return: dictionary
+        """
+        args = {}
+        args["url"] = kwargs.get("url")
+        return args

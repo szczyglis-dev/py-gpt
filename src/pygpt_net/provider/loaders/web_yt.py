@@ -11,17 +11,21 @@
 
 from llama_index.readers.base import BaseReader
 
-from .hub.pdf.base import PDFReader
+from .hub.yt.base import YoutubeTranscriptReader
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "pdf"
-        self.name = "PDF documents"
-        self.extensions = ["pdf"]
-        self.type = ["file"]
+        self.id = "youtube"
+        self.name = "YouTube"
+        self.type = ["web"]
+        self.instructions = [
+            {
+                "youtube": "use it to read and index YouTube video URL",
+            }
+        ]
 
     def get(self) -> BaseReader:
         """
@@ -29,4 +33,15 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
-        return PDFReader()
+        return YoutubeTranscriptReader()
+
+    def prepare_args(self, **kwargs) -> dict:
+        """
+        Prepare arguments for reader
+
+        :param kwargs: keyword arguments
+        :return: dictionary
+        """
+        args = {}
+        args["ytlinks"] = [kwargs.get("url")]
+        return args

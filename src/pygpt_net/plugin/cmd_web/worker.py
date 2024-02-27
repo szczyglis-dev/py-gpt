@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.20 19:00:00                  #
+# Updated Date: 2024.02.27 04:00:00                  #
 # ================================================== #
 
 import json
@@ -165,14 +165,22 @@ class Worker(BaseWorker):
 
                 # cmd: web_index
                 elif item["cmd"] == "web_index":
+                    type = "webpage"
+                    args = {}
                     url = item["params"]["url"]
                     msg = "Indexing URL: '{}'".format(item["params"]["url"])
+                    if "type" in item["params"]:
+                        type = item["params"]["type"]
+                    if "args" in item["params"]:
+                        args = item["params"]["args"]
                     idx_name = self.plugin.get_option_value("idx")
 
                     # index URL via Llama-index
                     num, errors = self.plugin.window.core.idx.index_urls(
-                        idx_name,
-                        [url],
+                        idx=idx_name,
+                        urls=[url],
+                        type=type,
+                        extra_args=args,
                     )
                     data = {
                         'num_indexed': num,
