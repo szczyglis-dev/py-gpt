@@ -12,7 +12,7 @@ a = Analysis(
         'src/pygpt_net'
     ],
     binaries=[],
-    datas=collect_data_files('opentelemetry.sdk', 'pinecode') + [  # chromadb, pinecode hack
+    datas=collect_data_files('opentelemetry.sdk', 'pinecode') + collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql']) +  [  # chromadb, pinecode hack
         ('src/pygpt_net/data/config/presets/*', 'data/config/presets'),
         ('src/pygpt_net/data/config/config.json', 'data/config'),
         ('src/pygpt_net/data/config/models.json', 'data/config'),
@@ -33,10 +33,14 @@ a = Analysis(
         ('src/pygpt_net/data/icon.ico', '.'),
         ('README.md', '.'),
         ('src/pygpt_net/__init__.py', '.'),
+        ('venv/lib/python3.10/site-packages/onnxruntime/capi/*', 'onnxruntime/capi/'),  # onnxruntime
         ('venv/lib/python3.10/site-packages/llama_index/legacy/VERSION', 'llama_index/legacy/'),  # llama-index hack
         ('venv/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache/corpora/stopwords/*', 'llama_index/legacy/_static/nltk_cache/corpora/stopwords/'),  # llama-index hack
         ('venv/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache/tokenizers/punkt/*', 'llama_index/legacy/_static/nltk_cache/tokenizers/punkt/'),  # llama-index hack
         ('venv/lib/python3.10/site-packages/llama_index/legacy/_static/nltk_cache/tokenizers/punkt/PY3/*', 'llama_index/legacy/_static/nltk_cache/tokenizers/punkt/PY3/'),  # llama-index hack
+        ('venv/lib/python3.10/site-packages/llama_index/core/_static/nltk_cache/corpora/stopwords/*', 'llama_index/core/_static/nltk_cache/corpora/stopwords/'),  # llama-index hack
+        ('venv/lib/python3.10/site-packages/llama_index/core/_static/nltk_cache/tokenizers/punkt/*', 'llama_index/core/_static/nltk_cache/tokenizers/punkt/'),  # llama-index hack
+        ('venv/lib/python3.10/site-packages/llama_index/core/_static/nltk_cache/tokenizers/punkt/PY3/*', 'llama_index/core/_static/nltk_cache/tokenizers/punkt/PY3/'),  # llama-index hack
         ('venv/lib/python3.10/site-packages/langchain/chains', 'langchain/chains'),  # langchain/llama hack
         ('venv/lib/python3.10/site-packages/opentelemetry_sdk-1.22.0.dist-info/*', 'opentelemetry_sdk-1.22.0.dist-info'), # chromadb hack
         ('venv/lib/python3.10/site-packages/pinecone/__version__', 'pinecone'),  # pinecode hack
@@ -67,6 +71,7 @@ a = Analysis(
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
     'pydub'],
+    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

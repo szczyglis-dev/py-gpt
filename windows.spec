@@ -13,7 +13,7 @@ a = Analysis(
         'src\\pygpt_net\\'
     ],
     binaries=[],
-    datas=collect_data_files('opentelemetry.sdk', 'pinecode') + [  # chromadb, pinecode hack
+    datas=collect_data_files('opentelemetry.sdk', 'pinecode') + collect_data_files('chromadb', include_py_files=True, includes=['**/*.py', '**/*.sql']) + [  # chromadb, pinecode hack
         ('src\\pygpt_net\\data\\config\\presets\\*', 'data\\config\\presets'),
         ('src\\pygpt_net\\data\\config\\config.json', 'data\\config'),
         ('src\\pygpt_net\\data\\config\\models.json', 'data\\config'),
@@ -34,10 +34,14 @@ a = Analysis(
         ('src\\pygpt_net\\data\\icon.ico', '.'),
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
+        ('venv\\Lib\\site-packages\\onnxruntime\\capi\\*', 'onnxruntime\\capi\\'),  # onnxruntime
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\VERSION', 'llama_index\\legacy\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\*', 'llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\*', 'llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\core\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\core\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\core\\_static\\nltk_cache\\tokenizers\\punkt\\*', 'llama_index\\core\\_static\\nltk_cache\\tokenizers\\punkt\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\core\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\*', 'llama_index\\core\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # langchain/llama hack
         ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.22.0.dist-info\\*', 'opentelemetry_sdk-1.22.0.dist-info'), # chromadb hack
         ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
@@ -47,6 +51,7 @@ a = Analysis(
     'chromadb.db.impl', 
     'chromadb.db.impl.sqlite', 
     'chromadb.migrations', 
+    'chromadb.migrations.sysdb',
     'chromadb.migrations.embeddings_queue', 
     'chromadb.segment.impl.manager', 
     'chromadb.segment.impl.manager.local', 
@@ -68,6 +73,7 @@ a = Analysis(
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
     'pydub'],
+    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
