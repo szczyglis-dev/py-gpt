@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.171** | build: **2024.02.27** | Python: **3.10+**
+Release: **2.1.0** | build: **2024.02.28** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2614,6 +2614,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.0 (2024-02-28)
+
+- Upgraded Llama-index from the legacy version `0.9` to the current version `0.10` (note: upgrading PyPi version of PyGPT to `2.1.0` requires reinstallation in a virtual environment to remove old library versions).
+- Upgraded Langchain to `0.1.9`.
+- Upgraded PyInstaller (and compiled versions) to version `6`.
+- Removed LlamaHub and restored support for Python `3.12`.
+- Fixed imports for Llama-index in the compiled versions.
+- Added icons for quickly toggling audio input/output.
+- UI fixes.
 
 # 2.0.171 (2024-02-27)
 
