@@ -34,12 +34,29 @@ a = Analysis(
         ('src\\pygpt_net\\data\\icon.ico', '.'),
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
-        ('venv\\Lib\\site-packages\\llama_index\\VERSION', 'llama_index\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\legacy\\VERSION', 'llama_index\\legacy\\'),  # llama-index hack
         ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # llama-index hack
         ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.22.0.dist-info\\*', 'opentelemetry_sdk-1.22.0.dist-info'), # chromadb hack
         ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
     ],
     hiddenimports=[
+    'chromadb.api.segment', 
+    'chromadb.db.impl', 
+    'chromadb.db.impl.sqlite', 
+    'chromadb.migrations', 
+    'chromadb.migrations.embeddings_queue', 
+    'chromadb.segment.impl.manager', 
+    'chromadb.segment.impl.manager.local', 
+    'chromadb.segment.impl.metadata', 
+    'chromadb.segment.impl.metadata.sqlite', 
+    'chromadb.segment.impl.vector', 
+    'chromadb.segment.impl.vector.batch', 
+    'chromadb.segment.impl.vector.brute_force_index', 
+    'chromadb.segment.impl.vector.hnsw_params', 
+    'chromadb.segment.impl.vector.local_hnsw', 
+    'chromadb.segment.impl.vector.local_persistent_hnsw',
+    'chromadb.telemetry.posthog', 
+    'chromadb.telemetry.product.posthog',
     'pinecode',
     'opentelemetry',
     'opentelemetry.sdk',
@@ -47,7 +64,6 @@ a = Analysis(
     'tokenizers',
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
-    'wikipedia', 
     'pydub'],
     hookspath=[],
     hooksconfig={},

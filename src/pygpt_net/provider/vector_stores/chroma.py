@@ -6,19 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 19:00:00                  #
+# Updated Date: 2024.02.28 01:00:00                  #
 # ================================================== #
 
 import os.path
 import chromadb
 
-from llama_index.indices.base import BaseIndex
-from llama_index import (
-    VectorStoreIndex,
-    StorageContext,
-    ServiceContext,
-)
-from llama_index.vector_stores import ChromaVectorStore
+from llama_index.core.indices.base import BaseIndex
+from llama_index.core.indices.service_context import ServiceContext
+from llama_index.core import StorageContext
+from llama_index.core.indices.vector_store.base import VectorStoreIndex
+from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from .base import BaseStore
 

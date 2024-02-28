@@ -70,6 +70,7 @@ class IndexWorker(QRunnable):
                 self.silent,
             )
         except Exception as e:
+            self.window.core.debug.error(e)
             self.signals.error.emit(e)
 
     def log(self, msg: str):

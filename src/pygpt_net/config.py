@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.02.28 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -114,7 +114,7 @@ class Config:
         :return: app root path
         """
         if self.is_compiled():  # if compiled with pyinstaller
-            return os.path.abspath('.')
+            return os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         else:
             return os.path.abspath(os.path.dirname(__file__))
 

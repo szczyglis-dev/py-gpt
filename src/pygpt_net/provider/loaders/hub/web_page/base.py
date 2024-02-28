@@ -1,10 +1,10 @@
-"""Read Microsoft Word files."""
+"""Read Webpages"""
 
-from pathlib import Path
-from typing import Dict, List, Optional
 
-from llama_index.readers.base import BaseReader
-from llama_index.readers.schema.base import Document
+from typing import List
+
+from llama_index.core.readers.base import BaseReader
+from llama_index.core import Document
 
 
 class WebPage(BaseReader):
@@ -17,8 +17,7 @@ class WebPage(BaseReader):
         :param kwargs: keyword arguments
         :return: list of documents
         """
-        from llama_index.readers import BeautifulSoupWebReader
+        from llama_index.readers.web import BeautifulSoupWebReader
 
         url = kwargs.get("url")
-
         return BeautifulSoupWebReader().load_data([url])

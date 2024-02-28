@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 18:00:00                  #
+# Updated Date: 2024.02.27 22:00:00                  #
 # ================================================== #
 
-from llama_index.indices.base import BaseIndex
+from llama_index.core.indices.base import BaseIndex
 from .base import BaseStore
 
 

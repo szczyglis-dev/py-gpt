@@ -102,7 +102,7 @@
   "llama.idx.recursive": false,
   "llama.idx.replace_old": true,
   "llama.idx.status": {},
-  "llama.idx.storage": "ChromaVectorStore",
+  "llama.idx.storage": "SimpleVectorStore",
   "llama.idx.storage.args": [],
   "llama.log": false,
   "lock_modes": true,

@@ -6,19 +6,19 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.02.27 22:00:00                  #
 # ================================================== #
 
 import os.path
 from pathlib import Path
 from sqlalchemy import text
-from llama_index.indices.base import BaseIndex
-from llama_index import (
+from llama_index.core.indices.base import BaseIndex
+from llama_index.legacy.readers.file.base import SimpleDirectoryReader
+from llama_index.core import (
     SimpleDirectoryReader,
     download_loader,
 )
-from llama_index.readers.schema.base import Document
-from llama_index.readers import BeautifulSoupWebReader
+from llama_index.core.readers.base import Document
 
 from pygpt_net.provider.loaders.base import BaseLoader
 
@@ -191,8 +191,10 @@ class Indexing:
                         self.log("Ignoring excluded extension: {}".format(ext))
                         return []
                     self.log("Using default loader for: {}".format(ext))
+
                     reader = SimpleDirectoryReader(input_files=[path])
                     documents = reader.load_data()
+
         return documents
 
     def read_text_content(self, path: str) -> str:
@@ -207,6 +209,17 @@ class Indexing:
         for doc in docs:
             data.append(doc.text)
         return "\n".join(data)
+
+    def prepare_document(self, doc: Document):
+        """
+        Prepare document to store
+
+        :param doc: Document
+        """
+        # fix empty date in Pinecode
+        if "last_accessed_date" in doc.extra_info and doc.extra_info["last_accessed_date"] is None:
+            if "creation_date" in doc.extra_info:
+                doc.extra_info["last_accessed_date"] = doc.extra_info["creation_date"]
 
     def index_files(self, idx: str, index: BaseIndex, path: str = None) -> tuple:
         """
@@ -238,6 +251,7 @@ class Indexing:
                 # index new version of file
                 documents = self.get_documents(file)
                 for d in documents:
+                    self.prepare_document(d)
                     index.insert(document=d)
                     indexed[file] = d.id_  # add to index
                     self.log("Inserted document: {}".format(d.id_))
@@ -274,6 +288,7 @@ class Indexing:
                         # index new version of file
                         documents = self.get_documents(file_path)
                         for d in documents:
+                            self.prepare_document(d)
                             index.insert(document=d)
                             indexed[file_path] = d.id_  # add to index
                             self.log("Inserted document: {}".format(d.id_))
@@ -292,6 +307,7 @@ class Indexing:
                 # index new version of file
                 documents = self.get_documents(path)
                 for d in documents:
+                    self.prepare_document(d)
                     index.insert(document=d)
                     indexed[path] = d.id_  # add to index
                     self.log("Inserted document: {}".format(d.id_))
@@ -554,10 +570,13 @@ class Indexing:
             doc_id = self.window.core.idx.ctx.get_doc_id(store, idx, id)
             if doc_id:
                 self.log("Removing old document id: {}".format(doc_id))
-                self.window.core.idx.storage.remove_document(
-                    id=idx,
-                    doc_id=doc_id,
-                )
+                try:
+                    self.window.core.idx.storage.remove_document(
+                        id=idx,
+                        doc_id=doc_id,
+                    )
+                except Exception as e:
+                    pass
                 return True
         return False
 
@@ -578,10 +597,13 @@ class Indexing:
             doc_id = self.window.core.idx.files.get_doc_id(store, idx, file_id)
             if doc_id:
                 self.log("Removing old document id: {}".format(doc_id))
-                self.window.core.idx.storage.remove_document(
-                    id=idx,
-                    doc_id=doc_id,
-                )
+                try:
+                    self.window.core.idx.storage.remove_document(
+                        id=idx,
+                        doc_id=doc_id,
+                    )
+                except Exception as e:
+                    pass
                 return True
         return False
 
@@ -603,10 +625,13 @@ class Indexing:
             doc_id = self.window.core.idx.external.get_doc_id(store, idx, content, type)
             if doc_id:
                 self.log("Removing old document id: {}".format(doc_id))
-                self.window.core.idx.storage.remove_document(
-                    id=idx,
-                    doc_id=doc_id,
-                )
+                try:
+                    self.window.core.idx.storage.remove_document(
+                        id=idx,
+                        doc_id=doc_id,
+                    )
+                except Exception as e:
+                    pass
                 return True
         return False
 

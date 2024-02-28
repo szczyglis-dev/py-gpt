@@ -5,8 +5,8 @@ import re
 from pathlib import Path
 from typing import Dict, Generator, List, Optional
 
-from llama_index.readers.base import BaseReader
-from llama_index.readers.schema.base import Document
+from llama_index.core.readers.base import BaseReader
+from llama_index.core import Document
 
 
 def _depth_first_yield(

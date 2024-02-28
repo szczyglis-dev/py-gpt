@@ -6,15 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.28 01:00:00                  #
 # ================================================== #
 import os
 import shutil
 
-from llama_index.indices.base import BaseIndex
-from llama_index import (
-    ServiceContext,
-)
+from llama_index.core.indices.base import BaseIndex
+from llama_index.core.indices.service_context import ServiceContext
 
 
 class BaseStore:
@@ -119,7 +117,7 @@ class BaseStore:
         :return: True if success
         """
         index = self.get(id)
-        index.delete(doc_id)
+        index.delete_ref_doc(doc_id)
         self.store(
             id=id,
             index=index,

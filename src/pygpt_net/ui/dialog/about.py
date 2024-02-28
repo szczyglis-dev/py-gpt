@@ -6,17 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.02.27 22:00:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QPlainTextEdit
-
-from llama_index import __version__ as llama_index_version
-from langchain import __version__ as langchain_version
-from openai.version import VERSION as openai_version
 
 from pygpt_net.ui.widget.dialog.info import InfoDialog
 from pygpt_net.utils import trans
@@ -48,11 +44,28 @@ class About:
 
         :return: info text
         """
-        lib_versions = "OpenAI API: {}, Langchain: {}, Llama-index: {}".format(
-            openai_version,
-            langchain_version,
-            llama_index_version,
-        )
+        llama_index_version = None
+        langchain_version = None
+        openai_version = None
+        versions = True
+
+        try:
+            from llama_index.core import __version__ as llama_index_version
+            from langchain import __version__ as langchain_version
+            from openai.version import VERSION as openai_version
+        except ImportError:
+            pass
+
+        lib_versions = ""
+        if llama_index_version is None or langchain_version is None or openai_version is None:
+            versions = False
+
+        if versions:
+            lib_versions = "OpenAI API: {}, Langchain: {}, Llama-index: {}\n\n".format(
+                openai_version,
+                langchain_version,
+                llama_index_version,
+            )
 
         platform = self.window.core.platforms.get_as_string()
         version = self.window.meta['version']
@@ -71,7 +84,7 @@ class About:
 
         data = "{label_version}: {version}, {platform}\n" \
                "{label_build}: {build}\n" \
-               "{lib_versions}\n\n" \
+               "{lib_versions}" \
                "{label_website}: {website}\n" \
                "{label_github}: {github}\n" \
                "{label_docs}: {docs}\n\n" \

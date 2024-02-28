@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 16:00:00                  #
+# Updated Date: 2024.02.28 01:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -125,7 +125,7 @@ class Debug:
             print(str(data))
             return
 
-        if not self.is_logger or data is None or data.strip() == '':
+        if not self.is_logger or data is None or str(data).strip() == "":
             return
 
         data = datetime.now().strftime('%H:%M:%S.%f') + ': ' + str(data)

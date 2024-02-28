@@ -6,10 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.13 16:00:00                  #
+# Updated Date: 2024.02.27 22:00:00                  #
 # ================================================== #
 
-from llama_index.llms import ChatMessage, MessageRole
+from llama_index.core.llms import ChatMessage, MessageRole
 
 
 class Context:

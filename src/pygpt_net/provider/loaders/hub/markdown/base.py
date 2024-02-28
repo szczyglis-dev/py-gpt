@@ -7,8 +7,8 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-from llama_index.readers.base import BaseReader
-from llama_index.schema import Document
+from llama_index.core.readers.base import BaseReader
+from llama_index.core import Document
 
 
 class MarkdownReader(BaseReader):

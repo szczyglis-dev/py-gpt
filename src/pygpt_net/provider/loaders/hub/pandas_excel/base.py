@@ -6,8 +6,8 @@ Pandas parser for .xlsx files.
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from llama_index.readers.base import BaseReader
-from llama_index.readers.schema.base import Document
+from llama_index.core.readers.base import BaseReader
+from llama_index.core import Document
 
 
 class PandasExcelReader(BaseReader):

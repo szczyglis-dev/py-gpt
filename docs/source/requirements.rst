@@ -56,7 +56,7 @@ To manage future updates just use:
 Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (at least version 3.9).
+the application using the Python interpreter (at least version 3.10).
 You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
 
 PyPi (pip)
@@ -139,27 +139,10 @@ Running from GitHub source code
 
 
 **Tip**: you can use ``PyInstaller`` to create a compiled version of
-the application for your system.
+the application for your system (required version >= ``6.0.0``).
 
 Troubleshooting
 ---------------
-
-**PyGPT** requires Python ``>=3.10`` and ``<3.12``, so if you are using Python ``3.12`` then you must downgrade your Python version, e.g.:
-
-1. Install pyenv: https://github.com/pyenv/pyenv#installation
-
-2. Install a compatible Python version. For example, Python 3.11:
-
-.. code-block:: console
-
-    pyenv install 3.11.0
-
-3. Set the installed Python version as the global version:
-
-.. code-block:: console
-
-    pyenv global 3.11.0
-
 If you have a problems with xcb plugin with newer versions of PySide on Linux, e.g. like this:
 
 .. code-block:: console
@@ -172,14 +155,6 @@ If you have a problems with xcb plugin with newer versions of PySide on Linux, e
 .. code-block:: console
 
     sudo apt install libxcb-cursor0
-
-If this not help then try to downgrade PySide to ``PySide6-Essentials==6.4.2``:
-
-
-.. code-block:: console
-
-    pip install PySide6-Essentials==6.4.2
-
 
 If you have a problems with audio on Linux, then try to install ``portaudio19-dev`` and/or ``libasound2``:
 

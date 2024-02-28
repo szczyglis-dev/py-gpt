@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.0.171** | build: **2024.02.27** | Python: **>=3.10, <3.12**
+Release: **2.0.171** | build: **2024.02.27** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -197,25 +197,9 @@ poetry run python3 run.py
 ```
 
 **Tip**: you can use `PyInstaller` to create a compiled version of
-the application for your system (version < `6.x`, e.g. `5.13.2`).
+the application for your system (required version >= `6.0.0`).
 
 ### Troubleshooting
-
-**PyGPT** requires Python `>=3.10` and `<3.12`, so if you are using Python `3.12` then you must downgrade your Python version, e.g.:
-
-1. Install pyenv: https://github.com/pyenv/pyenv#installation
-
-2. Install a compatible Python version. For example, Python 3.11:
-
-```commandline
-pyenv install 3.11.0
-```
-
-3. Set the installed Python version as the global version:
-
-```commandline
-pyenv global 3.11.0
-```
 
 If you have a problems with `xcb` plugin with newer versions of PySide on Linux, e.g. like this:
 
@@ -229,13 +213,6 @@ Reinstalling the application may fix this problem.
 
 ```commandline
 sudo apt install libxcb-cursor0
-```
-
-If this not help then try to downgrade PySide to `PySide6-Essentials==6.4.2`:
-
-
-```commandline
-pip install PySide6-Essentials==6.4.2
 ```
 
 If you have a problems with audio on Linux, then try to install `portaudio19-dev` and/or `libasound2`:

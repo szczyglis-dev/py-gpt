@@ -57,15 +57,14 @@ def get_init_value(key: str = "__version__") -> str:
     global init_file_meta
 
     if __file__.endswith('.pyc'):  # if compiled with pyinstaller
-        root = '.'
+        root = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     else:
         root = os.path.dirname(__file__)
     path = os.path.abspath(os.path.join(root, '__init__.py'))
     try:
         if init_file_meta is None:
-            f = open(path, "r", encoding="utf-8")
-            init_file_meta = f.read()
-            f.close()
+            with open(path, "r", encoding="utf-8") as f:
+                init_file_meta = f.read()
         result = re.search(r'{}\s*=\s*[\'"]([^\'"]*)[\'"]'.format(key), init_file_meta)
         return result.group(1)
     except Exception as e:

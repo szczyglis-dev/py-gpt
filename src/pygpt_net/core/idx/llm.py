@@ -6,14 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.02.27 22:00:00                  #
 # ================================================== #
 
 import os.path
-from llama_index import (
-    ServiceContext,
-)
-from llama_index.llms import OpenAI
+from llama_index.core.indices.service_context import ServiceContext
+from llama_index.llms.openai import OpenAI
 
 from pygpt_net.item.model import ModelItem
 

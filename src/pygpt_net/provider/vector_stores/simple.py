@@ -6,17 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.19 19:00:00                  #
+# Updated Date: 2024.02.27 22:00:00                  #
 # ================================================== #
 
 import os.path
-from llama_index.indices.base import BaseIndex
-from llama_index import (
-    VectorStoreIndex,
-    StorageContext,
-    ServiceContext,
-    load_index_from_storage,
-)
+
+from llama_index.core import StorageContext, load_index_from_storage
+from llama_index.core.indices.base import BaseIndex
+from llama_index.core.indices.service_context import ServiceContext
+from llama_index.core.indices.vector_store.base import VectorStoreIndex
 
 from .base import BaseStore
 
