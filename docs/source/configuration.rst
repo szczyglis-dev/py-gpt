@@ -121,25 +121,25 @@ The following basic options can be modified directly within the application:
 
 **Indexes (Llama-index)**
 
-* ``Indexes`` List of created indexes
+* ``Indexes``: List of created indexes.
 
-* ``Auto-index DB in real time`` Enables conversation context auto-indexing.
+* ``Vector Store``: Vector store in use (vector database provided by Llama-index).
+
+* ``Vector Store (**kwargs)``: Arguments for vector store (api_key, index_name, etc.).
 
 * ``Recursive directory indexing``: Enables recursive directory indexing, default is False.
 
 * ``Replace old document versions in the index during re-indexing``: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
 
-* ``Vector Store`` Vector store in use (vector database provided by Llama-index).
+* ``Excluded file extensions``: File extensions to exclude if no data loader for this extension, separated by comma.
 
-* ``Excluded file extensions`` File extensions to exclude if no data loader for this extension, separated by comma.
+* ``Additional keyword arguments (**kwargs) for data loaders``: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
-* ``Vector Store (**kwargs)`` Arguments for vector store (api_key, index_name, etc.).
+* ``Auto-index DB in real time``: Enables conversation context auto-indexing.
 
-* ``Log (console)`` Enables logging to console.
+* ``ID of index for auto-indexing``: Index to use if auto-indexing of conversation context is enabled.
 
-* ``Additional online data loaders`` List of the online data loaders from Llama Hub to use. Only for Python version, will not work in compiled version.
-
-* ``DB (ALL), DB (UPDATE), FILES (ALL)`` Index the data – batch indexing is available here
+* ``DB (ALL), DB (UPDATE), FILES (ALL)``: Index the data – batch indexing is available here.
 
 **Agent (autonomous)**
 
@@ -157,9 +157,17 @@ The following basic options can be modified directly within the application:
 
 **Developer**
 
-* ``Show debug menu`` enables debug (developer) menu
+* ``Show debug menu``: enables debug (developer) menu
 
-* ``Log llama-index usages to console`` Enables logging llama-index usages to console.
+* ``Log plugin usage to console``: Enables logging of plugin usage to console.
+
+* ``Log DALL-E usage to console``: Enables logging of DALL-E usage to console.
+
+* ``Log Llama-index usage to console``: Enables logging of Llama-index usage to console.
+
+* ``Log Assistants usage to console``: Enables logging of Assistants API usage to console.
+
+* ``Log level``: toggle log level (ERROR|WARNING|INFO|DEBUG)
 
 
 JSON files

@@ -426,10 +426,9 @@ After the file(s) are indexed (embedded in vector store), you can use context fr
 
 ![v2_idx2](https://github.com/szczyglis-dev/py-gpt/assets/61396542/29c89de9-ba3c-49ca-97b3-e6397fd648ad)
 
-Built-in file loaders (offline): `text files`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`. 
-You can extend this list in `Settings / Llama-index` by providing list of online loaders (from `LlamaHub`) - but only for Python version, will not work in compiled version.
-All loaders included for offline use are also from `LlamaHub`, but they are attached locally with all necessary library dependencies included.
-You can also develop and provide your own custom offline loader and register it within the application.
+Built-in file loaders: `txt`, `pdf`, `csv`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`.
+You can configure data loaders in `Settings / Llama-index / Data Loaders` by providing list of arguments for specified loaders.
+You can also develop and provide your own custom loader and register it within the application.
 
 **From version `2.0.100` Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.**
@@ -2445,19 +2444,21 @@ Config -> Settings...
 
 - `Indexes`: List of created indexes.
 
-- `Auto-index DB in real time`: Enables conversation context auto-indexing.
+- `Vector Store`: Vector store in use (vector database provided by Llama-index).
+
+- `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
 
 - `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 
 - `Replace old document versions in the index during re-indexing`: If enabled, previous versions of documents will be deleted from the index when the newest versions are indexed, default is True.
 
-- `Vector Store`: Vector store in use (vector database provided by Llama-index).
-
 - `Excluded file extensions`: File extensions to exclude if no data loader for this extension, separated by comma.
 
-- `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
+- `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
-- `Additional online data loaders`: List of online data loaders from Llama Hub to use. Only for Python version, will not work in compiled version.
+- `Auto-index DB in real time`: Enables conversation context auto-indexing.
+
+* `ID of index for auto-indexing`: Index to use if auto-indexing of conversation context is enabled.
 
 - `DB (ALL), DB (UPDATE), FILES (ALL)`: Index the data – batch indexing is available here.
 
@@ -2479,7 +2480,16 @@ Config -> Settings...
 
 - `Show debug menu`: enables debug (developer) menu
 
-- `Log llama-index usages to console`: Enables logging llama-index usages to console.
+- `Log plugin usage to console`: Enables logging of plugin usage to console.
+
+- `Log DALL-E usage to console`: Enables logging of DALL-E usage to console.
+
+- `Log Llama-index usage to console`: Enables logging of Llama-index usage to console.
+
+- `Log Assistants usage to console`: Enables logging of Assistants API usage to console.
+
+- `Log level`: toggle log level (ERROR|WARNING|INFO|DEBUG)
+
 
 ## JSON files
 
