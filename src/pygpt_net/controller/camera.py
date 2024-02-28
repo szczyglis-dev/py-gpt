@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.02.29 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -42,17 +42,23 @@ class Camera:
         """Update layout checkboxes"""
         if self.window.core.config.get('vision.capture.enabled'):
             self.is_capture = True
-            self.window.ui.nodes['vision.capture.enable'].setChecked(True)
+            self.window.ui.menu['video.capture'].setChecked(True)
+            self.window.ui.nodes['icon.video.capture'].set_icon(":/icons/webcam.svg")
+            # self.window.ui.nodes['vision.capture.enable'].setChecked(True)
         else:
             self.is_capture = False
-            self.window.ui.nodes['vision.capture.enable'].setChecked(False)
+            self.window.ui.menu['video.capture'].setChecked(False)
+            self.window.ui.nodes['icon.video.capture'].set_icon(":/icons/webcam_off.svg")
+            # self.window.ui.nodes['vision.capture.enable'].setChecked(False)
 
         if self.window.core.config.get('vision.capture.auto'):
             self.auto = True
-            self.window.ui.nodes['vision.capture.auto'].setChecked(True)
+            self.window.ui.menu['video.capture.auto'].setChecked(True)
+            # self.window.ui.nodes['vision.capture.auto'].setChecked(True)
         else:
             self.auto = False
-            self.window.ui.nodes['vision.capture.auto'].setChecked(False)
+            self.window.ui.menu['video.capture.auto'].setChecked(False)
+            # self.window.ui.nodes['vision.capture.auto'].setChecked(False)
 
         # update label
         if not self.window.core.config.get('vision.capture.auto'):
@@ -259,11 +265,13 @@ class Camera:
 
         self.is_capture = True
         self.window.core.config.set('vision.capture.enabled', True)
+        """
         self.window.controller.config.checkbox.apply(
             'config',
             'vision.capture.enabled',
             {'value': True}
         )
+        """
         self.window.ui.nodes['video.preview'].setVisible(True)
         if not self.thread_started:
             self.start()
@@ -277,12 +285,14 @@ class Camera:
 
         self.is_capture = False
         self.window.core.config.set('vision.capture.enabled', False)
+        """
         self.window.controller.config.checkbox.apply(
             'config',
             'vision.capture.enabled',
             {'value': False}
         )
-        self.window.ui.nodes['vision.capture.enable'].setChecked(False)
+        """
+        # self.window.ui.nodes['vision.capture.enable'].setChecked(False)
         self.window.ui.nodes['video.preview'].setVisible(False)
         self.stop_capture()
         self.blank_screen()
@@ -297,8 +307,15 @@ class Camera:
             self.enable_capture()
         else:
             self.disable_capture()
+        self.setup_ui()
 
-        self.window.ui.status('')
+    def toggle_capture(self):
+        """Toggle camera"""
+        if not self.is_capture:
+            self.enable_capture()
+        else:
+            self.disable_capture()
+        self.setup_ui()
 
     def enable_auto(self):
         """Enable capture"""
@@ -309,15 +326,19 @@ class Camera:
 
         self.auto = True
         self.window.core.config.set('vision.capture.auto', True)
+        self.window.ui.menu['video.capture.auto'].setChecked(True)
+        """
         self.window.controller.config.checkbox.apply(
             'config',
             'vision.capture.auto',
             {'value': True}
         )
+        """
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.auto.label"))
 
         if not self.window.core.config.get('vision.capture.enabled'):
             self.enable_capture()
+            self.window.ui.menu['video.capture'].setChecked(True)
             self.window.ui.nodes['vision.capture.enable'].setChecked(True)
 
     def disable_auto(self):
@@ -329,11 +350,14 @@ class Camera:
 
         self.auto = False
         self.window.core.config.set('vision.capture.auto', False)
+        self.window.ui.menu['video.capture.auto'].setChecked(False)
+        """
         self.window.controller.config.checkbox.apply(
             'config',
             'vision.capture.auto',
             {'value': False}
         )
+        """
         self.window.ui.nodes['video.preview'].label.setText(trans("vision.capture.label"))
 
     def toggle_auto(self, state: bool):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.02.29 01:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -40,6 +40,10 @@ class Mapping:
         # menu text
         for k in self.mapping['menu.text']:
             self.window.ui.menu[k].setText(trans(self.mapping['menu.text'][k]))
+
+        # menu tooltip
+        for k in self.mapping['menu.tooltip']:
+            self.window.ui.menu[k].setToolTip(trans(self.mapping['menu.tooltip'][k]))
 
         # dialog title
         for k in self.mapping['dialog.title']:
@@ -118,9 +122,9 @@ class Mapping:
         nodes['assistant.api.tip'] = 'assistant.api.tip'
 
         # vision
-        nodes['vision.capture.enable'] = 'vision.capture.enable'
-        nodes['vision.capture.auto'] = 'vision.capture.auto'
-        nodes['vision.capture.label'] = 'vision.capture.options.title'
+        # nodes['vision.capture.enable'] = 'vision.capture.enable'
+        # nodes['vision.capture.auto'] = 'vision.capture.auto'
+        # nodes['vision.capture.label'] = 'vision.capture.options.title'
         nodes['inline.vision'] = 'inline.vision'
 
         # dialog: plugin settings
@@ -212,6 +216,7 @@ class Mapping:
         menu_title['menu.plugins'] = 'menu.plugins'
         menu_title['menu.about'] = 'menu.info'
         menu_title['menu.audio'] = 'menu.audio'
+        menu_title['menu.video'] = 'menu.video'
 
         # menu text
         menu_text = {}
@@ -235,6 +240,8 @@ class Mapping:
         menu_text['info.github'] = 'menu.info.github'
         menu_text['audio.output'] = 'menu.audio.output'
         menu_text['audio.input'] = 'menu.audio.input'
+        menu_text['video.capture'] = 'menu.video.capture'
+        menu_text['video.capture.auto'] = 'menu.video.capture.auto'
 
         # debug menu
         if 'menu.debug' in self.window.ui.menu:
@@ -265,9 +272,17 @@ class Mapping:
         tooltips['prompt.context'] = 'tip.tokens.ctx'
         tooltips['input.counter'] = 'tip.tokens.input'
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
-        tooltips['vision.capture.enable'] = 'vision.capture.enable.tooltip'
-        tooltips['vision.capture.auto'] = 'vision.capture.auto.tooltip'
+        # tooltips['vision.capture.enable'] = 'vision.capture.enable.tooltip'
+        # tooltips['vision.capture.auto'] = 'vision.capture.auto.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
+        tooltips['icon.video.capture'] = 'icon.video.capture'
+        tooltips['icon.audio.output'] = 'icon.audio.output'
+        tooltips['icon.audio.input'] = 'icon.audio.input'
+
+        # menu tooltips
+        menu_tooltips = {}
+        menu_tooltips['video.capture'] = 'vision.capture.enable.tooltip'
+        menu_tooltips['video.capture.auto'] = 'vision.capture.auto.tooltip'
 
         # placeholders
         placeholders = {}
@@ -278,6 +293,7 @@ class Mapping:
         mapping['nodes'] = nodes
         mapping['menu.title'] = menu_title
         mapping['menu.text'] = menu_text
+        mapping['menu.tooltip'] = menu_tooltips
         mapping['dialog.title'] = dialog_title
         mapping['tooltip'] = tooltips
         mapping['placeholder'] = placeholders

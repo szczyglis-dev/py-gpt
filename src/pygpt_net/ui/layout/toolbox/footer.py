@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 17:00:00                  #
+# Updated Date: 2024.02.29 01:00:00                  #
 # ================================================== #
 
 import os
@@ -61,7 +61,7 @@ class Footer:
         # rows.addWidget(self.window.ui.config['global']['current_temperature'])
         rows.addWidget(self.agent.setup())
         rows.addWidget(self.image.setup())
-        rows.addWidget(self.vision.setup())
+        # rows.addWidget(self.vision.setup())
         rows.addWidget(self.indexes.setup_options())
         rows.setContentsMargins(0, 0, 0, 0)
 

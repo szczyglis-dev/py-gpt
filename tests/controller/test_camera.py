@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.03 16:00:00                  #
+# Updated Date: 2024.02.29 01:00:00                  #
 # ================================================== #
 # 
 import os
@@ -39,8 +39,8 @@ def test_setup_ui(mock_window):
     camera.setup_ui()
     assert camera.is_capture is True
     assert camera.auto is True
-    mock_window.ui.nodes['vision.capture.enable'].setChecked.assert_called()
-    mock_window.ui.nodes['vision.capture.auto'].setChecked.assert_called()
+    # mock_window.ui.nodes['vision.capture.enable'].setChecked.assert_called()
+    # mock_window.ui.nodes['vision.capture.auto'].setChecked.assert_called()
     mock_window.ui.nodes['video.preview'].label.setText.assert_called()
     assert camera.auto is True
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.02.29 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -108,14 +108,23 @@ class Output:
         :return: QHBoxLayout
         :rtype: QHBoxLayout
         """
+        # video capture icon
+        self.window.ui.nodes['icon.video.capture'] = IconLabel(":/icons/webcam.svg")
+        self.window.ui.nodes['icon.video.capture'].setToolTip(trans("icon.video.capture"))
+        self.window.ui.nodes['icon.video.capture'].clicked.connect(
+            lambda:self.window.controller.camera.toggle_capture()
+        )
+
         # audio output icon
         self.window.ui.nodes['icon.audio.output'] = IconLabel(":/icons/volume.svg")
+        self.window.ui.nodes['icon.audio.output'].setToolTip(trans("icon.audio.output"))
         self.window.ui.nodes['icon.audio.output'].clicked.connect(
             lambda: self.window.controller.plugins.toggle('audio_output')
         )
 
         # audio input icon
         self.window.ui.nodes['icon.audio.input'] = IconLabel(":/icons/mic.svg")
+        self.window.ui.nodes['icon.audio.input'].setToolTip(trans("icon.audio.input"))
         self.window.ui.nodes['icon.audio.input'].clicked.connect(
             lambda: self.window.controller.plugins.toggle('audio_input')
         )
@@ -181,6 +190,7 @@ class Output:
         layout.addLayout(opts_layout)
         # layout.addWidget(self.window.ui.plugin_addon['audio.output'])
         layout.addStretch(1)
+        layout.addWidget(self.window.ui.nodes['icon.video.capture'])
         layout.addWidget(self.window.ui.nodes['icon.audio.input'])
         layout.addWidget(self.window.ui.nodes['icon.audio.output'])
         layout.addWidget(self.window.ui.plugin_addon['schedule'])

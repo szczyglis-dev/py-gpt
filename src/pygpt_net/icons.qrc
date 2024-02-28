@@ -387,6 +387,9 @@
         <file alias="webcam.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/webcam.svg</file>
     </qresource>
     <qresource prefix="/icons">
+        <file alias="webcam_off.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/webcam_off.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
         <file alias="width.svg">/home/marcin/Dev/py-gpt/scripts/../src/pygpt_net/data/icons/width.svg</file>
     </qresource>
     <qresource prefix="/icons">
