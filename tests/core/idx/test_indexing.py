@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.02.28 02:00:00                  #
 # ================================================== #
 
 import os
 import platform
 from unittest.mock import MagicMock, patch, Mock
-from llama_index.readers.schema.base import Document
+from llama_index.core import Document
 
 from tests.mocks import mock_window
 from pygpt_net.core.idx import Indexing
