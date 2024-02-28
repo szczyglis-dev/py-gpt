@@ -35,7 +35,10 @@ a = Analysis(
         ('README.md', '.'),
         ('src\\pygpt_net\\__init__.py', '.'),
         ('venv\\Lib\\site-packages\\llama_index\\legacy\\VERSION', 'llama_index\\legacy\\'),  # llama-index hack
-        ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\*', 'llama_index\\legacy\\_static\\nltk_cache\\corpora\\stopwords\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\*', 'llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\*', 'llama_index\\legacy\\_static\\nltk_cache\\tokenizers\\punkt\\PY3\\'),  # llama-index hack
+        ('venv\\Lib\\site-packages\\langchain\\chains', 'langchain\\chains'),  # langchain/llama hack
         ('venv\\Lib\\site-packages\\opentelemetry_sdk-1.22.0.dist-info\\*', 'opentelemetry_sdk-1.22.0.dist-info'), # chromadb hack
         ('venv\\Lib\\site-packages\\pinecone\\__version__', 'pinecone'),  # pinecode hack
     ],
