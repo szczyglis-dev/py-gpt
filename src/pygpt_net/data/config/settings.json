@@ -667,11 +667,10 @@
         "use": "vector_storage",
         "slider": false,
         "label": "settings.llama.idx.storage",
-        "description": "Info: ChromaVectorStore will not work in a compiled version!",
         "urls": {
             "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
         },
-        "value": "ChromaVectorStore",
+        "value": "SimpleVectorStore",
         "min": null,
         "max": null,
         "multiplier": null,
