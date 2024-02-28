@@ -159,8 +159,9 @@ class Indexing:
         :return: list of documents
         """
         self.log("Reading documents from path: {}".format(path))
-        if self.window.core.config.is_compiled():
-            self.log("Compiled version detected - online loaders are disabled. "
+        online_allowed = not self.window.core.config.is_compiled() and not self.window.core.platforms.is_snap()
+        if not online_allowed:
+            self.log("Compiled or Snap version detected - online loaders are disabled. "
                      "Use Python version for using online loaders.")
 
         if os.path.isdir(path):
@@ -174,7 +175,7 @@ class Indexing:
             ext = os.path.splitext(path)[1][1:]  # get extension
             online_loader = self.get_online_loader(ext)  # get online loader if available
             # TODO: in future, add support for online loaders in compiled version
-            if online_loader is not None and not self.window.core.config.is_compiled():
+            if online_loader is not None and online_allowed:
                 self.log("Using online loader for: {}".format(ext))
                 loader = download_loader(online_loader)
                 reader = loader()
@@ -182,8 +183,6 @@ class Indexing:
             else:  # try offline loaders
                 if ext in self.loaders["file"]:
                     self.log("Using offline loader for: {}".format(ext))
-                    # download_loader cause problems in compiled version
-                    # use offline versions instead
                     reader = self.loaders["file"][ext]
                     documents = reader.load_data(file=Path(path))
                 else:
@@ -191,7 +190,6 @@ class Indexing:
                         self.log("Ignoring excluded extension: {}".format(ext))
                         return []
                     self.log("Using default loader for: {}".format(ext))
-
                     reader = SimpleDirectoryReader(input_files=[path])
                     documents = reader.load_data()
 
