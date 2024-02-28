@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -30,6 +30,7 @@ class AudioInputButton(QWidget):
         self.btn_toggle.clicked.connect(self.toggle_recording)
         self.btn_toggle.setToolTip(trans('audio.speak.btn.tooltip'))
         self.btn_toggle.setCursor(Qt.PointingHandCursor)
+        self.btn_toggle.setMinimumWidth(200)
 
         # status
         self.status = QLabel("")

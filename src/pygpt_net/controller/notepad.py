@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
-from PySide6.QtGui import QIcon
+
+from PySide6.QtGui import QIcon, QTextCursor
 
 from pygpt_net.item.notepad import NotepadItem
 from pygpt_net.utils import trans
@@ -218,6 +219,11 @@ class Notepad:
         self.window.ui.notepad[idx].setText(new_text)
         self.save(idx)
 
+        # move cursor to end
+        cursor = self.window.ui.notepad[idx].textarea.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.window.ui.notepad[idx].textarea.setTextCursor(cursor)
+
     def get_num_notepads(self) -> int:
         """
         Get number of notepads
@@ -226,6 +232,24 @@ class Notepad:
         :rtype: int
         """
         return int(self.window.core.config.get('notepad.num') or self.default_num_notepads)
+
+    def get_current_active(self) -> int:
+        """
+        Get current notepad index
+
+        :return: current notepad index
+        :rtype: int
+        """
+        return self.window.ui.tabs['output'].currentIndex() - (self.start_tab_idx - 1)
+
+    def is_active(self) -> bool:
+        """
+        Check if notepad is active
+
+        :return: True if notepad is active
+        :rtype: bool
+        """
+        return self.window.ui.tabs['output'].currentIndex() >= self.start_tab_idx
 
     def rename_upd(self, idx: int, name: str):
         """
