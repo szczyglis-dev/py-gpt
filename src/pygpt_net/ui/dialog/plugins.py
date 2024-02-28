@@ -75,13 +75,12 @@ class Plugins:
 
         # build plugin settings tabs
         for id in self.window.core.plugins.plugins:
-            use_tabs = False
             content_tabs = {}
             scroll_tabs = {}
-            option_tabs = {}
 
             plugin = self.window.core.plugins.plugins[id]
             parent_id = "plugin." + id
+
             # create plugin options entry if not exists
             if parent_id not in self.window.ui.config:
                 self.window.ui.config[parent_id] = {}
@@ -89,15 +88,12 @@ class Plugins:
             # get plugin options
             options = plugin.setup()
 
-            tab_ids = self.extract_option_tabs(options)  # extract tab ids, general is default
+            # extract tab ids, general is default
+            tab_ids = self.extract_option_tabs(options)
             for tab_id in tab_ids:
                 content_tabs[tab_id] = QVBoxLayout()
                 scroll_tabs[tab_id] = QScrollArea()
                 scroll_tabs[tab_id].setWidgetResizable(True)
-
-            if plugin.tabs:
-                use_tabs = True
-                option_tabs[id] = plugin.tabs
 
             widgets = self.build_widgets(plugin, options)
             advanced_keys = []
@@ -211,9 +207,12 @@ class Plugins:
             # append to tab
             self.window.ui.tabs['plugin.settings'].addTab(area_widget, name_txt)
 
+        # -----------------------
+
         self.window.ui.tabs['plugin.settings'].currentChanged.connect(
             lambda: self.window.controller.plugins.set_by_tab(
-                self.window.ui.tabs['plugin.settings'].currentIndex()))
+                self.window.ui.tabs['plugin.settings'].currentIndex())
+        )
 
         data = {}
         for plugin_id in self.window.core.plugins.plugins:
@@ -264,7 +263,7 @@ class Plugins:
         Get keys for option tabs
 
         :param options: plugin options
-        :return: dict of keys
+        :return: list with keys
         """
         keys = []
         is_default = False

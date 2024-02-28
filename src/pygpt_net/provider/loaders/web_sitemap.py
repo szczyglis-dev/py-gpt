@@ -10,21 +10,25 @@
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
+from llama_index.readers.web.sitemap.base import SitemapReader
 
-from .hub.simple_csv.base import SimpleCSVReader
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "csv"
-        self.name = "CSV files"
-        self.extensions = ["csv"]
-        self.type = ["file"]
+        self.id = "sitemap"
+        self.name = "Sitemap"
+        self.type = ["web"]
+        self.instructions = [
+            {
+                "sitemap": "use it to read sitemap XML from URL",
+            }
+        ]
         self.init_args = {
-            "concat_rows": True,
-            "encoding": "utf-8",
+            "html_to_text": False,
+            "limit": 10,
         }
 
     def get(self) -> BaseReader:
@@ -34,4 +38,15 @@ class Loader(BaseLoader):
         :return: Data reader instance
         """
         args = self.get_args()
-        return SimpleCSVReader(**args)
+        return SitemapReader(**args)
+
+    def prepare_args(self, **kwargs) -> dict:
+        """
+        Prepare arguments for reader
+
+        :param kwargs: keyword arguments
+        :return: args to pass to reader
+        """
+        args = {}
+        args["sitemap_url"] = kwargs.get("url")  # list of links
+        return args

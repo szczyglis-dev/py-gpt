@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.21 10:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 
@@ -47,3 +47,39 @@ class Common:
             self.disable_raw()
         else:
             self.enable_raw()
+
+    def get_loaders_choices(self) -> list:
+        """
+        Get available loaders choices
+
+        Prefixes:
+            file_ - file loader
+            web_ - web loader
+            online_ - online loader
+
+        :return: list of available loaders
+        """
+        data = []
+
+        # offline (built-in)
+        loaders = self.window.core.idx.indexing.get_data_providers()
+        for id in loaders:
+            loader = loaders[id]
+            # file
+            if "file" in loader.type:
+                id = "file_" + id
+                ext_str = ""
+                if loader.extensions:
+                    ext_str = " (" + ", ".join(loader.extensions) + ")"
+                # name = "(File) " + loader.name + ext_str  # TODO: implement option names
+                data.append({
+                    id: id
+                })
+            # web
+            if "web" in loader.type:
+                id = "web_" + id
+                # name = "(Web) " + loader.name  # TODO: implement option names
+                data.append({
+                    id: id
+                })
+        return data

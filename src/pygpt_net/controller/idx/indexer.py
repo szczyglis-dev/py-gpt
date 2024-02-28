@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -119,7 +119,8 @@ class Indexer:
         from_ts = 0
         if self.window.core.config.has('llama.idx.db.last'):
             from_ts = int(self.window.core.config.get('llama.idx.db.last'))
-        if not silent:
+
+        if not silent and force:
             self.window.update_status(trans('idx.status.indexing'))
 
         self.index_ctx_from_ts(
@@ -193,6 +194,7 @@ class Indexer:
                 msg=content,
             )
             return
+
         worker = IndexWorker()
         worker.window = self.window
         worker.content = ts

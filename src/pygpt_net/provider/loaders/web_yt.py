@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -40,8 +40,8 @@ class Loader(BaseLoader):
         Prepare arguments for reader
 
         :param kwargs: keyword arguments
-        :return: dictionary
+        :return: args to pass to reader
         """
         args = {}
-        args["ytlinks"] = [kwargs.get("url")]
+        args["ytlinks"] = [kwargs.get("url")]  # list of links
         return args

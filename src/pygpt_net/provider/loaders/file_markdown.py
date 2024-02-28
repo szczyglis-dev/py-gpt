@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
+from llama_index.readers.file.markdown import MarkdownReader
 
-from .hub.markdown.base import MarkdownReader
 from .base import BaseLoader
 
 
@@ -22,6 +22,10 @@ class Loader(BaseLoader):
         self.name = "Markdown files"
         self.extensions = ["md"]
         self.type = ["file"]
+        self.init_args = {
+            "remove_hyperlinks": True,
+            "remove_images": True,
+        }
 
     def get(self) -> BaseReader:
         """
@@ -29,4 +33,5 @@ class Loader(BaseLoader):
 
         :return: Data reader instance
         """
-        return MarkdownReader()
+        args = self.get_args()
+        return MarkdownReader(**args)

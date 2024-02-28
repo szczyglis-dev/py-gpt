@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 class Placeholder:
@@ -50,6 +50,8 @@ class Placeholder:
             return self.get_langchain_providers()
         elif id == "llama_index_providers":
             return self.get_llama_index_providers()
+        elif id == "llama_index_loaders":
+            return self.get_llama_index_loaders()
         elif id == "vector_storage":
             return self.get_vector_storage()
         elif id == "var_types":
@@ -76,7 +78,7 @@ class Placeholder:
 
     def get_llama_index_providers(self) -> list:
         """
-        Get langchain placeholders list
+        Get llama placeholders list
 
         :return: placeholders list
         """
@@ -86,6 +88,14 @@ class Placeholder:
         for id in ids:
             data.append({id: id})
         return data
+
+    def get_llama_index_loaders(self) -> list:
+        """
+        Get data loaders placeholders list
+
+        :return: placeholders list
+        """
+        return self.window.controller.idx.common.get_loaders_choices()
 
     def get_vector_storage(self) -> list:
         """

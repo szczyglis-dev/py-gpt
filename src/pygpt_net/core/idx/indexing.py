@@ -6,21 +6,20 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 import os.path
+
 from pathlib import Path
 from sqlalchemy import text
+
 from llama_index.core.indices.base import BaseIndex
-from llama_index.legacy.readers.file.base import SimpleDirectoryReader
-from llama_index.core import (
-    SimpleDirectoryReader,
-    download_loader,
-)
-from llama_index.core.readers.base import Document
+from llama_index.core.schema import Document
+from llama_index.core import SimpleDirectoryReader
 
 from pygpt_net.provider.loaders.base import BaseLoader
+from pygpt_net.utils import parse_args
 
 
 class Indexing:
@@ -35,29 +34,33 @@ class Indexing:
             "file": {},  # file loaders
             "web": {},   # web loaders
         }  # offline loaders
-        self.loader_providers = {}
+        self.data_providers = {}  # data providers (loaders)
         self.external_instructions = {}
 
     def register_loader(self, loader: BaseLoader):
         """
         Register data loader
 
-        :param loader: loader instance
+        :param loader: data loader instance
         """
-        self.loader_providers[loader.id] = loader
+        self.data_providers[loader.id] = loader  # cache loader
         extensions = loader.extensions  # available extensions
         types = loader.type  # available types
         if "file" in types:
+            loader.set_args(self.get_loader_arguments(loader.id, "file"))  # set reader arguments
+            reader = loader.get()  # get data reader instance
             for ext in extensions:
-                self.loaders["file"][ext] = loader.get()  # get reader instance, by extension
+                self.loaders["file"][ext] = reader  # set reader instance, by file extension
         if "web" in types:
-            self.loaders["web"][loader.id] = loader.get()  # get reader instance, by id
+            loader.set_args(self.get_loader_arguments(loader.id, "web"))  # set reader arguments
+            reader = loader.get()  # get data reader instance
+            self.loaders["web"][loader.id] = reader # set reader instance, by id
             if loader.instructions:
                 for item in loader.instructions:
                     cmd = list(item.keys())[0]
                     self.external_instructions[cmd] = item[cmd]
 
-    def get_external_instructions(self):
+    def get_external_instructions(self) -> dict:
         """
         Get external instructions
 
@@ -67,7 +70,7 @@ class Indexing:
 
     def get_online_loader(self, ext: str):
         """
-        Get online loader by extension
+        Get online loader by extension (deprecated)
 
         :param ext: file extension
         """
@@ -84,38 +87,33 @@ class Indexing:
             if ext in extensions:
                 return loader["loader"]
 
-    def get_excluded_extensions(self) -> list[str]:
+    def get_data_providers(self) -> dict:
         """
-        Get excluded extensions if no loader is available
+        Get data providers
 
-        :return: list of excluded extensions
+        :return: dict of data providers (loaders)
         """
-        # images
-        excluded = ["jpg", "jpeg", "png", "psd", "gif", "bmp", "tiff",
-                    "webp", "svg", "ico", "heic", "heif", "avif", "apng"]
+        return self.data_providers
 
-        # audio
-        excluded += ["mp3", "wav", "flac", "ogg", "m4a", "wma",
-                     "aac", "aiff", "alac", "dsd", "pcm", "mpc"]
+    def get_loader_arguments(self, id: str, type: str = "file") -> dict:
+        """
+        Get keyword arguments for loader
 
-        # video
-        excluded += ["mp4", "mkv", "avi", "mov", "wmv", "flv",
-                     "webm", "vob", "ogv", "3gp", "3g2", "m4v", "m2v"]
-
-        # archives
-        excluded += ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lz", "lz4",
-                     "zst", "ar", "iso", "nrg", "dmg", "vhd", "vmdk", "vhdx", "vdi",
-                     "img", "wim", "swm", "esd", "cab", "rpm", "deb", "pkg", "apk"]
-
-        # binary
-        excluded += ["exe", "dll", "so", "dylib", "app", "msi", "dmg", "pkg", "deb", "rpm", "apk", "jar",
-                     "war", "ear", "class", "pyc", "whl", "egg", "so", "dylib", "a", "o", "lib", "bin",
-                     "elf", "ko", "sys", "drv"]
-
-        # sort and save
-        excluded = sorted(excluded)
-
-        return excluded
+        :param id: loader id
+        :param type: loader type (file, web)
+        :return: dict of keyword arguments
+        """
+        name = type + "_" + id
+        args = {}
+        data = self.window.core.config.get("llama.hub.loaders.args")
+        if isinstance(data, list):
+            data_args = []
+            # collect keyword arguments for loader
+            for item in data:
+                if item["loader"] == name:
+                    data_args.append(item)
+            args = parse_args(data_args)  # parse arguments
+        return args
 
     def is_excluded(self, ext: str) -> bool:
         """
@@ -141,11 +139,8 @@ class Indexing:
         if os.path.isdir(path):
             return True
         ext = os.path.splitext(path)[1][1:]  # get extension
-        # check offline loaders
+        ext = ext.lower()
         if ext in self.loaders:
-            return True
-        # check online loaders
-        if not self.window.core.config.is_compiled() and self.get_online_loader(ext) is not None:
             return True
         if self.is_excluded(ext):
             return False
@@ -159,11 +154,6 @@ class Indexing:
         :return: list of documents
         """
         self.log("Reading documents from path: {}".format(path))
-        online_allowed = not self.window.core.config.is_compiled() and not self.window.core.platforms.is_snap()
-        if not online_allowed:
-            self.log("Compiled or Snap version detected - online loaders are disabled. "
-                     "Use Python version for using online loaders.")
-
         if os.path.isdir(path):
             reader = SimpleDirectoryReader(
                 input_dir=path,
@@ -173,25 +163,17 @@ class Indexing:
             documents = reader.load_data()
         else:
             ext = os.path.splitext(path)[1][1:]  # get extension
-            online_loader = self.get_online_loader(ext)  # get online loader if available
-            # TODO: in future, add support for online loaders in compiled version
-            if online_loader is not None and online_allowed:
-                self.log("Using online loader for: {}".format(ext))
-                loader = download_loader(online_loader)
-                reader = loader()
+            if ext in self.loaders["file"]:
+                self.log("Using loader for: {}".format(ext))
+                reader = self.loaders["file"][ext]
                 documents = reader.load_data(file=Path(path))
-            else:  # try offline loaders
-                if ext in self.loaders["file"]:
-                    self.log("Using offline loader for: {}".format(ext))
-                    reader = self.loaders["file"][ext]
-                    documents = reader.load_data(file=Path(path))
-                else:
-                    if self.is_excluded(ext):
-                        self.log("Ignoring excluded extension: {}".format(ext))
-                        return []
-                    self.log("Using default loader for: {}".format(ext))
-                    reader = SimpleDirectoryReader(input_files=[path])
-                    documents = reader.load_data()
+            else:
+                if self.is_excluded(ext):
+                    self.log("Ignoring excluded extension: {}".format(ext))
+                    return []
+                self.log("Using default SimpleDirectoryReader for: {}".format(ext))
+                reader = SimpleDirectoryReader(input_files=[path])
+                documents = reader.load_data()
 
         return documents
 
@@ -274,6 +256,7 @@ class Indexing:
         indexed = {}
         errors = []
 
+        # directory
         if os.path.isdir(path):
             for root, dirs, files in os.walk(path):
                 for file in files:
@@ -296,6 +279,8 @@ class Indexing:
                         print("Error while indexing file: " + file_path)
                         self.window.core.debug.log(e)
                         continue
+
+        # file
         elif os.path.isfile(path):
             try:
                 # remove old file from index if exists
@@ -487,11 +472,11 @@ class Indexing:
             self.log("Using web loader for type: {}".format(type))
 
             extra_args["url"] = url
-            loader_args = self.loader_providers[type].prepare_args(**extra_args)
+            args = self.data_providers[type].prepare_args(**extra_args)
 
             # get documents from external resource
             documents = loader.load_data(
-                **loader_args
+                **args
             )
             for d in documents:
                 index.insert(document=d)
@@ -632,6 +617,39 @@ class Indexing:
                     pass
                 return True
         return False
+
+    def get_excluded_extensions(self) -> list[str]:
+        """
+        Get excluded extensions if no loader is available
+
+        :return: list of excluded extensions
+        """
+        # images
+        excluded = ["jpg", "jpeg", "png", "psd", "gif", "bmp", "tiff",
+                    "webp", "svg", "ico", "heic", "heif", "avif", "apng"]
+
+        # audio
+        excluded += ["mp3", "wav", "flac", "ogg", "m4a", "wma",
+                     "aac", "aiff", "alac", "dsd", "pcm", "mpc"]
+
+        # video
+        excluded += ["mp4", "mkv", "avi", "mov", "wmv", "flv",
+                     "webm", "vob", "ogv", "3gp", "3g2", "m4v", "m2v"]
+
+        # archives
+        excluded += ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lz", "lz4",
+                     "zst", "ar", "iso", "nrg", "dmg", "vhd", "vmdk", "vhdx", "vdi",
+                     "img", "wim", "swm", "esd", "cab", "rpm", "deb", "pkg", "apk"]
+
+        # binary
+        excluded += ["exe", "dll", "so", "dylib", "app", "msi", "dmg", "pkg", "deb", "rpm", "apk", "jar",
+                     "war", "ear", "class", "pyc", "whl", "egg", "so", "dylib", "a", "o", "lib", "bin",
+                     "elf", "ko", "sys", "drv"]
+
+        # sort and save
+        excluded = sorted(excluded)
+
+        return excluded
 
     def log(self, msg: str):
         """

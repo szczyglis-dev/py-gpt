@@ -10,21 +10,20 @@
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
+from llama_index.readers.file.xml import XMLReader
 
-from .hub.simple_csv.base import SimpleCSVReader
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "csv"
-        self.name = "CSV files"
-        self.extensions = ["csv"]
+        self.id = "xml"
+        self.name = "XML files"
+        self.extensions = ["xml"]
         self.type = ["file"]
         self.init_args = {
-            "concat_rows": True,
-            "encoding": "utf-8",
+            "tree_level_split": 0,
         }
 
     def get(self) -> BaseReader:
@@ -34,4 +33,4 @@ class Loader(BaseLoader):
         :return: Data reader instance
         """
         args = self.get_args()
-        return SimpleCSVReader(**args)
+        return XMLReader(**args)

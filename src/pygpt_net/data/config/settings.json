@@ -612,83 +612,19 @@
         "step": null,
         "advanced": false
     },
-    "llama.idx.auto.index": {
-        "section": "llama-index",
-        "type": "text",
-        "slider": false,
-        "label": "settings.llama.extra.btn.idx_auto.index",
-        "value": "base",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
-    "llama.idx.auto": {
-        "section": "llama-index",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.llama.extra.btn.idx_auto",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
-    "llama.idx.recursive": {
-        "section": "llama-index",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.llama.idx.recursive",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
-    "llama.idx.replace_old": {
-        "section": "llama-index",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.llama.idx.replace_old",
-        "description": "settings.llama.idx.replace_old.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
-    },
     "llama.idx.storage": {
         "section": "llama-index",
         "type": "combo",
         "use": "vector_storage",
         "slider": false,
         "label": "settings.llama.idx.storage",
-        "urls": {
-            "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
-        },
         "value": "SimpleVectorStore",
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": false
-    },
-    "llama.idx.excluded_ext": {
-        "section": "llama-index",
-        "type": "textarea",
-        "slider": false,
-        "label": "settings.llama.idx.excluded_ext",
-        "description": "settings.llama.idx.excluded_ext.desc",
-        "value": "",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false
+        "advanced": false,
+        "tab": "store"
     },
     "llama.idx.storage.args": {
         "section": "llama-index",
@@ -702,33 +638,106 @@
             }
         },
         "label": "settings.llama.idx.storage.args",
+        "description": "settings.llama.idx.storage.args.desc",
         "urls": {
             "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
         },
         "value": [],
-        "advanced": true
-    },    
-    "llama.hub.loaders": {
+        "advanced": false,
+        "tab": "store"
+    },
+    "llama.idx.recursive": {
         "section": "llama-index",
-        "type": "dict",
-        "use": "models",
-        "keys": {
-            "ext": "text",
-            "loader": "text"
-        },
+        "type": "bool",
         "slider": false,
-        "label": "settings.llama.hub.loaders",
-        "value": [
-            {
-              "ext": "pptx",
-              "loader": "PptxReader"
-            }
-        ],
+        "label": "settings.llama.idx.recursive",
+        "value": false,
         "min": null,
         "max": null,
         "multiplier": null,
         "step": null,
-        "advanced": true
+        "advanced": false,
+        "tab": "indexing"
+    },
+    "llama.idx.replace_old": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.idx.replace_old",
+        "description": "settings.llama.idx.replace_old.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "indexing"
+    },
+    "llama.idx.excluded_ext": {
+        "section": "llama-index",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.llama.idx.excluded_ext",
+        "description": "settings.llama.idx.excluded_ext.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "indexing"
+    },
+    "llama.hub.loaders.args": {
+        "section": "llama-index",
+        "type": "dict",
+        "keys": {
+            "loader": {
+                "type": "combo",
+                "use": "llama_index_loaders"
+           },
+            "name": "text",
+            "value": "text",
+            "type": {
+                "type": "combo",
+                "use": "var_types"
+            }
+        },
+        "slider": false,
+        "label": "settings.llama.hub.loaders.args",
+        "description": "settings.llama.hub.loaders.args.desc",
+        "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "data_loaders"
+    },
+    "llama.idx.auto": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.extra.btn.idx_auto",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "update"
+    },
+    "llama.idx.auto.index": {
+        "section": "llama-index",
+        "type": "text",
+        "slider": false,
+        "label": "settings.llama.extra.btn.idx_auto.index",
+        "value": "base",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "update"
     },
     "agent.mode": {
         "section": "agent",

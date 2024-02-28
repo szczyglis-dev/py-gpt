@@ -6,7 +6,8 @@ from typing import Any, List, Optional
 from youtube_transcript_api import YouTubeTranscriptApi
 
 from llama_index.core.readers.base import BasePydanticReader
-from llama_index.core import Document
+from llama_index.core.schema import Document
+
 from .utils import YOUTUBE_URL_PATTERNS
 
 

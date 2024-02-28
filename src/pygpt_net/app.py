@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -52,6 +52,9 @@ from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader  # file:
 from pygpt_net.provider.loaders.file_json import Loader as JsonLoader  # file: JSON
 from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader  # file: Markdown
 from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader  # file: PDF
+from pygpt_net.provider.loaders.file_xml import Loader as XmlLoader  # file: XML
+from pygpt_net.provider.loaders.web_rss import Loader as RssLoader  # web: RSS feed
+from pygpt_net.provider.loaders.web_sitemap import Loader as SitemapLoader  # web: Sitemap XML
 from pygpt_net.provider.loaders.web_page import Loader as WebPageLoader  # web: Webpages
 from pygpt_net.provider.loaders.web_yt import Loader as YouTubeLoader  # web: YouTube
 
@@ -262,6 +265,9 @@ def run(**kwargs):
     launcher.add_loader(JsonLoader())
     launcher.add_loader(MarkdownLoader())
     launcher.add_loader(PdfLoader())
+    launcher.add_loader(XmlLoader())
+    launcher.add_loader(RssLoader())
+    launcher.add_loader(SitemapLoader())
     launcher.add_loader(WebPageLoader())
     launcher.add_loader(YouTubeLoader())
 

@@ -4,7 +4,7 @@
 from typing import List
 
 from llama_index.core.readers.base import BaseReader
-from llama_index.core import Document
+from llama_index.core.schema import Document
 
 
 class WebPage(BaseReader):

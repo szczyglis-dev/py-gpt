@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.02.28 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -27,13 +27,21 @@ class Settings:
         """
         self.window = window
 
-    def append(self, content, options, fields):
+    def append_tabs(self) -> list:
+        """
+        Return additional tabs list
+
+        :return: list of tab IDs
+        """
+        return ["update"]
+
+    def append(self, content: dict, widgets: dict, options: dict):
         """
         Append extra settings to settings dialog (section: llama-index)
 
         :param content: settings widgets layout
-        :param options: settings widgets
-        :param fields: settings options config fields
+        :param widgets: settings widgets
+        :param options: settings options config fields
         """
         btns = QHBoxLayout()
         self.window.ui.nodes['idx.btn.db.index_all'] = \
@@ -62,17 +70,19 @@ class Settings:
         self.window.ui.nodes['idx.db.settings.legend.head'] = TitleLabel(trans('settings.llama.extra.btn.idx_head'))
         self.window.ui.nodes['idx.db.settings.legend'] = HelpLabel(trans('settings.llama.extra.legend'), self.window)
         self.window.ui.nodes['idx.db.settings.legend'].setWordWrap(True)
-        content.addWidget(self.window.ui.nodes['idx.db.settings.legend.head'])
-        content.addLayout(btns)
-        content.addWidget(self.window.ui.nodes['idx.db.settings.legend'])
-        content.addWidget(self.window.ui.nodes['idx.db.last_updated'])
-        content.addWidget(self.window.ui.nodes['idx.db.settings.loaders'])
-        content.addWidget(self.window.ui.nodes['idx.api.warning'])
+
+        if "data_loaders" in content:
+            content["data_loaders"].addWidget(self.window.ui.nodes['idx.db.settings.loaders'])
+
+        if "update" in content:
+            content["update"].addWidget(self.window.ui.nodes['idx.db.settings.legend.head'])
+            content["update"].addLayout(btns)
+            content["update"].addWidget(self.window.ui.nodes['idx.db.settings.legend'])
+            content["update"].addWidget(self.window.ui.nodes['idx.db.last_updated'])
+            content["update"].addWidget(self.window.ui.nodes['idx.api.warning'])
 
     def update_text_last_updated(self):
-        """
-        Update last updated text
-        """
+        """Update last updated text"""
         last_str = trans('settings.llama.extra.db.never')
         if self.window.core.config.has('llama.idx.db.last'):
             last_ts = int(self.window.core.config.get('llama.idx.db.last'))
@@ -84,9 +94,7 @@ class Settings:
         self.window.ui.nodes['idx.db.last_updated'].setText(txt)
 
     def update_text_loaders(self):
-        """
-        Update text loaders list
-        """
+        """Update text loaders list"""
         files_str = "txt, " + ", ".join(self.window.core.idx.indexing.loaders["file"].keys())
         web_str = ", ".join(self.window.core.idx.indexing.loaders["web"].keys())
         info = trans('settings.llama.extra.loaders') + ":\nFiles: " + files_str + "\nWeb: " + web_str
