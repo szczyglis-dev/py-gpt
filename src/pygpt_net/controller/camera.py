@@ -339,7 +339,7 @@ class Camera:
         if not self.window.core.config.get('vision.capture.enabled'):
             self.enable_capture()
             self.window.ui.menu['video.capture'].setChecked(True)
-            self.window.ui.nodes['vision.capture.enable'].setChecked(True)
+            # self.window.ui.nodes['vision.capture.enable'].setChecked(True)
 
     def disable_auto(self):
         """Disable capture"""
