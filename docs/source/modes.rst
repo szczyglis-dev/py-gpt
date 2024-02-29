@@ -188,31 +188,28 @@ For other providers you can provide these arguments:
 
 **ElasticsearchStore**
 
-Arguments for ElasticsearchStore(``**kwargs``):
+Keyword arguments for ElasticsearchStore(``**kwargs``):
 
-* index_name (default: current index ID, already set, not required)
+* ``index_name`` (default: current index ID, already set, not required)
 * any other keyword arguments provided on list
 
 
 **PinecodeVectorStore**
 
-Arguments for Pinecone(``**kwargs``):
+Keyword arguments for Pinecone(``**kwargs``):
 
-* api_key
+* ``api_key``
 * index_name (default: current index ID, already set, not required)
 
 **RedisVectorStore**
 
-Arguments for RedisVectorStore(``**kwargs``):
+Keyword arguments for RedisVectorStore(``**kwargs``):
 
-* index_name (default: current index ID, already set, not required)
+* ``index_name`` (default: current index ID, already set, not required)
 * any other keyword arguments provided on list
 
 
 You can extend list of available providers by creating custom provider and registering it on app launch.
-
-**Multiple vector databases support is already in beta.**
-Will work better in next releases.
 
 By default, you are using chat-based mode when using ``Chat with files``.
 If you want to only query index (without chat) you can enable ``Query index only (without chat)`` option.
@@ -220,8 +217,7 @@ If you want to only query index (without chat) you can enable ``Query index only
 
 Adding custom vector stores and offline data loaders
 ````````````````````````````````````````````````````
-You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. 
-To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to 
+You can create a custom vector store provider or data loader for your data and develop a custom launcher for the application. To register your custom vector store provider or data loader, simply register it by passing the vector store provider instance to 
 ``vector_stores`` keyword argument and loader instance in the ``loaders`` keyword argument:
 
 .. code-block:: python
@@ -260,6 +256,52 @@ You can review the code of the built-in providers in ``pygpt_net.provider.vector
 
 The data loader must be an instance of ``pygpt_net.provider.loaders.base.BaseLoader``. 
 You can review the code of the built-in loaders in ``pygpt_net.provider.loaders`` and use them as examples when creating a custom loader.
+
+**Configuring data loaders**
+
+In the ``Settings -> Llama-index -> Data loaders`` section you can define the additional keyword arguments to pass into data loader instance.
+
+In most cases, an internal Llama-index loaders are used internally. 
+You can check these base loaders e.g. here:
+
+File: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-file/llama_index/readers/file
+
+Web: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
+
+Allowed keyword arguments for built-in data loaders:
+
+**CSV Files (file_csv)**
+
+* ``concat_rows`` - bool, default: ``True``
+* ``encoding`` - str, default: ``utf-8``
+
+**HTML Files (file_html)**
+
+* ``tag`` - str, default: ``section``
+* ``ignore_no_id`` - bool, default: ``False``
+
+**IPYNB Notebook files (file_ipynb)**
+
+* ``parser_config`` - dict, default: ``None``
+* ``concatenate`` - bool, default: ``False``
+
+**Markdown files (file_md)**
+
+* ``remove_hyperlinks`` - bool, default: ``True``
+* ``remove_images`` - bool, default: ``True``
+
+**PDF documents (file_pdf)**
+
+* ``return_full_document`` - bool, default: ``False``
+
+**XML files (file_xml)**
+
+* ``tree_level_split`` - int, default: ``0``
+
+**Sitemap (web_sitemap)**
+
+* ``html_to_text`` - bool, default: ``False``
+* ``limit`` - int, default: ``10``
 
 
 Agent (autonomous)

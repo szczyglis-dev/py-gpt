@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.02.29 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -48,17 +48,34 @@ class Indexing:
         types = loader.type  # available types
         if "file" in types:
             loader.set_args(self.get_loader_arguments(loader.id, "file"))  # set reader arguments
-            reader = loader.get()  # get data reader instance
-            for ext in extensions:
-                self.loaders["file"][ext] = reader  # set reader instance, by file extension
+            try:
+                reader = loader.get()  # get data reader instance
+                for ext in extensions:
+                    self.loaders["file"][ext] = reader  # set reader instance, by file extension
+            except ImportError as e:
+                msg = "Error while registering data loader: " + loader.id + " - " + str(e)
+                self.window.core.debug.log(msg)
+                self.window.core.debug.log(e)
         if "web" in types:
             loader.set_args(self.get_loader_arguments(loader.id, "web"))  # set reader arguments
-            reader = loader.get()  # get data reader instance
-            self.loaders["web"][loader.id] = reader # set reader instance, by id
-            if loader.instructions:
-                for item in loader.instructions:
-                    cmd = list(item.keys())[0]
-                    self.external_instructions[cmd] = item[cmd]
+            try:
+                reader = loader.get()  # get data reader instance
+                self.loaders["web"][loader.id] = reader # set reader instance, by id
+                if loader.instructions:
+                    for item in loader.instructions:
+                        cmd = list(item.keys())[0]
+                        self.external_instructions[cmd] = item[cmd]
+            except ImportError as e:
+                msg = "Error while registering data loader: " + loader.id + " - " + str(e)
+                self.window.core.debug.log(msg)
+                self.window.core.debug.log(e)
+
+    def reload_loaders(self):
+        """Reload loaders (update arguments)"""
+        self.log("Reloading data loaders...")
+        for loader in self.data_providers.values():
+            self.register_loader(loader)
+        self.log("Data loaders reloaded.")
 
     def get_external_instructions(self) -> dict:
         """
@@ -237,7 +254,6 @@ class Indexing:
                     self.log("Inserted document: {}".format(d.id_))
             except Exception as e:
                 errors.append(str(e))
-                print(e)
                 print("Error while indexing file: " + file)
                 self.window.core.debug.log(e)
                 continue
@@ -275,7 +291,6 @@ class Indexing:
                             self.log("Inserted document: {}".format(d.id_))
                     except Exception as e:
                         errors.append(str(e))
-                        print(e)
                         print("Error while indexing file: " + file_path)
                         self.window.core.debug.log(e)
                         continue
@@ -296,7 +311,6 @@ class Indexing:
                     self.log("Inserted document: {}".format(d.id_))
             except Exception as e:
                 errors.append(str(e))
-                print(e)
                 print("Error while indexing file: " + path)
                 self.window.core.debug.log(e)
 
@@ -411,7 +425,6 @@ class Indexing:
                 n += 1
         except Exception as e:
             errors.append(str(e))
-            print(e)
             self.window.core.debug.log(e)
         return n, errors
 
@@ -491,7 +504,6 @@ class Indexing:
                 n += 1
         except Exception as e:
             errors.append(str(e))
-            print(e)
             self.window.core.debug.log(e)
         return n, errors
 
@@ -520,7 +532,6 @@ class Indexing:
         if type not in self.loaders["web"]:
             msg = "No web loader for type: {}".format(type)
             errors.append(msg)
-            print(msg)
             self.window.core.debug.log(msg)
             return n, errors
 

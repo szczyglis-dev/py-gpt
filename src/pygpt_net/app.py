@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.02.29 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -49,9 +49,12 @@ from pygpt_net.provider.loaders.file_csv import Loader as CsvLoader  # file: CSV
 from pygpt_net.provider.loaders.file_docx import Loader as DocxLoader  # file: DOCX
 from pygpt_net.provider.loaders.file_epub import Loader as EpubLoader  # file: EPUB
 from pygpt_net.provider.loaders.file_excel import Loader as ExcelLoader  # file: Excel
+from pygpt_net.provider.loaders.file_html import Loader as HtmlLoader  # file: HTML
+from pygpt_net.provider.loaders.file_ipynb import Loader as IPYNBLoader  # file: IPYNB
 from pygpt_net.provider.loaders.file_json import Loader as JsonLoader  # file: JSON
 from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader  # file: Markdown
 from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader  # file: PDF
+# from pygpt_net.provider.loaders.file_video_audio import Loader as VideoAudioLoader  # file: mp4
 from pygpt_net.provider.loaders.file_xml import Loader as XmlLoader  # file: XML
 from pygpt_net.provider.loaders.web_rss import Loader as RssLoader  # web: RSS feed
 from pygpt_net.provider.loaders.web_sitemap import Loader as SitemapLoader  # web: Sitemap XML
@@ -262,9 +265,12 @@ def run(**kwargs):
     launcher.add_loader(DocxLoader())
     launcher.add_loader(EpubLoader())
     launcher.add_loader(ExcelLoader())
+    launcher.add_loader(HtmlLoader())
+    launcher.add_loader(IPYNBLoader())
     launcher.add_loader(JsonLoader())
     launcher.add_loader(MarkdownLoader())
     launcher.add_loader(PdfLoader())
+    # launcher.add_loader(VideoAudioLoader())
     launcher.add_loader(XmlLoader())
     launcher.add_loader(RssLoader())
     launcher.add_loader(SitemapLoader())

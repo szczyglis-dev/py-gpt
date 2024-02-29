@@ -702,6 +702,7 @@
                 "use": "var_types"
             }
         },
+        "urls": "https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers",
         "slider": false,
         "label": "settings.llama.hub.loaders.args",
         "description": "settings.llama.hub.loaders.args.desc",

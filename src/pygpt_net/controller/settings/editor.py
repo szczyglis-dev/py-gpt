@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.22 02:00:00                  #
+# Updated Date: 2024.02.29 02:00:00                  #
 # ================================================== #
 
 import copy
@@ -147,6 +147,12 @@ class Editor:
         if 'ctx.search_content' in self.before_config \
                 and self.before_config['ctx.search_content'] != self.window.core.config.get('ctx.search_content'):
             self.window.controller.ctx.update()
+
+        # reload loaders
+        if 'llama.hub.loaders.args' in self.before_config \
+                and self.before_config['llama.hub.loaders.args'] != self.window.core.config.get(
+            'llama.hub.loaders.args'):
+            self.window.core.idx.indexing.reload_loaders()
 
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.02.29 02:00:00                  #
 # ================================================== #
 
 import os
@@ -988,6 +988,13 @@ class Patch:
                              'You can change the page or the number of links per page using the provided parameters, ' \
                              'params: "query", "page", "num_links"'
                     data["plugins"]["cmd_web"]["syntax_web_urls"] = syntax
+                updated = True
+
+            # < 2.1.1
+            if old < parse_version("2.1.1"):
+                print("Migrating config from < 2.1.1...")
+                if 'llama.hub.loaders.args' not in data:
+                    data['llama.hub.loaders.args'] = []
                 updated = True
 
         # update file

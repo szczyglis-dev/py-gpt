@@ -76,16 +76,7 @@
   "layout.tray.minimize": false,
   "layout.window": {},
   "license.accepted": false,
-  "llama.hub.loaders": [
-      {
-          "ext": "pptx",
-          "loader": "PptxReader"
-      },
-      {
-          "ext": "png,jpg,jpeg",
-          "loader": "ImageReader"
-      }
-  ],
+  "llama.hub.loaders.args": [],
   "llama.idx.auto": false,
   "llama.idx.auto.index": "base",
   "llama.idx.current": "base",

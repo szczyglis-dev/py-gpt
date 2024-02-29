@@ -175,6 +175,9 @@ class Worker(BaseWorker):
                         args = item["params"]["args"]
                     idx_name = self.plugin.get_option_value("idx")
 
+                    # show status
+                    self.status("Please wait... indexing: {}...".format(url))
+
                     # index URL via Llama-index
                     num, errors = self.plugin.window.core.idx.index_urls(
                         idx=idx_name,
