@@ -73,7 +73,7 @@ a = Analysis(
     'tiktoken_ext', 
     'tiktoken_ext.openai_public',
     'pydub'],
-    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db'],
+    collectsubmodules=['chromadb', 'chromadb.migrations', 'chromadb.telemetry', 'chromadb.api','chromadb.db', 'nbconvert'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
