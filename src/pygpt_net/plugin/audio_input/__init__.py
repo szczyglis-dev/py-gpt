@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.02.29 19:00:00                  #
 # ================================================== #
 
 import os
@@ -638,13 +638,18 @@ class Plugin(BasePlugin):
 
         # send text
         if self.get_option_value('auto_send'):
-            # send to notepad
+            # to: notepad
             if self.window.controller.notepad.is_active():
                 idx = self.window.controller.notepad.get_current_active()
                 self.window.controller.notepad.append_text(text, idx)
                 self.set_status('')
                 self.window.controller.chat.render.clear_input()  # clear here
-            # send to chat
+            # to: calendar
+            if self.window.controller.calendar.is_active():
+                self.window.controller.calendar.note.append_text(text)
+                self.set_status('')
+                self.window.controller.chat.render.clear_input()  # clear here
+            # to: chat
             else:
                 self.set_status('...')
                 self.window.ui.status(trans('audio.speak.sending'))

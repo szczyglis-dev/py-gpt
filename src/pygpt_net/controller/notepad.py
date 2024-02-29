@@ -229,7 +229,6 @@ class Notepad:
         Get number of notepads
 
         :return: number of notepads
-        :rtype: int
         """
         return int(self.window.core.config.get('notepad.num') or self.default_num_notepads)
 
@@ -238,22 +237,20 @@ class Notepad:
         Get current notepad index
 
         :return: current notepad index
-        :rtype: int
         """
         return self.window.ui.tabs['output'].currentIndex() - (self.start_tab_idx - 1)
 
     def is_active(self) -> bool:
         """
-        Check if notepad is active
+        Check if notepad tab is active
 
-        :return: True if notepad is active
-        :rtype: bool
+        :return: True if notepad tab is active
         """
         return self.window.ui.tabs['output'].currentIndex() >= self.start_tab_idx
 
     def rename_upd(self, idx: int, name: str):
         """
-        Rename notepad
+        Rename notepad tab
 
         :param idx: notepad idx
         :param name: new notepad name

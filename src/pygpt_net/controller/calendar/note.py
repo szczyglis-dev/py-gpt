@@ -6,10 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.03 16:00:00                    #
+# Updated Date: 2024.02.29 19:00:00                  #
 # ================================================== #
 
 import datetime
+
+from PySide6.QtGui import QTextCursor
+
 from pygpt_net.item.calendar_note import CalendarNoteItem
 from pygpt_net.utils import trans
 
@@ -98,7 +101,7 @@ class Note:
 
         self.refresh_num(year, month)  # update note cells when note is changed
 
-    def get_counts_around_month(self, year, month) -> dict:
+    def get_counts_around_month(self, year: int, month: int) -> dict:
         """
         Get counts around month
 
@@ -154,7 +157,7 @@ class Note:
         note.day = day
         return note
 
-    def get_notes_existence_around_month(self, year, month) -> dict:
+    def get_notes_existence_around_month(self, year: int, month: int) -> dict:
         """
         Get notes existence around month
 
@@ -209,3 +212,7 @@ class Note:
         self.window.ui.calendar['note'].setText(new_text)
         self.update()
 
+        # move cursor to end
+        cursor = self.window.ui.calendar['note'].textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.window.ui.calendar['note'].setTextCursor(cursor)

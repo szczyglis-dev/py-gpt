@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 18:00:00                  #
+# Updated Date: 2024.02.29 19:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QColor
@@ -113,4 +113,12 @@ class Calendar:
     def save_all(self):
         """Save all calendar notes"""
         self.window.core.calendar.save_all()
+
+    def is_active(self) -> bool:
+        """
+        Check if calendar tab is active
+
+        :return: True if calendar tab is active
+        """
+        return self.window.ui.tabs['output'].currentIndex() == self.window.controller.ui.tab_idx['calendar']
 
