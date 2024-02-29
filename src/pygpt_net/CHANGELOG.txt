@@ -1,3 +1,13 @@
+2.1.1 (2024-02-29)
+
+- Llama-index settings split into tabs.
+- Added keyword argument settings for data loaders.
+- Added data loaders for RSS, XML sitemaps, IPYNB notebooks, and XML and HTML files.
+- Added audio notes - simply use speech recognition in the Notepad tab to append transcribed audio to the Notepad.
+- Added an icon for quick toggling of video camera capture.
+- Added a Video menu.
+- Moved video capture toggle checkboxes to the Video menu.
+
 2.1.0 (2024-02-28)
 
 - Upgraded Llama-index from the legacy version 0.9 to the current version 0.10 (note: upgrading PyPi version of PyGPT to 2.1.0 requires reinstallation in a virtual environment to remove old library versions).

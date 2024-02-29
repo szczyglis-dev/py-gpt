@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.0** | build: **2024.02.28** | Python: **3.10+**
+Release: **2.1.1** | build: **2024.02.29** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2666,6 +2666,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.1 (2024-02-29)
+
+- Llama-index settings split into tabs.
+- Added keyword argument settings for data loaders.
+- Added data loaders for RSS, XML sitemaps, IPYNB notebooks, and XML and HTML files.
+- Added audio notes - simply use speech recognition in the Notepad tab to append transcribed audio to the Notepad.
+- Added an icon for quick toggling of video camera capture.
+- Added a Video menu.
+- Moved video capture toggle checkboxes to the Video menu.
 
 # 2.1.0 (2024-02-28)
 
