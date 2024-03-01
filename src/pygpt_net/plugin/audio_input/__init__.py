@@ -645,7 +645,7 @@ class Plugin(BasePlugin):
                 self.set_status('')
                 self.window.controller.chat.render.clear_input()  # clear here
             # to: calendar
-            if self.window.controller.calendar.is_active():
+            elif self.window.controller.calendar.is_active():
                 self.window.controller.calendar.note.append_text(text)
                 self.set_status('')
                 self.window.controller.chat.render.clear_input()  # clear here
