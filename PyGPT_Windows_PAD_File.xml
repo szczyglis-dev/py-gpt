@@ -2,13 +2,13 @@
 <PAD>
 <PAD_Version>4.0</PAD_Version>
 <Program_Name>PyGPT - Desktop AI Assistant</Program_Name>
-<Program_Version>2.1.1</Program_Version>
-<Program_Release_Month>02</Program_Release_Month>
-<Program_Release_Day>29</Program_Release_Day>
+<Program_Version>2.1.2</Program_Version>
+<Program_Release_Month>03</Program_Release_Month>
+<Program_Release_Day>01</Program_Release_Day>
 <Program_Release_Year>2024</Program_Release_Year>
 <Program_Cost_Dollars>0</Program_Cost_Dollars>
 <Program_Type>Open Source</Program_Type>
-<Download_URL>https://pygpt.net/download/2.1.1/pygpt-2.1.1.msi</Download_URL>
+<Download_URL>https://pygpt.net/download/2.1.2/pygpt-2.1.2.msi</Download_URL>
 <Application_OS_Support>Windows 10 64 bit, Windows 11 64 bit</Application_OS_Support>
 <Program_Specific_Category>Generative AI Tools</Program_Specific_Category>
 <Program_Language>English, Polish</Program_Language>
@@ -27,7 +27,7 @@ Features
 - Image analysis via GPT-4 Vision.
 - Crontab / Task scheduler included
 - Integrated Langchain support (you can connect to any LLM, e.g., on HuggingFace).
-- Integrated Llama-index support: chat with txt, pdf, csv, md, docx, json, epub, xlsx or use previous conversations as additional context provided to model.
+- Integrated Llama-index support: chat with txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google services, video/audio, images and more data types, or use conversation history as additional context provided to model.
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
 - Manages files and attachments with options to upload, download, and organize.
@@ -60,5 +60,5 @@ PyGPT uses the user's API key - to use the application, you must have a register
 <Author_Email>info@pygpt.net</Author_Email>
 <Company_Info><![CDATA[Marcin Szczygliński, pygpt.net, https://pygpt.net, https://github.com/szczyglis-dev/py-gpt]]></Company_Info>
 <Application_Icon_URL>https://pygpt.net/icon_small.png</Application_Icon_URL>
-<Application_Screenshot_URL>https://pygpt.net/screenshot.jpg</Application_Screenshot_URL>
+<Application_Screenshot_URL>https://pygpt.net/screenshot_v2.jpg</Application_Screenshot_URL>
 </PAD>

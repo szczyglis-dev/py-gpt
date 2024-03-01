@@ -149,9 +149,16 @@ class Editor:
             self.window.controller.ctx.update()
 
         # reload loaders
+        need_loaders_reload = False
         if 'llama.hub.loaders.args' in self.before_config \
                 and self.before_config['llama.hub.loaders.args'] != self.window.core.config.get(
             'llama.hub.loaders.args'):
+            need_loaders_reload = True
+        if 'llama.hub.loaders.use_local' in self.before_config \
+                and self.before_config['llama.hub.loaders.use_local'] != self.window.core.config.get(
+            'llama.hub.loaders.use_local'):
+            need_loaders_reload = True
+        if need_loaders_reload:
             self.window.core.idx.indexing.reload_loaders()
 
         # update file explorer if vector store provider changed

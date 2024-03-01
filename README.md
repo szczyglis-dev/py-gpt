@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.1** | build: **2024.02.29** | Python: **3.10+**
+Release: **2.1.2** | build: **2024.03.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2775,6 +2775,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.2 (2024-03-01)
+
+- Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep, . 
+- Added data loaders: Video/Audio and Images, with local model and API modes.
 
 # 2.1.1 (2024-02-29)
 

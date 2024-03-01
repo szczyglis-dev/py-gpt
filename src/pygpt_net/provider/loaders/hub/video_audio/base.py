@@ -120,6 +120,7 @@ class VideoAudioReader(BaseReader):
             if not self._initialized:
                 self._initialize()
 
+        post_delete = None
         if self._is_video(file):
             video_type = self._get_ext(file)
 
@@ -141,6 +142,7 @@ class VideoAudioReader(BaseReader):
             # export file
             audio.export(file_str, format="mp3")
             file = Path(file_str)
+            post_delete = str(file)
 
         if self._use_local:
             transcript = self._transcribe_local(file)
@@ -148,5 +150,9 @@ class VideoAudioReader(BaseReader):
             if self._window is None:
                 raise ValueError("Window instance is required to use API model.")
             transcript = self._transcribe_api(file)
+
+        # remove tmp file
+        if post_delete:
+            Path(post_delete).unlink()
 
         return [Document(text=transcript, metadata=extra_info or {})]

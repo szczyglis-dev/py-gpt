@@ -1,3 +1,8 @@
+2.1.2 (2024-03-01)
+
+- Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep, . 
+- Added data loaders: Video/Audio and Images, with local model and API modes.
+
 2.1.1 (2024-02-29)
 
 - Llama-index settings split into tabs.

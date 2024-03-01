@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "version": "2.1.1",
-    "app.version": "2.1.1",
-    "updated_at": "2024-02-29T00:00:00"
+    "version": "2.1.2",
+    "app.version": "2.1.2",
+    "updated_at": "2024-03-01T00:00:00"
   },
   "agent.auto_stop" : true,
   "agent.goal.notify": true,
@@ -83,7 +83,7 @@
   "llama.idx.current": "base",
   "llama.idx.db.index": "base",
   "llama.idx.db.last": 0,
-  "llama.idx.excluded_ext": "3g2,3gp,7z,a,aac,aiff,alac,apk,apk,apng,app,ar,avi,avif,bin,bmp,bz2,cab,class,deb,deb,dll,dmg,dmg,drv,dsd,dylib,dylib,ear,egg,elf,esd,exe,flac,flv,gif,gz,heic,heif,ico,img,iso,jar,jpeg,jpg,ko,lib,lz,lz4,m2v,m4a,m4v,mkv,mov,mp3,mp4,mpc,msi,nrg,o,ogg,ogv,pcm,pkg,pkg,png,psd,pyc,rar,rpm,rpm,so,so,svg,swm,sys,tar,tiff,vdi,vhd,vhdx,vmdk,vob,war,wav,webm,webp,whl,wim,wma,wmv,xz,zip,zst",
+  "llama.idx.excluded_ext": "3g2,3gp,7z,a,aac,aiff,alac,apk,apk,apng,app,ar,avif,bin,bz2,cab,class,deb,deb,dll,dmg,dmg,drv,dsd,dylib,dylib,ear,egg,elf,esd,exe,flac,flv,gz,heic,heif,ico,img,iso,jar,ko,lib,lz,lz4,m2v,mpc,msi,nrg,o,ogg,ogv,pcm,pkg,pkg,psd,pyc,rar,rpm,rpm,so,so,svg,swm,sys,tar,vdi,vhd,vhdx,vmdk,vob,war,whl,wim,wma,wmv,xz,zip,zst",
   "llama.idx.list": [
       {
           "id": "base",
