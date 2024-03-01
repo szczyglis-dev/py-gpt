@@ -40,7 +40,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Supports multiple models: `GPT-4`, `GPT-3.5`, and any model accessible through `Langchain`.
 - Handles and stores the full context of conversations (short-term memory).
 - Real-time video camera capture in Vision mode.
-- Internet access via `Google` and `Microsoft Bing`
+- Internet access via `Google` and `Microsoft Bing`.
 - Speech synthesis via `Microsoft Azure`, `Google`, `Eleven Labs` and `OpenAI` Text-To-Speech services.
 - Speech recognition via `OpenAI Whisper`, `Google`, `Google Cloud` and `Microsoft Bing`.
 - Image analysis via `GPT-4 Vision`.
