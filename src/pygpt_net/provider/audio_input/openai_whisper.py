@@ -23,7 +23,7 @@ class OpenAIWhisper(BaseProvider):
         super(OpenAIWhisper, self).__init__(*args, **kwargs)
         self.plugin = kwargs.get("plugin")
         self.id = "openai_whisper"
-        self.name = "OpenAI Whisper"
+        self.name = "Whisper (API)"
 
     def init_options(self):
         """Initialize options"""

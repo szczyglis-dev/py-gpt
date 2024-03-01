@@ -70,6 +70,7 @@ from pygpt_net.provider.loaders.web_yt import Loader as YouTubeLoader  # web: Yo
 
 # audio providers
 from pygpt_net.provider.audio_input.openai_whisper import OpenAIWhisper
+from pygpt_net.provider.audio_input.openai_whisper_local import OpenAIWhisperLocal
 from pygpt_net.provider.audio_input.google_speech_recognition import GoogleSpeechRecognition
 from pygpt_net.provider.audio_input.google_cloud_speech_recognition import GoogleCloudSpeechRecognition
 from pygpt_net.provider.audio_input.bing_speech_recognition import BingSpeechRecognition
@@ -187,6 +188,7 @@ def run(**kwargs):
 
     # register audio providers
     launcher.add_audio_input(OpenAIWhisper())
+    launcher.add_audio_input(OpenAIWhisperLocal())
     launcher.add_audio_input(GoogleSpeechRecognition())
     launcher.add_audio_input(GoogleCloudSpeechRecognition())
     launcher.add_audio_input(BingSpeechRecognition())

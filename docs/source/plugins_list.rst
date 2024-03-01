@@ -17,15 +17,24 @@ Choose the provider. *Default:* `Whisper`
 Available providers:
 
 * Whisper (via ``OpenAI API``)
+* Whisper (local model) - not available in compiled and Snap versions, only Python/PyPi version
 * Google (via ``SpeechRecognition`` library)
 * Google Cloud (via ``SpeechRecognition`` library)
 * Microsoft Bing (via ``SpeechRecognition`` library)
 
-**Whisper**
+**Whisper (API)**
 
 - ``Model`` *whisper_model*
 
 Choose the model. *Default:* `whisper-1`
+
+**Whisper (local)**
+
+- ``Model`` *whisper_local_model*
+
+Choose the local model. *Default:* `base`
+
+Available models: https://github.com/openai/whisper
 
 **Google**
 

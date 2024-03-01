@@ -1150,16 +1150,25 @@ Choose the provider. *Default:* `Whisper`
 
 Available providers:
 
-* Whisper (via `OpenAI API`)
-* Google (via `SpeechRecognition` library)
-* Google Cloud (via `SpeechRecognition` library)
-* Microsoft Bing (via `SpeechRecognition` library)
+- Whisper (via `OpenAI API`)
+- Whisper (local model) - not available in compiled and Snap versions, only Python/PyPi version
+- Google (via `SpeechRecognition` library)
+- Google Cloud (via `SpeechRecognition` library)
+- Microsoft Bing (via `SpeechRecognition` library)
 
-**Whisper**
+**Whisper (API)**
 
 - `Model` *whisper_model*
 
 Choose the model. *Default:* `whisper-1`
+
+**Whisper (local)**
+
+- `Model` *whisper_local_model*
+
+Choose the local model. *Default:* `base`
+
+Available models: https://github.com/openai/whisper
 
 **Google**
 
@@ -2780,6 +2789,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep, . 
 - Added data loaders: Video/Audio and Images, with local model and API modes.
+- Added Whisper (local hosted) model to `Audio Input` providers, available only in Python version.
 
 # 2.1.1 (2024-02-29)
 
