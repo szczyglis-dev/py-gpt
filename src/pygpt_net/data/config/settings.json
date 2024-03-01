@@ -639,9 +639,7 @@
         },
         "label": "settings.llama.idx.storage.args",
         "description": "settings.llama.idx.storage.args.desc",
-        "urls": {
-            "API": "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store.html"
-        },
+        "urls": "https://pygpt.readthedocs.io/en/latest/modes.html#chat-with-files-llama-index",
         "value": [],
         "advanced": false,
         "tab": "store"
@@ -702,11 +700,25 @@
                 "use": "var_types"
             }
         },
-        "urls": "https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers",
+        "urls": "https://pygpt.readthedocs.io/en/latest/modes.html#chat-with-files-llama-index",
         "slider": false,
         "label": "settings.llama.hub.loaders.args",
         "description": "settings.llama.hub.loaders.args.desc",
         "value": [],
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "data_loaders"
+    },
+    "llama.hub.loaders.use_local": {
+        "section": "llama-index",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.llama.hub.loaders.use_local",
+        "description": "settings.llama.hub.loaders.use_local.desc",
+        "value": false,
         "min": null,
         "max": null,
         "multiplier": null,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
 import ssl
@@ -364,21 +364,20 @@ class Plugin(BasePlugin):
 
     def prepare_idx_syntax(self) -> str:
         """
-        Prepare web_index command syntax
+        Prepare web_index command syntax with instructions parsed from web loaders
 
         :return: syntax string
         """
-        types = self.window.core.idx.indexing.get_external_instructions()
+        instructions = self.window.core.idx.indexing.get_external_instructions()
         allowed_types = ""
-        for key in types:
-            allowed_types += "\n- `{}`: {}".format(key, types[key])
-        return '"web_index": with this command YOU CAN READ AND INDEX CONTENT FROM EXTERNAL SOURCES. ' \
-               'Use it to read and index (embed in a Vector Store) the provided URL for webpage or any other ' \
-               'remote resource, like YT video. Provide type of resource in the "type" ' \
+        for type in instructions:
+            allowed_types += "\n--- {}: {}".format(type, instructions[type])
+        return '"web_index": command for READING AND INDEXING CONTENT FROM EXTERNAL SOURCES. ' \
+               'Use it to read and index (embed in Vector Store) the provided URL for webpage or any other ' \
+               'remote resource, like YT video, RSS, etc. Provide type of resource in the "type" ' \
                'param. If there is no allowed type for a specified resource then use the default "webpage" type. ' \
-               'If selected type requires additional args then pass them into "extra_args" param.\n' \
-               'Allowed types:{allowed_types},\n ' \
-               'params: "url", "type", "extra_args"'.format(allowed_types=allowed_types)
+               'If selected type requires additional args then pass them into "args" param. Params: "type", "args".\n' \
+               'Allowed types (NOT commands) for "web_index" command:{allowed_types}'.format(allowed_types=allowed_types)
 
     def cmd_syntax(self, data: dict):
         """

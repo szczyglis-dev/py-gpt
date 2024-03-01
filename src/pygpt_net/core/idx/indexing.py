@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 02:00:00                  #
+# Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -43,6 +43,13 @@ class Indexing:
 
         :param loader: data loader instance
         """
+        # check if compiled version is allowed
+        is_compiled = self.window.core.config.is_compiled() or self.window.core.platforms.is_snap()
+        if not loader.allow_compiled and is_compiled:
+            self.log("Loader not allowed in compiled version: " + loader.id)
+            return
+
+        loader.attach_window(self.window)
         self.data_providers[loader.id] = loader  # cache loader
         extensions = loader.extensions  # available extensions
         types = loader.type  # available types
@@ -157,7 +164,7 @@ class Indexing:
             return True
         ext = os.path.splitext(path)[1][1:]  # get extension
         ext = ext.lower()
-        if ext in self.loaders:
+        if ext in self.loaders["file"]:
             return True
         if self.is_excluded(ext):
             return False
@@ -474,17 +481,25 @@ class Indexing:
 
         try:
             # remove old content from index if already indexed
-            self.remove_old_external(idx, url, type)
             loader = self.loaders["web"][type]
 
             # additional keyword arguments for data loader
             if extra_args is None:
                 extra_args = {}
 
-            self.log("Loading web documents from: {}".format(url))
+            # override URL if provided in load_data args
+            if "url" not in extra_args:
+                extra_args["url"] = url
+
+            # get unique external content identifier
+            unique_id = self.data_providers[type].get_external_id(extra_args)
+
+            # remove old document from index
+            self.remove_old_external(idx, unique_id, type)
+
+            self.log("Loading web documents from: {}".format(unique_id))
             self.log("Using web loader for type: {}".format(type))
 
-            extra_args["url"] = url
             args = self.data_providers[type].prepare_args(**extra_args)
 
             # get documents from external resource
@@ -495,7 +510,7 @@ class Indexing:
                 index.insert(document=d)
                 doc_id = d.id_  # URL is used as document ID
                 self.window.core.idx.external.set_indexed(
-                    content=url,
+                    content=unique_id,
                     type=type,
                     idx=idx,
                     doc_id=doc_id,

@@ -152,8 +152,38 @@ Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/
 
 To index your files, simply copy or upload them into the ``data`` directory and initiate indexing (embedding) by clicking the ``Index all`` button, or right-click on a file and select ``Index...``. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the ``Chat with files (Llama-index, inline)`` plugin.
 
-Built-in file loaders: ``txt``, ``pdf``, ``csv``, ``md``, ``docx``, ``json``, ``epub``, ``xlsx``, ``xml``.
-You can configure data loaders in `Settings / Llama-index / Data Loaders` by providing list of arguments for specified loaders.
+Built-in file loaders: 
+
+**Files:**
+
+* CSV files (csv)
+* Epub files (epub)
+* Excel .xlsx spreadsheets (xlsx)
+* HTML files (html, htm)
+* IPYNB Notebook files (ipynb)
+* Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
+* JSON files (json)
+* Markdown files (md)
+* PDF documents (pdf)
+* Txt/raw files (txt)
+* Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
+* Word .docx documents (docx)
+* XML files (xml)
+
+**Web/external content:**
+
+* Google Calendar
+* Google Docs
+* Google Drive 
+* Google Gmail
+* Google Keep
+* Google Sheets
+* RSS
+* Sitemap (XML)
+* Webpages (crawling any webpage content)
+* YouTube (transcriptions)
+
+You can configure data loaders in ``Settings / Llama-index / Data Loaders`` by providing list of arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
 **From version 2.0.100 Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
@@ -268,40 +298,117 @@ File: https://github.com/run-llama/llama_index/tree/main/llama-index-integration
 
 Web: https://github.com/run-llama/llama_index/tree/main/llama-index-integrations/readers/llama-index-readers-web
 
-Allowed keyword arguments for built-in data loaders:
+**Tip:** to index an external data or data from the Web just ask for it, by using ``Command: Web Search`` plugin, e.g. you can ask the model with ``Please index the youtube video: URL to video``, etc. Data loader for a specified content will be choosen automatically.
 
-**CSV Files (file_csv)**
+Allowed additional keyword arguments for built-in data loaders (files):
+
+**CSV Files**  (file_csv)
 
 * ``concat_rows`` - bool, default: ``True``
 * ``encoding`` - str, default: ``utf-8``
 
-**HTML Files (file_html)**
+**HTML Files** (file_html)
 
 * ``tag`` - str, default: ``section``
 * ``ignore_no_id`` - bool, default: ``False``
 
-**IPYNB Notebook files (file_ipynb)**
+**Image (vision)**  (file_image_vision)
+
+This loader can operate in two modes: local model and API.
+If the local mode is enabled, then the local model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
+If the API mode (default) is selected, then the OpenAI API and the standard vision model will be used. 
+
+**Note:** Usage of API mode consumes additional tokens in OpenAI API (for ``GPT-4 Vision`` model)!
+
+Local mode requires ``torch``, ``transformers``, ``sentencepiece`` and ``Pillow`` to be installed and uses the ``Salesforce/blip2-opt-2.7b`` model to describing images.
+
+* ``keep_image`` - bool, default: ``False``
+* ``local_prompt`` - str, default: ``Question: describe what you see in this image. Answer:``
+* ``api_prompt`` - str, default: ``Describe what you see in this image`` - Prompt to use in API
+* ``api_model`` - str, default: ``gpt-4-vision-preview`` - Model to use in API
+* ``api_tokens`` - int, default: ``1000`` - Max output tokens in API
+
+**IPYNB Notebook files** (file_ipynb)
 
 * ``parser_config`` - dict, default: ``None``
 * ``concatenate`` - bool, default: ``False``
 
-**Markdown files (file_md)**
+**Markdown files** (file_md)
 
 * ``remove_hyperlinks`` - bool, default: ``True``
 * ``remove_images`` - bool, default: ``True``
 
-**PDF documents (file_pdf)**
+**PDF documents** (file_pdf)
 
 * ``return_full_document`` - bool, default: ``False``
 
-**XML files (file_xml)**
+**Video/Audio**  (file_video_audio)
+
+This loader can operate in two modes: local model and API.
+If the local mode is enabled, then the local ``Whisper`` model will be used. The local mode requires a Python/PyPi version of the application and is not available in the compiled or Snap versions.
+If the API mode (default) is selected, then the currently selected provider in ``Audio Input`` plugin will be used. If the ``OpenAI Whisper`` is chosen then the OpenAI API and the API Whisper model will be used. 
+
+**Note:** Usage of Whisper via API consumes additional tokens in OpenAI API (for ``Whisper`` model)!
+
+Local mode requires ``torch`` and ``openai-whisper`` to be installed and uses the ``Whisper`` model locally to transcribing video and audio.
+
+* ``model_version`` - str, default: ``base`` - Whisper model to use, available models: https://github.com/openai/whisper
+
+**XML files** (file_xml)
 
 * ``tree_level_split`` - int, default: ``0``
 
-**Sitemap (web_sitemap)**
+Allowed additional keyword arguments for built-in data loaders (Web and external content):
+
+**Sitemap (XML)** (web_sitemap)
 
 * ``html_to_text`` - bool, default: ``False``
 * ``limit`` - int, default: ``10``
+
+**Google Calendar** (web_google_calendar)
+
+* ``credentials_path`` - str, default: ``credentials.json``
+* ``token_path`` - str, default: ``token.json``
+
+Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/calendar/base.py
+
+**Google Docs** (web_google_docs)
+
+* ``credentials_path`` - str, default: ``credentials.json``
+* ``token_path`` - str, default: ``token.json``
+
+Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/docs/base.py
+
+**Google Drive** (web_google_drive)
+
+* ``credentials_path`` - str, default: ``credentials.json``
+* ``token_path`` - str, default: ``token.json``
+* ``pydrive_creds_path`` - str, default: ``creds.txt``
+
+Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/drive/base.py
+
+**Google Gmail** (web_google_gmail)
+
+* ``credentials_path`` - str, default: ``credentials.json``
+* ``token_path`` - str, default: ``token.json``
+* ``use_iterative_parser`` - bool, default: ``False``
+* ``max_results`` - int, default: ``10``
+* ``results_per_page`` - int, default: ``None``
+
+Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/gmail/base.py
+
+**Google Keep** (web_google_keep)
+
+* ``credentials_path`` - str, default: ``keep_credentials.json``
+
+Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/keep/base.py
+
+**Google Sheets** (web_google_sheets)
+
+* ``credentials_path`` - str, default: ``credentials.json``
+* ``token_path`` - str, default: ``token.json``
+
+Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/sheets/base.py
 
 
 Agent (autonomous)

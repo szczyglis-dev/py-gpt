@@ -9,26 +9,29 @@
 # Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
-from llama_index.core.readers.base import BaseReader
-from llama_index.readers.web.sitemap.base import SitemapReader
+import json
 
+from llama_index.core.readers.base import BaseReader
+
+from .hub.google.docs import GoogleDocsReader
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "sitemap"
-        self.name = "Sitemap"
+        self.id = "google_docs"
+        self.name = "Google Docs"
         self.type = ["web"]
         self.instructions = [
             {
-                "sitemap": "use it to read sitemap XML from URL, allowed args: `url`: str",
+                "google_docs": "use it to read and index files from Google Docs, allowed additional args: "
+                                "`document_ids`: list",
             }
         ]
         self.init_args = {
-            "html_to_text": False,
-            "limit": 10,
+            "credentials_path": "credentials.json",
+            "token_path": "token.json",
         }
 
     def get(self) -> BaseReader:
@@ -38,15 +41,29 @@ class Loader(BaseLoader):
         :return: Data reader instance
         """
         args = self.get_args()
-        return SitemapReader(**args)
+        return GoogleDocsReader(**args)
+
+    def get_external_id(self, args: dict = None) -> str:
+        """
+        Get unique web content identifier
+
+        :param args: load_data args
+        :return: unique content identifier
+        """
+        unique = {}
+        if "document_ids" in args and args.get("document_ids"):
+            unique["document_ids"] = args.get("document_ids")
+        return json.dumps(unique)
 
     def prepare_args(self, **kwargs) -> dict:
         """
-        Prepare arguments for reader
+        Prepare arguments for load_data() method
 
         :param kwargs: keyword arguments
         :return: args to pass to reader
         """
         args = {}
-        args["sitemap_url"] = kwargs.get("url")  # list of links
+        if "document_ids" in kwargs and kwargs.get("document_ids"):
+            if isinstance(kwargs.get("document_ids"), list):
+                args["document_ids"] = kwargs.get("document_ids")  # list of document ids
         return args

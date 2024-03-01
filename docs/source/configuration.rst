@@ -135,6 +135,8 @@ The following basic options can be modified directly within the application:
 
 * ``Additional keyword arguments (**kwargs) for data loaders``: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
+* ``Use local models in Video/Audio and Image (vision) loaders``: Enable usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
+
 * ``Auto-index DB in real time``: Enables conversation context auto-indexing.
 
 * ``ID of index for auto-indexing``: Index to use if auto-indexing of conversation context is enabled.
@@ -151,9 +153,9 @@ The following basic options can be modified directly within the application:
 
 **Updates**
 
-- ``Check for updates on start``: Enables checking for updates on start. Default: True.
+* ``Check for updates on start``: Enables checking for updates on start. Default: True.
 
-- ``Check for updates in background``: Enables checking for updates in background (checking every 5 minutes). Default: True.
+*``Check for updates in background``: Enables checking for updates in background (checking every 5 minutes). Default: True.
 
 **Developer**
 

@@ -11,31 +11,25 @@
 
 from llama_index.core.readers.base import BaseReader
 
-from .hub.video_audio.base import VideoAudioReader
+from .hub.image_vision.base import ImageVisionLLMReader
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "video_audio"
-        self.name = "Video/audio"
-        self.extensions = ["mp4", "avi", "mov", "mkv", "webm", "mp3", "mpeg", "mpga", "m4a", "wav"]
+        self.id = "image_vision"
+        self.name = "Image (vision)"
+        self.extensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp"]
         self.type = ["file"]
         self.init_args = {
             "use_local": False,  # use local model instead of API
-            "model_version": "base", # Whisper model version
+            "keep_image": False,
+            "local_prompt": "Question: describe what you see in this image. Answer:",
+            "api_prompt": "Describe what you see in this image",
+            "api_model": "gpt-4-vision-preview",
+            "api_tokens": 1000,
         }
-        """
-        https://github.com/openai/whisper
-        Allowed models:
-        - tiny (39 M)
-        - base (74 M)
-        - small (244 M)
-        - medium (769 M)
-        - large (1550 M)
-        - large-v2 (1550 M)
-        """
 
     def get(self) -> BaseReader:
         """
@@ -47,4 +41,4 @@ class Loader(BaseLoader):
         args["window"] = self.window  # pass window instance
         if self.window is not None:
             args["use_local"] = self.window.core.config.get("llama.hub.loaders.use_local", False)
-        return VideoAudioReader(**args)
+        return ImageVisionLLMReader(**args)

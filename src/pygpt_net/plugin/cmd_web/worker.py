@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
 import json
@@ -129,12 +129,10 @@ class Worker(BaseWorker):
                         page = int(item["params"]["page"])
                     if "num_links" in item["params"]:
                         num = int(item["params"]["num_links"])
-
                     if num < 1:
                         num = 1
                     if num > 10:
                         num = 10
-
                     offset = 1
                     if page > 1:
                         offset = (page - 1) * num + 1
@@ -165,14 +163,21 @@ class Worker(BaseWorker):
 
                 # cmd: web_index
                 elif item["cmd"] == "web_index":
-                    type = "webpage"
+                    type = "webpage"  # default
                     args = {}
-                    url = item["params"]["url"]
-                    msg = "Indexing URL: '{}'".format(item["params"]["url"])
+
                     if "type" in item["params"]:
                         type = item["params"]["type"]
                     if "args" in item["params"]:
                         args = item["params"]["args"]
+
+                    url = type
+                    if "url" in item["params"]:
+                        url = item["params"]["url"]  # from default param
+                    if "url" in args:
+                        url = args["url"]  # override from args
+
+                    msg = "Indexing URL: '{}'".format(url)
                     idx_name = self.plugin.get_option_value("idx")
 
                     # show status
@@ -187,7 +192,7 @@ class Worker(BaseWorker):
                     )
                     data = {
                         'num_indexed': num,
-                        'index_name': idx_name,
+                        'index': idx_name,
                         'errors': errors,
                         'url': url,
                     }

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 02:00:00                  #
+# Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
 import os
@@ -995,6 +995,13 @@ class Patch:
                 print("Migrating config from < 2.1.1...")
                 if 'llama.hub.loaders.args' not in data:
                     data['llama.hub.loaders.args'] = []
+                updated = True
+
+            # < 2.1.2
+            if old < parse_version("2.1.2"):
+                print("Migrating config from < 2.1.2...")
+                if 'llama.hub.loaders.use_local' not in data:
+                    data['llama.hub.loaders.use_local'] = False
                 updated = True
 
         # update file

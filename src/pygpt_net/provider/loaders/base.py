@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
 from llama_index.core.readers.base import BaseReader
@@ -14,6 +14,7 @@ from llama_index.core.readers.base import BaseReader
 
 class BaseLoader:
     def __init__(self, *args, **kwargs):
+        self.window = None
         self.id = ""
         self.name = ""
         self.extensions = []
@@ -21,6 +22,16 @@ class BaseLoader:
         self.instructions = []  # list of instructions for 'web_index' command for how to handle this type
         self.args = {}  # custom keyword arguments
         self.init_args = {}  # initial keyword arguments
+        self.allow_compiled = True  # allow in compiled and Snap versions
+        # This is required due to some readers may require Python environment to install additional packages
+
+    def attach_window(self, window):
+        """
+        Attach window instance
+
+        :param window: Window instance
+        """
+        self.window = window
 
     def set_args(self, args: dict):
         """
@@ -51,6 +62,17 @@ class BaseLoader:
         :return: args to pass to reader
         """
         return kwargs
+
+    def get_external_id(self, args: dict = None) -> str:
+        """
+        Get unique web content identifier
+
+        :param args: load_data args
+        :return: unique content identifier
+        """
+        if "url" in args:
+            return args.get("url")
+        return ""
 
     def get(self) -> BaseReader:
         """

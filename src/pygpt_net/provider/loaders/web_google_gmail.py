@@ -9,26 +9,33 @@
 # Updated Date: 2024.03.01 02:00:00                  #
 # ================================================== #
 
-from llama_index.core.readers.base import BaseReader
-from llama_index.readers.web.sitemap.base import SitemapReader
+import json
 
+from llama_index.core.readers.base import BaseReader
+
+from .hub.google.gmail import GmailReader
 from .base import BaseLoader
 
 
 class Loader(BaseLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.id = "sitemap"
-        self.name = "Sitemap"
+        self.id = "google_gmail"
+        self.name = "Google Gmail"
         self.type = ["web"]
         self.instructions = [
             {
-                "sitemap": "use it to read sitemap XML from URL, allowed args: `url`: str",
+                "google_gmail": "use it to read and index emails from Google Gmail, "
+                                "allowed additional args: `query`: str",
             }
         ]
         self.init_args = {
-            "html_to_text": False,
-            "limit": 10,
+            "credentials_path": "credentials.json",
+            "token_path": "token.json",
+            "use_iterative_parser": False,
+            "max_results": 10,
+            "service": None,
+            "results_per_page": None,
         }
 
     def get(self) -> BaseReader:
@@ -38,15 +45,29 @@ class Loader(BaseLoader):
         :return: Data reader instance
         """
         args = self.get_args()
-        return SitemapReader(**args)
+        return GmailReader(**args)
+
+    def get_external_id(self, args: dict = None) -> str:
+        """
+        Get unique web content identifier
+
+        :param args: load_data args
+        :return: unique content identifier
+        """
+        unique = {}
+        if "query" in args and args.get("query"):
+            unique["query"] = args.get("query")
+        return json.dumps(unique)
 
     def prepare_args(self, **kwargs) -> dict:
         """
-        Prepare arguments for reader
+        Prepare arguments for load_data() method
 
         :param kwargs: keyword arguments
         :return: args to pass to reader
         """
         args = {}
-        args["sitemap_url"] = kwargs.get("url")  # list of links
+        if "query" in kwargs and kwargs.get("query"):
+            if isinstance(kwargs.get("query"), str):
+                args["query"] = kwargs.get("query")  # query, e.g. "from:me after:2023-01-01"
         return args

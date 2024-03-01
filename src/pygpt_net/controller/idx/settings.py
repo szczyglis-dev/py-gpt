@@ -95,9 +95,21 @@ class Settings:
 
     def update_text_loaders(self):
         """Update text loaders list"""
-        files_str = "txt, " + ", ".join(self.window.core.idx.indexing.loaders["file"].keys())
-        web_str = ", ".join(self.window.core.idx.indexing.loaders["web"].keys())
-        info = trans('settings.llama.extra.loaders') + ":\nFiles: " + files_str + "\nWeb: " + web_str
+        list_file = []
+        list_web = []
+        list_file.append("- Txt/raw files (txt)")
+        providers = self.window.core.idx.indexing.get_data_providers()
+        for id in providers:
+            loader = providers[id]
+            if "file" in loader.type:
+                list_file.append("- " + loader.name + " (" + ", ".join(loader.extensions) + ") - file_" + loader.id)
+            if "web" in loader.type:
+                list_web.append("- " + loader.name + " - web_" + loader.id)
+        list_file = sorted(list_file)
+        list_web = sorted(list_web)
+        files_str = "\n".join(list_file)
+        web_str = "\n".join(list_web)
+        info = trans('settings.llama.extra.loaders') + ":\n\nFiles:\n" + files_str + "\n\nWeb/external:\n" + web_str
         self.window.ui.nodes['idx.db.settings.loaders'].setText(info)
 
     def idx_db_all_context_menu(self, parent, pos):
