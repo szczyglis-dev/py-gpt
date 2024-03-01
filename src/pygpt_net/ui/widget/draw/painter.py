@@ -223,6 +223,18 @@ class PainterWidget(QWidget):
             self.drawing = True
             self.lastPoint = event.pos()
             self.saveForUndo()
+            painter = QPainter(self.image)
+            painter.setPen(
+                QPen(
+                    self.brushColor,
+                    self.brushSize,
+                    Qt.SolidLine,
+                    Qt.RoundCap,
+                    Qt.RoundJoin,
+                )
+            )
+            painter.drawPoint(self.lastPoint)
+            self.update()
 
     def mouseMoveEvent(self, event):
         """
