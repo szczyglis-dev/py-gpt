@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.2** | build: **2024.03.01** | Python: **3.10+**
+Release: **2.1.3** | build: **2024.03.01** | Python: **3.10+**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -46,7 +46,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google` services, video/audio, images and other data types, or use conversation history as additional context provided to the model.
+- Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
@@ -2825,6 +2825,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.3 (2024-03-01)
+
+- Added data loaders: Bitbucket, ChatGPT Retrieval Plugin, SQL Databases, GitHub, Microsoft OneDrive.
+- Added indexing configuration tab in `Web Search` plugin.
 
 # 2.1.2 (2024-03-01)
 

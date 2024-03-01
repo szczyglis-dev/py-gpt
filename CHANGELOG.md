@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 2.1.3 (2024-03-01)
+
+- Added data loaders: Bitbucket, ChatGPT Retrieval Plugin, SQL Databases, GitHub, Microsoft OneDrive.
+- Added indexing configuration tab in `Web Search` plugin.
+
 # 2.1.2 (2024-03-01)
 
 - Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep.
