@@ -20,23 +20,23 @@ Features
 - 8 modes of operation: Chat, Vision, Completion, Assistant, Image generation, Langchain, Chat with files and Autonomous Agents.
 - Supports multiple models: GPT-4, GPT-3.5, and GPT-3, including any model accessible through Langchain.
 - Handles and stores the full context of conversations (short-term memory).
-- Real-time video camera capture in Vision mode
-- Internet access via Google and Microsoft Bing
+- Real-time video camera capture in Vision mode.
+- Internet access via Google and Microsoft Bing.
 - Speech synthesis via Microsoft Azure, Google, Eleven Labs and OpenAI Text-To-Speech services.
 - Speech recognition via OpenAI Whisper, Google, Google Cloud and Microsoft Bing.
 - Image analysis via GPT-4 Vision.
-- Crontab / Task scheduler included
+- Crontab / Task scheduler included.
 - Integrated Langchain support (you can connect to any LLM, e.g., on HuggingFace).
 - Integrated Llama-index support: chat with txt, pdf, csv, html, md, docx, json, epub, xlsx, xml, webpages, Google, GitHub, video/audio, images and other data types, or use conversation history as additional context provided to model.
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
-- Custom commands creation and execution
+- Custom commands creation and execution.
 - Manages files and attachments with options to upload, download, and organize.
 - Context history with the capability to revert to previous contexts (long-term memory).
 - Allows you to easily manage prompts with handy editable presets.
 - Provides an intuitive operation and interface.
 - Includes a notepad.
-- Includes simple painter / drawing tool
-- Includes optional Autonomous Mode
+- Includes simple painter / drawing tool.
+- Includes optional Autonomous Mode.
 - Supports multiple languages.
 - Enables the use of all the powerful features of GPT-4, GPT-4V, and GPT-3.5.
 - Requires no previous knowledge of using AI models.
