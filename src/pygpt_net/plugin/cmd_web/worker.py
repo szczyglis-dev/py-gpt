@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.01 17:00:00                  #
 # ================================================== #
 
 import json
@@ -196,8 +196,8 @@ class Worker(BaseWorker):
                         'errors': errors,
                         'url': url,
                     }
-                    if url:
-                        self.ctx.urls.append(url)
+                    if url and (url.startswith("http://") or url.startswith("https://")):
+                            self.ctx.urls.append(url)
 
                     self.response(
                         {

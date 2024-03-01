@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.01 17:00:00                  #
 # ================================================== #
 
 import ssl
@@ -159,6 +159,7 @@ class Plugin(BasePlugin):
             label="Enable: \"web_index\" command",
             description="If enabled, model will be able to index web pages using Llama-index",
             tooltip="If enabled, model will be able to index web pages using Llama-index",
+            tab="indexing",
         )
         self.add_option(
             "auto_index",
@@ -167,6 +168,7 @@ class Plugin(BasePlugin):
             label="Auto-index all used URLs using Llama-index",
             description="If enabled, every URL used by the model will be automatically indexed using Llama-index",
             tooltip="If enabled, every URL used by the model will be automatically indexed using Llama-index",
+            tab="indexing",
         )
         self.add_option(
             "idx",
@@ -175,6 +177,7 @@ class Plugin(BasePlugin):
             label="Index to use",
             description="ID of index to use for web page indexing",
             tooltip="Index name",
+            tab="indexing",
         )
         self.add_option(
             "summary_model",
@@ -263,12 +266,41 @@ class Plugin(BasePlugin):
 
         # register provider options
         self.init_provider()
+        self.init_idx_options()
 
     def init_provider(self):
         """Initialize provider options"""
         providers = self.get_providers()
         for id in providers:
             providers[id].init(self)
+
+    def init_idx_options(self):
+        """Initialize indexing options"""
+        instructions = self.window.core.idx.indexing.get_external_instructions()
+        providers = self.window.core.idx.indexing.get_data_providers()
+        for id in instructions:
+            name = id
+            if id in providers:
+                name = providers[id].name
+            self.add_option(
+                "index_web_" + id,
+                type="bool",
+                value=True,
+                label="Enable: " + name,
+                description="Enable indexing data from web loader: " + id,
+                advanced=False,
+                locale=False,
+                tab="indexing",
+            )
+
+    def is_indexing_allowed(self, id: str) -> bool:
+        """
+        Check if indexing from specified loader is allowed
+
+        :param id: loader ID
+        :return: True if allowed
+        """
+        return self.get_option_value("index_web_" + id)
 
     def get_providers(self) -> dict:
         """
@@ -294,6 +326,7 @@ class Plugin(BasePlugin):
         """
         tabs = {}
         tabs["general"] = "General"
+        tabs["indexing"] = "Indexing"
         providers = self.get_providers()
         for id in providers:
             tabs[id] = providers[id].name
@@ -371,12 +404,18 @@ class Plugin(BasePlugin):
         instructions = self.window.core.idx.indexing.get_external_instructions()
         allowed_types = ""
         for type in instructions:
+            if not self.is_indexing_allowed(type):  # check if data loader is allowed
+                continue
             allowed_types += "\n--- {}: {}".format(type, instructions[type])
+
+        if not allowed_types:
+            return ""
+
         return '"web_index": command for READING AND INDEXING CONTENT FROM EXTERNAL SOURCES. ' \
                'Use it to read and index (embed in Vector Store) the provided URL for webpage or any other ' \
                'remote resource, like YT video, RSS, etc. Provide type of resource in the "type" ' \
                'param. If there is no allowed type for a specified resource then use the default "webpage" type. ' \
-               'If selected type requires additional args then pass them into "args" param. Params: "type", "args".\n' \
+               'If selected type requires additional args then pass them into "args" param, params: "type", "args".\n' \
                'Allowed types (NOT commands) for "web_index" command:{allowed_types}'.format(allowed_types=allowed_types)
 
     def cmd_syntax(self, data: dict):
@@ -391,9 +430,9 @@ class Plugin(BasePlugin):
 
             # special case for web_index
             if option == "web_index":
-                data['syntax'].append(
-                    self.prepare_idx_syntax(),
-                )
+                syntax = self.prepare_idx_syntax()
+                if syntax:
+                    data['syntax'].append(syntax)
                 continue
 
             key = "syntax_" + option

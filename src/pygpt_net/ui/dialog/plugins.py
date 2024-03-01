@@ -120,7 +120,13 @@ class Plugins:
                     tab = options[key]['tab']
                     if tab is not None and tab != "":
                         tab_id = tab
-                content_tabs[tab_id].addLayout(self.add_option(plugin, widgets[key], options[key]))  # add to scroll
+                content_tabs[tab_id].addLayout(
+                    self.add_option(
+                        plugin,
+                        widgets[key],
+                        options[key],
+                    )
+                )  # add to scroll
 
             # append advanced options at the end
             if len(advanced_keys) > 0:
@@ -366,6 +372,7 @@ class Plugins:
         :return: QVBoxLayout
         """
         one_column_types = ['textarea', 'dict', 'bool']
+        allow_locale = True
 
         key = option['id']
         label_key = 'plugin.' + plugin.id + '.' + key + '.label'
@@ -376,8 +383,11 @@ class Plugins:
         txt_desc = option['description']
         txt_tooltip = option['tooltip']
 
+        if "locale" in option and not option["locale"]:
+            allow_locale = False
+
         # translate if localization is enabled
-        if plugin.use_locale:
+        if plugin.use_locale and allow_locale:
             domain = 'plugin.' + plugin.id
             txt_title = trans(key + '.label', False, domain)
             txt_desc = trans(key + '.description', False, domain)

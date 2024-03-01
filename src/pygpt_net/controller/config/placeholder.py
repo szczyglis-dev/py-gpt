@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.03.01 17:00:00                  #
 # ================================================== #
 
 class Placeholder:
@@ -105,7 +105,6 @@ class Placeholder:
         """
         ids = self.window.core.idx.storage.get_ids()
         data = []
-        data.append({'_': '---'})
         for id in ids:
             data.append({id: id})
         return data
@@ -158,7 +157,6 @@ class Placeholder:
         """
         modes = ["chat", "completion", "vision", "langchain", "llama_index"]
         data = []
-        data.append({'_': '---'})
         for id in modes:
             data.append({id: id})  # TODO: name
         return data
@@ -169,7 +167,7 @@ class Placeholder:
 
         :return: Indexes placeholders list
         """
-        indexes = self.window.core.idx.get_all()
+        indexes = self.window.core.idx.get_idx_ids()
         data = []
         data.append({'_': '---'})
         for id in indexes:

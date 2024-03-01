@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.03.01 17:00:00                  #
 # ================================================== #
 
 import datetime
@@ -441,6 +441,19 @@ class Idx:
                 else:
                     self.items[store_id][idx].id = idx
                     self.items[store_id][idx].name = idx
+
+    def get_idx_ids(self) -> list:
+        """
+        Get list of indexes
+
+        :return: list of indexes
+        """
+        ids = []
+        data =  self.window.core.config.get('llama.idx.list')
+        if data is not None:
+            for item in data:
+                ids.append(item['id'])
+        return ids
 
     def clear(self, idx: str):
         """

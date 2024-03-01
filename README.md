@@ -46,7 +46,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Image analysis via `GPT-4 Vision`.
 - Crontab / Task scheduler included
 - Integrated `Langchain` support (you can connect to any LLM, e.g., on `HuggingFace`).
-- Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google` services, video/audio, images and more data types, or use conversation history as additional context provided to model.
+- Integrated `Llama-index` support: chat with `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google` services, video/audio, images and other data types, or use conversation history as additional context provided to the model.
 - Integrated calendar, day notes and search in contexts by selected date
 - Commands execution (via plugins: access to the local filesystem, Python code interpreter, system commands execution).
 - Custom commands creation and execution
@@ -446,13 +446,19 @@ Built-in file loaders:
 
 **Web/external content:**
 
+- Bitbucket
+- ChatGPT Retrieval Plugin
+- GitHub Issues
+- GitHub Repository
 - Google Calendar
 - Google Docs
 - Google Drive 
 - Google Gmail
 - Google Keep
 - Google Sheets
+- Microsoft OneDrive
 - RSS
+- SQL Database
 - Sitemap (XML)
 - Webpages (crawling any webpage content)
 - YouTube (transcriptions)
@@ -632,32 +638,34 @@ Local mode requires `torch` and `openai-whisper` to be installed and uses the `W
 
 Allowed additional keyword arguments for built-in data loaders (Web and external content):
 
-**Sitemap (XML)**  (web_sitemap)
+**Bitbucket**  (web_bitbucket)
 
-- `html_to_text` - bool, default: `False`
-- `limit` - int, default: `10`
+- `username` - str, default: `None`
+- `api_key` - str, default: `None`
+- `extensions_to_skip` - list, default: `[]`
+
+**ChatGPT Retrieval**  (web_chatgpt_retrieval)
+
+- `endpoint_url` - str, default: `None`
+- `bearer_token` - str, default: `None`
+- `retries` - int, default: `None`
+- `batch_size` - int, default: `100`
 
 **Google Calendar** (web_google_calendar)
 
 - `credentials_path` - str, default: `credentials.json`
 - `token_path` - str, default: `token.json`
 
-Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/calendar/base.py
-
 **Google Docs** (web_google_docs)
 
 - `credentials_path` - str, default: `credentials.json`
 - `token_path` - str, default: `token.json`
-
-Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/docs/base.py
 
 **Google Drive** (web_google_drive)
 
 - `credentials_path` - str, default: `credentials.json`
 - `token_path` - str, default: `token.json`
 - `pydrive_creds_path` - str, default: `creds.txt`
-
-Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/drive/base.py
 
 **Google Gmail** (web_google_gmail)
 
@@ -667,20 +675,53 @@ Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integra
 - `max_results` - int, default: `10`
 - `results_per_page` - int, default: `None`
 
-Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/gmail/base.py
-
 **Google Keep** (web_google_keep)
 
 - `credentials_path` - str, default: `keep_credentials.json`
-
-Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/keep/base.py
 
 **Google Sheets** (web_google_sheets)
 
 - `credentials_path` - str, default: `credentials.json`
 - `token_path` - str, default: `token.json`
 
-Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-google/llama_index/readers/google/sheets/base.py
+**GitHub Issues**  (web_github_issues)
+
+- `token` - str, default: `None`
+- `verbose` - bool, default: `False`
+
+**GitHub Repository**  (web_github_repository)
+
+- `token` - str, default: `None`
+- `verbose` - bool, default: `False`
+- `concurrent_requests` - int, default: `5`
+- `timeout` - int, default: `5`
+- `retries` - int, default: `0`
+- `filter_dirs_include` - list, default: `None`
+- `filter_dirs_exclude` - list, default: `None`
+- `filter_file_ext_include` - list, default: `None`
+- `filter_file_ext_exclude` - list, default: `None`
+
+**Microsoft OneDrive**  (web_microsoft_onedrive)
+
+- `client_id` - str, default: `None`
+- `client_secret` - str, default: `None`
+- `tenant_id` - str, default: `consumers`
+
+**Sitemap (XML)**  (web_sitemap)
+
+- `html_to_text` - bool, default: `False`
+- `limit` - int, default: `10`
+
+**SQL Database**  (web_database)
+
+- `engine` - str, default: `None`
+- `uri` - str, default: `None`
+- `scheme` - str, default: `None`
+- `host` - str, default: `None`
+- `port` - str, default: `None`
+- `user` - str, default: `None`
+- `password` - str, default: `None`
+- `dbname` - str, default: `None`
 
 ##  Agent (autonomous) 
 
@@ -1119,7 +1160,7 @@ Python code to a file, which the `Code Interpreter` can execute it and return it
 - `Command: Files I/O` - provides access to the local filesystem, enabling GPT to read and write files, 
 as well as list and create directories.
 
-- `Command: Web Search` - allows searching the internet and reading web pages.
+- `Command: Web Search` - provides the ability to connect to the Web, search web pages for current data, and index external content using Llama-index data loaders.
 
 - `Command: Serial port / USB` - plugin provides commands for reading and sending data to USB ports.
 

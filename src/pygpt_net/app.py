@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.01 17:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -57,12 +57,18 @@ from pygpt_net.provider.loaders.file_markdown import Loader as MarkdownLoader  #
 from pygpt_net.provider.loaders.file_pdf import Loader as PdfLoader  # file: PDF
 from pygpt_net.provider.loaders.file_video_audio import Loader as VideoAudioLoader  # file: mp4
 from pygpt_net.provider.loaders.file_xml import Loader as XmlLoader  # file: XML
+from pygpt_net.provider.loaders.web_bitbucket import Loader as BitbucketRepoLoader  # web: Bitbucket Repository
+from pygpt_net.provider.loaders.web_chatgpt_retrieval import Loader as ChatGptRetrievalLoader  # web: ChatGPT Retrieval Plugin
+from pygpt_net.provider.loaders.web_database import Loader as DatabaseLoader  # web: Database
+from pygpt_net.provider.loaders.web_github_issues import Loader as GithubIssuesLoader  # web: GitHub Issues
+from pygpt_net.provider.loaders.web_github_repo import Loader as GithubRepoLoader  # web: GitHub Repository
 from pygpt_net.provider.loaders.web_google_calendar import Loader as GoogleCalendarLoader  # web: Google Calendar
 from pygpt_net.provider.loaders.web_google_docs import Loader as GoogleDocsLoader  # web: Google Docs
 from pygpt_net.provider.loaders.web_google_drive import Loader as GoogleDriveLoader  # web: Google Drive
 from pygpt_net.provider.loaders.web_google_gmail import Loader as GoogleGmailLoader  # web: Google Gmail
 from pygpt_net.provider.loaders.web_google_keep import Loader as GoogleKeepLoader  # web: Google Keep
 from pygpt_net.provider.loaders.web_google_sheets import Loader as GoogleSheetsLoader  # web: Google Sheets
+from pygpt_net.provider.loaders.web_microsoft_onedrive import Loader as MicrosoftOneDriveLoader  # web: Microsoft OneDrive
 from pygpt_net.provider.loaders.web_rss import Loader as RssLoader  # web: RSS feed
 from pygpt_net.provider.loaders.web_sitemap import Loader as SitemapLoader  # web: Sitemap XML
 from pygpt_net.provider.loaders.web_page import Loader as WebPageLoader  # web: Webpages
@@ -218,6 +224,42 @@ def run(**kwargs):
         for provider in providers:
             launcher.add_web(provider)
 
+    # register base data loaders (llama-index)
+    launcher.add_loader(CsvLoader())
+    launcher.add_loader(DocxLoader())
+    launcher.add_loader(EpubLoader())
+    launcher.add_loader(ExcelLoader())
+    launcher.add_loader(HtmlLoader())
+    launcher.add_loader(ImageVisionLoader())
+    launcher.add_loader(IPYNBLoader())
+    launcher.add_loader(JsonLoader())
+    launcher.add_loader(MarkdownLoader())
+    launcher.add_loader(PdfLoader())
+    launcher.add_loader(VideoAudioLoader())
+    launcher.add_loader(XmlLoader())
+    launcher.add_loader(RssLoader())
+    launcher.add_loader(SitemapLoader())
+    launcher.add_loader(BitbucketRepoLoader())
+    launcher.add_loader(ChatGptRetrievalLoader())
+    launcher.add_loader(DatabaseLoader())
+    launcher.add_loader(GithubIssuesLoader())
+    launcher.add_loader(GithubRepoLoader())
+    launcher.add_loader(GoogleCalendarLoader())
+    launcher.add_loader(GoogleDocsLoader())
+    launcher.add_loader(GoogleDriveLoader())
+    launcher.add_loader(GoogleGmailLoader())
+    launcher.add_loader(GoogleKeepLoader())
+    launcher.add_loader(GoogleSheetsLoader())
+    launcher.add_loader(MicrosoftOneDriveLoader())
+    launcher.add_loader(WebPageLoader())
+    launcher.add_loader(YouTubeLoader())
+
+    # register custom data loaders (llama-index)
+    loaders = kwargs.get('loaders', None)
+    if isinstance(loaders, list):
+        for loader in loaders:
+            launcher.add_loader(loader)
+
     # register base plugins
     launcher.add_plugin(AgentPlugin())
     launcher.add_plugin(RealTimePlugin())
@@ -268,36 +310,6 @@ def run(**kwargs):
     if isinstance(vector_stores, list):
         for store in vector_stores:
             launcher.add_vector_store(store)
-
-    # register base data loaders (llama-index)
-    launcher.add_loader(CsvLoader())
-    launcher.add_loader(DocxLoader())
-    launcher.add_loader(EpubLoader())
-    launcher.add_loader(ExcelLoader())
-    launcher.add_loader(HtmlLoader())
-    launcher.add_loader(ImageVisionLoader())
-    launcher.add_loader(IPYNBLoader())
-    launcher.add_loader(JsonLoader())
-    launcher.add_loader(MarkdownLoader())
-    launcher.add_loader(PdfLoader())
-    launcher.add_loader(VideoAudioLoader())
-    launcher.add_loader(XmlLoader())
-    launcher.add_loader(RssLoader())
-    launcher.add_loader(SitemapLoader())
-    launcher.add_loader(GoogleCalendarLoader())
-    launcher.add_loader(GoogleDocsLoader())
-    launcher.add_loader(GoogleDriveLoader())
-    launcher.add_loader(GoogleGmailLoader())
-    launcher.add_loader(GoogleKeepLoader())
-    launcher.add_loader(GoogleSheetsLoader())
-    launcher.add_loader(WebPageLoader())
-    launcher.add_loader(YouTubeLoader())
-
-    # register custom data loaders (llama-index)
-    loaders = kwargs.get('loaders', None)
-    if isinstance(loaders, list):
-        for loader in loaders:
-            launcher.add_loader(loader)
 
     # run app
     launcher.run()

@@ -67,7 +67,7 @@ def test_handle_cmd_syntax(mock_window):
     }
     event.ctx = ctx
     plugin.handle(event)
-    assert len(event.data["syntax"]) == 5  # web_search, web_url_open
+    assert len(event.data["syntax"]) == 4  # web_search, web_url_open
 
 
 def test_handle_cmd_execute_web_search(mock_window):
