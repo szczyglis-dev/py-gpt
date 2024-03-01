@@ -2787,7 +2787,7 @@ may consume additional tokens that are not displayed in the main window.
 
 # 2.1.2 (2024-03-01)
 
-- Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep, . 
+- Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep.
 - Added data loaders: Video/Audio and Images, with local model and API modes.
 - Added Whisper (local hosted) model to `Audio Input` providers, available only in Python version.
 
