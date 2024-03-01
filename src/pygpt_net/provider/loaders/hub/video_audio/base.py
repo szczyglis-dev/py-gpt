@@ -5,7 +5,8 @@ Contains parsers for mp3, mp4 files.
 Based on: https://github.com/run-llama/llama_index/blob/main/llama-index-integrations/readers/llama-index-readers-file/llama_index/readers/file/video_audio/base.py
 
 """
-
+import os.path
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 from fsspec import AbstractFileSystem
@@ -137,9 +138,11 @@ class VideoAudioReader(BaseReader):
 
             # Extract audio from video
             audio = video.split_to_mono()[0]
-
             file_str = str(file)[:-4] + ".mp3"
-            # export file
+            # export file, if file exists add date suffix
+            if os.path.exists(file_str):
+                date_suffix = datetime.now().strftime("%Y%m%d%H%M%S")
+                file_str = str(file)[:-4] + "_" + date_suffix + ".mp3"
             audio.export(file_str, format="mp3")
             file = Path(file_str)
             post_delete = str(file)
