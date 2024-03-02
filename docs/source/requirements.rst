@@ -56,7 +56,7 @@ To manage future updates just use:
 Python version
 ---------------
 The second way to run is to download the source code from GitHub and run
-the application using the Python interpreter (at least version 3.10).
+the application using the Python interpreter (>=3.10, <3.12).
 You can also install application from PyPi (using ``pip install``) and we recommend this type of installation.
 
 PyPi (pip)

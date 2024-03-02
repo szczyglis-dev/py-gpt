@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.4 (2024-03-02)
+
+- PySide6 downgraded to 6.4.2 due to a bug in signals emitting.
+
 # 2.1.3 (2024-03-01)
 
 - Added data loaders: Bitbucket, ChatGPT Retrieval Plugin, SQL Databases, GitHub, Microsoft OneDrive.

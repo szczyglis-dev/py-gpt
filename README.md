@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.3** | build: **2024.03.01** | Python: **3.10+**
+Release: **2.1.4** | build: **2024.03.02** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -139,7 +139,7 @@ pygpt
 
 ## Source Code
 
-An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (version `3.10` or higher). 
+An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (>=3.10, <3.12). 
 
 ### Running from GitHub source code
 
@@ -2825,6 +2825,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.4 (2024-03-02)
+
+- PySide6 downgraded to 6.4.2 due to a bug in signals emitting.
 
 # 2.1.3 (2024-03-01)
 
