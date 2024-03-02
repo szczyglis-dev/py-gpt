@@ -362,7 +362,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_file_index",
             type="textarea",
-            value='"file_index": use it to index (embed in Vector Store) a file or directory for future use, '
+            value='"file_index": use it to index (embed in Vector Store) a file or directory, '
                   'params: "path"',
             label="Syntax: file_index",
             description="Syntax for file_index command",
