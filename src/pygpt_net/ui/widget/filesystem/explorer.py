@@ -475,8 +475,14 @@ class IndexedFileSystemModel(QFileSystemModel):
                 file_path = self.filePath(index.siblingAtColumn(0))
                 status = self.get_index_status(file_path)   # get index status
                 if status['indexed']:
+                    ts = datetime.datetime.fromtimestamp(status['last_index_at'])
+                    # check if today
+                    if ts.date() == datetime.date.today():
+                        dt = ts.strftime("%H:%M")
+                    else:
+                        dt = ts.strftime("%Y-%m-%d %H:%M")
                     content = ''
-                    content += datetime.datetime.fromtimestamp(status['last_index_at']).strftime("%Y-%m-%d %H:%M")
+                    content += dt
                     content += ' (' + ",".join(status['indexed_in']) + ')'
                 else:
                     content = '-'  # if file not indexed
@@ -486,6 +492,12 @@ class IndexedFileSystemModel(QFileSystemModel):
             if role == Qt.DisplayRole:
                 dt = self.lastModified(index)
                 data = dt.toString("yyyy-MM-dd HH:mm:ss")
+                ts = dt.toSecsSinceEpoch()
+                dt_from_ts = datetime.datetime.fromtimestamp(ts)
+                if dt_from_ts.date() == datetime.date.today():
+                    data = dt_from_ts.strftime("%H:%M")
+                else:
+                    data = dt_from_ts.strftime("%Y-%m-%d %H:%M")
                 file_path = self.filePath(index.siblingAtColumn(0))
                 status = self.get_index_status(file_path)  # get index status
                 if status['indexed']:
