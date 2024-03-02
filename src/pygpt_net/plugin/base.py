@@ -188,15 +188,23 @@ class BasePlugin:
         if self.is_log():
             print(msg)
 
-    @Slot(object, object)
-    def handle_finished(self, response: dict, ctx: CtxItem = None):
+    @Slot(object, object, dict)
+    def handle_finished(self, response: dict, ctx: CtxItem = None, extra_data: dict = None):
         """
         Handle finished response signal
 
         :param response: response
         :param ctx: context (CtxItem)
+        :param extra_data: extra data
         """
-        # dispatcher handle late response
+        # handle post-finishing operations
+        if isinstance(extra_data, dict):
+            if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
+                if "file_explorer" in extra_data["post_update"]:
+                    # update file explorer view
+                    self.window.controller.files.update_explorer()
+
+        # dispatch late response (reply)
         if ctx is not None:
             ctx.results.append(response)
             ctx.reply = True
@@ -240,7 +248,7 @@ class BasePlugin:
 
 
 class BaseSignals(QObject):
-    finished = Signal(object, object)  # response, ctx
+    finished = Signal(object, object, dict)  # response, ctx, extra_data
     debug = Signal(object)
     destroyed = Signal()
     error = Signal(object)
@@ -292,14 +300,15 @@ class BaseWorker(QRunnable):
         if self.signals is not None and hasattr(self.signals, "log"):
             self.signals.log.emit(msg)
 
-    def response(self, response: dict):
+    def response(self, response: dict, extra_data: dict = None):
         """
         Emit finished signal
 
         :param response: response
+        :param extra_data: extra data
         """
         if self.signals is not None and hasattr(self.signals, "finished"):
-            self.signals.finished.emit(response, self.ctx)
+            self.signals.finished.emit(response, self.ctx, extra_data)
 
     def started(self):
         """Emit started signal"""
