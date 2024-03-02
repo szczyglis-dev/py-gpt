@@ -62,7 +62,7 @@ You can also install application from PyPi (using ``pip install``) and we recomm
 PyPi (pip)
 ```````````
 
-1. Create virtual environment:
+1. Create a new virtual environment:
 
 .. code-block:: console
 
@@ -119,19 +119,26 @@ Running from GitHub source code
     git clone https://github.com/szczyglis-dev/py-gpt.git
     cd py-gpt
 
-2. Create virtual environment:
+2. Install Poetry (if not installed):
 
 .. code-block:: console
 
+    pip install poetry
+
+3. Create a new virtual environment that uses Python 3.10:
+
+.. code-block:: console
+    
+    poetry env use python3.10
     poetry shell
 
-3. Install requirements:
+4. Install requirements:
 
 .. code-block:: console
 
     poetry install
 
-4. Run the application:
+5. Run the application:
 
 .. code-block:: console
 

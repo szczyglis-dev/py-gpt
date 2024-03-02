@@ -178,19 +178,26 @@ git clone https://github.com/szczyglis-dev/py-gpt.git
 cd py-gpt
 ```
 
-2. Create virtual environment:
+2. Install Poetry (if not installed):
 
 ```commandline
+pip install poetry
+```
+
+3. Create a new virtual environment that uses Python 3.10:
+
+```commandline
+poetry env use python3.10
 poetry shell
 ```
 
-3. Install requirements:
+4. Install requirements:
 
 ```commandline
 poetry install
 ```
 
-4. Run the application:
+5. Run the application:
 
 ```commandline
 poetry run python3 run.py
