@@ -1004,6 +1004,13 @@ class Patch:
                     data['llama.hub.loaders.use_local'] = False
                 updated = True
 
+            # < 2.1.5 - syntax
+            if old < parse_version("2.1.5"):
+                print("Migrating config from < 2.1.5...")
+                if 'cmd_files' in data["plugins"] and 'syntax_file_index' in data["plugins"]["cmd_files"]:
+                    syntax = '"file_index": use it to index (embed in Vector Store) a file or directory, params: "path"'
+                    data["plugins"]["cmd_files"]["syntax_file_index"] = syntax
+
         # update file
         migrated = False
         if updated:

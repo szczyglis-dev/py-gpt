@@ -1,3 +1,9 @@
+2.1.5 (2024-03-02)
+
+- Recompiled SVG resources.
+- Fixed file explorer update after file commands execute.
+- Updated docs.
+
 2.1.4 (2024-03-02)
 
 - PySide6 downgraded to 6.4.2 due to a bug in signals emitting.
