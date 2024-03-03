@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.6** | build: **2024.03.03** | Python: **>=3.10, <3.12**
+Release: **2.1.7** | build: **2024.03.03** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2859,6 +2859,10 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.7 (2024-03-03)
+
+- Enhanced the Llama-index plugin with additional options for automatically refining queries before requesting additional context from Llama-index.
 
 # 2.1.6 (2024-03-03)
 

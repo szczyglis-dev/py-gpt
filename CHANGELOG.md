@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 2.1.7 (2024-03-03)
+
+- Enhanced the Llama-index plugin with additional options for automatically refining queries before requesting additional context from Llama-index.
+
 # 2.1.6 (2024-03-03)
 
 - Added Twitter/X data loader.
