@@ -186,10 +186,12 @@ Built-in file loaders:
 * RSS
 * SQL Database
 * Sitemap (XML)
+* Twitter/X posts
 * Webpages (crawling any webpage content)
+* Wikipedia
 * YouTube (transcriptions)
 
-You can configure data loaders in ``Settings / Llama-index / Data Loaders`` by providing list of arguments for specified loaders.
+You can configure data loaders in ``Settings / Llama-index / Data Loaders`` by providing list of keyword arguments for specified loaders.
 You can also develop and provide your own custom loader and register it within the application.
 
 **From version 2.0.100 Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
@@ -450,6 +452,11 @@ Allowed additional keyword arguments for built-in data loaders (Web and external
 * ``user`` - str, default: `None`
 * ``password`` - str, default: `None`
 * ``dbname`` - str, default: `None`
+
+**Twitter/X posts**  (web_twitter)
+
+* ``bearer_token`` - str, default: `None`
+* ``num_tweets`` - int, default: `100`
 
 
 Agent (autonomous)

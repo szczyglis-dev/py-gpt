@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.03 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.launcher import Launcher
@@ -71,6 +71,7 @@ from pygpt_net.provider.loaders.web_google_sheets import Loader as GoogleSheetsL
 from pygpt_net.provider.loaders.web_microsoft_onedrive import Loader as MicrosoftOneDriveLoader  # web: Microsoft OneDrive
 from pygpt_net.provider.loaders.web_rss import Loader as RssLoader  # web: RSS feed
 from pygpt_net.provider.loaders.web_sitemap import Loader as SitemapLoader  # web: Sitemap XML
+from pygpt_net.provider.loaders.web_twitter import Loader as TwitterLoader  # web: Twitter
 from pygpt_net.provider.loaders.web_page import Loader as WebPageLoader  # web: Webpages
 from pygpt_net.provider.loaders.web_yt import Loader as YouTubeLoader  # web: YouTube
 
@@ -251,6 +252,7 @@ def run(**kwargs):
     launcher.add_loader(GoogleKeepLoader())
     launcher.add_loader(GoogleSheetsLoader())
     launcher.add_loader(MicrosoftOneDriveLoader())
+    launcher.add_loader(TwitterLoader())
     launcher.add_loader(WebPageLoader())
     launcher.add_loader(YouTubeLoader())
 
