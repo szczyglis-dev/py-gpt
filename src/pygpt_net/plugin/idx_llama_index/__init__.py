@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.14 15:00:00                  #
+# Updated Date: 2024.03.03 06:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -70,6 +70,32 @@ class Plugin(BasePlugin):
                         "asked only when needed.",
         )
         self.add_option(
+            "prepare_question",
+            type="bool",
+            value=True,
+            label="Auto-prepare question before asking Llama-index first",
+            description="When enabled, then question will be prepared before asking Llama-index first to create"
+                        "best question for Llama-index.",
+        )
+        self.add_option(
+            "model_prepare_question",
+            type="combo",
+            use="models",
+            value="gpt-3.5-turbo",
+            label="Model for question preparation",
+            description="Model used to prepare question before asking Llama-index, default: gpt-3.5-turbo",
+            tooltip="Model",
+        )
+        self.add_option(
+            "prepare_question_max_tokens",
+            type="int",
+            value=500,
+            label="Max output tokens for question preparation",
+            description="Max tokens in output when preparing question before asking Llama-index",
+            min=1,
+            max=None,
+        )
+        self.add_option(
             "model_query",
             type="combo",
             value="gpt-3.5-turbo",
@@ -77,6 +103,27 @@ class Plugin(BasePlugin):
             description="Model used for querying Llama-index, default: gpt-3.5-turbo",
             tooltip="Query model",
             use="models",
+        )
+        self.add_option(
+            "max_question_chars",
+            type="int",
+            value=1000,
+            label="Max characters in question",
+            description="Max characters in question when querying Llama-index, 0 = no limit",
+            min=0,
+            max=None,
+        )
+        self.add_option(
+            "syntax_prepare_question",
+            type="textarea",
+            value='You are an expert in crafting questions for an additional knowledge base (vector store) to gather extra '
+                  'context that may be useful for the topic discussed. Convert the given text into a query that '
+                  'includes a question allowing for the inquiry of additional knowledge about the subject. '
+                  'For example, if the question is about a car, create a simple query asking for more details about '
+                  'the discussed car, such as "What is the color of MY car?"',
+            label="Prompt for question preparation",
+            description="System prompt for question preparation",
+            advanced=True,
         )
 
     def setup(self) -> dict:
@@ -122,12 +169,12 @@ class Plugin(BasePlugin):
                 return
 
             # ignore if reply for command or internal
-            if ctx.reply or ctx.internal or data["reply"]:
+            if ctx.reply or data["reply"]:
                 return
 
             data['value'] = self.on_post_prompt(
                 data['value'],
-                ctx
+                ctx,
             )
 
         elif name in [
@@ -136,7 +183,7 @@ class Plugin(BasePlugin):
         ]:
             if self.mode in self.ignored_modes:  # ignore
                 return
-            if ctx.reply or ctx.internal:
+            if ctx.reply:
                 return
 
             self.cmd(
@@ -154,6 +201,33 @@ class Plugin(BasePlugin):
         prompt += "\n" + self.get_option_value("prompt")
         return prompt
 
+    def prepare_question(self, ctx: CtxItem) -> str:
+        """
+        Prepare query for Llama-index
+
+        :param ctx: CtxItem
+        :return: prepared question for Llama-index
+        """
+        prepared_question = ""
+        sys_prompt = self.get_option_value("syntax_prepare_question")
+        self.log("Preparing context question for Llama-index...")
+
+        # get model
+        model = self.window.core.models.from_defaults()
+        tmp_model = self.get_option_value("model_prepare_question")
+        if self.window.core.models.has(tmp_model):
+            model = self.window.core.models.get(tmp_model)
+        response = self.window.core.bridge.quick_call(
+            prompt=ctx.input,
+            system_prompt=sys_prompt,
+            max_tokens=self.get_option_value("prepare_question_max_tokens"),
+            model=model,
+        )
+        if response is not None and response != "":
+            prepared_question = response
+        return prepared_question
+
+
     def on_post_prompt(self, prompt: str, ctx: CtxItem) -> str:
         """
         Event: POST_PROMPT
@@ -165,8 +239,16 @@ class Plugin(BasePlugin):
         if not self.get_option_value("ask_llama_first"):
             return prompt
 
-        response = self.query(ctx.input)
+        question = ctx.input
+        if self.get_option_value("prepare_question"):
+            question = self.prepare_question(ctx)
+            if question == "":
+                return prompt
+
+        self.log("Querying Llama-index for: " + question)
+        response = self.query(question)
         if response is None or len(response) == 0:
+            self.log("No additional context. Aborting.")
             return prompt
 
         prompt += "\nADDITIONAL KNOWLEDGE: " + response
@@ -187,11 +269,13 @@ class Plugin(BasePlugin):
                 model = self.window.core.models.get(model_query)
         indexes = idx.split(",")
 
-        # max length of question
-        max_len = 1000
-        if len(question) > max_len:
-            question = question[:max_len]
+        # max length of question for Llama-index
+        max_len = self.get_option_value("max_question_chars")
+        if max_len > 0:
+            if len(question) > max_len:
+                question = question[:max_len]
 
+        # query index(es)
         if len(indexes) > 1:
             responses = []
             for index in indexes:
@@ -203,7 +287,8 @@ class Plugin(BasePlugin):
                     model=model,
                     stream=False,
                 )
-                responses.append(ctx.output)
+                self.log("Using additional context: " + str(ctx.output))
+                responses.append(ctx.output)  # tmp ctx
             return "\n".join(responses)
         else:
             ctx = CtxItem()
@@ -214,7 +299,8 @@ class Plugin(BasePlugin):
                 model=model,
                 stream=False,
             )
-            return ctx.output
+            self.log("Using additional context: " + str(ctx.output))
+            return ctx.output  # tmp ctx
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """

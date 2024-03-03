@@ -1484,6 +1484,26 @@ Plugin integrates `Llama-index` storage in any chat and provides additional know
 
 When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed.
 
+- `Auto-prepare question before asking Llama-index first` *prepare_question*
+
+When enabled, then question will be prepared before asking Llama-index first to create best query.
+
+- `Model for question preparation` *model_prepare_question*
+
+Model used to prepare question before asking Llama-index, default: gpt-3.5-turbo
+
+- `Max output tokens for question preparation` *prepare_question_max_tokens*
+
+Max tokens in output when preparing question before asking Llama-index
+
+- `Prompt for question preparation` *syntax_prepare_question*
+
+System prompt for question preparation
+
+- `Max characters in question` *max_question_chars*
+
+Max characters in question when querying Llama-index, 0 = no limit, default: 1000
+
 - `Model` *model_query*
 
 Model used for querying `Llama-index`, default: `gpt-3.5-turbo`
