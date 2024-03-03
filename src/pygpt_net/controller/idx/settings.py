@@ -112,12 +112,20 @@ class Settings:
         info = trans('settings.llama.extra.loaders') + ":\n\nFiles:\n" + files_str + "\n\nWeb/external:\n" + web_str
         self.window.ui.nodes['idx.db.settings.loaders'].setText(info)
 
+    def update_idx_choices(self):
+        """Update index choices"""
+        option = self.window.controller.settings.editor.get_option("agent.idx")
+        option["keys"] = self.window.controller.config.placeholder.get_idx()
+        self.window.ui.config["config"]["agent.idx"].combo.clear()
+        self.window.ui.config["config"]["agent.idx"].option = option
+        self.window.ui.config["config"]["agent.idx"].update()
+
     def idx_db_all_context_menu(self, parent, pos):
         """
         Index DB (all) btn context menu
 
         :param parent: parent widget (button)
-        :param pos: mouse  position
+        :param pos: mouse position
         """
         menu = QMenu(parent)
         idxs = self.window.core.config.get('llama.idx.list')

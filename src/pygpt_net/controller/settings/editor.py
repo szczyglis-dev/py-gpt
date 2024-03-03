@@ -161,6 +161,11 @@ class Editor:
         if need_loaders_reload:
             self.window.core.idx.indexing.reload_loaders()
 
+        # update idx list
+        if 'llama.idx.list' in self.before_config \
+                and self.before_config['llama.idx.list'] != self.window.core.config.get('llama.idx.list'):
+            self.window.controller.idx.settings.update_idx_choices()
+
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
 

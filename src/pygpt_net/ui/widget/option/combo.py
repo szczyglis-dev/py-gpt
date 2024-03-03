@@ -40,9 +40,19 @@ class OptionCombo(QWidget):
         self.value = None
         self.keys = []
         self.title = ""
+        self.real_time = False
         self.combo = NoScrollCombo()
         self.combo.currentIndexChanged.connect(self.on_combo_change)
 
+        # add items
+        self.update()
+
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(self.combo)
+        self.setLayout(self.layout)
+
+    def update(self):
+        """Prepare items"""
         # init from option data
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None and self.option["label"] != "":
@@ -62,10 +72,6 @@ class OptionCombo(QWidget):
                         self.combo.addItem(value, key)
                 else:
                     self.combo.addItem(item)
-
-        self.layout = QHBoxLayout()
-        self.layout.addWidget(self.combo)
-        self.setLayout(self.layout)
 
     def on_combo_change(self, index):
         """
