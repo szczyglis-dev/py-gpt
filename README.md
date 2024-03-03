@@ -2840,6 +2840,12 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.6 (2024-03-03)
+
+- Added Twitter/X data loader.
+- Added check if message is not a reply when calling Llama-index using a plugin.
+- Added list of Agent indexes auto-reload after Llama-index list has changed.
+
 # 2.1.5 (2024-03-02)
 
 - Recompiled SVG resources.

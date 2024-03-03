@@ -2280,6 +2280,21 @@ llama-index-core = ">=0.10.1,<0.11.0"
 msal = ">=1.26.0,<2.0.0"
 
 [[package]]
+name = "llama-index-readers-twitter"
+version = "0.1.3"
+description = "llama-index readers twitter integration"
+optional = false
+python-versions = ">=3.8.1,<4.0"
+files = [
+    {file = "llama_index_readers_twitter-0.1.3-py3-none-any.whl", hash = "sha256:211658102bc7d89553bf327ed1886375b827c2bf0b5927ab191913164311407a"},
+    {file = "llama_index_readers_twitter-0.1.3.tar.gz", hash = "sha256:64fc25ba23dd4a4c0c677250cbf1c7851edead885413d056b699647c793e4caf"},
+]
+
+[package.dependencies]
+llama-index-core = ">=0.10.1,<0.11.0"
+tweepy = ">=4.14.0,<5.0.0"
+
+[[package]]
 name = "llama-index-readers-web"
 version = "0.1.6"
 description = "llama-index readers web integration"
@@ -5596,6 +5611,29 @@ trio = ">=0.11"
 wsproto = ">=0.14"
 
 [[package]]
+name = "tweepy"
+version = "4.14.0"
+description = "Twitter library for Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "tweepy-4.14.0-py3-none-any.whl", hash = "sha256:db6d3844ccc0c6d27f339f12ba8acc89912a961da513c1ae50fa2be502a56afb"},
+    {file = "tweepy-4.14.0.tar.gz", hash = "sha256:1f9f1707d6972de6cff6c5fd90dfe6a449cd2e0d70bd40043ffab01e07a06c8c"},
+]
+
+[package.dependencies]
+oauthlib = ">=3.2.0,<4"
+requests = ">=2.27.0,<3"
+requests-oauthlib = ">=1.2.0,<2"
+
+[package.extras]
+async = ["aiohttp (>=3.7.3,<4)", "async-lru (>=1.0.3,<3)"]
+dev = ["coverage (>=4.4.2)", "coveralls (>=2.1.0)", "tox (>=3.21.0)"]
+docs = ["myst-parser (==0.15.2)", "readthedocs-sphinx-search (==0.1.1)", "sphinx (==4.2.0)", "sphinx-hoverxref (==0.7b1)", "sphinx-rtd-theme (==1.0.0)", "sphinx-tabs (==3.2.0)"]
+socks = ["requests[socks] (>=2.27.0,<3)"]
+test = ["vcrpy (>=1.10.3)"]
+
+[[package]]
 name = "typer"
 version = "0.9.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
@@ -5949,6 +5987,20 @@ files = [
 ]
 
 [[package]]
+name = "wikipedia"
+version = "1.4.0"
+description = "Wikipedia API for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "wikipedia-1.4.0.tar.gz", hash = "sha256:db0fad1829fdd441b1852306e9856398204dc0786d2996dd2e0c8bb8e26133b2"},
+]
+
+[package.dependencies]
+beautifulsoup4 = "*"
+requests = ">=2.0.0,<3.0.0"
+
+[[package]]
 name = "wrapt"
 version = "1.16.0"
 description = "Module for decorators, wrappers and monkey patching."
@@ -6176,4 +6228,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "ebf3ed5d96b5c9f9f204ee617296d9dad0b620eb1553f39884cf8b184218b4d7"
+content-hash = "10aaaa5ea1565a26cec229402c25c8f1c39919d8def981f1600230d9fc60f819"
