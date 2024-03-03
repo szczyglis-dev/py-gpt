@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.02 22:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -51,6 +51,10 @@ class Worker(BaseWorker):
                     # read file
                     elif item["cmd"] == "read_file":
                         self.cmd_read_file(item)
+
+                    # query file
+                    elif item["cmd"] == "query_file":
+                        self.cmd_query_file(item)
 
                     # delete file
                     elif item["cmd"] == "delete_file":
@@ -160,10 +164,8 @@ class Worker(BaseWorker):
         try:
             self.msg = "Saving file: {}".format(item["params"]['filename'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['filename'],
-            )
+            path = self.prepare_path(item["params"]['filename'])
+
             data = item["params"]['data']
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
@@ -191,10 +193,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Appending file: {}".format(item["params"]['filename'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['filename'],
-            )
+            path = self.prepare_path(item["params"]['filename'])
             data = item["params"]['data']
             with open(path, 'a', encoding="utf-8") as file:
                 file.write(data)
@@ -222,14 +221,9 @@ class Worker(BaseWorker):
         try:
             self.msg = "Reading file: {}".format(item["params"]['filename'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['filename'],
-            )
-
+            path = self.prepare_path(item["params"]['filename'])
             # check if file exists
             if os.path.exists(path):
-
                 # auto-index file using Llama-index
                 if self.plugin.get_option_value("auto_index") \
                         or self.plugin.get_option_value("only_index"):
@@ -238,7 +232,6 @@ class Worker(BaseWorker):
                         idx_name,
                         path,
                     )
-
                     # if only index, return response and continue
                     if self.plugin.get_option_value("only_index"):
                         data = {
@@ -263,8 +256,54 @@ class Worker(BaseWorker):
                 response = {
                     "request": request,
                     "result": data,
+                    "context": os.path.basename(path) + ":\n--------------------------------\n" + data,  # add additional context
                 }
                 self.log("File read: {}".format(path))
+            else:
+                response = {
+                    "request": request,
+                    "result": "File not found",
+                }
+                self.log("File not found: {}".format(path))
+        except Exception as e:
+            response = {
+                "request": request,
+                "result": "Error: {}".format(e),
+            }
+            self.error(e)
+            self.log("Error: {}".format(e))
+        self.response(response, self.get_extra_data())
+
+    def cmd_query_file(self, item: dict):
+        """
+        Query file
+
+        :param item: item with parameters
+        """
+        request = self.prepare_request(item)
+        response = {}
+        query = None
+        try:
+            self.msg = "Reading path: {}".format(item["params"]['path'])
+            self.log(self.msg)
+            path = self.prepare_path(item["params"]['path'])
+            if "query" in item["params"] and item["params"]["query"]:
+                query = item["params"]["query"]
+
+            # check if file exists
+            if os.path.exists(path):
+                if query is not None:
+                    self.log("Querying file: {}".format(path))
+                    # query file using temp index (created on the fly)
+                    response = self.plugin.window.core.idx.chat.query_file(path, query)
+                    self.log("Response from temporary in-memory index: {}".format(response))
+                    if response:
+                        response = {
+                            "request": request,
+                            "result": response,
+                            "context": "From: " + os.path.basename(path) + ":\n--------------------------------\n" + response,
+                            # add additional context
+                        }
             else:
                 response = {
                     "request": request,
@@ -290,10 +329,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Deleting file: {}".format(item["params"]['filename'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['filename'],
-            )
+            path = self.prepare_path(item["params"]['filename'])
             if os.path.exists(path):
                 os.remove(path)
                 response = {"request": request, "result": "OK"}
@@ -323,10 +359,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Listing directory: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 files = os.listdir(path)
                 response = {
@@ -360,10 +393,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Creating directory: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if not os.path.exists(path):
                 os.makedirs(path)
                 response = {
@@ -396,10 +426,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Deleting directory: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 shutil.rmtree(path)
                 response = {
@@ -430,13 +457,9 @@ class Worker(BaseWorker):
         """
         request = self.prepare_request(item)
         try:
-            dst = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['dst'],
-            )
+            dst = self.prepare_path(item["params"]['dst'])
             self.msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
             self.log(self.msg)
-
             # Check if src is URL
             if item["params"]['src'].startswith("http"):
                 src = item["params"]['src']
@@ -497,14 +520,8 @@ class Worker(BaseWorker):
         try:
             self.msg = "Copying file: {} into {}".format(item["params"]['src'], item["params"]['dst'])
             self.log(self.msg)
-            dst = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['dst'],
-            )
-            src = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['src'],
-            )
+            dst = self.prepare_path(item["params"]['dst'])
+            src = self.prepare_path(item["params"]['src'])
             shutil.copyfile(src, dst)
             response = {
                 "request": request,
@@ -531,14 +548,8 @@ class Worker(BaseWorker):
             self.msg = "Copying directory: {} into {}".format(item["params"]['src'],
                                                               item["params"]['dst'])
             self.log(self.msg)
-            dst = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['dst'],
-            )
-            src = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['src'],
-            )
+            dst = self.prepare_path(item["params"]['dst'])
+            src = self.prepare_path(item["params"]['src'])
             shutil.copytree(src, dst)
             response = {
                 "request": request,
@@ -564,14 +575,8 @@ class Worker(BaseWorker):
         try:
             self.msg = "Moving: {} into {}".format(item["params"]['src'], item["params"]['dst'])
             self.log(self.msg)
-            dst = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['dst'],
-            )
-            src = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['src'],
-            )
+            dst = self.prepare_path(item["params"]['dst'])
+            src = self.prepare_path(item["params"]['src'])
             shutil.move(src, dst)
             response = {
                 "request": request,
@@ -597,10 +602,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Checking if directory exists: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.isdir(path):
                 response = {
                     "request": request,
@@ -629,10 +631,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Checking if file exists: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.isfile(path):
                 response = {
                     "request": request,
@@ -664,10 +663,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Checking if path exists: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 response = {
                     "request": request,
@@ -699,10 +695,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Checking file size: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 size = os.path.getsize(path)
                 response = {
@@ -738,10 +731,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Checking file info: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 size = os.path.getsize(path)
                 data = {
@@ -810,11 +800,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Adding attachment: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
-
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 # make attachment
                 mode = self.plugin.window.core.config.get('mode')
@@ -852,10 +838,7 @@ class Worker(BaseWorker):
         try:
             self.msg = "Indexing path: {}".format(item["params"]['path'])
             self.log(self.msg)
-            path = os.path.join(
-                self.plugin.window.core.config.get_user_dir('data'),
-                item["params"]['path'],
-            )
+            path = self.prepare_path(item["params"]['path'])
             if os.path.exists(path):
                 idx_name = self.plugin.get_option_value("idx")
                 # index path using Llama-index
@@ -901,3 +884,27 @@ class Worker(BaseWorker):
                 break
             size /= 1024.0
         return f"{size:.{decimal_places}f} {unit}"
+
+    def is_absolute_path(self, path: str) -> bool:
+        """
+        Check if path is absolute
+
+        :param path: path to check
+        :return: True if absolute
+        """
+        return os.path.isabs(path)
+
+    def prepare_path(self, path: str) -> str:
+        """
+        Prepare path
+
+        :param path: path to prepare
+        :return: prepared path
+        """
+        if self.is_absolute_path(path):
+            return path
+        else:
+            return os.path.join(
+                self.plugin.window.core.config.get_user_dir('data'),
+                path,
+            )

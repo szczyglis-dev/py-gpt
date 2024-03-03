@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import os.path
@@ -225,17 +225,18 @@ class Indexing:
             if "creation_date" in doc.extra_info:
                 doc.extra_info["last_accessed_date"] = doc.extra_info["creation_date"]
 
-    def index_files(self, idx: str, index: BaseIndex, path: str = None) -> tuple:
+    def index_files(self, idx: str, index: BaseIndex, path: str = None, is_tmp: bool = False) -> tuple:
         """
         Index all files in directory
 
         :param idx: index name
         :param index: index instance
         :param path: path to file or directory
+        :param is_tmp: True if temporary index
         :return: dict with indexed files, errors
         """
         if self.window.core.config.get("llama.idx.recursive"):
-            return self.index_files_recursive(idx, index, path)
+            return self.index_files_recursive(idx, index, path, is_tmp)
 
         indexed = {}
         errors = []
@@ -250,7 +251,9 @@ class Indexing:
             try:
                 # remove old file from index if exists
                 file_id = self.window.core.idx.files.get_id(file)
-                self.remove_old_file(idx, file_id)
+
+                if not is_tmp:
+                    self.remove_old_file(idx, file_id)
 
                 # index new version of file
                 documents = self.get_documents(file)
@@ -267,13 +270,14 @@ class Indexing:
 
         return indexed, errors
 
-    def index_files_recursive(self, idx: str, index: BaseIndex, path: str = None) -> tuple:
+    def index_files_recursive(self, idx: str, index: BaseIndex, path: str = None, is_tmp: bool = False) -> tuple:
         """
         Index all files in directory and subdirectories recursively.
 
         :param idx: index name
         :param index: index instance
         :param path: path to file or directory
+        :param is_tmp: True if temporary index
         :return: dict with indexed files, errors
         """
         indexed = {}
@@ -287,7 +291,9 @@ class Indexing:
                     try:
                         # remove old file from index if exists
                         file_id = self.window.core.idx.files.get_id(path)
-                        self.remove_old_file(idx, file_id)
+
+                        if not is_tmp:
+                            self.remove_old_file(idx, file_id)
 
                         # index new version of file
                         documents = self.get_documents(file_path)
@@ -307,7 +313,9 @@ class Indexing:
             try:
                 # remove old file from index if exists
                 file_id = self.window.core.idx.files.get_id(path)
-                self.remove_old_file(idx, file_id)
+
+                if not is_tmp:
+                    self.remove_old_file(idx, file_id)
 
                 # index new version of file
                 documents = self.get_documents(path)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 from llama_index.core.llms import ChatMessage, MessageRole
@@ -15,6 +15,7 @@ from llama_index.core.memory import ChatMemoryBuffer
 
 from pygpt_net.item.ctx import CtxItem
 from .context import Context
+from pygpt_net.item.model import ModelItem
 
 
 class Chat:
@@ -37,7 +38,7 @@ class Chat:
         """
         model = kwargs.get("model", None)
         idx_raw = kwargs.get("idx_raw", False)  # raw mode
-        if model is None:  # check if model is provided
+        if model is None or not isinstance(model, ModelItem):  # check if model is provided
             raise Exception("Model config not provided")
 
         if idx_raw:  # query index (raw mode)
@@ -60,7 +61,7 @@ class Chat:
 
     def query(self, **kwargs) -> bool:
         """
-        Query index mode (no chat, only single query)
+        Query index mode (no chat, only single query) and append results to context
 
         :param kwargs: keyword arguments
         :return: True if success
@@ -72,7 +73,7 @@ class Chat:
         stream = kwargs.get("stream", False)
         query = ctx.input
 
-        if model is None:
+        if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
 
         self.log("Query index...")
@@ -106,24 +107,28 @@ class Chat:
                 streaming=stream,
             ).query(query)  # query with default prompt
 
-        if stream:
-            ctx.stream = response.response_gen
-            ctx.input_tokens = input_tokens
-            ctx.set_output("", "")
+        if response:
+            if stream:
+                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.stream = response.response_gen
+                ctx.input_tokens = input_tokens
+                ctx.set_output("", "")
+            else:
+                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.input_tokens = input_tokens
+                ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                    response.response,
+                    [],
+                    model.id,
+                )  # calc from response
+                ctx.set_output(str(response.response), "")
+            self.log("Found in metadata: {}".format(response.metadata))
             return True
-
-        ctx.input_tokens = input_tokens
-        ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-            response,
-            [],
-            model.id,
-        )  # calc from response
-        ctx.set_output(str(response), "")
-        return True
+        return False
 
     def chat(self, **kwargs) -> bool:
         """
-        Chat mode (conversation, using context from index)
+        Chat mode (conversation, using context from index) and append result to the context
 
         :param kwargs: keyword arguments
         :return: True if success
@@ -135,7 +140,7 @@ class Chat:
         stream = kwargs.get("stream", False)
         query = ctx.input
 
-        if model is None:
+        if model is None or not isinstance(model, ModelItem):
             raise Exception("Model config not provided")
 
         self.log("Chat with index...")
@@ -167,29 +172,59 @@ class Chat:
         )
         if stream:
             response = chat_engine.stream_chat(query)
-            ctx.stream = response.response_gen
-            ctx.input_tokens = input_tokens
-            ctx.set_output("", "")
-            return True
         else:
             response = chat_engine.chat(query)
 
-        ctx.input_tokens = input_tokens
-        ctx.output_tokens = self.window.core.tokens.from_llama_messages(
-            response,
-            [],
-            model.id,
-        )  # calc from response
-        ctx.set_output(str(response), "")
+        if response:
+            if stream:
+                ctx.stream = response.response_gen
+                ctx.input_tokens = input_tokens
+                ctx.set_output("", "")
+                # no metadata here in agent chat stream response
+            else:
+                ctx.add_doc_meta(response.metadata)  # store metadata
+                ctx.input_tokens = input_tokens
+                ctx.output_tokens = self.window.core.tokens.from_llama_messages(
+                    response.response,
+                    [],
+                    model.id,
+                )  # calc from response
+                ctx.set_output(str(response.response), "")
+                self.log("Found in metadata: {}".format(response.metadata))
+            return True
+        return False
 
-        return True
+    def query_file(self, path: str, query: str) -> str:
+        """
+        Query file using temp index (created on the fly)
+
+        :param path: path to file to index
+        :param query: query
+        """
+        model = self.window.core.models.from_defaults()
+        context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get_tmp(path, service_context=context)  # get or create tmp index
+
+        idx = "tmp:{}".format(path)  # tmp index id
+        self.log("Indexing to temporary in-memory index: {}...".format(idx))
+
+        # index file to tmp index
+        files, errors = self.window.core.idx.indexing.index_files(idx, index, path, is_tmp=True)
+        if len(files) > 0:
+            self.log("Querying temporary in-memory index: {}...".format(idx))
+            response = index.as_query_engine(
+                streaming=False,
+            ).query(query)  # query with default prompt
+            if response:
+                return response.response
 
     def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:
         """
         Get memory buffer
 
-        :param history: Memory with chat history
+        :param history: list with chat history (ChatMessage)
         :param llm: LLM model
+        :return: memory buffer with chat history
         """
         return ChatMemoryBuffer.from_defaults(
             chat_history=history,
@@ -200,7 +235,7 @@ class Chat:
         """
         Get custom prompt template if sys prompt is not empty
 
-        :param prompt: system prompt
+        :param prompt: system prompt (optional)
         :return: ChatPromptTemplate or None if prompt is empty
         """
         if prompt is None or prompt.strip() == "":

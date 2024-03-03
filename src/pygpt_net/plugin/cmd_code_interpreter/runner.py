@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import os.path
@@ -149,10 +149,7 @@ class Runner:
         """
         msg = "Saving Python file: {}".format(item["params"]['filename'])
         self.log(msg, sandbox=True)
-        path = os.path.join(
-            self.plugin.window.core.config.get_user_dir('data'),
-            item["params"]['filename'],
-        )
+        path = self.prepare_path(item["params"]['filename'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -204,14 +201,10 @@ class Runner:
         """
         msg = "Executing Python file: {}".format(item["params"]['filename'])
         self.log(msg)
-        path = os.path.join(
-            self.plugin.window.core.config.get_user_dir('data'),
-            item["params"]['filename'],
-        )
+        path = self.prepare_path(item["params"]['filename'])
 
         # check if file exists
         if not os.path.isfile(path):
-            msg = "File not found: {}".format(item["params"]['filename'])
             ctx.results.append(
                 {"request": request_item, "result": "File not found"}
             )
@@ -245,10 +238,7 @@ class Runner:
         # write code to file
         msg = "Saving Python file: {}".format(item["params"]['filename'])
         self.log(msg)
-        path = os.path.join(
-            self.plugin.window.core.config.get_user_dir('data'),
-            item["params"]['filename'],
-        )
+        path = self.prepare_path(item["params"]['filename'])
         data = item["params"]['code']
         with open(path, 'w', encoding="utf-8") as file:
             file.write(data)
@@ -293,6 +283,30 @@ class Runner:
             "request": request_item,
             "result": result,
         }
+
+    def is_absolute_path(self, path: str) -> bool:
+        """
+        Check if path is absolute
+
+        :param path: path to check
+        :return: True if absolute
+        """
+        return os.path.isabs(path)
+
+    def prepare_path(self, path: str) -> str:
+        """
+        Prepare path
+
+        :param path: path to prepare
+        :return: prepared path
+        """
+        if self.is_absolute_path(path):
+            return path
+        else:
+            return os.path.join(
+                self.plugin.window.core.config.get_user_dir('data'),
+                path,
+            )
 
     def error(self, err: any):
         """

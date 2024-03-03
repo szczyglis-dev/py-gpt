@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.25 19:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import json
@@ -46,6 +46,7 @@ def test_reply(mock_window):
     ctx.reply = True
     ctx.results = {'test': 'test'}
     ctx.internal = False
+    ctx.output = None
     dispatcher.window.core.ctx.update_item = MagicMock()
     dispatcher.window.controller.chat.input.send = MagicMock()
     dispatcher.reply(ctx)

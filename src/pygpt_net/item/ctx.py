@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import datetime
@@ -53,6 +53,17 @@ class CtxItem:
         self.idx = 0
         self.first = False
         self.tool_calls = []  # API tool calls
+        self.index_meta = {}  # llama-index metadata ctx used
+        self.doc_ids = []  # document ids
+
+    def add_doc_meta(self, meta: dict):
+        """
+        Add document meta
+
+        :param meta: document meta data
+        """
+        self.index_meta = meta
+        self.doc_ids.append(meta)
 
     def set_input(self, input: str | None, name: str = None):
         """
@@ -122,6 +133,12 @@ class CtxItem:
             "extra": self.extra,
             "current": self.current,
             "internal": self.internal,
+            "is_vision": self.is_vision,
+            "idx": self.idx,
+            "first": self.first,
+            "tool_calls": self.tool_calls,
+            "index_meta": self.index_meta,
+            "doc_ids": self.doc_ids,
         }
 
     def from_dict(self, data: dict):
@@ -158,6 +175,12 @@ class CtxItem:
         self.extra = data.get("extra", None)
         self.current = data.get("current", False)
         self.internal = data.get("internal", False)
+        self.is_vision = data.get("is_vision", False)
+        self.idx = data.get("idx", 0)
+        self.first = data.get("first", False)
+        self.tool_calls = data.get("tool_calls", [])
+        self.index_meta = data.get("index_meta", {})
+        self.doc_ids = data.get("doc_ids", [])
 
     def dump(self) -> str:
         """

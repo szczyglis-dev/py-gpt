@@ -496,7 +496,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 Command: Files I/O
 ------------------
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the ``data`` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the ``data`` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
 
 Plugin capabilities include:
 
@@ -512,6 +512,7 @@ Plugin capabilities include:
 * Moving (renaming) files and directories
 * Reading file info
 * Indexing files and directories using Llama-index
+- Querying files using Llama-index
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -524,6 +525,10 @@ Allows `cmd_send_file` command execution. *Default:* `True`
 - ``Enable: Read file`` *cmd_read_file*
 
 Allows `read_file` command execution. *Default:* `True`
+
+- ``Enable: Query file with Llama-index`` *cmd_query_file*
+
+Allows `query_file` command execution *Default:* `True`
 
 - ``Enable: Append to file`` *cmd_append_file*
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -25,6 +25,7 @@ class Plugin(BasePlugin):
         self.order = 100
         self.allowed_cmds = [
             "read_file",
+            "query_file",
             "save_file",
             "append_file",
             "delete_file",
@@ -63,6 +64,13 @@ class Plugin(BasePlugin):
             value=True,
             label="Enable: Read file",
             description="Allows `read_file` command execution",
+        )
+        self.add_option(
+            "cmd_query_file",
+            type="bool",
+            value=True,
+            label="Enable: Query file with Llama-index",
+            description="Allows `query_file` command execution",
         )
         self.add_option(
             "cmd_save_file",
@@ -229,6 +237,14 @@ class Plugin(BasePlugin):
             value='"read_file": read data from file, params: "filename"',
             label="Syntax: read_file",
             description="Syntax for reading files",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_query_file",
+            type="textarea",
+            value='"query_file": read, index and query file for additional context data, params: "path", "query"',
+            label="Syntax: query_file",
+            description="Syntax for querying files for additional context data",
             advanced=True,
         )
         self.add_option(

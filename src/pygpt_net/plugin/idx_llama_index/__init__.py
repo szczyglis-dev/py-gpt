@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 06:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -33,10 +33,10 @@ class Plugin(BasePlugin):
 
     def init_options(self):
         """Initialize options"""   # TODO: make better prompt, redefine context
-        prompt = 'ADDITIONAL CONTEXT: I will provide you with additional data about my question. ' \
-                 'When it is provided, then use this data as your additional knowledge and use it in your response. ' \
-                 'Additional context will be prefixed with an "Additional data:" prefix. You can also provide a ' \
-                 'command to query my knowledge database anytime you need any additional data - to do this, return ' \
+        prompt = 'ADDITIONAL CONTEXT: I will provide you with additional context about my question. ' \
+                 'When it is provided, then use this data as additional context and use it in your response. ' \
+                 'Additional context will be prefixed with an "ADDITIONAL CONTEXT:" prefix. You can also provide a ' \
+                 'command to query my context database anytime you need any additional context - to do this, return ' \
                  'to me the prepared prompt in JSON format, all in one line, using the following syntax: ' \
                  '~###~{"cmd": "get_knowledge", "params": {"question": "simple and concrete question here"}}~###~. ' \
                  'Use ONLY this syntax and remember to surround the JSON string with ~###~. DO NOT use any other ' \
@@ -72,7 +72,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "prepare_question",
             type="bool",
-            value=True,
+            value=False,
             label="Auto-prepare question before asking Llama-index first",
             description="When enabled, then question will be prepared before asking Llama-index first to create"
                         "best question for Llama-index.",
@@ -116,11 +116,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_prepare_question",
             type="textarea",
-            value='You are an expert in crafting questions for an additional knowledge base (vector store) to gather extra '
-                  'context that may be useful for the topic discussed. Convert the given text into a query that '
-                  'includes a question allowing for the inquiry of additional knowledge about the subject. '
-                  'For example, if the question is about a car, create a simple query asking for more details about '
-                  'the discussed car, such as "What is the color of MY car?"',
+            value='Simplify the question into a short query for retrieving information from a vector store.',
             label="Prompt for question preparation",
             description="System prompt for question preparation",
             advanced=True,
@@ -217,6 +213,7 @@ class Plugin(BasePlugin):
         tmp_model = self.get_option_value("model_prepare_question")
         if self.window.core.models.has(tmp_model):
             model = self.window.core.models.get(tmp_model)
+
         response = self.window.core.bridge.quick_call(
             prompt=ctx.input,
             system_prompt=sys_prompt,
@@ -246,21 +243,25 @@ class Plugin(BasePlugin):
                 return prompt
 
         self.log("Querying Llama-index for: " + question)
-        response = self.query(question)
+
+        response, doc_ids = self.query(question)
         if response is None or len(response) == 0:
             self.log("No additional context. Aborting.")
             return prompt
+        else:
+            ctx.doc_ids = doc_ids
 
-        prompt += "\nADDITIONAL KNOWLEDGE: " + response
+        prompt += "\nADDITIONAL CONTEXT: " + response
         return prompt
 
-    def query(self, question: str) -> str:
+    def query(self, question: str) -> (str, list):
         """
         Query Llama-index
 
         :param question: question
-        :return: response
+        :return: response, list of document ids
         """
+        doc_ids = []
         idx = self.get_option_value("idx")
         model = self.window.core.models.from_defaults()
         if self.get_option_value("model_query") is not None:
@@ -287,9 +288,13 @@ class Plugin(BasePlugin):
                     model=model,
                     stream=False,
                 )
+                self.append_meta_to_ctx(ctx)
+                if ctx.index_meta:
+                    doc_ids.append(ctx.index_meta)
                 self.log("Using additional context: " + str(ctx.output))
                 responses.append(ctx.output)  # tmp ctx
-            return "\n".join(responses)
+
+            return "\n".join(responses), doc_ids
         else:
             ctx = CtxItem()
             ctx.input = question
@@ -299,8 +304,29 @@ class Plugin(BasePlugin):
                 model=model,
                 stream=False,
             )
+            self.append_meta_to_ctx(ctx)
+            if ctx.index_meta:
+                doc_ids.append(ctx.index_meta)
             self.log("Using additional context: " + str(ctx.output))
-            return ctx.output  # tmp ctx
+
+            return ctx.output, doc_ids  # tmp ctx, llama doc_ids
+
+    def append_meta_to_ctx(self, ctx: CtxItem):
+        """
+        Append metadata from Llama-index to context item
+
+        :param ctx: CtxItem
+        """
+        meta = ""
+        if ctx.index_meta is not None and isinstance(ctx.index_meta, dict):
+            for id in ctx.index_meta:
+                meta += "\n" + id + ": "
+                if "file_path" in ctx.index_meta[id]:
+                    path = ctx.index_meta[id]["file_path"]
+                    path = self.window.core.idx.files.get_id(path)
+                    meta += path
+            if meta:
+                ctx.output += "\nReceived from: " + meta.strip()
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """
@@ -326,11 +352,15 @@ class Plugin(BasePlugin):
                     request = {
                         "cmd": item["cmd"],
                     }
-                    data = self.query(question)  # send question to Llama-index
+                    data, doc_ids = self.query(question)  # send question to Llama-index
                     response = {
                         "request": request,
                         "result": data,
+                        "doc_ids": doc_ids,
                     }
+                    # store doc_ids in context
+                    if doc_ids:
+                        ctx.doc_ids = doc_ids
                     ctx.results.append(response)
                     ctx.reply = True
             except Exception as e:
@@ -345,6 +375,6 @@ class Plugin(BasePlugin):
         """
         full_msg = '[LLAMA-INDEX] ' + str(msg)
         self.debug(full_msg)
-        self.window.ui.status(full_msg)
+        self.window.ui.status(full_msg.replace("\n", " "))
         if self.is_log():
             print(full_msg)

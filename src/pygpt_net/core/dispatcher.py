@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import json
@@ -214,10 +214,16 @@ class Dispatcher:
                         self.window.controller.agent.update()
                         QApplication.processEvents()
 
+                # prepare data to send
+                data = json.dumps(ctx.results)
+                if ctx.output is not None and ctx.output != "":
+                    data = ctx.output  # if output is set, use it as data (additional context, etc.)
+                    ctx.output = ""  # clear output before sending
+
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
                 self.window.controller.chat.input.send(
-                    json.dumps(ctx.results),
+                    data,
                     force=True,
                     reply=True,
                     internal=ctx.internal,

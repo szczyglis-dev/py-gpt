@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -565,7 +565,8 @@ class Storage:
                 input_tokens,
                 output_tokens,
                 total_tokens,
-                is_internal
+                is_internal,
+                docs_json
             )
             VALUES 
             (
@@ -592,7 +593,8 @@ class Storage:
                 :input_tokens,
                 :output_tokens,
                 :total_tokens,
-                :is_internal
+                :is_internal,
+                :docs_json
             )
         """).bindparams(
             meta_id=int(meta.id),
@@ -619,6 +621,7 @@ class Storage:
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
             is_internal=int(item.internal),
+            docs_json=pack_item_value(item.doc_ids),
         )
         with db.begin() as conn:
             result = conn.execute(stmt)
@@ -657,7 +660,8 @@ class Storage:
                 input_tokens = :input_tokens,
                 output_tokens = :output_tokens,
                 total_tokens = :total_tokens,
-                is_internal = :is_internal
+                is_internal = :is_internal,
+                docs_json = :docs_json
             WHERE id = :id
         """).bindparams(
             id=item.id,
@@ -683,6 +687,7 @@ class Storage:
             output_tokens=int(item.output_tokens or 0),
             total_tokens=int(item.total_tokens or 0),
             is_internal=int(item.internal or 0),
+            docs_json=pack_item_value(item.doc_ids),
         )
         with db.begin() as conn:
             conn.execute(stmt)

@@ -6,12 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 22:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
-from llama_index.core.indices.base import BaseIndex
-from .base import BaseStore
+import hashlib
 
+from llama_index.core.indices.base import BaseIndex
+
+from .base import BaseStore
+from .temp import TempProvider
 
 class Storage:
     def __init__(self, window=None):
@@ -23,6 +26,7 @@ class Storage:
         self.window = window
         self.storages = {}
         self.indexes = {}
+        self.tmp_storage = TempProvider(window=window)
 
     def get_storage(self) -> BaseStore or None:
         """
@@ -36,6 +40,14 @@ class Storage:
                 or current not in self.storages:
             return None
         return self.storages[current]
+
+    def get_tmp_storage(self) -> BaseStore or None:
+        """
+        Get temp vector store provider
+
+        :return: vector store provider instance
+        """
+        return self.tmp_storage
 
     def register(self, name: str, storage=None):
         """
@@ -94,6 +106,24 @@ class Storage:
             service_context=service_context,
         )
 
+    def get_tmp(self, path: str, service_context=None) -> BaseIndex:
+        """
+        Get tmp index instance
+
+        :param path: file path
+        :param service_context: service context
+        :return: index instance
+        """
+        # convert path to md5 hash
+        id = hashlib.md5(path.encode()).hexdigest()
+        storage = self.get_tmp_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        return storage.get(
+            id=id,
+            service_context=service_context,
+        )
+
     def store(self, id: str, index: BaseIndex = None):
         """
         Store index
@@ -102,6 +132,21 @@ class Storage:
         :param index: index instance
         """
         storage = self.get_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        storage.store(
+            id=id,
+            index=index,
+        )
+
+    def store_tmp(self, id: str, index: BaseIndex = None):
+        """
+        Store index
+
+        :param id: index name
+        :param index: index instance
+        """
+        storage = self.get_tmp_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
         storage.store(

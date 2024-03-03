@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot
@@ -48,7 +48,8 @@ class Worker(BaseWorker):
                         else:
                             response = self.plugin.runner.code_execute_file_sandbox(
                                 self.ctx,
-                                item, request,
+                                item,
+                                request,
                             )
                     except Exception as e:
                         response = {
@@ -65,7 +66,8 @@ class Worker(BaseWorker):
                         if not self.plugin.runner.is_sandbox():
                             response = self.plugin.runner.code_execute_host(
                                 self.ctx,
-                                item, request,
+                                item,
+                                request,
                             )
                         else:
                             response = self.plugin.runner.code_execute_sandbox(

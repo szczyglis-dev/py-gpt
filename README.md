@@ -414,6 +414,23 @@ Detailed instructions for this process are provided in the section titled `Manag
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates `Llama-index` into the chat interface, allowing for immediate querying of your indexed documents.
 
+**Querying single files**
+
+From version `2.1.8`, you can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. 
+
+For example:
+
+If you have a file: `data/my_cars.txt` with content `My car is red.`
+
+You can ask for: `Query the file my_cars.txt about what color my car is.`
+
+And you will receive the response: `Red`.
+
+Note: this command indexes the file only for the current query and does not store it in the database.
+
+**Using Chat with files mode**
+
+In this mode, you are querying the whole index, stored in a vector store database.
 To start, you need to index (embed) the files you want to use as additional context.
 Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
 
@@ -477,8 +494,7 @@ You can also develop and provide your own custom loader and register it within t
 **From version `2.0.100` Llama-index is also integrated with context database - you can use data from database (your context history) as additional context in discussion. 
 Options for indexing existing context history or enabling real-time indexing new ones (from database) are available in `Settings / Llama-index` section.**
 
-**WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. 
-Always control the number of tokens used on the OpenAI page.
+**WARNING:** remember that when indexing content, API calls to the embedding model (`text-embedding-ada-002`) are used. Each indexing consumes additional tokens. Always control the number of tokens used on the OpenAI page.
 
 **Tip:** when using `Chat with files` you are using additional context from db data and files indexed from `data` directory, not the files sending via `Attachments` tab. 
 Attachments tab in `Chat with files` mode can be used to provide images to `Vision (inline)` plugin only.
@@ -1677,7 +1693,7 @@ With the setup above, every time you ask GPT to generate a song for you and save
 
 ## Command: Files I/O
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, and write files and directories located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
+The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the `data` directory, which can be found in the user's work directory. With this plugin, the AI can also generate Python code files and thereafter execute that code within the user's system.
 
 Plugin capabilities include:
 
@@ -1693,6 +1709,7 @@ Plugin capabilities include:
 - Moving (renaming) files and directories
 - Reading file info
 - Indexing files and directories using Llama-index
+- Querying files using Llama-index
 
 If a file being created (with the same name) already exists, a prefix including the date and time is added to the file name.
 
@@ -1705,6 +1722,10 @@ Allows `cmd_send_file` command execution. *Default:* `True`
 - `Enable: Read file` *cmd_read_file*
 
 Allows `read_file` command execution. *Default:* `True`
+
+- `Enable: Query file with Llama-index` *cmd_query_file*
+
+Allows `query_file` command execution *Default:* `True`
 
 - `Enable: Append to file` *cmd_append_file*
 

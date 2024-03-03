@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.26 18:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -72,7 +72,8 @@ def test_raw_query(mock_window):
 def test_query(mock_window):
     """Test query"""
     response = MagicMock()
-    response.query = MagicMock(return_value="response")
+    response.response = MagicMock(return_value="response")
+    response.query = MagicMock(return_value=response)
     index = MagicMock()
     index.as_query_engine = MagicMock(return_value=response)
     chat = Chat(mock_window)
@@ -96,13 +97,15 @@ def test_query(mock_window):
     )
     chat.get_custom_prompt.assert_called_once_with("test")
     assert ctx.input_tokens == 222
-    assert ctx.output == "response"
+    assert ctx.output == str(response.response)
 
 
 def test_chat(mock_window):
     """Test chat"""
+    response = MagicMock()
+    response.response = MagicMock(return_value="response")
     chat_engine = MagicMock()
-    chat_engine.chat = MagicMock(return_value="response")
+    chat_engine.chat = MagicMock(return_value=response)
     index = MagicMock()
     index.as_chat_engine = MagicMock(return_value=chat_engine)
     chat = Chat(mock_window)
@@ -128,7 +131,7 @@ def test_chat(mock_window):
         stream=False,
     )
     assert ctx.input_tokens == 222
-    assert ctx.output == "response"
+    assert ctx.output == str(response.response)
 
 
 def test_get_custom_prompt(mock_window):

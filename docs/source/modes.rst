@@ -139,6 +139,23 @@ Chat with files (Llama-index)
 This mode enables chat interaction with your documents and entire context history through conversation. 
 It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for immediate querying of your indexed documents.
 
+**Querying single files**
+
+From version ``2.1.8``, you can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. 
+
+For example:
+
+If you have a file: ``data/my_cars.txt`` with content ``My car is red.``
+
+You can ask for: ``Query the file my_cars.txt about what color my car is.``
+
+And you will receive the response: ``Red``.
+
+Note: this command indexes the file only for the current query and does not store it in the database.
+
+**Using Chat with files mode**
+
+In this mode, you are querying the whole index, stored in a vector store database.
 To start, you need to index (embed) the files you want to use as additional context.
 Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
 

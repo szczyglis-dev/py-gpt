@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 02:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import os
@@ -1010,6 +1010,13 @@ class Patch:
                 if 'cmd_files' in data["plugins"] and 'syntax_file_index' in data["plugins"]["cmd_files"]:
                     syntax = '"file_index": use it to index (embed in Vector Store) a file or directory, params: "path"'
                     data["plugins"]["cmd_files"]["syntax_file_index"] = syntax
+
+            # < 2.1.8 - syntax
+            if old < parse_version("2.1.8"):
+                print("Migrating config from < 2.1.8...")
+                if 'idx_llama_index' in data["plugins"] and 'syntax_prepare_question' in data["plugins"]["idx_llama_index"]:
+                    syntax = 'Simplify the question into a short query for retrieving information from a vector store.'
+                    data["plugins"]["idx_llama_index"]["syntax_prepare_question"] = syntax
 
         # update file
         migrated = False

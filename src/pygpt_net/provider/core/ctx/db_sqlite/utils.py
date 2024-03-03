@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.03.03 22:00:00                  #
 # ================================================== #
 
 import json
@@ -155,6 +155,7 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     item.output_tokens = int(row['output_tokens'] or 0)
     item.total_tokens = int(row['total_tokens'] or 0)
     item.internal = bool(row['is_internal'])
+    item.doc_ids = unpack_item_value(row['docs_json'])
     return item
 
 
