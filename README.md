@@ -2845,6 +2845,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added Twitter/X data loader.
 - Added check if message is not a reply when calling Llama-index using a plugin.
 - Added list of Agent indexes auto-reload after Llama-index list has changed.
+- Disabled anonymized telemetry in Chroma by default.
 
 # 2.1.5 (2024-03-02)
 
