@@ -151,7 +151,7 @@ You can ask for: ``Query the file my_cars.txt about what color my car is.``
 
 And you will receive the response: ``Red``.
 
-Note: this command indexes the file only for the current query and does not store it in the database.
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option "Auto-index readed files" in plugin settings. Remember to enable "Execute commands" checkbox to allow usage of query commands. 
 
 **Using Chat with files mode**
 

@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# 2.1.8 (2024-03-03)
+
+- A new option has been added to the `Files I/O` plugin: `query_file`, which allows for indexing a file in a temporary index (in memory) and quickly querying its content. This enables the use of Llama-index for fast querying or adding context from individual files. From now on, you can ask questions about individual files without indexing them to the main vector store. See the "Querying single files" in "Modes -> Chat with files" section in a README for more info.
+- The `read_file` command has been expanded to return just the exact file content, without wrapping it in JSON.
+- Improved prompt for preparing queries in the Chat with files plugin.
+- Updated docs.
+
 # 2.1.7 (2024-03-03)
 
 - Enhanced the Llama-index plugin with additional options for automatically refining queries before requesting additional context from Llama-index.

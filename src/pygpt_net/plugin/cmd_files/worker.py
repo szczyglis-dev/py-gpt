@@ -293,8 +293,8 @@ class Worker(BaseWorker):
             # check if file exists
             if os.path.exists(path):
                 if query is not None:
-                    self.log("Querying file: {}".format(path))
                     # query file using temp index (created on the fly)
+                    self.log("Querying file: {}".format(path))
                     response = self.plugin.window.core.idx.chat.query_file(path, query)
                     self.log("Response from temporary in-memory index: {}".format(response))
                     if response:
@@ -304,6 +304,15 @@ class Worker(BaseWorker):
                             "context": "From: " + os.path.basename(path) + ":\n--------------------------------\n" + response,
                             # add additional context
                         }
+
+                # auto-index file to standard index using Llama-index
+                if self.plugin.get_option_value("auto_index") \
+                        or self.plugin.get_option_value("only_index"):
+                    idx_name = self.plugin.get_option_value("idx")
+                    self.plugin.window.core.idx.index_files(
+                        idx_name,
+                        path,
+                    )
             else:
                 response = {
                     "request": request,

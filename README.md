@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.7** | build: **2024.03.03** | Python: **>=3.10, <3.12**
+Release: **2.1.8** | build: **2024.03.03** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -426,7 +426,7 @@ You can ask for: `Query the file my_cars.txt about what color my car is.`
 
 And you will receive the response: `Red`.
 
-Note: this command indexes the file only for the current query and does not store it in the database.
+Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option "Auto-index readed files" in plugin settings. Remember to enable "Execute commands" checkbox to allow usage of query commands. 
 
 **Using Chat with files mode**
 
@@ -2879,6 +2879,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.8 (2024-03-03)
+
+- A new option has been added to the `Files I/O` plugin: `query_file`, which allows for indexing a file in a temporary index (in memory) and quickly querying its content. This enables the use of Llama-index for fast querying or adding context from individual files. From now on, you can ask questions about individual files without indexing them to the main vector store. See the "Querying single files" in "Modes -> Chat with files" section in a README for more info.
+- The `read_file` command has been expanded to return just the exact file content, without wrapping it in JSON.
+- Improved prompt for preparing queries in the Chat with files plugin.
+- Updated docs.
 
 # 2.1.7 (2024-03-03)
 
