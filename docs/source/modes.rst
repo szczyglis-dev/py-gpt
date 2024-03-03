@@ -188,7 +188,6 @@ Built-in file loaders:
 * Sitemap (XML)
 * Twitter/X posts
 * Webpages (crawling any webpage content)
-* Wikipedia
 * YouTube (transcriptions)
 
 You can configure data loaders in ``Settings / Llama-index / Data Loaders`` by providing list of keyword arguments for specified loaders.
