@@ -58,6 +58,7 @@ setup(
         'llama-index-readers-github>=0.1.7, <0.2.0',
         'llama-index-readers-google>=0.1.4, <0.2.0',
         'llama-index-readers-microsoft-onedrive>=0.1.3, <0.2.0',
+        'llama-index-readers-twitter>=0.1.3, <0.2.0',
         'llama-index-readers-web>=0.1.6, <0.2.0',
         'Markdown>=3.5.1, <4.0.0',
         'nbconvert>=7.16.1, <8.0.0',
@@ -82,6 +83,7 @@ setup(
         'SQLAlchemy>=2.0.23, <3.0.0',
         'show-in-file-manager>=1.1.4',
         'tiktoken>=0.5.2, <1.0.0',
+        'wikipedia>=1.4.0, <2.0.0',
         'youtube-transcript-api>=0.6.2, <0.7.0',
     ],
 )

@@ -128,6 +128,8 @@ class Text:
         # event: post prompt (post-handle system prompt)
         event = Event(Event.POST_PROMPT, {
             'mode': mode,
+            'reply': reply,
+            'internal': internal,
             'value': sys_prompt,
         })
         event.ctx = ctx

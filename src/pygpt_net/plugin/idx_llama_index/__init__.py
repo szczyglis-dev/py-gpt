@@ -120,6 +120,11 @@ class Plugin(BasePlugin):
         elif name == Event.POST_PROMPT:
             if self.mode in self.ignored_modes:  # ignore
                 return
+
+            # ignore if reply for command or internal
+            if ctx.reply or ctx.internal or data["reply"]:
+                return
+
             data['value'] = self.on_post_prompt(
                 data['value'],
                 ctx
@@ -131,6 +136,9 @@ class Plugin(BasePlugin):
         ]:
             if self.mode in self.ignored_modes:  # ignore
                 return
+            if ctx.reply or ctx.internal:
+                return
+
             self.cmd(
                 ctx,
                 data['commands'],
@@ -178,6 +186,12 @@ class Plugin(BasePlugin):
             if self.window.core.models.has(model_query):
                 model = self.window.core.models.get(model_query)
         indexes = idx.split(",")
+
+        # max length of question
+        max_len = 1000
+        if len(question) > max_len:
+            question = question[:max_len]
+
         if len(indexes) > 1:
             responses = []
             for index in indexes:
