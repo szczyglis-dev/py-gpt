@@ -1025,7 +1025,7 @@ class Patch:
                     syntax = '"read_file": read data from file, if multiple files then pass list of files, params: "filename"'
                     data["plugins"]["cmd_files"]["syntax_read_file"] = syntax
                 if 'log.events' not in data:
-                    data["log.events"] = True
+                    data["log.events"] = False
 
         # update file
         migrated = False

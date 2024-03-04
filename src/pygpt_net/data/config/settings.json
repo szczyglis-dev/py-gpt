@@ -833,7 +833,7 @@
         "type": "bool",
         "slider": false,
         "label": "Log and debug events",
-        "value": true,
+        "value": false,
         "min": null,
         "max": null,
         "multiplier": null,
