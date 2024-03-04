@@ -65,6 +65,7 @@ class Text:
 
         # create ctx item
         ctx = CtxItem()
+        ctx.meta_id = self.window.core.ctx.current
         ctx.internal = internal
         ctx.current = True  # mark as current context item
         ctx.mode = mode  # store current selected mode (not inline changed)
