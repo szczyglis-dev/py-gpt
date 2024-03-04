@@ -47,6 +47,7 @@ def test_reply(mock_window):
     ctx.results = {'test': 'test'}
     ctx.internal = False
     ctx.output = None
+    ctx.extra_ctx = None
     dispatcher.window.core.ctx.update_item = MagicMock()
     dispatcher.window.controller.chat.input.send = MagicMock()
     dispatcher.reply(ctx)

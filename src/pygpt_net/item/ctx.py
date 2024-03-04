@@ -47,7 +47,7 @@ class CtxItem:
         self.output_tokens = 0
         self.total_tokens = 0
         self.extra = None
-        self.extra_ctx = False
+        self.extra_ctx = None
         self.current = False
         self.internal = False
         self.is_vision = False

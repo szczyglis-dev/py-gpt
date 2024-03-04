@@ -209,8 +209,8 @@ class BasePlugin:
             ctx.results.append(response)
             ctx.reply = True
             if "context" in response:
-                ctx.output = response["context"]
-                ctx.extra_ctx = True
+                ctx.extra_ctx = response["context"]
+                response["result"] = "OK"
             self.window.core.dispatcher.reply(ctx)
 
     @Slot(object)

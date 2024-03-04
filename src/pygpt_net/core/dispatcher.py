@@ -229,9 +229,8 @@ class Dispatcher:
 
                 # prepare data to send
                 data = json.dumps(ctx.results)
-                if ctx.extra_ctx and ctx.output is not None and ctx.output != "":
-                    data = ctx.output  # if output is set, use it as data (additional context, etc.)
-                    ctx.output = ""  # clear output before update in db
+                if ctx.extra_ctx:
+                    data = ctx.extra_ctx  # if extra content is set, use it as data to send
 
                 self.window.core.ctx.update_item(ctx)  # update context in db
                 self.window.ui.status('...')
