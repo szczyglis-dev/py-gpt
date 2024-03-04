@@ -828,6 +828,18 @@
         "step": 1,
         "advanced": false
     },
+    "log.events": {
+        "section": "developer",
+        "type": "bool",
+        "slider": false,
+        "label": "Log and debug events",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "log.plugins": {
         "section": "developer",
         "type": "bool",

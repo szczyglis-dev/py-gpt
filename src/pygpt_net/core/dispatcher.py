@@ -121,10 +121,24 @@ class Dispatcher:
         """
         if event.name in self.nolog_events:
             return False
+        if not self.is_log_display():
+            return False
         data = event.data
         if data is not None and "silent" in data and data["silent"]:
             return False
         return True
+
+    def is_log_display(self) -> bool:
+        """
+        Check if event can be logged
+
+        :return: true if can be logged
+        """
+        is_log = False
+        if self.window.core.config.has("log.events") \
+                and self.window.core.config.get("log.events"):
+            is_log = True
+        return is_log
 
     def async_allowed(self, ctx: CtxItem) -> bool:
         """
@@ -201,7 +215,7 @@ class Dispatcher:
         """
         if ctx is not None:
             self.window.core.debug.info("Reply...")
-            if self.window.core.debug.enabled():
+            if self.window.core.debug.enabled() and self.is_log_display():
                 self.window.core.debug.debug("CTX REPLY: " + str(ctx))
 
             self.window.ui.status("")  # clear status

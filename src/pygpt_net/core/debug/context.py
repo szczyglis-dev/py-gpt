@@ -44,68 +44,13 @@ class ContextDebug:
             if self.window.core.ctx.current in self.window.core.ctx.meta:
                 current = self.window.core.ctx.meta[self.window.core.ctx.current]
             if current is not None:
-                data = {
-                    "id": current.id,
-                    "external_id": current.external_id,
-                    "uuid": current.uuid,
-                    "name": current.name,
-                    "date": current.date,
-                    "created": current.created,
-                    "updated": current.updated,
-                    "indexed": current.indexed,
-                    "indexes": current.indexes,
-                    "mode": current.mode,
-                    "model": current.model,
-                    "last_mode": current.last_mode,
-                    "last_model": current.last_model,
-                    "thread": current.thread,
-                    "assistant": current.assistant,
-                    "preset": current.preset,
-                    "run": current.run,
-                    "status": current.status,
-                    "label": current.label,
-                    "initialized": current.initialized,
-                    "deleted": current.deleted,
-                    "important": current.important,
-                    "archived": current.archived,
-                    "extra": current.extra,
-                }
+                data = current.to_dict()
                 self.window.core.debug.add(self.id, '*** (current)', str(data))
 
         i = 0
         self.window.core.debug.add(self.id, 'items[]', '')
         for item in self.window.core.ctx.items:
-            data = {
-                "id": item.id,
-                "meta_id": item.meta_id,
-                "external_id": item.external_id,
-                "cmds": item.cmds,
-                "results": item.results,
-                "urls": item.urls,
-                "images": item.images,
-                "files": item.files,
-                "attachments": item.attachments,
-                "reply": item.reply,
-                "input": item.input,
-                "output": item.output,
-                "mode": item.mode,
-                "model": item.model,
-                "thread": item.thread,
-                "msg_id": item.msg_id,
-                "run_id": item.run_id,
-                "input_name": item.input_name,
-                "output_name": item.output_name,
-                "input_timestamp": item.input_timestamp,
-                "output_timestamp": item.output_timestamp,
-                "input_tokens": item.input_tokens,
-                "output_tokens": item.output_tokens,
-                "total_tokens": item.total_tokens,
-                "extra": item.extra,
-                "is_vision": item.is_vision,
-                "idx": item.idx,
-                "first": item.first,
-                "tool_calls": item.tool_calls,
-            }
+            data = item.to_dict()
             self.window.core.debug.add(self.id, str(item.id), str(data))
             i += 1
 

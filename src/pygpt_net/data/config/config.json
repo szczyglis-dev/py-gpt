@@ -100,6 +100,7 @@
   "lock_modes": true,
   "log.assistants": false,
   "log.dalle": false,
+  "log.events": true,
   "log.level": "error",
   "log.llama": false,
   "log.plugins": false,

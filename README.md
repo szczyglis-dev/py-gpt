@@ -2735,7 +2735,9 @@ Config -> Settings...
 
 **Developer**
 
-- `Show debug menu`: enables debug (developer) menu
+- `Show debug menu`: enables debug (developer) menu.
+
+- `Log and debug events`: Enables logging of events dispatch.
 
 - `Log plugin usage to console`: Enables logging of plugin usage to console.
 
@@ -2886,6 +2888,7 @@ may consume additional tokens that are not displayed in the main window.
 
 - A new option has been added to the `Web Search` plugin: `web_index_query`, which allows for indexing a web and external content in a temporary index (in memory) and quickly querying its content. Works similar to `query_file` command.
 - The `read_file` command has been expanded to handle multiple files at once.
+- Added `Log and debug events` option to Developer settings.
 
 # 2.1.8 (2024-03-03)
 

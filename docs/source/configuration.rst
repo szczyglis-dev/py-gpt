@@ -159,7 +159,9 @@ The following basic options can be modified directly within the application:
 
 **Developer**
 
-* ``Show debug menu``: enables debug (developer) menu
+* ``Show debug menu``: enables debug (developer) menu.
+
+* ``Log and debug events``: Enables logging of events dispatch.
 
 * ``Log plugin usage to console``: Enables logging of plugin usage to console.
 
