@@ -6,10 +6,8 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 13:00:00                  #
+# Updated Date: 2024.03.04 22:00:00                  #
 # ================================================== #
-
-import pygame
 
 from PySide6.QtCore import Slot, Signal
 from pygpt_net.plugin.base import BaseWorker, BaseSignals
@@ -31,11 +29,12 @@ class Worker(BaseWorker):
 
     @Slot()
     def run(self):
+        from pygame import mixer
         try:
             path = self.plugin.get_provider().speech(self.text)
             if path:
-                pygame.mixer.init()
-                playback = pygame.mixer.Sound(path)
+                mixer.init()
+                playback = mixer.Sound(path)
                 self.stop_playback()  # stop previous playback
                 playback.play()
                 self.send(playback)  # send playback object to main thread
