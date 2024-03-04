@@ -158,25 +158,26 @@ class Plugin(BasePlugin):
             type="bool",
             value=True,
             label="Enable: \"web_index\" command",
-            description="If enabled, model will be able to index web content using Llama-index",
-            tooltip="If enabled, model will be able to index web pages using Llama-index",
+            description="If enabled, model will be able to index web content using Llama-index (persistent index)",
+            tooltip="If enabled, model will be able to index web pages using Llama-index (persistent index)",
             tab="indexing",
         )
         self.add_option(
             "cmd_web_index_query",
             type="bool",
             value=True,
-            label="Enable: Directly query web content with Llama-index",
-            description="If enabled, model will be able to index and query web content using Llama-index",
-            tooltip="If enabled, model will be able to index and query web content using Llama-index",
+            label="Enable: \"web_index_query\" command - quick query the web content with Llama-index",
+            description="If enabled, model will be able to index and query web content using Llama-index (temporary index, on the fly)",
+            tooltip="If enabled, model will be able to index and query web content using Llama-index (temporary index, on the fly)",
+            tab="indexing",
         )
         self.add_option(
             "auto_index",
             type="bool",
             value=False,
             label="Auto-index all used URLs using Llama-index",
-            description="If enabled, every URL used by the model will be automatically indexed using Llama-index",
-            tooltip="If enabled, every URL used by the model will be automatically indexed using Llama-index",
+            description="If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index)",
+            tooltip="If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index)",
             tab="indexing",
         )
         self.add_option(
@@ -184,7 +185,7 @@ class Plugin(BasePlugin):
             type="text",
             value="base",
             label="Index to use",
-            description="ID of index to use for web page indexing",
+            description="ID of index to use for web page indexing (persistent index)",
             tooltip="Index name",
             tab="indexing",
         )

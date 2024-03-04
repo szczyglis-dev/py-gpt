@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.8** | build: **2024.03.03** | Python: **>=3.10, <3.12**
+Release: **2.1.9** | build: **2024.03.04** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1725,7 +1725,7 @@ Allows `read_file` command execution. *Default:* `True`
 
 - `Enable: Query file with Llama-index` *cmd_query_file*
 
-Allows `query_file` command execution *Default:* `True`
+Allows `query_file` command execution  (temporary index, on the fly) *Default:* `True`
 
 - `Enable: Append to file` *cmd_append_file*
 
@@ -1920,19 +1920,19 @@ If enabled, model will be able to search the Web and get founded URLs list
 
 - `Enable: "web_index" command` *cmd_web_index*
 
-If enabled, model will be able to index (on the fly) web pages using Llama-index
+If enabled, model will be able to index (on the fly) web pages using Llama-index (persistent index)
 
-- `Enable: Directly query web content with Llama-index` *cmd_web_index_query*
+- `Enable: "web_index_query" command - quick query the web content with Llama-index` *cmd_web_index_query*
 
-If enabled, model will be able to index and query web content using Llama-index
+If enabled, model will be able to index and query web content using Llama-index (temporary index, on the fly)
 
 - `Auto-index all used URLs using Llama-index` *auto_index*
 
-If enabled, every URL used by the model will be automatically indexed using Llama-index
+If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index)
 
 - `Index to use` *idx*
 
-ID of index to use for web page indexing
+ID of index to use for web page indexing (persistent index)
 
 - `Model used for web page summarize` *summary_model*
 
@@ -2881,6 +2881,11 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.9 (2024-03-04)
+
+- A new option has been added to the `Web Search` plugin: `web_index_query`, which allows for indexing a web and external content in a temporary index (in memory) and quickly querying its content. Works similar to `query_file` command.
+- The `read_file` command has been expanded to handle multiple files at once.
 
 # 2.1.8 (2024-03-03)
 
