@@ -730,6 +730,10 @@ If enabled, model will be able to search the Web and get founded URLs list
 
 If enabled, model will be able to index web pages using Llama-index
 
+- ``Enable: Directly query web content with Llama-index`` *cmd_web_index_query*
+
+If enabled, model will be able to index (on the fly) and query web content using Llama-index
+
 - ``Auto-index all used URLs using Llama-index`` *auto_index*
 
 If enabled, every URL used by the model will be automatically indexed using Llama-index

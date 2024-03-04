@@ -141,7 +141,7 @@ It seamlessly incorporates ``Llama-index`` into the chat interface, allowing for
 
 **Querying single files**
 
-From version ``2.1.8``, you can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. 
+From version ``2.1.8``, you can also query individual files "on the fly" using the ``query_file`` command from the ``Files I/O`` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version ``2.1.9`` similar command is available for querying web and external content: ``Directly query web content with Llama-index``.
 
 For example:
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 import os
@@ -1017,6 +1017,13 @@ class Patch:
                 if 'idx_llama_index' in data["plugins"] and 'syntax_prepare_question' in data["plugins"]["idx_llama_index"]:
                     syntax = 'Simplify the question into a short query for retrieving information from a vector store.'
                     data["plugins"]["idx_llama_index"]["syntax_prepare_question"] = syntax
+
+            # < 2.1.9 - syntax
+            if old < parse_version("2.1.9"):
+                print("Migrating config from < 2.1.9...")
+                if 'cmd_files' in data["plugins"] and 'syntax_read_file' in data["plugins"]["cmd_files"]:
+                    syntax = '"read_file": read data from file, if multiple files then pass list of files, params: "filename"'
+                    data["plugins"]["cmd_files"]["syntax_read_file"] = syntax
 
         # update file
         migrated = False

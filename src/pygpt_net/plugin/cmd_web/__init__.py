@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 import ssl
@@ -35,6 +35,7 @@ class Plugin(BasePlugin):
             "web_url_open",
             "web_url_raw",
             "web_index",
+            "web_index_query",
         ]
         self.order = 100
         self.use_locale = True
@@ -157,9 +158,17 @@ class Plugin(BasePlugin):
             type="bool",
             value=True,
             label="Enable: \"web_index\" command",
-            description="If enabled, model will be able to index web pages using Llama-index",
+            description="If enabled, model will be able to index web content using Llama-index",
             tooltip="If enabled, model will be able to index web pages using Llama-index",
             tab="indexing",
+        )
+        self.add_option(
+            "cmd_web_index_query",
+            type="bool",
+            value=True,
+            label="Enable: Directly query web content with Llama-index",
+            description="If enabled, model will be able to index and query web content using Llama-index",
+            tooltip="If enabled, model will be able to index and query web content using Llama-index",
         )
         self.add_option(
             "auto_index",
@@ -249,6 +258,14 @@ class Plugin(BasePlugin):
                   '"num_links"',
             label="Syntax: web_urls",
             description="Syntax for web_urls command",
+            advanced=True,
+        )
+        self.add_option(
+            "syntax_web_index_query",
+            type="textarea",
+            value='"web_index_query": read, index and query web content for additional context data, params: (same as for web_index)',
+            label="Syntax: web_index_query",
+            description="Syntax for querying web for additional context data",
             advanced=True,
         )
         """

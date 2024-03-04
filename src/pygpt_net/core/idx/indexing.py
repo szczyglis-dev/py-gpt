@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 import os.path
@@ -468,7 +468,8 @@ class Indexing:
             index: BaseIndex,
             url: str,
             type="webpage",
-            extra_args: dict = None
+            extra_args: dict = None,
+            is_tmp: bool = False
     ) -> (int, list):
         """
         Index data from external (remote) resource
@@ -478,6 +479,7 @@ class Indexing:
         :param url: external url to index
         :param type: type of URL (webpage, feed, etc.)
         :param extra_args: extra arguments for loader
+        :param is_tmp: True if temporary index
         :return: number of indexed documents, errors
         """
         errors = []
@@ -503,7 +505,8 @@ class Indexing:
             unique_id = self.data_providers[type].get_external_id(extra_args)
 
             # remove old document from index
-            self.remove_old_external(idx, unique_id, type)
+            if not is_tmp:
+                self.remove_old_external(idx, unique_id, type)
 
             self.log("Loading web documents from: {}".format(unique_id))
             self.log("Using web loader for type: {}".format(type))
@@ -517,12 +520,13 @@ class Indexing:
             for d in documents:
                 index.insert(document=d)
                 doc_id = d.id_  # URL is used as document ID
-                self.window.core.idx.external.set_indexed(
-                    content=unique_id,
-                    type=type,
-                    idx=idx,
-                    doc_id=doc_id,
-                )  # update external index
+                if not is_tmp:
+                    self.window.core.idx.external.set_indexed(
+                        content=unique_id,
+                        type=type,
+                        idx=idx,
+                        doc_id=doc_id,
+                    )  # update external index
                 self.log("Inserted (web) document: {} / {}".format(n+1, len(documents)))
                 n += 1
         except Exception as e:
@@ -536,7 +540,8 @@ class Indexing:
             index: BaseIndex,
             urls: list,
             type="webpage",
-            extra_args: dict = None
+            extra_args: dict = None,
+            is_tmp: bool = False
     ) -> (int, list):
         """
         Index data from URLs
@@ -546,6 +551,7 @@ class Indexing:
         :param urls: list of urls
         :param type: type of URL (webpage, feed, etc.)
         :param extra_args: extra arguments for loader
+        :param is_tmp: True if temporary index
         :return: number of indexed documents, errors
         """
         errors = []
@@ -565,6 +571,7 @@ class Indexing:
                 url=url,
                 type=type,
                 extra_args=extra_args,
+                is_tmp=is_tmp,
             )
             n += indexed
             errors.extend(errs)

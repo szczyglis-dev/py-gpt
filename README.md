@@ -416,7 +416,7 @@ It seamlessly incorporates `Llama-index` into the chat interface, allowing for i
 
 **Querying single files**
 
-From version `2.1.8`, you can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. 
+From version `2.1.8`, you can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. From version `2.1.9` similar command is available for querying web and external content: `Directly query web content with Llama-index`.
 
 For example:
 
@@ -1918,11 +1918,13 @@ If enabled, model will be able to open specified URL and get raw content
 
 If enabled, model will be able to search the Web and get founded URLs list
 
-If enabled, model will be able to search the Web and get founded URLs list
-
 - `Enable: "web_index" command` *cmd_web_index*
 
-If enabled, model will be able to index web pages using Llama-index
+If enabled, model will be able to index (on the fly) web pages using Llama-index
+
+- `Enable: Directly query web content with Llama-index` *cmd_web_index_query*
+
+If enabled, model will be able to index and query web content using Llama-index
 
 - `Auto-index all used URLs using Llama-index` *auto_index*
 

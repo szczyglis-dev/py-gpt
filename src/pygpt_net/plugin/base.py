@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -210,6 +210,7 @@ class BasePlugin:
             ctx.reply = True
             if "context" in response:
                 ctx.output = response["context"]
+                ctx.extra_ctx = True
             self.window.core.dispatcher.reply(ctx)
 
     @Slot(object)

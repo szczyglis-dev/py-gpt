@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 import json
@@ -205,6 +205,69 @@ class Worker(BaseWorker):
                             "result": data,
                         }
                     )
+
+                # cmd: web_index_query
+                elif item["cmd"] == "web_index_query":
+                    type = "webpage"  # default
+                    args = {}
+                    query = None
+
+                    if "type" in item["params"]:
+                        type = item["params"]["type"]
+                    if "args" in item["params"]:
+                        args = item["params"]["args"]
+
+                    url = type
+                    if "url" in item["params"]:
+                        url = item["params"]["url"]  # from default param
+                    if "url" in args:
+                        url = args["url"]  # override from args
+
+                    if "query" in item["params"] and item["params"]["query"]:
+                        query = item["params"]["query"]
+
+                    response = {
+                        "request": request,
+                        "result": "No data",
+                    }
+
+                    if query is not None:
+                        # query file using temp index (created on the fly)
+                        self.log("Querying web: {}".format(url))
+                        answer = self.plugin.window.core.idx.chat.query_web(type, url, args, query)
+                        self.log("Response from temporary in-memory index: {}".format(answer))
+                        if answer:
+                            from_str = type
+                            if url:
+                                from_str += ", URL: " + url
+                            response = {
+                                "request": request,
+                                "result": answer,
+                                "context": "From: " + from_str + ":\n--------------------------------\n" + answer,
+                                # add additional context
+                            }
+
+                        # + auto-index to main index using Llama-index
+                        if self.plugin.get_option_value("auto_index"):
+                            msg = "Indexing URL: '{}'".format(url)
+                            idx_name = self.plugin.get_option_value("idx")
+
+                            # show status
+                            self.status("Please wait... indexing: {}...".format(url))
+
+                            # index URL via Llama-index
+                            num, errors = self.plugin.window.core.idx.index_urls(
+                                idx=idx_name,
+                                urls=[url],
+                                type=type,
+                                extra_args=args,
+                            )
+
+                    # add URL to context
+                    if url and (url.startswith("http://") or url.startswith("https://")):
+                        self.ctx.urls.append(url)
+
+                    self.response(response)
 
             except Exception as e:
                 self.response(

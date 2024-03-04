@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 import datetime
@@ -47,6 +47,7 @@ class CtxItem:
         self.output_tokens = 0
         self.total_tokens = 0
         self.extra = None
+        self.extra_ctx = False
         self.current = False
         self.internal = False
         self.is_vision = False
@@ -131,6 +132,7 @@ class CtxItem:
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
             "extra": self.extra,
+            "extra_ctx": self.extra_ctx,
             "current": self.current,
             "internal": self.internal,
             "is_vision": self.is_vision,
@@ -173,6 +175,7 @@ class CtxItem:
         self.output_tokens = data.get("output_tokens", 0)
         self.total_tokens = data.get("total_tokens", 0)
         self.extra = data.get("extra", None)
+        self.extra_ctx = data.get("extra_ctx", False)
         self.current = data.get("current", False)
         self.internal = data.get("internal", False)
         self.is_vision = data.get("is_vision", False)

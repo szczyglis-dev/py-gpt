@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -165,7 +165,6 @@ class Worker(BaseWorker):
             self.msg = "Saving file: {}".format(item["params"]['filename'])
             self.log(self.msg)
             path = self.prepare_path(item["params"]['filename'])
-
             data = item["params"]['data']
             with open(path, 'w', encoding="utf-8") as file:
                 file.write(data)
@@ -221,50 +220,22 @@ class Worker(BaseWorker):
         try:
             self.msg = "Reading file: {}".format(item["params"]['filename'])
             self.log(self.msg)
-            path = self.prepare_path(item["params"]['filename'])
-            # check if file exists
-            if os.path.exists(path):
-                # auto-index file using Llama-index
-                if self.plugin.get_option_value("auto_index") \
-                        or self.plugin.get_option_value("only_index"):
-                    idx_name = self.plugin.get_option_value("idx")
-                    files, errors = self.plugin.window.core.idx.index_files(
-                        idx_name,
-                        path,
-                    )
-                    # if only index, return response and continue
-                    if self.plugin.get_option_value("only_index"):
-                        data = {
-                            'num_indexed': len(files),
-                            'index_name': idx_name,
-                            'errors': errors,
-                            'path': path,
-                        }
-                        response = {
-                            "request": request,
-                            "result": data,
-                        }
-                        self.log("File read (index only): {}".format(path))
-                        self.response(response, self.get_extra_data())
-                        return
-
-                # read file as text
-                data = self.plugin.read_as_text(
-                    path,
-                    use_loaders=self.plugin.get_option_value("use_loaders"),
-                )
-                response = {
-                    "request": request,
-                    "result": data,
-                    "context": os.path.basename(path) + ":\n--------------------------------\n" + data,  # add additional context
-                }
-                self.log("File read: {}".format(path))
-            else:
-                response = {
-                    "request": request,
-                    "result": "File not found",
-                }
-                self.log("File not found: {}".format(path))
+            path = item["params"]['filename']
+            paths = []
+            if isinstance(path, list):
+                paths = path
+            elif isinstance(path, str):
+                paths = [path]
+            data, context = self.read_files(paths)
+            context_str = None
+            if context:
+                context_str = "\n\n".join(context)
+            response = {
+                "request": request,
+                "result": data,
+            }
+            if context_str:
+                response["context"] = context_str
         except Exception as e:
             response = {
                 "request": request,
@@ -295,19 +266,18 @@ class Worker(BaseWorker):
                 if query is not None:
                     # query file using temp index (created on the fly)
                     self.log("Querying file: {}".format(path))
-                    response = self.plugin.window.core.idx.chat.query_file(path, query)
-                    self.log("Response from temporary in-memory index: {}".format(response))
-                    if response:
+                    answer = self.plugin.window.core.idx.chat.query_file(path, query)
+                    self.log("Response from temporary in-memory index: {}".format(answer))
+                    if answer:
                         response = {
                             "request": request,
-                            "result": response,
-                            "context": "From: " + os.path.basename(path) + ":\n--------------------------------\n" + response,
+                            "result": answer,
+                            "context": "From: " + os.path.basename(path) + ":\n--------------------------------\n" + answer,
                             # add additional context
                         }
 
-                # auto-index file to standard index using Llama-index
-                if self.plugin.get_option_value("auto_index") \
-                        or self.plugin.get_option_value("only_index"):
+                # + auto-index file to main index using Llama-index
+                if self.plugin.get_option_value("auto_index"):
                     idx_name = self.plugin.get_option_value("idx")
                     self.plugin.window.core.idx.index_files(
                         idx_name,
@@ -917,3 +887,47 @@ class Worker(BaseWorker):
                 self.plugin.window.core.config.get_user_dir('data'),
                 path,
             )
+
+    def read_files(self, paths: list) -> (dict, str):
+        """
+        Read files from directory
+
+        :param paths: list of paths
+        :return: response data and context
+        """
+        data = []
+        context = []
+        for path in paths:
+            path = self.prepare_path(path)
+            if os.path.exists(path):
+                # + auto-index file using Llama-index
+                if self.plugin.get_option_value("auto_index") \
+                        or self.plugin.get_option_value("only_index"):
+                    idx_name = self.plugin.get_option_value("idx")
+                    files, errors = self.plugin.window.core.idx.index_files(
+                        idx_name,
+                        path,
+                    )
+                    # if only index, return response and continue
+                    if self.plugin.get_option_value("only_index"):
+                        data.append({
+                            'num_indexed': len(files),
+                            'index_name': idx_name,
+                            'errors': errors,
+                            'path': path,
+                        })
+                        self.log("File read (index only): {}".format(path))
+                        return data, context
+
+                # read file as text
+                content = self.plugin.read_as_text(
+                    path,
+                    use_loaders=self.plugin.get_option_value("use_loaders"),
+                )
+                context.append(os.path.basename(path) + ":\n--------------------------------\n" + content)
+                self.log("File read: {}".format(path))
+            else:
+                self.log("File not found: {}".format(path))
+                data.append("File not found: {}".format(path))
+
+        return data, context

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -234,7 +234,7 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_read_file",
             type="textarea",
-            value='"read_file": read data from file, params: "filename"',
+            value='"read_file": read data from file, if multiple files then pass list of files, params: "filename"',
             label="Syntax: read_file",
             description="Syntax for reading files",
             advanced=True,

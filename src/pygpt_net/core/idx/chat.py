@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.04 20:00:00                  #
 # ================================================== #
+
+import json
 
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import ChatPromptTemplate
@@ -211,6 +213,45 @@ class Chat:
         # index file to tmp index
         files, errors = self.window.core.idx.indexing.index_files(idx, index, path, is_tmp=True)
         if len(files) > 0:
+            self.log("Querying temporary in-memory index: {}...".format(idx))
+            response = index.as_query_engine(
+                streaming=False,
+            ).query(query)  # query with default prompt
+            if response:
+                return response.response
+
+    def query_web(self, type: str, url: str, args: dict, query: str) -> str:
+        """
+        Query web using temp index (created on the fly)
+
+        :param type: type of content
+        :param url: url to index
+        :param args: extra args
+        :param query: query
+        """
+        parts = {
+            "type": type,
+            "url": url,
+            "args": args,
+        }
+        id = json.dumps(parts)
+        model = self.window.core.models.from_defaults()
+        context = self.window.core.idx.llm.get_service_context(model=model)
+        index = self.storage.get_tmp(id, service_context=context)  # get or create tmp index
+
+        idx = "tmp:{}".format(id)  # tmp index id
+        self.log("Indexing to temporary in-memory index: {}...".format(idx))
+
+        # index file to tmp index
+        num, errors = self.window.core.idx.indexing.index_urls(
+            idx=id,
+            index=index,
+            urls=[url],
+            type=type,
+            extra_args=args,
+            is_tmp = True,
+        )
+        if num > 0:
             self.log("Querying temporary in-memory index: {}...".format(idx))
             response = index.as_query_engine(
                 streaming=False,
