@@ -353,7 +353,11 @@ class Presets:
             self.window.ui.status("Preset loaded: " + preset['name'])
 
     def get_current_id(self) -> str:
-        """Get current preset id"""
+        """
+        Get current preset id
+
+        :return: preset id
+        """
         return self.window.core.config.get('preset.plugins')
 
     def save_current(self):
@@ -390,8 +394,5 @@ class Presets:
             presets[preset_id]['enabled'] = copy.deepcopy(self.window.core.config.get('plugins_enabled'))
             presets[preset_id]['config'] = copy.deepcopy(self.window.core.config.get('plugins'))
             self.store(presets)
-            self.window.ui.status("Preset updated: " + presets[preset_id]['name'])
-        else:
-            self.window.ui.status("Preset not found: " + preset_id)
         self.update_list()
         self.update_menu()
