@@ -88,7 +88,7 @@ def test_on_ctx_after(mock_window):
     ctx.output = "output"
     flow = Flow(mock_window)
     flow.on_ctx_after(ctx)
-    assert flow.prev_output == "output"
+    assert flow.prev_output == "continue..."
 
 
 def test_on_cmd(mock_window):
