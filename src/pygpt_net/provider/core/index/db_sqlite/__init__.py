@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -262,3 +262,12 @@ class DbSqliteProvider(BaseProvider):
         :return: True if truncated
         """
         return self.storage.truncate_external(store_id, idx)
+
+    def get_counters(self, type: str) -> dict:
+        """
+        Get counters (stats, count items by type [file, ctx, external])
+
+        :param type: type of counter (file, ctx, external)
+        :return: dict of counters
+        """
+        return self.storage.get_counters(type)

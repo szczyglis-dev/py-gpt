@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import json
@@ -14,6 +14,7 @@ import re
 from datetime import datetime, timedelta, timezone
 
 from pygpt_net.item.ctx import CtxMeta, CtxItem
+from pygpt_net.utils import unpack_var
 
 
 def search_by_date_string(search_string: str) -> list:
@@ -130,15 +131,15 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     :param row: DB row
     :return: context item
     """
-    item.id = int(row['id'])
-    item.meta_id = int(row['meta_id'])
+    item.id = unpack_var(row['id'], 'int')
+    item.meta_id = unpack_var(row['meta_id'], 'int')
     item.external_id = row['external_id']
     item.input = row['input']
     item.output = row['output']
     item.input_name = row['input_name']
     item.output_name = row['output_name']
-    item.input_timestamp = int(row['input_ts'] or 0)
-    item.output_timestamp = int(row['output_ts'] or 0)
+    item.input_timestamp = unpack_var(row['input_ts'], 'int')
+    item.output_timestamp = unpack_var(row['output_ts'], 'int')
     item.mode = row['mode']
     item.model = row['model']
     item.thread = row['thread_id']
@@ -151,10 +152,10 @@ def unpack_item(item: CtxItem, row: dict) -> CtxItem:
     item.files = unpack_item_value(row['files_json'])
     item.attachments = unpack_item_value(row['attachments_json'])
     item.extra = unpack_item_value(row['extra'])
-    item.input_tokens = int(row['input_tokens'] or 0)
-    item.output_tokens = int(row['output_tokens'] or 0)
-    item.total_tokens = int(row['total_tokens'] or 0)
-    item.internal = bool(row['is_internal'])
+    item.input_tokens = unpack_var(row['input_tokens'], 'int')
+    item.output_tokens = unpack_var(row['output_tokens'], 'int')
+    item.total_tokens = unpack_var(row['total_tokens'], 'int')
+    item.internal = unpack_var(row['is_internal'], 'bool')
     item.doc_ids = unpack_item_value(row['docs_json'])
     return item
 
@@ -167,12 +168,12 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     :param row: DB row
     :return: context meta
     """
-    meta.id = int(row['id'])
+    meta.id = unpack_var(row['id'], 'int')
     meta.external_id = row['external_id']
     meta.uuid = row['uuid']
-    meta.created = int(row['created_ts'])
-    meta.updated = int(row['updated_ts'])
-    meta.indexed = int(row['indexed_ts'])
+    meta.created = unpack_var(row['created_ts'], 'int')
+    meta.updated = unpack_var(row['updated_ts'], 'int')
+    meta.indexed = unpack_var(row['indexed_ts'], 'int')
     meta.name = row['name']
     meta.mode = row['mode']
     meta.model = row['model']
@@ -184,10 +185,10 @@ def unpack_meta(meta: CtxMeta, row: dict) -> CtxMeta:
     meta.run = row['run_id']
     meta.status = row['status']
     meta.extra = row['extra']
-    meta.initialized = bool(row['is_initialized'])
-    meta.deleted = bool(row['is_deleted'])
-    meta.important = bool(row['is_important'])
-    meta.archived = bool(row['is_archived'])
-    meta.label = int(row['label'] or 0)
+    meta.initialized = unpack_var(row['is_initialized'], 'bool')
+    meta.deleted = unpack_var(row['is_deleted'], 'bool')
+    meta.important = unpack_var(row['is_important'], 'bool')
+    meta.archived = unpack_var(row['is_archived'], 'bool')
+    meta.label = unpack_var(row['label'], 'int')
     meta.indexes = unpack_item_value(row['indexes_json'])
     return meta

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 17:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
@@ -35,6 +35,7 @@ class Debug:
         self.window.ui.menu['debug.agent'] = QAction(trans("menu.debug.agent"), self.window, checkable=True)
         self.window.ui.menu['debug.indexes'] = QAction(trans("menu.debug.indexes"), self.window, checkable=True)
         self.window.ui.menu['debug.ui'] = QAction(trans("menu.debug.ui"), self.window, checkable=True)
+        self.window.ui.menu['debug.db'] = QAction(trans("menu.debug.db"), self.window, checkable=True)
         self.window.ui.menu['debug.logger'] = QAction(trans("menu.debug.logger"), self.window, checkable=True)
         self.window.ui.menu['debug.app.log'] = QAction(trans("menu.debug.app.log"), self.window, checkable=True)
 
@@ -62,6 +63,8 @@ class Debug:
             lambda: self.window.controller.debug.toggle('ui'))
         self.window.ui.menu['debug.app.log'].triggered.connect(
             lambda: self.window.controller.debug.toggle_app_log())
+        self.window.ui.menu['debug.db'].triggered.connect(
+            lambda: self.window.controller.debug.toggle('db'))
 
         self.window.ui.menu['menu.debug'] = self.window.menuBar().addMenu(trans("menu.debug"))
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.config'])
@@ -74,5 +77,6 @@ class Debug:
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.indexes'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.agent'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.ui'])
+        self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.db'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.logger'])
         self.window.ui.menu['menu.debug'].addAction(self.window.ui.menu['debug.app.log'])

@@ -6,18 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 22:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QHeaderView
 
 from pygpt_net.core.debug.agent import AgentDebug
 from pygpt_net.core.debug.assistants import AssistantsDebug
 from pygpt_net.core.debug.attachments import AttachmentsDebug
 from pygpt_net.core.debug.config import ConfigDebug
 from pygpt_net.core.debug.context import ContextDebug
+from pygpt_net.core.debug.db import DatabaseDebug
 from pygpt_net.core.debug.indexes import IndexesDebug
 from pygpt_net.core.debug.models import ModelsDebug
 from pygpt_net.core.debug.plugins import PluginsDebug
@@ -43,6 +43,7 @@ class Debug:
         self.workers['attachments'] = AttachmentsDebug(self.window)
         self.workers['config'] = ConfigDebug(self.window)
         self.workers['context'] = ContextDebug(self.window)
+        self.workers['db'] = DatabaseDebug(self.window)
         self.workers['indexes'] = IndexesDebug(self.window)
         self.workers['models'] = ModelsDebug(self.window)
         self.workers['plugins'] = PluginsDebug(self.window)

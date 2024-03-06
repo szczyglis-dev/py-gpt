@@ -11,13 +11,44 @@
 
 import json
 import ast
-from PySide6.QtCore import Qt
+from datetime import datetime
+
+from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QAbstractItemView, QApplication, QMenu, \
     QSizePolicy, QTableView, QHeaderView
 
+class DatabaseTableModel(QAbstractTableModel):
+    def __init__(self, data, headers, timestamp_columns=None, convert_timestamps=True):
+        super().__init__()
+        self._data = data
+        self._headers = headers
+        self._timestamp_columns = timestamp_columns or []
+        self._convert_timestamps = convert_timestamps
 
-class DebugList(QTableView):
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self._data[index.row()][index.column()]
+            if self._headers[index.column()] in self._timestamp_columns and self._convert_timestamps:
+                try:
+                    value = datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
+                except Exception as e:
+                    pass
+            return value
+        return None
+
+    def rowCount(self, index=QModelIndex()):
+        return len(self._data)
+
+    def columnCount(self, index=QModelIndex()):
+        return len(self._headers)
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self._headers[section]
+        return None
+
+class DatabaseList(QTableView):
     NAME = range(2)  # list of columns
 
     def __init__(self, window=None):
@@ -26,11 +57,14 @@ class DebugList(QTableView):
 
         :param window: Window instance
         """
-        super(DebugList, self).__init__(window)
+        super(DatabaseList, self).__init__(window)
         self.window = window
+        self.browser = None
         self.viewer = None
         self.viewer_index = None
         self.viewer_current = None
+        self.viewer_current_id = None
+        self.viewer_current_field = None
         self.selection = None
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.verticalHeader().setVisible(False)
@@ -40,7 +74,8 @@ class DebugList(QTableView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(
-            lambda: self.create_context_menu(self))
+            lambda: self.create_context_menu(self)
+        )
 
     def on_data_begin(self):
         """
@@ -89,9 +124,21 @@ class DebugList(QTableView):
                     Qt.DisplayRole)
                 QApplication.clipboard().setText(value)
 
+        def delete_row():
+            index = parent.currentIndex()
+            if index.isValid():
+                id = index.sibling(index.row(), 0).data(
+                    Qt.DisplayRole)
+
+                # delete row from database
+                # self.window.get_viewer().delete_row(id)
+                self.window.ui.dialogs.database.viewer.delete_row(int(id))
+
         menu = QMenu()
         copy_action = menu.addAction("Copy value to clipboard")
+        delete_action = menu.addAction("Delete row")
         copy_action.triggered.connect(copy_to_clipboard)
+        delete_action.triggered.connect(delete_row)
         menu.exec_(QCursor.pos())
 
     def mousePressEvent(self, event):
@@ -103,7 +150,7 @@ class DebugList(QTableView):
         index = self.indexAt(event.pos())
         if not index.isValid():
             return
-        super(DebugList, self).mousePressEvent(event)
+        super(DatabaseList, self).mousePressEvent(event)
 
     def onItemClicked(self, index):
         """
@@ -112,7 +159,11 @@ class DebugList(QTableView):
         :param index: Index
         """
         # update data viewer
-        data = self.model().data(index)
+        data = self.model().data(index, Qt.DisplayRole)
+        id = index.sibling(index.row(), 0).data(
+            Qt.DisplayRole)
         self.viewer.setPlainText(str(self.parse_view(data)))
         self.viewer_index = index
         self.viewer_current = data
+        self.viewer_current_id = id
+        self.viewer_current_field = self.model().headerData(index.column(), Qt.Horizontal, Qt.DisplayRole)

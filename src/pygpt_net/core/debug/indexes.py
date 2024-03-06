@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import datetime
-import os
 
 
 class IndexesDebug:
@@ -28,6 +27,13 @@ class IndexesDebug:
         self.window.core.debug.begin(self.id)
         self.window.core.debug.add(self.id, 'Current storage:', str(self.window.core.idx.get_current_store()))
         self.window.core.debug.add(self.id, 'Current idx:', str(self.window.controller.idx.current_idx))
+        self.window.core.debug.add(self.id, 'Indexes (list):', str(list(self.window.core.config.get("llama.idx.list"))))
+
+        # count items in DB
+        db_counter = {}
+        db_counter["ctx"] = self.window.core.idx.get_counters("ctx")
+        db_counter["file"] = self.window.core.idx.get_counters("file")
+        db_counter["external"] = self.window.core.idx.get_counters("external")
 
         for store in self.window.core.idx.items:
             name = "Items (files): " + store
@@ -37,20 +43,41 @@ class IndexesDebug:
             if len(indexes_data) > 0:
                 self.window.core.debug.add(self.id, name, str(indexes_data))
 
-        self.window.core.debug.add(self.id, 'Storage (idx):',
-                                   str(list(self.window.core.idx.storage.indexes.keys())))
-        self.window.core.debug.add(self.id, 'Storage (storage):',
+        # DB items counters
+        self.window.core.debug.add(self.id, 'DB items (ctx):',
+                                   str(db_counter["ctx"]))
+        self.window.core.debug.add(self.id, 'DB items (external/web):',
+                                   str(db_counter["external"]))
+        self.window.core.debug.add(self.id, 'DB items (file):',
+                                   str(db_counter["file"]))
+
+        self.window.core.debug.add(self.id, 'Storage (storages):',
                                    str(list(self.window.core.idx.storage.storages.keys())))
+        self.window.core.debug.add(self.id, 'Temp (in-memory) indices:',
+                                   str(self.window.core.idx.storage.count_tmp()))
 
         # loaders
         self.window.core.debug.add(self.id, 'Offline loaders [files]:',
-                                   str(list(self.window.core.idx.indexing.loaders["file"].keys())))
+                                   str(sorted(list(self.window.core.idx.indexing.loaders["file"].keys()))))
         self.window.core.debug.add(self.id, 'Offline loaders [web]:',
-                                   str(list(self.window.core.idx.indexing.loaders["web"].keys())))
+                                   str(sorted(list(self.window.core.idx.indexing.loaders["web"].keys()))))
         self.window.core.debug.add(self.id, 'External instructions [web]:',
                                    str(self.window.core.idx.indexing.external_instructions))
 
+        excluded = self.window.core.config.get("llama.idx.excluded_ext").replace(" ", "").split(',')
+        self.window.core.debug.add(self.id, 'Excluded (ext):', str(excluded))
+
+        # ctx
+        self.window.core.debug.add(self.id, 'CTX [auto]:',
+                                   str(self.window.core.config.get("llama.idx.auto")))
+        last_str = "-"
+        last_ctx = int(self.window.core.config.get("llama.idx.db.last"))
+        if last_ctx > 0:
+            last_str = datetime.datetime.fromtimestamp(last_ctx).strftime('%Y-%m-%d %H:%M:%S') + " (" + str(last_ctx) + ")"
+        self.window.core.debug.add(self.id, 'CTX [db.last]:', str(last_str))
+
         # indexes
+        """
         indexes = self.window.core.idx.get_all()
         for key in list(indexes):
             path = os.path.join(self.window.core.config.get_user_dir('idx'), key)
@@ -76,5 +103,6 @@ class IndexesDebug:
                     'file_id': item_id,
                 }
                 self.window.core.debug.add(self.id, item_id, str(data))
+        """
 
         self.window.core.debug.end(self.id)

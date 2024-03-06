@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -43,10 +43,12 @@ class Confirm:
             self.window.controller.presets.restore(True)
 
         # ctx
-        elif type == 'ctx_delete':
+        elif type == 'ctx.delete':
             self.window.controller.ctx.delete(id, True)
-        elif type == 'ctx_delete_all':
+        elif type == 'ctx.delete_all':
             self.window.controller.ctx.delete_history(True)
+        elif type == 'ctx.delete_item':
+            self.window.controller.ctx.delete_item(id, True)
 
         # images
         elif type == 'img_delete':
@@ -55,6 +57,32 @@ class Confirm:
         # agent infinity loop run
         elif type == 'agent.infinity.run':
             self.window.controller.chat.input.send_input(force=True)
+
+        # db viewer
+        elif type == 'db.delete_row':
+            try:
+                self.window.core.db.viewer.delete_row(data=id)  # dict: {table, row_id}
+            except Exception as e:
+                self.window.core.debug.error(e)
+                self.window.ui.dialogs.alert(str(e))
+        elif type == 'db.update_row':
+            try:
+                self.window.core.db.viewer.update_row(data=id)  # dict: {table, id, field, value}
+            except Exception as e:
+                self.window.core.debug.error(e)
+                self.window.ui.dialogs.alert(str(e))
+        elif type == 'db.delete_all':
+            try:
+                self.window.core.db.viewer.truncate_table(data=id)  # dict: {table}
+            except Exception as e:
+                self.window.core.debug.error(e)
+                self.window.ui.dialogs.alert(str(e))
+        elif type == 'db.truncate_table':
+            try:
+                self.window.core.db.viewer.truncate_table(data=id, reset=True)  # dict: {table}
+            except Exception as e:
+                self.window.core.debug.error(e)
+                self.window.ui.dialogs.alert(str(e))
 
         # attachments
         elif type == 'attachments.delete':

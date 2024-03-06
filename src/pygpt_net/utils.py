@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.22 09:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import json
@@ -122,3 +122,28 @@ def parse_args(data: list) -> dict:
         else:
             args[key] = str(value)
     return args
+
+
+def unpack_var(var: any, type: str) -> any:
+    """
+    Unpack variable from DB row
+
+    :param var: Variable
+    :param type: Variable type
+    """
+    if type == 'int':
+        try:
+            return int(var)
+        except ValueError:
+            return 0
+    elif type == 'float':
+        try:
+            return float(var)
+        except ValueError:
+            return 0.0
+    elif type == 'bool':
+        try:
+            return bool(var)
+        except ValueError:
+            return False
+    return var

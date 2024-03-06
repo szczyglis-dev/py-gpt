@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import os.path
@@ -33,6 +33,14 @@ class TempProvider(BaseStore):
         self.prefix = ""  # prefix for index directory
         self.indexes = {}
         self.persist = False
+
+    def count(self) -> int:
+        """
+        Count indexes
+
+        :return: number of indexes
+        """
+        return len(self.indexes)
 
     def get_path(self, id: str) -> str:
         """

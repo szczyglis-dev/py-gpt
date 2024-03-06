@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import time
@@ -177,12 +177,21 @@ class DbSqliteProvider(BaseProvider):
 
     def remove(self, id: int) -> bool:
         """
-        Remove ctx
+        Remove ctx (meta + items)
 
         :param id: ctx meta ID
         :return: True if removed
         """
         return self.storage.delete_meta_by_id(id)
+
+    def remove_item(self, id: int) -> bool:
+        """
+        Remove ctx item
+
+        :param id: ctx item ID
+        :return: True if removed
+        """
+        return self.storage.delete_item_by_id(id)
 
     def truncate(self) -> bool:
         """

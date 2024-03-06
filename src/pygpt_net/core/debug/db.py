@@ -9,21 +9,20 @@
 # Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
-from pygpt_net.utils import unpack_var
+import datetime
+import os
 
 
-def unpack_file_item(row: dict) -> (str, dict):
-    """
-    Unpack item from DB row
+class DatabaseDebug:
+    def __init__(self, window=None):
+        """
+        DB debug
 
-    :param row: DB row
-    :return: idx, file data
-    """
-    data = {}
-    idx = row['idx']
-    data["db_id"] = unpack_var(row['id'], 'int')
-    data["id"] = row['doc_id']
-    data["name"] = row['name']
-    data["path"] = row['path']
-    data["indexed_ts"] = unpack_var(row['updated_ts'], 'int')
-    return idx, data
+        :param window: Window instance
+        """
+        self.window = window
+        self.id = 'db'
+
+    def update(self):
+        """Update db window."""
+        pass

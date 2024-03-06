@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -106,24 +106,6 @@ class Storage:
             service_context=service_context,
         )
 
-    def get_tmp(self, path: str, service_context=None) -> BaseIndex:
-        """
-        Get tmp index instance
-
-        :param path: file path
-        :param service_context: service context
-        :return: index instance
-        """
-        # convert path to md5 hash
-        id = hashlib.md5(path.encode()).hexdigest()
-        storage = self.get_tmp_storage()
-        if storage is None:
-            raise Exception('Storage engine not found!')
-        return storage.get(
-            id=id,
-            service_context=service_context,
-        )
-
     def store(self, id: str, index: BaseIndex = None):
         """
         Store index
@@ -132,21 +114,6 @@ class Storage:
         :param index: index instance
         """
         storage = self.get_storage()
-        if storage is None:
-            raise Exception('Storage engine not found!')
-        storage.store(
-            id=id,
-            index=index,
-        )
-
-    def store_tmp(self, id: str, index: BaseIndex = None):
-        """
-        Store index
-
-        :param id: index name
-        :param index: index instance
-        """
-        storage = self.get_tmp_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
         storage.store(
@@ -193,3 +160,47 @@ class Storage:
             id=id,
             doc_id=doc_id,
         )
+
+    def get_tmp(self, path: str, service_context=None) -> BaseIndex:
+        """
+        Get tmp index instance
+
+        :param path: file path
+        :param service_context: service context
+        :return: index instance
+        """
+        # convert path to md5 hash
+        id = hashlib.md5(path.encode()).hexdigest()
+        storage = self.get_tmp_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        return storage.get(
+            id=id,
+            service_context=service_context,
+        )
+
+    def store_tmp(self, id: str, index: BaseIndex = None):
+        """
+        Store index
+
+        :param id: index name
+        :param index: index instance
+        """
+        storage = self.get_tmp_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        storage.store(
+            id=id,
+            index=index,
+        )
+
+    def count_tmp(self) -> int:
+        """
+        Count temp indices
+
+        :return: number of temp indices
+        """
+        storage = self.get_tmp_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        return storage.count()
