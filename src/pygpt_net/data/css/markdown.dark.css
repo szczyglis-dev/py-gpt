@@ -18,6 +18,7 @@ a {{
 }}
 .cmd {{
     color: #4d4d4d;
+    text-decoration: none;
 }}
 .ts {{
     color: #4d4d4d;

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -42,8 +42,12 @@ class ChatOutput(QTextBrowser):
         :param url: url
         """
         # local file
-        if not url.scheme().startswith('http'):
+        if not url.scheme().startswith('http') and url.scheme() != 'delete':
             self.window.controller.files.open(url.toLocalFile())
+        elif url.scheme() == 'delete':
+            # ctx item delete
+            id = url.toString().split(':')[1]
+            self.window.controller.ctx.delete_item(int(id))
         else:
             # external link
             QDesktopServices.openUrl(url)

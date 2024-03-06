@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.21 14:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import re
@@ -174,7 +174,7 @@ class Renderer(BaseRenderer):
         # images
         if len(item.images) > 0:
             for image in item.images:
-                # don't append if it is a external url
+                # don't append if it is an external url
                 if image.startswith("http"):
                     continue
                 if image in appended or image in self.images_appended:
@@ -208,6 +208,14 @@ class Renderer(BaseRenderer):
                     self.urls_appended.append(url)
                 except Exception as e:
                     pass
+
+        # append delete link
+        self.get_output_node().append(
+            '<a href="delete:{}"><span class="cmd">[{}]</span></a>'.format(
+                item.id,
+                trans("ctx.delete.item.link")
+            )
+        )
 
         # jump to end
         if len(appended) > 0:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -115,6 +115,9 @@ class Storage:
                 elif isinstance(value, str):
                     where_clauses.append(f"{key} {mode} :{key}")
                     bind_params[key] = f"%{value}%"
+                elif isinstance(value, list):
+                    values = "(" + ",".join([str(x) for x in value]) + ")"
+                    where_clauses.append(f"{key} {mode} {values}")
 
         where_statement = " AND ".join(where_clauses) if where_clauses else "1"
         join_statement = " ".join(join_clauses) if join_clauses else ""
@@ -174,16 +177,20 @@ class Storage:
                 items.append(item)
         return items
 
-    def truncate_all(self) -> bool:
+    def truncate_all(self, reset: bool = True) -> bool:
         """
         Truncate all ctx tables
 
+        :param reset: reset table sequence (autoincrement)
         :return: True if truncated
         """
         db = self.window.core.db.get_db()
         with db.begin() as conn:
             conn.execute(text("DELETE FROM ctx_item"))
             conn.execute(text("DELETE FROM ctx_meta"))
+            if reset:  # reset table sequence (autoincrement)
+                conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='ctx_item'"))
+                conn.execute(text(f"DELETE FROM sqlite_sequence WHERE name='ctx_meta'"))
         return True
 
     def delete_meta_by_id(self, id: int) -> bool:
@@ -200,6 +207,21 @@ class Storage:
         with db.begin() as conn:
             conn.execute(stmt)
         self.delete_items_by_meta_id(id)
+        return True
+
+    def delete_item_by_id(self, id: int) -> bool:
+        """
+        Delete ctx item by ID
+
+        :param id: ctx item ID
+        :return: True if deleted
+        """
+        stmt = text("""
+            DELETE FROM ctx_item WHERE id = :id
+        """).bindparams(id=id)
+        db = self.window.core.db.get_db()
+        with db.begin() as conn:
+            conn.execute(stmt)
         return True
 
     def delete_items_by_meta_id(self, id: int) -> bool:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from pygpt_net.controller.ctx.common import Common
@@ -30,8 +30,7 @@ class Ctx:
 
     def setup(self):
         """Setup ctx"""
-        # load filters first
-        self.common.restore_display_filter()
+        self.common.restore_display_filter()  # load filters first
 
         # load ctx list
         self.window.core.ctx.load_meta()
@@ -276,7 +275,7 @@ class Ctx:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='ctx_delete',
+                type='ctx.delete',
                 id=idx,
                 msg=trans('ctx.delete.confirm'),
             )
@@ -318,6 +317,24 @@ class Ctx:
                 for idx in list(meta.indexes[store_id]):
                     self.window.core.ctx.idx.remove_meta_from_indexed(store_id, id, idx)
 
+    def delete_item(self, id: int, force: bool = False):
+        """
+        Delete ctx item by id
+
+        :param id: ctx item id
+        :param force: force delete
+        """
+        if not force:
+            self.window.ui.dialogs.confirm(
+                type='ctx.delete_item',
+                id=id,
+                msg=trans('ctx.delete.item.confirm'),
+            )
+            return
+        self.window.core.ctx.remove_item(id)
+        self.refresh()
+        self.update()
+
     def delete_history(self, force: bool = False):
         """
         Delete all ctx / truncate
@@ -326,7 +343,7 @@ class Ctx:
         """
         if not force:
             self.window.ui.dialogs.confirm(
-                type='ctx_delete_all',
+                type='ctx.delete_all',
                 id='',
                 msg=trans('ctx.delete.all.confirm'),
             )
@@ -470,6 +487,17 @@ class Ctx:
         """
         self.window.ui.nodes['ctx.search'].setText(text)
         self.search_string_change(text)  # make search
+
+    def label_filters_changed(self, labels: list):
+        """
+        Filters labels change
+
+        :param labels: list of labels
+        """
+        self.window.core.ctx.filters_labels = labels
+        self.window.core.config.set('ctx.records.filter.labels', labels)
+        self.update(reload=True, all=False)
+
 
     def prepare_name(self, ctx: CtxItem):
         """

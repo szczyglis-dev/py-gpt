@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 04:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
+import copy
 import datetime
 
 from packaging.version import Version
@@ -46,6 +47,7 @@ class Ctx:
         self.last_model = None
         self.search_string = None  # search string
         self.filters = {}  # search filters
+        self.filters_labels = []  # search labels
         self.allowed_modes = {
             'chat': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
             'completion': ["chat", "completion", "img", "langchain", "vision", "assistant", "llama_index", "agent"],
@@ -386,6 +388,18 @@ class Ctx:
             del self.meta[id]
             self.provider.remove(id)
 
+    def remove_item(self, id: int):
+        """
+        Remove ctx item by id
+
+        :param id: ctx id
+        """
+        for item in self.items:
+            if item.id == id:
+                self.items.remove(item)
+                self.provider.remove_item(id)
+                break
+
     def truncate(self):
         """Delete all ctx"""
         # empty ctx index
@@ -646,46 +660,75 @@ class Ctx:
                 return False
         return True
 
+    def has_labels(self) -> bool:
+        """
+        Check if label query is needed
+
+        :return: True if labels not default
+        """
+        num_all = len(self.window.controller.ui.get_colors())
+        if len(self.filters_labels) < num_all:
+            return True
+        return False
+
     def load_meta(self):
         """Load ctx list from provider"""
         limit = 0
         if self.window.core.config.has('ctx.records.limit'):
             limit = int(self.window.core.config.get('ctx.records.limit') or 0)
 
-        # all items (pinned first)
-        if "is_important" not in self.filters and "label" not in self.filters and "indexed_ts" not in self.filters:
+        # all items (pinned on top)
+        if "is_important" not in self.filters and "indexed_ts" not in self.filters:
+            filters_pinned = copy.deepcopy(self.filters)
+            if self.has_labels():
+                filters_pinned['label'] = {
+                    "mode": "IN",
+                    "value": self.filters_labels,  # append label colors
+                }
+            filters_pinned['is_important'] = {
+                "mode": "=",
+                "value": 1,
+            }
             meta_pinned = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
                 order_direction='DESC',
                 limit=0,  # no limit for pinned
-                filters={
-                    'is_important': {
-                        "mode": "=",
-                        "value": 1,
-                    }
-                },
+                filters=filters_pinned,
                 search_content=self.is_search_content(),
             )
+
+            filters = copy.deepcopy(self.filters)
+            if self.has_labels():
+                filters['label'] = {
+                    "mode": "IN",
+                    "value": self.filters_labels,  # append label colors
+                }
             meta_unpinned = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
                 order_direction='DESC',
                 limit=limit,
-                filters=self.filters,
+                filters=filters,
                 search_content=self.is_search_content(),
             )
             # join, pinned first
             self.meta = {**meta_pinned, **meta_unpinned}
 
-        # pinned only
+        # pinned only or label only
         else:
+            filters = copy.deepcopy(self.filters)
+            if self.has_labels():
+                filters['label'] = {
+                    "mode": "IN",
+                    "value": self.filters_labels,  # append label colors
+                }
             self.meta = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
                 order_direction='DESC',
                 limit=limit,
-                filters=self.filters,
+                filters=filters,
                 search_content=self.is_search_content(),
             )
 

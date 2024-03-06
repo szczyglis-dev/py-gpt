@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import uuid
@@ -573,3 +573,33 @@ class Storage:
             conn.execute(
                 text(query).bindparams(**params))
         return True
+
+    def get_counters(self, type: str) -> dict:
+        """
+        Get counters (stats, count items by type [file, ctx, external])
+
+        :param type: type of counter (file, ctx, external)
+        :return: dict of counters
+        """
+        db_name = "idx_" + type
+        db = self.window.core.db.get_db()
+        counters = {}
+
+        # count items, grouped by store and idx fields
+        stmt = text("""
+            SELECT store, idx, COUNT(*) as count
+            FROM """ + db_name + """
+            GROUP BY store, idx
+        """)
+        with db.connect() as conn:
+            result = conn.execute(stmt)
+            for row in result:
+                data = row._asdict()
+                store = data['store']
+                idx = data['idx']
+                count = data['count']
+                if store not in counters:
+                    counters[store] = {}
+                counters[store][idx] = count
+        return counters
+
