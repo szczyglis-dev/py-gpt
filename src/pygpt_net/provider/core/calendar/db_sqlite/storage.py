@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.03.06 04:00:00                  #
 # ================================================== #
 
 import time
@@ -14,6 +14,7 @@ import time
 from sqlalchemy import text
 
 from pygpt_net.item.calendar_note import CalendarNoteItem
+from pygpt_net.utils import unpack_var
 
 
 class Storage:
@@ -310,17 +311,17 @@ class Storage:
         :param row: DB row
         :return: CalendarNoteItem item
         """
-        note.id = int(row['id'])
-        note.idx = int(row['idx'] or 0)
+        note.id = unpack_var(row['id'], 'int')
+        note.idx = unpack_var(row['idx'], 'int')
         note.uuid = row['uuid']
-        note.status = int(row['status'] or 0)
-        note.year = int(row['year'] or 0)
-        note.month = int(row['month'] or 0)
-        note.day = int(row['day'] or 0)
-        note.created = int(row['created_ts'])
-        note.updated = int(row['updated_ts'])
+        note.status = unpack_var(row['status'], 'int')
+        note.year = unpack_var(row['year'], 'int')
+        note.month = unpack_var(row['month'], 'int')
+        note.day = unpack_var(row['day'], 'int')
+        note.created = unpack_var(row['created_ts'], 'int')
+        note.updated = unpack_var(row['updated_ts'], 'int')
         note.title = row['title']
         note.content = row['content']
-        note.important = bool(row['is_important'])
-        note.deleted = bool(row['is_deleted'])
+        note.important = unpack_var(row['is_important'], 'bool')
+        note.deleted = unpack_var(row['is_deleted'], 'bool')
         return note
