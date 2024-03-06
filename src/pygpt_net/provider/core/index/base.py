@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 06:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from packaging.version import Version
@@ -90,6 +90,9 @@ class BaseProvider:
         pass
 
     def truncate_external(self, store_id: str = None, idx: str = None) -> bool:
+        pass
+
+    def get_counters(self, type: str) -> dict:
         pass
 
     def dump(self, index: IndexItem) -> str:

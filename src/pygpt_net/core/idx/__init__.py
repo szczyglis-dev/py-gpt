@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.01 17:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import datetime
@@ -465,6 +465,15 @@ class Idx:
         if store_id in self.items and idx in self.items[store_id]:
             self.items[store_id][idx].items = {}
         self.get_provider().truncate(store_id, idx)
+
+    def get_counters(self, type: str) -> dict:
+        """
+        Get counters (stats, count items by type [file, ctx, external])
+
+        :param type: type of counter (file, ctx, external)
+        :return: dict of counters: [store][idx] -> count
+        """
+        return self.get_provider().get_counters(type)
 
     def get_version(self) -> str:
         """

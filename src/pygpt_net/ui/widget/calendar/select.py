@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 15:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QRect, QDate
@@ -126,9 +126,9 @@ class CalendarSelect(QCalendarWidget):
         :param status: status
         :return: color, font color
         """
-        if status in self.window.controller.calendar.statuses:
-            return self.window.controller.calendar.statuses[status]['color'], \
-                   self.window.controller.calendar.statuses[status]['font']
+        colors = self.window.controller.ui.get_colors()
+        if status in colors:
+            return colors[status]['color'], colors[status]['font']
         else:
             return QColor(100, 100, 100), QColor(255, 255, 255)
 
@@ -188,6 +188,7 @@ class CalendarSelect(QCalendarWidget):
 
         :param position: position
         """
+        colors = self.window.controller.ui.get_colors()
         selected_date = self.selectedDate()
         context_menu = QMenu(self)
         action_text = trans('calendar.day.search') + ': ' + selected_date.toString()
@@ -198,7 +199,7 @@ class CalendarSelect(QCalendarWidget):
         
         # set label menu
         set_label_menu = context_menu.addMenu(trans('calendar.day.label'))
-        for status_id, status_info in self.window.controller.calendar.statuses.items():
+        for status_id, status_info in colors.items():
             name = trans('calendar.day.' + status_info['label'])
             if status_id == 0:
                 name = '-'

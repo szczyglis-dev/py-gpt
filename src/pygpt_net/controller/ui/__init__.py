@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.28 12:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
+
+from PySide6.QtGui import QColor
 
 from pygpt_net.utils import trans
 from .mode import Mode
@@ -30,6 +32,16 @@ class UI:
             'files': 1,
             'calendar': 2,
             'draw': 3,
+        }
+        self.colors = {
+            0: {'label': 'label.color.default', 'color': QColor(100, 100, 100), 'font': QColor(255, 255, 255)},
+            1: {'label': 'label.color.red', 'color': QColor(255, 0, 0), 'font': QColor(255, 255, 255)},
+            2: {'label': 'label.color.orange', 'color': QColor(255, 165, 0), 'font': QColor(255, 255, 255)},
+            3: {'label': 'label.color.yellow', 'color': QColor(255, 255, 0), 'font': QColor(0, 0, 0)},
+            4: {'label': 'label.color.green', 'color': QColor(0, 255, 0), 'font': QColor(0, 0, 0)},
+            5: {'label': 'label.color.blue', 'color': QColor(0, 0, 255), 'font': QColor(255, 255, 255)},
+            6: {'label': 'label.color.indigo', 'color': QColor(75, 0, 130), 'font': QColor(255, 255, 255)},
+            7: {'label': 'label.color.violet', 'color': QColor(238, 130, 238), 'font': QColor(255, 255, 255)},
         }
 
     def setup(self):
@@ -57,6 +69,14 @@ class UI:
 
         # agent status
         self.window.controller.agent.update()
+
+    def get_colors(self) -> dict:
+        """
+        Get color labels
+
+        :return: color labels dict
+        """
+        return self.colors
 
     def update_font_size(self):
         """Update font size"""

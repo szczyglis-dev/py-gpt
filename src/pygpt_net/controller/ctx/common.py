@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.04 18:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -106,7 +106,6 @@ class Common:
         """Restore display filter"""
         self.window.ui.nodes['filter.ctx.radio.all'].setChecked(False)
         self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(False)
-        self.window.ui.nodes['filter.ctx.radio.labeled'].setChecked(False)
         self.window.ui.nodes['filter.ctx.radio.indexed'].setChecked(False)
 
         if self.window.core.config.has('ctx.records.filter'):
@@ -115,8 +114,6 @@ class Common:
 
             if filter == 'pinned':
                 self.window.ui.nodes['filter.ctx.radio.pinned'].setChecked(True)
-            elif filter == 'labeled':
-                self.window.ui.nodes['filter.ctx.radio.labeled'].setChecked(True)
             elif filter == 'indexed':
                 self.window.ui.nodes['filter.ctx.radio.indexed'].setChecked(True)
             else:
@@ -125,6 +122,17 @@ class Common:
             self.window.ui.nodes['filter.ctx.radio.all'].setChecked(True)
             self.toggle_display_filter('all')
 
+        # restore filters labels
+        self.restore_filters_labels()
+
+    def restore_filters_labels(self):
+        """Restore filters labels"""
+        labels = self.window.core.config.get('ctx.records.filter.labels')
+        if labels is not None:
+            self.window.core.ctx.filters_labels = labels
+            self.window.ui.nodes['filter.ctx.labels'].restore(labels)
+
+
     def toggle_display_filter(self, filter: str):
         """
         Toggle display filter
@@ -132,12 +140,7 @@ class Common:
         :param filter: Filter
         """
         filters = {}
-        if filter == 'labeled':
-            filters['label'] = {
-                "mode": ">",
-                "value": 0,
-            }
-        elif filter == 'pinned':
+        if filter == 'pinned':
             filters['is_important'] = {
                 "mode": "=",
                 "value": 1,

@@ -6,8 +6,9 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
+
 import datetime
 
 from PySide6 import QtWidgets, QtCore, QtGui
@@ -105,8 +106,9 @@ class ContextList(BaseList):
         menu.addAction(actions['delete'])
 
         # set label menu
+        colors = self.window.controller.ui.get_colors()
         set_label_menu = menu.addMenu(trans('calendar.day.label'))
-        for status_id, status_info in self.window.controller.calendar.statuses.items():
+        for status_id, status_info in colors.items():
             name = trans('calendar.day.' + status_info['label'])
             if status_id == 0:
                 name = '-'

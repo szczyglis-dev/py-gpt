@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.02 17:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy, QRadioButton
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
+from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
 from pygpt_net.utils import trans
@@ -61,11 +62,6 @@ class Calendar:
         self.window.ui.nodes['filter.ctx.radio.pinned'].clicked.connect(
             lambda: self.window.controller.ctx.common.toggle_display_filter("pinned"))
 
-        # display: only labeled
-        self.window.ui.nodes['filter.ctx.radio.labeled'] = QRadioButton(trans("filter.ctx.radio.labeled"))
-        self.window.ui.nodes['filter.ctx.radio.labeled'].clicked.connect(
-            lambda: self.window.controller.ctx.common.toggle_display_filter("labeled"))
-
         # display: only indexed
         self.window.ui.nodes['filter.ctx.radio.indexed'] = QRadioButton(trans("filter.ctx.radio.indexed"))
         self.window.ui.nodes['filter.ctx.radio.indexed'].clicked.connect(
@@ -76,16 +72,21 @@ class Calendar:
         layout.addWidget(self.window.ui.nodes['filter.ctx.label'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.all'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.pinned'])
-        layout.addWidget(self.window.ui.nodes['filter.ctx.radio.labeled'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.indexed'])
         layout.addStretch()
 
+        self.window.ui.nodes['filter.ctx.labels'] = ColorCheckbox(self.window)
+
+        rows = QVBoxLayout()
+        rows.addLayout(layout)
+        rows.addWidget(self.window.ui.nodes['filter.ctx.labels'])
+
         widget = QWidget()
-        widget.setLayout(layout)
+        widget.setLayout(rows)
 
         return widget
 
-    def setup_calendar(self) -> QHBoxLayout:
+    def setup_calendar(self) -> QWidget:
         """
         Setup calendar
 
