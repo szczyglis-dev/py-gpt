@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.24 00:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 import copy
@@ -14,6 +14,7 @@ import configparser
 import io
 import os
 
+from pygpt_net.provider.core.plugin_preset.json_file import JsonFileProvider
 from pygpt_net.plugin.base import BasePlugin
 from pygpt_net.utils import trans
 
@@ -35,6 +36,8 @@ class Plugins:
             'schedule'
         ]
         self.plugins = {}
+        self.presets = {}  # presets config
+        self.provider = JsonFileProvider(window)
 
     def is_registered(self, id: str) -> bool:
         """
@@ -112,6 +115,17 @@ class Plugins:
         except Exception as e:
             self.window.core.debug.log(e)
             print('Error while loading plugin options: {}'.format(id))
+
+    def apply_all_options(self):
+        """Apply all options to plugins"""
+        user_config = self.window.core.config.get('plugins')
+        for id in self.plugins:
+            if hasattr(self.plugins[id], 'initial_options'):
+                self.plugins[id].options = copy.deepcopy(self.plugins[id].initial_options)  # copy
+            if id in user_config:
+                for key in user_config[id]:
+                    if key in self.plugins[id].options:
+                        self.plugins[id].options[key]['value'] = user_config[id][key]
 
     def register_options(self, id: str, options: dict):
         """
@@ -271,6 +285,58 @@ class Plugins:
         with io.open(path, mode="w", encoding="utf-8") as f:
             ini.write(f)
 
+    def has_preset(self, id: str) -> bool:
+        """
+        Check if preset exists
+
+        :param id: preset id
+        :return: True if preset exists
+        """
+        return id in self.presets
+
+    def get_preset(self, id: str) -> dict:
+        """
+        Get preset by id
+
+        :param id: preset id
+        :return: preset dict
+        """
+        if self.has_preset(id):
+            return self.presets[id]
+
+    def set_preset(self, id: str, preset: dict):
+        """
+        Set config value
+
+        :param id: id
+        :param preset: preset
+        """
+        self.presets[id] = preset
+
+    def replace_presets(self, presets: dict):
+        """
+        Replace presets
+
+        :param presets: presets dict
+        """
+        self.presets = presets
+
+    def load_presets(self):
+        """Load presets"""
+        self.presets = self.provider.load()
+
+    def get_presets(self) -> dict:
+        """
+        Return all presets
+
+        :return: dict with presets
+        """
+        return self.presets
+
+    def save_presets(self):
+        """Save presets"""
+        self.provider.save(self.presets)
+
     def dump_locale_by_id(self, id: str, path: str):
         """
         Dump locale by id
@@ -290,5 +356,9 @@ class Plugins:
             domain = 'plugin.' + id
             for lang in langs:
                 path = os.path.join(
-                    self.window.core.config.get_app_path(), 'data', 'locale', domain + '.' + lang + '.ini')
-                self.dump_locale(self.plugins[id], path)
+                    self.window.core.config.get_app_path(),
+                    'data',
+                    'locale',
+                    domain + '.' + lang + '.ini'
+                )
+                self.dump_locale(self.plugins[id], str(path))

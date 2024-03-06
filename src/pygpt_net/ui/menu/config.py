@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 16:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -51,8 +51,8 @@ class Config:
         json_files.append("attachments.json")
         json_files.append("assistants.json")
         json_files.append("config.json")
-        json_files.append("indexes.json")
         json_files.append("models.json")
+        json_files.append("plugin_presets.json")
 
         # create submenu for css files
         self.window.ui.menu['config.edit.css'] = QMenu(trans("menu.config.edit.css"), self.window)

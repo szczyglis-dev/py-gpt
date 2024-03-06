@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 class Confirm:
@@ -122,6 +122,12 @@ class Confirm:
         elif type == 'plugin.settings.defaults.app':
             self.window.controller.plugins.settings.load_defaults_app(True)
 
+        # plugins presets
+        elif type == 'plugin.presets.delete':
+            self.window.controller.plugins.presets.delete_by_idx(id, True)
+        elif type == 'plugin.presets.reset':
+            self.window.controller.plugins.presets.reset_by_idx(id, True)
+
         # models
         elif type == 'models.editor.delete':
             self.window.controller.model.editor.delete_by_idx(id, True)
@@ -175,6 +181,8 @@ class Confirm:
             self.window.controller.files.update_name(id, name)
         elif type == 'notepad':
             self.window.controller.notepad.update_name(id, name, True)
+        elif type == 'plugin.preset':
+            self.window.controller.plugins.presets.update_name(id, name)
 
     def accept_create(self, type: str, id: any, name: str):
         """
@@ -190,6 +198,8 @@ class Confirm:
             self.window.controller.files.touch_file(id, name, True)
         elif type == 'duplicate':
             self.window.controller.files.duplicate_local(id, name, True)
+        elif type == 'plugin.preset':
+            self.window.controller.plugins.presets.create(id, name)
 
     def dismiss_rename(self):
         """Dismiss rename dialog"""

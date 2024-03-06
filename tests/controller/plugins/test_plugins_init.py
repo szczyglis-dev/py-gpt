@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.26 20:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 from unittest.mock import MagicMock
@@ -66,6 +66,8 @@ def setup_menu(mock_window):
 def test_setup_config(mock_window):
     """Test setup plugins config"""
     plugins = Plugins(mock_window)
+    mock_window.core.plugins = MagicMock()
+    mock_window.core.plugins.get_ids = MagicMock(return_value=['test'])
     mock_window.core.config.data['plugins_enabled'] = {'test': True}
     plugins.enable = MagicMock()
     plugins.setup_config()

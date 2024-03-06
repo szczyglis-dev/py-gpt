@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.27 18:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction
 
+from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
 from pygpt_net.core.dispatcher import Event
 from pygpt_net.item.ctx import CtxItem
@@ -26,14 +27,26 @@ class Plugins:
         """
         self.window = window
         self.settings = Settings(window)
+        self.presets = Presets(window)
         self.enabled = {}
 
     def setup(self):
         """Set up plugins"""
         self.setup_menu()
         self.setup_ui()
-        self.setup_config()
+
+        self.presets.preset_to_current()  # load from presets
+        self.reconfigure(silent=True)  # load plugins settings
+
+    def reconfigure(self, silent: bool = False):
+        """
+        Reconfigure plugins
+
+        :param silent: silent mode
+        """
+        self.setup_config(silent=silent)
         self.update()
+        self.presets.update_menu()
 
     def setup_ui(self):
         """Set up plugins UI"""
@@ -63,11 +76,20 @@ class Plugins:
             self.window.ui.menu['plugins'][id].setToolTip(tooltip)
             self.window.ui.menu['menu.plugins'].addAction(self.window.ui.menu['plugins'][id])
 
-    def setup_config(self):
-        """Enable plugins from config"""
-        for id in self.window.core.config.get('plugins_enabled'):
-            if self.window.core.config.data['plugins_enabled'][id]:
-                self.enable(id)
+    def setup_config(self, silent: bool = False):
+        """
+        Enable plugins from config
+
+        :param silent: silent mode
+        """
+        for id in self.window.core.plugins.get_ids():
+            if id in self.window.core.config.get('plugins_enabled'):
+                if self.window.core.config.data['plugins_enabled'][id]:
+                    self.enable(id)
+                else:
+                    self.disable(id, silent=silent)
+            else:
+                self.disable(id, silent=silent)
 
     def update(self):
         """Update plugins menu"""
@@ -105,25 +127,27 @@ class Plugins:
         self.update_info()
         self.update()
 
-    def disable(self, id: str):
+    def disable(self, id: str, silent: bool = False):
         """
         Disable plugin
 
         :param id: plugin id
+        :param silent: silent mode
         """
         if self.window.core.plugins.is_registered(id):
             self.enabled[id] = False
             self.window.core.plugins.disable(id)
 
-            # dispatch plugin disable event
-            event = Event(Event.DISABLE, {
-                'value': id,
-            })
-            self.window.core.dispatcher.dispatch(event, all=True)  # dispatch to all plugins, including disabled now
+            if not silent:
+                # dispatch plugin disable event
+                event = Event(Event.DISABLE, {
+                    'value': id,
+                })
+                self.window.core.dispatcher.dispatch(event, all=True)  # dispatch to all plugins, including disabled now
 
-            # update audio menu
-            if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
-                self.window.controller.audio.update()
+                # update audio menu
+                if self.has_type(id, 'audio.input') or self.has_type(id, 'audio.output'):
+                    self.window.controller.audio.update()
 
         self.update_info()
         self.update()
@@ -158,6 +182,7 @@ class Plugins:
         self.window.controller.ui.mode.update()  # refresh active elements
         self.window.controller.ui.vision.update()  # vision camera
         self.window.controller.attachment.update()  # attachments update
+        self.presets.save_current()  # save settings in current preset
 
     def set_by_tab(self, idx: int):
         """
