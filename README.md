@@ -2887,8 +2887,10 @@ may consume additional tokens that are not displayed in the main window.
 # 2.1.10 (2024-03-06)
 
 - Added `DB Viewer` in Developer menu.
-- Added label color filter in context list.
-- Added context item delete option.
+- Added label color filter in context list - issue #23
+- Added context item delete option - issue #23
+- Added presets for plugins - issue #23
+- Fixed and improved autonomous agents run - issue #23
 
 # 2.1.9 (2024-03-04)
 
@@ -3111,6 +3113,8 @@ The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in th
 # Special thanks
 
 GitHub community:
+
+- **gfsysa**
 
 - **kaneda2004**
 

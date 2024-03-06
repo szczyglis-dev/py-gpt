@@ -34,6 +34,7 @@ class About:
         :return: contributors list
         """
         return [
+            "gfsysa",
             "kaneda2004",
             "moritz-t-w",
         ]

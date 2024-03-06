@@ -146,6 +146,7 @@
   },
   "presence_penalty": 0.0,
   "preset": "current.chat",
+  "preset.plugins": "",
   "prompt": "",
   "render.plain": false,
   "send_clear": true,

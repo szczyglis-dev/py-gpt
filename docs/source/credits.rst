@@ -27,6 +27,7 @@ Special thanks
 ===============
 GitHub community:
 
+* **gfsysa**
 * **kaneda2004**
 * **moritz-t-w**
 
