@@ -1051,6 +1051,12 @@ class Patch:
                 # current
                 if 'ctx.records.filter.labels' not in data:
                     data["ctx.records.filter.labels"] = [0, 1, 2, 3, 4, 5, 6, 7]
+
+                if 'preset.plugins' not in data:
+                    data["preset.plugins"] = ""
+
+                if 'ctx.records.filter' in data and str(data["ctx.records.filter"]).startswith("label"):
+                    data["ctx.records.filter"] = "all"
                 updated = True
 
         # update file
