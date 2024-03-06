@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -194,6 +194,9 @@ class Plugin(BasePlugin):
         if not self.is_allowed() and name != Event.DISABLE:
             return
 
+        if name != Event.FORCE_STOP and name != Event.PLUGIN_SETTINGS_CHANGED and not self.is_active_prompt():
+            return
+
         if name == Event.CTX_BEFORE:
             self.on_ctx_before(ctx)
 
@@ -235,6 +238,17 @@ class Plugin(BasePlugin):
                     data['commands'],
                 )
 
+    def is_active_prompt(self) -> bool:
+        """
+        Check if active prompt is enabled
+
+        :return: True if active prompt is enabled
+        """
+        for item in self.get_option_value("prompts"):
+            if item["enabled"]:
+                return True
+        return False
+
     def on_system_prompt(self, prompt: str) -> str:
         """
         Event: SYSTEM_PROMPT
@@ -242,7 +256,9 @@ class Plugin(BasePlugin):
         :param prompt: prompt
         :return: updated prompt
         """
-        return self.window.controller.agent.flow.on_system_prompt(
+        pre_prompt = ("YOU ARE NOW AN AUTONOMOUS AGENT AND YOU ARE ENTERING NOW INTO AGENT MODE.\n"
+                      "Use below instructions in every agent run iteration:\n\n")
+        return pre_prompt + self.window.controller.agent.flow.on_system_prompt(
             prompt,
             append_prompt=self.get_first_active_prompt(),
             auto_stop=self.get_option_value("auto_stop"),

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.03 22:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -179,6 +179,7 @@ class Plugin(BasePlugin):
         ]:
             if self.mode in self.ignored_modes:  # ignore
                 return
+
             if ctx.reply:
                 return
 
@@ -233,7 +234,7 @@ class Plugin(BasePlugin):
         :param ctx: CtxItem
         :return: updated system prompt
         """
-        if not self.get_option_value("ask_llama_first"):
+        if not self.get_option_value("ask_llama_first") or self.window.controller.agent.enabled():
             return prompt
 
         question = ctx.input

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.16 02:00:00                  #
+# Updated Date: 2024.03.06 22:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -46,12 +46,12 @@ class Flow:
         """
         stop_cmd = ""
         if auto_stop:
-            stop_cmd = '\n\nON FINISH: When you believe that the task has been completed 100% and all goals have ' \
-                       'been achieved, include the following command in your response, which will stop further ' \
-                       'conversation. Remember to put it in the form as given, at the end of response and including ' \
-                       'the surrounding ~###~ marks: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
-
-        # select prompt to use
+            stop_cmd = '\n\nSTATUS UPDATE: You can use "goal_update" command to update status of the task. Remember to put it in the form as given, at the end of response and including ' \
+                       'the surrounding ~###~ marks, e.g.: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
+            stop_cmd+= '\nON GOAL FINISH: When you believe that the task has been completed 100% and all goals have ' \
+                       'been achieved, run "goal_update" command with status = "finished".'
+            stop_cmd += '\nON PAUSE, FAILED OR WAIT: If more data from user is needed to achieve the goal or task run must be paused or ' \
+                        'task was failed, THEN STOP REASONING and include "goal_update" command with one of these statuses: "pause", "failed" or "wait"'
         if append_prompt is not None and append_prompt.strip() != "":
             append_prompt = "\n" + append_prompt
         prompt += str(append_prompt) + stop_cmd
@@ -186,6 +186,8 @@ class Flow:
         if not is_cmd:
             return
 
+        pause_status = ["pause", "failed", "wait"]
+
         for item in my_commands:
             try:
                 if item["cmd"] == "goal_update":
@@ -198,6 +200,10 @@ class Flow:
                                 trans("notify.agent.goal.title"),
                                 trans("notify.agent.goal.content"),
                             )
+                    elif item["params"]["status"] in pause_status:
+                        self.on_stop()
+                        self.window.ui.status(trans('status.finished'))  # show info
+                        self.finished = True
             except Exception as e:
                 self.window.core.debug.error(e)
                 return
