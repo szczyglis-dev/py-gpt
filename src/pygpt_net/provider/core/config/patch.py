@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.06 02:00:00                  #
 # ================================================== #
 
 import os
@@ -1010,6 +1010,7 @@ class Patch:
                 if 'cmd_files' in data["plugins"] and 'syntax_file_index' in data["plugins"]["cmd_files"]:
                     syntax = '"file_index": use it to index (embed in Vector Store) a file or directory, params: "path"'
                     data["plugins"]["cmd_files"]["syntax_file_index"] = syntax
+                    updated = True
 
             # < 2.1.8 - syntax
             if old < parse_version("2.1.8"):
@@ -1017,6 +1018,7 @@ class Patch:
                 if 'idx_llama_index' in data["plugins"] and 'syntax_prepare_question' in data["plugins"]["idx_llama_index"]:
                     syntax = 'Simplify the question into a short query for retrieving information from a vector store.'
                     data["plugins"]["idx_llama_index"]["syntax_prepare_question"] = syntax
+                    updated = True
 
             # < 2.1.9 - syntax
             if old < parse_version("2.1.9"):
@@ -1026,6 +1028,30 @@ class Patch:
                     data["plugins"]["cmd_files"]["syntax_read_file"] = syntax
                 if 'log.events' not in data:
                     data["log.events"] = False
+                    updated = True
+
+            # < 2.1.10
+            if old < parse_version("2.1.10"):
+                print("Migrating config from < 2.1.10...")
+
+                # fix missing updated before >>>
+                if 'cmd_files' in data["plugins"] and 'syntax_file_index' in data["plugins"]["cmd_files"]:
+                    syntax = '"file_index": use it to index (embed in Vector Store) a file or directory, params: "path"'
+                    data["plugins"]["cmd_files"]["syntax_file_index"] = syntax
+                if 'idx_llama_index' in data["plugins"] and 'syntax_prepare_question' in data["plugins"]["idx_llama_index"]:
+                    syntax = 'Simplify the question into a short query for retrieving information from a vector store.'
+                    data["plugins"]["idx_llama_index"]["syntax_prepare_question"] = syntax
+                if 'cmd_files' in data["plugins"] and 'syntax_read_file' in data["plugins"]["cmd_files"]:
+                    syntax = '"read_file": read data from file, if multiple files then pass list of files, params: "filename"'
+                    data["plugins"]["cmd_files"]["syntax_read_file"] = syntax
+                if 'log.events' not in data:
+                    data["log.events"] = False
+                # <<< fix missing updated before
+
+                # current
+                if 'ctx.records.filter.labels' not in data:
+                    data["ctx.records.filter.labels"] = [0, 1, 2, 3, 4, 5, 6, 7]
+                updated = True
 
         # update file
         migrated = False

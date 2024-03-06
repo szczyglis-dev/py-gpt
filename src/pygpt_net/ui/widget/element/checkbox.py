@@ -26,8 +26,9 @@ class ColorCheckbox(QWidget):
 
     def build(self):
         """Build color labels checkboxes"""
+        self.window.ui.nodes['filter.ctx.label.colors'] = QLabel(trans("filter.ctx.label.colors"))
         layout = QHBoxLayout()
-        layout.addWidget(QLabel(trans("filter.ctx.label.colors")))
+        layout.addWidget(self.window.ui.nodes['filter.ctx.label.colors'])
         layout.setContentsMargins(0, 0, 0, 0)
         labels = self.window.controller.ui.get_colors()
 

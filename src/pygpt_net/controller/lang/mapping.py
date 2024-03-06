@@ -76,6 +76,7 @@ class Mapping:
         nodes['painter.btn.clear'] = 'painter.btn.clear'
 
         # calendar
+        nodes['filter.ctx.label.colors'] = 'filter.ctx.label.colors'
         nodes['filter.ctx.label'] = 'filter.ctx.label'
         nodes['filter.ctx.radio.all'] = 'filter.ctx.radio.all'
         nodes['filter.ctx.radio.pinned'] = 'filter.ctx.radio.pinned'

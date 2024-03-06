@@ -1,3 +1,9 @@
+2.1.10 (2024-03-06)
+
+- Added "DB Viewer" in Developer menu.
+- Added label color filter in context list.
+- Added context item delete option.
+
 2.1.9 (2024-03-04)
 
 - A new option has been added to the "Web Search" plugin: "web_index_query", which allows for indexing a web and external content in a temporary index (in memory) and quickly querying its content. Works similar to "query_file" command.
