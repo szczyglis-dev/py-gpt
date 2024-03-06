@@ -51,7 +51,7 @@ class Flow:
             stop_cmd+= '\nON GOAL FINISH: When you believe that the task has been completed 100% and all goals have ' \
                        'been achieved, run "goal_update" command with status = "finished".'
             stop_cmd += '\nON PAUSE, FAILED OR WAIT: If more data from user is needed to achieve the goal or task run must be paused or ' \
-                        'task was failed, THEN STOP REASONING and include "goal_update" command with one of these statuses: "pause", "failed" or "wait"'
+                        'task was failed or when the conversation falls into a loop, THEN STOP REASONING and include "goal_update" command with one of these statuses: "pause", "failed" or "wait"'
         if append_prompt is not None and append_prompt.strip() != "":
             append_prompt = "\n" + append_prompt
         prompt += str(append_prompt) + stop_cmd
@@ -149,7 +149,9 @@ class Flow:
 
         :param ctx: CtxItem
         """
-        self.prev_output = ctx.output
+        self.prev_output = "continue..."
+        if ctx.extra_ctx is not None and ctx.extra_ctx != "":
+            self.prev_output = ctx.extra_ctx
 
     def on_cmd(
             self,
