@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.31 20:00:00                  #
+# Updated Date: 2024.03.06 23:00:00                  #
 # ================================================== #
 
 import os
@@ -21,7 +21,7 @@ def test_on_system_prompt(mock_window):
     """Test on system prompt"""
     flow = Flow(mock_window)
     result = flow.on_system_prompt("prompt", "append_prompt", True)
-    assert result.startswith("prompt\nappend_prompt\n\nON FINISH:")
+    assert result.startswith("prompt\nappend_prompt\n\nSTATUS UPDATE:")
 
 
 def test_on_input_before(mock_window):
