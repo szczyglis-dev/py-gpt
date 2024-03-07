@@ -83,7 +83,7 @@ class Storage:
             if search_string:
                 if search_content:
                     where_clauses.append(
-                        "m.name LIKE :search_string OR i.input LIKE :search_string OR i.output LIKE :search_string"
+                        "(m.name LIKE :search_string OR i.input LIKE :search_string OR i.output LIKE :search_string)"
                     )
                     join_clauses.append("LEFT JOIN ctx_item i ON m.id = i.meta_id")
                 else:
