@@ -2891,6 +2891,7 @@ may consume additional tokens that are not displayed in the main window.
 - Added context item delete option - issue #23
 - Added presets for plugins - issue #23
 - Fixed and improved autonomous agents run - issue #23
+- Chinese language added to locales - issue #24
 
 # 2.1.9 (2024-03-04)
 
