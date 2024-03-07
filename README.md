@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.10** | build: **2024.03.06** | Python: **>=3.10, <3.12**
+Release: **2.1.11** | build: **2024.03.07** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2883,6 +2883,12 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.11 (2024-03-07)
+
+- Fixed search query if multiple labels selected
+- Added prevent from saving empty notes in calendar
+- Added display empty dates in DB Viewer if timestamp = 0
 
 # 2.1.10 (2024-03-06)
 

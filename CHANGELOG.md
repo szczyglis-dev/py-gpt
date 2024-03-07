@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 2.1.11 (2024-03-07)
+
+- Fixed search query if multiple labels selected
+- Added prevent from saving empty notes in calendar
+- Added display empty dates in DB Viewer if timestamp = 0
+
 # 2.1.10 (2024-03-06)
 
 - Added `DB Viewer` in Developer menu.
