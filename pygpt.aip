@@ -16,7 +16,7 @@
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="MSIFASTINSTALL" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="Manufacturer" Value="Marcin Szczygliński"/>
-    <ROW Property="ProductCode" Value="1033:{068EA3AF-EF1F-4C2D-9AD3-4609A83A817C} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{7355FEF8-789B-498F-A025-2B49B9875D98} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="PyGPT - Desktop AI Assistant"/>
     <ROW Property="ProductVersion" Value="2.1.10"/>
@@ -489,502 +489,502 @@
     <ROW Directory="zoneinfo_Dir" Directory_Parent="pytz_Dir" DefaultDir="zoneinfo"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
-    <ROW Component="ACT" ComponentId="{05C4E8F6-304D-4C13-8E73-972B8B159E6B}" Directory_="Australia_Dir" Attributes="0" KeyPath="ACT" Type="0"/>
-    <ROW Component="ACT_1" ComponentId="{B697FF11-F5EC-4446-8A23-AC00E2B0370C}" Directory_="Australia_1_Dir" Attributes="0" KeyPath="ACT_1" Type="0"/>
-    <ROW Component="ACT_2" ComponentId="{C0EFB9D4-56BA-40B4-B60C-C834F1C0ABF6}" Directory_="Australia_2_Dir" Attributes="0" KeyPath="ACT_2" Type="0"/>
-    <ROW Component="APPDIR" ComponentId="{422E0619-C454-4861-AB96-DD47947B3D2D}" Directory_="APPDIR" Attributes="0"/>
-    <ROW Component="AST4" ComponentId="{A7A702A4-DFAC-4A32-A15C-3E24079A6F0E}" Directory_="SystemV_Dir" Attributes="0" KeyPath="AST4" Type="0"/>
-    <ROW Component="Abidjan" ComponentId="{B93E6964-B86D-465B-94C6-6FD38F96D5A8}" Directory_="Africa_Dir" Attributes="0" KeyPath="Abidjan" Type="0"/>
-    <ROW Component="Abidjan_1" ComponentId="{5F51E606-2B82-426E-ADCA-6B279747664E}" Directory_="Africa_1_Dir" Attributes="0" KeyPath="Abidjan_1" Type="0"/>
-    <ROW Component="Abidjan_2" ComponentId="{9A0B63D6-D0B4-4302-98D9-A0BAC77E8035}" Directory_="Africa_2_Dir" Attributes="0" KeyPath="Abidjan_2" Type="0"/>
-    <ROW Component="Acre" ComponentId="{749ECEBD-0C27-4D50-B772-B1B93398F3F2}" Directory_="Brazil_Dir" Attributes="0" KeyPath="Acre" Type="0"/>
-    <ROW Component="Acre_1" ComponentId="{46FEB116-9DDC-44D4-997A-4DA97EEE5D28}" Directory_="Brazil_1_Dir" Attributes="0" KeyPath="Acre_1" Type="0"/>
-    <ROW Component="Acre_2" ComponentId="{A42CBC04-8180-45E5-BDEA-FF86786DBB7B}" Directory_="Brazil_2_Dir" Attributes="0" KeyPath="Acre_2" Type="0"/>
-    <ROW Component="Adak" ComponentId="{C27CA950-BA16-457E-A1B6-499DE870224B}" Directory_="America_Dir" Attributes="0" KeyPath="Adak" Type="0"/>
-    <ROW Component="Adak_1" ComponentId="{F1ECEEB1-E051-43EE-BB1D-2B17A05019F0}" Directory_="America_1_Dir" Attributes="0" KeyPath="Adak_1" Type="0"/>
-    <ROW Component="Adak_2" ComponentId="{0340D334-77BF-4B6B-A9A0-4E0CC925B139}" Directory_="America_2_Dir" Attributes="0" KeyPath="Adak_2" Type="0"/>
-    <ROW Component="Aden" ComponentId="{DA0B612D-71EF-4490-9C1F-159C422B1C4A}" Directory_="Asia_Dir" Attributes="0" KeyPath="Aden" Type="0"/>
-    <ROW Component="Aden_1" ComponentId="{BC6347C8-417E-46B5-AFD5-89E986F15D54}" Directory_="Asia_1_Dir" Attributes="0" KeyPath="Aden_1" Type="0"/>
-    <ROW Component="Aden_2" ComponentId="{F81F78DE-772E-4C80-8237-87A97F264CB6}" Directory_="Asia_2_Dir" Attributes="0" KeyPath="Aden_2" Type="0"/>
-    <ROW Component="Alaska" ComponentId="{19866F61-DB22-48CB-9BB8-9C423A4DEBBB}" Directory_="US_Dir" Attributes="0" KeyPath="Alaska" Type="0"/>
-    <ROW Component="Alaska_1" ComponentId="{480A87D6-6A06-4F16-A8F9-8ED0EE772336}" Directory_="US_1_Dir" Attributes="0" KeyPath="Alaska_1" Type="0"/>
-    <ROW Component="Alaska_2" ComponentId="{6FA65837-3493-4C9D-ADCB-4727EF8FA0D6}" Directory_="US_2_Dir" Attributes="0" KeyPath="Alaska_2" Type="0"/>
-    <ROW Component="Amsterdam" ComponentId="{D2C53CA1-BB5C-467D-AD74-5D4FD9691848}" Directory_="Europe_Dir" Attributes="0" KeyPath="Amsterdam" Type="0"/>
-    <ROW Component="Amsterdam_1" ComponentId="{6C5E8CD2-A66A-4539-99E9-17A5A94EB137}" Directory_="Europe_1_Dir" Attributes="0" KeyPath="Amsterdam_1" Type="0"/>
-    <ROW Component="Amsterdam_2" ComponentId="{849E2ECC-12B2-4808-B43F-D41EEDA76CFF}" Directory_="Europe_2_Dir" Attributes="0" KeyPath="Amsterdam_2" Type="0"/>
-    <ROW Component="Antananarivo" ComponentId="{AA3692AF-EAAA-4667-8FCF-8F8BD566F04B}" Directory_="Indian_Dir" Attributes="0" KeyPath="Antananarivo" Type="0"/>
-    <ROW Component="Antananarivo_1" ComponentId="{F041EC49-E04C-4E56-B58D-ECF1ECE25D20}" Directory_="Indian_1_Dir" Attributes="0" KeyPath="Antananarivo_1" Type="0"/>
-    <ROW Component="Antananarivo_2" ComponentId="{38ABB553-6287-4665-9AE8-E2A03ADD6378}" Directory_="Indian_2_Dir" Attributes="0" KeyPath="Antananarivo_2" Type="0"/>
-    <ROW Component="Apia" ComponentId="{55223953-8C44-4B35-8EC8-A95F249E0DB1}" Directory_="Pacific_Dir" Attributes="0" KeyPath="Apia" Type="0"/>
-    <ROW Component="Apia_1" ComponentId="{4089E310-CA98-47B9-B250-633880AB310C}" Directory_="Pacific_1_Dir" Attributes="0" KeyPath="Apia_1" Type="0"/>
-    <ROW Component="Apia_2" ComponentId="{0D29FF08-485A-4071-AF82-56D67BFD7E6A}" Directory_="Pacific_2_Dir" Attributes="0" KeyPath="Apia_2" Type="0"/>
-    <ROW Component="Atlantic" ComponentId="{62414C54-DDDD-4679-9B2A-5CA20CEC15E8}" Directory_="Canada_Dir" Attributes="0" KeyPath="Atlantic" Type="0"/>
-    <ROW Component="Atlantic_2" ComponentId="{B7D9A6C8-3A8A-45B1-A259-C6EDD6B01E02}" Directory_="Canada_1_Dir" Attributes="0" KeyPath="Atlantic_1" Type="0"/>
-    <ROW Component="Atlantic_3" ComponentId="{B4688DD1-0B9D-414D-819D-E78F63A58349}" Directory_="Canada_2_Dir" Attributes="0" KeyPath="Atlantic_2" Type="0"/>
-    <ROW Component="Azores" ComponentId="{1E195EA7-86FD-4CA1-9410-48787551B8F0}" Directory_="Atlantic_Dir" Attributes="0" KeyPath="Azores" Type="0"/>
-    <ROW Component="Azores_1" ComponentId="{B0005912-8602-4192-AC5A-8B1986E641B7}" Directory_="Atlantic_1_Dir" Attributes="0" KeyPath="Azores_1" Type="0"/>
-    <ROW Component="Azores_2" ComponentId="{847A73B2-A19C-444D-B6E3-3DF033ED9120}" Directory_="Atlantic_2_Dir" Attributes="0" KeyPath="Azores_2" Type="0"/>
-    <ROW Component="BajaNorte" ComponentId="{A38E04BE-9D9B-40C0-B417-64FAEB3ED0F8}" Directory_="Mexico_Dir" Attributes="0" KeyPath="BajaNorte" Type="0"/>
-    <ROW Component="BajaNorte_1" ComponentId="{6CFBAC3C-8171-4B47-990F-4A4F02786624}" Directory_="Mexico_1_Dir" Attributes="0" KeyPath="BajaNorte_1" Type="0"/>
-    <ROW Component="BajaNorte_2" ComponentId="{9163A8A8-B7BE-4468-8BC0-886CEB822DB4}" Directory_="Mexico_2_Dir" Attributes="0" KeyPath="BajaNorte_2" Type="0"/>
-    <ROW Component="Beulah" ComponentId="{103C1FD0-B354-4017-9002-22C603783481}" Directory_="North_Dakota_Dir" Attributes="0" KeyPath="Beulah" Type="0"/>
-    <ROW Component="Beulah_1" ComponentId="{15F65EAE-6EED-4088-B0BA-CF78647725E7}" Directory_="North_Dakota_1_Dir" Attributes="0" KeyPath="Beulah_1" Type="0"/>
-    <ROW Component="Beulah_2" ComponentId="{ED531A00-C8C9-4FF1-985F-748D49464E9E}" Directory_="North_Dakota_2_Dir" Attributes="0" KeyPath="Beulah_2" Type="0"/>
-    <ROW Component="Buenos_Aires" ComponentId="{D7047BE7-C3AB-4D60-89DA-063C673EACD9}" Directory_="Argentina_Dir" Attributes="0" KeyPath="Buenos_Aires" Type="0"/>
-    <ROW Component="Buenos_Aires_1" ComponentId="{B7347CED-98F0-4C80-8268-0D27BB924BF5}" Directory_="Argentina_1_Dir" Attributes="0" KeyPath="Buenos_Aires_2" Type="0"/>
-    <ROW Component="Buenos_Aires_2" ComponentId="{68C81003-BF2F-4E94-B5EB-F72BBD9235C9}" Directory_="Argentina_2_Dir" Attributes="0" KeyPath="Buenos_Aires_4" Type="0"/>
-    <ROW Component="CET" ComponentId="{78A3CB52-FD24-46E0-8036-4DA84EE0B2A3}" Directory_="zoneinfo_Dir" Attributes="0" KeyPath="CET" Type="0"/>
-    <ROW Component="CET_1" ComponentId="{569FC68D-C59F-4D30-8E62-82773722F07C}" Directory_="tzdata_Dir" Attributes="0" KeyPath="CET_1" Type="0"/>
-    <ROW Component="CET_2" ComponentId="{7470BC93-385B-4DA0-9322-E6A3BB615C13}" Directory_="zoneinfo_1_Dir" Attributes="0" KeyPath="CET_2" Type="0"/>
-    <ROW Component="COPYING" ComponentId="{B73BBDC5-7ACB-4EB3-8EB1-ED8C5AA2706E}" Directory_="licenses_1_Dir" Attributes="0" KeyPath="COPYING" Type="0"/>
-    <ROW Component="Casey" ComponentId="{4D0F26B7-444C-4770-9DBB-8E1C275C8552}" Directory_="Antarctica_Dir" Attributes="0" KeyPath="Casey" Type="0"/>
-    <ROW Component="Casey_1" ComponentId="{491A6852-10D8-4856-8040-D1E4553CA856}" Directory_="Antarctica_1_Dir" Attributes="0" KeyPath="Casey_1" Type="0"/>
-    <ROW Component="Casey_2" ComponentId="{E6E44908-4AB6-4362-857E-A90E72F81D45}" Directory_="Antarctica_2_Dir" Attributes="0" KeyPath="Casey_2" Type="0"/>
-    <ROW Component="Collection.py" ComponentId="{B07E1789-9092-4F93-B7A3-C0933AF78A48}" Directory_="models_Dir" Attributes="0" KeyPath="Collection.py" Type="0"/>
-    <ROW Component="Continental" ComponentId="{B401A33E-790A-446B-BA72-743BDDC8ACD1}" Directory_="Chile_Dir" Attributes="0" KeyPath="Continental" Type="0"/>
-    <ROW Component="Continental_1" ComponentId="{8B76366A-0C69-4632-A10F-4938F7879418}" Directory_="Chile_1_Dir" Attributes="0" KeyPath="Continental_1" Type="0"/>
-    <ROW Component="Continental_2" ComponentId="{86C9D9DE-A069-4C16-ABB0-2E4A6B5D0006}" Directory_="Chile_2_Dir" Attributes="0" KeyPath="Continental_2" Type="0"/>
-    <ROW Component="GMT" ComponentId="{18A49BDF-CBAA-4D3E-A1D9-1C05A9CB4319}" Directory_="Etc_Dir" Attributes="0" KeyPath="GMT" Type="0"/>
-    <ROW Component="GMT_1" ComponentId="{1BCD140A-4E2A-4124-9652-46D7BED81767}" Directory_="Etc_1_Dir" Attributes="0" KeyPath="GMT_2" Type="0"/>
-    <ROW Component="GMT_2" ComponentId="{6A789A8E-048A-41AF-BC47-35C5AEA954E8}" Directory_="Etc_2_Dir" Attributes="0" KeyPath="GMT_4" Type="0"/>
-    <ROW Component="INSTALLER" ComponentId="{C03ED5C7-FCFA-4D2A-A8D4-80CAADF7A869}" Directory_="attrs23.2.0.distinfo_Dir" Attributes="0" KeyPath="INSTALLER" Type="0"/>
-    <ROW Component="INSTALLER_1" ComponentId="{4DC0D9B2-9CAE-44F2-8B05-11C18F24098E}" Directory_="cryptography42.0.2.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_1" Type="0"/>
-    <ROW Component="INSTALLER_2" ComponentId="{EB029210-C422-4558-90FC-7B4B3A4937C0}" Directory_="docker7.0.0.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_2" Type="0"/>
-    <ROW Component="INSTALLER_3" ComponentId="{2A421F0D-39B8-47C3-A119-BE90C7D467B6}" Directory_="google_api_core2.17.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_3" Type="0"/>
-    <ROW Component="INSTALLER_4" ComponentId="{33318B6E-37EC-4E04-BED1-3AADD1FD5696}" Directory_="google_api_python_client2.120.0_Dir" Attributes="0" KeyPath="INSTALLER_4" Type="0"/>
-    <ROW Component="INSTALLER_5" ComponentId="{C96A1A58-76DC-4D6D-BCE0-C318F6464055}" Directory_="importlib_metadata6.11.0.distin_Dir" Attributes="0" KeyPath="INSTALLER_5" Type="0"/>
-    <ROW Component="INSTALLER_6" ComponentId="{8CD8ECE2-27C2-4DBD-864F-C5562786DED9}" Directory_="pydantic2.6.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_13" Type="0"/>
-    <ROW Component="INSTALLER_7" ComponentId="{95D73763-D834-4F81-9B23-5E66FC6293E5}" Directory_="redis5.0.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_14" Type="0"/>
-    <ROW Component="INSTALLER_8" ComponentId="{464B9145-A142-423E-A6BE-D8A3B99E1958}" Directory_="urllib31.26.18.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_17" Type="0"/>
-    <ROW Component="Indianapolis" ComponentId="{B59D0C90-0D13-44A8-A129-CF41DA23DC05}" Directory_="Indiana_Dir" Attributes="0" KeyPath="Indianapolis" Type="0"/>
-    <ROW Component="Indianapolis_1" ComponentId="{CA0A662E-4167-4FD8-B17C-894C9AE1580D}" Directory_="Indiana_1_Dir" Attributes="0" KeyPath="Indianapolis_2" Type="0"/>
-    <ROW Component="Indianapolis_2" ComponentId="{028A3B27-6168-41DC-B36A-23166428AA56}" Directory_="Indiana_2_Dir" Attributes="0" KeyPath="Indianapolis_4" Type="0"/>
-    <ROW Component="LICENSE" ComponentId="{FB16BA42-6D53-4987-BE58-A863387B429F}" Directory_="licenses_Dir" Attributes="0" KeyPath="LICENSE" Type="0"/>
-    <ROW Component="LICENSE_1" ComponentId="{735D1540-989F-4AFC-9C2E-C870029A456E}" Directory_="licenses_2_Dir" Attributes="0" KeyPath="LICENSE_8" Type="0"/>
-    <ROW Component="LICENSE_2" ComponentId="{5916053A-9248-465F-A011-3797394AEF81}" Directory_="licenses_3_Dir" Attributes="0" KeyPath="LICENSE_9" Type="0"/>
-    <ROW Component="LICENSE_3" ComponentId="{22AF4277-151B-4D34-9813-BDB9F36F4305}" Directory_="licenses_4_Dir" Attributes="0" KeyPath="LICENSE_10" Type="0"/>
-    <ROW Component="LICENSE_4" ComponentId="{DDC89F62-2F32-4069-9C9F-225554BB53A7}" Directory_="driver_Dir" Attributes="0" KeyPath="LICENSE_12" Type="0"/>
-    <ROW Component="LICENSE_5" ComponentId="{CCD36396-24E4-4A4D-93FD-CEC4DBCE192F}" Directory_="licenses_5_Dir" Attributes="0" KeyPath="LICENSE_13" Type="0"/>
-    <ROW Component="LatoBlack.ttf" ComponentId="{D492C53C-6168-4315-ACC8-FB348AF76000}" Directory_="Lato_Dir" Attributes="0" Type="0"/>
-    <ROW Component="Longyearbyen" ComponentId="{D9979EFF-444F-4984-90A6-FAA93EB40F8D}" Directory_="Arctic_Dir" Attributes="0" KeyPath="Longyearbyen" Type="0"/>
-    <ROW Component="Longyearbyen_1" ComponentId="{5E718074-EDDF-442D-9F6B-3613BB66D473}" Directory_="Arctic_1_Dir" Attributes="0" KeyPath="Longyearbyen_1" Type="0"/>
-    <ROW Component="Longyearbyen_2" ComponentId="{7A5190FF-2DD0-449A-AB19-BD55D3E25C2B}" Directory_="Arctic_2_Dir" Attributes="0" KeyPath="Longyearbyen_2" Type="0"/>
-    <ROW Component="Louisville" ComponentId="{5B6CC67B-DA70-439F-9093-AAA9BEF38F3A}" Directory_="Kentucky_Dir" Attributes="0" KeyPath="Louisville" Type="0"/>
-    <ROW Component="Louisville_1" ComponentId="{60851DBC-7AB4-420E-BA70-2C39C6F10453}" Directory_="Kentucky_1_Dir" Attributes="0" KeyPath="Louisville_2" Type="0"/>
-    <ROW Component="Louisville_2" ComponentId="{A9668FBA-F0EB-4B1B-8763-73020664E294}" Directory_="Kentucky_2_Dir" Attributes="0" KeyPath="Louisville_4" Type="0"/>
-    <ROW Component="MSVCP140.dll" ComponentId="{91521524-8681-4005-9314-038744C0377F}" Directory_="pyzmq.libs_Dir" Attributes="256" KeyPath="MSVCP140.dll_1"/>
-    <ROW Component="MSVCP140.dll_1" ComponentId="{A31D3844-A3F0-44F2-9976-BA11E3B4E147}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140.dll_2"/>
-    <ROW Component="MSVCP140_1.dll" ComponentId="{151A16E1-DBA3-49C7-B34F-F00B15B95803}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_1.dll"/>
-    <ROW Component="MSVCP140_2.dll" ComponentId="{BF2EA947-5FCA-4433-B3A5-63E655E63C47}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_2.dll"/>
-    <ROW Component="Makefile" ComponentId="{7FC16B11-1F20-48EB-8F7A-2907588F4F4D}" Directory_="skeleton_Dir" Attributes="0" KeyPath="Makefile" Type="0"/>
-    <ROW Component="PrintDeps.exe" ComponentId="{A5437E59-C44C-4727-9A3F-B16FF596D35C}" Directory_="bin_Dir" Attributes="256" KeyPath="PrintDeps.exe"/>
-    <ROW Component="ProductInformation" ComponentId="{E28626E2-5093-44E2-9EF1-A46F907108A8}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="Qt6Core.dll" ComponentId="{0FF2CAC4-3767-4D4E-B802-D513FCB031E3}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Core.dll"/>
-    <ROW Component="Qt6Gui.dll" ComponentId="{13D260ED-1F6E-4287-B396-9EF5B027AD83}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Gui.dll"/>
-    <ROW Component="Qt6Network.dll" ComponentId="{732D349E-D498-4C8B-9F4E-2822BF3953BC}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Network.dll"/>
-    <ROW Component="Qt6OpenGL.dll" ComponentId="{3A48EB72-8933-42F3-821F-32F7A2F82300}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGL.dll"/>
-    <ROW Component="Qt6OpenGLWidgets.dll" ComponentId="{31A8132F-A771-40AD-888D-8A94C134BBE5}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGLWidgets.dll"/>
-    <ROW Component="Qt6Pdf.dll" ComponentId="{A26C05BD-0613-4936-8972-A6834721F3EF}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Pdf.dll"/>
-    <ROW Component="Qt6Qml.dll" ComponentId="{26E69CA1-815F-46FC-B574-E259C3E60C4B}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Qml.dll"/>
-    <ROW Component="Qt6QmlModels.dll" ComponentId="{E7992C12-2FEC-4435-9C9C-396F39478C5C}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6QmlModels.dll"/>
-    <ROW Component="Qt6Quick.dll" ComponentId="{B174B6AB-B48B-4DCB-8A03-5688038B125D}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Quick.dll"/>
-    <ROW Component="Qt6Svg.dll" ComponentId="{9016A7C6-8AAB-4CEC-86D8-BA6DCB003CC5}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Svg.dll"/>
-    <ROW Component="Qt6UiTools.dll" ComponentId="{574B4AAA-4820-4E7F-84F2-FEC7A1CAFDC1}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6UiTools.dll"/>
-    <ROW Component="Qt6VirtualKeyboard.dll" ComponentId="{C7A401DA-0FAC-48AA-9244-E2777AE73FF8}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6VirtualKeyboard.dll"/>
-    <ROW Component="Qt6Widgets.dll" ComponentId="{0BDF4BE6-F015-4B8C-A1CF-F3BE539EE9A2}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Widgets.dll"/>
-    <ROW Component="QtCore.pyd" ComponentId="{F6130FF9-3446-484D-9CF7-C04636F1D6D8}" Directory_="PySide6_Dir" Attributes="256" KeyPath="QtCore.pyd" Type="0"/>
-    <ROW Component="README.md" ComponentId="{EB416E34-E223-4D73-960B-D5FA5DF707A4}" Directory_="templates_Dir" Attributes="0" KeyPath="README.md" Type="0"/>
-    <ROW Component="RNG2Schtrn.xsl" ComponentId="{CAD3B0D6-57FD-40FD-84C5-449069A3192B}" Directory_="xsl_1_Dir" Attributes="0" KeyPath="RNG2Schtrn.xsl" Type="0"/>
-    <ROW Component="RobotoBlack.ttf" ComponentId="{3142226E-A922-49F5-9086-92E8D584AF26}" Directory_="roboto_Dir" Attributes="0" Type="0"/>
-    <ROW Component="SDL2.dll" ComponentId="{3EB59A8D-F3C7-4281-B0A7-087D40978CE6}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2.dll"/>
-    <ROW Component="SDL2.dll_1" ComponentId="{43DFDA25-28AF-474D-842B-176050D13583}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2.dll_1"/>
-    <ROW Component="SDL2_image.dll" ComponentId="{3EEC5660-2B15-4E7E-A387-858643CA27CE}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2_image.dll"/>
-    <ROW Component="SDL2_image.dll_1" ComponentId="{0196F139-FB17-477D-B7B9-E163569C6CD1}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2_image.dll_1"/>
-    <ROW Component="SDL2_mixer.dll" ComponentId="{5295A1E2-359C-43DE-B68C-B5A854D0EF8D}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2_mixer.dll"/>
-    <ROW Component="SDL2_mixer.dll_1" ComponentId="{5C882B0F-C9ED-4AD0-ADE4-832DD4C63F1D}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2_mixer.dll_1"/>
-    <ROW Component="SDL2_ttf.dll" ComponentId="{DB64B0B2-A54A-46D9-9759-C13C0015F69D}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2_ttf.dll"/>
-    <ROW Component="SDL2_ttf.dll_1" ComponentId="{A8E3BC6E-ACCC-44C1-89E2-F7B62D510EC0}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2_ttf.dll_1"/>
-    <ROW Component="SHORTCUTDIR" ComponentId="{BA729497-692D-4525-BC01-344BC7266A4D}" Directory_="SHORTCUTDIR" Attributes="0"/>
-    <ROW Component="Shiboken.pyd" ComponentId="{E691B6CB-7904-465B-B6ED-517939D6A222}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="Shiboken.pyd" Type="0"/>
-    <ROW Component="VCRUNTIME140.dll" ComponentId="{4488862F-A6F9-44ED-B15B-280AEDFC1B6A}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll"/>
-    <ROW Component="VCRUNTIME140.dll_1" ComponentId="{285B7FBD-0238-4637-8E5A-6056288756C8}" Directory_="_internal_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll_1"/>
-    <ROW Component="VCRUNTIME140_1.dll" ComponentId="{6549AC0A-2C04-43E2-93F0-CF7F11A58B96}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll"/>
-    <ROW Component="VCRUNTIME140_1.dll_1" ComponentId="{88F19DF4-C672-45D0-B515-A137E27276D2}" Directory_="_internal_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_1"/>
-    <ROW Component="VERSION" ComponentId="{141B7BFB-5072-4A73-A10D-0150B7019EC3}" Directory_="legacy_Dir" Attributes="0" KeyPath="VERSION" Type="0"/>
-    <ROW Component="VERSION_1" ComponentId="{FA735250-73AB-4EC7-9ADD-9E4729FC91B7}" Directory_="nltk_Dir" Attributes="0" KeyPath="VERSION_1" Type="0"/>
-    <ROW Component="_ARC4.pyd" ComponentId="{FCE3096A-00DD-41AD-BB71-C502C918634D}" Directory_="Cipher_Dir" Attributes="256" KeyPath="_ARC4.pyd" Type="0"/>
-    <ROW Component="_BLAKE2b.pyd" ComponentId="{4817C76A-3F66-42AA-8A12-2BD7D1E19325}" Directory_="Hash_Dir" Attributes="256" KeyPath="_BLAKE2b.pyd" Type="0"/>
-    <ROW Component="__init__.cpython310.pyc" ComponentId="{BC0D67CC-6AAD-472F-8E0B-6D331A7765C3}" Directory_="__pycache___12_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_12" Type="0"/>
-    <ROW Component="__init__.cpython310.pyc_1" ComponentId="{4151FE06-AE42-4F69-9CAA-1A7B6782D316}" Directory_="__pycache___16_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_16" Type="0"/>
-    <ROW Component="__init__.cpython310.pyc_2" ComponentId="{4595C51D-4465-4120-BACA-4CE1C42651C1}" Directory_="__pycache___30_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_31" Type="0"/>
-    <ROW Component="__init__.cpython310.pyc_3" ComponentId="{E1A15513-7256-422B-9B6D-F8D96F455FF8}" Directory_="__pycache___31_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_32" Type="0"/>
-    <ROW Component="__init__.py" ComponentId="{8DE56BCB-49F6-42C6-AF2D-F5B645D5B6DE}" Directory_="authz_Dir" Attributes="0" KeyPath="__init__.py_1" Type="0"/>
-    <ROW Component="__init__.py_1" ComponentId="{A6116411-425C-494C-9C71-18507BB3DC73}" Directory_="basic_Dir" Attributes="0" KeyPath="__init__.py_2" Type="0"/>
-    <ROW Component="__init__.py_10" ComponentId="{EB966994-B0E0-418F-AFC6-32FFA071CB5A}" Directory_="data_Dir" Attributes="0" KeyPath="__init__.py_25" Type="0"/>
-    <ROW Component="__init__.py_11" ComponentId="{9F655D7C-A53A-44C2-9FB4-FFA5B384A247}" Directory_="gapi_Dir" Attributes="0" KeyPath="__init__.py_26" Type="0"/>
-    <ROW Component="__init__.py_12" ComponentId="{8B76E3A2-C5C3-4824-8DDB-5A75F98CB1CA}" Directory_="mat_wrapper_Dir" Attributes="0" KeyPath="__init__.py_27" Type="0"/>
-    <ROW Component="__init__.py_13" ComponentId="{5A0279C4-B9D2-46D9-93D0-71240856B70B}" Directory_="typing_Dir" Attributes="0" KeyPath="__init__.py_29" Type="0"/>
-    <ROW Component="__init__.py_14" ComponentId="{EDB20842-CD86-48F1-A30E-964802976F5B}" Directory_="utils_2_Dir" Attributes="0" KeyPath="__init__.py_30" Type="0"/>
-    <ROW Component="__init__.py_15" ComponentId="{E34284C6-51C9-49F8-B413-5AF9EAC2B01D}" Directory_="llm_bash_Dir" Attributes="0" KeyPath="__init__.py_44" Type="0"/>
-    <ROW Component="__init__.py_16" ComponentId="{F4704B3E-7761-41CD-9FB1-09001CF24CA4}" Directory_="llm_symbolic_math_Dir" Attributes="0" KeyPath="__init__.py_48" Type="0"/>
-    <ROW Component="__init__.py_17" ComponentId="{85502E43-BD5C-45FE-9512-36FF59A2969D}" Directory_="error_handler_Dir" Attributes="0" KeyPath="__init__.py_63" Type="0"/>
-    <ROW Component="__init__.py_18" ComponentId="{A6E97613-CEA0-4EA0-8C23-6C7CB231A3A3}" Directory_="export_Dir" Attributes="0" KeyPath="__init__.py_64" Type="0"/>
-    <ROW Component="__init__.py_19" ComponentId="{972338E0-5373-41D6-9663-B54C07D04CF1}" Directory_="view_Dir" Attributes="0" KeyPath="__init__.py_65" Type="0"/>
-    <ROW Component="__init__.py_2" ComponentId="{985430D6-D96D-4618-ADE4-0F8C440BF369}" Directory_="token_Dir" Attributes="0" KeyPath="__init__.py_3" Type="0"/>
-    <ROW Component="__init__.py_20" ComponentId="{7F8A0596-7789-47C3-B98F-86637E449558}" Directory_="export_1_Dir" Attributes="0" KeyPath="__init__.py_67" Type="0"/>
-    <ROW Component="__init__.py_21" ComponentId="{7CB0C6BB-3381-47B0-A6C4-69F15CB71D28}" Directory_="metrics_Dir" Attributes="0" KeyPath="__init__.py_69" Type="0"/>
-    <ROW Component="__init__.py_22" ComponentId="{4796DABC-11A8-4089-8A48-310878F7BC59}" Directory_="resources_1_Dir" Attributes="0" KeyPath="__init__.py_70" Type="0"/>
-    <ROW Component="__init__.py_23" ComponentId="{B18FEC09-3F71-4E71-B346-91E6A1883530}" Directory_="_configuration_Dir" Attributes="0" KeyPath="__init__.py_74" Type="0"/>
-    <ROW Component="__init__.py_24" ComponentId="{CEC66A10-C0C3-4E6B-8198-1E5E85B01C51}" Directory_="export_3_Dir" Attributes="0" KeyPath="__init__.py_75" Type="0"/>
-    <ROW Component="__init__.py_25" ComponentId="{27712190-12A4-468B-8B18-D3D0D238427C}" Directory_="_internal_2_Dir" Attributes="0" KeyPath="__init__.py_77" Type="0"/>
-    <ROW Component="__init__.py_26" ComponentId="{A8DDFFE6-F899-461F-8855-44AFB693DE7A}" Directory_="_logs_Dir" Attributes="0" KeyPath="__init__.py_78" Type="0"/>
-    <ROW Component="__init__.py_3" ComponentId="{6F1619BF-B4D3-4094-8E8F-9ACAFD5969D4}" Directory_="ingest_Dir" Attributes="0" KeyPath="__init__.py_8" Type="0"/>
-    <ROW Component="__init__.py_4" ComponentId="{D8D5EFC5-C088-4462-83A2-2679C2B4391B}" Directory_="migrations_Dir" Attributes="0" KeyPath="__init__.py_9" Type="0"/>
-    <ROW Component="__init__.py_5" ComponentId="{8890E6D3-7ABF-4183-A8F5-1F1C009AAF44}" Directory_="distributed_Dir" Attributes="0" KeyPath="__init__.py_12" Type="0"/>
-    <ROW Component="__init__.py_6" ComponentId="{921AD760-703A-46AB-B05D-ED08C04CBEFB}" Directory_="impl_2_Dir" Attributes="0" KeyPath="__init__.py_15" Type="0"/>
-    <ROW Component="__init__.py_7" ComponentId="{D61514DB-938F-4EBB-A0C6-BE3A407A4E09}" Directory_="segment_Dir" Attributes="0" KeyPath="__init__.py_16" Type="0"/>
-    <ROW Component="__init__.py_8" ComponentId="{3ACFE828-E23D-491D-8D44-9598D9937197}" Directory_="server_Dir" Attributes="0" KeyPath="__init__.py_18" Type="0"/>
-    <ROW Component="__init__.py_9" ComponentId="{94ED556B-EF25-421B-8FDB-9EA153B0A683}" Directory_="telemetry_Dir" Attributes="0" KeyPath="__init__.py_21" Type="0"/>
-    <ROW Component="__version__" ComponentId="{03C179B0-65EC-4CBB-8B50-58FB096EBA60}" Directory_="pinecone_Dir" Attributes="0" KeyPath="__version__" Type="0"/>
-    <ROW Component="_bcrypt.pyd" ComponentId="{166D0E56-5EAF-44E6-A840-2DE8F7E7EA09}" Directory_="bcrypt_Dir" Attributes="256" KeyPath="_bcrypt.pyd" Type="0"/>
-    <ROW Component="_cpuid_c.pyd" ComponentId="{9E11342E-0280-4CEE-BAF7-413B07305580}" Directory_="Util_Dir" Attributes="256" KeyPath="_cpuid_c.pyd" Type="0"/>
-    <ROW Component="_ec_ws.pyd" ComponentId="{D99059E5-F988-46D6-8733-FCE7860BA072}" Directory_="PublicKey_Dir" Attributes="256" KeyPath="_ec_ws.pyd" Type="0"/>
-    <ROW Component="_extra.cp310win_amd64.pyd" ComponentId="{87E1D102-631A-4FAD-A4F3-65F23A19F874}" Directory_="fitz_Dir" Attributes="256" KeyPath="_extra.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_frozenlist.cp310win_amd64.pyd" ComponentId="{CF22F541-8487-400C-9611-D307A43A8454}" Directory_="frozenlist_Dir" Attributes="256" KeyPath="_frozenlist.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_greenlet.cp310win_amd64.pyd" ComponentId="{823DB129-41C0-405C-8EE2-AE3EA3984B28}" Directory_="greenlet_Dir" Attributes="256" KeyPath="_greenlet.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_helpers.cp310win_amd64.pyd" ComponentId="{67066BEB-BD74-4A25-90FA-68FA909474E5}" Directory_="aiohttp_Dir" Attributes="256" KeyPath="_helpers.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_imaging.cp310win_amd64.pyd" ComponentId="{4954F979-6CF5-4838-9AEF-3BE15334FF01}" Directory_="PIL_Dir" Attributes="256" KeyPath="_imaging.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_message.pyd" ComponentId="{7B343001-FF22-4FC7-BC9E-D099850FDE6B}" Directory_="_upb_Dir" Attributes="256" KeyPath="_message.pyd" Type="0"/>
-    <ROW Component="_modexp.pyd" ComponentId="{FC906AA2-9917-477D-AD93-B7830A85B0ED}" Directory_="Math_Dir" Attributes="256" KeyPath="_modexp.pyd" Type="0"/>
-    <ROW Component="_multiarray_tests.cp310win_amd64.pyd" ComponentId="{678D5520-CA2D-4C3C-BBFD-5B1D8378946E}" Directory_="core_1_Dir" Attributes="256" KeyPath="_multiarray_tests.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_multidict.cp310win_amd64.pyd" ComponentId="{2BF07490-704A-41E5-AFFF-896F81FB9AC6}" Directory_="multidict_Dir" Attributes="256" KeyPath="_multidict.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_pocketfft_internal.cp310win_amd64.pyd" ComponentId="{D6C2A56D-E299-4A12-87AF-F526A7FB38CA}" Directory_="fft_Dir" Attributes="256" KeyPath="_pocketfft_internal.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_portaudio.cp310win_amd64.pyd" ComponentId="{1E4B8AEB-0ABF-4DC3-9B12-6D5D3441690C}" Directory_="pyaudio_Dir" Attributes="256" KeyPath="_portaudio.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_psutil_windows.pyd" ComponentId="{2C5A3CD8-31C3-4870-9438-72480B1B14F9}" Directory_="psutil_Dir" Attributes="256" KeyPath="_psutil_windows.pyd" Type="0"/>
-    <ROW Component="_pydantic_core.cp310win_amd64.pyd" ComponentId="{AC1C3A5B-7A38-4649-B9C4-790342FAE74C}" Directory_="pydantic_core_Dir" Attributes="256" KeyPath="_pydantic_core.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_quoting_c.cp310win_amd64.pyd" ComponentId="{80AD6646-F0BC-4CFA-A4CE-6F0B4313745C}" Directory_="yarl_Dir" Attributes="256" KeyPath="_quoting_c.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_regex.cp310win_amd64.pyd" ComponentId="{086452D6-4D98-4ADB-92AB-9B5129FD6934}" Directory_="regex_Dir" Attributes="256" KeyPath="_regex.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_rust.pyd" ComponentId="{9FDE8CFF-CEEA-4E8F-9274-DE7887E5FB79}" Directory_="bindings_Dir" Attributes="256" KeyPath="_rust.pyd" Type="0"/>
-    <ROW Component="_scrypt.pyd" ComponentId="{411961D2-438F-4A8A-973E-F6D2E6C86BAE}" Directory_="Protocol_Dir" Attributes="256" KeyPath="_scrypt.pyd" Type="0"/>
-    <ROW Component="_speedups.cp310win_amd64.pyd" ComponentId="{C9D42F1D-CBBC-4026-A53B-32C262178E53}" Directory_="markupsafe_Dir" Attributes="256" KeyPath="_speedups.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_tiktoken.cp310win_amd64.pyd" ComponentId="{F0F4251A-EFBA-48E4-9F9E-E457958DFD55}" Directory_="tiktoken_Dir" Attributes="256" KeyPath="_tiktoken.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_umath_linalg.cp310win_amd64.pyd" ComponentId="{D1AABABD-4C25-401E-A0F6-0CDFFEF2229F}" Directory_="linalg_Dir" Attributes="256" KeyPath="_umath_linalg.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_wrappers.cp310win_amd64.pyd" ComponentId="{7C5F07F5-D257-4229-89E7-022A932A3E18}" Directory_="wrapt_Dir" Attributes="256" KeyPath="_wrappers.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="_yaml.cp310win_amd64.pyd" ComponentId="{0F395E9D-8C24-49CE-93F7-816B7266A443}" Directory_="yaml_Dir" Attributes="256" KeyPath="_yaml.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="abusiveexperiencereport.v1.json" ComponentId="{2DC6905E-1E03-4185-B5D9-ACCD54F37A34}" Directory_="documents_Dir" Attributes="0" KeyPath="abusiveexperiencereport.v1.json" Type="0"/>
-    <ROW Component="accessibility.js" ComponentId="{6256243A-DAC1-4B5F-AFF9-F396CF851D79}" Directory_="client_1_Dir" Attributes="0" KeyPath="accessibility.js" Type="0"/>
-    <ROW Component="accessibility.js_1" ComponentId="{9E635C6D-582B-4B9B-B06B-CA837894A109}" Directory_="server_1_Dir" Attributes="0" KeyPath="accessibility.js_1" Type="0"/>
-    <ROW Component="af.msg" ComponentId="{F2AB7002-F9E4-49DE-8B48-E90CCC063B6B}" Directory_="msgs_Dir" Attributes="0" KeyPath="af.msg" Type="0"/>
-    <ROW Component="aggregation.py" ComponentId="{E3C5636F-5486-4A72-BC7F-7FB754E59AB9}" Directory_="_internal_1_Dir" Attributes="0" KeyPath="aggregation.py" Type="0"/>
-    <ROW Component="aggregations.cp310win_amd64.pyd" ComponentId="{42481674-3E48-4B15-B914-FE7C2C713D54}" Directory_="window_Dir" Attributes="256" KeyPath="aggregations.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="algos.cp310win_amd64.pyd" ComponentId="{57035510-6C96-42A5-9594-D8ABF92C9BA4}" Directory_="_libs_Dir" Attributes="256" KeyPath="algos.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="altTheme.tcl" ComponentId="{C9448764-40D1-4769-8B76-1406F583897B}" Directory_="ttk_Dir" Attributes="0" KeyPath="altTheme.tcl" Type="0"/>
-    <ROW Component="android.js" ComponentId="{638357B3-7697-438A-819E-1880DCE33354}" Directory_="android_Dir" Attributes="0" KeyPath="android.js_1" Type="0"/>
-    <ROW Component="androidDispatcher.js" ComponentId="{A7347347-5420-4CB4-A448-11C3C7C69F5C}" Directory_="dispatchers_Dir" Attributes="0" KeyPath="androidDispatcher.js" Type="0"/>
-    <ROW Component="androidServerImpl.js" ComponentId="{493B610F-D9F1-4F54-A99F-FDFA011286A7}" Directory_="lib_Dir" Attributes="0" KeyPath="androidServerImpl.js" Type="0"/>
-    <ROW Component="api.json" ComponentId="{E3A072B5-5B95-4BC2-BA08-D7E6AA7B8CE5}" Directory_="package_Dir" Attributes="0" KeyPath="api.json" Type="0"/>
-    <ROW Component="app.py" ComponentId="{16955099-6D86-4E5B-84D1-882DF0576CCA}" Directory_="chromadb_Dir" Attributes="0" KeyPath="app.py" Type="0"/>
-    <ROW Component="appIcon.png" ComponentId="{C74617C8-7663-421C-A675-83005AD9DFEC}" Directory_="chromium_Dir" Attributes="0" KeyPath="appIcon.png" Type="0"/>
-    <ROW Component="applicator" ComponentId="{B8277F65-065D-4331-921A-D438B634A7E0}" Directory_="vocabularies_Dir" Attributes="0" KeyPath="applicator" Type="0"/>
-    <ROW Component="applicator_1" ComponentId="{0135EE01-DC5C-4CCD-AC42-E9F999A65698}" Directory_="vocabularies_1_Dir" Attributes="0" KeyPath="applicator_1" Type="0"/>
-    <ROW Component="arabic" ComponentId="{7CA89F78-528D-471F-8A9C-4210FE959771}" Directory_="stopwords_Dir" Attributes="0" KeyPath="arabic" Type="0"/>
-    <ROW Component="arabic_1" ComponentId="{D64689E4-28E0-4487-8A65-AE7E148961E4}" Directory_="stopwords_1_Dir" Attributes="0" KeyPath="arabic_1" Type="0"/>
-    <ROW Component="arangodb.cpython310.pyc" ComponentId="{ED07DB56-CC71-43F6-8F2C-B7BD242ED561}" Directory_="__pycache___10_Dir" Attributes="0" KeyPath="arangodb.cpython310.pyc" Type="0"/>
-    <ROW Component="arangodb.py" ComponentId="{4885DB59-B2D7-4280-A943-02AF61FBA544}" Directory_="graph_qa_Dir" Attributes="0" KeyPath="arangodb.py" Type="0"/>
-    <ROW Component="are_all_true_prompt.txt" ComponentId="{54DE5F45-3252-41BE-8241-339737F828EB}" Directory_="prompts_Dir" Attributes="0" KeyPath="are_all_true_prompt.txt" Type="0"/>
-    <ROW Component="ascii.enc" ComponentId="{CB763120-0A99-4C7A-9D47-299C07E1A728}" Directory_="encoding_Dir" Attributes="0" KeyPath="ascii.enc" Type="0"/>
-    <ROW Component="ascii.js" ComponentId="{A950D3F4-0EE8-41D6-92A5-B6742B85339F}" Directory_="utils_3_Dir" Attributes="0" KeyPath="ascii.js" Type="0"/>
-    <ROW Component="auto.tcl" ComponentId="{3590859A-4663-4478-A7CE-07C8EF656D95}" Directory_="tcl_Dir" Attributes="0" KeyPath="auto.tcl" Type="0"/>
-    <ROW Component="base.cp310win_amd64.pyd" ComponentId="{37044231-4A1C-4322-B71C-568F79ACDDE1}" Directory_="tslibs_Dir" Attributes="256" KeyPath="base.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="base.cp310win_amd64.pyd_1" ComponentId="{392AC289-1CE1-45F0-9A0B-1C196FE7799D}" Directory_="pygame_Dir" Attributes="256" KeyPath="base.cp310win_amd64.pyd_1" Type="0"/>
-    <ROW Component="base.cpython310.pyc" ComponentId="{999B0A38-1551-4409-A56D-5E0CF1DDF91A}" Directory_="__pycache___1_Dir" Attributes="0" KeyPath="base.cpython310.pyc" Type="0"/>
-    <ROW Component="base.cpython310.pyc_1" ComponentId="{338BBA17-F016-4200-8EE5-AAD5B5D10096}" Directory_="__pycache___3_Dir" Attributes="0" KeyPath="base.cpython310.pyc_1" Type="0"/>
-    <ROW Component="base.cpython310.pyc_10" ComponentId="{6DBD802E-A168-4DA0-ABAD-989D0E077646}" Directory_="__pycache___14_Dir" Attributes="0" KeyPath="base.cpython310.pyc_11" Type="0"/>
-    <ROW Component="base.cpython310.pyc_11" ComponentId="{2E1BA8AB-2A37-401E-9340-8A45273FDCA4}" Directory_="__pycache___15_Dir" Attributes="0" KeyPath="base.cpython310.pyc_12" Type="0"/>
-    <ROW Component="base.cpython310.pyc_12" ComponentId="{CDF284A2-CA48-4F9E-A065-77CD9E7091BF}" Directory_="__pycache___17_Dir" Attributes="0" KeyPath="base.cpython310.pyc_13" Type="0"/>
-    <ROW Component="base.cpython310.pyc_13" ComponentId="{5159AE95-C949-4912-89DD-4EC929D57D2F}" Directory_="__pycache___18_Dir" Attributes="0" KeyPath="base.cpython310.pyc_14" Type="0"/>
-    <ROW Component="base.cpython310.pyc_14" ComponentId="{B2BC1DAD-9AB1-4B35-A8DA-872CE0F48219}" Directory_="__pycache___20_Dir" Attributes="0" KeyPath="base.cpython310.pyc_15" Type="0"/>
-    <ROW Component="base.cpython310.pyc_15" ComponentId="{70D2AFB0-43F4-4619-B58D-EE25027AD81C}" Directory_="__pycache___21_Dir" Attributes="0" KeyPath="base.cpython310.pyc_16" Type="0"/>
-    <ROW Component="base.cpython310.pyc_16" ComponentId="{DB53C565-B1D9-47CA-A61B-00D8F2379410}" Directory_="__pycache___22_Dir" Attributes="0" KeyPath="base.cpython310.pyc_17" Type="0"/>
-    <ROW Component="base.cpython310.pyc_17" ComponentId="{31605A19-F967-4598-BE5C-5E040E977E67}" Directory_="__pycache___24_Dir" Attributes="0" KeyPath="base.cpython310.pyc_18" Type="0"/>
-    <ROW Component="base.cpython310.pyc_18" ComponentId="{B5175A1E-2B25-48DB-9735-1D9B808F665C}" Directory_="__pycache___25_Dir" Attributes="0" KeyPath="base.cpython310.pyc_19" Type="0"/>
-    <ROW Component="base.cpython310.pyc_19" ComponentId="{B842E6D1-6460-4A61-83B9-AF748EAC489D}" Directory_="__pycache___27_Dir" Attributes="0" KeyPath="base.cpython310.pyc_20" Type="0"/>
-    <ROW Component="base.cpython310.pyc_2" ComponentId="{58832428-C27E-4BA3-BD0F-6799017D0C5D}" Directory_="__pycache___4_Dir" Attributes="0" KeyPath="base.cpython310.pyc_2" Type="0"/>
-    <ROW Component="base.cpython310.pyc_20" ComponentId="{A483D90E-97DD-40D3-B835-0C28ED3A394D}" Directory_="__pycache___29_Dir" Attributes="0" KeyPath="base.cpython310.pyc_21" Type="0"/>
-    <ROW Component="base.cpython310.pyc_3" ComponentId="{2BD53D6A-883A-4E6D-866C-75AB49BD2279}" Directory_="__pycache___5_Dir" Attributes="0" KeyPath="base.cpython310.pyc_3" Type="0"/>
-    <ROW Component="base.cpython310.pyc_4" ComponentId="{E7EABC73-C9F1-42C8-941B-EC36C2CFC4A7}" Directory_="__pycache___6_Dir" Attributes="0" KeyPath="base.cpython310.pyc_4" Type="0"/>
-    <ROW Component="base.cpython310.pyc_5" ComponentId="{B177C0C2-E473-4515-B51C-0ACB315C92D6}" Directory_="__pycache___7_Dir" Attributes="0" KeyPath="base.cpython310.pyc_5" Type="0"/>
-    <ROW Component="base.cpython310.pyc_6" ComponentId="{2C06A700-55E7-4641-B5E1-236EBC2C745E}" Directory_="__pycache___8_Dir" Attributes="0" KeyPath="base.cpython310.pyc_6" Type="0"/>
-    <ROW Component="base.cpython310.pyc_7" ComponentId="{D21DDDE6-A70C-43F8-9AFE-3E55929BA6A4}" Directory_="__pycache___9_Dir" Attributes="0" KeyPath="base.cpython310.pyc_7" Type="0"/>
-    <ROW Component="base.cpython310.pyc_8" ComponentId="{457C1782-A394-416E-8656-EAC7D7A6CEE8}" Directory_="__pycache___11_Dir" Attributes="0" KeyPath="base.cpython310.pyc_9" Type="0"/>
-    <ROW Component="base.cpython310.pyc_9" ComponentId="{81C09F19-E627-4467-A416-AD4CA46D779B}" Directory_="__pycache___13_Dir" Attributes="0" KeyPath="base.cpython310.pyc_10" Type="0"/>
-    <ROW Component="base.py" ComponentId="{8A74F4FC-FE86-4B93-9B93-EF58E3E530BC}" Directory_="db_Dir" Attributes="0" KeyPath="base.py" Type="0"/>
-    <ROW Component="base.py_1" ComponentId="{11EE3585-40DB-4705-B8E9-B9A9160887FF}" Directory_="api_2_Dir" Attributes="0" KeyPath="base.py_1" Type="0"/>
-    <ROW Component="base.py_10" ComponentId="{1309CB3D-A07E-45D4-B766-FD2F55255636}" Directory_="hyde_Dir" Attributes="0" KeyPath="base.py_11" Type="0"/>
-    <ROW Component="base.py_11" ComponentId="{146A60A1-A51C-4CA7-A3EB-1E39E3CDA9FA}" Directory_="llm_checker_Dir" Attributes="0" KeyPath="base.py_12" Type="0"/>
-    <ROW Component="base.py_12" ComponentId="{667146FA-E2D7-4B6E-92FB-26E123F5FB17}" Directory_="llm_math_Dir" Attributes="0" KeyPath="base.py_13" Type="0"/>
-    <ROW Component="base.py_13" ComponentId="{D782181D-062E-4314-B2D4-20CC46EE4795}" Directory_="llm_summarization_checker_Dir" Attributes="0" KeyPath="base.py_14" Type="0"/>
-    <ROW Component="base.py_14" ComponentId="{30D4D2B8-C1AB-4682-BB0B-752374FDE94D}" Directory_="natbot_Dir" Attributes="0" KeyPath="base.py_15" Type="0"/>
-    <ROW Component="base.py_15" ComponentId="{BD21DB17-187F-416C-9BB3-956FCC850ADC}" Directory_="openai_functions_Dir" Attributes="0" KeyPath="base.py_16" Type="0"/>
-    <ROW Component="base.py_16" ComponentId="{8291B3DE-74E7-43C6-8416-51252E66D8B6}" Directory_="qa_generation_Dir" Attributes="0" KeyPath="base.py_17" Type="0"/>
-    <ROW Component="base.py_17" ComponentId="{F7426C67-DF38-406D-B8D1-2F61A312F6AD}" Directory_="qa_with_sources_Dir" Attributes="0" KeyPath="base.py_18" Type="0"/>
-    <ROW Component="base.py_18" ComponentId="{06650906-F9C4-448C-BEA3-4EA9FC30A9CD}" Directory_="query_constructor_Dir" Attributes="0" KeyPath="base.py_19" Type="0"/>
-    <ROW Component="base.py_19" ComponentId="{0E583797-F46F-4DAA-B5C4-B03DDCE034AA}" Directory_="retrieval_qa_Dir" Attributes="0" KeyPath="base.py_20" Type="0"/>
-    <ROW Component="base.py_2" ComponentId="{77A35C1B-2AF4-439D-9EF1-1ED21DD94047}" Directory_="chains_Dir" Attributes="0" KeyPath="base.py_2" Type="0"/>
-    <ROW Component="base.py_20" ComponentId="{8DE6657B-9F9D-4173-B2BB-962F1EDEE56D}" Directory_="router_Dir" Attributes="0" KeyPath="base.py_21" Type="0"/>
-    <ROW Component="base.py_21" ComponentId="{CEEC16F2-6116-4826-9511-D30695A2F2E6}" Directory_="structured_output_Dir" Attributes="0" KeyPath="base.py_22" Type="0"/>
-    <ROW Component="base.py_3" ComponentId="{F45D8C3A-4B72-4BA0-BDBE-63793A0EC57D}" Directory_="combine_documents_Dir" Attributes="0" KeyPath="base.py_3" Type="0"/>
-    <ROW Component="base.py_4" ComponentId="{29DDFE64-6704-4920-B896-4FF398A54448}" Directory_="constitutional_ai_Dir" Attributes="0" KeyPath="base.py_4" Type="0"/>
-    <ROW Component="base.py_5" ComponentId="{FDFF92F0-6DA6-43BE-A3B3-9674028ED953}" Directory_="conversation_Dir" Attributes="0" KeyPath="base.py_5" Type="0"/>
-    <ROW Component="base.py_6" ComponentId="{9F01898F-8074-4A46-BA9E-6A843AF58D36}" Directory_="conversational_retrieval_Dir" Attributes="0" KeyPath="base.py_6" Type="0"/>
-    <ROW Component="base.py_7" ComponentId="{D353DF73-2536-4DF6-8730-5A6A4A008118}" Directory_="elasticsearch_database_Dir" Attributes="0" KeyPath="base.py_7" Type="0"/>
-    <ROW Component="base.py_8" ComponentId="{40AC069B-0BA4-4489-86CF-B9DA79D9C962}" Directory_="ernie_functions_Dir" Attributes="0" KeyPath="base.py_8" Type="0"/>
-    <ROW Component="base.py_9" ComponentId="{4F627BA6-11EF-471C-8882-45DC5A12BFA3}" Directory_="flare_Dir" Attributes="0" KeyPath="base.py_9" Type="0"/>
-    <ROW Component="base.svg" ComponentId="{FC6E30A3-7E14-49FA-8505-8DFB48125FC7}" Directory_="source_Dir" Attributes="0" KeyPath="base.svg" Type="0"/>
-    <ROW Component="base_library.zip" ComponentId="{F10D6CD2-73B5-4C66-B2F4-6665A4733431}" Directory_="_internal_Dir" Attributes="0" KeyPath="base_library.zip" Type="0"/>
-    <ROW Component="batch.py" ComponentId="{71231ED8-EE3C-4B14-94B4-BF002A1335EC}" Directory_="vector_Dir" Attributes="0" KeyPath="batch.py" Type="0"/>
-    <ROW Component="batch_utils.py" ComponentId="{E74CF9F6-D891-4620-BBBA-433DF0BF1C48}" Directory_="utils_1_Dir" Attributes="0" KeyPath="batch_utils.py" Type="0"/>
-    <ROW Component="batman_and_joker.json" ComponentId="{09F3780F-5E02-455B-82A6-21670431E69E}" Directory_="presets_Dir" Attributes="0" KeyPath="batman_and_joker.json" Type="0"/>
-    <ROW Component="bgerror.tcl" ComponentId="{5851E88C-6D64-4237-A58E-8108FECF85C9}" Directory_="tk_Dir" Attributes="0" KeyPath="bgerror.tcl" Type="0"/>
-    <ROW Component="bit_generator.cp310win_amd64.pyd" ComponentId="{71A91028-0E36-4E71-A8B5-0DCB91B84F30}" Directory_="random_Dir" Attributes="256" KeyPath="bit_generator.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="bleu.doctest" ComponentId="{57CD10F1-460F-4B0E-A184-DD2A5BBA185D}" Directory_="test_1_Dir" Attributes="0" KeyPath="bleu.doctest" Type="0"/>
-    <ROW Component="browserFetcher.js" ComponentId="{E7CCC26B-FE6F-43E6-83DC-17F02C1A46D9}" Directory_="registry_Dir" Attributes="0" KeyPath="browserFetcher.js" Type="0"/>
-    <ROW Component="buckets.py" ComponentId="{41592283-285F-47B3-A70C-BDEF1CD5A8D1}" Directory_="exponential_histogram_Dir" Attributes="0" KeyPath="buckets.py" Type="0"/>
-    <ROW Component="builder.cp310win_amd64.pyd" ComponentId="{4849EFD0-68D3-47AC-B20D-BE1B1E2B9980}" Directory_="lxml_Dir" Attributes="256" KeyPath="builder.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="cacert.pem" ComponentId="{EC636F52-BF51-4076-BBF1-13A1AEE295B9}" Directory_="certifi_Dir" Attributes="0" KeyPath="cacert.pem" Type="0"/>
-    <ROW Component="cacerts.txt" ComponentId="{58CB0C2E-347C-4185-8A52-D4FF49A33708}" Directory_="httplib2_Dir" Attributes="0" KeyPath="cacerts.txt" Type="0"/>
-    <ROW Component="cache.py" ComponentId="{6416649A-58BA-41B0-BB34-A607135497F1}" Directory_="cache_Dir" Attributes="0" KeyPath="cache.py" Type="0"/>
-    <ROW Component="chain.cpython310.pyc" ComponentId="{5281F516-48A3-4499-8D5C-F49E6D40E237}" Directory_="__pycache___Dir" Attributes="0" KeyPath="chain.cpython310.pyc" Type="0"/>
-    <ROW Component="chain.py" ComponentId="{B3B9B587-5698-4AE1-BBE3-1FBFFAC15506}" Directory_="openapi_Dir" Attributes="0" KeyPath="chain.py" Type="0"/>
-    <ROW Component="char_state_tab.p" ComponentId="{5DEAFB90-6329-4875-A185-7CF27CDC7970}" Directory_="posseg_Dir" Attributes="0" KeyPath="char_state_tab.p" Type="0"/>
-    <ROW Component="chroma_pb2.py" ComponentId="{913604D9-A75D-4895-AA58-004238D98CD7}" Directory_="proto_Dir" Attributes="0" KeyPath="chroma_pb2.py" Type="0"/>
-    <ROW Component="clean.cp310win_amd64.pyd" ComponentId="{CAB062C2-580C-411E-8A19-BA01D0D5CA39}" Directory_="html_Dir" Attributes="256" KeyPath="clean.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="cli.js" ComponentId="{F7E94553-E1C2-4E6B-8942-38CBDA03956E}" Directory_="cli_1_Dir" Attributes="0" KeyPath="cli.js_1" Type="0"/>
-    <ROW Component="cli.py" ComponentId="{F45CE901-4B40-4B73-A4AA-0124B35DFC76}" Directory_="cli_Dir" Attributes="0" KeyPath="cli.py" Type="0"/>
-    <ROW Component="client.py" ComponentId="{A7D7E3A5-EE48-48D6-A2D7-B393BA8D791F}" Directory_="api_Dir" Attributes="0" KeyPath="client.py" Type="0"/>
-    <ROW Component="client.py_1" ComponentId="{F205D8B8-9D7F-4B71-B3B1-6033992B8620}" Directory_="grpc_Dir" Attributes="0" KeyPath="client.py_1" Type="0"/>
-    <ROW Component="codeGenerator.js" ComponentId="{59F5ED7C-6239-4676-B73A-4528C7FBA0A6}" Directory_="recorder_Dir" Attributes="0" KeyPath="codeGenerator.js" Type="0"/>
-    <ROW Component="codeMirrorModule.5d0f417c.css" ComponentId="{1E000E60-D331-46B0-9951-9A9A09223350}" Directory_="traceViewer_Dir" Attributes="0" KeyPath="codeMirrorModule.5d0f417c.css" Type="0"/>
-    <ROW Component="codeMirrorModule5d0f417c.css" ComponentId="{BA8D7926-39A5-4C44-939A-1B262E6DF823}" Directory_="assets_Dir" Attributes="0" KeyPath="codeMirrorModule5d0f417c.css" Type="0"/>
-    <ROW Component="codeMirrorModulee5a15eec.js" ComponentId="{C6ED533B-E0D8-4D8B-AE99-7438B5A60870}" Directory_="assets_1_Dir" Attributes="0" KeyPath="codeMirrorModulee5a15eec.js" Type="0"/>
-    <ROW Component="collections.cp310win_amd64.pyd" ComponentId="{EEF914FD-08F1-4A86-8FDD-ABC7A71CFFAC}" Directory_="cyextension_Dir" Attributes="256" KeyPath="collections.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="collections.sqlite.sql" ComponentId="{E7DA4139-11F8-4654-AFA1-843879815808}" Directory_="sysdb_Dir" Attributes="0" KeyPath="collections.sqlite.sql" Type="0"/>
-    <ROW Component="colorUtils.js" ComponentId="{0B16659B-16F5-47C9-9A66-471DBE970B3C}" Directory_="image_tools_Dir" Attributes="0" KeyPath="colorUtils.js" Type="0"/>
-    <ROW Component="concrt140.dll" ComponentId="{1D236C7E-0868-4B87-B898-12FE16A55461}" Directory_="_internal_Dir" Attributes="256" KeyPath="concrt140.dll"/>
-    <ROW Component="config.json" ComponentId="{19F429E9-1318-4A92-871B-CA4CBC4DF978}" Directory_="config_Dir" Attributes="0" KeyPath="config.json" Type="0"/>
-    <ROW Component="config3.py" ComponentId="{81CBDB3B-3A72-4806-A468-E07532743A1B}" Directory_="cv2_Dir" Attributes="0" KeyPath="config3.py" Type="0"/>
-    <ROW Component="conftest.py" ComponentId="{040979BB-2242-4004-A27F-76AE2F867169}" Directory_="test_Dir" Attributes="0" KeyPath="conftest.py" Type="0"/>
-    <ROW Component="consoleApiSource.js" ComponentId="{A46B3698-6E2E-4257-97EA-E487E08B9BFC}" Directory_="generated_Dir" Attributes="0" KeyPath="consoleApiSource.js" Type="0"/>
-    <ROW Component="context.cp310win_amd64.pyd" ComponentId="{4C2924E5-7E1E-4D07-B078-164A6EC5AE06}" Directory_="cython_Dir" Attributes="256" KeyPath="context.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="cs.msg" ComponentId="{D5BF3B89-26B2-49F9-83A9-DD9BE03C994F}" Directory_="msgs_1_Dir" Attributes="0" KeyPath="cs.msg_1" Type="0"/>
-    <ROW Component="cssParser.js" ComponentId="{B9CA309A-1E2E-4033-B6DD-C08CAA6992C4}" Directory_="isomorphic_1_Dir" Attributes="0" KeyPath="cssParser.js" Type="0"/>
-    <ROW Component="cygrpc.cp310win_amd64.pyd" ComponentId="{E4676A09-3C5A-4334-B5B3-B6AAF3C4EE1A}" Directory_="_cython_Dir" Attributes="256" KeyPath="cygrpc.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="czech.pickle" ComponentId="{A95F8D64-7E61-4307-9797-F8D0D3FFF019}" Directory_="punkt_Dir" Attributes="0" KeyPath="czech.pickle" Type="0"/>
-    <ROW Component="czech.pickle_1" ComponentId="{95DCE90C-75B2-473F-AB3B-CC82EF0BED57}" Directory_="PY3_Dir" Attributes="0" KeyPath="czech.pickle_1" Type="0"/>
-    <ROW Component="czech.pickle_2" ComponentId="{5C041E66-2B3F-4696-BAE1-9DDC64B4B118}" Directory_="punkt_1_Dir" Attributes="0" KeyPath="czech.pickle_2" Type="0"/>
-    <ROW Component="czech.pickle_3" ComponentId="{5BBE6A0D-43F0-4A19-A928-3A577BA15388}" Directory_="PY3_1_Dir" Attributes="0" KeyPath="czech.pickle_3" Type="0"/>
-    <ROW Component="dark_amber.xml" ComponentId="{5384BA99-29A5-4058-AC9A-4C99E28392A0}" Directory_="themes_Dir" Attributes="0" KeyPath="dark_amber.xml" Type="0"/>
-    <ROW Component="debug.js" ComponentId="{3DFAD43F-1FD1-4966-BEE1-7ABEBD7373C5}" Directory_="protocol_Dir" Attributes="0" KeyPath="debug.js" Type="0"/>
-    <ROW Component="debugLogger.js" ComponentId="{1888919C-4D44-4EB5-A4D0-29FEBAD19041}" Directory_="common_Dir" Attributes="0" KeyPath="debugLogger.js" Type="0"/>
-    <ROW Component="dict.txt" ComponentId="{2B6C046C-9968-4A93-BA54-76B1391037FC}" Directory_="jieba_Dir" Attributes="0" KeyPath="dict.txt" Type="0"/>
-    <ROW Component="diff_match_patch.js" ComponentId="{7EA95706-0419-4F42-A22B-5E6D3CA38ADC}" Directory_="third_party_Dir" Attributes="0" KeyPath="diff_match_patch.js" Type="0"/>
-    <ROW Component="distributed.py" ComponentId="{62B75293-ED39-4723-B64B-B150E5641652}" Directory_="manager_Dir" Attributes="0" KeyPath="distributed.py" Type="0"/>
-    <ROW Component="dock_theme.ui" ComponentId="{28D8BAED-677A-4B28-98F0-C947ED11E4F6}" Directory_="qt_material_Dir" Attributes="0" KeyPath="dock_theme.ui" Type="0"/>
-    <ROW Component="electron.js" ComponentId="{9F6493B9-2E05-474B-AF2B-53A13FA37EA3}" Directory_="electron_Dir" Attributes="0" KeyPath="electron.js_1" Type="0"/>
-    <ROW Component="embeddingmetadata.sqlite.sql" ComponentId="{939A33F5-93CC-461A-9517-0A99C0248682}" Directory_="metadb_Dir" Attributes="0" KeyPath="embeddingmetadata.sqlite.sql" Type="0"/>
-    <ROW Component="embeddings.sqlite.sql" ComponentId="{9EC275D2-4646-414B-ADB6-FC4EC2B78955}" Directory_="embeddings_queue_Dir" Attributes="0" KeyPath="embeddings.sqlite.sql" Type="0"/>
-    <ROW Component="embeddings_queue.py" ComponentId="{DBE6E637-F4F7-4C98-8D05-D5B0F1BED9C3}" Directory_="mixins_Dir" Attributes="0" KeyPath="embeddings_queue.py" Type="0"/>
-    <ROW Component="entry_points.txt" ComponentId="{A663A5F3-E600-4359-8F94-53E5717DBA86}" Directory_="jsonschema4.21.1.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt" Type="0"/>
-    <ROW Component="entry_points.txt_1" ComponentId="{66BDAFC0-7B9F-4A98-9C6B-FFDC1BDA0D14}" Directory_="langchain0.1.9.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_1" Type="0"/>
-    <ROW Component="entry_points.txt_2" ComponentId="{465FFCFE-89A8-4DDE-A563-928A92944C5E}" Directory_="Markdown3.5.2.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_2" Type="0"/>
-    <ROW Component="entry_points.txt_3" ComponentId="{6D767A92-498E-4131-95D4-EEC3B9097144}" Directory_="nbconvert7.16.1.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_3" Type="0"/>
-    <ROW Component="entry_points.txt_4" ComponentId="{15687C69-778A-4B30-BDD7-C5E894CB0FC4}" Directory_="nbformat5.9.2.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_4" Type="0"/>
-    <ROW Component="entry_points.txt_5" ComponentId="{C01D612D-C832-4389-B266-1529B3A9E727}" Directory_="openai1.12.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_5" Type="0"/>
-    <ROW Component="entry_points.txt_6" ComponentId="{3587520A-6F95-4787-BF55-C0625F847867}" Directory_="opentelemetry_sdk1.22.0.distinf_Dir" Attributes="0" KeyPath="entry_points.txt_6" Type="0"/>
-    <ROW Component="entry_points.txt_7" ComponentId="{D8346F71-4E68-4709-A053-B42830C4C7AB}" Directory_="setuptools65.5.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_7" Type="0"/>
-    <ROW Component="entry_points.txt_8" ComponentId="{725E111A-A785-45F3-B739-29B3538EE62F}" Directory_="show_in_file_manager1.1.4.disti_Dir" Attributes="0" KeyPath="entry_points.txt_8" Type="0"/>
-    <ROW Component="entry_points.txt_9" ComponentId="{5A50DD1E-7B4A-435F-9428-80C7C195042D}" Directory_="wheel0.42.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_9" Type="0"/>
-    <ROW Component="environment_variables.py" ComponentId="{77ED56C1-5611-4C58-99DC-3D497A4FE0F8}" Directory_="sdk_Dir" Attributes="0" KeyPath="environment_variables.py" Type="0"/>
-    <ROW Component="errors.py" ComponentId="{290F2C6E-29BD-49AD-B8E0-C7714D18A45F}" Directory_="mapping_Dir" Attributes="0" KeyPath="errors.py_1" Type="0"/>
-    <ROW Component="events.py" ComponentId="{80CFBBB0-FEBE-41C1-A71B-4D2CC888FD89}" Directory_="product_Dir" Attributes="0" KeyPath="events.py" Type="0"/>
-    <ROW Component="extraction.cpython310.pyc" ComponentId="{0234C9BB-6167-492D-ACDC-80AA2ACAD6D3}" Directory_="__pycache___19_Dir" Attributes="0" KeyPath="extraction.cpython310.pyc_1" Type="0"/>
-    <ROW Component="extraction.py" ComponentId="{F546C399-0EE2-4D08-AE6B-4EC81EF02C71}" Directory_="openai_tools_Dir" Attributes="0" KeyPath="extraction.py_1" Type="0"/>
-    <ROW Component="fastapi.py" ComponentId="{0887B401-F6D8-4516-8F0D-C4960225575C}" Directory_="auth_Dir" Attributes="0" KeyPath="fastapi.py_1" Type="0"/>
-    <ROW Component="fastapi.py_1" ComponentId="{AC01C19A-717D-4666-A55D-FC4C3631CC72}" Directory_="opentelemetry_Dir" Attributes="0" KeyPath="fastapi.py_2" Type="0"/>
-    <ROW Component="feat.params" ComponentId="{B0D750C0-F5E0-4247-8424-362D59C6FF4B}" Directory_="acousticmodel_Dir" Attributes="0" KeyPath="feat.params" Type="0"/>
-    <ROW Component="ffAccessibility.js" ComponentId="{2A508B0B-F5AE-48A8-9EEC-14A27AA9DF6D}" Directory_="firefox_Dir" Attributes="0" KeyPath="ffAccessibility.js" Type="0"/>
-    <ROW Component="findElements.js" ComponentId="{8DFA6828-84A6-463B-84B4-54AB47CBCA9C}" Directory_="remote_1_Dir" Attributes="0" KeyPath="findElements.js" Type="0"/>
-    <ROW Component="fix_windows.css" ComponentId="{34C1A760-9B6C-42A7-B8AC-8128736425EB}" Directory_="css_Dir" Attributes="0" KeyPath="fix_windows.css" Type="0"/>
-    <ROW Component="flaclinuxx86" ComponentId="{E38586EA-4AC1-4132-A487-55DA6D5EE789}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flaclinuxx86" Type="0"/>
-    <ROW Component="flacwin32.exe" ComponentId="{D319E6D8-B573-4CA8-A523-88F3CFD5A8F3}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flacwin32.exe"/>
-    <ROW Component="freetype.dll" ComponentId="{A65A9405-4E97-49C4-A062-E9F20C343BE9}" Directory_="_internal_Dir" Attributes="256" KeyPath="freetype.dll"/>
-    <ROW Component="freetype.dll_1" ComponentId="{683FB341-8D1E-455C-97BE-CEBF1C16E829}" Directory_="pygame_Dir" Attributes="256" KeyPath="freetype.dll_1"/>
-    <ROW Component="generate.cpython310.pyc" ComponentId="{DA105BA6-7D18-4A04-B10F-4FA3BA455CC6}" Directory_="__pycache___32_Dir" Attributes="0" KeyPath="generate.cpython310.pyc" Type="0"/>
-    <ROW Component="generate.py" ComponentId="{90F3E3D6-2921-49D2-8B8A-C02B1F8F9F19}" Directory_="resources_2_Dir" Attributes="0" KeyPath="generate.py" Type="0"/>
-    <ROW Component="harRecorder.js" ComponentId="{87FA028B-62D7-4AA6-9F89-45B5E9B6766A}" Directory_="har_Dir" Attributes="0" KeyPath="harRecorder.js" Type="0"/>
-    <ROW Component="html.tpl" ComponentId="{CA38C7ED-2DD1-48D1-BF31-2352109D778D}" Directory_="templates_1_Dir" Attributes="0" KeyPath="html.tpl" Type="0"/>
-    <ROW Component="html_chunks_with_headers.xslt" ComponentId="{CD173BC9-512E-4742-9396-24DCD1FFC65C}" Directory_="xsl_Dir" Attributes="0" KeyPath="html_chunks_with_headers.xslt" Type="0"/>
-    <ROW Component="http.tcl" ComponentId="{13F19D81-E05E-4C34-A42A-0F4C7AC52971}" Directory_="http1.0_Dir" Attributes="0" KeyPath="http.tcl" Type="0"/>
-    <ROW Component="http2.9.5.tm" ComponentId="{D1EFBA56-767E-4BE2-A588-5A2F817D67D9}" Directory_="__2_Dir" Attributes="0" KeyPath="http2.9.5.tm" Type="0"/>
-    <ROW Component="icon.ico" ComponentId="{04F270C9-AB14-4526-BC4D-A5F5A30F43F5}" Directory_="data_1_Dir" Attributes="0" KeyPath="icon.ico" Type="0"/>
-    <ROW Component="id_generator.py" ComponentId="{A4BB9716-70E9-4113-A30F-7F27B8B429CC}" Directory_="trace_Dir" Attributes="0" KeyPath="id_generator.py" Type="0"/>
-    <ROW Component="idf.txt" ComponentId="{92C421E3-3343-48FD-A426-2B798BDA7C88}" Directory_="analyse_Dir" Attributes="0" KeyPath="idf.txt" Type="0"/>
-    <ROW Component="inMemorySnapshotter.js" ComponentId="{72F74676-B96B-40E3-9978-1C278C67DD18}" Directory_="test_2_Dir" Attributes="0" KeyPath="inMemorySnapshotter.js" Type="0"/>
-    <ROW Component="in_memory_log_exporter.py" ComponentId="{D005F25F-43B5-472D-96DA-F1B411491A83}" Directory_="export_4_Dir" Attributes="0" KeyPath="in_memory_log_exporter.py" Type="0"/>
-    <ROW Component="in_memory_span_exporter.py" ComponentId="{CB4535B4-D875-46DD-8C47-F1CB7F4FF984}" Directory_="export_2_Dir" Attributes="0" KeyPath="in_memory_span_exporter.py" Type="0"/>
-    <ROW Component="index.html" ComponentId="{04D8AA38-12E8-4783-8417-6BFD3F5905A9}" Directory_="htmlReport_Dir" Attributes="0" KeyPath="index.html" Type="0"/>
-    <ROW Component="index.html_1" ComponentId="{460FF19F-6431-41EC-B0A8-2D6975705006}" Directory_="recorder_2_Dir" Attributes="0" KeyPath="index.html_1" Type="0"/>
-    <ROW Component="index.js" ComponentId="{63FE7425-E843-4C7F-A509-FE67A1FDA28A}" Directory_="utilsBundleImpl_Dir" Attributes="0" KeyPath="index.js_4" Type="0"/>
-    <ROW Component="install_media_pack.ps1" ComponentId="{ABF7B3CB-FF88-42D7-B11F-F7809B694C31}" Directory_="bin_Dir" Attributes="0" KeyPath="install_media_pack.ps1" Type="0"/>
-    <ROW Component="instrumentation.py" ComponentId="{4E68F081-BBCA-4C20-8FD5-AC001B073A03}" Directory_="util_Dir" Attributes="0" KeyPath="instrumentation.py" Type="0"/>
-    <ROW Component="invariants.py" ComponentId="{FCAC2C9C-B9D8-4BF0-93C6-2CB713351FC6}" Directory_="property_Dir" Attributes="0" KeyPath="invariants.py" Type="0"/>
-    <ROW Component="iso_abstract_expand.xsl" ComponentId="{E59E8620-94B2-403E-8435-341676E74EA7}" Directory_="isoschematronxslt1_Dir" Attributes="0" KeyPath="iso_abstract_expand.xsl" Type="0"/>
-    <ROW Component="isoschematron.rng" ComponentId="{5002BFE0-C716-4998-BECC-F67FB3F6DFC7}" Directory_="rng_Dir" Attributes="0" KeyPath="isoschematron.rng" Type="0"/>
-    <ROW Component="issue.json" ComponentId="{04B04078-5360-4106-AE32-2AB696D2431F}" Directory_="issue232_Dir" Attributes="0" KeyPath="issue.json" Type="0"/>
-    <ROW Component="json.gbnf" ComponentId="{9F828562-3604-4445-9616-A3E242EB0345}" Directory_="grammars_Dir" Attributes="0" KeyPath="json.gbnf" Type="0"/>
-    <ROW Component="languagemodel.lm.bin" ComponentId="{033C0019-BF33-45C9-A7F7-A74835FC6534}" Directory_="enUS_Dir" Attributes="0" KeyPath="languagemodel.lm.bin" Type="0"/>
-    <ROW Component="libcrypto1_1.dll" ComponentId="{D8922EB2-C41F-461F-BD3B-A2FC1A40A205}" Directory_="_internal_Dir" Attributes="256" KeyPath="libcrypto1_1.dll"/>
-    <ROW Component="libffi7.dll" ComponentId="{9B64EF5A-3B00-45A8-9ECD-2DB0C8DD2B09}" Directory_="_internal_Dir" Attributes="256" KeyPath="libffi7.dll"/>
-    <ROW Component="libjpeg9.dll" ComponentId="{DBAF4B51-9FAB-4439-B4AF-0E9C0F37493F}" Directory_="_internal_Dir" Attributes="256" KeyPath="libjpeg9.dll"/>
-    <ROW Component="libjpeg9.dll_1" ComponentId="{7BEF9219-579C-429F-8479-75B4DBEAAE6C}" Directory_="pygame_Dir" Attributes="256" KeyPath="libjpeg9.dll_1"/>
-    <ROW Component="libmodplug1.dll" ComponentId="{06B79348-EFBE-4348-980B-D13A223725C0}" Directory_="_internal_Dir" Attributes="256" KeyPath="libmodplug1.dll"/>
-    <ROW Component="libogg0.dll" ComponentId="{693A457A-B474-485D-BACC-B8D93D77B8E7}" Directory_="_internal_Dir" Attributes="256" KeyPath="libogg0.dll"/>
-    <ROW Component="libogg0.dll_1" ComponentId="{F51CD244-A549-4193-9371-42305CFDB541}" Directory_="pygame_Dir" Attributes="256" KeyPath="libogg0.dll_1"/>
-    <ROW Component="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373ff76" ComponentId="{667FF403-AB08-400B-9714-BF931ED54E43}" Directory_="numpy.libs_Dir" Attributes="256" KeyPath="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373f"/>
-    <ROW Component="libopus0.dll" ComponentId="{8575B887-EF92-44FE-B112-5E467FEC05B5}" Directory_="_internal_Dir" Attributes="256" KeyPath="libopus0.dll"/>
-    <ROW Component="libopus0.dll_1" ComponentId="{5FA56219-9EEF-43FB-AAA6-BFE7115E0A74}" Directory_="pygame_Dir" Attributes="256" KeyPath="libopus0.dll_1"/>
-    <ROW Component="libopusfile0.dll" ComponentId="{7AD3FE27-DDBF-40D1-A38C-235E95281E11}" Directory_="_internal_Dir" Attributes="256" KeyPath="libopusfile0.dll"/>
-    <ROW Component="libpng1616.dll" ComponentId="{145F9CD1-BE0A-4ED2-8FD0-390F48B91A6A}" Directory_="_internal_Dir" Attributes="256" KeyPath="libpng1616.dll"/>
-    <ROW Component="libpng1616.dll_1" ComponentId="{B113D3C8-BAC1-4F95-932B-DA057E528FAD}" Directory_="pygame_Dir" Attributes="256" KeyPath="libpng1616.dll_1"/>
-    <ROW Component="libsodiumac42d648.dll" ComponentId="{007B5D8D-7532-43CB-935D-DEB7338892DD}" Directory_="_internal_Dir" Attributes="256" KeyPath="libsodiumac42d648.dll"/>
-    <ROW Component="libsodiumac42d648.dll_1" ComponentId="{18A4C435-5DCB-4F6F-97F4-D0D90260104B}" Directory_="pyzmq.libs_Dir" Attributes="256" KeyPath="libsodiumac42d648.dll_1"/>
-    <ROW Component="libssl1_1.dll" ComponentId="{6C07F89C-4583-45C3-B0C8-6ADADF9C6CF1}" Directory_="_internal_Dir" Attributes="256" KeyPath="libssl1_1.dll"/>
-    <ROW Component="libtiff5.dll" ComponentId="{04AF4F21-E6E7-4808-9F8A-7457661B52B0}" Directory_="_internal_Dir" Attributes="256" KeyPath="libtiff5.dll"/>
-    <ROW Component="libwebp7.dll" ComponentId="{FCEE5232-E6F8-40B1-B5AD-AE20A50FBCE4}" Directory_="_internal_Dir" Attributes="256" KeyPath="libwebp7.dll"/>
-    <ROW Component="libzmqv141mt4_3_40a6f51ca.dll" ComponentId="{E5D6088F-1B9A-4DC8-8F3E-99D156D209B2}" Directory_="_internal_Dir" Attributes="256" KeyPath="libzmqv141mt4_3_40a6f51ca.dll"/>
-    <ROW Component="libzmqv141mt4_3_40a6f51ca.dll_1" ComponentId="{C1A6A181-1F06-456A-9234-24D0DBC9F0E0}" Directory_="pyzmq.libs_Dir" Attributes="256" KeyPath="libzmqv141mt4_3_40a6f51ca.dll_1"/>
-    <ROW Component="loadorderpyzmq25.1.2" ComponentId="{5A9B7AE8-6247-4BB5-BD47-B69FC3C86B78}" Directory_="pyzmq.libs_Dir" Attributes="0" KeyPath="loadorderpyzmq25.1.2" Type="0"/>
-    <ROW Component="locale.de.ini" ComponentId="{7BE931A6-C866-44BB-8E7E-C1342EDC2165}" Directory_="locale_Dir" Attributes="0" KeyPath="locale.de.ini" Type="0"/>
-    <ROW Component="logo.eps" ComponentId="{FDDD41EE-EF01-436A-93E4-26EC7AB1134F}" Directory_="images_Dir" Attributes="0" KeyPath="logo.eps" Type="0"/>
-    <ROW Component="logo.svg" ComponentId="{E9B54089-B448-4F94-A5B7-F766E25DE36B}" Directory_="logo_Dir" Attributes="0" KeyPath="logo.svg" Type="0"/>
-    <ROW Component="map_reduce_prompt.cpython310.pyc" ComponentId="{D306A7F7-FF5C-4329-B69D-0CDBF709243F}" Directory_="__pycache___23_Dir" Attributes="0" KeyPath="map_reduce_prompt.cpython310.pyc_1" Type="0"/>
-    <ROW Component="map_reduce_prompt.cpython310.pyc_1" ComponentId="{18DF1C0F-26D9-4881-A5AF-4BEC5D6F9DC0}" Directory_="__pycache___28_Dir" Attributes="0" KeyPath="map_reduce_prompt.cpython310.pyc_2" Type="0"/>
-    <ROW Component="map_reduce_prompt.py" ComponentId="{30B4CB0E-758A-4B17-8E5F-733E532693E8}" Directory_="question_answering_Dir" Attributes="0" KeyPath="map_reduce_prompt.py_1" Type="0"/>
-    <ROW Component="map_reduce_prompt.py_1" ComponentId="{3FEA9F6D-EBC6-4999-BEF9-7A8136C9B551}" Directory_="summarize_Dir" Attributes="0" KeyPath="map_reduce_prompt.py_2" Type="0"/>
-    <ROW Component="md.cp310win_amd64.pyd" ComponentId="{3416C566-1582-48EF-9548-5BDBC978BF50}" Directory_="charset_normalizer_Dir" Attributes="256" KeyPath="md.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="metaschema.json" ComponentId="{C22242DB-B302-46E4-A71C-24E9BF91FA6B}" Directory_="draft201909_Dir" Attributes="0" KeyPath="metaschema.json" Type="0"/>
-    <ROW Component="metaschema.json_1" ComponentId="{BAFF9C4D-3EDB-4DA5-9589-DA5EB1367FB7}" Directory_="draft202012_Dir" Attributes="0" KeyPath="metaschema.json_1" Type="0"/>
-    <ROW Component="metaschema.json_2" ComponentId="{156F2913-0961-41E1-97FD-50E15CFFB120}" Directory_="draft3_Dir" Attributes="0" KeyPath="metaschema.json_2" Type="0"/>
-    <ROW Component="metaschema.json_3" ComponentId="{707E78B1-785E-4DD8-818E-D6C0741410BD}" Directory_="draft4_Dir" Attributes="0" KeyPath="metaschema.json_3" Type="0"/>
-    <ROW Component="metaschema.json_4" ComponentId="{B65CFFEF-3FD8-43E9-9037-CA2306A15585}" Directory_="draft6_Dir" Attributes="0" KeyPath="metaschema.json_4" Type="0"/>
-    <ROW Component="metaschema.json_5" ComponentId="{BD500792-3151-44AF-AED1-E843FEFDD296}" Directory_="draft7_Dir" Attributes="0" KeyPath="metaschema.json_5" Type="0"/>
-    <ROW Component="mfc140u.dll" ComponentId="{A1910A02-2F2F-41A7-98B1-351D5B78A154}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="mfc140u.dll"/>
-    <ROW Component="migration1.psql.sql" ComponentId="{399A62D5-3E89-4D45-BB84-DD638369D23C}" Directory_="migrations_1_Dir" Attributes="0" KeyPath="migration1.psql.sql" Type="0"/>
-    <ROW Component="msgcat1.6.1.tm" ComponentId="{6C1A850E-FD7E-4BBB-8C06-821F21692201}" Directory_="__1_Dir" Attributes="0" KeyPath="msgcat1.6.1.tm" Type="0"/>
-    <ROW Component="msvcp100.dll" ComponentId="{634CB138-6F79-4BE2-8225-81E0CC170D9D}" Directory_="_internal_Dir" Attributes="256" KeyPath="msvcp100.dll"/>
-    <ROW Component="msvcp140.dll" ComponentId="{F94C509F-CE8B-4B30-9889-1EF776A990C6}" Directory_="_internal_Dir" Attributes="256" KeyPath="msvcp140.dll"/>
-    <ROW Component="msvcp140fa0758dedafbbe194d3ee96e3dc2b9a3.dll" ComponentId="{3EBA5567-2753-4145-961F-822C9856916B}" Directory_="pandas.libs_Dir" Attributes="256" KeyPath="msvcp140fa0758dedafbbe194d3ee96e3dc2b9a3.dll"/>
-    <ROW Component="msvcr100.dll" ComponentId="{19B72DB7-60C3-43C6-A07F-4E1BC4366CFE}" Directory_="_internal_Dir" Attributes="256" KeyPath="msvcr100.dll"/>
-    <ROW Component="mupdfcpp64.dll" ComponentId="{24E88578-3F28-43BE-B362-7100750A92A1}" Directory_="fitz_Dir" Attributes="256" KeyPath="mupdfcpp64.dll"/>
-    <ROW Component="mutationlistener.js" ComponentId="{02DEAE04-9A9C-4F82-8C8E-8F1EF404EC2C}" Directory_="common_1_Dir" Attributes="0" KeyPath="mutationlistener.js" Type="0"/>
-    <ROW Component="nbformat.v3.schema.json" ComponentId="{5D13A9DC-38F8-43FD-A0ED-FC8DE9F33E5F}" Directory_="v3_Dir" Attributes="0" KeyPath="nbformat.v3.schema.json" Type="0"/>
-    <ROW Component="nbformat.v4.0.schema.json" ComponentId="{52D3A1DC-9D22-43D1-B48E-51F1DA07E4DB}" Directory_="v4_Dir" Attributes="0" KeyPath="nbformat.v4.0.schema.json" Type="0"/>
-    <ROW Component="node.exe" ComponentId="{8289EE79-9C0D-46F6-A3EF-3B8C4D870562}" Directory_="driver_Dir" Attributes="256" KeyPath="node.exe"/>
-    <ROW Component="onnxruntime_collect_build_info.cpython310.pyc" ComponentId="{8FD3EF16-6BF9-4760-95B4-0B44AB074013}" Directory_="capi_Dir" Attributes="0" KeyPath="onnxruntime_collect_build_info.cpython310.pyc" Type="0"/>
-    <ROW Component="onnxruntime_providers_shared.dll" ComponentId="{3CD6C47C-2D7E-4031-9C18-6A0D7CC1C899}" Directory_="capi_Dir" Attributes="256" KeyPath="onnxruntime_providers_shared.dll"/>
-    <ROW Component="opencv_videoio_ffmpeg490_64.dll" ComponentId="{94093B2F-3970-45B6-9042-2AF64114E6D2}" Directory_="cv2_Dir" Attributes="256" KeyPath="opencv_videoio_ffmpeg490_64.dll"/>
-    <ROW Component="opengl32sw.dll" ComponentId="{2204BAB7-98EC-4B53-A01F-A1D2E8AAB3E0}" Directory_="PySide6_Dir" Attributes="256" KeyPath="opengl32sw.dll"/>
-    <ROW Component="optparse.tcl" ComponentId="{7852308A-DDCE-4F9A-AC79-2A3973CE2A43}" Directory_="opt0.4_Dir" Attributes="0" KeyPath="optparse.tcl" Type="0"/>
-    <ROW Component="orjson.cp310win_amd64.pyd" ComponentId="{F645FF1E-6DA5-45EA-AF7E-3ECC3D1924B8}" Directory_="orjson_Dir" Attributes="256" KeyPath="orjson.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="platform1.0.18.tm" ComponentId="{78857702-CEBF-44DE-8F48-486AC6789733}" Directory_="__Dir" Attributes="0" KeyPath="platform1.0.18.tm" Type="0"/>
-    <ROW Component="playwrightConnection.js" ComponentId="{B0AE9E1C-247A-47DC-8929-532986EBBE23}" Directory_="remote_Dir" Attributes="0" KeyPath="playwrightConnection.js" Type="0"/>
-    <ROW Component="portmidi.dll" ComponentId="{271E21E9-4918-441D-A355-26C6F26BA85D}" Directory_="_internal_Dir" Attributes="256" KeyPath="portmidi.dll"/>
-    <ROW Component="prob_emit.p" ComponentId="{34CE170F-7CCD-42EB-91A6-1B32E1063A10}" Directory_="finalseg_Dir" Attributes="0" KeyPath="prob_emit.p" Type="0"/>
-    <ROW Component="prompt.cpython310.pyc" ComponentId="{1E43EA27-8BEA-4AC5-AB9E-D4ED945F4160}" Directory_="__pycache___26_Dir" Attributes="0" KeyPath="prompt.cpython310.pyc_8" Type="0"/>
-    <ROW Component="prompt.py" ComponentId="{DFAF9C90-00AA-49A1-A378-A92DB017769B}" Directory_="sql_database_Dir" Attributes="0" KeyPath="prompt.py_8" Type="0"/>
-    <ROW Component="prompts.cpython310.pyc" ComponentId="{5F791E09-083F-41A3-B8D9-5D5B5A3F1D68}" Directory_="__pycache___2_Dir" Attributes="0" KeyPath="prompts.cpython310.pyc_1" Type="0"/>
-    <ROW Component="prompts.py" ComponentId="{AD47D7EF-E3E5-4AAE-9A57-922A61E82855}" Directory_="chat_vector_db_Dir" Attributes="0" KeyPath="prompts.py_1" Type="0"/>
-    <ROW Component="protocol.d.ts" ComponentId="{DD5449B2-C265-4784-8265-BA5B7F868A87}" Directory_="types_Dir" Attributes="0" KeyPath="protocol.d.ts" Type="0"/>
-    <ROW Component="pulsar.py" ComponentId="{53BA0965-6874-49EF-B0C3-85B21D1F4238}" Directory_="impl_1_Dir" Attributes="0" KeyPath="pulsar.py" Type="0"/>
-    <ROW Component="py.typed" ComponentId="{AC64667F-476B-4533-9BD4-EC4A40BC15F5}" Directory_="langchain_Dir" Attributes="0" KeyPath="py.typed_1" Type="0"/>
-    <ROW Component="py.typed_1" ComponentId="{2B11016D-289C-4D55-B78A-BF37FAE550FB}" Directory_="nbconvert_Dir" Attributes="0" KeyPath="py.typed_2" Type="0"/>
-    <ROW Component="py.typed_2" ComponentId="{497BFBF4-14DA-4418-947F-AA497CF97817}" Directory_="nbformat_Dir" Attributes="0" KeyPath="py.typed_3" Type="0"/>
-    <ROW Component="py.typed_3" ComponentId="{D712E44B-C199-424F-84F6-1F5067CCD400}" Directory_="playwright_Dir" Attributes="0" KeyPath="py.typed_5" Type="0"/>
-    <ROW Component="py.typed_4" ComponentId="{B2D59BE5-A284-4A6F-B4F4-0C3DD0B21F2D}" Directory_="selenium_Dir" Attributes="0" KeyPath="py.typed_6" Type="0"/>
-    <ROW Component="py.typed_5" ComponentId="{0FDB1821-E7D7-42E9-90A7-E7CE1242E36A}" Directory_="v120_Dir" Attributes="0" KeyPath="py.typed_7" Type="0"/>
-    <ROW Component="py.typed_6" ComponentId="{39CB1180-E8FD-4315-8C53-51BE355A4919}" Directory_="v121_Dir" Attributes="0" KeyPath="py.typed_8" Type="0"/>
-    <ROW Component="py.typed_7" ComponentId="{85F11F06-990F-4D02-A3AA-9B72E71E8C69}" Directory_="v122_Dir" Attributes="0" KeyPath="py.typed_9" Type="0"/>
-    <ROW Component="py.typed_8" ComponentId="{EA789C72-03F1-4C22-8770-C0CE71303035}" Directory_="v85_Dir" Attributes="0" KeyPath="py.typed_10" Type="0"/>
-    <ROW Component="pygpt.exe" ComponentId="{9A90CBE4-F862-4360-8647-7A0702FB614C}" Directory_="Windows_Dir" Attributes="256" KeyPath="pygpt.exe"/>
-    <ROW Component="pyside6.abi3.dll" ComponentId="{19E75A81-DC04-4AFA-A710-D754D4FF2A1C}" Directory_="PySide6_Dir" Attributes="256" KeyPath="pyside6.abi3.dll"/>
-    <ROW Component="python3.dll" ComponentId="{028BDB14-02FD-44D7-89A1-7AD2318812E8}" Directory_="_internal_Dir" Attributes="256" KeyPath="python3.dll"/>
-    <ROW Component="python310.dll" ComponentId="{C698369B-D0C4-41B0-B6D7-485C386BC607}" Directory_="_internal_Dir" Attributes="256" KeyPath="python310.dll"/>
-    <ROW Component="pythoncom310.dll" ComponentId="{DE56D059-5694-45F5-ABC0-FDF106A6D119}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pythoncom310.dll"/>
-    <ROW Component="pywintypes310.dll" ComponentId="{C98A560C-407B-4513-BA94-0D193CA66BA9}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pywintypes310.dll"/>
-    <ROW Component="qcertonlybackend.dll" ComponentId="{A7B793D0-7FC3-48F9-A0FD-A718DB8D6F80}" Directory_="tls_Dir" Attributes="256" KeyPath="qcertonlybackend.dll"/>
-    <ROW Component="qdirect2d.dll" ComponentId="{09DC6B18-0A5B-46BE-9372-8FD9E1225250}" Directory_="platforms_Dir" Attributes="256" KeyPath="qdirect2d.dll"/>
-    <ROW Component="qgif.dll" ComponentId="{4D40D752-E529-4B0C-8716-486056C0DFFF}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qgif.dll"/>
-    <ROW Component="qicns.dll" ComponentId="{14A71A3A-D876-46C6-BDDB-DDB2554805EB}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qicns.dll"/>
-    <ROW Component="qico.dll" ComponentId="{1E9D3193-1FDE-495B-8E30-3B92CA16A64B}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qico.dll"/>
-    <ROW Component="qjpeg.dll" ComponentId="{5D52315C-737A-4E5A-AB20-1FF13E7B2AAE}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qjpeg.dll"/>
-    <ROW Component="qminimal.dll" ComponentId="{4580D6B3-890A-4EF2-A99B-1D81E555B175}" Directory_="platforms_Dir" Attributes="256" KeyPath="qminimal.dll"/>
-    <ROW Component="qnetworklistmanager.dll" ComponentId="{43CA87D8-4043-4A7B-B9C6-17112B5C1A3A}" Directory_="networkinformation_Dir" Attributes="256" KeyPath="qnetworklistmanager.dll"/>
-    <ROW Component="qoffscreen.dll" ComponentId="{B964CE1D-B603-4AE7-8503-E31786BACAEF}" Directory_="platforms_Dir" Attributes="256" KeyPath="qoffscreen.dll"/>
-    <ROW Component="qopensslbackend.dll" ComponentId="{2A7963BA-2A00-4E4F-8235-E1118AB65064}" Directory_="tls_Dir" Attributes="256" KeyPath="qopensslbackend.dll"/>
-    <ROW Component="qpdf.dll" ComponentId="{C068D38E-1F31-44A3-90CE-0E342B0FD9C4}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qpdf.dll"/>
-    <ROW Component="qschannelbackend.dll" ComponentId="{84751608-105E-442D-BCFA-BC34FE313022}" Directory_="tls_Dir" Attributes="256" KeyPath="qschannelbackend.dll"/>
-    <ROW Component="qsvg.dll" ComponentId="{2E3A57C0-CED2-4A2A-AE5C-E0A21FBB5223}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qsvg.dll"/>
-    <ROW Component="qsvgicon.dll" ComponentId="{B2FCA8CF-0F56-45C0-9889-ED986E942D28}" Directory_="iconengines_Dir" Attributes="256" KeyPath="qsvgicon.dll"/>
-    <ROW Component="qtbase_ar.qm" ComponentId="{584CF476-16C5-42C1-8E41-D9505A07D22B}" Directory_="translations_Dir" Attributes="0" KeyPath="qtbase_ar.qm" Type="0"/>
-    <ROW Component="qtga.dll" ComponentId="{310AD1E9-63C6-4DD4-A585-F9DA98A67110}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtga.dll"/>
-    <ROW Component="qtiff.dll" ComponentId="{79C9CA47-3496-43B9-B582-0DA9B50CFDA6}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtiff.dll"/>
-    <ROW Component="qtuiotouchplugin.dll" ComponentId="{51F91A02-8109-4A0E-BE34-F75CCC5268B5}" Directory_="generic_Dir" Attributes="256" KeyPath="qtuiotouchplugin.dll"/>
-    <ROW Component="qtvirtualkeyboardplugin.dll" ComponentId="{420A8752-0219-49BA-B33E-360C4EF2A09E}" Directory_="platforminputcontexts_Dir" Attributes="256" KeyPath="qtvirtualkeyboardplugin.dll"/>
-    <ROW Component="qwbmp.dll" ComponentId="{150F2D56-51BC-4159-989D-66D807E0352C}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwbmp.dll"/>
-    <ROW Component="qwebp.dll" ComponentId="{5E36D74A-057B-4CDC-9E71-BA6F2105F984}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwebp.dll"/>
-    <ROW Component="qwindows.dll" ComponentId="{62D286AD-9D14-4F0E-8CC1-B84180A2EFF3}" Directory_="platforms_Dir" Attributes="256" KeyPath="qwindows.dll"/>
-    <ROW Component="qwindowsvistastyle.dll" ComponentId="{F8412499-AC56-475C-99A6-359FED6D1094}" Directory_="styles_Dir" Attributes="256" KeyPath="qwindowsvistastyle.dll"/>
-    <ROW Component="roots.pem" ComponentId="{303C951F-6057-49AD-9680-474CD337C7C0}" Directory_="_credentials_Dir" Attributes="0" KeyPath="roots.pem" Type="0"/>
-    <ROW Component="rpds.cp310win_amd64.pyd" ComponentId="{9A7AF98F-D9B5-40A2-B9E5-2C5A20BE5F92}" Directory_="rpds_Dir" Attributes="256" KeyPath="rpds.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="segment_directory.py" ComponentId="{0DFE6280-2D28-436E-8ABD-12A6FCC02D2B}" Directory_="distributed_1_Dir" Attributes="0" KeyPath="segment_directory.py" Type="0"/>
-    <ROW Component="seleniummanager" ComponentId="{59EA09E7-90D5-4797-A686-F0ACB995B11C}" Directory_="linux_Dir" Attributes="0" KeyPath="seleniummanager" Type="0"/>
-    <ROW Component="seleniummanager.exe" ComponentId="{3E9605F6-288C-482E-A7E7-610FB20EFD9D}" Directory_="windows_Dir" Attributes="0" KeyPath="seleniummanager.exe"/>
-    <ROW Component="seleniummanager_1" ComponentId="{9AFD64AB-6E66-4145-9A24-4F432B8E30BA}" Directory_="macos_Dir" Attributes="0" KeyPath="seleniummanager_1" Type="0"/>
-    <ROW Component="shell.pyd" ComponentId="{0C3F8A3A-E154-4CC4-B563-335AE65B491B}" Directory_="shell_Dir" Attributes="256" KeyPath="shell.pyd" Type="0"/>
-    <ROW Component="shell1.1.4.tm" ComponentId="{DB98E82B-91FC-47EF-8CD7-71E6E36F2346}" Directory_="platform_Dir" Attributes="0" KeyPath="shell1.1.4.tm" Type="0"/>
-    <ROW Component="shiboken6.abi3.dll" ComponentId="{46570E41-5903-4162-9F4E-0C9558F3E123}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="shiboken6.abi3.dll"/>
-    <ROW Component="snapshotter.js" ComponentId="{695DC0BA-FAE9-4A19-A181-719B36DFF52D}" Directory_="recorder_1_Dir" Attributes="0" KeyPath="snapshotter.js" Type="0"/>
-    <ROW Component="speedups.pyd" ComponentId="{BE468F61-A008-4B07-82FE-966F8ED64E50}" Directory_="tornado_Dir" Attributes="256" KeyPath="speedups.pyd" Type="0"/>
-    <ROW Component="sqlite.py" ComponentId="{5D72F306-B045-4E14-B809-F0BCDD36274F}" Directory_="impl_Dir" Attributes="0" KeyPath="sqlite.py" Type="0"/>
-    <ROW Component="sqlite.py_1" ComponentId="{57EBFC26-2A04-4A5A-9CE3-DDE6AD57C76C}" Directory_="metadata_Dir" Attributes="0" KeyPath="sqlite.py_1" Type="0"/>
-    <ROW Component="sqlite3.dll" ComponentId="{AABB2DFE-1C04-4AC2-9C4A-23A18BD90C3A}" Directory_="_internal_Dir" Attributes="256" KeyPath="sqlite3.dll"/>
-    <ROW Component="tcl86t.dll" ComponentId="{A996C4BD-2101-44C4-97EC-DCD7A9925399}" Directory_="_internal_Dir" Attributes="256" KeyPath="tcl86t.dll"/>
-    <ROW Component="test_base.py" ComponentId="{C9B6C616-D5BB-4844-A246-639D962D5DC1}" Directory_="db_1_Dir" Attributes="0" KeyPath="test_base.py" Type="0"/>
-    <ROW Component="test_basic_auth.py" ComponentId="{F2FE5432-7DFF-4442-A594-D863A6EBC6FD}" Directory_="auth_1_Dir" Attributes="0" KeyPath="test_basic_auth.py" Type="0"/>
-    <ROW Component="test_cloud_client.py" ComponentId="{530B81E3-BF34-4750-ACA6-23133A5D9856}" Directory_="client_Dir" Attributes="0" KeyPath="test_cloud_client.py" Type="0"/>
-    <ROW Component="test_data_loader.py" ComponentId="{56A89ABD-6DE4-47BB-BA81-F1325C66AB66}" Directory_="data_loader_Dir" Attributes="0" KeyPath="test_data_loader.py" Type="0"/>
-    <ROW Component="test_default_ef.py" ComponentId="{10FB7975-1F25-413A-B496-33C29F103719}" Directory_="ef_Dir" Attributes="0" KeyPath="test_default_ef.py" Type="0"/>
-    <ROW Component="test_many_collections.py" ComponentId="{9E9235BF-A1A6-45C0-B22E-CE19B583321F}" Directory_="stress_Dir" Attributes="0" KeyPath="test_many_collections.py" Type="0"/>
-    <ROW Component="test_memberlist_provider.py" ComponentId="{53F00BBA-370B-4ECD-86E0-F344412D2762}" Directory_="distributed_2_Dir" Attributes="0" KeyPath="test_memberlist_provider.py" Type="0"/>
-    <ROW Component="test_messagid.py" ComponentId="{F6D9C49E-A75F-4539-9C63-63FC0AF47045}" Directory_="utils_Dir" Attributes="0" KeyPath="test_messagid.py" Type="0"/>
-    <ROW Component="test_metadata.py" ComponentId="{0F90A5E9-977E-4100-90B4-B22E8C01B24F}" Directory_="segment_1_Dir" Attributes="0" KeyPath="test_metadata.py" Type="0"/>
-    <ROW Component="test_producer_consumer.py" ComponentId="{35C11F07-3CB2-469C-A279-9A8B6A5A6635}" Directory_="ingest_1_Dir" Attributes="0" KeyPath="test_producer_consumer.py" Type="0"/>
-    <ROW Component="test_provider.py" ComponentId="{FE0CD481-0F4C-4CE0-BCAE-122D7E6E26AA}" Directory_="quota_Dir" Attributes="0" KeyPath="test_provider.py" Type="0"/>
-    <ROW Component="test_static_quota_enforcer.py" ComponentId="{FA35B7AE-D171-4570-ADE7-2544BF49BDB3}" Directory_="quota_1_Dir" Attributes="0" KeyPath="test_static_quota_enforcer.py" Type="0"/>
-    <ROW Component="test_types.py" ComponentId="{3A799652-C9D6-41CD-B312-A40D5A93E42E}" Directory_="api_1_Dir" Attributes="0" KeyPath="test_types.py" Type="0"/>
-    <ROW Component="tk86t.dll" ComponentId="{5823816E-7573-461D-8471-1BED44AED6A0}" Directory_="_internal_Dir" Attributes="256" KeyPath="tk86t.dll"/>
-    <ROW Component="tokenizers.cp310win_amd64.pyd" ComponentId="{0AD3B631-8714-4513-B975-757932C5448C}" Directory_="tokenizers_2_Dir" Attributes="256" KeyPath="tokenizers.cp310win_amd64.pyd" Type="0"/>
-    <ROW Component="traceViewer.js" ComponentId="{268B39C1-7D53-45BA-9962-A53E6D48E387}" Directory_="viewer_Dir" Attributes="0" KeyPath="traceViewer.js" Type="0"/>
-    <ROW Component="types.py" ComponentId="{CEEEA61B-30D2-44BE-AD7C-0E0E0B6C0352}" Directory_="fastapi_Dir" Attributes="0" KeyPath="types.py_1" Type="0"/>
-    <ROW Component="utilityScriptSerializers.js" ComponentId="{7E4FA56D-CE7A-4B5B-96E2-456D18B6CB78}" Directory_="isomorphic_Dir" Attributes="0" KeyPath="utilityScriptSerializers.js" Type="0"/>
-    <ROW Component="version.py" ComponentId="{344E3B62-425F-41B1-9A35-C6800EBD777B}" Directory_="misc_Dir" Attributes="0" KeyPath="version.py" Type="0"/>
-    <ROW Component="webdriver_prefs.json" ComponentId="{F421C542-B60B-4466-9C06-C35CC0F58C18}" Directory_="firefox_1_Dir" Attributes="0" KeyPath="webdriver_prefs.json" Type="0"/>
-    <ROW Component="webkit.js" ComponentId="{005931EF-6A8D-473D-A7A1-D8C8A04BED61}" Directory_="webkit_Dir" Attributes="0" KeyPath="webkit.js" Type="0"/>
-    <ROW Component="win32api.pyd" ComponentId="{915964DD-668B-4C8E-A432-4C8125ABB32C}" Directory_="win32_Dir" Attributes="256" KeyPath="win32api.pyd" Type="0"/>
-    <ROW Component="win32ui.pyd" ComponentId="{EFE011BE-772A-486C-8703-15584678D394}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="win32ui.pyd" Type="0"/>
-    <ROW Component="zlib1.dll" ComponentId="{3C5A9246-57B0-4CB7-AE9A-010DB780DF99}" Directory_="pygame_Dir" Attributes="256" KeyPath="zlib1.dll"/>
-    <ROW Component="zlib1.dll_1" ComponentId="{99DE1887-DE04-4964-B7BB-7FD491DC8C11}" Directory_="_internal_Dir" Attributes="256" KeyPath="zlib1.dll_1"/>
-    <ROW Component="zones" ComponentId="{D37A56D0-7645-4C7B-B7EE-2B8207C2373F}" Directory_="tzdata_1_Dir" Attributes="0" KeyPath="zones" Type="0"/>
+    <ROW Component="ACT" ComponentId="{CBB01C6B-1183-452E-8FF1-959D83E477FB}" Directory_="Australia_Dir" Attributes="0" KeyPath="ACT" Type="0"/>
+    <ROW Component="ACT_1" ComponentId="{453DA76A-E08C-43EB-A3AD-A2B4D8678A25}" Directory_="Australia_1_Dir" Attributes="0" KeyPath="ACT_1" Type="0"/>
+    <ROW Component="ACT_2" ComponentId="{A692B0C0-FC20-4382-BC21-B59BECBEAB89}" Directory_="Australia_2_Dir" Attributes="0" KeyPath="ACT_2" Type="0"/>
+    <ROW Component="APPDIR" ComponentId="{A1C32EEF-77DF-461E-A04D-4932B9ABD157}" Directory_="APPDIR" Attributes="0"/>
+    <ROW Component="AST4" ComponentId="{D15E36AD-9504-45D6-9B97-C8733AAEA6DC}" Directory_="SystemV_Dir" Attributes="0" KeyPath="AST4" Type="0"/>
+    <ROW Component="Abidjan" ComponentId="{766F5D1F-A89B-48AB-878A-D72051D39C84}" Directory_="Africa_Dir" Attributes="0" KeyPath="Abidjan" Type="0"/>
+    <ROW Component="Abidjan_1" ComponentId="{10FA303C-1664-42D2-86C6-E92BBD0E6834}" Directory_="Africa_1_Dir" Attributes="0" KeyPath="Abidjan_1" Type="0"/>
+    <ROW Component="Abidjan_2" ComponentId="{F8424D66-BE50-47BD-9C3F-97F2C159E0B4}" Directory_="Africa_2_Dir" Attributes="0" KeyPath="Abidjan_2" Type="0"/>
+    <ROW Component="Acre" ComponentId="{81E91411-EBD2-42E0-BBFE-D3D42C3C1E8E}" Directory_="Brazil_Dir" Attributes="0" KeyPath="Acre" Type="0"/>
+    <ROW Component="Acre_1" ComponentId="{1B14D67C-4EA0-402F-82BE-7C27D0F9DFBC}" Directory_="Brazil_1_Dir" Attributes="0" KeyPath="Acre_1" Type="0"/>
+    <ROW Component="Acre_2" ComponentId="{AD29248A-E327-4293-BFDB-E1B7825553F8}" Directory_="Brazil_2_Dir" Attributes="0" KeyPath="Acre_2" Type="0"/>
+    <ROW Component="Adak" ComponentId="{6F9566CE-F61E-48D6-AE07-CE548AB04492}" Directory_="America_Dir" Attributes="0" KeyPath="Adak" Type="0"/>
+    <ROW Component="Adak_1" ComponentId="{67870627-9E55-4C3E-AE5C-0BFB079F5198}" Directory_="America_1_Dir" Attributes="0" KeyPath="Adak_1" Type="0"/>
+    <ROW Component="Adak_2" ComponentId="{F7D2AE0C-B9E3-49B7-A228-C2DB846AF6DF}" Directory_="America_2_Dir" Attributes="0" KeyPath="Adak_2" Type="0"/>
+    <ROW Component="Aden" ComponentId="{F7ADF6A6-A9BB-4107-978D-0B82FE29192D}" Directory_="Asia_Dir" Attributes="0" KeyPath="Aden" Type="0"/>
+    <ROW Component="Aden_1" ComponentId="{E4D3AB1B-C0AD-42D1-8663-7FEA1EE57D74}" Directory_="Asia_1_Dir" Attributes="0" KeyPath="Aden_1" Type="0"/>
+    <ROW Component="Aden_2" ComponentId="{248865F6-2BC3-486F-B623-CBEE593D6D6E}" Directory_="Asia_2_Dir" Attributes="0" KeyPath="Aden_2" Type="0"/>
+    <ROW Component="Alaska" ComponentId="{1831B93E-F601-4B45-B38D-E22250C72FC1}" Directory_="US_Dir" Attributes="0" KeyPath="Alaska" Type="0"/>
+    <ROW Component="Alaska_1" ComponentId="{75A2D6FD-B1F5-41B6-B1FD-735D07B0E1E8}" Directory_="US_1_Dir" Attributes="0" KeyPath="Alaska_1" Type="0"/>
+    <ROW Component="Alaska_2" ComponentId="{8C2C169E-A099-4755-9803-A4DE3F2F8E3C}" Directory_="US_2_Dir" Attributes="0" KeyPath="Alaska_2" Type="0"/>
+    <ROW Component="Amsterdam" ComponentId="{70393557-1A33-41CC-BF6B-23B9ACBD2584}" Directory_="Europe_Dir" Attributes="0" KeyPath="Amsterdam" Type="0"/>
+    <ROW Component="Amsterdam_1" ComponentId="{AB3C52E9-17B2-44B9-8F16-DDD5E677BAD7}" Directory_="Europe_1_Dir" Attributes="0" KeyPath="Amsterdam_1" Type="0"/>
+    <ROW Component="Amsterdam_2" ComponentId="{783F7504-257E-499F-8B02-3106AE97EF6B}" Directory_="Europe_2_Dir" Attributes="0" KeyPath="Amsterdam_2" Type="0"/>
+    <ROW Component="Antananarivo" ComponentId="{CC7B0C15-A0B2-4698-9A27-191F1448B456}" Directory_="Indian_Dir" Attributes="0" KeyPath="Antananarivo" Type="0"/>
+    <ROW Component="Antananarivo_1" ComponentId="{9A40569F-C42C-45D9-B341-AC894935B8C8}" Directory_="Indian_1_Dir" Attributes="0" KeyPath="Antananarivo_1" Type="0"/>
+    <ROW Component="Antananarivo_2" ComponentId="{1F56B4BB-8CC7-471C-B9E8-9A4E0BAA6E05}" Directory_="Indian_2_Dir" Attributes="0" KeyPath="Antananarivo_2" Type="0"/>
+    <ROW Component="Apia" ComponentId="{82642EBE-39F0-42EC-8133-5DF78AF5C023}" Directory_="Pacific_Dir" Attributes="0" KeyPath="Apia" Type="0"/>
+    <ROW Component="Apia_1" ComponentId="{18B998E2-3C5C-45BF-8914-2AA369DAA852}" Directory_="Pacific_1_Dir" Attributes="0" KeyPath="Apia_1" Type="0"/>
+    <ROW Component="Apia_2" ComponentId="{775B04FE-CBBD-42F5-8FAB-B48115A3383C}" Directory_="Pacific_2_Dir" Attributes="0" KeyPath="Apia_2" Type="0"/>
+    <ROW Component="Atlantic" ComponentId="{F635C116-664F-4491-ADB9-4F455A732398}" Directory_="Canada_Dir" Attributes="0" KeyPath="Atlantic" Type="0"/>
+    <ROW Component="Atlantic_2" ComponentId="{087365B4-B4D6-4969-A1B0-5A54CD8FC6BA}" Directory_="Canada_1_Dir" Attributes="0" KeyPath="Atlantic_1" Type="0"/>
+    <ROW Component="Atlantic_3" ComponentId="{AFB39114-EE58-4F3F-9269-CA1E10F7A50D}" Directory_="Canada_2_Dir" Attributes="0" KeyPath="Atlantic_2" Type="0"/>
+    <ROW Component="Azores" ComponentId="{40C64EFE-E9F2-42FE-A3BD-CC6F566A6D9B}" Directory_="Atlantic_Dir" Attributes="0" KeyPath="Azores" Type="0"/>
+    <ROW Component="Azores_1" ComponentId="{7DD22044-CBEE-463A-9B97-A6733C5A57AB}" Directory_="Atlantic_1_Dir" Attributes="0" KeyPath="Azores_1" Type="0"/>
+    <ROW Component="Azores_2" ComponentId="{FAB8E3F1-6A60-4A6E-8769-15C1D1A84211}" Directory_="Atlantic_2_Dir" Attributes="0" KeyPath="Azores_2" Type="0"/>
+    <ROW Component="BajaNorte" ComponentId="{26689C55-44DF-42AE-B350-DB60455438E6}" Directory_="Mexico_Dir" Attributes="0" KeyPath="BajaNorte" Type="0"/>
+    <ROW Component="BajaNorte_1" ComponentId="{89518DB1-D350-476B-A27A-910AE101913B}" Directory_="Mexico_1_Dir" Attributes="0" KeyPath="BajaNorte_1" Type="0"/>
+    <ROW Component="BajaNorte_2" ComponentId="{8FFB19D9-4508-4A84-911B-76292726DF3E}" Directory_="Mexico_2_Dir" Attributes="0" KeyPath="BajaNorte_2" Type="0"/>
+    <ROW Component="Beulah" ComponentId="{A4E64208-A587-489A-A94C-66F6916A41DE}" Directory_="North_Dakota_Dir" Attributes="0" KeyPath="Beulah" Type="0"/>
+    <ROW Component="Beulah_1" ComponentId="{9EC0F43E-B7F2-43E8-AE3C-E684DB03053A}" Directory_="North_Dakota_1_Dir" Attributes="0" KeyPath="Beulah_1" Type="0"/>
+    <ROW Component="Beulah_2" ComponentId="{F10EFE32-63F8-46CF-BD2C-DB4717C5350E}" Directory_="North_Dakota_2_Dir" Attributes="0" KeyPath="Beulah_2" Type="0"/>
+    <ROW Component="Buenos_Aires" ComponentId="{779D467F-2AC7-455F-82F5-089918BA36A6}" Directory_="Argentina_Dir" Attributes="0" KeyPath="Buenos_Aires" Type="0"/>
+    <ROW Component="Buenos_Aires_1" ComponentId="{20D4E2ED-FDDA-47F3-BB6F-697F36CBF52D}" Directory_="Argentina_1_Dir" Attributes="0" KeyPath="Buenos_Aires_2" Type="0"/>
+    <ROW Component="Buenos_Aires_2" ComponentId="{8D7A6109-672F-4A7D-93DD-F90C6CBDA792}" Directory_="Argentina_2_Dir" Attributes="0" KeyPath="Buenos_Aires_4" Type="0"/>
+    <ROW Component="CET" ComponentId="{010A3C76-256F-42BF-9161-D49043B1E10D}" Directory_="zoneinfo_Dir" Attributes="0" KeyPath="CET" Type="0"/>
+    <ROW Component="CET_1" ComponentId="{A2113DCC-842F-42C8-88B9-70EA7B167D24}" Directory_="tzdata_Dir" Attributes="0" KeyPath="CET_1" Type="0"/>
+    <ROW Component="CET_2" ComponentId="{24A7E022-EC90-4866-8267-91390A45C21A}" Directory_="zoneinfo_1_Dir" Attributes="0" KeyPath="CET_2" Type="0"/>
+    <ROW Component="COPYING" ComponentId="{94A84A46-2970-4E42-BA75-DBFE50064512}" Directory_="licenses_1_Dir" Attributes="0" KeyPath="COPYING" Type="0"/>
+    <ROW Component="Casey" ComponentId="{5A8F9670-B37A-4320-A49A-B8C03C01C86C}" Directory_="Antarctica_Dir" Attributes="0" KeyPath="Casey" Type="0"/>
+    <ROW Component="Casey_1" ComponentId="{6A0B630C-2C2E-4856-BB18-C25774733F31}" Directory_="Antarctica_1_Dir" Attributes="0" KeyPath="Casey_1" Type="0"/>
+    <ROW Component="Casey_2" ComponentId="{13566F3A-9A41-4517-80C6-EF436E5400CC}" Directory_="Antarctica_2_Dir" Attributes="0" KeyPath="Casey_2" Type="0"/>
+    <ROW Component="Collection.py" ComponentId="{A5E9D5BB-3FC8-4B4C-948D-1808DC042700}" Directory_="models_Dir" Attributes="0" KeyPath="Collection.py" Type="0"/>
+    <ROW Component="Continental" ComponentId="{B700472F-676B-40DF-B3E5-D4EE7C5B8C66}" Directory_="Chile_Dir" Attributes="0" KeyPath="Continental" Type="0"/>
+    <ROW Component="Continental_1" ComponentId="{2E818F25-6188-449D-A8BC-B52E4B3B9FDD}" Directory_="Chile_1_Dir" Attributes="0" KeyPath="Continental_1" Type="0"/>
+    <ROW Component="Continental_2" ComponentId="{70F1D8AD-C306-4704-9646-8FFC6F3CEB2F}" Directory_="Chile_2_Dir" Attributes="0" KeyPath="Continental_2" Type="0"/>
+    <ROW Component="GMT" ComponentId="{B1FDC9A3-AF7E-46D3-87BC-0754C8B729D3}" Directory_="Etc_Dir" Attributes="0" KeyPath="GMT" Type="0"/>
+    <ROW Component="GMT_1" ComponentId="{194810E3-01D2-4963-A9E3-B5A30E0E77A5}" Directory_="Etc_1_Dir" Attributes="0" KeyPath="GMT_2" Type="0"/>
+    <ROW Component="GMT_2" ComponentId="{F0ABD6C2-0AD1-488E-BFC7-7C06BC2ED3C2}" Directory_="Etc_2_Dir" Attributes="0" KeyPath="GMT_4" Type="0"/>
+    <ROW Component="INSTALLER" ComponentId="{18DA4D05-BCD7-47C1-9B8B-8D7262D1A3B2}" Directory_="attrs23.2.0.distinfo_Dir" Attributes="0" KeyPath="INSTALLER" Type="0"/>
+    <ROW Component="INSTALLER_1" ComponentId="{452338C4-F788-485E-AF78-33D9B7AC17F6}" Directory_="cryptography42.0.2.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_1" Type="0"/>
+    <ROW Component="INSTALLER_2" ComponentId="{5E4D9071-44A8-49C3-A147-479831A882C8}" Directory_="docker7.0.0.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_2" Type="0"/>
+    <ROW Component="INSTALLER_3" ComponentId="{C8F24D4F-C2F6-45C7-9F52-2AF04DD4592B}" Directory_="google_api_core2.17.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_3" Type="0"/>
+    <ROW Component="INSTALLER_4" ComponentId="{49546C58-9B0F-4977-9315-C6447D2271FC}" Directory_="google_api_python_client2.120.0_Dir" Attributes="0" KeyPath="INSTALLER_4" Type="0"/>
+    <ROW Component="INSTALLER_5" ComponentId="{48FFE966-896D-4F28-BBE8-BFF8F844B914}" Directory_="importlib_metadata6.11.0.distin_Dir" Attributes="0" KeyPath="INSTALLER_5" Type="0"/>
+    <ROW Component="INSTALLER_6" ComponentId="{DC8F09BB-2660-40FD-BBA5-903BFBB802F3}" Directory_="pydantic2.6.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_13" Type="0"/>
+    <ROW Component="INSTALLER_7" ComponentId="{05DB1C5E-A789-48C6-B1FC-B14290FA2335}" Directory_="redis5.0.1.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_14" Type="0"/>
+    <ROW Component="INSTALLER_8" ComponentId="{82FD9437-5F9D-4D70-AC51-153EE6A54AAD}" Directory_="urllib31.26.18.distinfo_Dir" Attributes="0" KeyPath="INSTALLER_17" Type="0"/>
+    <ROW Component="Indianapolis" ComponentId="{6C1631BF-DFB1-4CD6-9692-7B242E4313FD}" Directory_="Indiana_Dir" Attributes="0" KeyPath="Indianapolis" Type="0"/>
+    <ROW Component="Indianapolis_1" ComponentId="{BDF626AF-3EC3-40BF-87A8-CFF303FE4B1D}" Directory_="Indiana_1_Dir" Attributes="0" KeyPath="Indianapolis_2" Type="0"/>
+    <ROW Component="Indianapolis_2" ComponentId="{01B56510-535F-49E0-8074-14774411AF7E}" Directory_="Indiana_2_Dir" Attributes="0" KeyPath="Indianapolis_4" Type="0"/>
+    <ROW Component="LICENSE" ComponentId="{0ECB7A06-C652-42D9-AAAE-D62B4384A42F}" Directory_="licenses_Dir" Attributes="0" KeyPath="LICENSE" Type="0"/>
+    <ROW Component="LICENSE_1" ComponentId="{7C65E334-4F40-4C3F-802B-892C60601DD9}" Directory_="licenses_2_Dir" Attributes="0" KeyPath="LICENSE_8" Type="0"/>
+    <ROW Component="LICENSE_2" ComponentId="{9B4702D4-611D-4FEB-9BAE-60B3CCFEEDF6}" Directory_="licenses_3_Dir" Attributes="0" KeyPath="LICENSE_9" Type="0"/>
+    <ROW Component="LICENSE_3" ComponentId="{6749BCF2-EA30-4ACE-8374-C83869CC46DF}" Directory_="licenses_4_Dir" Attributes="0" KeyPath="LICENSE_10" Type="0"/>
+    <ROW Component="LICENSE_4" ComponentId="{15A2DC2B-4106-4CDF-9370-EF36DAA62ED5}" Directory_="driver_Dir" Attributes="0" KeyPath="LICENSE_12" Type="0"/>
+    <ROW Component="LICENSE_5" ComponentId="{F8668B1C-C9E7-4A79-80AD-C352816FCCC4}" Directory_="licenses_5_Dir" Attributes="0" KeyPath="LICENSE_13" Type="0"/>
+    <ROW Component="LatoBlack.ttf" ComponentId="{35832B0E-CA7A-44F3-B445-918DC40A5DEA}" Directory_="Lato_Dir" Attributes="0" Type="0"/>
+    <ROW Component="Longyearbyen" ComponentId="{4132F502-7C7A-438C-B571-B097DCF9FF35}" Directory_="Arctic_Dir" Attributes="0" KeyPath="Longyearbyen" Type="0"/>
+    <ROW Component="Longyearbyen_1" ComponentId="{4DB24955-7AEA-4EDC-8195-9F618EC26511}" Directory_="Arctic_1_Dir" Attributes="0" KeyPath="Longyearbyen_1" Type="0"/>
+    <ROW Component="Longyearbyen_2" ComponentId="{69175A2C-5CEC-46DE-B0CA-AA0D78E523C8}" Directory_="Arctic_2_Dir" Attributes="0" KeyPath="Longyearbyen_2" Type="0"/>
+    <ROW Component="Louisville" ComponentId="{61A19219-6402-4F49-94F4-C2CC53D3A8A4}" Directory_="Kentucky_Dir" Attributes="0" KeyPath="Louisville" Type="0"/>
+    <ROW Component="Louisville_1" ComponentId="{AD9F2D1A-DBEC-4BE2-AF77-C9197C0529EB}" Directory_="Kentucky_1_Dir" Attributes="0" KeyPath="Louisville_2" Type="0"/>
+    <ROW Component="Louisville_2" ComponentId="{9D7ABAF1-3E4D-42A8-A507-2FD3FA308AD4}" Directory_="Kentucky_2_Dir" Attributes="0" KeyPath="Louisville_4" Type="0"/>
+    <ROW Component="MSVCP140.dll" ComponentId="{7FA157FA-7BCA-43DF-AF50-EE3D7DDE3C90}" Directory_="pyzmq.libs_Dir" Attributes="256" KeyPath="MSVCP140.dll_1"/>
+    <ROW Component="MSVCP140.dll_1" ComponentId="{8AA7AAE4-C59C-495A-B9EF-2E5E37CFD497}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140.dll_2"/>
+    <ROW Component="MSVCP140_1.dll" ComponentId="{1DD1D375-6FCA-4AF8-B283-A8B8C1722300}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_1.dll"/>
+    <ROW Component="MSVCP140_2.dll" ComponentId="{D3F959B7-9CD7-4777-8E1B-645F5F17ACC6}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="MSVCP140_2.dll"/>
+    <ROW Component="Makefile" ComponentId="{FDE28A15-3130-4660-81BF-097C35474A2A}" Directory_="skeleton_Dir" Attributes="0" KeyPath="Makefile" Type="0"/>
+    <ROW Component="PrintDeps.exe" ComponentId="{23DC61AE-0AEC-4922-9D1D-33A7E3D920A2}" Directory_="bin_Dir" Attributes="256" KeyPath="PrintDeps.exe"/>
+    <ROW Component="ProductInformation" ComponentId="{8173EF8C-DAB7-47EE-899C-EF320F2ABD5B}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
+    <ROW Component="Qt6Core.dll" ComponentId="{2CA915A5-7D4F-40D6-9EC2-09CEB4C20E77}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Core.dll"/>
+    <ROW Component="Qt6Gui.dll" ComponentId="{6EF4E74B-7E74-4763-85B1-2AFD49BABD59}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Gui.dll"/>
+    <ROW Component="Qt6Network.dll" ComponentId="{577AF346-FC1A-41A5-8723-51A67CC4930B}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Network.dll"/>
+    <ROW Component="Qt6OpenGL.dll" ComponentId="{CA55A31F-B7C4-4953-ABF1-E9BF9AE4218F}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGL.dll"/>
+    <ROW Component="Qt6OpenGLWidgets.dll" ComponentId="{D7C124D9-68FE-4387-9CA2-FF5AEAA7F0DF}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6OpenGLWidgets.dll"/>
+    <ROW Component="Qt6Pdf.dll" ComponentId="{119996D0-AAAE-4BEA-8E38-0C9C7317F9FE}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Pdf.dll"/>
+    <ROW Component="Qt6Qml.dll" ComponentId="{C6AA6A8F-A6BD-480F-B149-F91E26AA2E14}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Qml.dll"/>
+    <ROW Component="Qt6QmlModels.dll" ComponentId="{FC8B18A9-477E-472D-906C-B23BEE9C7137}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6QmlModels.dll"/>
+    <ROW Component="Qt6Quick.dll" ComponentId="{DFCC336D-BDDC-4083-870C-E04D29B55B0A}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Quick.dll"/>
+    <ROW Component="Qt6Svg.dll" ComponentId="{519CE1E5-6379-4E09-904A-F0D3D724E35F}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Svg.dll"/>
+    <ROW Component="Qt6UiTools.dll" ComponentId="{35627D8A-7F3A-4B99-AF50-7CB7B204F31B}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6UiTools.dll"/>
+    <ROW Component="Qt6VirtualKeyboard.dll" ComponentId="{5CFC5192-C490-4D18-926C-8F4BB2D9F35A}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6VirtualKeyboard.dll"/>
+    <ROW Component="Qt6Widgets.dll" ComponentId="{9CE1A40A-3271-4674-BFBB-ABC7B59F60FA}" Directory_="PySide6_Dir" Attributes="256" KeyPath="Qt6Widgets.dll"/>
+    <ROW Component="QtCore.pyd" ComponentId="{73CC4755-5C22-4D34-AEC4-41A3CA5D818F}" Directory_="PySide6_Dir" Attributes="256" KeyPath="QtCore.pyd" Type="0"/>
+    <ROW Component="README.md" ComponentId="{4688736A-1D89-4BFA-80F5-BBFF7AE54C19}" Directory_="templates_Dir" Attributes="0" KeyPath="README.md" Type="0"/>
+    <ROW Component="RNG2Schtrn.xsl" ComponentId="{FA55F3A4-F62E-4BD9-A128-4E6DD26D3792}" Directory_="xsl_1_Dir" Attributes="0" KeyPath="RNG2Schtrn.xsl" Type="0"/>
+    <ROW Component="RobotoBlack.ttf" ComponentId="{F4955F47-DE10-4C56-A6ED-F2AF2819FEEF}" Directory_="roboto_Dir" Attributes="0" Type="0"/>
+    <ROW Component="SDL2.dll" ComponentId="{774484B9-5A5D-4E84-984E-9E8FBE4A7A13}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2.dll"/>
+    <ROW Component="SDL2.dll_1" ComponentId="{0F9F95CD-AB28-4A17-8371-4D7629F05CF7}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2.dll_1"/>
+    <ROW Component="SDL2_image.dll" ComponentId="{497FCA17-924C-423E-972D-A481C6407E87}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2_image.dll"/>
+    <ROW Component="SDL2_image.dll_1" ComponentId="{AF77F04A-E4FE-4802-8436-95DC1D56A16E}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2_image.dll_1"/>
+    <ROW Component="SDL2_mixer.dll" ComponentId="{1CB5F278-659A-4965-BFA0-829617B9421A}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2_mixer.dll"/>
+    <ROW Component="SDL2_mixer.dll_1" ComponentId="{465E8FC4-0900-4607-84D9-A9A527F60983}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2_mixer.dll_1"/>
+    <ROW Component="SDL2_ttf.dll" ComponentId="{0DDD79B9-914C-433D-B1C3-7C9E7DA9174F}" Directory_="pygame_Dir" Attributes="256" KeyPath="SDL2_ttf.dll"/>
+    <ROW Component="SDL2_ttf.dll_1" ComponentId="{B60A2E90-8B81-47FC-BB97-15A1C2F394F7}" Directory_="_internal_Dir" Attributes="256" KeyPath="SDL2_ttf.dll_1"/>
+    <ROW Component="SHORTCUTDIR" ComponentId="{64ED115A-0486-45F9-B6B8-3DFBDDD3BBC0}" Directory_="SHORTCUTDIR" Attributes="0"/>
+    <ROW Component="Shiboken.pyd" ComponentId="{2C0FCC30-38F1-463D-913C-5FBDA9275EC6}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="Shiboken.pyd" Type="0"/>
+    <ROW Component="VCRUNTIME140.dll" ComponentId="{7960604C-65D5-4334-A75A-571D2D329447}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll"/>
+    <ROW Component="VCRUNTIME140.dll_1" ComponentId="{3D4FEDEA-96D8-45C4-8F11-60D817413957}" Directory_="_internal_Dir" Attributes="256" KeyPath="VCRUNTIME140.dll_1"/>
+    <ROW Component="VCRUNTIME140_1.dll" ComponentId="{9AE9D042-4921-4A5E-890A-2F63605AB90F}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll"/>
+    <ROW Component="VCRUNTIME140_1.dll_1" ComponentId="{761C49C1-238E-49D5-BD28-2A9FF50313E0}" Directory_="_internal_Dir" Attributes="256" KeyPath="VCRUNTIME140_1.dll_1"/>
+    <ROW Component="VERSION" ComponentId="{6D49BAEE-AEA4-438B-86EC-24955ABEEFE5}" Directory_="legacy_Dir" Attributes="0" KeyPath="VERSION" Type="0"/>
+    <ROW Component="VERSION_1" ComponentId="{13D12E56-D5E0-48D7-A544-9D0AAA280F96}" Directory_="nltk_Dir" Attributes="0" KeyPath="VERSION_1" Type="0"/>
+    <ROW Component="_ARC4.pyd" ComponentId="{2AC2AD74-E886-42C6-8B50-144B5A1B7722}" Directory_="Cipher_Dir" Attributes="256" KeyPath="_ARC4.pyd" Type="0"/>
+    <ROW Component="_BLAKE2b.pyd" ComponentId="{0F225691-C49C-4227-8221-6163A8ED7AFE}" Directory_="Hash_Dir" Attributes="256" KeyPath="_BLAKE2b.pyd" Type="0"/>
+    <ROW Component="__init__.cpython310.pyc" ComponentId="{29B2D6F4-9F80-44A2-9A9B-6238E9027C67}" Directory_="__pycache___12_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_12" Type="0"/>
+    <ROW Component="__init__.cpython310.pyc_1" ComponentId="{DCDD4CEA-13F5-4EB1-9167-7D3717369126}" Directory_="__pycache___16_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_16" Type="0"/>
+    <ROW Component="__init__.cpython310.pyc_2" ComponentId="{4D0A8BC1-B736-4A32-B9A0-DFA5F150222D}" Directory_="__pycache___30_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_31" Type="0"/>
+    <ROW Component="__init__.cpython310.pyc_3" ComponentId="{BF56C155-845F-4043-ADA8-E6E089B5BB0D}" Directory_="__pycache___31_Dir" Attributes="0" KeyPath="__init__.cpython310.pyc_32" Type="0"/>
+    <ROW Component="__init__.py" ComponentId="{8EE446E1-E5A6-432E-895A-8545B91216C3}" Directory_="authz_Dir" Attributes="0" KeyPath="__init__.py_1" Type="0"/>
+    <ROW Component="__init__.py_1" ComponentId="{2E1A4F53-45F8-47DC-A949-A35655103399}" Directory_="basic_Dir" Attributes="0" KeyPath="__init__.py_2" Type="0"/>
+    <ROW Component="__init__.py_10" ComponentId="{19F41601-270E-42EB-A245-72A1FAAD2EDE}" Directory_="data_Dir" Attributes="0" KeyPath="__init__.py_25" Type="0"/>
+    <ROW Component="__init__.py_11" ComponentId="{CEBFE329-5B6E-4AA0-8A57-C45457D99B42}" Directory_="gapi_Dir" Attributes="0" KeyPath="__init__.py_26" Type="0"/>
+    <ROW Component="__init__.py_12" ComponentId="{3827B017-C9AC-45D7-9161-F0872466ACF0}" Directory_="mat_wrapper_Dir" Attributes="0" KeyPath="__init__.py_27" Type="0"/>
+    <ROW Component="__init__.py_13" ComponentId="{94999AF3-08D6-47AB-8D5C-407F1A249B9A}" Directory_="typing_Dir" Attributes="0" KeyPath="__init__.py_29" Type="0"/>
+    <ROW Component="__init__.py_14" ComponentId="{1FB4859E-4C19-4958-B4A9-1F757D71FC39}" Directory_="utils_2_Dir" Attributes="0" KeyPath="__init__.py_30" Type="0"/>
+    <ROW Component="__init__.py_15" ComponentId="{550D8D6A-3B78-4FB4-A872-8BFA57ED7AD1}" Directory_="llm_bash_Dir" Attributes="0" KeyPath="__init__.py_44" Type="0"/>
+    <ROW Component="__init__.py_16" ComponentId="{F23B228B-5A9A-4437-A04A-CE952E151930}" Directory_="llm_symbolic_math_Dir" Attributes="0" KeyPath="__init__.py_48" Type="0"/>
+    <ROW Component="__init__.py_17" ComponentId="{25AB4D8C-ADB2-4F04-800E-07FD4E72B961}" Directory_="error_handler_Dir" Attributes="0" KeyPath="__init__.py_63" Type="0"/>
+    <ROW Component="__init__.py_18" ComponentId="{878B201A-1156-459E-8419-8D62F905DF1A}" Directory_="export_Dir" Attributes="0" KeyPath="__init__.py_64" Type="0"/>
+    <ROW Component="__init__.py_19" ComponentId="{7D3E1150-B1E7-4F96-B4D7-658D1338B418}" Directory_="view_Dir" Attributes="0" KeyPath="__init__.py_65" Type="0"/>
+    <ROW Component="__init__.py_2" ComponentId="{8DAEBDC7-AAB7-4C24-B340-789AC4F86CF0}" Directory_="token_Dir" Attributes="0" KeyPath="__init__.py_3" Type="0"/>
+    <ROW Component="__init__.py_20" ComponentId="{9F391682-CF4B-492E-90FA-85FBD3266C9A}" Directory_="export_1_Dir" Attributes="0" KeyPath="__init__.py_67" Type="0"/>
+    <ROW Component="__init__.py_21" ComponentId="{E059768B-9F3F-42D4-B574-4188A2233775}" Directory_="metrics_Dir" Attributes="0" KeyPath="__init__.py_69" Type="0"/>
+    <ROW Component="__init__.py_22" ComponentId="{95E2272A-0111-4E54-B68E-25CD02D85D34}" Directory_="resources_1_Dir" Attributes="0" KeyPath="__init__.py_70" Type="0"/>
+    <ROW Component="__init__.py_23" ComponentId="{2F37B85E-5131-43BB-8673-72C6EA48F231}" Directory_="_configuration_Dir" Attributes="0" KeyPath="__init__.py_74" Type="0"/>
+    <ROW Component="__init__.py_24" ComponentId="{128F6C2B-969C-4FE2-B8B7-29B0FA8C4107}" Directory_="export_3_Dir" Attributes="0" KeyPath="__init__.py_75" Type="0"/>
+    <ROW Component="__init__.py_25" ComponentId="{8C8ECA57-317E-4D8D-B877-45239A4C7089}" Directory_="_internal_2_Dir" Attributes="0" KeyPath="__init__.py_77" Type="0"/>
+    <ROW Component="__init__.py_26" ComponentId="{916DEE1A-3DBA-4169-A12E-3E3F7C3C46CB}" Directory_="_logs_Dir" Attributes="0" KeyPath="__init__.py_78" Type="0"/>
+    <ROW Component="__init__.py_3" ComponentId="{2AA63DD9-90E8-4C2F-85BB-1D3B514E1D8E}" Directory_="ingest_Dir" Attributes="0" KeyPath="__init__.py_8" Type="0"/>
+    <ROW Component="__init__.py_4" ComponentId="{378ACC19-CAD1-4A48-ACE2-755FFB8DD25B}" Directory_="migrations_Dir" Attributes="0" KeyPath="__init__.py_9" Type="0"/>
+    <ROW Component="__init__.py_5" ComponentId="{4DCF1DC5-69CE-435F-BA15-19E882521114}" Directory_="distributed_Dir" Attributes="0" KeyPath="__init__.py_12" Type="0"/>
+    <ROW Component="__init__.py_6" ComponentId="{18531350-5FEA-451B-A1E8-B70D2E651914}" Directory_="impl_2_Dir" Attributes="0" KeyPath="__init__.py_15" Type="0"/>
+    <ROW Component="__init__.py_7" ComponentId="{C13DC068-C651-4112-8E38-7C6EDB5928D5}" Directory_="segment_Dir" Attributes="0" KeyPath="__init__.py_16" Type="0"/>
+    <ROW Component="__init__.py_8" ComponentId="{91DC4122-0CE1-4D1B-AFA6-63196D880B10}" Directory_="server_Dir" Attributes="0" KeyPath="__init__.py_18" Type="0"/>
+    <ROW Component="__init__.py_9" ComponentId="{A0E45F3D-2ED6-403E-A187-ADC98CDFE77F}" Directory_="telemetry_Dir" Attributes="0" KeyPath="__init__.py_21" Type="0"/>
+    <ROW Component="__version__" ComponentId="{34F7E83D-2A9B-4E68-9A1C-D21B41AC96CF}" Directory_="pinecone_Dir" Attributes="0" KeyPath="__version__" Type="0"/>
+    <ROW Component="_bcrypt.pyd" ComponentId="{E9D1F034-4062-426D-94E2-14DB2DFCEDC0}" Directory_="bcrypt_Dir" Attributes="256" KeyPath="_bcrypt.pyd" Type="0"/>
+    <ROW Component="_cpuid_c.pyd" ComponentId="{58EE58BA-D10B-4F04-A074-B003BD50C8E3}" Directory_="Util_Dir" Attributes="256" KeyPath="_cpuid_c.pyd" Type="0"/>
+    <ROW Component="_ec_ws.pyd" ComponentId="{B1917C24-ADEF-49FC-9577-02D8AE611A95}" Directory_="PublicKey_Dir" Attributes="256" KeyPath="_ec_ws.pyd" Type="0"/>
+    <ROW Component="_extra.cp310win_amd64.pyd" ComponentId="{5E3DDF85-ED83-4ED9-8A28-F83F238AF94B}" Directory_="fitz_Dir" Attributes="256" KeyPath="_extra.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_frozenlist.cp310win_amd64.pyd" ComponentId="{3AA6EE67-556C-4C7E-AE5E-962106099F65}" Directory_="frozenlist_Dir" Attributes="256" KeyPath="_frozenlist.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_greenlet.cp310win_amd64.pyd" ComponentId="{10ADE31E-1272-4128-A028-F4ADE8CB134C}" Directory_="greenlet_Dir" Attributes="256" KeyPath="_greenlet.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_helpers.cp310win_amd64.pyd" ComponentId="{39CE833E-4D60-4746-8C36-8CBBA4124CE5}" Directory_="aiohttp_Dir" Attributes="256" KeyPath="_helpers.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_imaging.cp310win_amd64.pyd" ComponentId="{40E8FA80-10E9-4AE2-B0D3-66CFA834CFC1}" Directory_="PIL_Dir" Attributes="256" KeyPath="_imaging.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_message.pyd" ComponentId="{64228623-B3EC-4F33-96D7-BB3C657CD458}" Directory_="_upb_Dir" Attributes="256" KeyPath="_message.pyd" Type="0"/>
+    <ROW Component="_modexp.pyd" ComponentId="{ED585FD1-8361-4480-85F3-F9F6E6DC986C}" Directory_="Math_Dir" Attributes="256" KeyPath="_modexp.pyd" Type="0"/>
+    <ROW Component="_multiarray_tests.cp310win_amd64.pyd" ComponentId="{64507C5A-86E2-46FA-99DF-A4A1BE032323}" Directory_="core_1_Dir" Attributes="256" KeyPath="_multiarray_tests.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_multidict.cp310win_amd64.pyd" ComponentId="{1C2EA112-1516-4F4D-B890-6206F8A26123}" Directory_="multidict_Dir" Attributes="256" KeyPath="_multidict.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_pocketfft_internal.cp310win_amd64.pyd" ComponentId="{8DE9E11D-6C0C-46A1-ADCF-5C34231368E6}" Directory_="fft_Dir" Attributes="256" KeyPath="_pocketfft_internal.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_portaudio.cp310win_amd64.pyd" ComponentId="{5E90733A-63D7-4EF7-910B-CD18BD4CA76F}" Directory_="pyaudio_Dir" Attributes="256" KeyPath="_portaudio.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_psutil_windows.pyd" ComponentId="{B44F2FE0-DE82-4838-A360-F7713624C412}" Directory_="psutil_Dir" Attributes="256" KeyPath="_psutil_windows.pyd" Type="0"/>
+    <ROW Component="_pydantic_core.cp310win_amd64.pyd" ComponentId="{62C704C0-6112-4706-BD48-C251DE6E7149}" Directory_="pydantic_core_Dir" Attributes="256" KeyPath="_pydantic_core.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_quoting_c.cp310win_amd64.pyd" ComponentId="{DF4F4735-559B-432C-8387-26866A6A523C}" Directory_="yarl_Dir" Attributes="256" KeyPath="_quoting_c.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_regex.cp310win_amd64.pyd" ComponentId="{28428379-2D0B-472C-805D-2D61BB6D6AE1}" Directory_="regex_Dir" Attributes="256" KeyPath="_regex.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_rust.pyd" ComponentId="{115F4F16-27B8-456A-A8E5-FF14173646C3}" Directory_="bindings_Dir" Attributes="256" KeyPath="_rust.pyd" Type="0"/>
+    <ROW Component="_scrypt.pyd" ComponentId="{82736CF5-AEBE-410E-A07C-DE61A83D33A3}" Directory_="Protocol_Dir" Attributes="256" KeyPath="_scrypt.pyd" Type="0"/>
+    <ROW Component="_speedups.cp310win_amd64.pyd" ComponentId="{E56CD803-BD60-4EC9-AA5D-5A168A781C3F}" Directory_="markupsafe_Dir" Attributes="256" KeyPath="_speedups.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_tiktoken.cp310win_amd64.pyd" ComponentId="{509DA3BD-82AB-4362-B02B-EF9978A20BA9}" Directory_="tiktoken_Dir" Attributes="256" KeyPath="_tiktoken.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_umath_linalg.cp310win_amd64.pyd" ComponentId="{AAD2CC84-E65A-43AA-B9AC-8EFBED0E7976}" Directory_="linalg_Dir" Attributes="256" KeyPath="_umath_linalg.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_wrappers.cp310win_amd64.pyd" ComponentId="{5E54B64B-1C6C-47B2-B59F-E118538FEF83}" Directory_="wrapt_Dir" Attributes="256" KeyPath="_wrappers.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="_yaml.cp310win_amd64.pyd" ComponentId="{DFFA2B2B-7D5E-4F47-AD19-6FA613BAD8BC}" Directory_="yaml_Dir" Attributes="256" KeyPath="_yaml.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="abusiveexperiencereport.v1.json" ComponentId="{B867143F-E8BE-4901-93EC-2C04116156C9}" Directory_="documents_Dir" Attributes="0" KeyPath="abusiveexperiencereport.v1.json" Type="0"/>
+    <ROW Component="accessibility.js" ComponentId="{BA5679AE-A80A-407C-A2BF-915CA7F6900E}" Directory_="client_1_Dir" Attributes="0" KeyPath="accessibility.js" Type="0"/>
+    <ROW Component="accessibility.js_1" ComponentId="{59E9528C-D80A-4B7D-91DA-30826C4F5F0A}" Directory_="server_1_Dir" Attributes="0" KeyPath="accessibility.js_1" Type="0"/>
+    <ROW Component="af.msg" ComponentId="{62D57129-F6C6-499B-AFCE-69459933E2E5}" Directory_="msgs_Dir" Attributes="0" KeyPath="af.msg" Type="0"/>
+    <ROW Component="aggregation.py" ComponentId="{4CC99BBE-8AC2-4147-BE0C-DD7D8234F1CC}" Directory_="_internal_1_Dir" Attributes="0" KeyPath="aggregation.py" Type="0"/>
+    <ROW Component="aggregations.cp310win_amd64.pyd" ComponentId="{E58C794C-09AD-417C-AB02-6AC3C8D8F1BA}" Directory_="window_Dir" Attributes="256" KeyPath="aggregations.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="algos.cp310win_amd64.pyd" ComponentId="{50877A1D-5B3B-42E1-8D72-A009261B9F16}" Directory_="_libs_Dir" Attributes="256" KeyPath="algos.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="altTheme.tcl" ComponentId="{3FA9A564-4DC5-4586-9C0A-641D44AA157A}" Directory_="ttk_Dir" Attributes="0" KeyPath="altTheme.tcl" Type="0"/>
+    <ROW Component="android.js" ComponentId="{636E3717-7EC1-442D-B269-D0D2DC57B31C}" Directory_="android_Dir" Attributes="0" KeyPath="android.js_1" Type="0"/>
+    <ROW Component="androidDispatcher.js" ComponentId="{ADB60935-F40C-4098-AA94-D585679C1036}" Directory_="dispatchers_Dir" Attributes="0" KeyPath="androidDispatcher.js" Type="0"/>
+    <ROW Component="androidServerImpl.js" ComponentId="{C0B25FA3-0E07-4908-817B-297B0CC7CAF9}" Directory_="lib_Dir" Attributes="0" KeyPath="androidServerImpl.js" Type="0"/>
+    <ROW Component="api.json" ComponentId="{962DB381-97D5-421A-90C5-5E35C7575D17}" Directory_="package_Dir" Attributes="0" KeyPath="api.json" Type="0"/>
+    <ROW Component="app.py" ComponentId="{C206BE59-3CF5-4AB0-8259-D386E09057A6}" Directory_="chromadb_Dir" Attributes="0" KeyPath="app.py" Type="0"/>
+    <ROW Component="appIcon.png" ComponentId="{B1383BE8-B416-4E28-A783-4F8C71F2CBF8}" Directory_="chromium_Dir" Attributes="0" KeyPath="appIcon.png" Type="0"/>
+    <ROW Component="applicator" ComponentId="{BDD487B7-E3EF-4F7D-937A-9E3B818844AA}" Directory_="vocabularies_Dir" Attributes="0" KeyPath="applicator" Type="0"/>
+    <ROW Component="applicator_1" ComponentId="{9192C06D-CDB4-4A85-9806-1AF4B2BB8C5F}" Directory_="vocabularies_1_Dir" Attributes="0" KeyPath="applicator_1" Type="0"/>
+    <ROW Component="arabic" ComponentId="{ECC26872-0ABF-428B-899A-E4CFFCFFCF5D}" Directory_="stopwords_Dir" Attributes="0" KeyPath="arabic" Type="0"/>
+    <ROW Component="arabic_1" ComponentId="{14A3DA67-39E5-43EF-9E44-CD63E330C8DB}" Directory_="stopwords_1_Dir" Attributes="0" KeyPath="arabic_1" Type="0"/>
+    <ROW Component="arangodb.cpython310.pyc" ComponentId="{8EC2AC12-6EE6-4F1A-B396-D16B549CD8F3}" Directory_="__pycache___10_Dir" Attributes="0" KeyPath="arangodb.cpython310.pyc" Type="0"/>
+    <ROW Component="arangodb.py" ComponentId="{3512E984-3B80-4A3E-A492-04E65D3EB8A7}" Directory_="graph_qa_Dir" Attributes="0" KeyPath="arangodb.py" Type="0"/>
+    <ROW Component="are_all_true_prompt.txt" ComponentId="{0FF6273B-648C-469E-9B26-D7EADC258927}" Directory_="prompts_Dir" Attributes="0" KeyPath="are_all_true_prompt.txt" Type="0"/>
+    <ROW Component="ascii.enc" ComponentId="{0E935CEA-A4BF-41F4-A4CE-1A8E9C1EFF76}" Directory_="encoding_Dir" Attributes="0" KeyPath="ascii.enc" Type="0"/>
+    <ROW Component="ascii.js" ComponentId="{5068DE2A-FE6E-4D43-86AF-E88D970D72D9}" Directory_="utils_3_Dir" Attributes="0" KeyPath="ascii.js" Type="0"/>
+    <ROW Component="auto.tcl" ComponentId="{12FF9CDC-71C5-4443-8780-002860CF7D73}" Directory_="tcl_Dir" Attributes="0" KeyPath="auto.tcl" Type="0"/>
+    <ROW Component="base.cp310win_amd64.pyd" ComponentId="{C980D238-B889-4E2E-AD0A-7BDD8C08CC24}" Directory_="tslibs_Dir" Attributes="256" KeyPath="base.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="base.cp310win_amd64.pyd_1" ComponentId="{B449A08C-F0D7-4DFB-AA0A-63F6BD0BB971}" Directory_="pygame_Dir" Attributes="256" KeyPath="base.cp310win_amd64.pyd_1" Type="0"/>
+    <ROW Component="base.cpython310.pyc" ComponentId="{D0B09536-DA43-4BE8-9D5D-2F81B7F18FA6}" Directory_="__pycache___1_Dir" Attributes="0" KeyPath="base.cpython310.pyc" Type="0"/>
+    <ROW Component="base.cpython310.pyc_1" ComponentId="{1D8097ED-6FB5-4E8F-98E0-E4DBD88B36F9}" Directory_="__pycache___3_Dir" Attributes="0" KeyPath="base.cpython310.pyc_1" Type="0"/>
+    <ROW Component="base.cpython310.pyc_10" ComponentId="{855B21C3-0317-41D5-B9EC-2D3D198B3624}" Directory_="__pycache___14_Dir" Attributes="0" KeyPath="base.cpython310.pyc_11" Type="0"/>
+    <ROW Component="base.cpython310.pyc_11" ComponentId="{B5351E1E-2AEB-424B-8B96-C37ACEF245BF}" Directory_="__pycache___15_Dir" Attributes="0" KeyPath="base.cpython310.pyc_12" Type="0"/>
+    <ROW Component="base.cpython310.pyc_12" ComponentId="{48BC361B-1E7D-431D-8085-E10C9DE216ED}" Directory_="__pycache___17_Dir" Attributes="0" KeyPath="base.cpython310.pyc_13" Type="0"/>
+    <ROW Component="base.cpython310.pyc_13" ComponentId="{27830B96-D16E-43EB-91CC-0ACF2A25DD97}" Directory_="__pycache___18_Dir" Attributes="0" KeyPath="base.cpython310.pyc_14" Type="0"/>
+    <ROW Component="base.cpython310.pyc_14" ComponentId="{58AF290B-ADCD-4214-981B-559C25612958}" Directory_="__pycache___20_Dir" Attributes="0" KeyPath="base.cpython310.pyc_15" Type="0"/>
+    <ROW Component="base.cpython310.pyc_15" ComponentId="{ED64F468-19E5-43FE-A770-8BA92A20215C}" Directory_="__pycache___21_Dir" Attributes="0" KeyPath="base.cpython310.pyc_16" Type="0"/>
+    <ROW Component="base.cpython310.pyc_16" ComponentId="{77E84A7D-A3C0-492E-848E-5B05B17E830A}" Directory_="__pycache___22_Dir" Attributes="0" KeyPath="base.cpython310.pyc_17" Type="0"/>
+    <ROW Component="base.cpython310.pyc_17" ComponentId="{E65BF01A-21E0-428B-8F22-5DB2A604F630}" Directory_="__pycache___24_Dir" Attributes="0" KeyPath="base.cpython310.pyc_18" Type="0"/>
+    <ROW Component="base.cpython310.pyc_18" ComponentId="{A2A5DA86-262A-4940-A824-1D335C038B8B}" Directory_="__pycache___25_Dir" Attributes="0" KeyPath="base.cpython310.pyc_19" Type="0"/>
+    <ROW Component="base.cpython310.pyc_19" ComponentId="{E2E3DD34-9822-4056-8BA0-17864080B6E7}" Directory_="__pycache___27_Dir" Attributes="0" KeyPath="base.cpython310.pyc_20" Type="0"/>
+    <ROW Component="base.cpython310.pyc_2" ComponentId="{1D6BF528-5174-4101-84FB-2178F7428484}" Directory_="__pycache___4_Dir" Attributes="0" KeyPath="base.cpython310.pyc_2" Type="0"/>
+    <ROW Component="base.cpython310.pyc_20" ComponentId="{CA23AE89-800F-459B-BBC0-0B899C15616B}" Directory_="__pycache___29_Dir" Attributes="0" KeyPath="base.cpython310.pyc_21" Type="0"/>
+    <ROW Component="base.cpython310.pyc_3" ComponentId="{8FE8686D-6C91-43B3-8535-A15E4A5026E6}" Directory_="__pycache___5_Dir" Attributes="0" KeyPath="base.cpython310.pyc_3" Type="0"/>
+    <ROW Component="base.cpython310.pyc_4" ComponentId="{0DCA356B-B6DA-4974-AC91-DE41D389DB2F}" Directory_="__pycache___6_Dir" Attributes="0" KeyPath="base.cpython310.pyc_4" Type="0"/>
+    <ROW Component="base.cpython310.pyc_5" ComponentId="{07DB8B09-C921-449B-8D0E-72B171116332}" Directory_="__pycache___7_Dir" Attributes="0" KeyPath="base.cpython310.pyc_5" Type="0"/>
+    <ROW Component="base.cpython310.pyc_6" ComponentId="{A35321DF-AFCD-469A-AF22-04B1419888A9}" Directory_="__pycache___8_Dir" Attributes="0" KeyPath="base.cpython310.pyc_6" Type="0"/>
+    <ROW Component="base.cpython310.pyc_7" ComponentId="{99087FCF-A8A0-4478-88BC-D5447B16A4BE}" Directory_="__pycache___9_Dir" Attributes="0" KeyPath="base.cpython310.pyc_7" Type="0"/>
+    <ROW Component="base.cpython310.pyc_8" ComponentId="{B738A474-0176-40B5-959D-E931753E20B8}" Directory_="__pycache___11_Dir" Attributes="0" KeyPath="base.cpython310.pyc_9" Type="0"/>
+    <ROW Component="base.cpython310.pyc_9" ComponentId="{8AC8CEB5-BDA3-43AB-9530-04E1B0261650}" Directory_="__pycache___13_Dir" Attributes="0" KeyPath="base.cpython310.pyc_10" Type="0"/>
+    <ROW Component="base.py" ComponentId="{48408C13-DD91-46AE-8034-B6DF779F06C9}" Directory_="db_Dir" Attributes="0" KeyPath="base.py" Type="0"/>
+    <ROW Component="base.py_1" ComponentId="{75BD7D71-C84C-4DA3-88CA-E855AD53B64A}" Directory_="api_2_Dir" Attributes="0" KeyPath="base.py_1" Type="0"/>
+    <ROW Component="base.py_10" ComponentId="{55D47683-B203-4533-9A0C-08A9283188BC}" Directory_="hyde_Dir" Attributes="0" KeyPath="base.py_11" Type="0"/>
+    <ROW Component="base.py_11" ComponentId="{6530125E-5D19-467E-87FB-5816458055F1}" Directory_="llm_checker_Dir" Attributes="0" KeyPath="base.py_12" Type="0"/>
+    <ROW Component="base.py_12" ComponentId="{7F6B7A28-55DB-400E-A4C2-95C620D383DE}" Directory_="llm_math_Dir" Attributes="0" KeyPath="base.py_13" Type="0"/>
+    <ROW Component="base.py_13" ComponentId="{B7A0E0AD-C150-445A-A6EC-FA8B340453A5}" Directory_="llm_summarization_checker_Dir" Attributes="0" KeyPath="base.py_14" Type="0"/>
+    <ROW Component="base.py_14" ComponentId="{8BC9D444-1697-46D0-9C25-3289F96F6A28}" Directory_="natbot_Dir" Attributes="0" KeyPath="base.py_15" Type="0"/>
+    <ROW Component="base.py_15" ComponentId="{BE11368D-18D5-4CE3-AFEE-B145E9212815}" Directory_="openai_functions_Dir" Attributes="0" KeyPath="base.py_16" Type="0"/>
+    <ROW Component="base.py_16" ComponentId="{CCF654B1-FF44-42F8-B96D-0FDC5F63D9A7}" Directory_="qa_generation_Dir" Attributes="0" KeyPath="base.py_17" Type="0"/>
+    <ROW Component="base.py_17" ComponentId="{28011E0B-D2FF-436B-A784-0AA5B0A0086C}" Directory_="qa_with_sources_Dir" Attributes="0" KeyPath="base.py_18" Type="0"/>
+    <ROW Component="base.py_18" ComponentId="{B00F5C24-3003-455F-A4C6-8BC6E8D26A85}" Directory_="query_constructor_Dir" Attributes="0" KeyPath="base.py_19" Type="0"/>
+    <ROW Component="base.py_19" ComponentId="{B7028173-A77C-408C-8D03-C0F43C68FC10}" Directory_="retrieval_qa_Dir" Attributes="0" KeyPath="base.py_20" Type="0"/>
+    <ROW Component="base.py_2" ComponentId="{DFC8E543-1E9F-483A-9A09-6577D83D687E}" Directory_="chains_Dir" Attributes="0" KeyPath="base.py_2" Type="0"/>
+    <ROW Component="base.py_20" ComponentId="{A1ADCD14-5B52-4F23-AB43-B7A8C166A110}" Directory_="router_Dir" Attributes="0" KeyPath="base.py_21" Type="0"/>
+    <ROW Component="base.py_21" ComponentId="{FFCDE324-ADB1-4278-BA50-4C42CB57F158}" Directory_="structured_output_Dir" Attributes="0" KeyPath="base.py_22" Type="0"/>
+    <ROW Component="base.py_3" ComponentId="{DFFAF14D-0893-4911-B589-8AFF8F82CF68}" Directory_="combine_documents_Dir" Attributes="0" KeyPath="base.py_3" Type="0"/>
+    <ROW Component="base.py_4" ComponentId="{195A7F73-3EF0-4FA8-BF02-619CE5A3B039}" Directory_="constitutional_ai_Dir" Attributes="0" KeyPath="base.py_4" Type="0"/>
+    <ROW Component="base.py_5" ComponentId="{A4C74885-6215-4AAB-8D23-095065074C03}" Directory_="conversation_Dir" Attributes="0" KeyPath="base.py_5" Type="0"/>
+    <ROW Component="base.py_6" ComponentId="{17613A87-D1B3-4314-8DBD-5C418F578B1D}" Directory_="conversational_retrieval_Dir" Attributes="0" KeyPath="base.py_6" Type="0"/>
+    <ROW Component="base.py_7" ComponentId="{0F182D5E-73D9-4051-9A48-35FC71B58F14}" Directory_="elasticsearch_database_Dir" Attributes="0" KeyPath="base.py_7" Type="0"/>
+    <ROW Component="base.py_8" ComponentId="{26538556-95FA-4536-9FBE-F78A2D659085}" Directory_="ernie_functions_Dir" Attributes="0" KeyPath="base.py_8" Type="0"/>
+    <ROW Component="base.py_9" ComponentId="{7061DAA2-8078-46B2-96C9-9BB8A045DAC2}" Directory_="flare_Dir" Attributes="0" KeyPath="base.py_9" Type="0"/>
+    <ROW Component="base.svg" ComponentId="{E2D9931E-8535-47BE-B911-A1974E6529F9}" Directory_="source_Dir" Attributes="0" KeyPath="base.svg" Type="0"/>
+    <ROW Component="base_library.zip" ComponentId="{05B10200-94ED-4E3D-ADC3-EC87EDD68D1D}" Directory_="_internal_Dir" Attributes="0" KeyPath="base_library.zip" Type="0"/>
+    <ROW Component="batch.py" ComponentId="{DCA84AFE-D522-4F50-BDB5-B17FEDBE3935}" Directory_="vector_Dir" Attributes="0" KeyPath="batch.py" Type="0"/>
+    <ROW Component="batch_utils.py" ComponentId="{0FF54D28-3940-406A-946E-7DB16C1E08BB}" Directory_="utils_1_Dir" Attributes="0" KeyPath="batch_utils.py" Type="0"/>
+    <ROW Component="batman_and_joker.json" ComponentId="{A530B748-584F-47D2-AABF-5AA70BBE1CD4}" Directory_="presets_Dir" Attributes="0" KeyPath="batman_and_joker.json" Type="0"/>
+    <ROW Component="bgerror.tcl" ComponentId="{E76E4EB8-0644-4456-97B9-2810E5471942}" Directory_="tk_Dir" Attributes="0" KeyPath="bgerror.tcl" Type="0"/>
+    <ROW Component="bit_generator.cp310win_amd64.pyd" ComponentId="{8902525C-40E1-41CB-9D8B-22055888B403}" Directory_="random_Dir" Attributes="256" KeyPath="bit_generator.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="bleu.doctest" ComponentId="{BE14F45F-D5BA-4640-9A96-45DBE825568D}" Directory_="test_1_Dir" Attributes="0" KeyPath="bleu.doctest" Type="0"/>
+    <ROW Component="browserFetcher.js" ComponentId="{724EC8CD-CD6F-4D38-A555-EC480DA5BBFD}" Directory_="registry_Dir" Attributes="0" KeyPath="browserFetcher.js" Type="0"/>
+    <ROW Component="buckets.py" ComponentId="{70EC2DEE-F1D9-4738-9584-54BC7FFF251C}" Directory_="exponential_histogram_Dir" Attributes="0" KeyPath="buckets.py" Type="0"/>
+    <ROW Component="builder.cp310win_amd64.pyd" ComponentId="{ABBB570B-133A-49CD-8A6E-B84B11956BC7}" Directory_="lxml_Dir" Attributes="256" KeyPath="builder.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="cacert.pem" ComponentId="{4855CE91-A7B3-4E5F-9252-C56CA494164E}" Directory_="certifi_Dir" Attributes="0" KeyPath="cacert.pem" Type="0"/>
+    <ROW Component="cacerts.txt" ComponentId="{670E1D12-3185-4223-A8C3-40B27B090A4A}" Directory_="httplib2_Dir" Attributes="0" KeyPath="cacerts.txt" Type="0"/>
+    <ROW Component="cache.py" ComponentId="{CC34D714-5676-4F16-A714-E1426EE82221}" Directory_="cache_Dir" Attributes="0" KeyPath="cache.py" Type="0"/>
+    <ROW Component="chain.cpython310.pyc" ComponentId="{2A1704FA-5856-4612-BCE8-9741400D7B5D}" Directory_="__pycache___Dir" Attributes="0" KeyPath="chain.cpython310.pyc" Type="0"/>
+    <ROW Component="chain.py" ComponentId="{0B41B924-2F47-429F-AC76-81C63CB758D4}" Directory_="openapi_Dir" Attributes="0" KeyPath="chain.py" Type="0"/>
+    <ROW Component="char_state_tab.p" ComponentId="{91439C9A-FF10-4D8A-8ED8-0D1D3A26BFD6}" Directory_="posseg_Dir" Attributes="0" KeyPath="char_state_tab.p" Type="0"/>
+    <ROW Component="chroma_pb2.py" ComponentId="{4D61C81B-FAF4-42FE-AE89-6CD3E530E1CF}" Directory_="proto_Dir" Attributes="0" KeyPath="chroma_pb2.py" Type="0"/>
+    <ROW Component="clean.cp310win_amd64.pyd" ComponentId="{6BFD515D-5E34-41A2-AFD2-6EC69EF1775E}" Directory_="html_Dir" Attributes="256" KeyPath="clean.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="cli.js" ComponentId="{DC50B094-F7AC-4533-925F-FC8EE1718704}" Directory_="cli_1_Dir" Attributes="0" KeyPath="cli.js_1" Type="0"/>
+    <ROW Component="cli.py" ComponentId="{AE45AF6C-6234-444D-866D-39B4433EBC81}" Directory_="cli_Dir" Attributes="0" KeyPath="cli.py" Type="0"/>
+    <ROW Component="client.py" ComponentId="{E36A72BC-0AC0-4A97-8BBC-00AABB893CEA}" Directory_="api_Dir" Attributes="0" KeyPath="client.py" Type="0"/>
+    <ROW Component="client.py_1" ComponentId="{66F56F09-FF71-46A7-A315-E007CDC12F51}" Directory_="grpc_Dir" Attributes="0" KeyPath="client.py_1" Type="0"/>
+    <ROW Component="codeGenerator.js" ComponentId="{EE3B8D1C-9271-401B-8956-0CC167B1341B}" Directory_="recorder_Dir" Attributes="0" KeyPath="codeGenerator.js" Type="0"/>
+    <ROW Component="codeMirrorModule.5d0f417c.css" ComponentId="{565ECDBF-0144-4B2E-8B32-F76AEA8AC2CB}" Directory_="traceViewer_Dir" Attributes="0" KeyPath="codeMirrorModule.5d0f417c.css" Type="0"/>
+    <ROW Component="codeMirrorModule5d0f417c.css" ComponentId="{3FC01CE4-5EB6-4872-A2CF-47C34001A49E}" Directory_="assets_Dir" Attributes="0" KeyPath="codeMirrorModule5d0f417c.css" Type="0"/>
+    <ROW Component="codeMirrorModulee5a15eec.js" ComponentId="{070632C4-39EA-4DBA-A8DC-87CFC2C8B384}" Directory_="assets_1_Dir" Attributes="0" KeyPath="codeMirrorModulee5a15eec.js" Type="0"/>
+    <ROW Component="collections.cp310win_amd64.pyd" ComponentId="{158C0ECD-F33B-400E-B36C-03CF8D08678A}" Directory_="cyextension_Dir" Attributes="256" KeyPath="collections.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="collections.sqlite.sql" ComponentId="{5E146EE8-7AE3-47BB-B9B8-85D671762850}" Directory_="sysdb_Dir" Attributes="0" KeyPath="collections.sqlite.sql" Type="0"/>
+    <ROW Component="colorUtils.js" ComponentId="{80480D5C-7876-4B62-B739-ED42483A0E3F}" Directory_="image_tools_Dir" Attributes="0" KeyPath="colorUtils.js" Type="0"/>
+    <ROW Component="concrt140.dll" ComponentId="{283C2D37-7CDB-4E95-A26B-DBA7BE71C119}" Directory_="_internal_Dir" Attributes="256" KeyPath="concrt140.dll"/>
+    <ROW Component="config.json" ComponentId="{05376439-28AA-4932-B21A-47824A4E26BA}" Directory_="config_Dir" Attributes="0" KeyPath="config.json" Type="0"/>
+    <ROW Component="config3.py" ComponentId="{27B808C1-2FBB-4CB6-8E26-F3C6DE2BF62B}" Directory_="cv2_Dir" Attributes="0" KeyPath="config3.py" Type="0"/>
+    <ROW Component="conftest.py" ComponentId="{70530B33-9125-42F3-BA13-4BCE394BD7BA}" Directory_="test_Dir" Attributes="0" KeyPath="conftest.py" Type="0"/>
+    <ROW Component="consoleApiSource.js" ComponentId="{EB75846B-315E-4BF3-9465-6A4B9823A24B}" Directory_="generated_Dir" Attributes="0" KeyPath="consoleApiSource.js" Type="0"/>
+    <ROW Component="context.cp310win_amd64.pyd" ComponentId="{ABF6155E-04E5-4DCF-8989-D07CD65AC47C}" Directory_="cython_Dir" Attributes="256" KeyPath="context.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="cs.msg" ComponentId="{C1E64FF9-3D65-4D31-BF0D-B028105CB460}" Directory_="msgs_1_Dir" Attributes="0" KeyPath="cs.msg_1" Type="0"/>
+    <ROW Component="cssParser.js" ComponentId="{AD929398-D4EE-474D-841A-0A68E9AC2BB5}" Directory_="isomorphic_1_Dir" Attributes="0" KeyPath="cssParser.js" Type="0"/>
+    <ROW Component="cygrpc.cp310win_amd64.pyd" ComponentId="{C80B17EA-1132-407D-8F1A-6704D2A15AF4}" Directory_="_cython_Dir" Attributes="256" KeyPath="cygrpc.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="czech.pickle" ComponentId="{DD99E3D9-2D22-454E-934E-45E41CF7DD0A}" Directory_="punkt_Dir" Attributes="0" KeyPath="czech.pickle" Type="0"/>
+    <ROW Component="czech.pickle_1" ComponentId="{B8C44766-2F80-40E6-8B77-D2313CAE304D}" Directory_="PY3_Dir" Attributes="0" KeyPath="czech.pickle_1" Type="0"/>
+    <ROW Component="czech.pickle_2" ComponentId="{B381D874-06A1-45A8-A640-B538310BB714}" Directory_="punkt_1_Dir" Attributes="0" KeyPath="czech.pickle_2" Type="0"/>
+    <ROW Component="czech.pickle_3" ComponentId="{4E58FAD2-CA49-4D9D-A92B-FB334AB76BAE}" Directory_="PY3_1_Dir" Attributes="0" KeyPath="czech.pickle_3" Type="0"/>
+    <ROW Component="dark_amber.xml" ComponentId="{D5BDB1BB-B7B2-40D1-A294-DB22A3E47B92}" Directory_="themes_Dir" Attributes="0" KeyPath="dark_amber.xml" Type="0"/>
+    <ROW Component="debug.js" ComponentId="{A0A62ED0-B3A8-47EA-8DB8-2515C5A62C5D}" Directory_="protocol_Dir" Attributes="0" KeyPath="debug.js" Type="0"/>
+    <ROW Component="debugLogger.js" ComponentId="{4687825B-6A11-419C-AAE6-F66F706BE3FC}" Directory_="common_Dir" Attributes="0" KeyPath="debugLogger.js" Type="0"/>
+    <ROW Component="dict.txt" ComponentId="{0538F601-762D-4970-B0D3-22FE020C265E}" Directory_="jieba_Dir" Attributes="0" KeyPath="dict.txt" Type="0"/>
+    <ROW Component="diff_match_patch.js" ComponentId="{A15BC6A2-37F8-4D0C-A602-9830C4F47782}" Directory_="third_party_Dir" Attributes="0" KeyPath="diff_match_patch.js" Type="0"/>
+    <ROW Component="distributed.py" ComponentId="{4E4F6275-E0C4-4567-B2AD-3E942CE64532}" Directory_="manager_Dir" Attributes="0" KeyPath="distributed.py" Type="0"/>
+    <ROW Component="dock_theme.ui" ComponentId="{9D5FD3FC-9636-4804-B32B-45CF601AB8C0}" Directory_="qt_material_Dir" Attributes="0" KeyPath="dock_theme.ui" Type="0"/>
+    <ROW Component="electron.js" ComponentId="{B73B852C-82E8-4C17-B045-348C80D9316A}" Directory_="electron_Dir" Attributes="0" KeyPath="electron.js_1" Type="0"/>
+    <ROW Component="embeddingmetadata.sqlite.sql" ComponentId="{5F15476C-824B-4B29-AC5E-8D20E040E8E5}" Directory_="metadb_Dir" Attributes="0" KeyPath="embeddingmetadata.sqlite.sql" Type="0"/>
+    <ROW Component="embeddings.sqlite.sql" ComponentId="{EB5B6EC4-3650-4010-8CC3-949019153AB8}" Directory_="embeddings_queue_Dir" Attributes="0" KeyPath="embeddings.sqlite.sql" Type="0"/>
+    <ROW Component="embeddings_queue.py" ComponentId="{17D41428-B5EB-4750-BBDC-65F7C4E67AEC}" Directory_="mixins_Dir" Attributes="0" KeyPath="embeddings_queue.py" Type="0"/>
+    <ROW Component="entry_points.txt" ComponentId="{19494767-FFF7-4D1A-B351-7CD0938E8BB6}" Directory_="jsonschema4.21.1.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt" Type="0"/>
+    <ROW Component="entry_points.txt_1" ComponentId="{87AC5017-F0BF-4AF9-A121-35BF77A8D77F}" Directory_="langchain0.1.9.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_1" Type="0"/>
+    <ROW Component="entry_points.txt_2" ComponentId="{F69C3211-A45B-4810-9779-F22397D3176B}" Directory_="Markdown3.5.2.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_2" Type="0"/>
+    <ROW Component="entry_points.txt_3" ComponentId="{9DA5A37B-231B-4608-84E7-E344268CB41F}" Directory_="nbconvert7.16.1.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_3" Type="0"/>
+    <ROW Component="entry_points.txt_4" ComponentId="{2DFCCFD6-0443-4D9F-8590-9F0827BD3212}" Directory_="nbformat5.9.2.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_4" Type="0"/>
+    <ROW Component="entry_points.txt_5" ComponentId="{B8E70C1F-F2C7-47A0-84B9-35B97FB9ECA3}" Directory_="openai1.12.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_5" Type="0"/>
+    <ROW Component="entry_points.txt_6" ComponentId="{1868F1AF-FE51-43AB-BEB4-CE44EAEE750F}" Directory_="opentelemetry_sdk1.22.0.distinf_Dir" Attributes="0" KeyPath="entry_points.txt_6" Type="0"/>
+    <ROW Component="entry_points.txt_7" ComponentId="{658D7F99-42C2-4BD0-97B2-93B7A751C0EB}" Directory_="setuptools65.5.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_7" Type="0"/>
+    <ROW Component="entry_points.txt_8" ComponentId="{457803F1-65A5-4141-8C5E-E55C2C214213}" Directory_="show_in_file_manager1.1.4.disti_Dir" Attributes="0" KeyPath="entry_points.txt_8" Type="0"/>
+    <ROW Component="entry_points.txt_9" ComponentId="{987D2C85-A470-4B57-8B9D-2A5715C9BC74}" Directory_="wheel0.42.0.distinfo_Dir" Attributes="0" KeyPath="entry_points.txt_9" Type="0"/>
+    <ROW Component="environment_variables.py" ComponentId="{1CF7F1AC-0EF5-414C-A0FD-E6C626094139}" Directory_="sdk_Dir" Attributes="0" KeyPath="environment_variables.py" Type="0"/>
+    <ROW Component="errors.py" ComponentId="{838DBA55-C567-4419-892F-663CD3CB5E28}" Directory_="mapping_Dir" Attributes="0" KeyPath="errors.py_1" Type="0"/>
+    <ROW Component="events.py" ComponentId="{F264D541-8E7D-464E-BCB8-10AF35D3629C}" Directory_="product_Dir" Attributes="0" KeyPath="events.py" Type="0"/>
+    <ROW Component="extraction.cpython310.pyc" ComponentId="{ED823E73-1305-414A-B512-2DC610892081}" Directory_="__pycache___19_Dir" Attributes="0" KeyPath="extraction.cpython310.pyc_1" Type="0"/>
+    <ROW Component="extraction.py" ComponentId="{6BAF9FE5-069F-4171-98BA-0BA03FD024FF}" Directory_="openai_tools_Dir" Attributes="0" KeyPath="extraction.py_1" Type="0"/>
+    <ROW Component="fastapi.py" ComponentId="{C82BB709-A733-44E7-AAB1-4CA75A658A87}" Directory_="auth_Dir" Attributes="0" KeyPath="fastapi.py_1" Type="0"/>
+    <ROW Component="fastapi.py_1" ComponentId="{8C994DCA-9064-4ECA-A9EC-7054619FD0DF}" Directory_="opentelemetry_Dir" Attributes="0" KeyPath="fastapi.py_2" Type="0"/>
+    <ROW Component="feat.params" ComponentId="{624CF2CD-95A6-4E08-ADE1-833F43DF63ED}" Directory_="acousticmodel_Dir" Attributes="0" KeyPath="feat.params" Type="0"/>
+    <ROW Component="ffAccessibility.js" ComponentId="{DA037549-CD46-4BCF-9D5B-10E3ADD03657}" Directory_="firefox_Dir" Attributes="0" KeyPath="ffAccessibility.js" Type="0"/>
+    <ROW Component="findElements.js" ComponentId="{DCEAD2E2-0B99-45EC-9BFF-B14031E98535}" Directory_="remote_1_Dir" Attributes="0" KeyPath="findElements.js" Type="0"/>
+    <ROW Component="fix_windows.css" ComponentId="{BA8C55C4-D60A-415B-A259-2AFB56FA5313}" Directory_="css_Dir" Attributes="0" KeyPath="fix_windows.css" Type="0"/>
+    <ROW Component="flaclinuxx86" ComponentId="{D24422D3-C5D1-4E5C-97EC-F230A8D96E69}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flaclinuxx86" Type="0"/>
+    <ROW Component="flacwin32.exe" ComponentId="{DE4E1DF5-569E-45AD-84C1-E545E9E7E7FB}" Directory_="speech_recognition_Dir" Attributes="0" KeyPath="flacwin32.exe"/>
+    <ROW Component="freetype.dll" ComponentId="{7FA0A19B-B24E-4748-B709-B9D69892EE97}" Directory_="_internal_Dir" Attributes="256" KeyPath="freetype.dll"/>
+    <ROW Component="freetype.dll_1" ComponentId="{F03CC63C-D02A-4691-AD12-5102C0B66489}" Directory_="pygame_Dir" Attributes="256" KeyPath="freetype.dll_1"/>
+    <ROW Component="generate.cpython310.pyc" ComponentId="{91E5200A-7DB6-44AA-B28B-23F3A3447A74}" Directory_="__pycache___32_Dir" Attributes="0" KeyPath="generate.cpython310.pyc" Type="0"/>
+    <ROW Component="generate.py" ComponentId="{E0CD255B-8406-4DEA-87D2-E931AB150E04}" Directory_="resources_2_Dir" Attributes="0" KeyPath="generate.py" Type="0"/>
+    <ROW Component="harRecorder.js" ComponentId="{A12D37B1-D4DC-4FF0-BD97-DF67A2400B9F}" Directory_="har_Dir" Attributes="0" KeyPath="harRecorder.js" Type="0"/>
+    <ROW Component="html.tpl" ComponentId="{D9198283-DB45-47B2-8270-AC8308734DB7}" Directory_="templates_1_Dir" Attributes="0" KeyPath="html.tpl" Type="0"/>
+    <ROW Component="html_chunks_with_headers.xslt" ComponentId="{CB6144BD-AC68-4834-B009-5B89CCD8D812}" Directory_="xsl_Dir" Attributes="0" KeyPath="html_chunks_with_headers.xslt" Type="0"/>
+    <ROW Component="http.tcl" ComponentId="{5EDA8809-6135-4147-AB64-5AEF84F26DB1}" Directory_="http1.0_Dir" Attributes="0" KeyPath="http.tcl" Type="0"/>
+    <ROW Component="http2.9.5.tm" ComponentId="{1CE8ED27-A3BA-460E-ADBA-82AD742DC983}" Directory_="__2_Dir" Attributes="0" KeyPath="http2.9.5.tm" Type="0"/>
+    <ROW Component="icon.ico" ComponentId="{30EDB65C-3FAB-48B3-AB12-F373220D78F2}" Directory_="data_1_Dir" Attributes="0" KeyPath="icon.ico" Type="0"/>
+    <ROW Component="id_generator.py" ComponentId="{9686E690-7FCD-41AB-AF7E-F0F2A4F1163F}" Directory_="trace_Dir" Attributes="0" KeyPath="id_generator.py" Type="0"/>
+    <ROW Component="idf.txt" ComponentId="{8071EE3D-F2A5-4AC8-A932-65C13D30BD86}" Directory_="analyse_Dir" Attributes="0" KeyPath="idf.txt" Type="0"/>
+    <ROW Component="inMemorySnapshotter.js" ComponentId="{80861049-5C23-4360-89C9-B6E0A6021D53}" Directory_="test_2_Dir" Attributes="0" KeyPath="inMemorySnapshotter.js" Type="0"/>
+    <ROW Component="in_memory_log_exporter.py" ComponentId="{62F17697-C85A-41FE-BBE5-04DA930D3AD8}" Directory_="export_4_Dir" Attributes="0" KeyPath="in_memory_log_exporter.py" Type="0"/>
+    <ROW Component="in_memory_span_exporter.py" ComponentId="{F66872C4-AE50-4C67-B848-F3A353E0E13E}" Directory_="export_2_Dir" Attributes="0" KeyPath="in_memory_span_exporter.py" Type="0"/>
+    <ROW Component="index.html" ComponentId="{0E4B2192-0C7B-4533-A2D0-CDE56BC654A8}" Directory_="htmlReport_Dir" Attributes="0" KeyPath="index.html" Type="0"/>
+    <ROW Component="index.html_1" ComponentId="{A360278B-CD06-4662-B026-B765E83670D7}" Directory_="recorder_2_Dir" Attributes="0" KeyPath="index.html_1" Type="0"/>
+    <ROW Component="index.js" ComponentId="{0FA9F116-7A75-49F9-BFAA-6586CD4C76BA}" Directory_="utilsBundleImpl_Dir" Attributes="0" KeyPath="index.js_4" Type="0"/>
+    <ROW Component="install_media_pack.ps1" ComponentId="{DCA6170C-A3C3-491D-8C2D-5FDA8E7BEE8B}" Directory_="bin_Dir" Attributes="0" KeyPath="install_media_pack.ps1" Type="0"/>
+    <ROW Component="instrumentation.py" ComponentId="{4075C3BF-C95B-43AD-B0B9-CD8DC0B8635E}" Directory_="util_Dir" Attributes="0" KeyPath="instrumentation.py" Type="0"/>
+    <ROW Component="invariants.py" ComponentId="{BF1312C4-E721-4A59-8AA9-E9292B67AD5A}" Directory_="property_Dir" Attributes="0" KeyPath="invariants.py" Type="0"/>
+    <ROW Component="iso_abstract_expand.xsl" ComponentId="{3744C7DB-B757-4933-9503-6ADDFE9B6298}" Directory_="isoschematronxslt1_Dir" Attributes="0" KeyPath="iso_abstract_expand.xsl" Type="0"/>
+    <ROW Component="isoschematron.rng" ComponentId="{2060C690-70CC-4363-A96C-AE60FF4DCD82}" Directory_="rng_Dir" Attributes="0" KeyPath="isoschematron.rng" Type="0"/>
+    <ROW Component="issue.json" ComponentId="{BF2AB127-25D7-4BCB-8A1E-9AB6997CFEE6}" Directory_="issue232_Dir" Attributes="0" KeyPath="issue.json" Type="0"/>
+    <ROW Component="json.gbnf" ComponentId="{ED46C278-0880-49B5-B39D-CFB952C3A8BC}" Directory_="grammars_Dir" Attributes="0" KeyPath="json.gbnf" Type="0"/>
+    <ROW Component="languagemodel.lm.bin" ComponentId="{8C9440B5-AD7F-4306-A772-E2AD0033463F}" Directory_="enUS_Dir" Attributes="0" KeyPath="languagemodel.lm.bin" Type="0"/>
+    <ROW Component="libcrypto1_1.dll" ComponentId="{8F67BEDF-6FE5-450F-AD9E-611FB7A27C2B}" Directory_="_internal_Dir" Attributes="256" KeyPath="libcrypto1_1.dll"/>
+    <ROW Component="libffi7.dll" ComponentId="{DCCA3321-4F95-47B6-9252-27AFF6DDAFAA}" Directory_="_internal_Dir" Attributes="256" KeyPath="libffi7.dll"/>
+    <ROW Component="libjpeg9.dll" ComponentId="{37F8EE01-4639-411D-A714-0E7663F63E3B}" Directory_="_internal_Dir" Attributes="256" KeyPath="libjpeg9.dll"/>
+    <ROW Component="libjpeg9.dll_1" ComponentId="{C7CAA041-771C-48A0-B294-1485D102B614}" Directory_="pygame_Dir" Attributes="256" KeyPath="libjpeg9.dll_1"/>
+    <ROW Component="libmodplug1.dll" ComponentId="{97E79530-8D48-4BE7-A170-0CEA6B6079AD}" Directory_="_internal_Dir" Attributes="256" KeyPath="libmodplug1.dll"/>
+    <ROW Component="libogg0.dll" ComponentId="{BF8F4D90-4D40-471F-B294-8103B8E78596}" Directory_="_internal_Dir" Attributes="256" KeyPath="libogg0.dll"/>
+    <ROW Component="libogg0.dll_1" ComponentId="{A5BA359A-13B4-46E6-989C-E4BE876464DC}" Directory_="pygame_Dir" Attributes="256" KeyPath="libogg0.dll_1"/>
+    <ROW Component="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373ff76" ComponentId="{CF92B975-251B-4382-96C7-0F2F568E0FAF}" Directory_="numpy.libs_Dir" Attributes="256" KeyPath="libopenblas64__v0.3.23293gc2f4bdbbgcc_10_3_02bde3a66a51006b2b53eb373f"/>
+    <ROW Component="libopus0.dll" ComponentId="{87C30678-2E0A-4340-A0E4-0C13735A6510}" Directory_="_internal_Dir" Attributes="256" KeyPath="libopus0.dll"/>
+    <ROW Component="libopus0.dll_1" ComponentId="{62EDFDFD-9267-4646-9209-BCE592951FA3}" Directory_="pygame_Dir" Attributes="256" KeyPath="libopus0.dll_1"/>
+    <ROW Component="libopusfile0.dll" ComponentId="{79E631DD-5316-4DF6-A2D1-F0E9D93F4F2E}" Directory_="_internal_Dir" Attributes="256" KeyPath="libopusfile0.dll"/>
+    <ROW Component="libpng1616.dll" ComponentId="{106855AD-56FE-42E0-8563-CAFEDF5259E8}" Directory_="_internal_Dir" Attributes="256" KeyPath="libpng1616.dll"/>
+    <ROW Component="libpng1616.dll_1" ComponentId="{4BCC3774-BC2C-4544-AFDB-E045D973DC8E}" Directory_="pygame_Dir" Attributes="256" KeyPath="libpng1616.dll_1"/>
+    <ROW Component="libsodiumac42d648.dll" ComponentId="{0993BA14-3C52-4FF4-81CF-13EFE4E4F1BB}" Directory_="_internal_Dir" Attributes="256" KeyPath="libsodiumac42d648.dll"/>
+    <ROW Component="libsodiumac42d648.dll_1" ComponentId="{14D8111B-368E-4BB9-9A55-6257E4EF4FE4}" Directory_="pyzmq.libs_Dir" Attributes="256" KeyPath="libsodiumac42d648.dll_1"/>
+    <ROW Component="libssl1_1.dll" ComponentId="{4A986EB0-E451-4B08-AD7F-A2DF0E6C094D}" Directory_="_internal_Dir" Attributes="256" KeyPath="libssl1_1.dll"/>
+    <ROW Component="libtiff5.dll" ComponentId="{B6A16244-4C3D-42BB-9556-15BBB8E017AF}" Directory_="_internal_Dir" Attributes="256" KeyPath="libtiff5.dll"/>
+    <ROW Component="libwebp7.dll" ComponentId="{FCB504F4-4B98-4CA6-B64C-DC026E2D7404}" Directory_="_internal_Dir" Attributes="256" KeyPath="libwebp7.dll"/>
+    <ROW Component="libzmqv141mt4_3_40a6f51ca.dll" ComponentId="{6149F18D-77B6-4958-AC1D-4E5075E0C2D1}" Directory_="_internal_Dir" Attributes="256" KeyPath="libzmqv141mt4_3_40a6f51ca.dll"/>
+    <ROW Component="libzmqv141mt4_3_40a6f51ca.dll_1" ComponentId="{077FE12D-D00C-4E29-97F0-E79A0EB677BD}" Directory_="pyzmq.libs_Dir" Attributes="256" KeyPath="libzmqv141mt4_3_40a6f51ca.dll_1"/>
+    <ROW Component="loadorderpyzmq25.1.2" ComponentId="{E5FF9FB3-A37B-4B7E-9D91-7BEED9F4D820}" Directory_="pyzmq.libs_Dir" Attributes="0" KeyPath="loadorderpyzmq25.1.2" Type="0"/>
+    <ROW Component="locale.de.ini" ComponentId="{B76696F6-2BD6-4D7E-9421-1AA416717E10}" Directory_="locale_Dir" Attributes="0" KeyPath="locale.de.ini" Type="0"/>
+    <ROW Component="logo.eps" ComponentId="{1BD03290-24DD-47B4-AB1D-26808553023D}" Directory_="images_Dir" Attributes="0" KeyPath="logo.eps" Type="0"/>
+    <ROW Component="logo.svg" ComponentId="{B96F97FB-7524-4CB2-8839-16A2D3616942}" Directory_="logo_Dir" Attributes="0" KeyPath="logo.svg" Type="0"/>
+    <ROW Component="map_reduce_prompt.cpython310.pyc" ComponentId="{FE7D0721-4102-4E3D-9F90-1A68B4981B37}" Directory_="__pycache___23_Dir" Attributes="0" KeyPath="map_reduce_prompt.cpython310.pyc_1" Type="0"/>
+    <ROW Component="map_reduce_prompt.cpython310.pyc_1" ComponentId="{2115669A-DEE1-4FD4-BE58-96654086B9A7}" Directory_="__pycache___28_Dir" Attributes="0" KeyPath="map_reduce_prompt.cpython310.pyc_2" Type="0"/>
+    <ROW Component="map_reduce_prompt.py" ComponentId="{868BF08D-4D60-4929-8192-0B581D4137AD}" Directory_="question_answering_Dir" Attributes="0" KeyPath="map_reduce_prompt.py_1" Type="0"/>
+    <ROW Component="map_reduce_prompt.py_1" ComponentId="{FA9BF788-DBFC-427B-9CA1-4ED35FE1B560}" Directory_="summarize_Dir" Attributes="0" KeyPath="map_reduce_prompt.py_2" Type="0"/>
+    <ROW Component="md.cp310win_amd64.pyd" ComponentId="{68B321A3-7D6F-4856-AC20-FD6762BF050C}" Directory_="charset_normalizer_Dir" Attributes="256" KeyPath="md.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="metaschema.json" ComponentId="{FA0C5AAD-FBAB-4CCD-81D5-64661C163A87}" Directory_="draft201909_Dir" Attributes="0" KeyPath="metaschema.json" Type="0"/>
+    <ROW Component="metaschema.json_1" ComponentId="{12DCBB36-F4CA-43DB-9DF0-61C51CB2E047}" Directory_="draft202012_Dir" Attributes="0" KeyPath="metaschema.json_1" Type="0"/>
+    <ROW Component="metaschema.json_2" ComponentId="{95195466-EF99-4887-832E-55BD1041329A}" Directory_="draft3_Dir" Attributes="0" KeyPath="metaschema.json_2" Type="0"/>
+    <ROW Component="metaschema.json_3" ComponentId="{FA95CC39-46AF-43AF-9357-8F5BC174FF4B}" Directory_="draft4_Dir" Attributes="0" KeyPath="metaschema.json_3" Type="0"/>
+    <ROW Component="metaschema.json_4" ComponentId="{ED75C4A0-8E26-4C22-B1BC-7E039FB7C60B}" Directory_="draft6_Dir" Attributes="0" KeyPath="metaschema.json_4" Type="0"/>
+    <ROW Component="metaschema.json_5" ComponentId="{850D38E9-0A27-4185-BEE1-78B9A0DB4DD1}" Directory_="draft7_Dir" Attributes="0" KeyPath="metaschema.json_5" Type="0"/>
+    <ROW Component="mfc140u.dll" ComponentId="{8EC33DA9-BF2E-4153-8C89-17074D9F09BC}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="mfc140u.dll"/>
+    <ROW Component="migration1.psql.sql" ComponentId="{9C0F72F5-DB90-4A4E-8C23-314CFBF3AAC2}" Directory_="migrations_1_Dir" Attributes="0" KeyPath="migration1.psql.sql" Type="0"/>
+    <ROW Component="msgcat1.6.1.tm" ComponentId="{F02420E3-36BF-4E2E-8A5E-DE1999470460}" Directory_="__1_Dir" Attributes="0" KeyPath="msgcat1.6.1.tm" Type="0"/>
+    <ROW Component="msvcp100.dll" ComponentId="{100468F8-9E77-4F44-AA20-ECA70FDF83C6}" Directory_="_internal_Dir" Attributes="256" KeyPath="msvcp100.dll"/>
+    <ROW Component="msvcp140.dll" ComponentId="{C3489EFE-06F0-481D-A375-F5FF49CC4A83}" Directory_="_internal_Dir" Attributes="256" KeyPath="msvcp140.dll"/>
+    <ROW Component="msvcp140fa0758dedafbbe194d3ee96e3dc2b9a3.dll" ComponentId="{2FE3572A-E1F4-46A6-837C-665C0C4487DD}" Directory_="pandas.libs_Dir" Attributes="256" KeyPath="msvcp140fa0758dedafbbe194d3ee96e3dc2b9a3.dll"/>
+    <ROW Component="msvcr100.dll" ComponentId="{0C6E6A25-5CFA-418D-81CD-0A4DF0FF25DA}" Directory_="_internal_Dir" Attributes="256" KeyPath="msvcr100.dll"/>
+    <ROW Component="mupdfcpp64.dll" ComponentId="{DB13F21E-6A20-4375-80A8-DEF19BF80730}" Directory_="fitz_Dir" Attributes="256" KeyPath="mupdfcpp64.dll"/>
+    <ROW Component="mutationlistener.js" ComponentId="{67917528-010B-4A4E-9060-48D41A331459}" Directory_="common_1_Dir" Attributes="0" KeyPath="mutationlistener.js" Type="0"/>
+    <ROW Component="nbformat.v3.schema.json" ComponentId="{1F4DB337-7D8D-405F-AC75-5D3B2F6528D0}" Directory_="v3_Dir" Attributes="0" KeyPath="nbformat.v3.schema.json" Type="0"/>
+    <ROW Component="nbformat.v4.0.schema.json" ComponentId="{A681F1C5-26B9-4516-8352-F2D802F34F21}" Directory_="v4_Dir" Attributes="0" KeyPath="nbformat.v4.0.schema.json" Type="0"/>
+    <ROW Component="node.exe" ComponentId="{BEC816BF-0C7B-42F1-ADC7-59BFC982314D}" Directory_="driver_Dir" Attributes="256" KeyPath="node.exe"/>
+    <ROW Component="onnxruntime_collect_build_info.cpython310.pyc" ComponentId="{E4F85E8E-EF43-4FD9-93EC-7CCFFC0AD611}" Directory_="capi_Dir" Attributes="0" KeyPath="onnxruntime_collect_build_info.cpython310.pyc" Type="0"/>
+    <ROW Component="onnxruntime_providers_shared.dll" ComponentId="{6C43372F-4456-4700-BAC3-54777E89AA6B}" Directory_="capi_Dir" Attributes="256" KeyPath="onnxruntime_providers_shared.dll"/>
+    <ROW Component="opencv_videoio_ffmpeg490_64.dll" ComponentId="{624EE45E-5B17-4236-82BD-BAA12C328EC3}" Directory_="cv2_Dir" Attributes="256" KeyPath="opencv_videoio_ffmpeg490_64.dll"/>
+    <ROW Component="opengl32sw.dll" ComponentId="{108C8C5D-94CC-4D5E-8A38-7C88FBF18C2E}" Directory_="PySide6_Dir" Attributes="256" KeyPath="opengl32sw.dll"/>
+    <ROW Component="optparse.tcl" ComponentId="{9B29F019-B7A6-4959-A0FB-7705604C64E4}" Directory_="opt0.4_Dir" Attributes="0" KeyPath="optparse.tcl" Type="0"/>
+    <ROW Component="orjson.cp310win_amd64.pyd" ComponentId="{21D45F75-8000-4E67-9518-B3B87C880660}" Directory_="orjson_Dir" Attributes="256" KeyPath="orjson.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="platform1.0.18.tm" ComponentId="{8DFFC36A-62A6-4C74-9C43-FDDA6683C492}" Directory_="__Dir" Attributes="0" KeyPath="platform1.0.18.tm" Type="0"/>
+    <ROW Component="playwrightConnection.js" ComponentId="{125435C2-B20B-4969-859E-AB1E08F0EF9B}" Directory_="remote_Dir" Attributes="0" KeyPath="playwrightConnection.js" Type="0"/>
+    <ROW Component="portmidi.dll" ComponentId="{24E1933A-4AE3-4D2B-8A12-606D01E59C91}" Directory_="_internal_Dir" Attributes="256" KeyPath="portmidi.dll"/>
+    <ROW Component="prob_emit.p" ComponentId="{0907F3BA-6632-4BD0-AA82-ED0159168E91}" Directory_="finalseg_Dir" Attributes="0" KeyPath="prob_emit.p" Type="0"/>
+    <ROW Component="prompt.cpython310.pyc" ComponentId="{8B6BDD56-20E0-49C7-9E30-F3453FCF21C5}" Directory_="__pycache___26_Dir" Attributes="0" KeyPath="prompt.cpython310.pyc_8" Type="0"/>
+    <ROW Component="prompt.py" ComponentId="{BD93B294-F154-42A8-917E-1A980C5A31F6}" Directory_="sql_database_Dir" Attributes="0" KeyPath="prompt.py_8" Type="0"/>
+    <ROW Component="prompts.cpython310.pyc" ComponentId="{268FB1C7-056E-42ED-9D81-51C6AF386C12}" Directory_="__pycache___2_Dir" Attributes="0" KeyPath="prompts.cpython310.pyc_1" Type="0"/>
+    <ROW Component="prompts.py" ComponentId="{2AD46B93-33F0-4145-A3CF-7A833B7BF4F1}" Directory_="chat_vector_db_Dir" Attributes="0" KeyPath="prompts.py_1" Type="0"/>
+    <ROW Component="protocol.d.ts" ComponentId="{EA5B55ED-3FF4-46C4-8077-5EA95D07C5F8}" Directory_="types_Dir" Attributes="0" KeyPath="protocol.d.ts" Type="0"/>
+    <ROW Component="pulsar.py" ComponentId="{AD8AE35B-356C-4CE7-A18B-5842BE6B719A}" Directory_="impl_1_Dir" Attributes="0" KeyPath="pulsar.py" Type="0"/>
+    <ROW Component="py.typed" ComponentId="{72CFC4ED-58FB-43FD-8E7C-53F3B70C315A}" Directory_="langchain_Dir" Attributes="0" KeyPath="py.typed_1" Type="0"/>
+    <ROW Component="py.typed_1" ComponentId="{0C04C928-2D47-4AFB-8A56-1552E39A8CFD}" Directory_="nbconvert_Dir" Attributes="0" KeyPath="py.typed_2" Type="0"/>
+    <ROW Component="py.typed_2" ComponentId="{354A4FB5-DA18-48A2-A639-CC5640A8A941}" Directory_="nbformat_Dir" Attributes="0" KeyPath="py.typed_3" Type="0"/>
+    <ROW Component="py.typed_3" ComponentId="{A7C47AE5-F5A7-481E-A61B-C47471255416}" Directory_="playwright_Dir" Attributes="0" KeyPath="py.typed_5" Type="0"/>
+    <ROW Component="py.typed_4" ComponentId="{D8A67F50-A6C8-41AC-A66B-CDDD3D58B929}" Directory_="selenium_Dir" Attributes="0" KeyPath="py.typed_6" Type="0"/>
+    <ROW Component="py.typed_5" ComponentId="{5838552D-BF66-47F5-86E5-11AE067265D2}" Directory_="v120_Dir" Attributes="0" KeyPath="py.typed_7" Type="0"/>
+    <ROW Component="py.typed_6" ComponentId="{92711256-4E01-48EB-BA9F-BE81B5DFE114}" Directory_="v121_Dir" Attributes="0" KeyPath="py.typed_8" Type="0"/>
+    <ROW Component="py.typed_7" ComponentId="{5CCD4695-1DFF-4CD9-824E-F3CC3298CB0F}" Directory_="v122_Dir" Attributes="0" KeyPath="py.typed_9" Type="0"/>
+    <ROW Component="py.typed_8" ComponentId="{9962898A-393D-48F8-9F77-E0289457E665}" Directory_="v85_Dir" Attributes="0" KeyPath="py.typed_10" Type="0"/>
+    <ROW Component="pygpt.exe" ComponentId="{51F8F4D4-A32D-4B93-AE12-B1A58176E31C}" Directory_="Windows_Dir" Attributes="256" KeyPath="pygpt.exe"/>
+    <ROW Component="pyside6.abi3.dll" ComponentId="{D8CD0D85-14E6-4EEA-9781-71BEB4F81BB6}" Directory_="PySide6_Dir" Attributes="256" KeyPath="pyside6.abi3.dll"/>
+    <ROW Component="python3.dll" ComponentId="{815CD181-5749-42CD-A342-A9E69DD692DF}" Directory_="_internal_Dir" Attributes="256" KeyPath="python3.dll"/>
+    <ROW Component="python310.dll" ComponentId="{32321857-4B9E-41EC-8BD5-F2174EA21B11}" Directory_="_internal_Dir" Attributes="256" KeyPath="python310.dll"/>
+    <ROW Component="pythoncom310.dll" ComponentId="{88980CB7-DE79-4481-A9B3-7690B285AD08}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pythoncom310.dll"/>
+    <ROW Component="pywintypes310.dll" ComponentId="{75334C27-A4DC-46EB-838C-9FBE9E607D30}" Directory_="pywin32_system32_Dir" Attributes="256" KeyPath="pywintypes310.dll"/>
+    <ROW Component="qcertonlybackend.dll" ComponentId="{855E72BC-2B61-49E0-BA21-EDF9398A5A78}" Directory_="tls_Dir" Attributes="256" KeyPath="qcertonlybackend.dll"/>
+    <ROW Component="qdirect2d.dll" ComponentId="{CEBDCB31-66AF-45D4-A546-94D1C33619AB}" Directory_="platforms_Dir" Attributes="256" KeyPath="qdirect2d.dll"/>
+    <ROW Component="qgif.dll" ComponentId="{2209A878-5B70-4DFB-9CA2-84A73234A36E}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qgif.dll"/>
+    <ROW Component="qicns.dll" ComponentId="{5DA128F7-8355-45C1-AAAF-3F5F962D26EE}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qicns.dll"/>
+    <ROW Component="qico.dll" ComponentId="{F8FB0C88-96F4-4FD2-BE84-7DC77765A610}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qico.dll"/>
+    <ROW Component="qjpeg.dll" ComponentId="{AC9A430D-03B4-4C84-A05C-BBE56F179C5B}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qjpeg.dll"/>
+    <ROW Component="qminimal.dll" ComponentId="{9FCDF034-3F24-4258-BE5E-18CF8EBF0566}" Directory_="platforms_Dir" Attributes="256" KeyPath="qminimal.dll"/>
+    <ROW Component="qnetworklistmanager.dll" ComponentId="{F7D402E0-8DAF-49D1-B463-720CB64D9366}" Directory_="networkinformation_Dir" Attributes="256" KeyPath="qnetworklistmanager.dll"/>
+    <ROW Component="qoffscreen.dll" ComponentId="{07327249-D235-43F2-B4DD-B1DB8061AFD4}" Directory_="platforms_Dir" Attributes="256" KeyPath="qoffscreen.dll"/>
+    <ROW Component="qopensslbackend.dll" ComponentId="{D6514C69-B82A-4125-A2D2-40EF50D2787A}" Directory_="tls_Dir" Attributes="256" KeyPath="qopensslbackend.dll"/>
+    <ROW Component="qpdf.dll" ComponentId="{81255F14-A222-48F7-964C-26C77CA6E089}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qpdf.dll"/>
+    <ROW Component="qschannelbackend.dll" ComponentId="{DE40AFEC-D5EC-4AAC-8FF1-B1901B38A003}" Directory_="tls_Dir" Attributes="256" KeyPath="qschannelbackend.dll"/>
+    <ROW Component="qsvg.dll" ComponentId="{4B11416C-CC89-41BD-9E45-0871DE2A94F4}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qsvg.dll"/>
+    <ROW Component="qsvgicon.dll" ComponentId="{8349FBF9-DE53-44A3-BCEF-FCA9F184BD99}" Directory_="iconengines_Dir" Attributes="256" KeyPath="qsvgicon.dll"/>
+    <ROW Component="qtbase_ar.qm" ComponentId="{E60681B4-8C67-4B23-A267-8CEB05852C1A}" Directory_="translations_Dir" Attributes="0" KeyPath="qtbase_ar.qm" Type="0"/>
+    <ROW Component="qtga.dll" ComponentId="{C13A8C52-0D4D-4CB1-B71D-9C4CCB35C4AB}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtga.dll"/>
+    <ROW Component="qtiff.dll" ComponentId="{500CE29A-1C00-4033-9EA8-4E8241C381B9}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qtiff.dll"/>
+    <ROW Component="qtuiotouchplugin.dll" ComponentId="{92781349-7B78-47E9-A023-2FD9B623F0B3}" Directory_="generic_Dir" Attributes="256" KeyPath="qtuiotouchplugin.dll"/>
+    <ROW Component="qtvirtualkeyboardplugin.dll" ComponentId="{EDD6F6F6-6F93-4620-BB8D-BBD8CC81C03B}" Directory_="platforminputcontexts_Dir" Attributes="256" KeyPath="qtvirtualkeyboardplugin.dll"/>
+    <ROW Component="qwbmp.dll" ComponentId="{AEAEB6DA-6C0B-4C8D-A5AF-26873CFBA40C}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwbmp.dll"/>
+    <ROW Component="qwebp.dll" ComponentId="{48660C65-820A-4DAE-80FA-A84AF984D2D5}" Directory_="imageformats_Dir" Attributes="256" KeyPath="qwebp.dll"/>
+    <ROW Component="qwindows.dll" ComponentId="{E1BEB3E5-EEA2-49FE-B77B-940E8C46FCE2}" Directory_="platforms_Dir" Attributes="256" KeyPath="qwindows.dll"/>
+    <ROW Component="qwindowsvistastyle.dll" ComponentId="{5D81FA39-E153-49B9-A228-82AC55D4606E}" Directory_="styles_Dir" Attributes="256" KeyPath="qwindowsvistastyle.dll"/>
+    <ROW Component="roots.pem" ComponentId="{C8B38267-90A9-4DD3-9A96-0437C2086511}" Directory_="_credentials_Dir" Attributes="0" KeyPath="roots.pem" Type="0"/>
+    <ROW Component="rpds.cp310win_amd64.pyd" ComponentId="{94D123F4-A5F1-4752-8922-297BB0CE783E}" Directory_="rpds_Dir" Attributes="256" KeyPath="rpds.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="segment_directory.py" ComponentId="{5F6B5318-AA7F-4C66-A862-1198BF1C518E}" Directory_="distributed_1_Dir" Attributes="0" KeyPath="segment_directory.py" Type="0"/>
+    <ROW Component="seleniummanager" ComponentId="{02591DCC-4007-4E50-8E04-A524A2449203}" Directory_="linux_Dir" Attributes="0" KeyPath="seleniummanager" Type="0"/>
+    <ROW Component="seleniummanager.exe" ComponentId="{5EA0375C-B0FA-4A1E-9D5C-A138DFC0CFC4}" Directory_="windows_Dir" Attributes="0" KeyPath="seleniummanager.exe"/>
+    <ROW Component="seleniummanager_1" ComponentId="{B8D8D9BA-9DB8-45ED-833E-9E8ABAC9584E}" Directory_="macos_Dir" Attributes="0" KeyPath="seleniummanager_1" Type="0"/>
+    <ROW Component="shell.pyd" ComponentId="{24D7157C-6FF6-4B9D-B2BA-141B40452FCC}" Directory_="shell_Dir" Attributes="256" KeyPath="shell.pyd" Type="0"/>
+    <ROW Component="shell1.1.4.tm" ComponentId="{685061DA-9E6A-4BA3-8A37-378FAFBF01DF}" Directory_="platform_Dir" Attributes="0" KeyPath="shell1.1.4.tm" Type="0"/>
+    <ROW Component="shiboken6.abi3.dll" ComponentId="{2F90E883-3E2A-4823-888C-0CE958B9665F}" Directory_="shiboken6_Dir" Attributes="256" KeyPath="shiboken6.abi3.dll"/>
+    <ROW Component="snapshotter.js" ComponentId="{CE2BC4BE-CB85-4E46-A560-0A980A9A64FA}" Directory_="recorder_1_Dir" Attributes="0" KeyPath="snapshotter.js" Type="0"/>
+    <ROW Component="speedups.pyd" ComponentId="{1503420B-3C9C-4803-9D8B-E0E42397738F}" Directory_="tornado_Dir" Attributes="256" KeyPath="speedups.pyd" Type="0"/>
+    <ROW Component="sqlite.py" ComponentId="{9347BB90-BF4B-4641-A045-9AA11C1F76F7}" Directory_="impl_Dir" Attributes="0" KeyPath="sqlite.py" Type="0"/>
+    <ROW Component="sqlite.py_1" ComponentId="{4237099E-9B26-4B5E-A861-651186FE67AC}" Directory_="metadata_Dir" Attributes="0" KeyPath="sqlite.py_1" Type="0"/>
+    <ROW Component="sqlite3.dll" ComponentId="{78E01D13-BBCF-4008-8347-1BA85AE4C86B}" Directory_="_internal_Dir" Attributes="256" KeyPath="sqlite3.dll"/>
+    <ROW Component="tcl86t.dll" ComponentId="{3E9A56CC-311C-4639-BC73-70867BE1D031}" Directory_="_internal_Dir" Attributes="256" KeyPath="tcl86t.dll"/>
+    <ROW Component="test_base.py" ComponentId="{1F6050AF-7D71-46DC-B4C9-3BD147C8009F}" Directory_="db_1_Dir" Attributes="0" KeyPath="test_base.py" Type="0"/>
+    <ROW Component="test_basic_auth.py" ComponentId="{0D9E723C-DDCD-4A5E-8C14-28BCF40F7F93}" Directory_="auth_1_Dir" Attributes="0" KeyPath="test_basic_auth.py" Type="0"/>
+    <ROW Component="test_cloud_client.py" ComponentId="{78FBAB09-6BB7-4B28-A9C1-7CF6E638B44F}" Directory_="client_Dir" Attributes="0" KeyPath="test_cloud_client.py" Type="0"/>
+    <ROW Component="test_data_loader.py" ComponentId="{BE941E07-BAE3-4F0B-9899-5B9AF2366336}" Directory_="data_loader_Dir" Attributes="0" KeyPath="test_data_loader.py" Type="0"/>
+    <ROW Component="test_default_ef.py" ComponentId="{3F1B5D31-9F9C-4213-B1BB-4C380B9A11BD}" Directory_="ef_Dir" Attributes="0" KeyPath="test_default_ef.py" Type="0"/>
+    <ROW Component="test_many_collections.py" ComponentId="{ABC5B20F-2BB2-43CA-A40C-161E31BAF1CE}" Directory_="stress_Dir" Attributes="0" KeyPath="test_many_collections.py" Type="0"/>
+    <ROW Component="test_memberlist_provider.py" ComponentId="{59CEE721-7C69-435A-A220-554AA6F3FD84}" Directory_="distributed_2_Dir" Attributes="0" KeyPath="test_memberlist_provider.py" Type="0"/>
+    <ROW Component="test_messagid.py" ComponentId="{15FFD44A-5632-4DDB-9009-EAF529BB6231}" Directory_="utils_Dir" Attributes="0" KeyPath="test_messagid.py" Type="0"/>
+    <ROW Component="test_metadata.py" ComponentId="{48768167-5DD6-4195-84B8-D8BF4E48CAD0}" Directory_="segment_1_Dir" Attributes="0" KeyPath="test_metadata.py" Type="0"/>
+    <ROW Component="test_producer_consumer.py" ComponentId="{60CC2A8A-6BF3-49E7-ABE5-D71EE341E365}" Directory_="ingest_1_Dir" Attributes="0" KeyPath="test_producer_consumer.py" Type="0"/>
+    <ROW Component="test_provider.py" ComponentId="{86F249C6-F1E5-48E1-8938-6E2485F62242}" Directory_="quota_Dir" Attributes="0" KeyPath="test_provider.py" Type="0"/>
+    <ROW Component="test_static_quota_enforcer.py" ComponentId="{D0F7BCF8-7E50-44D6-912D-B21EF881EF3D}" Directory_="quota_1_Dir" Attributes="0" KeyPath="test_static_quota_enforcer.py" Type="0"/>
+    <ROW Component="test_types.py" ComponentId="{C21FD20C-9AF4-4F0A-AA56-F9719D853CA8}" Directory_="api_1_Dir" Attributes="0" KeyPath="test_types.py" Type="0"/>
+    <ROW Component="tk86t.dll" ComponentId="{8D7712A3-4117-4086-A0A3-8F00B4FF908D}" Directory_="_internal_Dir" Attributes="256" KeyPath="tk86t.dll"/>
+    <ROW Component="tokenizers.cp310win_amd64.pyd" ComponentId="{D32D2A2E-9D17-4D38-B631-6F8F1CEF7495}" Directory_="tokenizers_2_Dir" Attributes="256" KeyPath="tokenizers.cp310win_amd64.pyd" Type="0"/>
+    <ROW Component="traceViewer.js" ComponentId="{E62F6D99-C170-4D94-A2A6-16177ABDE4F0}" Directory_="viewer_Dir" Attributes="0" KeyPath="traceViewer.js" Type="0"/>
+    <ROW Component="types.py" ComponentId="{C2E76E31-FAB6-4126-88C7-5864CF5E6204}" Directory_="fastapi_Dir" Attributes="0" KeyPath="types.py_1" Type="0"/>
+    <ROW Component="utilityScriptSerializers.js" ComponentId="{9C4B4605-F8FB-4314-B540-5E14B062E402}" Directory_="isomorphic_Dir" Attributes="0" KeyPath="utilityScriptSerializers.js" Type="0"/>
+    <ROW Component="version.py" ComponentId="{DA4BA675-4BFD-45E2-A644-63254F36016B}" Directory_="misc_Dir" Attributes="0" KeyPath="version.py" Type="0"/>
+    <ROW Component="webdriver_prefs.json" ComponentId="{E2C13DF3-89FA-4190-A5FD-A193FAAD5786}" Directory_="firefox_1_Dir" Attributes="0" KeyPath="webdriver_prefs.json" Type="0"/>
+    <ROW Component="webkit.js" ComponentId="{4E6CFAA9-3796-4229-8E96-2A58939F6A1B}" Directory_="webkit_Dir" Attributes="0" KeyPath="webkit.js" Type="0"/>
+    <ROW Component="win32api.pyd" ComponentId="{DCEAD130-EB4C-4090-8AE7-37E52B9A4C94}" Directory_="win32_Dir" Attributes="256" KeyPath="win32api.pyd" Type="0"/>
+    <ROW Component="win32ui.pyd" ComponentId="{7CD4D669-BD73-41B9-AA06-522896F7D2A1}" Directory_="Pythonwin_Dir" Attributes="256" KeyPath="win32ui.pyd" Type="0"/>
+    <ROW Component="zlib1.dll" ComponentId="{246E0761-71CC-4764-9771-139B47CE3CDA}" Directory_="pygame_Dir" Attributes="256" KeyPath="zlib1.dll"/>
+    <ROW Component="zlib1.dll_1" ComponentId="{31F4D66B-B859-4D31-8E7F-E112CFAA73E2}" Directory_="_internal_Dir" Attributes="256" KeyPath="zlib1.dll_1"/>
+    <ROW Component="zones" ComponentId="{F7BDFD41-10E7-4ECA-B497-0253107B3781}" Directory_="tzdata_1_Dir" Attributes="0" KeyPath="zones" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
@@ -1261,6 +1261,7 @@
     <ROW File="locale.it.ini" Component_="locale.de.ini" FileName="LOCALE~5.INI|locale.it.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\locale.it.ini" SelfReg="false"/>
     <ROW File="locale.pl.ini" Component_="locale.de.ini" FileName="LOCALE~6.INI|locale.pl.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\locale.pl.ini" SelfReg="false"/>
     <ROW File="locale.ua.ini" Component_="locale.de.ini" FileName="LOCALE~7.INI|locale.ua.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\locale.ua.ini" SelfReg="false"/>
+    <ROW File="locale.zh.ini" Component_="locale.de.ini" FileName="LOCALE~8.INI|locale.zh.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\locale.zh.ini" SelfReg="false"/>
     <ROW File="plugin.agent.en.ini" Component_="locale.de.ini" FileName="PLUGIN~1.INI|plugin.agent.en.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\plugin.agent.en.ini" SelfReg="false"/>
     <ROW File="plugin.agent.pl.ini" Component_="locale.de.ini" FileName="PLUGIN~2.INI|plugin.agent.pl.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\plugin.agent.pl.ini" SelfReg="false"/>
     <ROW File="plugin.audio_input.en.ini" Component_="locale.de.ini" FileName="PLUGIN~3.INI|plugin.audio_input.en.ini" Attributes="0" SourcePath="dist\Windows\_internal\data\locale\plugin.audio_input.en.ini" SelfReg="false"/>
