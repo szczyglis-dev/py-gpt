@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -289,6 +289,7 @@ class Ctx:
         """
         Get ctx items sorted descending by date
 
+        :param reload: True if reload from provider
         :return: ctx metas dict
         """
         if reload:
@@ -677,14 +678,10 @@ class Ctx:
         if self.window.core.config.has('ctx.records.limit'):
             limit = int(self.window.core.config.get('ctx.records.limit') or 0)
 
-        # all items (pinned on top)
+        # display: all
         if "is_important" not in self.filters and "indexed_ts" not in self.filters:
-            filters_pinned = copy.deepcopy(self.filters)
-            if self.has_labels():
-                filters_pinned['label'] = {
-                    "mode": "IN",
-                    "value": self.filters_labels,  # append label colors
-                }
+            # pinned
+            filters_pinned = self.get_parsed_filters()
             filters_pinned['is_important'] = {
                 "mode": "=",
                 "value": 1,
@@ -698,12 +695,8 @@ class Ctx:
                 search_content=self.is_search_content(),
             )
 
-            filters = copy.deepcopy(self.filters)
-            if self.has_labels():
-                filters['label'] = {
-                    "mode": "IN",
-                    "value": self.filters_labels,  # append label colors
-                }
+            # not-pinned
+            filters = self.get_parsed_filters()
             meta_unpinned = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
@@ -712,17 +705,13 @@ class Ctx:
                 filters=filters,
                 search_content=self.is_search_content(),
             )
-            # join, pinned first
+
+            # join both, pinned first
             self.meta = {**meta_pinned, **meta_unpinned}
 
-        # pinned only or label only
         else:
-            filters = copy.deepcopy(self.filters)
-            if self.has_labels():
-                filters['label'] = {
-                    "mode": "IN",
-                    "value": self.filters_labels,  # append label colors
-                }
+            # display: important or indexed
+            filters = self.get_parsed_filters()
             self.meta = self.provider.get_meta(
                 search_string=self.search_string,
                 order_by='updated_ts',
@@ -731,6 +720,20 @@ class Ctx:
                 filters=filters,
                 search_content=self.is_search_content(),
             )
+
+    def get_parsed_filters(self) -> dict:
+        """
+        Get parsed filters
+
+        :return: parsed filters
+        """
+        filters = copy.deepcopy(self.filters)
+        if self.has_labels():
+            filters['label'] = {
+                "mode": "IN",
+                "value": self.filters_labels,  # append label colors
+            }
+        return filters
 
     def load(self, id: int) -> list:
         """

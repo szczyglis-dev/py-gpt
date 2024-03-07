@@ -6,11 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy, QRadioButton
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget, QSplitter, QSizePolicy, QRadioButton, QCheckBox
 
 from pygpt_net.ui.widget.calendar.select import CalendarSelect
 from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
@@ -67,12 +67,24 @@ class Calendar:
         self.window.ui.nodes['filter.ctx.radio.indexed'].clicked.connect(
             lambda: self.window.controller.ctx.common.toggle_display_filter("indexed"))
 
+        # all counters
+        self.window.ui.nodes['filter.ctx.counters.all'] = QCheckBox(trans("filter.ctx.counters.all"))
+        self.window.ui.nodes['filter.ctx.counters.all'].stateChanged.connect(
+            lambda: self.window.controller.calendar.note.toggle_counters_all(
+                self.window.ui.nodes['filter.ctx.counters.all'].isChecked())
+        )
+        if self.window.core.config.get("ctx.counters.all"):
+            self.window.ui.nodes['filter.ctx.counters.all'].setChecked(True)
+        else:
+            self.window.ui.nodes['filter.ctx.counters.all'].setChecked(False)
+
         # layout
         layout = QHBoxLayout()
         layout.addWidget(self.window.ui.nodes['filter.ctx.label'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.all'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.pinned'])
         layout.addWidget(self.window.ui.nodes['filter.ctx.radio.indexed'])
+        layout.addWidget(self.window.ui.nodes['filter.ctx.counters.all'])
         layout.addStretch()
 
         self.window.ui.nodes['filter.ctx.labels'] = ColorCheckbox(self.window)

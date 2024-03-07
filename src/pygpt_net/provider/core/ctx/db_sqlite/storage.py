@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -42,6 +42,79 @@ class Storage:
         """
         self.window = window
 
+    def prepare_query(
+            self,
+            search_string: str = None,
+            filters: dict = None,
+            search_content: bool = False,
+            append_date_ranges: bool = True,
+    ):
+        """
+        Prepare query for search_string and filters
+
+        :param search_string: search string
+        :param filters: dict of filters
+        :param search_content: search in content (input, output)
+        :param append_date_ranges: append date ranges
+        :return: where_statement, join_statement, bind_params
+        """
+        where_clauses = []
+        join_clauses = []
+        bind_params = {}
+
+        # search_string
+        if search_string:
+            date_ranges = search_by_date_string(search_string)
+            search_string = re.sub(
+                r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)',
+                '',
+                search_string.strip(),
+            )
+            if search_string:
+                if search_content:
+                    where_clauses.append(
+                        "(m.name LIKE :search_string OR i.input LIKE :search_string OR i.output LIKE :search_string)"
+                    )
+                    join_clauses.append("LEFT JOIN ctx_item i ON m.id = i.meta_id")
+                else:
+                    where_clauses.append("m.name LIKE :search_string")
+                bind_params['search_string'] = f"%{search_string}%"
+
+            if append_date_ranges:
+                for start_ts, end_ts in date_ranges:
+                    if start_ts and end_ts:
+                        where_clauses.append("(m.updated_ts BETWEEN :start_ts AND :end_ts)")
+                        bind_params['start_ts'] = start_ts
+                        bind_params['end_ts'] = end_ts
+                    elif start_ts:
+                        where_clauses.append("(m.updated_ts >= :start_ts)")
+                        bind_params['start_ts'] = start_ts
+                    elif end_ts:
+                        where_clauses.append("(m.updated_ts <= :end_ts)")
+                        bind_params['end_ts'] = end_ts
+
+        # display filters
+        if filters:
+            for key, filter in filters.items():
+                if key == 'date_range':
+                    continue
+                mode = filter.get('mode', '=')
+                value = filter.get('value', '')
+                if isinstance(value, int):
+                    where_clauses.append(f"{key} {mode} :{key}")
+                    bind_params[key] = value
+                elif isinstance(value, str):
+                    where_clauses.append(f"{key} {mode} :{key}")
+                    bind_params[key] = f"%{value}%"
+                elif isinstance(value, list):
+                    values = "(" + ",".join([str(x) for x in value]) + ")"
+                    where_clauses.append(f"{key} {mode} {values}")
+
+        where_statement = " AND ".join(where_clauses) if where_clauses else "1"
+        join_statement = " ".join(join_clauses) if join_clauses else ""
+
+        return where_statement, join_statement, bind_params
+
     def get_meta(
             self,
             search_string: str = None,
@@ -68,59 +141,12 @@ class Storage:
         if limit is not None and limit > 0:
             limit_suffix = " LIMIT {}".format(limit)
 
-        where_clauses = []
-        join_clauses = []
-        bind_params = {}
-
-        # search_string
-        if search_string:
-            date_ranges = search_by_date_string(search_string)
-            search_string = re.sub(
-                r'@date\((\d{4}-\d{2}-\d{2})?(,)?(\d{4}-\d{2}-\d{2})?\)',
-                '',
-                search_string.strip(),
-            )
-            if search_string:
-                if search_content:
-                    where_clauses.append(
-                        "(m.name LIKE :search_string OR i.input LIKE :search_string OR i.output LIKE :search_string)"
-                    )
-                    join_clauses.append("LEFT JOIN ctx_item i ON m.id = i.meta_id")
-                else:
-                    where_clauses.append("m.name LIKE :search_string")
-                bind_params['search_string'] = f"%{search_string}%"
-
-            for start_ts, end_ts in date_ranges:
-                if start_ts and end_ts:
-                    where_clauses.append("(m.updated_ts BETWEEN :start_ts AND :end_ts)")
-                    bind_params['start_ts'] = start_ts
-                    bind_params['end_ts'] = end_ts
-                elif start_ts:
-                    where_clauses.append("(m.updated_ts >= :start_ts)")
-                    bind_params['start_ts'] = start_ts
-                elif end_ts:
-                    where_clauses.append("(m.updated_ts <= :end_ts)")
-                    bind_params['end_ts'] = end_ts
-
-        # display filters
-        if filters:
-            for key, filter in filters.items():
-                if key == 'date_range':
-                    continue
-                mode = filter.get('mode', '=')
-                value = filter.get('value', '')
-                if isinstance(value, int):
-                    where_clauses.append(f"{key} {mode} :{key}")
-                    bind_params[key] = value
-                elif isinstance(value, str):
-                    where_clauses.append(f"{key} {mode} :{key}")
-                    bind_params[key] = f"%{value}%"
-                elif isinstance(value, list):
-                    values = "(" + ",".join([str(x) for x in value]) + ")"
-                    where_clauses.append(f"{key} {mode} {values}")
-
-        where_statement = " AND ".join(where_clauses) if where_clauses else "1"
-        join_statement = " ".join(join_clauses) if join_clauses else ""
+        where_statement, join_statement, bind_params = self.prepare_query(
+            search_string=search_string,
+            filters=filters,
+            search_content=search_content,
+            append_date_ranges=True,
+        )
         stmt_text = f"""
             SELECT m.* FROM ctx_meta m {join_statement} WHERE {where_statement}
             ORDER BY m.updated_ts DESC {limit_suffix}
@@ -715,55 +741,91 @@ class Storage:
             conn.execute(stmt)
         return True
 
-    def get_ctx_count_by_day(self, year: int, month: int = None, day: int = None) -> dict:
+    def get_ctx_count_by_day(
+            self,
+            year: int,
+            month: int = None,
+            day: int = None,
+            search_string: str = None,
+            filters: dict = None,
+            search_content: bool = False,
+    ) -> dict:
         """
-        Return ctx count by day for given year and month
+        Return ctx counters by day for given year and month
 
         :param year: year
         :param month: month
         :param day: day
+        :param search_string: search string
+        :param filters: dict of filters
+        :param search_content: search in content (input, output)
         :return: dict with day as key and count as value
         """
+        # prepare query with search filters
+        where_statement, join_statement, bind_params = self.prepare_query(
+            search_string=search_string,
+            filters=filters,
+            search_content=search_content,
+            append_date_ranges=False,  # without date ranges
+        )
+
+        # prepare where statement
+        if where_statement == "1":
+            where_statement = ""
+        else:
+            where_statement = f"AND {where_statement}"
+
         db = self.window.core.db.get_db()
         with db.connect() as conn:
-            # in day
+            # by day
             if year and month and day:
-                result = conn.execute(text("""
+                bind_params['start_ts'] = int(datetime(year, month, day, 0, 0, 0).timestamp())
+                bind_params['end_ts'] = int(datetime(year, month, day, 23, 59, 59).timestamp())
+                stmt_text = f"""
                     SELECT
-                        date(datetime(updated_ts, 'unixepoch')) as day,
-                        COUNT(updated_ts) as count
-                    FROM ctx_meta
-                    WHERE updated_ts BETWEEN :start_ts AND :end_ts
+                        date(datetime(m.updated_ts, 'unixepoch')) as day,
+                        COUNT(m.updated_ts) as count
+                    FROM ctx_meta m
+                    {join_statement}
+                    WHERE (m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
                     GROUP BY day
-                """), {'start_ts': int(datetime(year, month, day, 0, 0, 0).timestamp()),
-                       'end_ts': int(datetime(year, month, day, 23, 59, 59).timestamp())})
+                """
+                stmt = text(stmt_text).bindparams(**bind_params)
+                result = conn.execute(stmt)
                 return {row._mapping['day']: row._mapping['count'] for row in result}
 
-            # in month
+            # by month
             elif year and month:
                 start_timestamp, end_timestamp = get_month_start_end_timestamps(year, month)
-                result = conn.execute(text("""
+                bind_params['start_ts'] = start_timestamp
+                bind_params['end_ts'] = end_timestamp
+                stmt_text = f"""
                     SELECT
-                        date(datetime(updated_ts, 'unixepoch')) as day,
-                        COUNT(updated_ts) as count
-                    FROM ctx_meta
-                    WHERE updated_ts BETWEEN :start_ts AND :end_ts
+                        date(datetime(m.updated_ts, 'unixepoch')) as day,
+                        COUNT(m.updated_ts) as count
+                    FROM ctx_meta m
+                    {join_statement}
+                    WHERE (m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
                     GROUP BY day
-                """), {'start_ts': start_timestamp,
-                       'end_ts': end_timestamp})
+                """
+                stmt = text(stmt_text).bindparams(**bind_params)
+                result = conn.execute(stmt)
                 return {row._mapping['day']: row._mapping['count'] for row in result}
 
-            # in year (returns months, not days)
+            # by year (return months, not days)
             elif year:
                 start_timestamp, end_timestamp = get_year_start_end_timestamps(year)
-                result = conn.execute(text("""
+                bind_params['start_ts'] = start_timestamp
+                bind_params['end_ts'] = end_timestamp
+                stmt_text = f"""
                     SELECT
-                        strftime('%m', datetime(updated_ts, 'unixepoch')) as month,
-                        COUNT(updated_ts) as count
-                    FROM ctx_meta
-                    WHERE updated_ts BETWEEN :start_ts AND :end_ts
+                        strftime('%m', datetime(m.updated_ts, 'unixepoch')) as month,
+                        COUNT(m.updated_ts) as count
+                    FROM ctx_meta m
+                    {join_statement}
+                    WHERE (m.updated_ts BETWEEN :start_ts AND :end_ts) {where_statement}
                     GROUP BY month
-                """), {'start_ts': start_timestamp,
-                       'end_ts': end_timestamp})
-
-            return {row._mapping['month']: row._mapping['count'] for row in result}
+                """
+                stmt = text(stmt_text).bindparams(**bind_params)
+                result = conn.execute(stmt)
+                return {row._mapping['month']: row._mapping['count'] for row in result}

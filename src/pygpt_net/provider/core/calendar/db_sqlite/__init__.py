@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.12 04:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import uuid
@@ -92,8 +92,14 @@ class DbSqliteProvider(BaseProvider):
         """
         return self.storage.get_by_date(year, month, day)
 
-    def get_notes_existence_by_day(self, year, month):
-        """Get notes existence by day"""
+    def get_notes_existence_by_day(self, year, month) -> dict:
+        """
+        Get notes existence by day
+
+        :param year: year
+        :param month: month
+        :return: notes existence by day
+        """
         return self.storage.get_notes_existence_by_day(year, month)
 
     def save(self, note: CalendarNoteItem):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 from .note import Note
@@ -40,6 +40,12 @@ class Calendar:
         year = self.window.ui.calendar['select'].currentYear
         month = self.window.ui.calendar['select'].currentMonth
         self.on_page_changed(year, month, all=all)  # load notes for current month
+
+    def update_ctx_counters(self):
+        """Update context counters only"""
+        year = self.window.ui.calendar['select'].currentYear
+        month = self.window.ui.calendar['select'].currentMonth
+        self.note.refresh_ctx(year, month)
 
     def set_current(self):
         """Set to current selected date"""

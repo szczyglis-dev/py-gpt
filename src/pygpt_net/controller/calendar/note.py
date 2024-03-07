@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 03:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -25,6 +25,7 @@ class Note:
         :param window: Window instance
         """
         self.window = window
+        self.counters_all = True
 
     def update(self):
         """Update on content change"""
@@ -108,7 +109,7 @@ class Note:
 
         :param year: year
         :param month: month
-        :return: combined counts
+        :return: combined counters
         """
         current_month_start = datetime.datetime(year, month, 1)
         last_month_start = (current_month_start - datetime.timedelta(days=1)).replace(day=1)
@@ -118,20 +119,47 @@ class Note:
         else:
             next_month_start = datetime.datetime(year, month + 1, 1)
 
-        current_month_count = self.window.core.ctx.provider.get_ctx_count_by_day(
+        current = self.get_ctx_counters(
             year,
-            month
+            month,
         )
-        last_month_count = self.window.core.ctx.provider.get_ctx_count_by_day(
+        last = self.get_ctx_counters(
             last_month_start.year,
-            last_month_start.month
+            last_month_start.month,
         )
-        next_month_count = self.window.core.ctx.provider.get_ctx_count_by_day(
+        next = self.get_ctx_counters(
             next_month_start.year,
-            next_month_start.month
+            next_month_start.month,
         )
-        combined_counts = {**last_month_count, **current_month_count, **next_month_count}
-        return combined_counts
+        return {**last, **current, **next}  # combine counters
+
+    def get_ctx_counters(self, year: int, month: int) -> dict:
+        """
+        Get ctx counters
+
+        :param year: year
+        :param month: month
+        :return: ctx counters
+        """
+        # default values (no filters)
+        search_string = None
+        search_content = False
+        filters = None
+
+        # + filters
+        if not self.counters_all:
+            search_string = self.window.core.ctx.search_string
+            search_content = self.window.core.ctx.is_search_content()
+            filters = self.window.core.ctx.get_parsed_filters()
+
+        return self.window.core.ctx.provider.get_ctx_count_by_day(
+            year=year,
+            month=month,
+            day=None,
+            search_string=search_string,
+            filters=filters,
+            search_content=search_content,
+        )
 
     def refresh_ctx(self, year: int, month: int):
         """
@@ -173,20 +201,19 @@ class Note:
         else:
             next_month_start = datetime.datetime(year, month + 1, 1)
 
-        current_month_notes = self.window.core.calendar.get_notes_existence_by_day(
+        current = self.window.core.calendar.get_notes_existence_by_day(
             year,
-            month
+            month,
         )
-        last_month_notes = self.window.core.calendar.get_notes_existence_by_day(
+        last = self.window.core.calendar.get_notes_existence_by_day(
             last_month_start.year,
-            last_month_start.month
+            last_month_start.month,
         )
-        next_month_notes = self.window.core.calendar.get_notes_existence_by_day(
+        next = self.window.core.calendar.get_notes_existence_by_day(
             next_month_start.year,
-            next_month_start.month
+            next_month_start.month,
         )
-        combined_notes = {**last_month_notes, **current_month_notes, **next_month_notes}
-        return combined_notes
+        return {**last, **current, **next}  # combine notes existence
 
     def refresh_num(self, year: int, month: int):
         """
@@ -197,6 +224,17 @@ class Note:
         """
         count = self.get_notes_existence_around_month(year, month)
         self.window.ui.calendar['select'].update_notes(count)
+
+    def toggle_counters_all(self, state: bool):
+        """
+        Toggle counters all
+
+        :param state: state
+        """
+        self.counters_all = state
+        self.window.core.config.set("ctx.counters.all", state)
+        self.window.core.config.save()
+        self.window.controller.calendar.update_ctx_counters()
 
     def append_text(self, text: str):
         """
