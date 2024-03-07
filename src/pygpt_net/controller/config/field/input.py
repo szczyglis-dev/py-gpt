@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 class Input:
@@ -32,11 +32,20 @@ class Input:
         :param option: Option data
         """
         value = option["value"]
-        if "type" in option and option["type"] == "int":
-            value = round(int(value), 0)
-        elif "type" in option and option["type"] == "float":
-            value = float(value)
 
+        # type
+        if "type" in option and option["type"] == "int":
+            try:
+                value = round(int(value), 0)
+            except ValueError:
+                value = 0
+        elif "type" in option and option["type"] == "float":
+            try:
+                value = float(value)
+            except ValueError:
+                value = 0.0
+
+        # min/max
         if "type" in option and option["type"] == "int" or option["type"] == "float":
             if value is not None:
                 if "min" in option and option["min"] is not None and value < option["min"]:

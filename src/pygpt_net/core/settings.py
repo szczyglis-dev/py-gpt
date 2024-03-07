@@ -6,9 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 20:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
+import copy
 import json
 import os
 import shutil
@@ -77,9 +78,7 @@ class Settings:
         return persist_options
 
     def load(self):
-        """
-        Load settings options
-        """
+        """Load settings options"""
         self.options = self.window.core.config.get_options()
         self.sections = self.window.core.config.get_sections()
         self.initialized = True
@@ -91,12 +90,14 @@ class Settings:
 
     def load_app_settings(self):
         """Load base app config (from app root dir)"""
-        # persist important values
+        # persist important and non-settings values
+        settings_options = self.get_options()
         persist_options = self.get_persist_options()
+        all_options = self.window.core.config.all()
         persist_values = {}
-        for option in persist_options:
-            if self.window.core.config.has(option):
-                persist_values[option] = self.window.core.config.get(option)
+        for option in all_options:
+            if option in persist_options or option not in settings_options:
+                persist_values[option] = copy.deepcopy(self.window.core.config.get(option))
 
         # save current config backup
         self.window.core.config.save('config.json.backup')
@@ -105,9 +106,8 @@ class Settings:
         self.window.core.config.from_base_config()
 
         # restore persisted values
-        for option in persist_options:
-            if option in persist_values:
-                self.window.core.config.set(option, persist_values[option])
+        for option in persist_values:
+            self.window.core.config.set(option, persist_values[option])
 
     def load_default_editor(self):
         """Load defaults from file"""

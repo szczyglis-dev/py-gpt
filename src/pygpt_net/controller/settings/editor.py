@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import copy
@@ -123,19 +123,18 @@ class Editor:
         self.window.controller.idx.update()
 
         # update layout if needed
-        if self.before_config['layout.density'] != self.window.core.config.get('layout.density'):
+        if self.config_changed('layout.density'):
             self.window.controller.theme.reload()
 
         # update dirs if needed
-        if self.before_config['upload.data_dir'] != self.window.core.config.get('upload.data_dir'):
+        if self.config_changed('upload.data_dir'):
             self.window.core.camera.install()
             self.window.core.image.install()
             self.window.core.filesystem.install()
             self.window.controller.files.update_explorer()
 
         # switch log level in runtime
-        if 'log.level' in self.before_config \
-                and self.before_config['log.level'] != self.window.core.config.get('log.level'):
+        if self.config_changed('log.level'):
             self.window.controller.debug.set_log_level(self.window.core.config.get('log.level'))
 
         # reset dialog geometry if disabled
@@ -144,33 +143,37 @@ class Editor:
             self.window.core.config.save()
 
         # update search result if needed
-        if 'ctx.search_content' in self.before_config \
-                and self.before_config['ctx.search_content'] != self.window.core.config.get('ctx.search_content'):
+        if self.config_changed('ctx.search_content'):
             self.window.controller.ctx.update()
 
         # reload loaders
-        need_loaders_reload = False
-        if 'llama.hub.loaders.args' in self.before_config \
-                and self.before_config['llama.hub.loaders.args'] != self.window.core.config.get(
-            'llama.hub.loaders.args'):
-            need_loaders_reload = True
-        if 'llama.hub.loaders.use_local' in self.before_config \
-                and self.before_config['llama.hub.loaders.use_local'] != self.window.core.config.get(
-            'llama.hub.loaders.use_local'):
-            need_loaders_reload = True
-        if need_loaders_reload:
+        if self.config_changed('llama.hub.loaders.args') or self.config_changed('llama.hub.loaders.use_local'):
             self.window.core.idx.indexing.reload_loaders()
 
         # update idx list
-        if 'llama.idx.list' in self.before_config \
-                and self.before_config['llama.idx.list'] != self.window.core.config.get('llama.idx.list'):
+        if self.config_changed('llama.idx.list'):
             self.window.controller.idx.settings.update_idx_choices()
 
         # update file explorer if vector store provider changed
         self.window.controller.idx.indexer.update_explorer()
 
+        # update chat output
+        if self.config_changed('ctx.allow_item_delete'):
+            self.window.controller.ctx.refresh()
+
         self.before_config = copy.deepcopy(self.window.core.config.all())
         self.window.controller.settings.close_window(id)
+
+    def config_changed(self, key: str) -> bool:
+        """
+        Check if config changed
+
+        :param key: config key
+        :return: bool
+        """
+        if key in self.before_config and self.before_config[key] != self.window.core.config.get(key):
+            return True
+        return False
 
     def hook_update(self, key, value, caller, *args, **kwargs):
         """
