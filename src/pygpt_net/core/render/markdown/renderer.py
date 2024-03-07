@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import re
@@ -210,12 +210,13 @@ class Renderer(BaseRenderer):
                     pass
 
         # append delete link
-        self.get_output_node().append(
-            '<a href="delete:{}"><span class="cmd">[{}]</span></a>'.format(
-                item.id,
-                trans("ctx.delete.item.link")
+        if self.window.core.config.get("ctx.allow_item_delete"):
+            self.get_output_node().append(
+                '<a href="delete:{}"><span class="cmd">[{}]</span></a>'.format(
+                    item.id,
+                    trans("ctx.delete.item.link")
+                )
             )
-        )
 
         # jump to end
         if len(appended) > 0:
