@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -81,6 +81,7 @@ class Mapping:
         nodes['filter.ctx.radio.all'] = 'filter.ctx.radio.all'
         nodes['filter.ctx.radio.pinned'] = 'filter.ctx.radio.pinned'
         nodes['filter.ctx.radio.indexed'] = 'filter.ctx.radio.indexed'
+        nodes['filter.ctx.counters.all'] = 'filter.ctx.counters.all'
 
         # context
         nodes['ctx.label'] = 'ctx.list.label'
