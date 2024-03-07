@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import os
@@ -1057,6 +1057,18 @@ class Patch:
 
                 if 'ctx.records.filter' in data and str(data["ctx.records.filter"]).startswith("label"):
                     data["ctx.records.filter"] = "all"
+                updated = True
+
+            if old < parse_version("2.1.12"):
+                print("Migrating config from < 2.1.12...")
+                if 'max_requests_limit' not in data:
+                    data["max_requests_limit"] = 500
+                if 'ctx.allow_item_delete' not in data:
+                    data["ctx.allow_item_delete"] = True
+                if 'ctx.counters.all' not in data:
+                    data["ctx.counters.all"] = False
+                if 'agent.prompt.continue' not in data:
+                    data["agent.prompt.continue"] = "continue..."
                 updated = True
 
         # update file

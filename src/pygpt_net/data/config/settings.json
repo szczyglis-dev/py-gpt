@@ -298,6 +298,19 @@
         "step": null,
         "advanced": false
     },
+    "ctx.allow_item_delete": {
+        "section": "ctx",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.ctx.allow_item_delete",
+        "description": "settings.ctx.allow_item_delete.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
     "ctx.auto_summary": {
         "section": "ctx",
         "type": "bool",
@@ -396,11 +409,25 @@
         "step": 1,
         "advanced": false
     },
+    "max_requests_limit": {
+        "section": "model",
+        "type": "int",
+        "slider": false,
+        "label": "settings.max_requests_limit",
+        "description": "settings.max_requests_limit.desc",
+        "value": 500,
+        "min": 0,
+        "max": null,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false
+    },
     "context_threshold": {
         "section": "model",
         "type": "int",
         "slider": true,
         "label": "settings.context_threshold",
+        "description": "settings.context_threshold.desc",
         "value": 80,
         "min": 1,
         "max": 1000,
@@ -778,6 +805,19 @@
         "max": null,
         "multiplier": null,
         "step": null,
+        "advanced": false
+    },
+    "agent.prompt.continue": {
+        "section": "agent",
+        "type": "textarea",
+        "slider": false,
+        "label": "settings.agent.prompt.continue",
+        "description": "settings.agent.prompt.continue.desc",
+        "value": "continue...",
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
         "advanced": false
     },
     "agent.goal.notify": {

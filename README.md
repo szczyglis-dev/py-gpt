@@ -2645,6 +2645,8 @@ Config -> Settings...
 
 - `Store Time in History`: Chooses whether timestamps are added to the .txt files.
 
+- `Allow context item delete`: Enable display of the delete conversation item link.
+
 - `Context Auto-summary`: Enables automatic generation of titles for contexts, Default: True.
 
 - `Lock incompatible modes`: If enabled, the app will create a new context when switched to an incompatible mode within an existing context.
@@ -2659,9 +2661,11 @@ Config -> Settings...
 
 **Models**
 
-- `Max Output Tokens`: Determines the maximum number of tokens the model can generate for a single response.
+- `Max Output Tokens`: Sets the maximum number of tokens the model can generate for a single response.
 
-- `Max Total Tokens`: Defines the maximum token count that the application can send to the model, including the conversation context.
+- `Max Total Tokens`: Sets the maximum token count that the application can send to the model, including the conversation context.
+
+- `RPM limit`: Sets the limit of maximum requests per minute (RPM), 0 = no limit.
 
 - `Temperature`: Sets the randomness of the conversation. A lower value makes the model's responses more deterministic, while a higher value increases creativity and abstraction.
 
@@ -2699,9 +2703,9 @@ Config -> Settings...
 
 - `Indexes`: List of created indexes.
 
-- `Vector Store`: Vector store in use (vector database provided by Llama-index).
+- `Vector Store`: Vector store to use (vector database provided by Llama-index).
 
-- `Vector Store (**kwargs)`: Arguments for vector store (api_key, index_name, etc.).
+- `Vector Store (**kwargs)`: Keyword arguments for vector store provider (api_key, index_name, etc.).
 
 - `Recursive directory indexing`: Enables recursive directory indexing, default is False.
 
@@ -2711,7 +2715,7 @@ Config -> Settings...
 
 - `Additional keyword arguments (**kwargs) for data loaders`: Additional keyword arguments, such as settings, API keys, for the data loader. These arguments will be passed to the loader; please refer to the Llama-index or LlamaHub loaders reference for a list of allowed arguments for the specified data loader.
 
-- `Use local models in Video/Audio and Image (vision) loaders`: Enable usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
+- `Use local models in Video/Audio and Image (vision) loaders`: Enables usage of local models in Video/Audio and Image (vision) loaders. If disabled then API models will be used (GPT-4 Vision and Whisper). Note: local models will work only in Python version (not compiled/Snap). Default: False.
 
 - `Auto-index DB in real time`: Enables conversation context auto-indexing.
 
@@ -2725,6 +2729,8 @@ Config -> Settings...
 
 - `Index to use`: Only if sub-mode is llama_index (Chat with files), choose the index to use in Agent mode.
 
+- `Continue prompt`: Prompt sent to automatically continue the conversation. Default: `continue...`
+
 - `Display a tray notification when the goal is achieved.`: If enabled, a notification will be displayed after goal achieved / finished run.
 
 **Updates**
@@ -2735,9 +2741,9 @@ Config -> Settings...
 
 **Developer**
 
-- `Show debug menu`: enables debug (developer) menu.
+- `Show debug menu`: Enables debug (developer) menu.
 
-- `Log and debug events`: Enables logging of events dispatch.
+- `Log and debug events`: Enables logging of event dispatch.
 
 - `Log plugin usage to console`: Enables logging of plugin usage to console.
 
