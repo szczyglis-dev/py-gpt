@@ -6,8 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.01.30 20:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
+
+import time
+from datetime import datetime, timedelta
+
 
 class Bridge:
     def __init__(self, window=None):
@@ -17,6 +21,7 @@ class Bridge:
         :param window: Window instance
         """
         self.window = window
+        self.last_call = None
 
     def call(self, **kwargs) -> bool:
         """
@@ -68,6 +73,9 @@ class Bridge:
             debug = {k: str(v) for k, v in kwargs.items()}
             self.window.core.debug.debug(str(debug))
 
+        # apply RPM limit
+        self.apply_rate_limit()
+
         # Langchain
         if mode == "langchain":
             return self.window.core.chain.call(**kwargs)
@@ -92,3 +100,21 @@ class Bridge:
             debug = {k: str(v) for k, v in kwargs.items()}
             self.window.core.debug.debug(str(debug))
         return self.window.core.gpt.quick_call(**kwargs)
+
+    def apply_rate_limit(self):
+        """Apply API calls RPM limit"""
+        max_per_minute = 500
+        if self.window.core.config.has("max_requests_limit"):
+            max_per_minute = int(self.window.core.config.get("max_requests_limit")) # per minute
+        if max_per_minute <= 0:
+            return
+        interval = timedelta(minutes=1) / max_per_minute
+        now = datetime.now()
+        if self.last_call is not None:
+            time_since_last_call = now - self.last_call
+            if time_since_last_call < interval:
+                sleep_time = (interval - time_since_last_call).total_seconds()
+                self.window.core.debug.debug("RPM limit: sleep for {} seconds".format(sleep_time))
+                time.sleep(sleep_time)
+        self.last_call = now
+
