@@ -1,3 +1,12 @@
+2.1.12 (2024-03-08)
+
+- Added config option for max requests per minute (RPM) in "Settings -> Model" - issue #23.
+- Added config for continue prompt in "Settings -> Agent".
+- Added config option for custom API endpoint URL in "Settings -> General" - issue #21.
+- Added "Allow context item delete" option in "Settings -> Context".
+- Added checkbox "All counters" in filters in Calendar view - when disabled, calendar displays filtered record counters instead of all records.
+- Improved the reset to default option in "Settings" to persist all non-settings config options.
+
 2.1.11 (2024-03-07)
 
 - Fixed search query if multiple labels selected

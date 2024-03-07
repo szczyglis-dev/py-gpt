@@ -37,6 +37,7 @@ class About:
             "gfsysa",
             "kaneda2004",
             "moritz-t-w",
+            "yf007",
         ]
 
     def prepare_content(self) -> str:
