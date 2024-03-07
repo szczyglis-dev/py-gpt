@@ -31,7 +31,10 @@ class DatabaseTableModel(QAbstractTableModel):
             value = self._data[index.row()][index.column()]
             if self._headers[index.column()] in self._timestamp_columns and self._convert_timestamps:
                 try:
-                    value = datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
+                    if value != "None" and value != 0:
+                        value = datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
+                    else:
+                        value = ""
                 except Exception as e:
                     pass
             return value
