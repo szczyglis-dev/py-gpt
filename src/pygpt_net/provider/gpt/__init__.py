@@ -42,10 +42,15 @@ class Gpt:
 
         :return: OpenAI client
         """
-        return OpenAI(
-            api_key=self.window.core.config.get('api_key'),
-            organization=self.window.core.config.get('organization_key'),
-        )
+        args = {
+            "api_key": self.window.core.config.get('api_key'),
+            "organization": self.window.core.config.get('organization_key'),
+        }
+        if self.window.core.config.has('api_endpoint'):
+            endpoint = self.window.core.config.get('api_endpoint')
+            if endpoint:
+                args["base_url"] = endpoint
+        return OpenAI(**args)
 
     def call(self, **kwargs) -> bool:
         """

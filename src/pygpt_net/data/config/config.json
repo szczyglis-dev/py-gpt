@@ -11,6 +11,7 @@
   "agent.mode": "chat",
   "agent.prompt.continue": "continue...",
   "ai_name": "",
+  "api_endpoint": "https://api.openai.com/v1",
   "api_key": "",
   "assistant": "",
   "assistant_thread": "",

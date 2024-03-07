@@ -19,6 +19,8 @@ The following basic options can be modified directly within the application:
 
 * ``OpenAI ORGANIZATION KEY``: The organization's API key, which is optional for use within the application.
 
+* ``API Endpoint``: OpenAI API endpoint URL, default: https://api.openai.com/v1.
+
 * ``Number of notepads``: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
 * ``Show tray icon``: Show/hide tray icon. Tray icon provides additional features like "Ask with screenshot" or "Open notepad". Restart of the application is required for this option to take effect. Default: True.

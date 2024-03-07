@@ -36,6 +36,20 @@
         "persist": true,
         "advanced": false
     },
+    "api_endpoint": {
+        "section": "general",
+        "type": "text",
+        "slider": false,
+        "label": "settings.api_endpoint",
+        "description": "settings.api_endpoint.desc",
+        "value": "https://api.openai.com/v1",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false
+    },
     "notepad.num": {
         "section": "general",
         "type": "int",

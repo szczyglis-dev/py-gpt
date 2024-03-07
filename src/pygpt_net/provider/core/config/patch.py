@@ -1069,6 +1069,8 @@ class Patch:
                     data["ctx.counters.all"] = False
                 if 'agent.prompt.continue' not in data:
                     data["agent.prompt.continue"] = "continue..."
+                if 'api_endpoint' not in data:
+                    data["api_endpoint"] = "https://api.openai.com/v1"
                 updated = True
 
         # update file

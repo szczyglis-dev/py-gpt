@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.11** | build: **2024.03.07** | Python: **>=3.10, <3.12**
+Release: **2.1.12** | build: **2024.03.08** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -2597,6 +2597,8 @@ Config -> Settings...
 
 - `OpenAI ORGANIZATION KEY`: The organization's API key, which is optional for use within the application.
 
+- `API Endpoint`: OpenAI API endpoint URL, default: https://api.openai.com/v1.
+
 - `Number of notepads`: Number of notepad tabs. Restart of the application is required for this option to take effect.
 
 - `Minimize to tray on exit`: Minimize to tray icon on exit. Tray icon enabled is required for this option to work. Default: False.
@@ -2890,6 +2892,15 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
+# 2.1.12 (2024-03-08)
+
+- Added config option for max requests per minute (RPM) in `Settings -> Model` - issue #23.
+- Added config for continue prompt in `Settings -> Agent`.
+- Added config option for custom API endpoint URL in `Settings -> General` - issue #21.
+- Added `Allow context item delete` option in `Settings -> Context`.
+- Added checkbox `All counters` in filters in Calendar view - when disabled, calendar displays filtered record counters instead of all records.
+- Improved the reset to default option in `Settings` to persist all non-settings config options.
+
 # 2.1.11 (2024-03-07)
 
 - Fixed search query if multiple labels selected
@@ -2917,190 +2928,6 @@ may consume additional tokens that are not displayed in the main window.
 - The `read_file` command has been expanded to return just the exact file content, without wrapping it in JSON.
 - Improved prompt for preparing queries in the Chat with files plugin.
 - Updated docs.
-
-# 2.1.7 (2024-03-03)
-
-- Enhanced the Llama-index plugin with additional options for automatically refining queries before requesting additional context from Llama-index.
-
-# 2.1.6 (2024-03-03)
-
-- Added Twitter/X data loader.
-- Added check if message is not a reply when calling Llama-index using a plugin.
-- Added list of Agent indexes auto-reload after Llama-index list has changed.
-- Disabled anonymized telemetry in Chroma by default.
-
-# 2.1.5 (2024-03-02)
-
-- Recompiled SVG resources.
-- Fixed file explorer update after file commands execute.
-- Updated docs.
-
-# 2.1.4 (2024-03-02)
-
-- PySide6 downgraded to 6.4.2 due to a bug in signals emitting.
-
-# 2.1.3 (2024-03-01)
-
-- Added data loaders: Bitbucket, ChatGPT Retrieval Plugin, SQL Databases, GitHub, Microsoft OneDrive.
-- Added indexing configuration tab in `Web Search` plugin.
-
-# 2.1.2 (2024-03-01)
-
-- Added data loaders: Google Drive, Google Docs, Google Gmail, Google Calendar, Google Sheets, Google Keep.
-- Added data loaders: Video/Audio and Images, with local model and API modes.
-- Added Whisper (local hosted) model to `Audio Input` providers, available only in Python version.
-
-# 2.1.1 (2024-02-29)
-
-- Llama-index settings split into tabs.
-- Added keyword argument settings for data loaders.
-- Added data loaders for RSS, XML sitemaps, IPYNB notebooks, and XML and HTML files.
-- Added audio notes - simply use speech recognition in the Notepad tab to append transcribed audio to the Notepad.
-- Added an icon for quick toggling of video camera capture.
-- Added a Video menu.
-- Moved video capture toggle checkboxes to the Video menu.
-
-# 2.1.0 (2024-02-28)
-
-- Upgraded Llama-index from the legacy version `0.9` to the current version `0.10` (note: upgrading PyPi version of PyGPT to `2.1.0` requires reinstallation in a virtual environment to remove old library versions).
-- Upgraded Langchain to `0.1.9`.
-- Upgraded PyInstaller (and compiled versions) to version `6`.
-- Removed LlamaHub and restored support for Python `3.12`.
-- Fixed imports for Llama-index in the compiled versions.
-- Added icons for quickly toggling audio input/output.
-- UI fixes.
-
-# 2.0.171 (2024-02-27)
-
-- Added core for loading web resources (not only webpages) to Llama-index.
-- Added a data loader for transcriptions of YouTube videos (simply ask for index a YouTube video URL using the `Command: Web Search` plugin - the `web_index` command must be enabled).
-- Fixed the "Initial token count exceeds token limit" error in Chat with files mode.
-- Added missing translations for dictionary items in settings dialogs.
-
-# 2.0.170 (2024-02-26)
-
-- Added "simplified" mode to the "Audio Input" plugin, now set as default, allowing for faster and simpler speech recognition without requiring any configuration. Meanwhile, all current options have been moved to "advanced" mode.
-- Improved microphone support in Snap version.
-- Improved file browser update after performing file operations.
-- Added check for file availability for indexing in the file browser.
-
-# 2.0.169 (2024-02-25)
-
-- Improved and refactored debugging
-
-# 2.0.168 (2024-02-25)
-
-- Added auto index file on read option in the `Files I/O` plugin
-- Improved debugger
-- Fixed Bing speech recognition
-
-# 2.0.167 (2024-02-25)
-
-- Fixed empty API key dialog.
-
-# 2.0.166 (2024-02-25)
-
-- Enabled the use of data loaders from Llama-index in the `Files I/O` plugin for reading files, which allows for reading not only text files using the plugin's `read_file` command.
-- Added a command for indexing files to the `Files I/O` plugin.
-- The `self_loop` plugin has been internally renamed to the `agent` plugin.
-- Fixed the display of pinned contexts when the indexed filter is enabled.
-
-# 2.0.165 (2024-02-25)
-
-- Added search provider: `Bing`.
-- Added audio output providers: `Google` and `Eleven Labs`.
-- Added audio input providers: `Google`, `Google Cloud`, and `Bing`.
-- Added a new plugin: `Command: API calls` which allows defining commands for API calls to external services.
-- Added an `Excluded file extensions` configuration option in `Settings -> Llama-index`.
-- Fixed audio input listener initialization in the Audio Input plugin.
-
-# 2.0.164 (2024-02-24)
-
-- Refactored the Audio Input, Audio Output, and Google Web Search plugins to support multiple audio and search engine providers.
-- Introduced the option to add your own audio input, output, and web search providers.
-
-# 2.0.163 (2024-02-23)
-
-- Added storage of indexed urls
-- Added info about used library versions in About dialog
-
-# 2.0.162 (2024-02-23)
-
-- Index data storage migrated from JSON to DB.
-- Added add/remove to index context menu on ctx list.
-- Added last indexed info on ctx list.
-- Added option "Replace old document versions in the index during re-indexing" in "Settings -> Llama-index".
-- Refactored, optimized and improved file and context indexing.
-- Fixed context search SQL query.
-
-# 2.0.161 (2024-02-22)
-
-- Added the option to search within conversation content, not just by titles (disabled by default, can be enabled in: "Settings -> Context -> Search also in conversation content, not only in titles").
-- Added a "download" subdirectory for files downloaded in Assistants mode and an option to configure the directory in: "Settings -> Files and attachments -> Directory for file downloads")
-- Added logging of options available in: "Config -> Debug" to the logger window, not just to the console.
-- Added descriptions in the models editor.
-
-# 2.0.160 (2024-02-21)
-
-- Added auto-replacement of sandbox download links in Assistants with links to downloaded local files.
-- Added setup for Poetry.
-- Added connection timeout config option to Google Search plugin.
-- Fixed recursion error on app exit.
-- Updated dependencies.
-
-# 2.0.159 (2024-02-21)
-
-- Added workdir placeholders to images stored from Assistants.
-- Added tooltips on modes list.
-- Added force synchronous command call if more than one command to execute.
-
-# 2.0.158 (2024-02-21)
-
-- Improved Assistants: added annotations handling, added async function outputs submit
-- Fixed creating function duplicates on re-import existing Assistant
-
-# 2.0.157 (2024-02-20)
-
-- Added webpage (URL) indexing using Llama-Index; new options were added to the Google Search plugin: the command "web_index" for indexing a specified page (just ask to index any URL) and "Auto-index", which enables automatic indexing of URLs used by the plugin (disabled by default).
-- Decreased the default chunk size in the Google Search plugin.
-- Assistant run creation and message sending moved to an async thread.
-- Improved files receive from Assistants.
-
-# 2.0.156 (2024-02-19)
-
-- Added disable SSL verify option for search engine calls (not only for search results) in `Google Search plugin` - issue #20.
-- Updated certifi to 2024.2.2.
-- Added custom launcher, custom plugin, custom vector store, custom LLM provider and custom data loader code examples in `examples` directory in repository.
-- Updated documentation.
-
-# 2.0.155 (2024-02-18)
-
-- Importing assistants and assistant files (from API) has been moved to an asynchronous thread.
-- Upgraded OpenAI API to 1.12.0.
-
-# 2.0.154 (2024-02-18)
-
-- Fixed hidden user input in Assistants mode
-- Fixed system prompt change when switching to Assistants mode without selected Assistant
-
-# 2.0.153 (2024-02-17)
-
-- Added image display in the chat window when a file received from the Assistant is an image
-- Added color labels in color select combo boxes
-- Added dialog window position save and restore (+ option in Settings to enable/disable this feature)
-- Added command "web_url_raw" to the Google Search Plugin which allows you to get the raw HTML/txt content from web pages (without summary)
-- Fixed CSS backup path
-- Updated documentation
-
-# 2.0.152 (2024-02-16)
-
-- Improved updater, added direct links to new releases
-- Improved command execute system prompt
-- Added `cwd` command to `Files I/O` plugin
-- Added automatic current working directory passing to `sys_exec` command prompt in `Code Interpreter`.
-- Added `Refresh` option in File Explorer
-- Added monit about camera connect in Snap version with command to execute
-- Disabled MenuRoles on MacOS-affected menu items - issue #19
 
 The full changelog is located in the **[CHANGELOG.md](CHANGELOG.md)** file in the main folder of this repository.
 
@@ -3132,6 +2959,8 @@ GitHub community:
 - **kaneda2004**
 
 - **moritz-t-w**
+
+- **yf007**
 
 ## Third-party libraries
 
