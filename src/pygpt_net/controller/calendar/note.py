@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.29 19:00:00                  #
+# Updated Date: 2024.03.07 03:00:00                  #
 # ================================================== #
 
 import datetime
@@ -40,9 +40,10 @@ class Note:
 
         # update or create note
         if note is None:
-            note = self.create(year, month, day)
-            note.content = content
-            self.window.core.calendar.add(note)
+            if content.strip() != "":
+                note = self.create(year, month, day)
+                note.content = content
+                self.window.core.calendar.add(note)
         else:
             note.content = content
             self.window.core.calendar.update(note)
