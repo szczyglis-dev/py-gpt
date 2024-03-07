@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 23:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 import os
@@ -84,6 +84,7 @@ def test_on_ctx_before(mock_window):
 
 def test_on_ctx_after(mock_window):
     """Test on ctx after"""
+    mock_window.core.config.set('agent.prompt.continue', "continue...")
     ctx = CtxItem()
     ctx.output = "output"
     flow = Flow(mock_window)
