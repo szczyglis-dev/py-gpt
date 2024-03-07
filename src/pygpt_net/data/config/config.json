@@ -1,7 +1,7 @@
 {
   "__meta__": {
-    "version": "2.1.11",
-    "app.version": "2.1.11",
+    "version": "2.1.12",
+    "app.version": "2.1.12",
     "updated_at": "2024-03-07T00:00:00"
   },
   "agent.auto_stop" : true,
@@ -118,7 +118,7 @@
   "log.llama": false,
   "log.plugins": false,
   "max_output_tokens": 1024,
-  "max_requests_limit": 500,
+  "max_requests_limit": 60,
   "max_tokens_length": 32000,
   "max_total_tokens": 128000,
   "mode": "chat",

@@ -103,7 +103,7 @@ class Bridge:
 
     def apply_rate_limit(self):
         """Apply API calls RPM limit"""
-        max_per_minute = 500
+        max_per_minute = 60
         if self.window.core.config.has("max_requests_limit"):
             max_per_minute = int(self.window.core.config.get("max_requests_limit")) # per minute
         if max_per_minute <= 0:
@@ -117,4 +117,3 @@ class Bridge:
                 self.window.core.debug.debug("RPM limit: sleep for {} seconds".format(sleep_time))
                 time.sleep(sleep_time)
         self.last_call = now
-

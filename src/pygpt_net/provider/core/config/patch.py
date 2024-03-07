@@ -1062,7 +1062,7 @@ class Patch:
             if old < parse_version("2.1.12"):
                 print("Migrating config from < 2.1.12...")
                 if 'max_requests_limit' not in data:
-                    data["max_requests_limit"] = 500
+                    data["max_requests_limit"] = 60
                 if 'ctx.allow_item_delete' not in data:
                     data["ctx.allow_item_delete"] = True
                 if 'ctx.counters.all' not in data:

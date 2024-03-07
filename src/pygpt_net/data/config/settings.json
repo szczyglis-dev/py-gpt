@@ -415,7 +415,7 @@
         "slider": false,
         "label": "settings.max_requests_limit",
         "description": "settings.max_requests_limit.desc",
-        "value": 500,
+        "value": 60,
         "min": 0,
         "max": null,
         "multiplier": 1,
