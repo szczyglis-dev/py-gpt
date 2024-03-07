@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.17 17:00:00                  #
+# Updated Date: 2024.03.07 23:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -122,10 +122,12 @@ class Renderer(BaseRenderer):
         if item.input.strip().startswith("[") and item.input.strip().endswith("]"):
             is_cmd = True
 
+        """
         # hidden internal call
         if item.internal and not is_cmd and item.idx > 0 and not item.input.strip().startswith("user: "):
             self.append_raw('>>>')
             return
+        """
 
         self.append_raw(text.strip())
         self.to_end()
