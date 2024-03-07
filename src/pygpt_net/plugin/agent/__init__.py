@@ -191,10 +191,12 @@ class Plugin(BasePlugin):
         data = event.data
         ctx = event.ctx
 
+        always_events = [Event.FORCE_STOP, Event.PLUGIN_SETTINGS_CHANGED, Event.ENABLE, Event.DISABLE]
+
         if not self.is_allowed() and name != Event.DISABLE:
             return
 
-        if name != Event.FORCE_STOP and name != Event.PLUGIN_SETTINGS_CHANGED and not self.is_active_prompt():
+        if name not in always_events and not self.is_active_prompt():
             return
 
         if name == Event.CTX_BEFORE:
