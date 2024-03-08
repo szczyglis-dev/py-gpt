@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.07 01:00:00                  #
 # ================================================== #
 
 import datetime
@@ -26,6 +26,10 @@ class Note:
         """
         self.window = window
         self.counters_all = True
+
+    def setup(self):
+        """Setup calendar notes"""
+        self.counters_all = self.window.core.config.get("ctx.counters.all", True)
 
     def update(self):
         """Update on content change"""
