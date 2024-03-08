@@ -48,6 +48,7 @@ setup(
         'langchain-experimental>=0.0.52, <0.1.0',
         'langchain-openai>=0.0.2.post1, <0.1.0',
         'llama-index>=0.10.13.post1, <0.11.0',
+        'llama-index-llms-azure-openai>=0.1.5, <0.2.0',
         'llama-index-vector-stores-chroma>=0.1.4, <0.2.0',
         'llama-index-vector-stores-elasticsearch>=0.1.4, <0.2.0',
         'llama-index-vector-stores-pinecone>=0.1.3, <0.2.0',
