@@ -231,7 +231,10 @@ class Chat:
             if response:
                 output = response.response
 
+        # clean tmp index
+        self.log("Removing temporary in-memory index: {} ({})...".format(idx, tmp_id))
         self.storage.clean_tmp(tmp_id)  # clean memory
+        self.log("Returning response: {}".format(output))
         return output
 
     def query_web(self, type: str, url: str, args: dict, query: str, model: ModelItem = None) -> str:
@@ -279,7 +282,10 @@ class Chat:
             if response:
                 output = response.response
 
+        # clean tmp index# clean tmp index
+        self.log("Removing temporary in-memory index: {} ({})...".format(idx, tmp_id))
         self.storage.clean_tmp(tmp_id)  # clean memory
+        self.log("Returning response: {}...".format(output))
         return output
 
     def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:
