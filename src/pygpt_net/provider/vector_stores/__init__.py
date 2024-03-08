@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -15,6 +15,7 @@ from llama_index.core.indices.base import BaseIndex
 
 from .base import BaseStore
 from .temp import TempProvider
+
 
 class Storage:
     def __init__(self, window=None):
@@ -161,20 +162,20 @@ class Storage:
             doc_id=doc_id,
         )
 
-    def get_tmp(self, path: str, service_context=None) -> BaseIndex:
+    def get_tmp(self, identifier: str, service_context=None) -> (str, BaseIndex):
         """
         Get tmp index instance
 
-        :param path: file path
+        :param identifier: identifier
         :param service_context: service context
         :return: index instance
         """
         # convert path to md5 hash
-        id = hashlib.md5(path.encode()).hexdigest()
+        id = hashlib.md5(identifier.encode()).hexdigest()
         storage = self.get_tmp_storage()
         if storage is None:
             raise Exception('Storage engine not found!')
-        return storage.get(
+        return id, storage.get(
             id=id,
             service_context=service_context,
         )
@@ -204,3 +205,14 @@ class Storage:
         if storage is None:
             raise Exception('Storage engine not found!')
         return storage.count()
+
+    def clean_tmp(self, id: str):
+        """
+        Clean temp index
+
+        :param id: index name
+        """
+        storage = self.get_tmp_storage()
+        if storage is None:
+            raise Exception('Storage engine not found!')
+        storage.clean(id)
