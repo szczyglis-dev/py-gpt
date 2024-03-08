@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.08 23:00:00                  #
+# Updated Date: 2024.03.07 01:00:00                  #
 # ================================================== #
 
 import ssl
@@ -284,6 +284,7 @@ class Plugin(BasePlugin):
             label="Syntax: web_index_query",
             description="Syntax for querying web for additional context data",
             advanced=True,
+            tab="indexing",
         )
         """
         # handled by code

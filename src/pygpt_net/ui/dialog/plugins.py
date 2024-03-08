@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.02 20:00:00                  #
+# Updated Date: 2024.03.07 01:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -142,7 +142,8 @@ class Plugins:
                         if tab is not None and tab != "":
                             tab_id = tab
                     if tab_id not in groups:
-                        groups[tab_id] = CollapsedGroup(self.window, group_id, None, False, None)
+                        full_id = group_id + '.' + tab_id
+                        groups[tab_id] = CollapsedGroup(self.window, full_id, None, False, None)
                         groups[tab_id].box.setText(trans('settings.advanced.collapse'))
 
                     option = self.add_option(plugin, widgets[key], options[key])  # build option
@@ -150,8 +151,9 @@ class Plugins:
 
                 # add advanced options group to scrolls
                 for tab_id in groups:
+                    full_id = group_id + '.' + tab_id
                     content_tabs[tab_id].addWidget(groups[tab_id])
-                    self.window.ui.groups[group_id] = groups[tab_id]
+                    self.window.ui.groups[full_id] = groups[tab_id]
 
             # add stretch to the end of every option tab
             for tab_id in content_tabs:

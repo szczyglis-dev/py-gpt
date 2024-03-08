@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 22:00:00                  #
+# Updated Date: 2024.03.07 01:00:00                  #
 # ================================================== #
 
 import copy
@@ -332,6 +332,28 @@ class Plugins:
         :return: dict with presets
         """
         return self.presets
+
+    def update_preset_values(self, plugin_id:str, key: str, value: any):
+        """
+        Update preset value
+
+        :param plugin_id: plugin id
+        :param key: key
+        :param value: value
+        """
+        updated = False
+        if self.presets is None:
+            self.load_presets()
+        for id in self.presets:
+            preset = self.presets[id]
+            for config_preset in preset["config"]:
+                if config_preset == plugin_id:
+                    if key in preset["config"][config_preset]:
+                        preset["config"][config_preset][key] = value
+                        updated = True
+        if updated:
+            self.save_presets()
+
 
     def save_presets(self):
         """Save presets"""
