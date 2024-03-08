@@ -33,9 +33,9 @@ class Input:
         self.no_ctx_idx_modes = [
             "img",
             "assistant",
-            "llama_index",
+            # "llama_index",
             "agent",
-        ]  # assistant handled in async
+        ]  # assistant handled in async, agent handled in agent flow
 
     def send_input(self, force: bool = False):
         """

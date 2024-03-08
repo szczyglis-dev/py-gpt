@@ -1,3 +1,10 @@
+2.1.13 (2024-03-08)
+
+- Fixed context auto-indexing in autonomous/agent mode - issue #23.
+- Added AzureOpenAI provider for Llama.
+- Added configuration option for the model in query file/web options in plugins.
+- Added removal of temporary index from memory after use.
+
 2.1.12 (2024-03-08)
 
 - Added config option for max requests per minute (RPM) in "Settings -> Model" - issue #23.

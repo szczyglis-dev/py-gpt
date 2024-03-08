@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.1.12** | build: **2024.03.08** | Python: **>=3.10, <3.12**
+Release: **2.1.13** | build: **2024.03.08** | Python: **>=3.10, <3.12**
 
 Official website: https://pygpt.net | Documentation: https://pygpt.readthedocs.io
 
@@ -1478,7 +1478,7 @@ You can adjust the number of iterations for the self-conversation in the `Plugin
 - `Prompts` *prompts*
 
 Editable list of prompts used to instruct how to handle autonomous mode, you can create as many prompts as you want. 
-First active prompt on list will be used to handle autonomous mode.
+First active prompt on list will be used to handle autonomous mode. **INFO:** At least one active prompt is required!
 
 - `Auto-stop after goal is reached` *auto_stop*
 
@@ -1497,35 +1497,35 @@ Plugin integrates `Llama-index` storage in any chat and provides additional know
 
 - `Ask Llama-index first` *ask_llama_first*
 
-When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed.
+When enabled, then `Llama-index` will be asked first, and response will be used as additional knowledge in prompt. When disabled, then `Llama-index` will be asked only when needed. **INFO: Disabled in autonomous mode (via plugin)!** *Default:* `False`
 
 - `Auto-prepare question before asking Llama-index first` *prepare_question*
 
-When enabled, then question will be prepared before asking Llama-index first to create best query.
+When enabled, then question will be prepared before asking Llama-index first to create best query. *Default:* `False`
 
 - `Model for question preparation` *model_prepare_question*
 
-Model used to prepare question before asking Llama-index, default: gpt-3.5-turbo
+Model used to prepare question before asking Llama-index. *Default:* `gpt-3.5-turbo`
 
 - `Max output tokens for question preparation` *prepare_question_max_tokens*
 
-Max tokens in output when preparing question before asking Llama-index
+Max tokens in output when preparing question before asking Llama-index. *Default:* `500`
 
 - `Prompt for question preparation` *syntax_prepare_question*
 
-System prompt for question preparation
+System prompt for question preparation.
 
 - `Max characters in question` *max_question_chars*
 
-Max characters in question when querying Llama-index, 0 = no limit, default: 1000
+Max characters in question when querying Llama-index, 0 = no limit. *Default:* `1000`
 
 - `Model` *model_query*
 
-Model used for querying `Llama-index`, default: `gpt-3.5-turbo`
+Model used for querying `Llama-index`. *Default:* `gpt-3.5-turbo`
 
 - `Indexes IDs` *idx*
 
-Indexes to use, default: base, if you want to use multiple indexes at once then separate them by comma.
+Indexes to use. If you want to use multiple indexes at once then separate them by comma. *Default:* `base`
 
 
 ## Command: API calls
@@ -1574,15 +1574,15 @@ You can also provide any required credentials, like Authorization headers, API k
 
 - `Disable SSL verify` *disable_ssl*
 
-Disables SSL verification when making requests
+Disables SSL verification when making requests. *Default:* `False`
 
 - `Timeout` *timeout*
 
-Connection timeout (seconds)
+Connection timeout (seconds). *Default:* `5`
 
 - `User agent` *user_agent*
 
-User agent to use when making requests, default: `Mozilla/5.0`
+User agent to use when making requests. *Default:* `Mozilla/5.0`
 
 
 ## Command: Code Interpreter
@@ -1604,17 +1604,17 @@ Another feature is the ability to execute system commands and return their resul
 
 Python command template (use {filename} as path to file placeholder). *Default:* `python3 {filename}`
 
-- `Enable: Python Code Generate and Execute` *cmd_code_execute*
+- `Enable: Python code generate and execute` *cmd_code_execute*
 
-Allows Python code execution (generate and execute from file). *Default:* `True`
+Allows `code_execute` command execution. If enabled, provides Python code execution (generate and execute from file). *Default:* `True`
 
-- `Enable: Python Code Execute (File)` *cmd_code_execute_file*
+- `Enable: Python code execute (from file)` *cmd_code_execute_file*
 
-Allows Python code execution from existing file. *Default:* `True`
+Allows `code_execute_file` command execution. If enabled, provides Python code execution from existing file. *Default:* `True`
  
-- `Enable: System Command Execute` *cmd_sys_exec*
+- `Enable: system command execute` *cmd_sys_exec*
 
-Allows system commands execution. *Default:* `True`
+Allows `sys_exec` command execution. If enabled, provides system commands execution. *Default:* `True`
 
 - `Sandbox (docker container)` *sandbox_docker*
 
@@ -1626,7 +1626,7 @@ Docker image to use for sandbox *Default:* `python:3.8-alpine`
 
 - `Auto-append CWD to sys_exec` *auto_cwd*
 
-Automatically append current working directory to sys_exec command. *Default:* `True`
+Automatically append current working directory to `sys_exec` command. *Default:* `True`
 
 
 ## Command: Custom Commands
@@ -1715,101 +1715,110 @@ If a file being created (with the same name) already exists, a prefix including 
 
 **Options:**
 
-- `Enable: Send (upload) file as attachment` *cmd_send_file*
+**General**
+
+- `Enable: send (upload) file as attachment` *cmd_send_file*
 
 Allows `cmd_send_file` command execution. *Default:* `True`
 
-- `Enable: Read file` *cmd_read_file*
+- `Enable: read file` *cmd_read_file*
 
 Allows `read_file` command execution. *Default:* `True`
 
-- `Enable: Query file with Llama-index` *cmd_query_file*
+- `Enable: append to file` *cmd_append_file*
 
-Allows `query_file` command execution  (temporary index, on the fly) *Default:* `True`
+Allows `append_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
 
-- `Enable: Append to file` *cmd_append_file*
+- `Enable: save file` *cmd_save_file*
 
-Allows `append_file` command execution. *Default:* `True`
+Allows `save_file` command execution. Text-based files only (plain text, JSON, CSV, etc.) *Default:* `True`
 
-- `Enable: Save file` *cmd_save_file*
-
-Allows `save_file` command execution. *Default:* `True`
-
-- `Enable: Delete file` *cmd_delete_file*
+- `Enable: delete file` *cmd_delete_file*
 
 Allows `delete_file` command execution. *Default:* `True`
 
-- `Enable: List files (ls)` *cmd_list_files*
+- `Enable: list files (ls)` *cmd_list_files*
 
 Allows `list_dir` command execution. *Default:* `True`
 
-- `Enable: List files in dirs in directory (ls)` *cmd_list_dir*
+- `Enable: list files in dirs in directory (ls)` *cmd_list_dir*
 
 Allows `mkdir` command execution. *Default:* `True`
 
-- `Enable: Downloading files` *cmd_download_file*
+- `Enable: downloading files` *cmd_download_file*
 
 Allows `download_file` command execution. *Default:* `True`
 
-- `Enable: Removing directories` *cmd_rmdir*
+- `Enable: removing directories` *cmd_rmdir*
 
 Allows `rmdir` command execution. *Default:* `True`
 
-- `Enable: Copying files` *cmd_copy_file*
+- `Enable: copying files` *cmd_copy_file*
 
 Allows `copy_file` command execution. *Default:* `True`
 
-- `Enable: Copying directories (recursive)` *cmd_copy_dir*
+- `Enable: copying directories (recursive)` *cmd_copy_dir*
 
 Allows `copy_dir` command execution. *Default:* `True`
 
-- `Enable: Move files and directories (rename)` *cmd_move*
+- `Enable: move files and directories (rename)` *cmd_move*
 
 Allows `move` command execution. *Default:* `True`
 
-- `Enable: Check if path is directory` *cmd_is_dir*
+- `Enable: check if path is directory` *cmd_is_dir*
 
 Allows `is_dir` command execution. *Default:* `True`
 
-- `Enable: Check if path is file` *cmd_is_file*
+- `Enable: check if path is file` *cmd_is_file*
 
 Allows `is_file` command execution. *Default:* `True`
 
-- `Enable: Check if file or directory exists` *cmd_file_exists*
+- `Enable: check if file or directory exists` *cmd_file_exists*
 
 Allows `file_exists` command execution. *Default:* `True`
 
-- `Enable: Get file size` *cmd_file_size*
+- `Enable: get file size` *cmd_file_size*
 
 Allows `file_size` command execution. *Default:* `True`
 
-- `Enable: Get file info` *cmd_file_info*
+- `Enable: get file info` *cmd_file_info*
 
 Allows `file_info` command execution. *Default:* `True`
 
-- `Enable: Get current working directory` *cmd_cwd*
+- `Enable: get current working directory` *cmd_cwd*
 
 Allows `cwd` command execution. *Default:* `True`
-
-- `Enable: indexing files` *cmd_file_index*
-
-If enabled, model will be able to index file or directory using Llama-index (`file_index` command). *Default:* `True`
-
-- `Index to use when indexing files` *idx*
-
-ID of index to use for files indexing. *Default:* `base`
 
 - `Use data loaders` *use_loaders*
 
 Use data loaders from Llama-index for file reading (`read_file` command). *Default:* `True`
 
+**Indexing**
+
+- `Enable: quick query the file with Llama-index` *cmd_query_file*
+
+Allows `query_file` command execution (in-memory index). If enabled, model will be able to quick index file into memory and query it for data (in-memory index) *Default:* `True`
+
+- `Model for query in-memory index` *model_tmp_query*
+
+Model used for query temporary index for `query_file` command (in-memory index). *Default:* `gpt-3.5-turbo`
+
+- `Enable: indexing files to persistent index` *cmd_file_index*
+
+Allows `file_index` command execution. If enabled, model will be able to index file or directory using Llama-index (persistent index). *Default:* `True`
+
+- `Index to use when indexing files` *idx*
+
+ID of index to use for indexing files (persistent index). *Default:* `base`
+
 - `Auto index reading files` *auto_index*
 
-If enabled, every time file is read, it will be automatically indexed. *Default:* `False`
+If enabled, every time file is read, it will be automatically indexed (persistent index). *Default:* `False`
 
 - `Only index reading files` *only_index*
 
-If enabled, file will be indexed without return its content on file read. *Default:* `False`
+If enabled, file will be indexed without return its content on file read (persistent index). *Default:* `False`
+
 
 ## Command: Web Search
 
@@ -1823,7 +1832,7 @@ Web searches are provided by `Google Custom Search Engine` and `Microsoft Bing` 
 
 - `Provider` *provider*
 
-Choose the provider. *Default:* `OpenAI TTS`
+Choose the provider. *Default:* `Google`
 
 Available providers:
 
@@ -1872,99 +1881,99 @@ API endpoint for Bing Search API, default: https://api.bing.microsoft.com/v7.0/s
 
 - `Number of pages to search` *num_pages*
 
-Number of max pages to search per query
+Number of max pages to search per query. *Default:* `10`
 
-- ` Max content characters` *max_page_content_length*
+- `Max content characters` *max_page_content_length*
 
-Max characters of page content to get (0 = unlimited)
+Max characters of page content to get (0 = unlimited). *Default:* `0`
 
 - `Per-page content chunk size` *chunk_size*
 
-Per-page content chunk size (max characters per chunk)
+Per-page content chunk size (max characters per chunk). *Default:* `20000`
 
 - `Disable SSL verify` *disable_ssl*
 
-Disables SSL verification when crawling web pages
+Disables SSL verification when crawling web pages. *Default:* `False`
 
 - `Timeout` *timeout*
 
-Connection timeout (seconds)
+Connection timeout (seconds). *Default:* `5`
 
 - `User agent` *user_agent*
 
-User agent to use when making requests, default: Mozilla/5.0
+User agent to use when making requests. *Default:* `Mozilla/5.0`.
 
 - `Max result length` *max_result_length*
 
-Max length of summarized result (characters)
+Max length of summarized result (characters). *Default:* `1500`
 
 - `Max summary tokens` *summary_max_tokens*
 
-Max tokens in output when generating summary
+Max tokens in output when generating summary. *Default:* `1500`
 
-- `Enable: "web_search" command` *cmd_web_search*
+- `Enable: search the Web` *cmd_web_search*
 
-If enabled, model will be able to search the Web
+Allows `web_search` command execution. If enabled, model will be able to search the Web. *Default:* `True`
 
-- `Enable: "web_url_open" command` *cmd_web_url_open*
+- `Enable: opening URLs` *cmd_web_url_open*
 
-If enabled, model will be able to open specified URL and summarize content
+Allows `web_url_open` command execution. If enabled, model will be able to open specified URL and summarize content. *Default:* `True`
 
-- `Enable: "web_url_raw" command` *cmd_web_url_raw*
+- `Enable: reading the raw content from URLs` *cmd_web_url_raw*
 
-If enabled, model will be able to open specified URL and get raw content
+Allows `web_url_raw` command execution. If enabled, model will be able to open specified URL and get the raw content. *Default:* `True`
 
-- `Enable: "web_urls" command` *cmd_web_urls*
+- `Enable: getting a list of URLs from search results` *cmd_web_urls*
 
-If enabled, model will be able to search the Web and get founded URLs list
+Allows `web_urls` command execution. If enabled, model will be able to search the Web and get founded URLs list. *Default:* `True`
 
-- `Enable: "web_index" command` *cmd_web_index*
+- `Enable: indexing web and external content` *cmd_web_index*
 
-If enabled, model will be able to index (on the fly) web pages using Llama-index (persistent index)
+Allows `web_index` command execution. If enabled, model will be able to index pages and external content using Llama-index (persistent index). *Default:* `True`
 
-- `Enable: "web_index_query" command - quick query the web content with Llama-index` *cmd_web_index_query*
+- `Enable: quick query the web and external content` *cmd_web_index_query*
 
-If enabled, model will be able to index and query web content using Llama-index (temporary index, on the fly)
+Allows `web_index_query` command execution. If enabled, model will be able to quick index and query web content using Llama-index (in-memory index). *Default:* `True`
 
 - `Auto-index all used URLs using Llama-index` *auto_index*
 
-If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index)
+If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index). *Default:* `False`
 
 - `Index to use` *idx*
 
-ID of index to use for web page indexing (persistent index)
+ID of index to use for web page indexing (persistent index). *Default:* `base`
 
 - `Model used for web page summarize` *summary_model*
 
-Model used for web page summarize, default: gpt-3.5-turbo-1106
+Model used for web page summarize. *Default:* `gpt-3.5-turbo-1106`
 
 - `Summarize prompt` *prompt_summarize*
 
-Prompt used for web search results summarize, use {query} as a placeholder for search query
+Prompt used for web search results summarize, use {query} as a placeholder for search query.
 
 - `Summarize prompt (URL open)` *prompt_summarize_url*
 
-Prompt used for specified URL page summarize
+Prompt used for specified URL page summarize.
 
 - `Syntax: web_search` *syntax_web_search*
 
-Syntax for web_search command
+Syntax for web_search command.
 
 - `Syntax: web_url_open` *syntax_web_url_open*
 
-Syntax for web_url_open command
+Syntax for web_url_open command.
 
 - `Syntax: web_url_raw` *syntax_web_url_raw*
 
-Syntax for web_url_raw command
+Syntax for web_url_raw command.
 
 - `Syntax: web_urls` *syntax_web_urls*
 
-Syntax for web_urls command
+Syntax for web_urls command.
 
 - `Syntax: web_index` *syntax_web_index*
 
-Syntax for web_index command
+Syntax for web_index command.
 
 ## Command: Serial port / USB
 
@@ -1999,15 +2008,15 @@ void loop() {
 
 - `USB port` *serial_port*
 
-USB port name, e.g. `/dev/ttyUSB0`, `/dev/ttyACM0`, `COM3` *Default:* `/dev/ttyUSB0`
+USB port name, e.g. `/dev/ttyUSB0`, `/dev/ttyACM0`, `COM3`. *Default:* `/dev/ttyUSB0`
 
 - `Connection speed (baudrate, bps)` *serial_bps*
 
-Port connection speed, in bps *Default:* `9600`
+Port connection speed, in bps. *Default:* `9600`
 
 - `Timeout` *timeout*
 
-Timeout in seconds *Default:* `1`
+Timeout in seconds. *Default:* `1`
 
 - `Sleep` *sleep*
 
@@ -2015,27 +2024,27 @@ Sleep in seconds after connection *Default:* `2`
 
 - `Enable: Send text commands to USB port` *cmd_serial_send*
 
-Allows `serial_send` command execution" *Default:* `True`
+Allows `serial_send` command execution. *Default:* `True`
 
 - `Enable: Send raw bytes to USB port` *cmd_serial_send_bytes*
 
-Allows `serial_send_bytes` command execution *Default:* `True`
+Allows `serial_send_bytes` command execution. *Default:* `True`
 
 - `Enable: Read data from USB port` *cmd_serial_read*
 
-Allows `serial_read` command execution *Default:* `True`
+Allows `serial_read` command execution. *Default:* `True`
 
 - `Syntax: serial_send` *syntax_serial_send*
 
-Syntax for sending text command to USB port *Default:* `"serial_send": send text command to USB port, params: "command"`
+Syntax for sending text command to USB port. *Default:* `"serial_send": send text command to USB port, params: "command"`
 
 - `Syntax: serial_send_bytes` *syntax_serial_send_bytes*
 
-Syntax for sending raw bytes to USB port *Default:* `"serial_send_bytes": send raw bytes to USB port, params: "bytes"`
+Syntax for sending raw bytes to USB port. *Default:* `"serial_send_bytes": send raw bytes to USB port, params: "bytes"`
 
 - `Syntax: serial_read` *syntax_serial_read*
 
-Syntax for reading data from USB port *Default:* `"serial_read": read data from serial port in seconds duration, params: "duration"`
+Syntax for reading data from USB port. *Default:* `"serial_read": read data from serial port in seconds duration, params: "duration"`
 
 ## Context history (calendar, inline)
 
@@ -2074,31 +2083,31 @@ When enabled, it allows to automatically retrieve context history using @ tags, 
 
 - `Enable: get date range context list` *cmd_get_ctx_list_in_date_range*
 
-When enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
+Allows `get_ctx_list_in_date_range` command execution. If enabled, it allows getting the list of context history (previous conversations). *Default:* `True`
 
 - `Enable: get context content by ID` *cmd_get_ctx_content_by_id*
 
-When enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
+Allows `get_ctx_content_by_id` command execution. If enabled, it allows getting summarized content of context with defined ID. *Default:* `True`
 
 - `Enable: count contexts in date range` *cmd_count_ctx_in_date*
 
-When enabled, it allows counting contexts in date range. *Default:* `True`
+Allows `count_ctx_in_date` command execution. If enabled, it allows counting contexts in date range. *Default:* `True`
 
 - `Enable: get day note` *cmd_get_day_note*
 
-When enabled, it allows retrieving day note for specific date. *Default:* `True`
+Allows `get_day_note` command execution. If enabled, it allows retrieving day note for specific date. *Default:* `True`
 
 - `Enable: add day note` *cmd_add_day_note*
 
-When enabled, it allows adding day note for specific date. *Default:* `True`
+Allows `add_day_note` command execution. If enabled, it allows adding day note for specific date. *Default:* `True`
 
 - `Enable: update day note` *cmd_update_day_note*
 
-When enabled, it allows updating day note for specific date. *Default:* `True`
+Allows `update_day_note` command execution. If enabled, it allows updating day note for specific date. *Default:* `True`
 
 - `Enable: remove day note` *cmd_remove_day_note*
 
-When enabled, it allows removing day note for specific date. *Default:* `True`
+Allows `remove_day_note` command execution. If enabled, it allows removing day note for specific date. *Default:* `True`
 
 - `Model` *model_summarize*
 
@@ -2200,29 +2209,23 @@ The plugin integrates vision capabilities across all chat modes, not just Vision
 
 - `Model` *model*
 
-The model used to temporarily provide vision capabilities; default is `gpt-4-vision-preview`.
-
+The model used to temporarily provide vision capabilities. *Default:* `gpt-4-vision-preview`.
 
 - `Prompt` *prompt*
 
 The prompt used for vision mode. It will append or replace current system prompt when using vision model.
 
-
 - `Replace prompt` *replace_prompt*
 
-Replace whole system prompt with vision prompt against appending it to the current prompt.
+Replace whole system prompt with vision prompt against appending it to the current prompt. *Default:* `False`
 
+- `Enable: capturing images from camera` *cmd_capture*
 
-- `Enable: "camera capture" command` *cmd_capture*
+Allows `capture` command execution. If enabled, model will be able to capture images from camera itself. The `Execute commands` option must be enabled. *Default:* `False`
 
-Allows using command: camera capture (`Execute commands` option enabled is required).
-If enabled, model will be able to capture images from camera itself.
+- `Enable: making screenshots` *cmd_screenshot*
 
-
-- `Enable: "make screenshot" command` *cmd_screenshot*
-
-Allows using command: make screenshot (`Execute commands` option enabled is required).
-If enabled, model will be able to making screenshots itself.
+Allows `screenshot` command execution. If enabled, model will be able to making screenshots itself. The `Execute commands` option must be enabled. *Default:* `False`
 
 ## Real Time
 
@@ -2891,6 +2894,13 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+# 2.1.13 (2024-03-08)
+
+- Fixed context auto-indexing in autonomous/agent mode - issue #23.
+- Added AzureOpenAI provider for Llama.
+- Added configuration option for the model in query file/web options in plugins.
+- Added removal of temporary index from memory after use.
 
 # 2.1.12 (2024-03-08)
 
