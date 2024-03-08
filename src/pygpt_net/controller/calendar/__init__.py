@@ -27,10 +27,10 @@ class Calendar:
 
     def setup(self):
         """Setup calendar"""
+        self.note.setup()
         self.load()
         self.update()  # update counters and load notes for current month
         self.set_current()  # set to current note at start
-        self.note.setup()
 
     def update(self, all: bool = True):
         """
