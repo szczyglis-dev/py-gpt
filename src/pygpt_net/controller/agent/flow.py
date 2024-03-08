@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.07 23:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.item.ctx import CtxItem
@@ -46,12 +46,17 @@ class Flow:
         """
         stop_cmd = ""
         if auto_stop:
-            stop_cmd = '\n\nSTATUS UPDATE: You can use "goal_update" command to update status of the task. Remember to put it in the form as given, at the end of response and including ' \
-                       'the surrounding ~###~ marks, e.g.: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
+            stop_cmd = '\n\nSTATUS UPDATE: You can use "goal_update" command to update status of the task. ' \
+                       'Remember to put it in the form as given, at the end of response and including ' \
+                       'the surrounding ~###~ marks, ' \
+                       'e.g.: ~###~{"cmd": "goal_update", "params": {"status": "finished"}}~###~'
             stop_cmd+= '\nON GOAL FINISH: When you believe that the task has been completed 100% and all goals have ' \
                        'been achieved, run "goal_update" command with status = "finished".'
-            stop_cmd += '\nON PAUSE, FAILED OR WAIT: If more data from user is needed to achieve the goal or task run must be paused or ' \
-                        'task was failed or when the conversation falls into a loop, THEN STOP REASONING and include "goal_update" command with one of these statuses: "pause", "failed" or "wait"'
+            stop_cmd += '\nON PAUSE, FAILED OR WAIT: If more data from user is needed to achieve the goal or task ' \
+                        'run must be paused or ' \
+                        'task was failed or when the conversation falls into a loop, ' \
+                        'THEN STOP REASONING and include "goal_update" command with one of these statuses: ' \
+                        '"pause", "failed" or "wait"'
         if append_prompt is not None and append_prompt.strip() != "":
             append_prompt = "\n" + append_prompt
         prompt += str(append_prompt) + stop_cmd
@@ -109,9 +114,9 @@ class Flow:
                     force=True,
                     internal=True,
                 )
-            # internal call will not trigger async mode and will hide the message from previous iteration
+        # internal call will not trigger async mode and will hide the message from previous iteration
         elif self.iteration >= int(iterations):
-            self.on_stop()
+            self.on_stop(auto=True)
             if self.window.core.config.get("agent.goal.notify"):
                 self.window.ui.tray.show_msg(
                     trans("notify.agent.stop.title"),
@@ -194,7 +199,7 @@ class Flow:
             try:
                 if item["cmd"] == "goal_update":
                     if item["params"]["status"] == "finished":
-                        self.on_stop()
+                        self.on_stop(auto=True)
                         self.window.ui.status(trans('status.finished'))  # show info
                         self.finished = True
                         if self.window.core.config.get("agent.goal.notify"):
@@ -203,19 +208,25 @@ class Flow:
                                 trans("notify.agent.goal.content"),
                             )
                     elif item["params"]["status"] in pause_status:
-                        self.on_stop()
+                        self.on_stop(auto=True)
                         self.window.ui.status(trans('status.finished'))  # show info
                         self.finished = True
             except Exception as e:
                 self.window.core.debug.error(e)
                 return
 
-    def on_stop(self):
+    def on_stop(self, auto: bool = False):
         """
         Event: On force stop
+
+        :param auto: auto
         """
         self.window.controller.chat.common.unlock_input()
         self.iteration = 0
         self.prev_output = None
         self.stop = True
         self.finished = False  # reset finished flag
+
+        # update index if auto-index enabled, sync mode
+        if auto:
+            self.window.controller.idx.on_ctx_end(None, sync=True)

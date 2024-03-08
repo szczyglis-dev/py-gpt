@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.23 01:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -141,11 +141,12 @@ class Idx:
         if items is not None:
             self.window.ui.toolbox.indexes.update(items)
 
-    def on_ctx_end(self, ctx: CtxItem = None):
+    def on_ctx_end(self, ctx: CtxItem = None, sync: bool = False):
         """
         After context item updated (request + response received)
 
         :param ctx: Context item instance
+        :param sync: Synchronous call
         """
         # ignore if manually stopped
         if self.window.controller.chat.input.stop:
@@ -161,7 +162,7 @@ class Idx:
             if current_ctx is not None:
                 meta = self.window.core.ctx.get_meta_by_id(current_ctx)
                 if meta is not None:
-                    self.indexer.index_ctx_realtime(meta, idx)
+                    self.indexer.index_ctx_realtime(meta, idx, sync=sync)
 
     def after_index(self, idx: str = None):
         """

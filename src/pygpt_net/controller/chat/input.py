@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 06:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -33,7 +33,8 @@ class Input:
         self.no_ctx_idx_modes = [
             "img",
             "assistant",
-            "llama_index"
+            "llama_index",
+            "agent",
         ]  # assistant handled in async
 
     def send_input(self, force: bool = False):
@@ -230,8 +231,9 @@ class Input:
         self.window.controller.ui.update_tokens()  # update UI
         self.generating = False  # unlock
 
-        if mode not in self.no_ctx_idx_modes:
+        if mode not in self.no_ctx_idx_modes and not self.window.controller.agent.enabled():
             self.window.controller.idx.on_ctx_end(ctx)  # update ctx DB index
+            # disabled in agent mode to prevent load everything at once when runs finished.
 
         self.log("End.")
 

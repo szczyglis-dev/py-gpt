@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -131,7 +131,6 @@ class Common:
         if labels is not None:
             self.window.core.ctx.filters_labels = labels
             self.window.ui.nodes['filter.ctx.labels'].restore(labels)
-
 
     def toggle_display_filter(self, filter: str):
         """

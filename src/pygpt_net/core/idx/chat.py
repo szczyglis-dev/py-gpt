@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import json
@@ -182,7 +182,7 @@ class Chat:
                 ctx.stream = response.response_gen
                 ctx.input_tokens = input_tokens
                 ctx.set_output("", "")
-                # no metadata here in agent chat stream response
+                # no metadata here in agent chat stream response!
             else:
                 ctx.add_doc_meta(response.metadata)  # store metadata
                 ctx.input_tokens = input_tokens
@@ -196,38 +196,54 @@ class Chat:
             return True
         return False
 
-    def query_file(self, path: str, query: str) -> str:
+    def query_file(self, path: str, query: str, model: ModelItem = None) -> str:
         """
         Query file using temp index (created on the fly)
 
-        :param path: path to file to index
+        :param path: path to file to index (in memory)
         :param query: query
+        :param model: model
+        :return: response
         """
-        model = self.window.core.models.from_defaults()
+        if model is None:
+            model = self.window.core.models.from_defaults()
         context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get_tmp(path, service_context=context)  # get or create tmp index
+        tmp_id, index = self.storage.get_tmp(path, service_context=context)  # get or create tmp index
 
         idx = "tmp:{}".format(path)  # tmp index id
         self.log("Indexing to temporary in-memory index: {}...".format(idx))
 
         # index file to tmp index
-        files, errors = self.window.core.idx.indexing.index_files(idx, index, path, is_tmp=True)
+        files, errors = self.window.core.idx.indexing.index_files(
+            idx=idx,
+            index=index,
+            path=path,
+            is_tmp=True,  # do not try to remove old doc id
+        )
+
+        # query tmp index
+        output = None
         if len(files) > 0:
             self.log("Querying temporary in-memory index: {}...".format(idx))
             response = index.as_query_engine(
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
-                return response.response
+                output = response.response
 
-    def query_web(self, type: str, url: str, args: dict, query: str) -> str:
+        self.storage.clean_tmp(tmp_id)  # clean memory
+        return output
+
+    def query_web(self, type: str, url: str, args: dict, query: str, model: ModelItem = None) -> str:
         """
         Query web using temp index (created on the fly)
 
         :param type: type of content
-        :param url: url to index
+        :param url: url to index (in memory)
         :param args: extra args
         :param query: query
+        :param model: model
+        :return: response
         """
         parts = {
             "type": type,
@@ -235,9 +251,10 @@ class Chat:
             "args": args,
         }
         id = json.dumps(parts)
-        model = self.window.core.models.from_defaults()
+        if model is None:
+            model = self.window.core.models.from_defaults()
         context = self.window.core.idx.llm.get_service_context(model=model)
-        index = self.storage.get_tmp(id, service_context=context)  # get or create tmp index
+        tmp_id, index = self.storage.get_tmp(id, service_context=context)  # get or create tmp index
 
         idx = "tmp:{}".format(id)  # tmp index id
         self.log("Indexing to temporary in-memory index: {}...".format(idx))
@@ -249,15 +266,21 @@ class Chat:
             urls=[url],
             type=type,
             extra_args=args,
-            is_tmp = True,
+            is_tmp=True,  # do not try to remove old doc id
         )
+
+        # query tmp index
+        output = None
         if num > 0:
             self.log("Querying temporary in-memory index: {}...".format(idx))
             response = index.as_query_engine(
                 streaming=False,
             ).query(query)  # query with default prompt
             if response:
-                return response.response
+                output = response.response
+
+        self.storage.clean_tmp(tmp_id)  # clean memory
+        return output
 
     def get_memory_buffer(self, history: list, llm = None) -> ChatMemoryBuffer:
         """
