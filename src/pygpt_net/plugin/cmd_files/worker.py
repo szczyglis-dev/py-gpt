@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import mimetypes
@@ -266,7 +266,18 @@ class Worker(BaseWorker):
                 if query is not None:
                     # query file using temp index (created on the fly)
                     self.log("Querying file: {}".format(path))
-                    answer = self.plugin.window.core.idx.chat.query_file(path, query)
+
+                    # get tmp query model
+                    model = self.plugin.window.core.models.from_defaults()
+                    tmp_model = self.plugin.get_option_value("model_tmp_query")
+                    if self.plugin.window.core.models.has(tmp_model):
+                        model = self.plugin.window.core.models.get(tmp_model)
+
+                    answer = self.plugin.window.core.idx.chat.query_file(
+                        path=path,
+                        query=query,
+                        model=model,
+                    )
                     self.log("Response from temporary in-memory index: {}".format(answer))
                     if answer:
                         response = {

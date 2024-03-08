@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.06 02:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import os.path
@@ -142,3 +142,18 @@ class TempProvider(BaseStore):
             persist_dir=path,
         )
         self.indexes[id] = index
+
+    def clean(self, id: str):
+        """
+        Clean index
+
+        :param id: index name
+        """
+        if not self.persist:
+            if id in self.indexes:
+                del self.indexes[id]
+            return
+
+        path = self.get_path(id)
+        if os.path.exists(path):
+            os.remove(path)

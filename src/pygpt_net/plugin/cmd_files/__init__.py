@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base import BasePlugin
@@ -71,6 +71,18 @@ class Plugin(BasePlugin):
             value=True,
             label="Enable: Query file with Llama-index",
             description="Allows `query_file` command execution",
+            tab="indexing",
+        )
+        self.add_option(
+            "model_tmp_query",
+            type="combo",
+            value="gpt-3.5-turbo",
+            label="Model for query in-memory index",
+            description="Model used for query in-memory index for `query_file` command, "
+                        "default: gpt-3.5-turbo",
+            tooltip="Query model",
+            use="models",
+            tab="indexing",
         )
         self.add_option(
             "cmd_save_file",
@@ -191,6 +203,7 @@ class Plugin(BasePlugin):
             label="Enable: \"file_index\" command",
             description="If enabled, model will be able to index file or directory using Llama-index",
             tooltip="If enabled, model will be able to index file or directory using Llama-index",
+            tab="indexing",
         )
         self.add_option(
             "idx",
@@ -199,6 +212,7 @@ class Plugin(BasePlugin):
             label="Index to use when indexing files",
             description="ID of index to use for files indexing",
             tooltip="Index name",
+            tab="indexing",
         )
         self.add_option(
             "use_loaders",
@@ -213,6 +227,7 @@ class Plugin(BasePlugin):
             value=False,
             label="Auto index reading files",
             description="If enabled, every time file is read, it will be automatically indexed",
+            tab="indexing",
         )
         self.add_option(
             "only_index",
@@ -220,6 +235,7 @@ class Plugin(BasePlugin):
             value=False,
             label="Only index reading files",
             description="If enabled, file will be indexed without reading it",
+            tab="indexing",
         )
 
         # cmd syntax (prompt/instruction)

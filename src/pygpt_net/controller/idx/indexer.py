@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.28 22:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import datetime
@@ -133,13 +133,15 @@ class Indexer:
     def index_ctx_realtime(
             self,
             meta: CtxMeta,
-            idx: str
+            idx: str,
+            sync: bool = False
     ):
         """
         Index current appended context (threaded) - realtime
 
         :param meta: context meta
         :param idx: index name
+        :param sync: sync mode
         """
         worker = IndexWorker()
         worker.window = self.window
@@ -150,7 +152,11 @@ class Indexer:
         worker.silent = True
         worker.signals.finished.connect(self.handle_finished_db_meta)
         worker.signals.error.connect(self.handle_error)
-        self.window.threadpool.start(worker)
+
+        if sync:
+            worker.run()
+        else:
+            self.window.threadpool.start(worker)
 
     def index_ctx_from_ts_confirm(self, ts: int):
         """

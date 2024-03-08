@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.04 20:00:00                  #
+# Updated Date: 2024.03.08 23:00:00                  #
 # ================================================== #
 
 import ssl
@@ -154,6 +154,28 @@ class Plugin(BasePlugin):
             tooltip="If enabled, model will be able to search the Web and get founded URLs list",
         )
         self.add_option(
+            "cmd_web_index_query",
+            type="bool",
+            value=True,
+            label="Enable: \"web_index_query\" command - quick query the web content with Llama-index",
+            description="If enabled, model will be able to index and query web content using Llama-index "
+                        "(temporary index, on the fly)",
+            tooltip="If enabled, model will be able to index and query web content using Llama-index "
+                    "(temporary index, on the fly)",
+            tab="indexing",
+        )
+        self.add_option(
+            "model_tmp_query",
+            type="combo",
+            value="gpt-3.5-turbo",
+            label="Model for query in-memory index",
+            description="Model used for query in-memory index for `web_index_query` command, "
+                        "default: gpt-3.5-turbo",
+            tooltip="Query model",
+            use="models",
+            tab="indexing",
+        )
+        self.add_option(
             "cmd_web_index",
             type="bool",
             value=True,
@@ -163,21 +185,14 @@ class Plugin(BasePlugin):
             tab="indexing",
         )
         self.add_option(
-            "cmd_web_index_query",
-            type="bool",
-            value=True,
-            label="Enable: \"web_index_query\" command - quick query the web content with Llama-index",
-            description="If enabled, model will be able to index and query web content using Llama-index (temporary index, on the fly)",
-            tooltip="If enabled, model will be able to index and query web content using Llama-index (temporary index, on the fly)",
-            tab="indexing",
-        )
-        self.add_option(
             "auto_index",
             type="bool",
             value=False,
             label="Auto-index all used URLs using Llama-index",
-            description="If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index)",
-            tooltip="If enabled, every URL used by the model will be automatically indexed using Llama-index (persistent index)",
+            description="If enabled, every URL used by the model will be automatically indexed using Llama-index "
+                        "(persistent index)",
+            tooltip="If enabled, every URL used by the model will be automatically indexed using Llama-index "
+                    "(persistent index)",
             tab="indexing",
         )
         self.add_option(
@@ -264,7 +279,8 @@ class Plugin(BasePlugin):
         self.add_option(
             "syntax_web_index_query",
             type="textarea",
-            value='"web_index_query": read, index and query web content for additional context data, params: (same as for web_index)',
+            value='"web_index_query": read, index and query web content for additional context data, '
+                  'params: (same as for web_index)',
             label="Syntax: web_index_query",
             description="Syntax for querying web for additional context data",
             advanced=True,
