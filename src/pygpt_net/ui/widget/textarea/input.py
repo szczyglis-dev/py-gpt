@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.02.25 01:00:00                  #
+# Updated Date: 2024.03.07 01:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -82,9 +82,7 @@ class ChatInput(QTextEdit):
         menu.exec_(event.globalPos())
 
     def audio_read_selection(self):
-        """
-        Read selected text (audio)
-        """
+        """Read selected text (audio)"""
         self.window.controller.audio.read_text(self.textCursor().selectedText())
 
     def keyPressEvent(self, event):
@@ -102,12 +100,15 @@ class ChatInput(QTextEdit):
                     if modifiers == QtCore.Qt.ShiftModifier:
                         self.window.controller.chat.input.send_input()
                 else:  # Enter
-                    self.window.controller.chat.input.send_input()
+                    modifiers = QApplication.keyboardModifiers()
+                    if modifiers != QtCore.Qt.ShiftModifier:
+                        self.window.controller.chat.input.send_input()
                 self.setFocus()
 
     def wheelEvent(self, event):
         """
         Wheel event: set font size
+
         :param event: Event
         """
         if event.modifiers() & Qt.ControlModifier:
